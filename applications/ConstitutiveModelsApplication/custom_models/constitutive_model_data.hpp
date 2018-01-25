@@ -60,17 +60,17 @@ namespace Kratos
     using SizeType       = std::size_t;
     using MatrixType     = bounded_matrix<double,3,3>;
     using VectorType     = array_1d<double,6>;
-    
+
     //state flags
-    KRATOS_DEFINE_LOCAL_FLAG( IMPLEX_ACTIVE );    
+    KRATOS_DEFINE_LOCAL_FLAG( IMPLEX_ACTIVE );
     KRATOS_DEFINE_LOCAL_FLAG( STRAIN_COMPUTED );
     KRATOS_DEFINE_LOCAL_FLAG( STRESS_COMPUTED );
-    KRATOS_DEFINE_LOCAL_FLAG( CONSTITUTIVE_MATRIX_COMPUTED );    
+    KRATOS_DEFINE_LOCAL_FLAG( CONSTITUTIVE_MATRIX_COMPUTED );
     KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_REGION );
     KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_RATE_REGION );
     KRATOS_DEFINE_LOCAL_FLAG( RETURN_MAPPING_COMPUTED );
     KRATOS_DEFINE_LOCAL_FLAG( UPDATE_INTERNAL_VARIABLES );
-    
+
     enum StrainMeasureType  //supplied cauchy green strain measure
     {
       CauchyGreen_None,            //no strain measure supplied
@@ -78,7 +78,7 @@ namespace Kratos
       CauchyGreen_Right,           //right cauchy-green tensor
     };
 
-    
+
     enum StressMeasureType  //required stress measure
     {
       StressMeasure_PK1,            //stress related to reference configuration non-symmetric
@@ -89,10 +89,10 @@ namespace Kratos
 
 
     struct MaterialData
-    {      
+    {
     public:
-      
-      //general elastic material properties 
+
+      //general elastic material properties
       double PoissonCoefficient;
       double YoungModulus;
       double LameMu;
@@ -104,15 +104,15 @@ namespace Kratos
       std::vector<double> ModelParameters;
 
     public:
-      
+
       //Get const Data
       const double& GetPoissonCoefficient() const {return PoissonCoefficient;};
       const double& GetYoungModulus      () const {return YoungModulus;};
       const double& GetLameMu            () const {return LameMu;};
-      const double& GetLameMuBar         () const {return LameMuBar;};   
+      const double& GetLameMuBar         () const {return LameMuBar;};
       const double& GetLameLambda        () const {return LameLambda;};
       const double& GetBulkModulus       () const {return BulkModulus;};
-      
+
       const std::vector<double>& GetModelParameters   () const {return ModelParameters;};
 
     };
@@ -122,7 +122,7 @@ namespace Kratos
     struct VariableValue
     {
     private:
-      
+
       const Variable<T> *mpVariable;
       T *mpValue;
 
@@ -131,49 +131,45 @@ namespace Kratos
       //constructors
       VariableValue(){};
       VariableValue(const Variable<T>& rVariable, T& rValue){mpVariable = &rVariable; mpValue = &rValue;};
-      
+
       //Set Data Pointers
       void SetVariableValue            (const Variable<T>& rVariable, T& rValue) {mpVariable = &rVariable; mpValue = &rValue;};
       void SetVariable                 (const Variable<T>& rVariable) {mpVariable = &rVariable;};
-      void SetValue                    (T& rValue) {mpValue = &rValue;};
 
-      //Get Data Pointers
-      
-      //Acces non const Data
-      T&                 rValue        (){return *mpValue;};
-      
-      //Get const Data	
-      const Variable<T>& GetVariable   () const {return *mpVariable;};
-      const T&           GetValue      () const {return *mpValue;};
+      //Get-Set Data
+      bool HasVariable                 (const Variable<T>& rVariable) const {return (rVariable == *mpVariable);};
+
+      void SetValue                    (T& rValue) {*mpValue = rValue;};
+
     };
-    
+
 
     struct VariableValueData
     {
     private:
- 
+
       enum VarType { INTEGER, DOUBLE, VECTOR, MATRIX, ARRAY3, ARRAY6, NONE };
 
-      VarType                                        mType;      
+      VarType                                        mType;
       VariableValue<int>                    *mpIntVariable;
       VariableValue<double>              *mpDoubleVariable;
       VariableValue<Vector>              *mpVectorVariable;
       VariableValue<Matrix>              *mpMatrixVariable;
       VariableValue<array_1d<double,3> > *mpArray3Variable;
       VariableValue<array_1d<double,6> > *mpArray6Variable;
-      
+
    public:
 
       //Constructor
       VariableValueData()
       {
 	mType            = NONE;
-	mpIntVariable    = NULL;
-	mpDoubleVariable = NULL;
-	mpVectorVariable = NULL;
-	mpMatrixVariable = NULL;
-	mpArray3Variable = NULL;
-	mpArray6Variable = NULL;
+	mpIntVariable    = nullptr;
+	mpDoubleVariable = nullptr;
+	mpVectorVariable = nullptr;
+	mpMatrixVariable = nullptr;
+	mpArray3Variable = nullptr;
+	mpArray6Variable = nullptr;
       }
 
       // Destructor
@@ -205,7 +201,7 @@ namespace Kratos
 	    break;
 	  }
       }
-      
+
       //Set Data
 
       void SetIntVariableValue(const Variable<int>& rVariable, int& rValue)
@@ -228,125 +224,140 @@ namespace Kratos
 	typedef VariableValue<Vector> VariableValueType;
 	mpVectorVariable = new VariableValueType(rVariable,rValue);
       }
-      
+
       void SetMatrixVariableValue(const Variable<Matrix>& rVariable, Matrix& rValue)
       {
 	mType = MATRIX;
 	typedef VariableValue<Matrix> VariableValueType;
 	mpMatrixVariable = new VariableValueType(rVariable,rValue);
       }
-      
+
       void SetArray3VariableValue(const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& rValue)
       {
 	mType = ARRAY3;
 	typedef VariableValue<array_1d<double,3> > VariableValueType;
 	mpArray3Variable = new VariableValueType(rVariable,rValue);
       }
-      
+
       void SetArray6VariableValue(const Variable<array_1d<double,6> >& rVariable, array_1d<double,6>& rValue)
       {
 	mType = ARRAY6;
 	typedef VariableValue<array_1d<double,6> > VariableValueType;
 	mpArray6Variable = new VariableValueType(rVariable,rValue);
       }
-      
-      //Get Data 
+
+      //Get Data
       template<class T>
-      VariableValue<T> GetVariableValue()
-      {	
+      bool GetVariableValue(VariableValue<T>& rVariableValue)
+      {
 	if( std::is_same<T,int>::value ){
-	  return &mpIntVariable;
+	  if(mpIntVariable != nullptr){
+	    rVariableValue = &mpIntVariable;
+	    return true;
+	  }
+	  else{
+	    return false;
+	  }
+
 	}
 	else if( std::is_same<T,double>::value ){
-	  return &mpDoubleVariable;
+	  if(mpDoubleVariable != nullptr){
+	    rVariableValue = &mpDoubleVariable;
+	    return true;
+	  }
+	  else{
+	    return false;
+	  }
 	}
 	else if( std::is_same<T,Vector>::value ){
-	  return &mpVectorVariable;
+	  if(mpVectorVariable != nullptr){
+	    rVariableValue = &mpVectorVariable;
+	    return true;
+	  }
+	  else{
+	    return false;
+	  }
 	}
 	else if( std::is_same<T,Matrix>::value ){
-	  return &mpMatrixVariable;
+	  if(mpMatrixVariable != nullptr){
+	    rVariableValue = &mpMatrixVariable;
+	    return true;
+	  }
+	  else{
+	    return false;
+	  }
 	}
 	else if( std::is_same<T,array_1d<double,3> >::value ){
-	  return &mpArray3Variable;
+	  if(mpArray3Variable != nullptr){
+	    rVariableValue = &mpArray3Variable;
+	    return true;
+	  }
+	  else{
+	    return false;
+	  }
 	}
 	else if( std::is_same<T,array_1d<double,6> >::value ){
-	  return &mpArray6Variable;
+	  if(mpArray6Variable !=nullptr){
+	    rVariableValue = &mpArray6Variable;
+	    return true;
+	  }
+	  else{
+	    return false;
+	  }
+	}
+	else{
+	  return false;
 	}
       }
 
-      template<class T>
-      const Variable<T>& GetVariable()
+      void SetValue(const Variable<int>& rVariable, int& rValue)
       {
-	if( std::is_same<T,int>::value ){
-	  return mpIntVariable->GetVariable();
-	}
-	else if( std::is_same<T,double>::value ){
-	  return mpDoubleVariable->GetVariable();
-	}
-	else if( std::is_same<T,Vector>::value ){
-	  return mpVectorVariable->GetVariable();
-	}
-	else if( std::is_same<T,Matrix>::value ){
-	  return mpMatrixVariable->GetVariable();
-	}
-	else if( std::is_same<T,array_1d<double,3> >::value ){
-	  return mpArray3Variable->GetVariable();
-	}
-	else if( std::is_same<T,array_1d<double,6> >::value ){
-	  return mpArray6Variable->GetVariable();
-	}
-      } 
-      
-      template<class T>
-      const T& GetValue()
-      {
-	if( std::is_same<T,int>::value ){
-	  return mpIntVariable->GetValue();
-	}
-	else if( std::is_same<T,double>::value ){
-	  return mpDoubleVariable->GetValue();
-	}
-	else if( std::is_same<T,Vector>::value ){
-	  return mpVectorVariable->GetValue();
-	}
-	else if( std::is_same<T,Matrix>::value ){
-	  return mpMatrixVariable->GetValue();
-	}
-	else if( std::is_same<T,array_1d<double,3> >::value ){
-	  return mpArray3Variable->GetValue();
-	}
-	else if( std::is_same<T,array_1d<double,6> >::value ){
-	  return mpArray6Variable->GetValue();
-	}
-      }     
+	if(mpIntVariable != nullptr)
+	  if( mpIntVariable->HasVariable(rVariable) )
+	    mpIntVariable->SetValue(rValue);
+      }
 
-      //Acces non const Data
-      template<class T>
-      T& rValue()
+      void SetValue(const Variable<double>& rVariable, double& rValue)
       {
-	if( std::is_same<T,int>::value ){
-	  return mpIntVariable->rValue();
-	}
-	else if( std::is_same<T,double>::value ){
-	  return mpDoubleVariable->rValue();
-	}
-	else if( std::is_same<T,Vector>::value ){
-	  return mpVectorVariable->rValue();
-	}
-	else if( std::is_same<T,Matrix>::value ){
-	  return mpMatrixVariable->rValue();
-	}
-	else if( std::is_same<T,array_1d<double,3> >::value ){
-	  return mpArray3Variable->rValue();
-	}
-	else if( std::is_same<T,array_1d<double,6> >::value ){
-	  return mpArray6Variable->rValue();
-	}
-      }     
-      
+	if(mpDoubleVariable != nullptr)
+	  if( mpDoubleVariable->HasVariable(rVariable) )
+	    mpDoubleVariable->SetValue(rValue);
+      }
+
+      void SetValue(const Variable<Vector>& rVariable, Vector& rValue)
+      {
+	if(mpVectorVariable != nullptr)
+	  if( mpVectorVariable->HasVariable(rVariable) )
+	    mpVectorVariable->SetValue(rValue);
+      }
+
+      void SetValue(const Variable<Matrix>& rVariable, Matrix& rValue)
+      {
+	if(mpMatrixVariable != nullptr)
+	  if( mpMatrixVariable->HasVariable(rVariable) )
+	    mpMatrixVariable->SetValue(rValue);
+
+      }
+
+      void SetValue(const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& rValue)
+      {
+	if(mpArray3Variable != nullptr)
+	  if( mpArray3Variable->HasVariable(rVariable) )
+	    mpArray3Variable->SetValue(rValue);
+      }
+
+      void SetValue(const Variable<array_1d<double,6> >& rVariable, array_1d<double,6>& rValue)
+      {
+	if(mpArray6Variable != nullptr)
+	  if( mpArray6Variable->HasVariable(rVariable) )
+	    mpArray6Variable->SetValue(rValue);
+      }
+
+
+
     };
 
-    
+
     struct ConstitutiveLawData
     {
     public:
@@ -354,10 +365,10 @@ namespace Kratos
       //elemental data
       double                       Pressure;
       double                       Temperature;
-      double                       CharacteristicSize;      
+      double                       CharacteristicSize;
       double                       DeltaDeformationDet;  //wildcard for the determinant of the deformation increment (usually detF )
       double                       TotalDeformationDet;  //wildcard for the determinant of the total deformation     (usually detF0)
-      
+
       //model data
       StressMeasureType            StressMeasure;       //stress measure requested
       StrainMeasureType            StrainMeasure;       //strain measure provided
@@ -366,32 +377,32 @@ namespace Kratos
       MatrixType                   DeltaDeformationMatrix;  //wildcard deformation increment (usually incremental F)
       MatrixType                   TotalDeformationMatrix;  //wildcard total deformation     (usually total F := F0)
     };
-   
-    
+
+
     struct ModelData
     {
     private:
 
       const Flags*                 mpOptions;
-      
+
       const Properties*            mpMaterialProperties;
       const ProcessInfo*           mpProcessInfo;
 
       SizeType                     mVoigtSize;
       VoigtIndexType               mIndexVoigtTensor;
-      
+
       ConstitutiveLawData          mConstitutiveLawData;
-      
+
     public:
-      
+
       Flags                        State;
-      
-      MatrixType                   StressMatrix;           //wildcard stress (isochoric stress tensor)     
+
+      MatrixType                   StressMatrix;           //wildcard stress (isochoric stress tensor)
       MatrixType                   StrainMatrix;           //wildcard strain (cauchy green tensors or infinitessimal tensor)
       MaterialData                 MaterialParameters;
 
       VariableValueData            InternalVariable;       //internal variable to compute and return
-       
+
       //Set Data Pointers
       void SetOptions                      (const Flags&  rOptions)                 {mpOptions = &rOptions;};
       void SetMaterialProperties           (const Properties&  rMaterialProperties) {mpMaterialProperties = &rMaterialProperties;};
@@ -405,8 +416,8 @@ namespace Kratos
       void SetMatrixVariableData           (const Variable<Matrix>& rVariable, Matrix& rValue) {InternalVariable.SetMatrixVariableValue(rVariable,rValue);};
       void SetArray3VariableData           (const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& rValue) {InternalVariable.SetArray3VariableValue(rVariable,rValue);};
       void SetArray6VariableData           (const Variable<array_1d<double,6> >& rVariable, array_1d<double,6>& rValue) {InternalVariable.SetArray6VariableValue(rVariable,rValue);};
-      
-      void  SetStressMeasure               (StressMeasureType Measure)              {mConstitutiveLawData.StressMeasure = Measure;}; 
+
+      void  SetStressMeasure               (StressMeasureType Measure)              {mConstitutiveLawData.StressMeasure = Measure;};
       void  SetStrainMeasure               (StrainMeasureType Measure)              {mConstitutiveLawData.StrainMeasure = Measure;};
 
       //Get Data Pointers
@@ -415,43 +426,43 @@ namespace Kratos
       const ProcessInfo&    GetProcessInfo                 () const {return *mpProcessInfo;};
       const SizeType&       GetVoigtSize                   () const {return  mVoigtSize;};
       const VoigtIndexType& GetVoigtIndexTensor            () const {return  mIndexVoigtTensor;};
-      
+
       //Acces non const Data
       ConstitutiveLawData& rConstitutiveLawData            () {return mConstitutiveLawData;};
       MatrixType&          rStrainMatrix                   () {return StrainMatrix;};
-      MatrixType&          rStressMatrix                   () {return StressMatrix;}; 
-      MaterialData&        rMaterialParameters             () {return MaterialParameters;}; 
+      MatrixType&          rStressMatrix                   () {return StressMatrix;};
+      MaterialData&        rMaterialParameters             () {return MaterialParameters;};
 
       //Get const Data
-      const double&        GetPressure                     () const {return mConstitutiveLawData.Pressure;}; 
+      const double&        GetPressure                     () const {return mConstitutiveLawData.Pressure;};
       const double&        GetTemperature                  () const {return mConstitutiveLawData.Temperature;};
-      const double&        GetDeltaDeformationDet          () const {return mConstitutiveLawData.DeltaDeformationDet;}; 
+      const double&        GetDeltaDeformationDet          () const {return mConstitutiveLawData.DeltaDeformationDet;};
       const double&        GetTotalDeformationDet          () const {return mConstitutiveLawData.TotalDeformationDet;};
-      const double&        GetCharacteristicSize           () const {return mConstitutiveLawData.CharacteristicSize;}; 
+      const double&        GetCharacteristicSize           () const {return mConstitutiveLawData.CharacteristicSize;};
 
-      const StressMeasureType& GetStressMeasure            () const {return mConstitutiveLawData.StressMeasure;}; 
+      const StressMeasureType& GetStressMeasure            () const {return mConstitutiveLawData.StressMeasure;};
       const StrainMeasureType& GetStrainMeasure            () const {return mConstitutiveLawData.StrainMeasure;};
 
-      const MatrixType&    GetDeltaDeformationMatrix       () const {return mConstitutiveLawData.DeltaDeformationMatrix;}; 
+      const MatrixType&    GetDeltaDeformationMatrix       () const {return mConstitutiveLawData.DeltaDeformationMatrix;};
       const MatrixType&    GetTotalDeformationMatrix       () const {return mConstitutiveLawData.TotalDeformationMatrix;};
 
       const ConstitutiveLawData&   GetConstitutiveLawData  () const {return mConstitutiveLawData;};
-      
+
       const MatrixType&    GetStrainMatrix                 () const {return StrainMatrix;};
-      const MatrixType&    GetStressMatrix                 () const {return StressMatrix;}; 
-      const MaterialData&  GetMaterialParameters           () const {return MaterialParameters;}; 
-      
+      const MatrixType&    GetStressMatrix                 () const {return StressMatrix;};
+      const MaterialData&  GetMaterialParameters           () const {return MaterialParameters;};
+
     };
-  
-   
+
+
     // struct ThermalParameters
     // {
     //   //general thermal properties
     //   double ThermalExpansionCoefficient;
-    //   double ReferenceTemperature;      
+    //   double ReferenceTemperature;
     // }
-    
-    
+
+
     /// Pointer definition of ConstitutiveModelData
     KRATOS_CLASS_POINTER_DEFINITION( ConstitutiveModelData );
 
@@ -459,7 +470,7 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.    
+    /// Default constructor.
     ConstitutiveModelData(){}
 
     /// Copy constructor.
@@ -483,30 +494,30 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-    
-    
+
+
     ///@}
     ///@name Access
     ///@{
-    
+
     static inline void CalculateMaterialParameters(ModelData& rValues)
     {
       KRATOS_TRY
-          
+
       //material properties
       const Properties& rProperties = rValues.GetMaterialProperties();
-      ConstitutiveLawData& rConstitutiveLawData = rValues.rConstitutiveLawData(); 
-      
+      ConstitutiveLawData& rConstitutiveLawData = rValues.rConstitutiveLawData();
+
       //if previously computed LameMu / LameLambda / BulkModulus
       // rValues.MaterialParameters.LameMu      = rProperties[LAME_MU];
       // rValues.MaterialParameters.LameLambda  = rProperties[LAME_LAMBDA];
       // rValues.MaterialParameters.BulkModulus = rProperties[BULK_MODULUS];
-      
+
       // compute material properties
 
       // const double& YoungModulus       = rProperties[YOUNG_MODULUS];
       // const double& PoissonCoefficient = rProperties[POISSON_RATIO];
-    
+
       // temperature dependent parameters:
 
       if( rProperties.HasTable(TEMPERATURE,YOUNG_MODULUS) ){
@@ -516,7 +527,7 @@ namespace Kratos
       else{
 	rValues.MaterialParameters.YoungModulus = rProperties[YOUNG_MODULUS];
       }
-    
+
       if( rProperties.HasTable(TEMPERATURE,POISSON_RATIO) ){
 	const Table<double>& PoissonCoefficientTable = rProperties.GetTable(TEMPERATURE,POISSON_RATIO);
 	rValues.MaterialParameters.PoissonCoefficient = PoissonCoefficientTable[rConstitutiveLawData.Temperature];
@@ -524,14 +535,12 @@ namespace Kratos
       else{
 	rValues.MaterialParameters.PoissonCoefficient = rProperties[POISSON_RATIO];
       }
-           
+
       rValues.MaterialParameters.LameMu        = rValues.MaterialParameters.YoungModulus/(2.0*(1.0+rValues.MaterialParameters.PoissonCoefficient));
       rValues.MaterialParameters.LameLambda    = (rValues.MaterialParameters.YoungModulus*rValues.MaterialParameters.PoissonCoefficient)/((1.0+rValues.MaterialParameters.PoissonCoefficient)*(1.0-2.0*rValues.MaterialParameters.PoissonCoefficient));
       rValues.MaterialParameters.BulkModulus   = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
 
-      //infinitessimal strain (plasticity mu_bar := mu)
-      rValues.MaterialParameters.LameMuBar     = rValues.MaterialParameters.LameMu;
-      
+      //std::cout<<" Mu "<<rValues.MaterialParameters.LameMu<<" Lambda "<<rValues.MaterialParameters.LameLambda<<" BulkModulus "<<rValues.MaterialParameters.BulkModulus<<std::endl;
 
       //hyperelastic model parameters
       if( rProperties.Has(C10) ){
@@ -539,17 +548,29 @@ namespace Kratos
 
 	//make neo-hookean consistent with the parameters:
 	rValues.MaterialParameters.LameMu = 2.0 * rProperties[C10];
-	rValues.MaterialParameters.BulkModulus   = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
       }
+
+      if( rProperties.Has(BULK_MODULUS) ){
+	rValues.MaterialParameters.BulkModulus = rProperties[BULK_MODULUS];
+
+	//make neo-hookean consistent with the parameters:
+	rValues.MaterialParameters.LameLambda = rValues.MaterialParameters.BulkModulus - (2.0/3.0) * rValues.MaterialParameters.LameMu;
+      }
+
+      //rValues.MaterialParameters.BulkModulus = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
 
       if( rProperties.Has(C20) )
 	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C20]);
 
       if( rProperties.Has(C30) )
 	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C30]);
-	        
-      KRATOS_CATCH(" ")
 
+      //infinitessimal strain (plasticity mu_bar := mu)
+      rValues.MaterialParameters.LameMuBar     = rValues.MaterialParameters.LameMu;
+
+      //std::cout<<" B: Mu "<<rValues.MaterialParameters.LameMu<<" Lambda "<<rValues.MaterialParameters.LameLambda<<" BulkModulus "<<rValues.MaterialParameters.BulkModulus<<std::endl;
+
+      KRATOS_CATCH(" ")
     }
 
     ///@}
@@ -593,7 +614,7 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -602,13 +623,13 @@ namespace Kratos
     ///@}
     ///@name Protected Operators
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected Operations
     ///@{
 
-        
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -627,7 +648,7 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
@@ -635,7 +656,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -653,7 +674,7 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -698,6 +719,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CONSTITUTIVE_MODEL_DATA_H_INCLUDED  defined 
-
-
+#endif // KRATOS_CONSTITUTIVE_MODEL_DATA_H_INCLUDED  defined

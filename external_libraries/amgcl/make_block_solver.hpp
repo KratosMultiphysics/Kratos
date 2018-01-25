@@ -67,8 +67,7 @@ class make_block_solver {
                 const backend_params &bprm = backend_params()
                 )
         {
-            const int B = math::static_rows<value_type>::value;
-            S = boost::make_shared<Solver>(adapter::block_matrix<B, value_type>(A), prm, bprm);
+            S = boost::make_shared<Solver>(adapter::block_matrix<value_type>(A), prm, bprm);
         }
 
         template <class Matrix, class Vec1, class Vec2>

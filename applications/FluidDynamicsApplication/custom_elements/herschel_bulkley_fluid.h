@@ -147,9 +147,22 @@ public:
                             NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Element::Pointer(new HerschelBulkleyFluid<TBaseElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_shared<HerschelBulkleyFluid<TBaseElement> >(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
     }
 
+    /// Create a new element of this type.
+	/**
+	 @param NewId Index of the new element
+     @param pGeom A pointer to the geometry of the new element
+	 @param pProperties Pointer to the element's properties
+	 */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
+    {
+        return Kratos::make_shared< HerschelBulkleyFluid<TBaseElement> >(NewId,pGeom,pProperties);
+    }
 
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override

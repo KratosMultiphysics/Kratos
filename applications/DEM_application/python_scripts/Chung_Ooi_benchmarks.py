@@ -330,7 +330,7 @@ for iteration in range(1, number_of_points_in_the_graphic + 1):
         os.chdir(graphs_path)
         # measuring mean velocities in a certain control volume (the 'velocity trap')
         if DEM_parameters["VelocityTrapOption"].GetBool():
-            post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time)
+            post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity", time)
 
         #### MATERIAL TEST GRAPHS ############################
         materialTest.MeasureForcesAndPressure()

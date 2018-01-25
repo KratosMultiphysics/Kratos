@@ -32,6 +32,7 @@
 
 /* Adding beam element */
 #include "custom_elements/cr_beam_element_3D2N.hpp"
+#include "custom_elements/cr_beam_element_2D2N.hpp"
 
 /* Adding the adjoint elements */
 #include "custom_elements/adjoint_elements/shell_thin_adjoint_element_3D3N.hpp"
@@ -63,14 +64,14 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 
 /* CONDITIONS */
-#include "custom_conditions/point_moment_3D_condition.hpp"
-#include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/point_moment_condition_3d.h"
 
 /* Adding the adjoint conditions */
 #include "custom_conditions/adjoint_conditions/point_load_adjoint_condition.h"
@@ -83,9 +84,12 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 
 /* UTILITIES */
 // Cross sections
@@ -257,22 +261,18 @@ private:
     // Adding the beam element 
     const CrBeamElement3D2N mCrBeamElement3D2N;
     const CrBeamElement3D2N mCrLinearBeamElement3D2N;
-
-    // Adding adjoint elements
-    const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
-    const ShellThinAdjointElement3D4N   mShellThinAdjointElement3D4N;
-    const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
-
+    const CrBeamElement2D2N mCrBeamElement2D2N;
+    const CrBeamElement2D2N mCrLinearBeamElement2D2N;
 
     // Adding the shells elements 
     const IsotropicShellElement mIsotropicShellElement3D3N;
     const ShellThickElement3D4N mShellThickElement3D4N;
     const ShellThickElement3D4N mShellThickCorotationalElement3D4N;
     const ShellThinElement3D4N   mShellThinCorotationalElement3D4N;
+    const ShellThinElement3D4N   mShellThinElement3D4N;
     const ShellThinElement3D3N mShellThinElement3D3N;
     const ShellThinElement3D3N mShellThinCorotationalElement3D3N;
 	const ShellThickElement3D3N  mShellThickCorotationalElement3D3N;
-    const ShellThinElement3D4N   mShellThinElement3D4N;
 
     // Adding the membrane element 
     const MembraneElement mMembraneElement3D3N;
@@ -352,11 +352,18 @@ private:
     // Adding the spring damper element
     const SpringDamperElement3D2N mSpringDamperElement3D2N;
 
+    // Adding adjoint elements
+    const ShellThinAdjointElement3D3N mShellThinAdjointElement3D3N;
+    const ShellThinAdjointElement3D4N   mShellThinAdjointElement3D4N;
+    const CrBeamAdjointElement3D2N mCrLinearBeamAdjointElement3D2N;
+
     /* CONDITIONS*/
     // Point load
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
-
+    const PointContactCondition mPointContactCondition2D1N;
+    const PointContactCondition mPointContactCondition3D1N;
+    
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     
     // Line load
@@ -373,10 +380,8 @@ private:
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
     
-    // Beam moment condition
-    const PointMoment3DCondition mPointMomentCondition3D1N;
-    // Torque condition
-    const PointTorque3DCondition mPointTorqueCondition3D1N;
+    // Point moment
+    const PointMomentCondition3D mPointMomentCondition3D1N;
 
     // Adjoint Conditions
     const PointLoadAdjointCondition mPointLoadAdjointCondition2D1N;
@@ -392,9 +397,12 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
+    const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
+    const HyperElasticIsotropicKirchhoffPlaneStrain2D  mHyperElasticIsotropicKirchhoffPlaneStrain2D;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
-	const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
+    const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators

@@ -102,23 +102,23 @@ public:
         // Splitted element geometry data containers
         // Positive side geometry data
         MatrixType                  N_pos_side;             // Positive distance element side shape functions values
-        std::vector<MatrixType>     DN_DX_pos_side;         // Positive distance element side shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_pos_side;         // Positive distance element side shape functions gradients values
         VectorType                  w_gauss_pos_side;       // Positive distance element side Gauss pts. weights
 
         // Negative side geometry data
         MatrixType                  N_neg_side;             // Negative distance element side shape functions values
-        std::vector<MatrixType>     DN_DX_neg_side;         // Negative distance element side shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_neg_side;         // Negative distance element side shape functions gradients values
         VectorType                  w_gauss_neg_side;       // Negative distance element side Gauss pts. weights
 
         // Positive interface geometry data
         MatrixType                  N_pos_int;              // Positive interface Gauss pts. shape functions values
-        std::vector<MatrixType>     DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
         VectorType                  w_gauss_pos_int;        // Positive interface Gauss pts. weights
         std::vector<VectorType>     pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
         // Negative interface geometry data
         MatrixType                  N_neg_int;              // Positive interface Gauss pts. shape functions values
-        std::vector<MatrixType>     DN_DX_neg_int;          // Positive interface Gauss pts. shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_neg_int;          // Positive interface Gauss pts. shape functions gradients values
         VectorType                  w_gauss_neg_int;        // Positive interface Gauss pts. weights
         std::vector<VectorType>     neg_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
@@ -159,13 +159,13 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -193,12 +193,6 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
 
-        // Set the elemental distances vector variable
-        Vector& elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
-        for (unsigned int i = 0; i < TNumNodes; i++) {
-            elemental_distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-        }
-
         // Decides if the element is split and fills data structure accordingly
         EmbeddedAusasElementDataStruct data;
         this->FillEmbeddedAusasElementData(data, rCurrentProcessInfo);
@@ -224,12 +218,6 @@ public:
 
         // Initialize RHS
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-
-        // Set the elemental distances vector variable
-        Vector& elemental_distances = this->GetValue(ELEMENTAL_DISTANCES);
-        for (unsigned int i = 0; i < TNumNodes; i++) {
-            elemental_distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-        }
 
         // Decides if the element is split and fills data structure accordingly
         EmbeddedAusasElementDataStruct data;
@@ -296,6 +284,86 @@ public:
         KRATOS_CATCH("");
     }
 
+    void Calculate(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override {
+
+        rOutput = ZeroVector(3);
+
+        // If the element is split, integrate sigma·n over the interface
+        // Note that in the ausas formulation, both interface sides need to be integrated
+        if (rVariable == DRAG_FORCE) {
+
+            EmbeddedAusasElementDataStruct data;
+            this->FillEmbeddedAusasElementData(data, rCurrentProcessInfo);
+
+            // Check if the element is split
+            if (data.n_pos != 0 && data.n_neg != 0){
+
+                // Integrate positive interface side drag
+                const unsigned int n_int_pos_gauss = (data.w_gauss_pos_int).size();
+                for (unsigned int i_gauss = 0; i_gauss < n_int_pos_gauss; ++i_gauss) {
+                    // Get Gauss pt. data
+                    const double w_gauss = data.w_gauss_pos_int(i_gauss);
+                    const array_1d<double, TNumNodes> aux_N = row(data.N_pos_int, i_gauss);
+                    const array_1d<double, 3> side_normal = data.pos_int_unit_normals[i_gauss];
+
+                    // Obtain Gauss pt. pressure
+                    const double p_gauss = inner_prod(aux_N, data.p);
+
+                    // Call the constitutive law to compute the shear contribution
+                    // Recall to set data.N and data.DN_DX (required by the constitutive law)
+                    noalias(data.N) = aux_N;
+                    noalias(data.DN_DX) = data.DN_DX_pos_int[i_gauss];
+                    this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+
+                    // Get the Voigt notation normal projection matrix
+                    bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
+                    this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
+                
+                    // Add the shear and pressure drag contributions
+                    const array_1d<double, TDim> shear_proj = w_gauss * prod(normal_proj_mat, data.stress);
+                    for (unsigned int i = 0; i < TDim ; ++i){
+                        rOutput(i) -= shear_proj(i);
+                    }
+                    rOutput += w_gauss*p_gauss*side_normal;
+                }
+
+                // Integrate negative interface side drag
+                const unsigned int n_int_neg_gauss = (data.w_gauss_neg_int).size();
+                for (unsigned int i_gauss = 0; i_gauss < n_int_neg_gauss; ++i_gauss) {
+                    // Get Gauss pt. data
+                    const double w_gauss = data.w_gauss_neg_int(i_gauss);
+                    const array_1d<double, TNumNodes> aux_N = row(data.N_neg_int, i_gauss);
+                    const array_1d<double, 3> side_normal = data.neg_int_unit_normals[i_gauss];
+
+                    // Obtain Gauss pt. pressure
+                    const double p_gauss = inner_prod(aux_N, data.p);
+
+                    // Call the constitutive law to compute the shear contribution
+                    // Recall to set data.N and data.DN_DX (required by the constitutive law)
+                    noalias(data.N) = aux_N;
+                    noalias(data.DN_DX) = data.DN_DX_neg_int[i_gauss];
+                    this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+
+                    // Get the Voigt notation normal projection matrix
+                    bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
+                    this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
+                
+                    // Add the shear and pressure drag contributions
+                    const array_1d<double, TDim> shear_proj = w_gauss * prod(normal_proj_mat, data.stress);
+                    for (unsigned int i = 0; i < TDim ; ++i){
+                        rOutput(i) -= shear_proj(i);
+                    }
+                    rOutput += w_gauss*p_gauss*side_normal;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "Calculate method not implemented for the requested variable.";
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -312,16 +380,18 @@ public:
 
     /// Turn back information as a string.
     std::string Info() const override {
-        return "EmbeddedAusasNavierStokes";
+        std::stringstream buffer;
+        buffer << "EmbeddedAusasNavierStokesElement" << TDim << "D" << TNumNodes << "N";
+        return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override {
-        rOStream << Info() << Id();
+        rOStream << Info() << "\nElement id: " << Id();
     }
 
     /// Print object's data.
-    // virtual void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
     ///@}
     ///@name Friends
@@ -438,21 +508,17 @@ protected:
             }
         }
 
-        if (rData.n_pos != 0 && rData.n_neg != 0) {
-            this->Set(TO_SPLIT, true);
-        }
-
         // If the element is split, get the modified shape functions
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             GeometryPointerType p_geom = this->pGetGeometry();
 
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
             if (TNumNodes == 4) {
-                p_ausas_modified_sh_func = boost::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
             } else {
-                p_ausas_modified_sh_func = boost::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, distances);
             }
 
             // Call the positive side modified shape functions calculator
@@ -541,7 +607,7 @@ protected:
         bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
 
         // Decide if the element is wether split or not and add the contribution accordingly
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
             const unsigned int n_pos_gauss = (rData.w_gauss_pos_side).size();
@@ -618,7 +684,7 @@ protected:
         array_1d<double, MatrixSize> rhs_local;
 
         // Decide if the element is wether split or not and add the contribution accordingly
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
             const unsigned int n_pos_gauss = (rData.w_gauss_pos_side).size();
@@ -1270,7 +1336,7 @@ protected:
         // Compute the element average values
         double avg_rho = 0.0;
         double avg_visc = 0.0;
-        array_1d<double, 3> avg_vel = ZeroVector(3);
+        array_1d<double, TDim> avg_vel = ZeroVector(TDim);
 
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             avg_rho += rData.rho(i_node);

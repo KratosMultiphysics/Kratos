@@ -25,16 +25,16 @@
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_utilities/eigenvector_to_solution_step_variable_transfer_utility.hpp"
-#include "custom_utilities/adjoint_utilities/finite_differences_utilities.h" //MFusseder TODO: maybe remove this only for controlling results
+#include "custom_utilities/adjoint_utilities/finite_differences_utilities.h" //M.Fusseder TODO: maybe remove this (used only for controlling results)
 
 //Processes
 #include "custom_processes/apply_multi_point_constraints_process.h"
+#include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/output_primal_solution_process.h"
 #include "custom_processes/input_primal_solution_process.h"
 #include "custom_processes/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 
-//response function
+//Response Functions 
 #include "custom_utilities/adjoint_utilities/structural_response_function.h"
 #include "custom_utilities/adjoint_utilities/local_stress_response_function.h"
 #include "custom_utilities/adjoint_utilities/nodal_displacement_response_function.h"
@@ -42,30 +42,10 @@
 #include "custom_utilities/adjoint_utilities/eigenfrequency_response_function.h" 
 
 
-
 namespace Kratos
 {
 namespace Python
 {
-
-inline
-void TransferEigenvector1(
-        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
-        ModelPart& rModelPart,
-        int iEigenMode)
-{
-    rThisUtil.Transfer(rModelPart,iEigenMode);
-}
-
-inline
-void TransferEigenvector2(
-        EigenvectorToSolutionStepVariableTransferUtility& rThisUtil,
-        ModelPart& rModelPart,
-        int iEigenMode,
-        int step)
-{
-    rThisUtil.Transfer(rModelPart,iEigenMode,step);
-}
 
 inline
 void CalculateGradient1(
@@ -87,7 +67,7 @@ void CalculateGradient2(
         ProcessInfo& rProcessInfo)
 {
     rThisUtil.CalculateGradient(rAdjointElem,rAdjointMatrix,rResponseGradient,rProcessInfo);
-}
+}    
 
 void  AddCustomUtilitiesToPython()
 {
@@ -102,12 +82,6 @@ void  AddCustomUtilitiesToPython()
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
 
-    class_<EigenvectorToSolutionStepVariableTransferUtility>(
-                "EigenvectorToSolutionStepVariableTransferUtility")
-    .def("Transfer",TransferEigenvector1)
-    .def("Transfer",TransferEigenvector2)
-    ;
-
     /// Processes
     class_<ApplyMultipointConstraintsProcess, boost::noncopyable, bases<Process>>("ApplyMultipointConstraintsProcess", init<ModelPart&>())
     .def(init< ModelPart&, Parameters& >())
@@ -118,20 +92,20 @@ void  AddCustomUtilitiesToPython()
     .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
     .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
 
+    class_<PostprocessEigenvaluesProcess, boost::noncopyable, bases<Process>>(
+        "PostprocessEigenvaluesProcess", init<ModelPart&, Parameters>());
 
-     class_< OutputPrimalSolutionProcess, bases<Process> >
-    ("OutputPrimalSolutionProcess", init<ModelPart&, Parameters&>())
-    ;
+
+    class_< OutputPrimalSolutionProcess, bases<Process> >
+    ("OutputPrimalSolutionProcess", init<ModelPart&, Parameters&>());
 
     class_< InputPrimalSolutionProcess, bases<Process> >
-    ("InputPrimalSolutionProcess", init<ModelPart&, Parameters&>())
-    ;
+    ("InputPrimalSolutionProcess", init<ModelPart&, Parameters&>());
 
     class_<ReplaceElementsAndConditionsForAdjointProblemProcess , bases<Process>, boost::noncopyable >("ReplaceElementsAndConditionsForAdjointProblemProcess",
-            init<ModelPart&, Parameters>())
-    ;
+            init<ModelPart&, Parameters>());
 
-    //response functions
+    //Response Functions
     class_<StructuralResponseFunction, boost::noncopyable>("StructuralResponseFunction", init<ModelPart&, Parameters&>())
         .def("Initialize", &StructuralResponseFunction::Initialize)
         .def("InitializeSolutionStep", &StructuralResponseFunction::InitializeSolutionStep)
@@ -159,7 +133,7 @@ void  AddCustomUtilitiesToPython()
     class_<EigenfrequencyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
       ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>()); 
 
-    //for global finite differences
+    //For global finite differences
     class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())
         .def("SetDesignVariable", &FiniteDifferencesUtilities::SetDesignVariable)
         .def("GetDesignVariable", &FiniteDifferencesUtilities::GetDesignVariable)
@@ -170,8 +144,7 @@ void  AddCustomUtilitiesToPython()
         .def("GetStressResultantBeam", &FiniteDifferencesUtilities::GetStressResultantBeam)
         .def("GetStressResultantShell", &FiniteDifferencesUtilities::GetStressResultantShell)
         .def("GetNodalDisplacement", &FiniteDifferencesUtilities::GetNodalDisplacement)
-        .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy)
-        ;                 
+        .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy);     
 
 }
 

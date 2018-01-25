@@ -40,7 +40,7 @@ class ExplicitStrategy
 public:
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
