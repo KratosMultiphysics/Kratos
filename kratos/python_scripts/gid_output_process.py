@@ -329,14 +329,14 @@ class GiDOutputProcess(Process):
                                 self.write_deformed_mesh,
                                 WriteConditionsFlag.WriteConditionsOnly) # Cuts are conditions, so we always print conditions in the cut ModelPart
 
-    def __get_gidpost_flag(self,param,label,dictionary):
+    def __get_gidpost_flag(self, param, label, dictionary):
         '''Parse gidpost settings using an auxiliary dictionary of acceptable values.'''
 
         keystring = param[label].GetString()
         try:
             value = dictionary[keystring]
         except KeyError:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,vaule,label)
+            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,value,label)
             raise Exception(msg)
 
         return value
