@@ -95,6 +95,3 @@ The Solid Mechanics application is OPEN SOURCE. The main code and program struct
 ## Contact
 
 * **Josep Maria Carbonell** - *Core Development* - [cpuigbo@cimne.upc.edu](mailto:cpuigbo@cimne.upc.edu)
-
-## FAQ
-
