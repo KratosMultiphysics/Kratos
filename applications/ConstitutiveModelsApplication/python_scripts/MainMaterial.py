@@ -90,7 +90,7 @@ class Solution(object):
         self.end_time   = self.solver.GetEndTime()
 
         # Initialize Solver
-        self.solver.ExecuteInitialize()
+        self.solver.Initialize()
 
         print(" ")
         print("::[Material Modelling]:: -START- ")
@@ -127,7 +127,7 @@ class Solution(object):
 
         self.clock_time = self._start_time_measuring();
 
-        self.solver.Execute()
+        self.solver.Solve()
 
         self._stop_time_measuring(self.clock_time,"Solve Step", self.report);
 
@@ -144,7 +144,7 @@ class Solution(object):
     def Finalize(self):
 
         # Ending the problem
-        self.solver.ExecuteFinalize()
+        self.solver.Finalize()
 
         print("::[Material Modelling]:: -END- ")
         print(" ")

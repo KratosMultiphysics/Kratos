@@ -37,7 +37,8 @@ class MaterialsSolver(object):
 	    "strain_settings":{
 		"description": "shear strain time dependent field",
 		"deformation_gradient" : [ [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ]
-	    }
+	    },
+            "print_output": false
         }
         """)
 
@@ -86,7 +87,9 @@ class MaterialsSolver(object):
         self.parameters = KratosMultiphysics.ConstitutiveLawParameters()
         self._set_basic_parameters()
 
-
+        # Print output
+        self.print_output = self.settings["print_output"].GetBool()
+        
         # Echo level
         self.echo_level = 0
 
@@ -96,7 +99,11 @@ class MaterialsSolver(object):
     def GetEndTime(self):
         return (self.settings["time_settings"]["end_time"].GetDouble())
 
-    def ExecuteInitialize(self):
+    def Initialize(self):
+
+        if( self.print_output ):
+            self._file_open()
+            
         print("::[Material_Solver]:: Solver Ready")
 
 
@@ -115,16 +122,22 @@ class MaterialsSolver(object):
 
         pass
 
-    def Execute(self):
+    def Solve(self):
 
         #calculate material response
         self._calculate_material_response()
 
     def FinalizeSolutionStep(self):
-        pass
 
-    def ExecuteFinalize(self):
+        #write data in file
+        if( self.print_output ):
+            self._write_data_in_file()
 
+    def Finalize(self):
+
+        if( self.print_output ):
+            self._file_close()
+        
         #set strain parameters
         self._set_calculation_options()
 
@@ -315,3 +328,57 @@ class MaterialsSolver(object):
     def _get_matrix_determinant(self, F):
         value = ((F[0,0]*F[1,1]*F[2,2])+(F[0,1]*F[1,2]*F[2,0])+(F[0,2]*F[1,0]*F[2,1])-(F[0,2]*F[1,1]*F[2,0])-(F[0,0]*F[1,2]*F[2,1])-(F[0,1]*F[1,0]*F[2,2]))
         return value
+
+    #
+    def _file_open(self):
+        self.file = open("stress_strain_evolution.txt", 'w')
+        self.file.write("Time Strain_X Stress_X Strain_Y Stress_Y\n")
+        
+    #
+    def _write_data_in_file(self):
+
+        time = 0.0
+        if( self.process_info.Has(KratosMultiphysics.TIME) ):
+            time = self.process_info[KratosMultiphysics.TIME]
+
+        stress = self.parameters.GetStressVector()
+        #strain = self.parameters.GetStrainVector()
+        strain = self._compute_infinitessimal_strain()
+        
+        string = str(time)+" "+str(strain[0])+" "+str(stress[0])+" "+str(strain[1])+" "+str(stress[1])+"\n"
+
+        self.file.write(string)
+        
+    #
+    def _file_close(self):
+        self.file.close()
+
+    #
+    def _compute_infinitessimal_strain(self):
+
+        J = self.F
+
+        J[0,0] = J[0,0]-1.0
+        J[1,1] = J[1,1]-1.0
+        J[1,1] = J[1,1]-1.0
+
+        E = J
+        E[0,1] = 0.5 * (E[0,1] + J[1,0])
+        E[0,2] = 0.5 * (E[0,2] + J[2,0])
+        E[1,2] = 0.5 * (E[1,2] + J[2,1])
+
+        E[1,0] = E[0,1]
+        E[1,0] = E[0,2]
+        E[2,1] = E[1,2]
+
+        strain = KratosMultiphysics.Vector(6)
+
+        strain[0] = E[0,0]
+        strain[1] = E[1,1]
+        strain[2] = E[2,2]
+
+        strain[3] = E[0,1]
+        strain[4] = E[1,2]
+        strain[5] = E[2,0]
+        
+        return strain
