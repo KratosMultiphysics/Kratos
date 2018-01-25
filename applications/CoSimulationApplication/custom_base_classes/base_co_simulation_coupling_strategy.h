@@ -32,15 +32,13 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class CoSimulationBaseCouplingStrategy : public CoSimulationBaseClass<TSparseSpace, TDenseSpace, TLinearSolver>
+class CoSimulationBaseCouplingStrategy
 {
 
   public:
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION(CoSimulationBaseCouplingStrategy);
-    typedef CoSimulationBaseClass<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-    typedef typename BaseType::Pointer CoSimBaseClassPointerType;
     ///@}
     ///@name Life Cycle
     ///@{

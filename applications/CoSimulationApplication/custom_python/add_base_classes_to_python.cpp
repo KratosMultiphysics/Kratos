@@ -21,12 +21,11 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "custom_python/add_base_classes_to_python.h"
-#include "custom_base_classes/base_co_simulation_class.h"
 #include "custom_base_classes/base_co_simulation_application_io.h"
 #include "custom_base_classes/base_co_simulation_application.h"
-#include "custom_base_classes/base_co_simulation_coupling_strategy.h"
+/*#include "custom_base_classes/base_co_simulation_coupling_strategy.h"
 #include "custom_base_classes/base_co_simulation_convergence_acceleration_scheme.h"
-#include "custom_base_classes/base_co_simulation_convergence_criterion.h"
+#include "custom_base_classes/base_co_simulation_convergence_criterion.h"*/
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -45,8 +44,8 @@ void AddCustomBaseClassesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
-    typedef CoSimulationBaseCouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseCouplingStrategyType;
-    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
+    /*typedef CoSimulationBaseCouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseCouplingStrategyType;
+    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;*/
 
     //********************************************************************
     //********************CoSimulationIo**********************************
@@ -73,7 +72,7 @@ void AddCustomBaseClassesToPython()
            
     ;
 
-    //********************************************************************
+   /* //********************************************************************
     //********************CoSimulationCouplingStrategy********************
     //********************************************************************
     class_<CoSimulationBaseCouplingStrategyType,
@@ -93,7 +92,7 @@ void AddCustomBaseClassesToPython()
     //********************************************************************
     class_<CoSimulationBaseConvergenceCriterion,
            boost::noncopyable>("CoSimulationBaseConvergenceCriterion", init<double, double>())
-           .def("IsConverged",&CoSimulationBaseConvergenceCriterion::IsConverged);           
+           .def("IsConverged",&CoSimulationBaseConvergenceCriterion::IsConverged);   */        
 
 }
 

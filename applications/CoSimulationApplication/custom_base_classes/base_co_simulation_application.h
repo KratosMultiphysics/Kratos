@@ -30,8 +30,8 @@ class CoSimulationBaseApplication
   public:
     ///@name Type Definitions
     ///@{
-    typedef std::shared_ptr<AbstractApplication> Pointer;
-    typedef CoSimulationData::Pointer DataPointerType;
+    typedef std::shared_ptr<CoSimulationBaseApplication> Pointer;
+    typedef CoSimulationData<double>::Pointer DataPointerType;
     typedef CoSimulationBaseIo::Pointer BaseIoPointerType;
     typedef CoSimulationMesh::Pointer MeshPointerType;
     ///@}
@@ -64,34 +64,34 @@ class CoSimulationBaseApplication
     }
 
     /// Data synchronization methods
-    virtual void ExportData(DataPointerType iDataField, Pointer iToApp)
+    virtual void ExportData(DataPointerType iData, Pointer iToApp)
     {
-        mpIo->ExportData(iDataField, this->Name(), iToApp->Name());
+        mpIo->ExportData(iData, this->Name(), iToApp->Name());
     }
 
-    virtual void ImportData(DataPointerType iDataField, Pointer iFromApp)
+    virtual void ImportData(DataPointerType iData, Pointer iFromApp)
     {
-        mpIo->ImportData(iDataField, iFromApp->Name(), this->Name());
+        mpIo->ImportData(iData, iFromApp->Name(), this->Name());
     }
 
-    virtual void MakeDataAvailable(DataPointerType iDataField, Pointer iToApp)
+    virtual void MakeDataAvailable(DataPointerType iData, Pointer iToApp)
     {
-        mpIo->MakeDataAvailable(iDataField, this->Name(), iToApp->Name());
+        mpIo->MakeDataAvailable(iData, this->Name(), iToApp->Name());
     }
 
-    virtual void ExportMesh(MeshPointerType iDataField, Pointer iToApp)
+    virtual void ExportMesh(MeshPointerType iMesh, Pointer iToApp)
     {
-        mpIo->ExportMesh(iDataField, this->Name(), iToApp->Name());
+        mpIo->ExportMesh(iMesh, this->Name(), iToApp->Name());
     }
 
-    virtual void ImportMesh(MeshPointerType iDataField, Pointer iFromApp)
+    virtual void ImportMesh(MeshPointerType iMesh, Pointer iFromApp)
     {
-        mpIo->ImportMesh(iDataField, iFromApp->Name(), this->Name());
+        mpIo->ImportMesh(iMesh, iFromApp->Name(), this->Name());
     }
 
-    virtual void MakeMeshAvailable(MeshPointerType iDataField, Pointer iToApp)
+    virtual void MakeMeshAvailable(MeshPointerType iMesh, Pointer iToApp)
     {
-        mpIo->MakeMeshAvailable(iDataField, this->Name(), this->Name(), iToApp->Name());
+        mpIo->MakeMeshAvailable(iMesh, this->Name(), iToApp->Name());
     }
 
     ///@}

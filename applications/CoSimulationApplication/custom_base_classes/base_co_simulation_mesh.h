@@ -21,7 +21,6 @@
 // Application includes
 #include "custom_utilities/co_simulation_include.h"
 
-template <typename Type>
 class CoSimulationMesh
 {
 
@@ -33,7 +32,7 @@ class CoSimulationMesh
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationMesh(std::string iName, unsigned int iSize) : mName(iName), mSize(iSize), mData(nullptr) 
+    CoSimulationMesh(std::string iName, unsigned int iSize) : mName(iName), mSize(iSize)
     {
     }
 
@@ -48,6 +47,7 @@ class CoSimulationMesh
     /////////////////////////////////////////////////
     /// Methods specific for Co-Simulation
     /////////////////////////////////////////////////
+    virtual std::string Name(){ return mName; }
 
     /// Data synchronization methods
     /* 
@@ -55,17 +55,16 @@ class CoSimulationMesh
      * solver available. Once it reads/takes the datafield it SHOULD call the function
      * MakeDataFieldNotAvailable to let the other solvers that the solver took its input
      */
-    virtual void SetSize(const unsigned int iSize);
+    virtual void SetSize(const unsigned int iSize)
     {
     }
 
     virtual void SetMeshData(std::string iMeshName, DataLocationOnMesh iLocationOnMesh)
     {
         mMeshName = iMeshName;
-        mLocationOnMesh = iLocationOnMesh;
     }
 
-    virtual void PrintDetails(std::ofstream iFile)
+    virtual void PrintDetails(std::ofstream& iFile)
     {
     }
 
@@ -124,7 +123,6 @@ class CoSimulationMesh
     ///@}
     ///@name Member Variables
     ///@{
-    Type* mData;
     const std::string mName;
     unsigned int mSize;
     DataLocationOnMesh mLocation;

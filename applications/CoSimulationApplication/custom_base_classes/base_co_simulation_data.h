@@ -50,12 +50,14 @@ class CoSimulationData
     /////////////////////////////////////////////////
 
     /// Data synchronization methods
+    virtual std::string Name(){ return mName; }
+
     /* 
      * This function should read/take the specified output datafields of a
      * solver available. Once it reads/takes the datafield it SHOULD call the function
      * MakeDataFieldNotAvailable to let the other solvers that the solver took its input
      */
-    virtual void SetSize(const unsigned int iSize);
+    virtual void SetSize(const unsigned int iSize)
     {
     }
 
@@ -65,7 +67,7 @@ class CoSimulationData
         mLocationOnMesh = iLocationOnMesh;
     }
 
-    virtual void PrintDetails(std::ofstream iFile)
+    virtual void PrintDetails(std::ofstream& iFile)
     {
     }
     ///@}
@@ -126,7 +128,7 @@ class CoSimulationData
     Type* mData;
     const std::string mName;
     unsigned int mSize;
-    DataLocationOnMesh mLocation;
+    DataLocationOnMesh mLocationOnMesh;
     std::string mMeshName;
     ///@}
     ///@name Private Operators
