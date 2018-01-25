@@ -15,6 +15,7 @@
 #include <boost/python.hpp>
 
 // Project includes
+#include "includes/define.h"
 #include "testing/testing.h"
 
 
