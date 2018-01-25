@@ -26,7 +26,7 @@ namespace Kratos
       , mFilename(Filename + ".mdpa")
       , mOptions(Options)
     {
-        Kratos::shared_ptr<std::fstream> pFile = boost::make_shared<std::fstream>();
+        Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
         std::fstream::openmode OpenMode;
 
         // Set the mode
@@ -1096,7 +1096,7 @@ namespace Kratos
             ExtractValue(word, y);
             ReadWord(word);
             ExtractValue(word, z);
-            NodeType::Pointer temp_node = boost::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
+            NodeType::Pointer temp_node = Kratos::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
             temp_node->X0() = temp_node->X();
             temp_node->Y0() = temp_node->Y();
             temp_node->Z0() = temp_node->Z();
@@ -1282,7 +1282,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties::Pointer props = Kratos::make_shared<Properties>();
         Properties& temp_properties = *props;
         //Properties temp_properties;
 
@@ -2657,7 +2657,7 @@ namespace Kratos
         // adding necessary meshes to the model part.
         MeshType empty_mesh;
         for(SizeType i = number_of_meshes ; i < mesh_id + 1 ; i++)
-            rModelPart.GetMeshes().push_back(boost::make_shared<MeshType>(empty_mesh.Clone()));
+            rModelPart.GetMeshes().push_back(Kratos::make_shared<MeshType>(empty_mesh.Clone()));
 
         MeshType& mesh = rModelPart.GetMesh(mesh_id);
 
@@ -2863,7 +2863,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties::Pointer props = Kratos::make_shared<Properties>();
         Properties& temp_properties = *props;
 //         Properties temp_properties;
 

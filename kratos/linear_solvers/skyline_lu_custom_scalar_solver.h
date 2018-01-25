@@ -82,7 +82,7 @@ public:
                 rA.index2_data().begin(),
                 rA.value_data().begin());
 
-        pSolver = boost::make_shared<SolverType>(*pBuiltinMatrix);
+        pSolver = Kratos::make_shared<SolverType>(*pBuiltinMatrix);
     }
 
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
