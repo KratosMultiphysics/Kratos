@@ -26,6 +26,7 @@
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
+#include "ublas_wrapper.h"
 
 namespace Kratos
 {
@@ -107,32 +108,11 @@ class SparseEigensystemSolver
 
         // --- wrap ublas matrices
 
-        std::vector<int> index1_vector_a(rK.index1_data().size());
-        std::vector<int> index2_vector_a(rK.index2_data().size());
+        UblasWrapper<> a_wrapper(rK);
+        UblasWrapper<> b_wrapper(rM);
 
-        for (size_t i = 0; i < rK.index1_data().size(); i++) {
-            index1_vector_a[i] = (int)rK.index1_data()[i];
-        }
-
-        for (size_t i = 0; i < rK.index2_data().size(); i++) {
-            index2_vector_a[i] = (int)rK.index2_data()[i];
-        }
-
-        Eigen::Map<sparse_t> a(rK.size1(), rK.size2(), rK.nnz(), index1_vector_a.data(), index2_vector_a.data(), rK.value_data().begin());
-
-
-        std::vector<int> index1_vector_b(rM.index1_data().size());
-        std::vector<int> index2_vector_b(rM.index2_data().size());
-
-        for (size_t i = 0; i < rM.index1_data().size(); i++) {
-            index1_vector_b[i] = (int)rM.index1_data()[i];
-        }
-
-        for (size_t i = 0; i < rM.index2_data().size(); i++) {
-            index2_vector_b[i] = (int)rM.index2_data()[i];
-        }
-
-        Eigen::Map<sparse_t> b(rM.size1(), rM.size2(), rM.nnz(), index1_vector_b.data(), index2_vector_b.data(), rM.value_data().begin());
+        const auto& a = a_wrapper.matrix();
+        const auto& b = b_wrapper.matrix();
 
 
         // --- timer

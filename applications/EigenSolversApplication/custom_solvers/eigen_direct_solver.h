@@ -25,6 +25,7 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "linear_solvers/direct_solver.h"
+#include "ublas_wrapper.h"
 
 #include <chrono>
 using namespace std::chrono;
@@ -109,18 +110,9 @@ class EigenDirectSolver
      */
     void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        std::vector<int> index1_vector(rA.index1_data().size());
-        std::vector<int> index2_vector(rA.index2_data().size());
+        UblasWrapper<> a_wrapper(rA);
 
-        for (size_t i = 0; i < rA.index1_data().size(); i++) {
-            index1_vector[i] = (int)rA.index1_data()[i];
-        }
-
-        for (size_t i = 0; i < rA.index2_data().size(); i++) {
-            index2_vector[i] = (int)rA.index2_data()[i];
-        }
-        
-        Eigen::Map<typename TSolver::TSparseMatrix> a(rA.size1(), rA.size2(), rA.nnz(), index1_vector.data(), index2_vector.data(), rA.value_data().begin());
+        const auto& a = a_wrapper.matrix();
 
         m_solver.compute(a);
 
