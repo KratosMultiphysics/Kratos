@@ -59,6 +59,7 @@ namespace Python
 
   }
 
+  // We can add a second module for stand alone users.
 
 }  // namespace Python.
 
