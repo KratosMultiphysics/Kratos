@@ -84,7 +84,7 @@ namespace Kratos
     StaticStepRotationMethod(StaticStepRotationMethod& rOther) : DerivedType(rOther) {}
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new StaticStepRotationMethod(*this) );
     }

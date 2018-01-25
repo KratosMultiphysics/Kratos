@@ -915,8 +915,8 @@ public:
                 for(unsigned int j = 0; j < WorkingSpaceDimension(); j++) {
                     DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
                 }
+                rResult[i] += DeltaXi[i];
             }
-            noalias( rResult ) += DeltaXi;
 
             auto norm2DXi = norm_2(DeltaXi);
 
