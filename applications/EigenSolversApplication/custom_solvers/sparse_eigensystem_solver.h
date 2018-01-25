@@ -120,7 +120,7 @@ class SparseEigensystemSolver
         double start_time = OpenMPUtils::GetCurrentTime();
 
         if (echo_level > 0) {
-            std::cout << "SparseEigensystemSolver: Start"  << std::endl;
+            std::cout << "EigensystemSolver: Start"  << std::endl;
         }
 
 
@@ -194,7 +194,7 @@ class SparseEigensystemSolver
             iteration++;
 
             if (echo_level > 1) {
-                std::cout << "SparseEigensystem: Iteration " << iteration <<std::endl;
+                std::cout << "EigensystemSolver: Iteration " << iteration <<std::endl;
             }
 
             for (int j = 0; j != nc; ++j) {
@@ -221,7 +221,7 @@ class SparseEigensystemSolver
             eig.compute(ar, br);
 
             if(eig.info() != Eigen::Success) {
-                std::cout << "SparseEigensystem: Eigen solution was not successful!" << std::endl;
+                std::cout << "EigensystemSolver: Eigen solution was not successful!" << std::endl;
                 break;
             }
 
@@ -242,12 +242,12 @@ class SparseEigensystemSolver
 
             if (is_converged) {
                 if (echo_level > 0) {
-                    std::cout << "SparseEigensystem: Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
+                    std::cout << "EigensystemSolver: Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
                 }
                 break;
             } else if (iteration >= max_iteration) {
                 if (echo_level > 0) {
-                    std::cout << "SparseEigensystem: Convergence not reached in " << max_iteration << " iterations." << std::endl;
+                    std::cout << "EigensystemSolver: Convergence not reached in " << max_iteration << " iterations." << std::endl;
                 }
                 break;
             }
@@ -273,13 +273,16 @@ class SparseEigensystemSolver
             eigvecs.row(i) = solver.solve(tmp).normalized();
         }
 
-        // --- timer
+        // --- output
 
         if (echo_level > 0) {
             double end_time = OpenMPUtils::GetCurrentTime();
             double duration = end_time - start_time;
-            std::cout << "SparseEigensystemSolver: Completed in " << duration << " seconds" << std::endl;
-            KRATOS_WATCH(rEigenvalues);
+
+            Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");
+
+            std::cout << "EigensystemSolver: Completed in " << duration << " seconds" << std::endl
+                      << "                   Eigenvalues = " << eigvals.transpose().format(fmt) << std::endl;
         }
     }
 
