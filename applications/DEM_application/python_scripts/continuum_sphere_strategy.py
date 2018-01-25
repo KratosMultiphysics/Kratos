@@ -121,9 +121,10 @@ class ExplicitStrategy(BaseExplicitStrategy):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
-    def ModifyProperties(self, properties):
-        BaseExplicitStrategy.ModifyProperties(self, properties)
-
-        ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
-        ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-        ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+    def ModifyProperties(self, properties, param = 0):
+        BaseExplicitStrategy.ModifyProperties(self, properties, param)
+        
+        if not param:
+            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
+            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
+            ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)

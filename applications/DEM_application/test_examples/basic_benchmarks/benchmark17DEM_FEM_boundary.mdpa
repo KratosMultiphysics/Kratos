@@ -168,8 +168,8 @@ Begin Conditions RigidFace3D3N // GUI DEM-FEM-Wall group identifier: fem_gross
 83  1  18 13 15
 End Conditions
 
-Begin Mesh 1 // GUI DEM-FEM-Wall group identifier: fem_fine
-Begin MeshData // GUI DEM-FEM-Wall group identifier: fem_fine
+Begin SubModelPart 1 // GUI DEM-FEM-Wall group identifier: fem_fine
+Begin SubModelPartData // GUI DEM-FEM-Wall group identifier: fem_fine
   VELOCITY [3] (0.0,0.0,0.0)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
@@ -184,18 +184,18 @@ Begin MeshData // GUI DEM-FEM-Wall group identifier: fem_fine
    TOP  0
    BOTTOM  0
    FORCE_INTEGRATION_GROUP  0
-End MeshData
+End SubModelPartData
 
-Begin MeshNodes
+Begin SubModelPartNodes
 61
 62
 52
 54
-End MeshNodes
-End Mesh
+End SubModelPartNodes
+End SubModelPart
 
-Begin Mesh 2 // GUI DEM-FEM-Wall group identifier: fem_gross
-Begin MeshData // GUI DEM-FEM-Wall group identifier: fem_gross
+Begin SubModelPart 2 // GUI DEM-FEM-Wall group identifier: fem_gross
+Begin SubModelPartData // GUI DEM-FEM-Wall group identifier: fem_gross
   VELOCITY [3] (0.0,0.0,0.0)
   VELOCITY_PERIOD 0.0
   ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
@@ -210,9 +210,9 @@ Begin MeshData // GUI DEM-FEM-Wall group identifier: fem_gross
    TOP  0
    BOTTOM  0
    FORCE_INTEGRATION_GROUP  0
-End MeshData
+End SubModelPartData
 
-Begin MeshNodes
+Begin SubModelPartNodes
 3
 4
 5
@@ -268,6 +268,6 @@ Begin MeshNodes
 58
 59
 60
-End MeshNodes
-End Mesh
+End SubModelPartNodes
+End SubModelPart
 

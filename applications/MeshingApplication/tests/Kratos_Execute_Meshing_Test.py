@@ -25,10 +25,7 @@ class Kratos_Execute_Test:
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
-        self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
-
         self.problem_type = self.ProjectParameters["problem_data"]["problem_type"].GetString() 
-    
         self.solve_problem = self.ProjectParameters["problem_data"]["solve_problem"].GetBool()
     
         if (self.problem_type  == "fluid" and missing_external_fluid_dependencies == False):
@@ -37,8 +34,8 @@ class Kratos_Execute_Test:
             self.solver = fluid_wrapper.CreateSolver(self.main_model_part, self.ProjectParameters)
         elif (self.problem_type  == "solid" and missing_external_solid_dependencies == False):
             # Construct the solver (main setting methods are located in the solver_module)
-            solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-            self.solver = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+            import python_solvers_wrapper_structural
+            self.solver = python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.ProjectParameters)
         else:
             raise NameError('Problem type not defined or failing in the import')
 
@@ -55,6 +52,12 @@ class Kratos_Execute_Test:
         # Add dofs (always after importing the model part) (it must be integrated in the ImportModelPart)
         # If we integrate it in the model part we cannot use combined solvers
         self.solver.AddDofs()
+
+        if self.problem_type  == "fluid":
+            self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part} 
+        elif (self.problem_type  == "solid"):
+            self.Model = KratosMultiphysics.Model()
+            self.Model.AddModelPart(self.main_model_part)
 
         # ### Output settings start ####
         self.problem_path = os.getcwd()
@@ -90,13 +93,6 @@ class Kratos_Execute_Test:
             for i in range(self.ProjectParameters["gravity"].size()):
                 gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
                 self.Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
-        
-        elif self.problem_type  == "solid":        
-            # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-            # #Get the list of the submodel part in the object Model
-            for i in range(self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-                part_name = self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-                self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
         
         ## Remeshing processes construction
         if (self.ProjectParameters.Has("initial_remeshing_process") == True):
@@ -167,7 +163,7 @@ class Kratos_Execute_Test:
             # Delta time
             delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
             # Start step
-            self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] = 0
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
             # Start time
             time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
             # End time
@@ -182,7 +178,7 @@ class Kratos_Execute_Test:
             # Solving the problem (time integration)
             while(time <= end_time):
                 time = time + delta_time
-                self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] += 1
+                self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
                 self.main_model_part.CloneTimeStep(time)
                 step = step + 1
                 

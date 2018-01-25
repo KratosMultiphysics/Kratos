@@ -50,10 +50,10 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         # Correction for the eigen solver parameters input
         self.compute_modal_contribution = self.eigensolver_settings["compute_modal_contribution"].GetBool()
         self.eigensolver_settings.RemoveValue("compute_modal_contribution")
-        
+
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, custom_settings)
-        
+
         print("::[Eigen_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
 
     #### Private functions ####
@@ -62,7 +62,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         """Create the scheme for the eigenvalue problem.
 
         The scheme determines the left- and right-hand side matrices in the
-        generalized eigenvalue problem. 
+        generalized eigenvalue problem.
         """
         if self.time_integration_settings["solution_type"].GetString() == "Dynamic":
             solution_scheme = KratosSolid.EigensolverDynamicScheme()
@@ -72,10 +72,10 @@ class EigenSolver(BaseSolver.MechanicalSolver):
 
     def _create_linear_solver(self):
         """Create the eigensolver.
-        
+
         This overrides the base class method and replaces the usual linear solver
         with an eigenvalue problem solver.
-        """        
+        """
         if self.eigensolver_settings["solver_type"].GetString() == "FEAST":
             feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
             if feast_system_solver_settings["solver_type"].GetString() == "complex_skyline_lu_solver":

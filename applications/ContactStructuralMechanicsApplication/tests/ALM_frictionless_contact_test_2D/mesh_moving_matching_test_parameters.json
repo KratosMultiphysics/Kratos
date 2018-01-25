@@ -4,7 +4,7 @@
         "model_part_name" : "Structure",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.25,
+        "time_step"       : 0.1,
         "start_time"      : 0.0,
         "end_time"        : 17.99,
         "echo_level"      : 0
@@ -24,14 +24,13 @@
         "contact_settings":
         {
             "mortar_type"                    : "ALMContactFrictionless",
-            "contact_tolerance"              : 0.0e0,
             "ensure_contact"                 : true
         },
-        "block_builder"                      : true,
+        "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
-        "convergence_criterion"              : "contact_residual_criterion",
+        "convergence_criterion"              : "contact_mixed_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
@@ -148,21 +147,19 @@
         "process_name"  : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto2",
+            "assume_master_slave"         : "Parts_Parts_Auto1",
             "contact_model_part"          : "CONTACT_Contact_Auto1",
             "contact_type"                : "Frictionless",
-            "search_factor"               : 2.0,
+            "search_factor"               : 1.90,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
-            "active_check_factor"         : 1.0e-2,
-            "normal_variation"            : "NODERIVATIVESCOMPUTATION",
-            "dual_search_check"           : false,
+            "active_check_factor"         : 1.0e-1,
+            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
-            "hard_clear_after_step"       : false,
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e0,
+            "manual_ALM"                  : false,
+            "penalty"                     : 2.0e4,
             "scale_factor"                : 1.0e0,
             "debug_mode"                  : false
         }
