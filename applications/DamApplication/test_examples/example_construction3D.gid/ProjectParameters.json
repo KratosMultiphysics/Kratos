@@ -1,0 +1,189 @@
+{
+    "problem_data"             : {
+        "problem_name"        : "example_construction3D",
+        "model_part_name"     : "MainModelPart",
+        "domain_size"         : 3,
+        "parallel_type"       : "OpenMP",
+        "number_of_threads"   : 1,
+        "start_time"          : 1,
+        "end_time"            : 320,
+        "time_step"           : 5,
+        "time_scale"          : "Hours",
+        "consider_selfweight" : false,
+        "streamlines_utility" : false
+    },
+    "solver_settings"          : {
+        "solver_type"                   : "dam_thermo_mechanic_solver",
+        "model_import_settings"         : {
+            "input_type"       : "mdpa",
+            "input_filename"   : "example_construction3D",
+            "input_file_label" : 0
+        },
+        "echo_level"                    : 1,
+        "buffer_size"                   : 2,
+        "processes_sub_model_part_list" : ["DISPLACEMENT_Displacement_Auto1","INITIALTEMPERATURE_Temperature_Auto1","SelfWeight3D_Body_Acceleration_Auto1","ThermalParameters3D_Thermal_Parameters_Auto1","TAmbientFlux3D_T_Ambient_Heat_Flux_Auto1"],
+        "reference_temperature"         : 10.0,
+        "thermal_solver_settings"       : {
+            "echo_level"                         : 1,
+            "reform_dofs_at_each_step"           : false,
+            "clear_storage"                      : false,
+            "compute_reactions"                  : false,
+            "move_mesh_flag"                     : false,
+            "compute_norm_dx_flag"               : false,
+            "theta_scheme"                       : 1.0,
+            "block_builder"                      : true,
+            "linear_solver_settings"             : {
+                "solver_type"         : "BICGSTABSolver",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "preconditioner_type" : "None",
+                "scaling"             : false
+            },
+            "problem_domain_sub_model_part_list" : ["Thermal_Part_Auto_1","Thermal_Part_Auto_2","Thermal_Part_Auto_3","Thermal_Part_Auto_4","Thermal_Part_Auto_5","Thermal_Part_Auto_6","Thermal_Part_Auto_7","Thermal_Part_Auto_8","Thermal_Part_Auto_9"],
+            "thermal_loads_sub_model_part_list"  : ["ThermalParameters3D_Thermal_Parameters_Auto1","TAmbientFlux3D_T_Ambient_Heat_Flux_Auto1"]
+        },
+        "mechanical_solver_settings"    : {
+            "solution_type"                        : "Quasi-Static",
+            "strategy_type"                        : "Newton-Raphson",
+            "scheme_type"                          : "Newmark",
+            "convergence_criterion"                : "And_criterion",
+            "displacement_relative_tolerance"      : 0.0001,
+            "displacement_absolute_tolerance"      : 1e-9,
+            "residual_relative_tolerance"          : 0.0001,
+            "residual_absolute_tolerance"          : 1e-9,
+            "max_iteration"                        : 15,
+            "echo_level"                           : 0,
+            "buffer_size"                          : 2,
+            "compute_reactions"                    : true,
+            "reform_dofs_at_each_step"             : false,
+            "move_mesh_flag"                       : true,
+            "block_builder"                        : false,
+            "clear_storage"                        : false,
+            "rayleigh_m"                           : 0.0,
+            "rayleigh_k"                           : 0.0,
+            "nonlocal_damage"                      : false,
+            "linear_solver_settings"               : {
+                "solver_type"         : "BICGSTABSolver",
+                "max_iteration"       : 200,
+                "tolerance"           : 1e-7,
+                "preconditioner_type" : "None",
+                "scaling"             : false
+            },
+            "problem_domain_sub_model_part_list"   : ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3","Parts_Parts_Auto4","Parts_Parts_Auto5","Parts_Parts_Auto6","Parts_Parts_Auto7","Parts_Parts_Auto8","Parts_Parts_Auto9"],
+            "body_domain_sub_model_part_list"      : ["Parts_Parts_Auto1","Parts_Parts_Auto2","Parts_Parts_Auto3","Parts_Parts_Auto4","Parts_Parts_Auto5","Parts_Parts_Auto6","Parts_Parts_Auto7","Parts_Parts_Auto8","Parts_Parts_Auto9"],
+            "mechanical_loads_sub_model_part_list" : ["SelfWeight3D_Body_Acceleration_Auto1"],
+            "loads_sub_model_part_list"            : [],
+            "loads_variable_list"                  : []
+        }
+    },
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostAscii",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteElementsOnly",
+                "MultiFileFlag"         : "MultipleFiles"
+            },
+            "file_label"          : "time",
+            "output_control_type" : "step",
+            "output_frequency"    : 1,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["DISPLACEMENT","TEMPERATURE","HEAT_FLUX","FACE_HEAT_FLUX","NODAL_CAUCHY_STRESS_TENSOR","NODAL_YOUNG_MODULUS"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "constraints_process_list" : [{
+        "python_module" : "apply_constraint_vector_dam_table_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "ApplyConstraintVectorDamTableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "variable_name"   : "DISPLACEMENT",
+            "is_fixed"        : [true,true,true],
+            "value"           : [0.0,0.0,0.0],
+            "Value_Table"     : [0,0,0]
+        }
+    },{
+        "python_module" : "impose_uniform_temperature_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeUniformTemperatureProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "INITIALTEMPERATURE_Temperature_Auto1",
+            "variable_name"   : "TEMPERATURE",
+            "is_fixed"        : false,
+            "value"           : 20,
+            "table"           : 0
+        }
+    }],
+    "loads_process_list"       : [{
+        "python_module" : "apply_load_vector_dam_table_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "check"         : "DirectorVectorNonZero direction",
+        "process_name"  : "ApplyLoadVectorDamTableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "SelfWeight3D_Body_Acceleration_Auto1",
+            "variable_name"   : "VOLUME_ACCELERATION",
+            "modulus"         : 9.8,
+            "direction"       : [0.0,0.0,-1.0],
+            "table"           : 0
+        }
+    },{
+        "python_module" : "impose_thermal_parameters_scalar_value_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeThermalParametersScalarValueProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "ThermalParameters3D_Thermal_Parameters_Auto1",
+            "variable_name"   : "THERMAL_PARAMETERS",
+            "ThermalDensity"  : 2400,
+            "Conductivity"    : 1.0,
+            "SpecificHeat"    : 1000.0
+        }
+    },{
+        "python_module" : "impose_face_heat_flux_process",
+        "kratos_module" : "KratosMultiphysics.DamApplication",
+        "help"          : "This process fixes the given scalar variable",
+        "process_name"  : "ImposeTAmbientHeatFluxProcess",
+        "Parameters"    : {
+            "mesh_id"                   : 0,
+            "model_part_name"           : "TAmbientFlux3D_T_Ambient_Heat_Flux_Auto1",
+            "variable_name"             : "FACE_HEAT_FLUX",
+            "h_0"                       : 1,
+            "ambient_temperature"       : 10.0,
+            "table_ambient_temperature" : 1
+        }
+    }],
+    "construction_process"     : {
+        "mesh_id"                                          : 0,
+        "gravity_direction"                                : "Z",
+        "reservoir_bottom_coordinate_in_gravity_direction" : 525,
+        "height_dam"                                       : 40,
+        "number_of_phases"                                 : 9,
+        "h_0"                                              : 1.0,
+        "construction_input_file_name"                     : "construction.txt",
+        "ambient_input_file_name"                          : "ambient.txt",
+        "soil_part"                                        : "Parts Auto9",
+        "source_type"                                      : "NonAdiabatic",
+        "activation_energy"                                : 45507.0,
+        "gas_constant"                                     : 8.314472,
+        "constant_rate"                                    : 72237000000.0,
+        "alpha_initial"                                    : 0.015,
+        "aging"                                            : true,
+        "young_inf"                                        : 20000000000.0,
+        "q_total"                                          : 67939000.0,
+        "A"                                                : 0.4,
+        "B"                                                : 6.9,
+        "C"                                                : 27.0,
+        "D"                                                : 10.0
+    }
+}
