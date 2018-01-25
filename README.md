@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png">
+<p align=center><img height="72.125%" width="72.125%" src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png"></p>
 
 [![Release][release-image]][releases] [![License][license-image]][license] [![Master][kratos-master-status]][travis-branches]
 
