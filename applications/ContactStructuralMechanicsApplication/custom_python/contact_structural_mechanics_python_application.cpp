@@ -48,7 +48,14 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     AddCustomProcessesToPython();
     AddCustomMappersToPython();
 
-    //registering variables in python
+    // Adding enums
+    enum_<NormalDerivativesComputation>("NormalDerivativesComputation")
+    .value("NO_DERIVATIVES_COMPUTATION",NO_DERIVATIVES_COMPUTATION)
+    .value("ELEMENTAL_DERIVATIVES",ELEMENTAL_DERIVATIVES)
+    .value("NODAL_ELEMENTAL_DERIVATIVES",NODAL_ELEMENTAL_DERIVATIVES)
+    ;
+    
+    //Registering variables in python
 
     // CONDITIONS
     // CONTACT
