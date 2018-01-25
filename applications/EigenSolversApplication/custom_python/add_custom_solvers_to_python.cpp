@@ -45,23 +45,27 @@ void AddCustomSolversToPython()
 	using SparseLUSolver = EigenDirectSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
 	class_<SparseLUSolver, bases<DirectSolverType>, boost::noncopyable>
 		("SparseLUSolver", init<>())
-		.def(init<Parameters>());
+		.def(init<Parameters>())
+	;
 
 	#if defined MKL
 	using PardisoLLTSolver = EigenDirectSolver<PardisoLLT, SparseSpaceType, LocalSpaceType>;
 	class_<PardisoLLTSolver, bases<DirectSolverType>, boost::noncopyable>
 		("PardisoLLTSolver", init<>())
-		.def(init<Parameters>());
+		.def(init<Parameters>())
+	;
 
 	using PardisoLDLTSolver = EigenDirectSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
 	class_<PardisoLDLTSolver, bases<DirectSolverType>, boost::noncopyable>
 		("PardisoLDLTSolver", init<>())
-		.def(init<Parameters>());
+		.def(init<Parameters>())
+	;
 
 	using PardisoLUSolver = EigenDirectSolver<PardisoLU, SparseSpaceType, LocalSpaceType>;
 	class_<PardisoLUSolver, bases<DirectSolverType>, boost::noncopyable>
 		("PardisoLUSolver", init<>())
-		.def(init<Parameters>());
+		.def(init<Parameters>())
+	;	
 	#endif // defined MKL
 
 
