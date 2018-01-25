@@ -68,11 +68,10 @@ void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep() {
     #pragma omp parallel for
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem)
     {
-
         auto it_elem = mrModelPart.ElementsBegin() + i_elem;
 
         // Get element geometry
-        auto r_geometry = it_elem->GetGeometry();
+        Geometry<Node<3>> &r_geometry = it_elem->GetGeometry();
         const unsigned int n_nodes = r_geometry.PointsNumber();
 
         // Check if the element is split
@@ -88,14 +87,22 @@ void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep() {
         }
         bool is_split = (n_pos > 0 && n_neg > 0) ? true : false;
 
-        if (is_split){
 
+        // If is split, save it in the visualization model part
+        if (is_split){
+            
             // Set the split utility and compute the splitting pattern
             DivideGeometry::Pointer p_split_utility = this->GetGeometrySplitUtility(r_geometry, nodal_distances);
             p_split_utility->GenerateDivision();
             p_split_utility->GenerateIntersectionsSkin();
 
             // Save the geometries from the splitting pattern in the visualization model part
+            const unsigned int n_pos_geom = (p_split_utility->mPositiveSubdivisions).size();
+            const unsigned int n_neg_geom = (p_split_utility->mNegativeSubdivisions).size();
+
+            for (unsigned int i_geom = 0; i_geom < n_pos_geom; ++i_geom){
+                auto &r_geometry = (p_split_utility->mPositiveSubdivisions)[i_geom];
+            }
 
         }
 
@@ -113,7 +120,7 @@ DivideGeometry::Pointer EmbeddedSkinVisualizationProcess::GetGeometrySplitUtilit
 
     // Get the geometry type
     const GeometryData::KratosGeometryType geometry_type = rGeometry.GetGeometryType();
-    
+
     // Return the split utility according to the geometry tyoe
     switch (geometry_type){
         case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
