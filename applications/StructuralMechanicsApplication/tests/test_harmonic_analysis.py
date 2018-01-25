@@ -6,6 +6,7 @@ import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplicati
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from math import sqrt
+from cmath import phase
 import os
 
 class ControlledExecutionScope:
@@ -85,7 +86,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
 
-    def test_undamped_mdof_harmonic(self):
+    def _create_2dof_geometry(self, stiffness, mass, damping=0):
         mp = KratosMultiphysics.ModelPart("mdof")
         self._add_variables(mp)
         self._apply_material_properties(mp)
@@ -93,12 +94,6 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         base = mp.CreateNewNode(3,0.0,0.0,0.0)
         node1 = mp.CreateNewNode(1,10.0,0.0,0.0)
         node2 = mp.CreateNewNode(2,20.0,0.0,0.0)
-        
-        #add bcs and initial values
-        init_displacement = 0.0
-        init_velocity = 0.0
-        stiffness = 10.0
-        mass = 2.0
 
         self._add_dofs(mp)
         for no in mp.Nodes:
@@ -119,11 +114,19 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         spring1.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[stiffness,0,0])
         spring2.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[stiffness/2,0,0])
         node1.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[1,0,0])
-        mp.ProcessInfo.SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA, 0.0)
-        mp.ProcessInfo.SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA, 0.0)
+        mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.SYSTEM_DAMPING_RATIO, damping)
+
+        return mp
+
+    def test_undamped_mdof_harmonic(self):
+        #analytic solution taken from Humar - Dynamics of Structures p. 675
         
-        ########
-        ########
+        #material properties
+        stiffness = 10.0
+        mass = 2.0
+
+        #create the model
+        mp = self._create_2dof_geometry(stiffness, mass)
         
         #solve the eigenproblem
         self._solve_eigen(mp)
@@ -139,9 +142,9 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             mp.CloneTimeStep(exfreq)
             harmonic_solver.Solve()
             
-            disp_x1_expected = abs((1.0/3.0 * stiffness) / (0.5 - (exfreq / sqrt(stiffness/mass))**2) \
+            disp_x1_expected = ((1.0/3.0 * stiffness) / (0.5 - (exfreq / sqrt(stiffness/mass))**2) \
                 + (1.0/1.5 * stiffness) / (2.0 - (exfreq / sqrt(stiffness/mass))**2)) / stiffness**2
-            disp_x2_expected = abs((2.0/3.0 * stiffness) / (0.5 - (exfreq / sqrt(stiffness/mass))**2) \
+            disp_x2_expected = ((2.0/3.0 * stiffness) / (0.5 - (exfreq / sqrt(stiffness/mass))**2) \
                 - (2.0/3.0 * stiffness) / (2.0 - (exfreq / sqrt(stiffness/mass))**2)) / stiffness**2
 
             self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0), \
@@ -149,7 +152,62 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0), \
                 disp_x2_expected,delta=1e-5)
             
-            exfreq = exfreq + df       
+            exfreq = exfreq + df
+
+    def test_damped_mdof_harmonic(self):
+        #analytic solution taken from Humar - Dynamics of Structures p. 677
+        
+        #material properties
+        stiffness = 10.0
+        mass = 2.0
+        damping = 0.1
+        
+        #create the model
+        mp = self._create_2dof_geometry(stiffness, mass, damping)
+        
+        #solve the eigenproblem
+        self._solve_eigen(mp)
+
+        #perform the harmonic analysis
+        harmonic_solver = self._setup_harmonic_solver(mp)
+
+        exfreq = 1.0
+        max_exfreq = 20.0
+        df = 0.05
+        
+        while(exfreq <= max_exfreq):
+            mp.CloneTimeStep(exfreq)
+            harmonic_solver.Solve()
+
+            exfreq_d = exfreq / sqrt(stiffness/mass)
+            
+            disp_x1_expected_complex = 1 / (3*stiffness * complex(0.5 - exfreq_d**2, sqrt(2) * damping * exfreq_d)) \
+                + 2 / (3*stiffness * complex(2 - exfreq_d**2, 2 * sqrt(2) * damping * exfreq_d))
+            if disp_x1_expected_complex.real < 0:
+                disp_x1_expected = - abs(disp_x1_expected_complex)
+            else:
+                disp_x1_expected = abs(disp_x1_expected_complex)
+
+            disp_x2_expected_complex = 2 / (3*stiffness * complex(0.5 - exfreq_d**2, sqrt(2) * damping * exfreq_d)) \
+                - 2 / (3*stiffness * complex(2 - exfreq_d**2, 2 * sqrt(2) * damping * exfreq_d))
+            if disp_x2_expected_complex.real < 0:
+                disp_x2_expected = - abs(disp_x2_expected_complex)
+            else:
+                disp_x2_expected = abs(disp_x2_expected_complex)
+            
+            #test displacement
+            self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0), \
+                disp_x1_expected,delta=1e-5)
+            self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0), \
+                disp_x2_expected,delta=1e-5)
+
+            #test phase angle
+            self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.REACTION_X,0), \
+                phase(disp_x1_expected_complex),delta=1e-5)
+            self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.REACTION_X,0), \
+                phase(disp_x2_expected_complex),delta=1e-5)
+            
+            exfreq = exfreq + df
 
     def test_harmonic_mdpa_input(self):
         try:
