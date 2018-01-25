@@ -10,22 +10,18 @@
 //  Main authors:    Aditya Ghantasala
 //
 
-#if !defined(KRATOS_CO_SIMULATION_BASE_APPLICATION_IO_H_INCLUDED)
-#define KRATOS_CO_SIMULATION_BASE_APPLICATION_IO_H_INCLUDED
+#if !defined(KRATOS_CO_SIMULATION_BASE_IO_H_INCLUDED)
+#define KRATOS_CO_SIMULATION_BASE_IO_H_INCLUDED
 
 // System includes
 #include <string>
 #include <iostream>
 #include <stdio.h>
 
-// Project includes
-#include "includes/kratos_parameters.h"
-
 // Application includes
-#include "custom_utilities/co_simulation_io_utilities.h"
-
-namespace Kratos
-{
+#include "custom_utilities/co_simulation_include.h"
+#include "custom_base_classes/base_co_simulation_data.h"
+#include "custom_base_classes/base_co_simulation_mesh.h"
 
 class CoSimulationBaseIo
 {
@@ -33,13 +29,15 @@ class CoSimulationBaseIo
   public:
     ///@name Type Definitions
     ///@{
+    typedef std::shared_ptr<CoSimulationBaseIo> Pointer;
+    typedef CoSimulationData::Pointer DataPointerType;
+    typedef CoSimulationMesh::Pointer MeshPointerType;    
 
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseIo(Parameters iParameters) : mParameters(iParameters)
+    CoSimulationBaseIo() :
     {
-        mpModelPart = nullptr;
     }
 
     ///@}
@@ -60,7 +58,7 @@ class CoSimulationBaseIo
      * solver available. Once it reads/takes the datafield it SHOULD call the function
      * MakeDataFieldNotAvailable to let the other solvers that the solver took its input
      */
-    virtual void SynchronizeInputData()
+    virtual void ExportData(DataPointerType iData, std::string iFrom, std::string iTo)
     {
     }
 
@@ -69,33 +67,28 @@ class CoSimulationBaseIo
      * solver available. Once this function write/put out the datafield it SHOULD call
      * function MakeDataFieldAvailable so as to notifiy other solvers the field is available
      */
-    virtual void SynchronizeOutputData()
+    virtual void ImportData(DataPointerType iData, std::string iFrom, std::string iTo)
     {
     }
 
-    /// model part synchronization methods
-    virtual void ImportModelPart()
+    virtual void ExportMesh(MeshPointerType iData, std::string iFrom, std::string iTo)
     {
     }
 
-    /// Check if an input datafield is available.
-    /// This is done by checking if a file with the name of the data field exists or not.
-    /// This is also for synchronizing between different solvers.
-    virtual bool IsDataFieldAvailable(std::string iDataFieldName)
+    virtual void ImportMesh(MeshPointerType iData, std::string iFrom, std::string iTo)
     {
-        return CoSimulation_IsDataFieldAvailable(iDataFieldName.c_str());
     }
 
-    bool MakeDataFieldAvailable(std::string iFileName)
+    virtual void MakeDataAvailable(DataPointerType iData, std::string iFrom, std::string iTo)
     {
-        std::ofstream outputFile(iFileName.c_str());
-        return outputFile.is_open();
+        std::string AvailFileName = (dot + slash + dot + iFor + slash + "DATA" + dot + iData.Name() + dot + availExtension);
+        std::ofstream outputFile(AvailFileName.c_str());
+        if(outputFile.is_open())
+        {
+            iData -> PrintDetails(outputFile);
+        }
     }
 
-    bool MakeDataFieldNotAvailable(std::string iFileName)
-    {
-        return (remove(iFileName.c_str()) != 0);
-    }
     ///@}
     ///@name Access
     ///@{
@@ -129,6 +122,33 @@ class CoSimulationBaseIo
     ///@}
     ///@name Protected Operations
     ///@{
+    bool MakeDataFieldNotAvailable(std::string iFileName)
+    {
+        return (remove(iFileName.c_str()) != 0);
+    }
+
+    virtual void ReadDataFieldDetails(CoSimulationDataField &iData, std::string iAvailFileName)
+    {
+    }
+
+    /// Check if an input datafield is available.
+    /// This is done by checking if a file with the name of the data field exists or not.
+    /// This is also for synchronizing between different solvers.
+    virtual bool IsDataAvailable(CoSimulationDataField &iData, std::string iFor)
+    {
+        std::string AvailFileName = (dot + slash + dot + iFor + slash + "DATA" + dot + iData.Name() + dot + availExtension);
+        while (CoSimulation_FileExists(AvailFileName.c_str()))
+        { // file not available
+            std::cout << "Data :: " << iData.Name() << " Not available .. waiting ... " << std::endl;
+            CoSimulation_Wait(1);
+        }
+        CoSimulation_Wait(2);
+
+        // Once we know the data is available we read the details of the data
+        ReadDataFieldDetails(iData, AvailFileName);
+
+        return true;
+    }
 
     ///@}
     ///@name Protected  Access
@@ -151,8 +171,6 @@ class CoSimulationBaseIo
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart::Pointer mpModelPart;
-    Parameters mParameters;
 
     ///@}
     ///@name Private Operators
@@ -161,10 +179,6 @@ class CoSimulationBaseIo
     ///@}
     ///@name Private Operations
     ///@{
-    bool FileExists(std::string iFileName)
-    {
-        return (access(iFileName.c_str(), F_OK) != -1);
-    }
 
     ///@}
     ///@name Private  Access
@@ -182,6 +196,4 @@ class CoSimulationBaseIo
 
 }; // End class
 
-} // End Kratos namespace
-
-#endif // KRATOS_CO_SIMULATION_BASE_APPLICATION_IO_H_INCLUDED  defined
+#endif // KRATOS_CO_SIMULATION_BASE_IO_H_INCLUDED  defined
