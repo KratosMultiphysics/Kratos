@@ -209,8 +209,7 @@ public:
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
                     if(!pValue)
-                        pValue = Kratos::make_shared<TDataType>();
-
+                        pValue = Kratos::shared_ptr<TDataType>(new TDataType);
                     load(rTag, *pValue);
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
