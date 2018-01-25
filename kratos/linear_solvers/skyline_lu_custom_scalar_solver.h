@@ -117,9 +117,9 @@ public:
 
 private:
 
-    boost::shared_ptr<BuiltinMatrixType> pBuiltinMatrix;
+    Kratos::shared_ptr<BuiltinMatrixType> pBuiltinMatrix;
 
-    boost::shared_ptr<SolverType> pSolver;
+    Kratos::shared_ptr<SolverType> pSolver;
 };
 
 ///@}

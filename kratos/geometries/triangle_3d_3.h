@@ -315,7 +315,7 @@ public:
     }
 
 
-    // boost::shared_ptr< Geometry< Point<3> > > Clone() const override
+    // Kratos::shared_ptr< Geometry< Point<3> > > Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
