@@ -26,7 +26,7 @@ namespace Kratos
       , mFilename(Filename + ".mdpa")
       , mOptions(Options)
     {
-        boost::shared_ptr<std::fstream> pFile = boost::make_shared<std::fstream>();
+        Kratos::shared_ptr<std::fstream> pFile = boost::make_shared<std::fstream>();
         std::fstream::openmode OpenMode;
 
         // Set the mode
@@ -63,7 +63,7 @@ namespace Kratos
     }
 
     /// Constructor with stream
-    ModelPartIO::ModelPartIO(boost::shared_ptr<std::iostream> Stream)
+    ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream)
       : mNumberOfLines(1)
     {
         // nullptr test can be confusing with boost::shared_ptr. Commented until we move to std::shared_ptr
@@ -71,7 +71,7 @@ namespace Kratos
         //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         // Check if the pointer was .reset() or never initialized and if its a NULL pointer)
-        // if (Stream == NULL || Stream == boost::shared_ptr<std::iostream>(NULL))
+        // if (Stream == NULL || Stream == Kratos::shared_ptr<std::iostream>(NULL))
         //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         mpStream = Stream;
@@ -678,7 +678,7 @@ namespace Kratos
     }
 
     void ModelPartIO::DivideInputToPartitions(
-        boost::shared_ptr<std::iostream> * Streams,
+        Kratos::shared_ptr<std::iostream> * Streams,
         SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
         PartitionIndicesType const& NodesPartitions,
         PartitionIndicesType const& ElementsPartitions,
@@ -4642,7 +4642,7 @@ namespace Kratos
         mNumberOfLines = 1;
     }
 
-    void ModelPartIO::SwapStreamSource(boost::shared_ptr<std::iostream> newStream)
+    void ModelPartIO::SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream)
     {
         mpStream.swap(newStream);
     }
