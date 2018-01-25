@@ -18,43 +18,31 @@
 #include <iostream>
 
 // Project includes
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 
 // Application includes
 #include "custom_base_classes/base_co_simulation_application_io.h"
+#include "custom_base_classes/base_co_simulation_data.h"
+#include "custom_base_classes/base_co_simulation_mesh.h"
 
-namespace Kratos
-{
-
-template <class TSparseSpace,
-          class TDenseSpace,  // = DenseSpace<double>,
-          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-          >
-class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, TDenseSpace, TLinearSolver>
+class CoSimulationBaseApplication
 {
 
   public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION(CoSimulationBaseApplication);
-    typedef CoSimulationBaseClass<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    typedef std::shared_ptr<AbstractApplication> Pointer;
+    typedef CoSimulationData::Pointer DataPointerType;
+    typedef CoSimulationBaseIo::Pointer BaseIoPointerType;
+    typedef CoSimulationMesh::Pointer MeshPointerType;
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseApplication(Parameters iParameters) : BaseType(*(ModelPart::Pointer(new ModelPart("cosim")))),
-                                                                                                         mParameters(iParameters)
+    CoSimulationBaseApplication(std::string iName) : mName(iName)
     {
     }
 
-    CoSimulationBaseApplication(CoSimulationBaseIo& iIo, Parameters iParameters) : BaseType(*(ModelPart::Pointer(new ModelPart("cosim")))),
-                                                                                                         mParameters(iParameters)
+    virtual ~CoSimulationBaseApplication()
     {
-    }    
-
-    virtual ~CoSimulationBaseApplication(){
-
     }
 
     ///@}
@@ -64,28 +52,47 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     ///@}
     ///@name Operations
     ///@{
-    virtual ModelPart &GetModelPart()
-    {
-        return mrModelPart;
-    }
+
+    std::string Name() { return this->mName; }
 
     /////////////////////////////////////////////////
     /// Methods specific for Co-Simulation
     /////////////////////////////////////////////////
+    virtual void SetIo(BaseIoPointerType iIo)
+    {
+        mpIo = iIo;
+    }
 
     /// Data synchronization methods
-    virtual void SynchronizeInputData()
+    virtual void ExportData(DataPointerType iDataField, Pointer iToApp)
     {
+        mpIo->ExportData(iDataField, this->Name(), iToApp->Name());
     }
 
-    virtual void SynchronizeOutputData()
+    virtual void ImportData(DataPointerType iDataField, Pointer iFromApp)
     {
+        mpIo->ImportData(iDataField, iFromApp->Name(), this->Name());
     }
 
-    /// model part synchronization methods
-    virtual void ImportModelPart()
+    virtual void MakeDataAvailable(DataPointerType iDataField, Pointer iToApp)
     {
-    }    
+        mpIo->MakeDataAvailable(iDataField, this->Name(), iToApp->Name());
+    }
+
+    virtual void ExportMesh(MeshPointerType iDataField, Pointer iToApp)
+    {
+        mpIo->ExportMesh(iDataField, this->Name(), iToApp->Name());
+    }
+
+    virtual void ImportMesh(MeshPointerType iDataField, Pointer iFromApp)
+    {
+        mpIo->ImportMesh(iDataField, iFromApp->Name(), this->Name());
+    }
+
+    virtual void MakeMeshAvailable(MeshPointerType iDataField, Pointer iToApp)
+    {
+        mpIo->MakeMeshAvailable(iDataField, this->Name(), this->Name(), iToApp->Name());
+    }
 
     ///@}
     ///@name Access
@@ -142,8 +149,8 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart mrModelPart;
-    Parameters mParameters;
+    std::string mName;
+    BaseIoPointerType mpIo;
     ///@}
     ///@name Private Operators
     ///@{
@@ -167,7 +174,5 @@ class CoSimulationBaseApplication : public CoSimulationBaseClass<TSparseSpace, T
     ///@}
 
 }; // End class
-
-} // End Kratos namespace
 
 #endif // KRATOS_CO_SIMULATION_APPLICATION_H_INCLUDED  defined
