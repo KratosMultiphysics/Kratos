@@ -87,7 +87,7 @@ class AssignStrainProcess(KratosMultiphysics.Process):
         self.parameters.SetStrainVector( self.strain_vector )
         self.parameters.SetStressVector( self.stress_vector )
         self.parameters.SetConstitutiveMatrix( self.constitutive_matrix )
-        
+
         print("::[Strain]:: Ready ")
 
     #
@@ -102,11 +102,11 @@ class AssignStrainProcess(KratosMultiphysics.Process):
 
         #set strain parameters
         self._set_strain_parameters()
-            
+
     #
     def ExecuteFinalize(self):
         pass
-        
+
     #
     def _set_strain_parameters(self):
 
@@ -166,7 +166,7 @@ class AssignStrainProcess(KratosMultiphysics.Process):
             time = 0.0
             if( self.process_info.Has(KratosMultiphysics.TIME) ):
                 time = self.process_info[KratosMultiphysics.TIME]
-            
+
             value = compiled_function.function(position[0],position[1],position[2],time)
 
             return value
@@ -175,4 +175,3 @@ class AssignStrainProcess(KratosMultiphysics.Process):
     def _get_matrix_determinant(self, F):
         value = ((F[0,0]*F[1,1]*F[2,2])+(F[0,1]*F[1,2]*F[2,0])+(F[0,2]*F[1,0]*F[2,1])-(F[0,2]*F[1,1]*F[2,0])-(F[0,0]*F[1,2]*F[2,1])-(F[0,1]*F[1,0]*F[2,2]))
         return value
-    

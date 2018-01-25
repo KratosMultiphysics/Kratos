@@ -57,6 +57,14 @@ class MaterialsSolver(object):
         self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_settings["time_step"].GetDouble())
         self.process_info.SetValue(KratosMultiphysics.TIME, time_settings["start_time"].GetDouble())
 
+        # Set integration point
+        point = self.integration_settings["integration_point"]
+        position = KratosMultiphysics.Vector(point.size())
+        for i in range(0,point.size()):
+            position[i] = point[i].GetDouble()
+
+        self.process_info.SetValue(KratosMultiphysics.INTEGRATION_COORDINATES, position)
+
         # Echo level
         self.echo_level = 0
 
@@ -65,11 +73,11 @@ class MaterialsSolver(object):
 
     def SetLawParameters(self, parameters):
         self.parameters = parameters
-        
+
     def GetEndTime(self):
         return (self.settings["time_settings"]["end_time"].GetDouble())
 
-    def ExecuteInitialize(self):       
+    def ExecuteInitialize(self):
         print("::[Material_Solver]:: Solver Ready")
 
 
@@ -79,7 +87,7 @@ class MaterialsSolver(object):
 
         #set calculation options
         self._set_calculation_options()
-        
+
         #check material parameters
         self._check_material_parameters()
 
@@ -94,13 +102,13 @@ class MaterialsSolver(object):
         pass
 
     def ExecuteFinalize(self):
-        
+
         #set strain parameters
         self._set_calculation_options()
 
         self.echo_level = 1
         self._calculate_material_response()
-        
+
 
     #### Solver internal methods ####
 
@@ -111,7 +119,7 @@ class MaterialsSolver(object):
 
         self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRESS, True)
         self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
-        
+
         #self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, False)
         #self.options.Set(KratosMultiphysics.ConstitutiveLaw.ISOCHORIC_TENSOR_ONLY, False)
         #self.options.Set(KratosMultiphysics.ConstitutiveLaw.VOLUMETRIC_TENSOR_ONLY, False)
@@ -126,7 +134,7 @@ class MaterialsSolver(object):
         self.parameters.CheckAllParameters()
         self.parameters.CheckMechanicalVariables()
         self.parameters.CheckShapeFunctions()
-                
+
     #
     def _calculate_material_response(self):
 
