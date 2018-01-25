@@ -58,6 +58,9 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Pointer definition of TableStream
+    KRATOS_CLASS_POINTER_DEFINITION(TableStream);
+    
     ///@}
     ///@name Life Cycle
     ///@{

@@ -1,0 +1,69 @@
+{
+    "input_settings":{
+	"materials_file_name" : "element_tests/shear_2D_materials_no_parts.json",
+        "material":{
+            "material_ids"   : [1],
+            "material_parts" : ["Parts_Parts_Auto1"]
+        }
+    },
+    "model_settings"           : {
+        "dimension"            : 2,
+        "domain_parts_list"    : ["Parts_Parts_Auto1"],
+        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","LineLoad2D_Load_on_lines_Auto2","LineLoad2D_Load_on_lines_Auto3","LineLoad2D_Load_on_lines_Auto4","LineLoad2D_Load_on_lines_Auto5"]    },
+    "solver_settings"          : {
+	"solver_type" : "solid_mechanics_static_solver",
+	"Parameters"  : {
+            "time_integration_settings" : {
+                "solution_type"      : "Static",
+                "integration_method" : "Non-Linear"
+            },
+            "linear_solver_settings"    : {
+		"solver_type" : "SuperLUSolver",
+		"scaling"     : false
+            }
+        }
+    },
+    "constraints_process_list" : [{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto1"
+    },{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+        "value"           : [0.0,null,0.0]
+    }
+    ],
+    "loads_process_list"       : [{
+        "model_part_name" : "LineLoad2D_Load_on_lines_Auto2",
+        "variable_name"   : "LINE_LOAD",
+        "modulus"         : 1.0,
+        "direction"       : [1.0,0.0,0.0]
+    },{
+        "model_part_name" : "LineLoad2D_Load_on_lines_Auto3",
+        "variable_name"   : "LINE_LOAD",
+        "modulus"         : 1.0,
+        "direction"       : [-1.0,0.0,0.0]
+    },{
+        "model_part_name" : "LineLoad2D_Load_on_lines_Auto4",
+        "variable_name"   : "LINE_LOAD",
+        "modulus"         : 1.0,
+        "direction"       : [0.0,1.0,0.0]
+    },{
+	"model_part_name" : "LineLoad2D_Load_on_lines_Auto5",
+        "variable_name"   : "LINE_LOAD",
+        "modulus"         : 1.0,
+        "direction"       : [0.0,-1.0,0.0]
+    }],
+    "check_process_list" : [
+    {
+        "python_module"   : "check_scalar_on_nodes_process",
+        "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
+        "process_name"    : "CheckScalarOnNodesProcess",
+        "Parameters"      : {
+            "model_part_name" : "LineLoad2D_Load_on_lines_Auto4",
+            "variable_name"   : "DISPLACEMENT_Y",
+            "interval"        : [0.0, "End"],
+            "value"           : 7.8E-03,
+            "tolerance_rank"  : 3
+        }
+    }
+    ]
+
+}

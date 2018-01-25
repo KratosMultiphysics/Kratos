@@ -168,5 +168,80 @@ KRATOS_TEST_CASE_IN_SUITE(
     //End SubModelPartNodes
     //End Mesh)/");
 }
+
+KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
+    
+    // Create a model part to write
+    ModelPart main_model_part("MainModelPart");
+    main_model_part.SetBufferSize(1);
+    Properties::Pointer p_properties_1(new Properties(1));
+    p_properties_1->SetValue(DENSITY, 1000.0);
+    p_properties_1->SetValue(VISCOSITY, 1E-05);
+    main_model_part.AddProperties(p_properties_1);
+
+    main_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    main_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    main_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+    main_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+
+    std::vector<ModelPart::IndexType> elem_nodes_1 = {1,2,4};
+    std::vector<ModelPart::IndexType> elem_nodes_2 = {3,4,2};
+    main_model_part.CreateNewElement("Element2D3N", 1, elem_nodes_1, p_properties_1);
+    main_model_part.CreateNewElement("Element2D3N", 2, elem_nodes_2, p_properties_1);
+
+    std::vector<ModelPart::IndexType> cond_nodes_1 = {1,2};
+    std::vector<ModelPart::IndexType> cond_nodes_2 = {3,4};
+    std::vector<ModelPart::IndexType> cond_nodes_3 = {4};
+    main_model_part.CreateNewCondition("Condition2D2N", 1, cond_nodes_1, p_properties_1);
+    main_model_part.CreateNewCondition("Condition2D2N", 2, cond_nodes_2, p_properties_1);
+    main_model_part.CreateNewCondition("PointCondition2D1N", 3, cond_nodes_3, p_properties_1);
+
+    ModelPart::Pointer p_sub_model_part = main_model_part.CreateSubModelPart("SubModelPart");
+    std::vector<ModelPart::IndexType> sub_model_part_nodes = {1,2,4};
+    std::vector<ModelPart::IndexType> sub_model_part_elems = {1};
+    std::vector<ModelPart::IndexType> sub_model_part_conds = {1,3};
+    p_sub_model_part->AddNodes(sub_model_part_nodes);
+    p_sub_model_part->AddElements(sub_model_part_elems);
+    p_sub_model_part->AddConditions(sub_model_part_conds);
+
+    // Create the output .mdpa file
+    std::string output_file_name = "main_model_part_output";
+    std::fstream output_file;
+    output_file.open(output_file_name + ".mdpa", std::fstream::out);
+    output_file.close();
+
+    // Fill the output .mdpa file
+    ModelPartIO model_part_io_write(output_file_name, IO::WRITE);
+    model_part_io_write.WriteModelPart(main_model_part);
+
+    // Read and check the written .mdpa file
+    ModelPartIO model_part_io_output(output_file_name);
+    ModelPart main_model_part_output("MainModelPartOutput");
+    model_part_io_output.ReadModelPart(main_model_part_output);
+
+    // Assert results
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfProperties(), 1);
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfSubModelParts() ,1);
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfNodes(), 4);
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfElements(), 2);
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfConditions(), 3);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfConditions(), 2);
+
+    // Remove the generated files
+    std::string aux_string_mdpa = output_file_name + ".mdpa"; 
+    std::string aux_string_time = output_file_name + ".time";
+    const char *mdpa_to_remove = aux_string_mdpa.c_str();
+    const char *time_to_remove = aux_string_time.c_str();
+    std::string error_msg = "Error deleting test output file: " + output_file_name;
+    if (remove(mdpa_to_remove) != 0) {
+        KRATOS_ERROR << error_msg + ".mdpa";
+    }
+    if (remove(time_to_remove) != 0) {
+        KRATOS_ERROR << error_msg + ".time";
+    }
 }
+
+}  // namespace Testing.
 }  // namespace Kratos.
