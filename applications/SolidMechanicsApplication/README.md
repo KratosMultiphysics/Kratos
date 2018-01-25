@@ -35,7 +35,7 @@ when frequency analysis is needed, this module has to be activated:
 
 Classical FE method theory for small and large displacements. 
 
-[this folder](http://kratos-wiki.cimne.upc.edu/index.php/Solid_Mechanics_Application)
+[original wiki web page](http://kratos-wiki.cimne.upc.edu/index.php/Solid_Mechanics_Application)
 
 ## Solid Elements
 
@@ -80,7 +80,7 @@ The mechanics of contact is implemented in [this folder](https://github.com/Krat
 
 ### GiD Interface
 
-It is located in GiD interface repository [this folder](https://github.com/KratosMultiphysic/GiDInterface/tree/master/).
+It is located in GiD interface repository in [GiD interface repository](https://github.com/KratosMultiphysic/GiDInterface/tree/master/).
 
 Requires [GiD](https://www.gidhome.com/) - Pre and Post Processing software.
 
