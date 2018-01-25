@@ -1,6 +1,5 @@
 # Dam Examples
+This file lists a number of example cases to be used as benchmark.
 
-The test examples of dam application have been moved to specific repository.
-
-Please click [here](https://github.com/KratosMultiphysics/Examples/tree/master/dam) to be redirected.
+- example_construction3D. Construction process in 3D run through thermo-mechanical type of problem. It is necessary to include two external files: ambiente.txt and construction.txt
 
