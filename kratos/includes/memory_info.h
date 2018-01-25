@@ -29,6 +29,10 @@
 
 #elif defined(KRATOS_COMPILED_IN_APPLIE)
 #include <mach/mach.h>
+
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
+#include <windows.h>
+#include <psapi.h>
 #endif
 
 #include <fstream>
@@ -90,6 +94,11 @@ public:
     getrusage(RUSAGE_SELF, &resource_usage);
 
     return resource_usage.ru_maxrss;
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
+  	PROCESS_MEMORY_COUNTERS memory_counter;
+  	GetProcessMemoryInfo( GetCurrentProcess( ), &memory_counter, sizeof(memory_counter) );
+
+  	return memory_counter.PeakWorkingSetSize;
 #else
     return 0;
 #endif
@@ -124,6 +133,11 @@ public:
                   &infoCount) != KERN_SUCCESS)
       return 0;
     return info.resident_size;
+#elif defined(KRATOS_COMPILED_IN_WINDOWS)
+  	PROCESS_MEMORY_COUNTERS memory_counter;
+  	GetProcessMemoryInfo( GetCurrentProcess( ), &memory_counter, sizeof(memory_counter) );
+
+  	return memory_counter.WorkingSetSize;
 #else
     return 0;
 #endif
