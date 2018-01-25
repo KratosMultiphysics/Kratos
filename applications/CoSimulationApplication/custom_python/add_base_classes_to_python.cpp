@@ -44,47 +44,41 @@ void AddCustomBaseClassesToPython()
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    typedef CoSimulationBaseClass<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseClassType;
-    typedef CoSimulationBaseApplication<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseApplicationType;
+
     typedef CoSimulationBaseCouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseCouplingStrategyType;
     typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;
-
-    //********************************************************************
-    //********************CoSimulationBaseClass***************************
-    //********************************************************************
-    class_<CoSimulationBaseClassType,
-           bases<SolvingStrategyType>,
-           boost::noncopyable>("CoSimulationBaseClass", init<ModelPart &>())
-           .def("ImportModelPart", &CoSimulationBaseClassType::ImportModelPart)
-           .def("SynchronizeInputData", &CoSimulationBaseClassType::SynchronizeInputData)
-           .def("SynchronizeOutputData", &CoSimulationBaseClassType::SynchronizeOutputData);
 
     //********************************************************************
     //********************CoSimulationIo**********************************
     //********************************************************************
     class_<CoSimulationBaseIo,
-           boost::noncopyable>("CoSimulationBaseIo", init<Parameters>())
-           .def("ImportModelPart", &CoSimulationBaseIo::ImportModelPart)
-           .def("SynchronizeInputData", &CoSimulationBaseIo::SynchronizeInputData)
-           .def("SynchronizeOutputData", &CoSimulationBaseIo::SynchronizeOutputData)
-           .def("IsDataFieldAvailable", &CoSimulationBaseIo::IsDataFieldAvailable) 
-           .def("MakeDataFieldAvailable", &CoSimulationBaseIo::MakeDataFieldAvailable)
-           .def("MakeDataFieldNotAvailable", &CoSimulationBaseIo::MakeDataFieldNotAvailable);
+           boost::noncopyable>("CoSimulationBaseIo", init<>())
+           .def("ExportData", &CoSimulationBaseIo::ExportData)
+           .def("ImportData", &CoSimulationBaseIo::ImportData)
+           .def("ExportMesh", &CoSimulationBaseIo::ExportMesh)
+           .def("ImportMesh", &CoSimulationBaseIo::ImportMesh) 
+           .def("MakeDataAvailable", &CoSimulationBaseIo::MakeDataAvailable);
 
 
     //********************************************************************
     //********************CoSimulationApplication*************************
     //********************************************************************
-    class_<CoSimulationBaseApplicationType,
-           bases<CoSimulationBaseClassType>,
-           boost::noncopyable>("CoSimulationBaseApplication", init<Parameters>());
+    class_<CoSimulationBaseApplication,boost::noncopyable>("CoSimulationBaseApplication", init<std::string>())
+           .def("Name", &CoSimulationBaseApplication::Name)
+           .def("SetIo", &CoSimulationBaseApplication::SetIo)
+           .def("ImportData", &CoSimulationBaseApplication::ImportData)
+           .def("ExportMesh", &CoSimulationBaseApplication::ExportMesh)
+           .def("ImportMesh", &CoSimulationBaseApplication::ImportMesh) 
+           .def("MakeDataAvailable", &CoSimulationBaseApplication::MakeDataAvailable);
+           
+    ;
 
     //********************************************************************
     //********************CoSimulationCouplingStrategy********************
     //********************************************************************
     class_<CoSimulationBaseCouplingStrategyType,
            bases<CoSimulationBaseClassType>,
-           boost::noncopyable>("CoSimulationBaseCouplingStrategy", init<CoSimulationBaseApplicationType::Pointer , CoSimulationBaseApplicationType::Pointer, CoSimulationBaseConvergenceAccelerationScheme& >())
+           boost::noncopyable>("CoSimulationBaseCouplingStrategy", init<CoSimulationBaseApplicationType::Pointer , CoSimulationBaseApplicationType::Pointer, CoSimulationBaseConvergenceCriterion::Pointer, CoSimulationBaseConvergenceAccelerationScheme::Pointer>())
            ;
 
     //********************************************************************
