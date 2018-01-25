@@ -117,7 +117,9 @@ namespace Kratos
 			if (ThisModelPart.NodesBegin()->SolutionStepsDataHas(IS_FLUID)==false )
 				KRATOS_THROW_ERROR(std::logic_error,"Add  ----IS_FLUID---- variable!!!!!! ERROR","");
 
-			KRATOS_WATCH(" ENTERED TETGENMESHSUITE PFEM of Meshing Application")
+			KRATOS_WATCH(" ENTERED TETGENMESHSUITE PFEM of Meshing Application????????????????????????????)=((=)(=)(=)()=")
+			//aasdsadsa
+
 			int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
 			
 			//clearing elements
@@ -127,11 +129,14 @@ namespace Kratos
 //ADD NODES AT THE BOUNDARY - NOTE THAT THERE WE MUST HAVE CONDITIONS!!!	
 
 			//int id=ThisModelPart.Nodes().size();
+			KRATOS_WATCH("NUMBER OF CONDS====================================================")	
+			KRATOS_WATCH(ThisModelPart.Conditions().size())
 
 			int id = (ThisModelPart.Nodes().end() - 1)->Id() + 1;		
 
 			for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ; ic != ThisModelPart.ConditionsEnd() ; ic++)
 			{
+			//KRATOS_WATCH("LOOP OVER CONDS====================================================")
 			if (ic->GetGeometry().size()==3)
 			{
 			int n_flag=ic->GetGeometry()[0].FastGetSolutionStepValue(FLAG_VARIABLE);			
@@ -141,6 +146,9 @@ namespace Kratos
 			int sym_cut=ic->GetGeometry()[0].FastGetSolutionStepValue(SYMMETRY_CUT);			
 			sym_cut+=ic->GetGeometry()[1].FastGetSolutionStepValue(SYMMETRY_CUT);
 			sym_cut+=ic->GetGeometry()[2].FastGetSolutionStepValue(SYMMETRY_CUT);	
+
+			//KRATOS_WATCH(n_flag)
+			//KRATOS_WATCH(sym_cut)
 								
 			//THIS REFINES THE NODES OF INTERBAL ELEMENTS OF THE SURFACE WHERE THE INBLOW IS: FLAG_VAR=1
 			if (n_flag==ic->GetGeometry().size() && sym_cut==0.0)
@@ -541,7 +549,7 @@ namespace Kratos
 					work_point[2]=in->Z();
 				
 					n_points_in_radius = nodes_tree1.SearchInRadius(work_point, radius, res.begin(),res_distances.begin(), max_results);
-						if (n_points_in_radius>1)
+						if (n_points_in_radius>1)  
 						{	
 						//WE WANT TO DELETE CLOSE NODES ON THE TOP OF OUR GLASS .. this "TOP" is distinguished by IS_INTERFACE (apart from walls)
 						//WeakPointerVector< Node<3> >& neighbor_nodes = in->GetValue(NEIGHBOUR_NODES);

@@ -67,3 +67,5 @@ applications/FluidDynamicsApplication/test_examples/fs_cavity/run_test\.py
 *.cpp~
 
 applications/python_scripts/beam_profiles\.csv
+
+applications/MeshingApplication/external_includes/tetgen_pfem_refine_GLASS_CORRECT\.h

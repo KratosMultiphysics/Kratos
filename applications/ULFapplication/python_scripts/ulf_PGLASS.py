@@ -10,6 +10,8 @@ from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.MeshingApplication import *
 # Check that KratosMultiphysics was imported in the main script
 #CheckForPreviousImport()
+#NOTE THAT TrigenMesher interface is located located inside MeshingApplication while TetgenMesher interface is located inside ULFAppplication
+#This is done due to the fact that TETGEN was removed from MeshingApplication
 
 import time
 
@@ -147,7 +149,7 @@ class ULF_FSISolver:
         elif (domain_size == 3):
             #self.Mesher = TetGenModeler()
             #improved mesher
-            self.Mesher = TetGenPfemModeler()
+            self.Mesher = TetGenGlassModeler()#TetGenPfemModeler()
             self.combined_neigh_finder = FindNodalNeighboursProcess(combined_model_part,20,30)
             self.fluid_neigh_finder = FindNodalNeighboursProcess(fluid_model_part,20,30)
             #this is needed if we want to also store the conditions a node belongs to
