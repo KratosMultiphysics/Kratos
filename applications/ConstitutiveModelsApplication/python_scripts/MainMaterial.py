@@ -45,18 +45,12 @@ class Solution(object):
         else:
             raise Exception("No material model supplied")
 
-        # Set strains
-        if( settings.Has("strain_process_list") ):
-            self.strains = settings["strain_process_list"]
-        else:
-            raise Exception("No strain process supplied")
-
         # Set solver process
         if( settings.Has("solver_process") ):
             self.solver_settings = settings["solver_process"]
         else:
             raise Exception("Solver process not supplied")
-        
+
         # Print solving time
         self.report = False
         self.echo_level = 0
@@ -75,20 +69,16 @@ class Solution(object):
     def Initialize(self):
 
         # start model
-        self.model_part = KratosMultiphysics.ModelPart(self.materials[0]["Parameters"]["model_part_name"].GetString())
-        self.model = {self.materials[0]["Parameters"]["model_part_name"].GetString() : self.model_part}
+        model_part_name = self.materials[0]["Parameters"]["model_part_name"].GetString()
+        self.model_part = KratosMultiphysics.ModelPart(model_part_name)
+        self.model = {model_part_name : self.model_part}
 
         # construct material process
         self._construct_material_processes(self.materials)
 
-        # set material strain
-        self.strain_process_list = []
-        self.properties_id = self.solver_settings["Parameters"]["properties_id"].GetInt()
-        for i in range(0,self.strains.size()):
-            self.strain_process_list.append(self._construct_strain_process(self.strains[i]))
         # set solver
-        self.solver = self._get_solver_process(self.solver_settings)            
-            
+        self.solver = self._get_solver_process(self.solver_settings)
+
         # set time parameters
         self.process_info = self.model_part.ProcessInfo
 
@@ -101,7 +91,7 @@ class Solution(object):
 
         # Initialize Solver
         self.solver.ExecuteInitialize()
-        
+
         print(" ")
         print("::[Material Modelling]:: -START- ")
 
@@ -128,13 +118,6 @@ class Solution(object):
 
         print(" [ MODEL STEP - TIME :","{0:1.{1}f}".format(self.time,6),"]")
 
-        for i in self.strain_process_list:
-            i.Execute()
-
-        self.strain_process = self.strain_process_list[self.solver_settings["strain_process"].GetInt()]
-        law_parameters = self.strain_process.GetLawParameters()
-        self.solver.SetLawParameters(law_parameters)        
-        
         self.solver.InitializeSolutionStep()
 
         self._stop_time_measuring(self.clock_time,"Initialize Step", self.report);
@@ -154,17 +137,13 @@ class Solution(object):
         self.clock_time = self._start_time_measuring();
 
         self.solver.FinalizeSolutionStep()
-        
+
         self._stop_time_measuring(self.clock_time,"Finalize Step", self.report);
 
 
     def Finalize(self):
 
         # Ending the problem
-        self.strain_process.Execute()
-        law_parameters = self.strain_process.GetLawParameters()
-        self.solver.SetLawParameters(law_parameters)
-        
         self.solver.ExecuteFinalize()
 
         print("::[Material Modelling]:: -END- ")
@@ -185,11 +164,6 @@ class Solution(object):
         solver_module = __import__(solver_settings["solver_type"].GetString())
         return (solver_module.CreateSolver(self.model_part, solver_settings["Parameters"]))
 
-    def _construct_strain_process(self, process_settings):
-        kratos_module = __import__(process_settings["kratos_module"].GetString())
-        python_module = __import__(process_settings["python_module"].GetString())
-        return(python_module.CreateProcess(process_settings["Parameters"], self.model_part, self.properties_id))
-
     def _construct_material_processes(self, material_parameters):
         import process_factory
         assign_materials_processes = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(material_parameters)
@@ -208,4 +182,3 @@ class Solution(object):
 
 if __name__ == "__main__":
     Solution().Run()
-

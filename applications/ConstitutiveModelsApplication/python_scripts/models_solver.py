@@ -7,6 +7,15 @@ import KratosMultiphysics
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
+from math import *
+
+class compiled_space_time_function:
+    def __init__(self, compiled_function ):
+        self.compiled_function = compiled_function
+
+    def function(self,x,y,z,t):
+        return eval(self.compiled_function)
+
 def CreateSolver(model_part, custom_settings):
     return MaterialsSolver(model_part, custom_settings)
 
@@ -24,7 +33,11 @@ class MaterialsSolver(object):
             },
             "integration_settings":{
                 "integration_point": []
-            }
+            },
+	    "strain_settings":{
+		"description": "shear strain time dependent field",
+		"deformation_gradient" : [ [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ]
+	    }
         }
         """)
 
@@ -36,8 +49,10 @@ class MaterialsSolver(object):
         #validate and assign other values
         self.settings["time_settings"].ValidateAndAssignDefaults(default_settings["time_settings"])
         self.settings["integration_settings"].ValidateAndAssignDefaults(default_settings["integration_settings"])
+        self.settings["strain_settings"].ValidateAndAssignDefaults(default_settings["strain_settings"])
 
         self.integration_settings = self.settings["integration_settings"]
+        self.strain_settings = self.settings["strain_settings"]
 
         # Set model part
         self.model_part = model_part
@@ -57,6 +72,7 @@ class MaterialsSolver(object):
         self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_settings["time_step"].GetDouble())
         self.process_info.SetValue(KratosMultiphysics.TIME, time_settings["start_time"].GetDouble())
 
+
         # Set integration point
         point = self.integration_settings["integration_point"]
         position = KratosMultiphysics.Vector(point.size())
@@ -65,14 +81,17 @@ class MaterialsSolver(object):
 
         self.process_info.SetValue(KratosMultiphysics.INTEGRATION_COORDINATES, position)
 
+
+         # Set basic parameters
+        self.parameters = KratosMultiphysics.ConstitutiveLawParameters()
+        self._set_basic_parameters()
+
+
         # Echo level
         self.echo_level = 0
 
         print("  [Time Step:", self.process_info[KratosMultiphysics.DELTA_TIME]," End_time:", time_settings["end_time"].GetDouble(),"]")
 
-
-    def SetLawParameters(self, parameters):
-        self.parameters = parameters
 
     def GetEndTime(self):
         return (self.settings["time_settings"]["end_time"].GetDouble())
@@ -87,6 +106,9 @@ class MaterialsSolver(object):
 
         #set calculation options
         self._set_calculation_options()
+
+        #set strain parameters
+        self._set_strain_parameters()
 
         #check material parameters
         self._check_material_parameters()
@@ -106,12 +128,16 @@ class MaterialsSolver(object):
         #set strain parameters
         self._set_calculation_options()
 
+        #set strain parameters
+        self._set_strain_parameters()
+
         self.echo_level = 1
         self._calculate_material_response()
 
 
     #### Solver internal methods ####
 
+    #
     def _set_calculation_options(self):
 
         #set calculation options to parameters
@@ -127,7 +153,6 @@ class MaterialsSolver(object):
         #self.options.Set(KratosMultiphysics.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, True)
 
         self.parameters.SetOptions( self.options )
-
     #
     def _check_material_parameters(self):
         #check parameters
@@ -170,3 +195,123 @@ class MaterialsSolver(object):
 
         self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
         self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
+
+    #
+    def _set_basic_parameters(self):
+
+        #build a dummy geometry
+        self._build_dummy_geometry()
+
+        #set process_info to parameters
+        self.process_info = self.model_part.ProcessInfo
+        self.parameters.SetProcessInfo( self.process_info )
+
+        #set material properties to parameters
+        self.parameters.SetMaterialProperties( self.properties )
+
+        #set geometry properties to parameters
+        self.N     = KratosMultiphysics.Vector(self.number_of_nodes)
+        self.DN_DX = KratosMultiphysics.Matrix(self.number_of_nodes, self.dimension)
+
+        self.parameters.SetShapeFunctionsValues( self.N )
+        self.parameters.SetShapeFunctionsDerivatives( self.DN_DX )
+        self.parameters.SetElementGeometry( self.geometry )
+
+        #set calculation variables to parameters
+        self.stress_vector       = KratosMultiphysics.Vector(self.material_law.GetStrainSize())
+        self.strain_vector       = KratosMultiphysics.Vector(self.material_law.GetStrainSize())
+        self.constitutive_matrix = KratosMultiphysics.Matrix(self.material_law.GetStrainSize(),self.material_law.GetStrainSize())
+
+        self.parameters.SetStrainVector( self.strain_vector )
+        self.parameters.SetStressVector( self.stress_vector )
+        self.parameters.SetConstitutiveMatrix( self.constitutive_matrix )
+
+    #
+    def _build_dummy_geometry(self):
+
+        #build a dummy geometry
+        self.dimension = self.material_law.WorkingSpaceDimension()
+        self.nodes = []
+        if( self.dimension == 3 ):
+            self.number_of_nodes = 4
+            self.nodes.append(self.model_part.CreateNewNode(0,0.0,0.0,0.0))
+            self.nodes.append(self.model_part.CreateNewNode(1,1.0,0.0,0.0))
+            self.nodes.append(self.model_part.CreateNewNode(2,0.0,1.0,0.0))
+            self.nodes.append(self.model_part.CreateNewNode(3,0.0,0.0,1.0))
+            self.geometry = KratosMultiphysics.Tetrahedra3D4(self.nodes[0],self.nodes[1],self.nodes[2],self.nodes[3])
+        if( self.dimension == 2 ):
+            self.number_of_nodes = 3
+            self.nodes.append(self.model_part.CreateNewNode(0,0.0,0.0,0.0))
+            self.nodes.append(self.model_part.CreateNewNode(1,1.0,0.0,0.0))
+            self.nodes.append(self.model_part.CreateNewNode(2,0.0,1.0,0.0))
+            self.geometry = KratosMultiphysics.Triangle2D3(self.nodes[0],self.nodes[1],self.nodes[2])
+
+
+    #
+    def _set_strain_parameters(self):
+
+        self.F = KratosMultiphysics.Matrix(3,3)
+        self.detF = 1.0
+
+        self._set_strain_matrix(self.F)
+        self.detF = self._get_matrix_determinant(self.F)
+
+        #print(" DeterminantF ", self.F)
+        #print(" DeterminantF ", self.detF)
+
+        self.parameters.SetDeformationGradientF(self.F)
+        self.parameters.SetDeterminantF(self.detF)
+
+    #
+    def _set_strain_matrix(self, F):
+
+        strain = self.strain_settings["deformation_gradient"]
+
+        F[0,0] = self._get_strain_value(strain[0][0])
+        F[0,1] = self._get_strain_value(strain[0][1])
+        F[0,2] = self._get_strain_value(strain[0][2])
+        F[1,0] = self._get_strain_value(strain[1][0])
+        F[1,1] = self._get_strain_value(strain[1][1])
+        F[1,2] = self._get_strain_value(strain[1][2])
+        F[2,0] = self._get_strain_value(strain[2][0])
+        F[2,1] = self._get_strain_value(strain[2][1])
+        F[2,2] = self._get_strain_value(strain[2][2])
+
+
+    def _get_strain_value(self, value):
+
+        self.value_is_numeric = False
+
+        if value.IsNumber():
+            value_is_numeric = True
+            return value.GetDouble()
+        else:
+            function_expression = value.GetString()
+
+            if (sys.version_info > (3, 0)):
+                compiled_function = compiled_space_time_function(compile(function_expression, '', 'eval', optimize=2))
+            else:
+                compiled_function = compiled_space_time_function(compile(function_expression, '', 'eval'))
+
+            time = self.process_info[KratosMultiphysics.TIME]
+
+            # evolution parameters passed via process_info
+
+            # movement equations position
+            position = KratosMultiphysics.Vector(self.dimension)
+            if( self.process_info.Has(KratosMultiphysics.INTEGRATION_COORDINATES) ):
+                position = self.process_info[KratosMultiphysics.INTEGRATION_COORDINATES]
+
+            # time
+            time = 0.0
+            if( self.process_info.Has(KratosMultiphysics.TIME) ):
+                time = self.process_info[KratosMultiphysics.TIME]
+
+            value = compiled_function.function(position[0],position[1],position[2],time)
+
+            return value
+
+    #
+    def _get_matrix_determinant(self, F):
+        value = ((F[0,0]*F[1,1]*F[2,2])+(F[0,1]*F[1,2]*F[2,0])+(F[0,2]*F[1,0]*F[2,1])-(F[0,2]*F[1,1]*F[2,0])-(F[0,0]*F[1,2]*F[2,1])-(F[0,1]*F[1,0]*F[2,2]))
+        return value
