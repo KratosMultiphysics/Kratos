@@ -70,6 +70,8 @@ class CoSimulationData
     virtual void PrintDetails(std::ofstream& iFile)
     {
     }
+    
+      
     ///@}
     ///@name Access
     ///@{

@@ -81,7 +81,7 @@ class CoSimulationBaseIo
 
     virtual void MakeDataAvailable(DataPointerType iData, std::string iFrom, std::string iTo)
     {
-        std::string AvailFileName = (dot + slash + dot + iTo + slash + "DATA" + dot + iData->Name() + dot + availExtension);
+        std::string AvailFileName = (dot + slash + dot + iTo + dot + iFrom + slash + "DATA" + dot + iData->Name() + dot + availExtension);
         std::ofstream outputFile(AvailFileName.c_str());
         if(outputFile.is_open())
         {
@@ -91,7 +91,7 @@ class CoSimulationBaseIo
 
     virtual void MakeMeshAvailable(MeshPointerType iMesh, std::string iFrom, std::string iTo)
     {
-        std::string AvailFileName = (dot + slash + dot + iTo + slash + "MESH" + dot + iMesh->Name() + dot + availExtension);
+        std::string AvailFileName = (dot + slash + dot + iTo + dot + iFrom + slash + "MESH" + dot + iMesh->Name() + dot + availExtension);
         std::ofstream outputFile(AvailFileName.c_str());
         if(outputFile.is_open())
         {
@@ -137,16 +137,20 @@ class CoSimulationBaseIo
         return (remove(iFileName.c_str()) != 0);
     }
 
-    virtual void ReadDataFieldDetails(DataPointerType iData, std::string iAvailFileName)
+    virtual void ReadDataDetails(DataPointerType iData, std::string iAvailFileName)
     {
     }
+
+    virtual void ReadMeshDetails(MeshPointerType iMesh, std::string iAvailFileName)
+    {
+    }    
 
     /// Check if an input datafield is available.
     /// This is done by checking if a file with the name of the data field exists or not.
     /// This is also for synchronizing between different solvers.
-    virtual bool IsDataAvailable(DataPointerType iData, std::string iFor)
+    virtual bool IsDataAvailable(DataPointerType iData, std::string iFrom, std::string iTo)
     {
-        std::string AvailFileName = (dot + slash + dot + iFor + slash + "DATA" + dot + iData->Name() + dot + availExtension);
+        std::string AvailFileName = (dot + slash + dot + iTo + dot + iFrom + slash + "DATA" + dot + iData->Name() + dot + availExtension);
         while (CoSimulation_FileExists(AvailFileName.c_str()))
         { // file not available
             std::cout << "Data :: " << iData->Name() << " Not available .. waiting ... " << std::endl;
@@ -155,7 +159,24 @@ class CoSimulationBaseIo
         CoSimulation_Wait(2);
 
         // Once we know the data is available we read the details of the data
-        ReadDataFieldDetails(iData, AvailFileName);
+        ReadDataDetails(iData, AvailFileName);
+
+        return true;
+    }
+
+
+    virtual bool IsMeshAvailable(MeshPointerType iMesh, std::string iFrom, std::string iTo)
+    {
+        std::string AvailFileName = (dot + slash + dot + iTo + dot + iFrom + slash + "MESH" + dot + iMesh->Name() + dot + availExtension);
+        while (CoSimulation_FileExists(AvailFileName.c_str()))
+        { // file not available
+            std::cout << "Data :: " << iMesh->Name() << " Not available .. waiting ... " << std::endl;
+            CoSimulation_Wait(1);
+        }
+        CoSimulation_Wait(2);
+
+        // Once we know the data is available we read the details of the data
+        ReadMeshDetails(iMesh, AvailFileName);
 
         return true;
     }
