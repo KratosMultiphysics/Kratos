@@ -295,7 +295,9 @@ protected:
 
       	if (rResponseGradient.size() != rDerivativesMatrix.size1())
           	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-		rResponseGradient.clear();	  
+		rResponseGradient.clear();	 
+
+		// There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces! 
 
      	 KRATOS_CATCH("")
 	}
@@ -312,6 +314,8 @@ protected:
 		if (rResponseGradient.size() != rDerivativesMatrix.size1())
           	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
 		rResponseGradient.clear();	
+
+		// There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces! 
 
         KRATOS_CATCH("")
 	}

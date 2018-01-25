@@ -523,15 +523,9 @@ namespace Kratos
 	{
     	KRATOS_TRY;
 
-    	const Variable<Vector> & rSTRESS_ON_GP =
-            	KratosComponents<Variable<Vector> >::Get("STRESS_ON_GP");  
-
-		if(rVariable == rSTRESS_ON_GP)
+		if(rVariable == STRESS_ON_GP)
 		{
-
-	   		const Variable<std::string> & rTRACED_STRESS_TYPE =
-           		KratosComponents<Variable<std::string> >::Get("TRACED_STRESS_TYPE");
-	    	std::string traced_stress_type = this->GetValue(rTRACED_STRESS_TYPE);
+	    	std::string traced_stress_type = this->GetValue(TRACED_STRESS_TYPE);
 
         	const char item_1 = traced_stress_type.at(0);
         	const char item_2 = traced_stress_type.at(1);
@@ -585,35 +579,26 @@ namespace Kratos
                                                 const ProcessInfo& rCurrentProcessInfo)
 	{
    		KRATOS_TRY;
-
-    	const Variable<Matrix> & rSTRESS_DISP_DERIV_ON_GP =
-           	  KratosComponents<Variable<Matrix> >::Get("STRESS_DISP_DERIV_ON_GP");  
-    	const Variable<Matrix> & rSTRESS_DV_DERIV_ON_GP =
-           	  KratosComponents<Variable<Matrix> >::Get("STRESS_DV_DERIV_ON_GP"); 
-    	const Variable<Vector>& rSTRESS_ON_GP =
-        	KratosComponents<Variable<Vector>>::Get("STRESS_ON_GP");                             
-           
-		if(rVariable == rSTRESS_DISP_DERIV_ON_GP)   
+   
+		if(rVariable == STRESS_DISP_DERIV_ON_GP)   
 		{
-       		this->CalculateStressDisplacementDerivative(rSTRESS_ON_GP, rOutput, rCurrentProcessInfo);
+       		this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
     	}
-    	else if(rVariable == rSTRESS_DV_DERIV_ON_GP)
+    	else if(rVariable == STRESS_DV_DERIV_ON_GP)
     	{
-        	const Variable<std::string> & rDESIGN_VARIABLE_NAME =
-           		  KratosComponents<Variable<std::string> >::Get("DESIGN_VARIABLE_NAME");
-        	std::string design_variable_name = this->GetValue( rDESIGN_VARIABLE_NAME );	
+        	std::string design_variable_name = this->GetValue( DESIGN_VARIABLE_NAME );	
 
         	if (KratosComponents<Variable<double>>::Has(design_variable_name) == true)
         	{
             	const Variable<double>& r_variable =
                 	KratosComponents<Variable<double>>::Get(design_variable_name);
-            	this->CalculateStressDesignVariableDerivative(r_variable, rSTRESS_ON_GP, rOutput, rCurrentProcessInfo);
+            	this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);
         	}
         	else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(design_variable_name) == true)
         	{
             	const Variable<array_1d<double, 3>>& r_variable =
                 	KratosComponents<Variable<array_1d<double, 3>>>::Get(design_variable_name);
-            	this->CalculateStressDesignVariableDerivative(r_variable, rSTRESS_ON_GP, rOutput, rCurrentProcessInfo);    
+            	this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);    
         	}      
     	}
     	else

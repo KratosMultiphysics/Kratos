@@ -140,6 +140,7 @@ public:
 		m_displacement_value = 0.0;	
 		this->GetNeighboringElementPointer();
 
+
 	}
 
 	/// Destructor.
@@ -160,28 +161,6 @@ public:
 		KRATOS_TRY;
 
 		BaseType::Initialize();
-
-
-
-		// Initialize a condition which is for this response function the adjoint load
-		/*std::string label_adjoint_load_condition;
-
-		if(m_traced_displacement_type == "DISPLACEMENT")
-			label_adjoint_load_condition = POINT_LOAD;
-		else if(m_traced_displacement_type == "ROTATION")
-			label_adjoint_load_condition = POINT_MOMENT;
-		else
-			KRATOS_ERROR << "Plaese choose between DISPLACEMENT and ROTATION. Your choice is " 
-			<< m_traced_displacement_type << "." << std::endl;
-
-		if (KratosComponents<Variable<double>>::Has(label_adjoint_load_condition) == true)
-        {
-            const Variable<double>& r_adjoint_load_variable =
-                KratosComponents<Variable<double>>::Get(label_adjoint_load_condition);
-		}	
-		m_traced_pNode.FastGetSolutionStepValue(r_adjoint_load_variable) = r_adjoint_load_variable.Zero();*/
-
-		
 	
 		KRATOS_CATCH("");	
 	}
