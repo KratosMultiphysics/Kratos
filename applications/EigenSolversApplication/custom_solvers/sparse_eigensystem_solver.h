@@ -32,6 +32,7 @@ namespace Kratos
 {
 
 template<
+    class TSolver,
     class TSparseSpaceType,
     class TDenseSpaceType,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
@@ -91,13 +92,7 @@ class SparseEigensystemSolver
         using scalar_t = double;
         using vector_t = Eigen::VectorXd;
         using matrix_t = Eigen::MatrixXd;
-        using sparse_t = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
-	    #if defined EIGEN_USE_MKL_ALL
-        using ldlt_solver_t = Eigen::PardisoLDLT<sparse_t>;
-        #else
-        using ldlt_solver_t = Eigen::SparseLU<sparse_t>;
-        #endif
-
+        
         // --- get settings
 
         const int nroot = mParam["number_of_eigenvalues"].GetInt();
@@ -182,8 +177,8 @@ class SparseEigensystemSolver
 
             r(ij, j) = 1.0;
         }
-
-        ldlt_solver_t solver;
+       
+        typename TSolver::TSolver solver;
         solver.compute(a);
 
         int iteration = 0;

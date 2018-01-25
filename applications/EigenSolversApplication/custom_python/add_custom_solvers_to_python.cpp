@@ -40,12 +40,14 @@ void AddCustomSolversToPython()
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 	typedef DirectSolver<SparseSpaceType, LocalSpaceType> DirectSolverType;
 
+	// --- direct solvers
+
 	using SparseLUSolver = EigenDirectSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
 	class_<SparseLUSolver, bases<DirectSolverType>, boost::noncopyable>
 		("SparseLUSolver", init<>())
 		.def(init<Parameters>());
 
-	#if defined EIGEN_USE_MKL_ALL
+	#if defined MKL
 	using PardisoLLTSolver = EigenDirectSolver<PardisoLLT, SparseSpaceType, LocalSpaceType>;
 	class_<PardisoLLTSolver, bases<DirectSolverType>, boost::noncopyable>
 		("PardisoLLTSolver", init<>())
@@ -60,9 +62,16 @@ void AddCustomSolversToPython()
 	class_<PardisoLUSolver, bases<DirectSolverType>, boost::noncopyable>
 		("PardisoLUSolver", init<>())
 		.def(init<Parameters>());
-	#endif
+	#endif // defined MKL
 
-	using SparseEigensystemSolverType = SparseEigensystemSolver<SparseSpaceType, LocalSpaceType>;
+
+	// --- eigensystem solver
+
+	#if defined MKL
+	using SparseEigensystemSolverType = SparseEigensystemSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
+	#else  // defined MKL
+	using SparseEigensystemSolverType = SparseEigensystemSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
+	#endif // defined MKL
 	class_<SparseEigensystemSolverType, SparseEigensystemSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable>
     	("SparseEigensystemSolver", init<Parameters>())
     	.def("Solve", &SparseEigensystemSolverType::Solve)
