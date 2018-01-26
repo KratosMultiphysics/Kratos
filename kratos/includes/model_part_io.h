@@ -138,7 +138,7 @@ public:
 
     std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
-    virtual void WriteConditions(ConditionsContainerType const& rThisConditions);
+    virtual void WriteConditions(ConditionsContainerType const& rThisConditions) override;
 
     void ReadInitialValues(ModelPart& rThisModelPart) override;
 
