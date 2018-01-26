@@ -13,9 +13,6 @@
 /* System includes */
 
 
-/* External includes */
-#include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -40,7 +37,7 @@ class ExplicitStrategy
 public:
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ExplicitStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
@@ -122,10 +119,7 @@ public:
         //set RebuildLevel to the deffault value 
         BaseType::SetRebuildLevel(0);  
 
-        //set it true for explicit :: taking the deffault geometry lumping factors
-        BaseType::GetModelPart().GetProcessInfo()[COMPUTE_LUMPED_MASS_MATRIX] = true; 
-
-            KRATOS_CATCH( "" )
+        KRATOS_CATCH( "" )
     }
 
     /** Destructor.

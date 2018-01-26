@@ -20,10 +20,10 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings): 
-
          # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
+            "scheme_type" : "central_differences",
             "time_step_prediction_level": 0, 
             "max_delta_time": 1.0e-5, 
             "fraction_delta_time": 0.9, 
@@ -32,13 +32,11 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
-        if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
-            custom_settings.AddEmptyValue("scheme_type")
-            custom_settings["scheme_type"].SetString("centraldifferences")
+
         
         # Construct the base solver.
         super(ExplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        print("::[ExplicitMechanicalSolver]:: Construction finished")    
+        self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: Construction finished")    
 
     def AddVariables(self):
         super(ExplicitMechanicalSolver, self).AddVariables()
@@ -53,7 +51,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
 
-        print("::[ExplicitMechanicalSolver]:: Variables ADDED")
+        self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: Variables ADDED")
     
     def AddDofs(self):
         super(ExplicitMechanicalSolver, self).AddDofs()
@@ -68,21 +66,21 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY_Z,self.main_model_part)
 
 
-        print("::[ExplicitMechanicalSolver]:: DOF's ADDED")
+        self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: DOF's ADDED")
 
 
     #### Specific internal functions ####
     def _create_solution_scheme(self):
-        scheme_type = self.settings["scheme_type"].GetString()
+        scheme_type = self.dynamic_settings["scheme_type"].GetString()
 
-        if(scheme_type == "centraldifferences"):
+        if(scheme_type == "central_differences"):
             mechanical_scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(self.dynamic_settings["max_delta_time"].GetDouble(), 
                                                                              self.dynamic_settings["fraction_delta_time"].GetDouble(), 
                                                                              self.dynamic_settings["time_step_prediction_level"].GetDouble(), 
                                                                              self.dynamic_settings["rayleigh_damping"].GetBool())                                                                     
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"centraldifferences\""
+            err_msg += "Available options are: \"central_differences\""
             raise Exception(err_msg)
         return mechanical_scheme
 

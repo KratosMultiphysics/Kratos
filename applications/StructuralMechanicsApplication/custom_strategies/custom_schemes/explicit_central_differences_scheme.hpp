@@ -1,10 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:           MSantasusana $
-//   Last modified by:    $Co-Author:          JMCarbonel $
-//   Date:                $Date:               April 2014 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Klaus B Sautter (based on the work of MSantasusana)
+//					 
 //
 
 #if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_HPP_INCLUDED)
@@ -62,8 +66,6 @@ namespace Kratos
   public:
     /**@name Type Definitions */
     /*@{ */
-
-    //typedef boost::shared_ptr< ExplicitCentralDifferencesScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ExplicitCentralDifferencesScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
@@ -101,12 +103,7 @@ namespace Kratos
       mDeltaTime.Fraction         = rDeltaTimeFraction;
 
       mRayleighDamping            = rRayleighDamping;
-	
-      int NumThreads = OpenMPUtils::GetNumThreads();
 
-      mMatrix.D.resize(NumThreads);
-
-      mVector.v.resize(NumThreads);
       mSchemeIsInitialized = false;
 
     }
@@ -122,13 +119,13 @@ namespace Kratos
      */
     /*@{ */
 
-    virtual int Check(ModelPart& r_model_part)
+    virtual int Check(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
-      BaseType::Check(r_model_part);
+      BaseType::Check(rModelPart);
 
-      if(r_model_part.GetBufferSize() < 2)
+      if(rModelPart.GetBufferSize() < 2)
       {
         KRATOS_THROW_ERROR(std::logic_error, "Insufficient buffer size for Central Difference Scheme. It has to be 2", "")
 	    }
@@ -138,18 +135,16 @@ namespace Kratos
     }
 
 
-    virtual void Initialize(ModelPart& r_model_part)
+    virtual void Initialize(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
-      mModelPart = r_model_part;
-
       if( (mDeltaTime.PredictionLevel>0) && (mSchemeIsInitialized==false) )
       {
-        CalculateDeltaTime(r_model_part);
+        CalculateDeltaTime(rModelPart);
       }
 
-      ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
       //Preparing the time values for the first step (where time = initial_time + dt)
       mTime.Current         = rCurrentProcessInfo[TIME]+rCurrentProcessInfo[DELTA_TIME];
@@ -160,11 +155,11 @@ namespace Kratos
 
       if(mSchemeIsInitialized==false)
       {
-        InitializeExplicitScheme(r_model_part);
+        InitializeExplicitScheme(rModelPart);
       }
       else
       {
-        SchemeCustomInitialization(r_model_part);
+        SchemeCustomInitialization(rModelPart);
       }
 
       mSchemeIsInitialized = true;
@@ -173,21 +168,21 @@ namespace Kratos
 
     //***************************************************************************
 
-    virtual void InitializeSolutionStep(ModelPart& r_model_part,
+    virtual void InitializeSolutionStep(ModelPart& rModelPart,
 					TSystemMatrixType& A,
 					TSystemVectorType& Dx,
 					TSystemVectorType& b)
     {
       KRATOS_TRY
 
-      BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
+      BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
 
       if(mDeltaTime.PredictionLevel>1)
       {
-        CalculateDeltaTime(r_model_part);
+        CalculateDeltaTime(rModelPart);
       }
 
-      InitializeResidual(r_model_part);       
+      InitializeResidual(rModelPart);       
 
 	
       KRATOS_CATCH("")
@@ -195,11 +190,11 @@ namespace Kratos
 
     //**************************************************************************
     
-    void InitializeResidual( ModelPart& r_model_part )
+    void InitializeResidual( ModelPart& rModelPart )
     {
       KRATOS_TRY
        
-      NodesArrayType& pNodes   = r_model_part.Nodes();
+      NodesArrayType& rNodes   = rModelPart.Nodes();
 
       #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
@@ -208,13 +203,13 @@ namespace Kratos
       #endif
 
       vector<unsigned int> node_partition;
-      OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+      OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
 
       #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
       {
-          typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-          typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+          typename NodesArrayType::iterator i_begin=rNodes.ptr_begin()+node_partition[k];
+          typename NodesArrayType::iterator i_end=rNodes.ptr_begin()+node_partition[k+1];
 
           for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
           {
@@ -233,27 +228,27 @@ namespace Kratos
 
     //***************************************************************************
 
-    void CalculateDeltaTime(ModelPart& r_model_part)
+    void CalculateDeltaTime(ModelPart& rModelPart)
     {
 
       KRATOS_TRY
 
-      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-      ElementsArrayType& pElements      = r_model_part.Elements();
+      ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
+      ElementsArrayType& rElements      = rModelPart.Elements();
 
       #ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
+        const int number_of_threads = omp_get_max_threads();
       #else
-        int number_of_threads = 1;
+        const int number_of_threads = 1;
 
       #endif
 
       vector<unsigned int> element_partition;
-      OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+      OpenMPUtils::CreatePartition(number_of_threads, rElements.size(), element_partition);
 
-      double safety_factor = 0.5;  //most autors recommend a value near 0.80 (Belytschko - Nonlinear FE.. 2000. chap 6. pag. 315)
+      const double safety_factor = 0.5;  //most autors recommend a value near 0.80 (Belytschko - Nonlinear FE.. 2000. chap 6. pag. 315)
 
-      Vector delta_times(number_of_threads);
+      std::vector<double> delta_times(number_of_threads);
 
       double stable_delta_time = 0.00;
 
@@ -264,12 +259,12 @@ namespace Kratos
 
       for(int k=0; k<number_of_threads; k++)
       {
-        typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
-        typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+        typename ElementsArrayType::iterator it_begin=rElements.ptr_begin()+element_partition[k];
+        typename ElementsArrayType::iterator it_end=rElements.ptr_begin()+element_partition[k+1];
         
         for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++)
         {
-          bool check = true;
+          bool check_has_all_variables = true;
           double E(0.00), v(0.00), ro(0.00), alpha(0.00), beta(0.00);
           //get geometric and material properties
           if (it->GetProperties().Has(RAYLEIGH_ALPHA))
@@ -284,7 +279,7 @@ namespace Kratos
           {
             E        = it->GetProperties()[YOUNG_MODULUS];
           }
-          else check = false;
+          else check_has_all_variables = false;
           if (it->GetProperties().Has(POISSON_RATIO))
           {
             v        = it->GetProperties()[POISSON_RATIO];
@@ -293,9 +288,9 @@ namespace Kratos
           {
             ro       = it->GetProperties()[DENSITY];
           }
-          else check = false;
+          else check_has_all_variables = false;
 
-          if (check){
+          if (check_has_all_variables){
             double length   = it->GetGeometry().Length();
 
             //compute courant criterion
@@ -335,11 +330,11 @@ namespace Kratos
 
     //***************************************************************************
 
-    void InitializeExplicitScheme(ModelPart& r_model_part)
+    void InitializeExplicitScheme(ModelPart& rModelPart)
     {
       KRATOS_TRY
 
-      NodesArrayType& pNodes        = r_model_part.Nodes();
+      NodesArrayType& rNodes        = rModelPart.Nodes();
 
       #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
@@ -348,13 +343,13 @@ namespace Kratos
       #endif
 
       vector<unsigned int> node_partition;
-      OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+      OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
 
       #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
       {
-        typename NodesArrayType::iterator i_begin = pNodes.ptr_begin()+node_partition[k];
-        typename NodesArrayType::iterator i_end   = pNodes.ptr_begin()+node_partition[k+1];
+        typename NodesArrayType::iterator i_begin = rNodes.ptr_begin()+node_partition[k];
+        typename NodesArrayType::iterator i_end   = rNodes.ptr_begin()+node_partition[k+1];
 
         for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
         {
@@ -398,7 +393,7 @@ namespace Kratos
       Performing the update of the solution.
   */
   //***************************************************************************
-    virtual void Update(ModelPart& r_model_part,
+    virtual void Update(ModelPart& rModelPart,
           DofsArrayType& rDofSet,
           TSystemMatrixType& A,
           TSystemVectorType& Dx,
@@ -406,8 +401,8 @@ namespace Kratos
           )
     {
       KRATOS_TRY
-      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-      NodesArrayType& pNodes            = r_model_part.Nodes();
+      ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
+      NodesArrayType& rNodes            = rModelPart.Nodes();
       const double numerical_limit = std::numeric_limits<double>::epsilon();
       //Step Update
       mTime.Current   = rCurrentProcessInfo[TIME];  //the first step is time = initial_time ( 0.0) + delta time
@@ -423,13 +418,13 @@ namespace Kratos
       #endif
 
       vector<unsigned int> node_partition;
-      OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+      OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
 
       #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
       {
-        typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-        typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+        typename NodesArrayType::iterator i_begin=rNodes.ptr_begin()+node_partition[k];
+        typename NodesArrayType::iterator i_end=rNodes.ptr_begin()+node_partition[k+1];
 
         for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
         {
@@ -531,10 +526,10 @@ namespace Kratos
       KRATOS_CATCH("")
     }
 
-    virtual void SchemeCustomInitialization(ModelPart& r_model_part)
+    virtual void SchemeCustomInitialization(ModelPart& rModelPart)
     {
       KRATOS_TRY
-      NodesArrayType& pNodes            = r_model_part.Nodes();
+      NodesArrayType& rNodes            = rModelPart.Nodes();
       const double numerical_limit = std::numeric_limits<double>::epsilon();
       #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
@@ -543,13 +538,13 @@ namespace Kratos
       #endif
 
       vector<unsigned int> node_partition;
-      OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+      OpenMPUtils::CreatePartition(number_of_threads, rNodes.size(), node_partition);
 
       #pragma omp parallel for
       for(int k=0; k<number_of_threads; k++)
       {
-        typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-        typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+        typename NodesArrayType::iterator i_begin=rNodes.ptr_begin()+node_partition[k];
+        typename NodesArrayType::iterator i_end=rNodes.ptr_begin()+node_partition[k+1];
 
         for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
         {
@@ -667,20 +662,11 @@ namespace Kratos
   {
 
     KRATOS_TRY
-    int thread = OpenMPUtils::ThisThread();
 
     //basic operations for the element considered
     Matrix DummyLHS;
     rCurrentElement -> CalculateLocalSystem(DummyLHS,RHS_Contribution,rCurrentProcessInfo);
-    //(rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
 
-    // TODO: add Damping ? how to handle 2d and non-rot elements?
-    /*     if(mRayleighDamping)
-    {
-      (rCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread],rCurrentProcessInfo);
-      AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], rCurrentProcessInfo);
-
-    } */
     //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
     (rCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
     if (rCurrentElement->GetGeometry()[0].HasDofFor(ROTATION_X))
@@ -693,31 +679,6 @@ namespace Kratos
 
   //Elements:
   //****************************************************************************
-
-
-  void AddDynamicsToRHS(
-      Element::Pointer rCurrentElement,
-      LocalSystemVectorType& RHS_Contribution,
-      LocalSystemMatrixType& D,
-      ProcessInfo& CurrentProcessInfo)
-  {
-    int thread = OpenMPUtils::ThisThread();
-    const unsigned int number_of_nodes = rCurrentElement->GetGeometry().size();
-    const unsigned int dimension       = rCurrentElement->GetGeometry().WorkingSpaceDimension();
-
-    //adding damping contribution
-/*     if (D.size1() != 0)
-    {
-      GetFirstDerivativesVector(rCurrentElement, mVector.v[thread]);
-
-      if (mVector.v[thread].size() != D.size1())
-      { 
-        this->RHS_Contribution_NonRotationDampingMatrix(RHS_Contribution,D,dimension,number_of_nodes);
-      }
-      else noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
-    } */
-
-  }
 
   void GetFirstDerivativesVector(Element::Pointer rCurrentElement, Vector& rValues ) //V at time n-1/2 old
   {
@@ -759,29 +720,6 @@ namespace Kratos
 
   //Conditions:
   //****************************************************************************
-
-  void AddDynamicsToRHS(
-      Condition::Pointer rCurrentCondition,
-      LocalSystemVectorType& RHS_Contribution,
-      LocalSystemMatrixType& D,
-      ProcessInfo& CurrentProcessInfo)
-  {
-    int thread = OpenMPUtils::ThisThread();
-    const unsigned int number_of_nodes = rCurrentCondition->GetGeometry().size();
-    const unsigned int dimension       = rCurrentCondition->GetGeometry().WorkingSpaceDimension();
-
-/*     //adding damping contribution
-    if (D.size1() != 0)
-    {
-      GetFirstDerivativesVector(rCurrentCondition, mVector.v[thread]);
-
-      if (mVector.v[thread].size() != D.size1())
-      { 
-        this->RHS_Contribution_NonRotationDampingMatrix(RHS_Contribution,D,dimension,number_of_nodes);
-      }
-      else noalias(RHS_Contribution) -= prod(D, mVector.v[thread]);
-    } */
-  }
 
 
   void GetFirstDerivativesVector(Condition::Pointer rCurrentCondition, Vector& rValues ) //V at time n-1/2 old
@@ -903,13 +841,8 @@ namespace Kratos
       double Delta;          //time step
     }; 
 
-
-    GeneralMatrices     mMatrix;
-    GeneralVectors      mVector;
              
     bool                mSchemeIsInitialized;
-
-    ModelPart           mModelPart;
 
 
     TimeVariables       mTime;

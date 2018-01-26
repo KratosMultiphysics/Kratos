@@ -1,11 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
-//
+//  Main authors:    Klaus B Sautter (based on the work of JMCarbonell)
+//					 
 
 #if !defined(KRATOS_EXPLICIT_BUILDER_AND_SOLVER )
 #define  KRATOS_EXPLICIT_BUILDER_AND_SOLVER
@@ -19,8 +22,7 @@
 #endif
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
-#include "utilities/timer.h"
+
 
 /* Project includes */
 #include "includes/define.h"
@@ -113,19 +115,22 @@ public:
 
 
     //**************************************************************************
+    // this does not build a matrix but is used to create the LHS
+    // in explicit time integration each node is updated and thus
+    // does not need to assemble any matrix
     //**************************************************************************
 
     void BuildLHS(
             typename TSchemeType::Pointer pScheme,
-            ModelPart& r_model_part,
+            ModelPart& rModelPart,
             TSystemMatrixType& A)
     {
         KRATOS_TRY
 
         //Set Nodal Mass to zero
-        NodesArrayType& pNodes             = r_model_part.Nodes();
-        ElementsArrayType& pElements       = r_model_part.Elements();
-        ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
+        NodesArrayType& pNodes             = rModelPart.Nodes();
+        ElementsArrayType& pElements       = rModelPart.Elements();
+        ProcessInfo& rCurrentProcessInfo   = rModelPart.GetProcessInfo();
 
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
@@ -164,28 +169,23 @@ public:
                     }
                 }
         }
-        unsigned int index = 0;
-
-	    bool CalculateLumpedMassMatrix = false;
-	    if( rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ){
-	    CalculateLumpedMassMatrix = rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];	   
-	    }
-     
+    
         #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
             typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
             typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
 
-            for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  //MSI: To be parallelized
+            for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  
             {
-                Element::GeometryType& geometry = itElem->GetGeometry();
                 //Getting nodal mass and inertia from element
                 Vector Testtemp;
+
+                // this function needs to be implemented in the respective 
+                // element to provide inertias and nodal masses 
                 itElem->AddExplicitContribution(Testtemp,RESIDUAL_VECTOR,NODAL_INERTIA,rCurrentProcessInfo);
             }
         }
-	    rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] = CalculateLumpedMassMatrix;
         
         KRATOS_CATCH( "" )
     }
@@ -195,16 +195,16 @@ public:
 
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemVectorType& b)
     {
         KRATOS_TRY
         
         // Compute condition contributions to RHS.
-        CalculateAndAddConditionsRHS(pScheme, r_model_part);
+        CalculateAndAddConditionsRHS(pScheme, rModelPart);
 
         // Compute element contributions to RHS.
-        CalculateAndAddElementsRHS(pScheme, r_model_part);
+        CalculateAndAddElementsRHS(pScheme, rModelPart);
 
         
         KRATOS_CATCH( "" )
@@ -218,12 +218,12 @@ public:
     //***************************************************************************
 
    
-    void CalculateAndAddConditionsRHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part )
+    void CalculateAndAddConditionsRHS(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart )
     {
         KRATOS_TRY
 
-        ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
-        ConditionsArrayType& pConditions      = r_model_part.Conditions();
+        ProcessInfo& rCurrentProcessInfo      = rModelPart.GetProcessInfo();
+        ConditionsArrayType& pConditions      = rModelPart.Conditions();
 
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
@@ -260,13 +260,13 @@ public:
     //***************************************************************************
 
 
-    void CalculateAndAddElementsRHS(typename TSchemeType::Pointer pScheme, ModelPart& r_model_part )
+    void CalculateAndAddElementsRHS(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart )
     {
 
         KRATOS_TRY
         
-        ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
-        ElementsArrayType& pElements        = r_model_part.Elements();
+        ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
+        ElementsArrayType& pElements        = rModelPart.Elements();
 
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
@@ -302,7 +302,7 @@ public:
 
     
     void InitializeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b)
@@ -315,7 +315,7 @@ public:
     //**************************************************************************
 
     void FinalizeSolutionStep(
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b)
@@ -329,7 +329,7 @@ public:
 
     void ApplyDirichletConditions(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b)
@@ -341,7 +341,7 @@ public:
 
     void ApplyPointLoads(
         typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
+        ModelPart& rModelPart,
         TSystemVectorType& b)
     {
     }
@@ -373,7 +373,7 @@ public:
      * @param r_model_part
      * @return 0 all ok
      */
-    virtual int Check(ModelPart& r_model_part)
+    virtual int Check(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
