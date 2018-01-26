@@ -32,7 +32,6 @@ def DisplacementToMesh(fluid_interface, time, movement, ampFac):
     time *= ampFac
     for node in fluid_interface:
         if movement == "TRANSLATION_X":
-            print("Setting Translation")
             valueX = 0.5 * time
             valueY = 0
         elif movement == "TRANSLATION_Y":

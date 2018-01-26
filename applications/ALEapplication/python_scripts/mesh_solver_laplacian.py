@@ -6,22 +6,25 @@ KratosMultiphysics.CheckForPreviousImport()
 import mesh_solver_base
 
 
-def CreateSolver(model_part, custom_settings):
-    return MeshSolverLaplacian(model_part, custom_settings)
+def CreateSolver(mesh_model_part, custom_settings):
+    return MeshSolverLaplacian(mesh_model_part, custom_settings)
 
 
 class MeshSolverLaplacian(mesh_solver_base.MeshSolverBase):
-    def __init__(self, model_part, custom_settings):
-        super(MeshSolverLaplacian, self).__init__(model_part, custom_settings)
+    def __init__(self, mesh_model_part, custom_settings):
+        super(MeshSolverLaplacian, self).__init__(mesh_model_part, custom_settings)
         print("::[MeshSolverLaplacian]:: Construction finished")
 
     def _create_mesh_motion_solver(self):
         linear_solver = self.get_linear_solver()
         time_order = self.settings["time_order"].GetInt()
-        reform_dofs_at_each_step = self.settings["reform_dofs_each_step"].GetBool()
+        reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
-        solver = ALEApplication.LaplacianMeshMovingStrategy(self.model_part,
+        echo_level = self.settings["echo_level"].GetInt()
+        solver = ALEApplication.LaplacianMeshMovingStrategy(self.mesh_model_part,
                                                             linear_solver,
                                                             time_order,
-                                                            reform_dofs_each_step)
+                                                            reform_dofs_each_step,
+                                                            echo_level)
         return solver
+

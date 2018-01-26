@@ -6,13 +6,13 @@ KratosMultiphysics.CheckForPreviousImport()
 import mesh_solver_base
 
 
-def CreateSolver(model_part, custom_settings):
-    return MeshSolverStructuralSimilarity(model_part, custom_settings)
+def CreateSolver(mesh_model_part, custom_settings):
+    return MeshSolverStructuralSimilarity(mesh_model_part, custom_settings)
 
 
 class MeshSolverStructuralSimilarity(mesh_solver_base.MeshSolverBase):
-    def __init__(self, model_part, custom_settings):
-        super(MeshSolverStructuralSimilarity, self).__init__(model_part, custom_settings)
+    def __init__(self, mesh_model_part, custom_settings):
+        super(MeshSolverStructuralSimilarity, self).__init__(mesh_model_part, custom_settings)
         print("::[MeshSolverStructuralSimilarity]:: Construction finished")
 
     def _create_mesh_motion_solver(self):
@@ -20,7 +20,7 @@ class MeshSolverStructuralSimilarity(mesh_solver_base.MeshSolverBase):
         time_order = self.settings["time_order"].GetInt()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
-        solver = ALEApplication.StructuralMeshMovingStrategy(self.model_part,
+        solver = ALEApplication.StructuralMeshMovingStrategy(self.mesh_model_part,
                                                              linear_solver,
                                                              time_order,
                                                              reform_dofs_each_step,

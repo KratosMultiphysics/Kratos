@@ -20,7 +20,7 @@ class ALENavierStokesSolverVMSMonolithic(navier_stokes_solver_vmsmonolithic.Navi
         super(ALENavierStokesSolverVMSMonolithic, self).__init__(model_part, navier_stokes_settings)
         # create ale solver
         ale_solver_type = custom_settings["ale_settings"]["solver_type"].GetString()
-        valid_ale_solver_types = ["mesh_solver_structural_similarity"]
+        valid_ale_solver_types = ["mesh_solver_structural_similarity", "mesh_solver_laplacian"]
         if ale_solver_type not in valid_ale_solver_types:
             raise Exception("Invalid ALE solver_type: " + ale_solver_type)
         ale_solver_module = __import__(ale_solver_type)

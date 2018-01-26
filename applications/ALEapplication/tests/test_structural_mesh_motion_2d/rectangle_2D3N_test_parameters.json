@@ -37,7 +37,7 @@
     "solver_settings" : {
         "solver_type" : "ale_navier_stokes_solver_vmsmonolithic",
         "ale_settings" : {
-            "solver_type" : "mesh_solver_structural_similarity"
+            "solver_type" : "mesh_solver_laplacian"
         },
         "model_import_settings" : {
             "input_type"     : "mdpa",

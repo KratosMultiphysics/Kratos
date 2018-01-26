@@ -215,6 +215,7 @@ private:
     GeometryType::JacobiansType mInvJ0;
     VectorType mDetJ0;
     double mTotalDomainInitialSize;
+    SizeType mLocalSize;
     ///@}
 
     ///@name Serialization

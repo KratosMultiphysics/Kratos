@@ -83,7 +83,7 @@ void  AddCustomStrategiesToPython()
     class_< LaplacianMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             bases< BaseSolvingStrategyType >,  boost::noncopyable >
             ("LaplacianMeshMovingStrategy",
-             init<ModelPart&, LinearSolverType::Pointer, int, bool >() )
+             init<ModelPart&, LinearSolverType::Pointer, int, bool, int >() )
             ;
 
     class_< StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,

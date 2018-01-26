@@ -99,6 +99,11 @@ void LaplacianMeshMovingElement::Initialize()
     mDetJ0.resize(integration_points.size(), false);
     mTotalDomainInitialSize = 0.00;
 
+    const SizeType num_nodes = this->GetGeometry().PointsNumber();
+    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+
+    mLocalSize = num_nodes * dimension;
+
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
     {
         // getting informations for integration
@@ -123,8 +128,8 @@ void LaplacianMeshMovingElement::GetDisplacementValues(VectorType& rValues, cons
     const SizeType NumNodes = rGeom.PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-   // if (rValues.size() != mLocalSize)
-   //     rValues.resize(mLocalSize, false);
+    if (rValues.size() != mLocalSize)
+        rValues.resize(mLocalSize, false);
 
     if (dimension == 2)
     {
@@ -212,75 +217,78 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
     {
-        double IntegrationWeight = integration_points[PointNumber].Weight();
+        double IntegrationWeight = integration_points[PointNumber].Weight() * mDetJ0[PointNumber];
 
         // Compute LHS
         MatrixType DN_DX = CalculateDerivatives(dimension, PointNumber);
-        noalias(rLeftHandSideMatrix) += prod((IntegrationWeight * DN_DX), trans(DN_DX));
+        noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(DN_DX, trans(DN_DX));
 
-        // Compute RHS
-        double LocalSize = NumNodes * dimension;
-        VectorType LastValues = ZeroVector(LocalSize);
-        this->GetDisplacementValues(LastValues, 0);
-        noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, LastValues);
     }
+
+    Vector temp(NumNodes);
+    for (unsigned int i=0; i<NumNodes; i++)
+        temp[i] = GetGeometry()[i].GetSolutionStepValue(MESH_DISPLACEMENT_X) ; //this includes the - sign
+    // Compute RHS
+    double LocalSize = NumNodes * dimension;
+    VectorType last_values = ZeroVector(LocalSize);
+    this->GetDisplacementValues(last_values, 0);
+    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, last_values);
+    
     KRATOS_CATCH("");
 }
 
 void LaplacianMeshMovingElement::EquationIdVector(EquationIdVectorType& rResult,
-                                                  ProcessInfo& rCurrentProcessInfo)
+                                                   ProcessInfo& rCurrentProcessInfo)
 {
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.size();
+    GeometryType& r_geom = this->GetGeometry();
+    const SizeType num_nodes = r_geom.size();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType LocalSize = NumNodes * dimension;
 
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize, false);
-    
+    if (rResult.size() != mLocalSize)
+        rResult.resize(mLocalSize, false);
+
     unsigned int pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
     if (dimension == 2)
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
         {
-            SizeType Index = iNode * dimension;
-            rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
-            rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
+            SizeType index = i_node * dimension;
+            rResult[index] = r_geom[i_node].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
+            rResult[index + 1] = r_geom[i_node].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
         }
     else
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
         {
-            SizeType Index = iNode * dimension;
-            rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
-            rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
-            rResult[Index + 2] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Z,pos+2).EquationId();
+            SizeType index = i_node * dimension;
+            rResult[index] = r_geom[i_node].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
+            rResult[index + 1] = r_geom[i_node].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
+            rResult[index + 2] = r_geom[i_node].GetDof(MESH_DISPLACEMENT_Z,pos+2).EquationId();
         }
 }
 
 void LaplacianMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
-                                            ProcessInfo& rCurrentProcessInfo)
+                                             ProcessInfo& rCurrentProcessInfo)
 {
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.size();
+    GeometryType& r_geom = this->GetGeometry();
+    const SizeType num_nodes = r_geom.size();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType LocalSize = NumNodes * dimension;
 
-    if (rElementalDofList.size() != LocalSize)
-        rElementalDofList.resize(LocalSize);
- 
+    if (rElementalDofList.size() != mLocalSize)
+        rElementalDofList.resize(mLocalSize);
+
     if (dimension == 2)
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
         {
-            SizeType Index = iNode * dimension;
-            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
-            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
+            SizeType index = i_node * dimension;
+            rElementalDofList[index] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_X);
+            rElementalDofList[index + 1] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
         }
     else
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
+        for (SizeType i_node = 0; i_node < num_nodes; ++i_node)
         {
-            SizeType Index = iNode * dimension;
-            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
-            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
-            rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Z);
+            SizeType index = i_node * dimension;
+            rElementalDofList[index] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_X);
+            rElementalDofList[index + 1] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
+            rElementalDofList[index + 2] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
         }
 }
 
