@@ -35,7 +35,7 @@ namespace HDF5
 ///@{
 
 /// A class for serial IO of a model part in HDF5.
-class ModelPartIO : public virtual IO, public ModelPartIOBase
+class ModelPartIO : public ModelPartIOBase
 {
 public:
     ///@name Type Definitions

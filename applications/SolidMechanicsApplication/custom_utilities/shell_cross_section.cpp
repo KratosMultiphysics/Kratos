@@ -382,8 +382,17 @@ namespace Kratos
 				LRcT.resize(strain_size, condensed_strain_size, false);
 				LTRT.resize(condensed_strain_size, strain_size, false);
 			}
-			Hinv = ZeroMatrix(condensed_strain_size, condensed_strain_size);
+			
+			Hinv.resize(condensed_strain_size, condensed_strain_size);
+			noalias(Hinv) = ZeroMatrix(condensed_strain_size, condensed_strain_size);
 		}
+		else if(compute_constitutive_tensor){
+
+		  Hinv.resize(condensed_strain_size, condensed_strain_size);
+		  noalias(Hinv) = ZeroMatrix(condensed_strain_size, condensed_strain_size);
+
+		}
+		  
 		
 		// compute the generalized strain vector in section coordinate system
 		Vector generalizedStrainVector_element;
@@ -639,7 +648,7 @@ namespace Kratos
 		}
 
 		// *********************************** NOW WE MOVE TO THE PARENT ELEMENT COORDINATE SYSTEM ************************************
-		
+
 		// transform the outputs back to the element coordinate system (if necessary)
 		if(mOrientation != 0.0)
 		{

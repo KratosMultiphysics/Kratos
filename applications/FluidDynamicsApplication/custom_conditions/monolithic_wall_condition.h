@@ -182,13 +182,14 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new MonolithicWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_shared<MonolithicWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
+
     Condition::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< MonolithicWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< MonolithicWallCondition >(NewId, pGeom, pProperties);
     }
     
     /**

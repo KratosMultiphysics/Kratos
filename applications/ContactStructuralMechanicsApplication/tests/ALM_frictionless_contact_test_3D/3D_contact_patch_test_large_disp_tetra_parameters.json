@@ -31,12 +31,11 @@
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 30,
+        "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","Contact_Part"],
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false
+            "solver_type" : "SuperLUSolver"
         }
     },
     "constraints_process_list" : [{
@@ -79,8 +78,8 @@
             "search_factor"               : 1.0,
             "max_number_results"          : 1000,
             "manual_ALM"                  : true,
-            "penalty"                     : 1.0e-6,
-            "scale_factor"                : 1.0e0,
+            "penalty"                     : 1.0e3,
+            "scale_factor"                : 1.0e3,
             "type_search"                 : "InRadius",
             "integration_order"           : 3
         }

@@ -122,9 +122,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
                 self.assertAlmostEqual( self.stress[i], 0.0)
 
     def _compute_strain_driven_problem(self, IncrF, nIncr):
-
-        
-
+    
         self.parameters.SetDeformationGradientF(self.F)
         self.parameters.SetDeterminantF(self.detF)
         self.material_law.CalculateMaterialResponseKirchhoff(self.parameters)
