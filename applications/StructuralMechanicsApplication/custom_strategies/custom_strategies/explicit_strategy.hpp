@@ -1,10 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:           MSantasusana $
-//   Last modified by:    $Co-Author:          JMCarbonel $
-//   Date:                $Date:               April 2014 $
-//   Revision:            $Revision:                  0.0 $
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
 //
+//  Main authors:    Klaus B Sautter (based on the work of JMCarbonel)
+//					 
 //
 
 #if !defined(KRATOS_EXPLICIT_STRATEGY)
@@ -44,10 +48,6 @@ public:
 
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
-    typedef typename BaseType::TDataType TDataType;
-
-    typedef TSparseSpace SparseSpaceType;
-
     typedef typename BaseType::TSchemeType TSchemeType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
@@ -56,40 +56,31 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
-    typedef ModelPart::NodesContainerType NodesArrayType;
-
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
 
     /** Constructors.
      */
     ExplicitStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         bool MoveMeshFlag = true
     )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
     }
 
     ExplicitStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TLinearSolver::Pointer pNewLinearSolver,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = true
     )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
     {
         KRATOS_TRY
 
@@ -213,7 +204,7 @@ public:
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
-        TSystemMatrixType mA = TSystemMatrixType();   //dummy initialization. Not used in builder and solver.
+        TSystemMatrixType matrix_a_dummy = TSystemMatrixType();   
 
         //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
         if (pScheme->SchemeIsInitialized() == false)
@@ -227,7 +218,7 @@ public:
         if (pScheme->ConditionsAreInitialized() == false)
             pScheme->InitializeConditions(BaseType::GetModelPart());
 
-        pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+        pBuilderAndSolver->BuildLHS(pScheme, r_model_part, matrix_a_dummy); //calculate Mass Matrix
         TSystemVectorType mb  = TSystemVectorType();
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb); //calculate Residual for scheme initialization
         
@@ -248,16 +239,16 @@ public:
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
-        TSystemMatrixType mA = TSystemMatrixType();   //dummy initialization. Not used in builder and solver.
+        TSystemMatrixType matrix_a_dummy = TSystemMatrixType();   
         TSystemVectorType mDx = TSystemVectorType();
         TSystemVectorType mb = TSystemVectorType();
 
         //initial operations ... things that are constant over the Solution Step
-        pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+        pScheme->InitializeSolutionStep(BaseType::GetModelPart(), matrix_a_dummy, mDx, mb);
 
         if(BaseType::mRebuildLevel > 0)
         {
-	        pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate Mass Matrix
+	        pBuilderAndSolver->BuildLHS(pScheme, r_model_part, matrix_a_dummy); //calculate Mass Matrix
 	    }
 
         mSolutionStepIsInitialized = true;
@@ -277,7 +268,7 @@ public:
     double Solve() override
     {
         KRATOS_TRY
-        DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
+        DofsArrayType dof_set_dummy; 
         TSystemMatrixType mA  = TSystemMatrixType();
         TSystemVectorType mDx = TSystemVectorType();
         TSystemVectorType mb  = TSystemVectorType();
@@ -304,7 +295,7 @@ public:
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
 
 
-        pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb); // Explicitly integrates the equation of motion.
+        pScheme->Update(BaseType::GetModelPart(), dof_set_dummy, mA, mDx, mb); // Explicitly integrates the equation of motion.
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there

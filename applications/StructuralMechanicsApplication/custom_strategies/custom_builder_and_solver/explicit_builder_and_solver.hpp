@@ -63,7 +63,6 @@ public:
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
-    typedef typename BaseType::TDataType TDataType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -73,11 +72,6 @@ public:
 
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
 
@@ -85,7 +79,6 @@ public:
 
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
-    typedef typename BaseType::ElementsContainerType ElementsContainerType;
 
     /*@} */
     /**@name Life Cycle
