@@ -143,10 +143,19 @@ namespace Kratos
 
 		
 		//rRightHandSideVector[2] = -80.0;
-
-		//ADDED BY PAVEL: TO DISTNIGUISH BETWEEN VERTICAL AND HORIZONTAL WALLS:::: IN CASE WE WANT IT TO BE FULLY PERIODIC ON HORIZONTAL WALLS AND PERIODIC WITH JUMP ON VERTICAL WALLS..
-		//WHICH WOULD BE EQUIVALENT TO G=[0 80; 0; 0]. Note that if we use same value on all walls, this would be equivalent to [0 80; 80; 0]
 		
+		//THE BELOW ONE IS FOR AN BOUNDARY RVE WITH Periodic condition at a horizontal line in the mid height of the element
+		if (this->GetGeometry()[0].Y()<0.00000001 && this->GetGeometry()[1].Y()>0.499999 && this->GetGeometry()[1].Y()<0.5001 && this->GetGeometry()[0].X()>0.000001 && this->GetGeometry()[0].X()<0.99999)
+			rRightHandSideVector[2] = -40.0;	
+		
+		else
+			rRightHandSideVector[2] = -80.0;
+
+
+		//ADDED BY PAVEL: FOR DOUBLE RVE (BOUNDARY RVE) 
+		//TO DISTNIGUISH BETWEEN VERTICAL AND HORIZONTAL WALLS:::: IN CASE WE WANT IT TO BE FULLY PERIODIC ON HORIZONTAL WALLS AND PERIODIC WITH JUMP ON VERTICAL WALLS..
+		//WHICH WOULD BE EQUIVALENT TO G=[0 80; 0; 0]. Note that if we use same value on all walls, this would be equivalent to [0 80; 80; 0]
+		/*
 		//vertical walls: tangential velocity is periodic without jumps. This are conditions that have left node at 0			
 		if (this->GetGeometry()[0].X()<0.00000001 && this->GetGeometry()[1].X()>0.99999)
 			rRightHandSideVector[2] = 0.0;		
@@ -154,6 +163,7 @@ namespace Kratos
 		if (this->GetGeometry()[0].Y()<0.00000001 && this->GetGeometry()[1].Y()>0.99999 && this->GetGeometry()[1].Y()<1.0001 && this->GetGeometry()[0].X()>0.000001)
 			rRightHandSideVector[2] = -80.0;		
 
+		*/
 		//KRATOS_WATCH(rRightHandSideVector[0])
 		//KRATOS_WATCH(rRightHandSideVector[1])
 			

@@ -88,6 +88,8 @@ namespace Python
 		.def("AddThemWithTangentInversePeriodicityOnlyAtVericalWallsAboveGivenY", &AddPeriodicConditionsNormalOnly2D::AddThemWithTangentInversePeriodicityOnlyAtVericalWallsAboveGivenY)
 		.def("AddThemWithTangentInversePeriodicityAllWallsBelowGivenY", &AddPeriodicConditionsNormalOnly2D::AddThemWithTangentInversePeriodicityAllWallsBelowGivenY)
                 .def("AddThemWithNormalInversePeriodicity", &AddPeriodicConditionsNormalOnly2D::AddThemWithNormalInversePeriodicity)
+		.def("AddThemWithTangentInversePeriodicityForBoundryElementWithPeriodicityIntheMidH", &AddPeriodicConditionsNormalOnly2D::AddThemWithTangentInversePeriodicityForBoundryElementWithPeriodicityIntheMidH)
+
                 ;          
         class_<ShearTermsComputationUtility2D > ("ShearTermsComputationUtility2D", init<ModelPart& >())
                 .def("ComputeTau", &ShearTermsComputationUtility2D::ComputeTau)
