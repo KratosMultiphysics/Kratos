@@ -18,21 +18,21 @@ def AssambleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # SMALL TESTS
-    small_suite = suites['small']
+    #small_suite = suites['small']
 
     # NIGHT TESTS
     night_suite = suites['nightly']
     night_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModifiedCamClayModel]))
-    
+
     # VALIDATION TESTS
     validation_suite = ValidationTests.SetTestSuite(suites)
     night_suite.addTests(validation_suite)
-    
+
     # ALL TESTS
     all_suite = suites['all']
 
     all_suite.addTests(night_suite)
-    
+
     return suites
 
 if __name__ == '__main__':

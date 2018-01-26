@@ -24,11 +24,6 @@ class TestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            if( self.file_parameters == None ):
-                self.file_parameters = self.file_name + "_parameters.json"
-            if( self.file_materials == None ):
-                self.file_parameters = self.file_name + "_materials.json"
-
             self.test = MainMaterial.Solution(self.file_parameters,self.file_materials)
 
     def test_execution(self):
