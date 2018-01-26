@@ -147,7 +147,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
     def _create_dynamic_explicit_strategy(self,mp):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00,0)
+        scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
 
         strategy = StructuralMechanicsApplication.ExplicitStrategy(mp,
                                             scheme,linear_solver,0,0,1)

@@ -26,8 +26,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             "scheme_type" : "central_differences",
             "time_step_prediction_level": 0, 
             "max_delta_time": 1.0e-5, 
-            "fraction_delta_time": 0.9, 
-            "rayleigh_damping": false
+            "fraction_delta_time": 0.9
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
@@ -66,8 +65,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         if(scheme_type == "central_differences"):
             mechanical_scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(self.dynamic_settings["max_delta_time"].GetDouble(), 
                                                                              self.dynamic_settings["fraction_delta_time"].GetDouble(), 
-                                                                             self.dynamic_settings["time_step_prediction_level"].GetDouble(), 
-                                                                             self.dynamic_settings["rayleigh_damping"].GetBool())                                                                     
+                                                                             self.dynamic_settings["time_step_prediction_level"].GetDouble())                                                                     
         else:
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
             err_msg += "Available options are: \"central_differences\""

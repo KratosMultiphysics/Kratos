@@ -19,15 +19,13 @@
 
 
 /* External includes */
-//#include "boost/smart_ptr.hpp"
+
 
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "includes/variables.h"
-#include "containers/array_1d.h"
+
+
 
 namespace Kratos
 {
@@ -91,8 +89,7 @@ namespace Kratos
     ExplicitCentralDifferencesScheme(
 				     const double  rMaximumDeltaTime,
 				     const double  rDeltaTimeFraction,
-				     const double  rDeltaTimePredictionLevel,
-				     const bool    rRayleighDamping
+				     const double  rDeltaTimePredictionLevel
 				     )
       : Scheme<TSparseSpace,TDenseSpace>()
     {
@@ -101,8 +98,6 @@ namespace Kratos
       mDeltaTime.Maximum          = rMaximumDeltaTime;
 
       mDeltaTime.Fraction         = rDeltaTimeFraction;
-
-      mRayleighDamping            = rRayleighDamping;
 
       mSchemeIsInitialized = false;
 
@@ -125,10 +120,9 @@ namespace Kratos
 
       BaseType::Check(rModelPart);
 
-      if(rModelPart.GetBufferSize() < 2)
-      {
-        KRATOS_THROW_ERROR(std::logic_error, "Insufficient buffer size for Central Difference Scheme. It has to be 2", "")
-	    }
+      KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) 
+        << "Insufficient buffer size for Central Difference Scheme. It has to be 2"
+        << std::endl;
 
       return 0;
       KRATOS_CATCH("");
@@ -265,7 +259,7 @@ namespace Kratos
         for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++)
         {
           bool check_has_all_variables = true;
-          double E(0.00), v(0.00), ro(0.00), alpha(0.00), beta(0.00);
+          double E(0.00), nu(0.00), roh(0.00), alpha(0.00), beta(0.00);
           //get geometric and material properties
           if (it->GetProperties().Has(RAYLEIGH_ALPHA))
           {
@@ -282,23 +276,23 @@ namespace Kratos
           else check_has_all_variables = false;
           if (it->GetProperties().Has(POISSON_RATIO))
           {
-            v        = it->GetProperties()[POISSON_RATIO];
+            nu        = it->GetProperties()[POISSON_RATIO];
           }
           if (it->GetProperties().Has(DENSITY))
           {
-            ro       = it->GetProperties()[DENSITY];
+            roh       = it->GetProperties()[DENSITY];
           }
           else check_has_all_variables = false;
 
           if (check_has_all_variables){
-            double length   = it->GetGeometry().Length();
+            const double length   = it->GetGeometry().Length();
 
             //compute courant criterion
-            double bulk       = E/(3.0*(1.0-2.0*v));               
-            double wavespeed  = sqrt(bulk/ro);
-            double w          = 2.0*wavespeed/length;   //frequency
+            const double bulk_modulus       = E/(3.0*(1.0-2.0*nu));               
+            const double wavespeed  = sqrt(bulk_modulus/roh);
+            const double w          = 2.0*wavespeed/length;   //frequency
 
-            double psi        = 0.5*(alpha/w + beta*w); //critical ratio;
+            const double psi        = 0.5*(alpha/w + beta*w); //critical ratio;
             stable_delta_time = (2.0/w)*(sqrt(1.0 + psi*psi)-psi);
 
             if(stable_delta_time > 0.00)
@@ -322,7 +316,9 @@ namespace Kratos
         rCurrentProcessInfo[DELTA_TIME] = stable_delta_time;
         
       }
-      std::cout<< "  [EXPLICIT PREDICTION LEVEL 1]:(computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
+
+      std::cout<< "  [EXPLICIT PREDICTION LEVEL " << mDeltaTime.PredictionLevel 
+        << " ] : (computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
       std::cout<< "  Using  = "<< rCurrentProcessInfo[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
         
       KRATOS_CATCH("")
@@ -444,22 +440,23 @@ namespace Kratos
           else current_acceleration = ZeroVector(3);
 
 
-          int DoF = 2;
-          bool Fix_displ[3] = {false, false, false};
 
-          Fix_displ[0] = (i->pGetDof(DISPLACEMENT_X))->IsFixed();
-          Fix_displ[1] = (i->pGetDof(DISPLACEMENT_Y))->IsFixed();
+          int DoF = 2;
+          bool fix_displacements[3] = {false, false, false};
+
+          fix_displacements[0] = (i->pGetDof(DISPLACEMENT_X))->IsFixed();
+          fix_displacements[1] = (i->pGetDof(DISPLACEMENT_Y))->IsFixed();
 
           if( i->HasDofFor(DISPLACEMENT_Z) )
           {
             DoF = 3;
-            Fix_displ[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
+            fix_displacements[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
           }
 
           for (int j = 0; j < DoF; j++) 
           {
               
-              if (Fix_displ[j] == true) 
+              if (fix_displacements[j] == true) 
               {
                   
                 current_acceleration[j]  = 0.0;
@@ -493,20 +490,20 @@ namespace Kratos
             
 
             DoF = 2;
-            bool Fix_rot[3] = {false, false, false};
-            Fix_rot[0] = (i->pGetDof(ROTATION_X))->IsFixed();
-            Fix_rot[1] = (i->pGetDof(ROTATION_Y))->IsFixed();   
+            bool fix_rotation[3] = {false, false, false};
+            fix_rotation[0] = (i->pGetDof(ROTATION_X))->IsFixed();
+            fix_rotation[1] = (i->pGetDof(ROTATION_Y))->IsFixed();   
             
             
             if (i->HasDofFor(ROTATION_Z))
             {
               DoF = 3;
-              Fix_rot[1] = (i->pGetDof(ROTATION_Z))->IsFixed();  
+              fix_rotation[1] = (i->pGetDof(ROTATION_Z))->IsFixed();  
             }
 
             for (int j = 0; j < DoF; j++)
             {
-              if (Fix_rot[j])
+              if (fix_rotation[j])
               {
                 current_angular_acceleration[j] = 0.00;
                 middle_angular_velocity[j] = 0.00;
@@ -566,21 +563,21 @@ namespace Kratos
           else current_acceleration = ZeroVector(3);
 
           int DoF = 2;
-          bool Fix_displ[3] = {false, false, false};
+          bool fix_displacements[3] = {false, false, false};
 
-          Fix_displ[0] = (i->pGetDof(DISPLACEMENT_X))->IsFixed();
-          Fix_displ[1] = (i->pGetDof(DISPLACEMENT_Y))->IsFixed();
+          fix_displacements[0] = (i->pGetDof(DISPLACEMENT_X))->IsFixed();
+          fix_displacements[1] = (i->pGetDof(DISPLACEMENT_Y))->IsFixed();
 
           if( i->HasDofFor(DISPLACEMENT_Z) )
           {
             DoF = 3;
-            Fix_displ[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
+            fix_displacements[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
           }
 
           for (int j = 0; j < DoF; j++) 
           {
               
-              if (Fix_displ[j] == true) 
+              if (fix_displacements[j] == true) 
               {
             
                 current_acceleration[j]  = 0.0;
@@ -614,20 +611,20 @@ namespace Kratos
             }
 
             DoF = 2;
-            bool Fix_rot[3] = {false, false, false};
-            Fix_rot[0] = (i->pGetDof(ROTATION_X))->IsFixed();
-            Fix_rot[1] = (i->pGetDof(ROTATION_Y))->IsFixed();   
+            bool fix_rotation[3] = {false, false, false};
+            fix_rotation[0] = (i->pGetDof(ROTATION_X))->IsFixed();
+            fix_rotation[1] = (i->pGetDof(ROTATION_Y))->IsFixed();   
             
             
             if (i->HasDofFor(ROTATION_Z))
             {
               DoF = 3;
-              Fix_rot[1] = (i->pGetDof(ROTATION_Z))->IsFixed();  
+              fix_rotation[1] = (i->pGetDof(ROTATION_Z))->IsFixed();  
             }
 
             for (int j = 0; j < DoF; j++)
             {
-              if (Fix_rot[j])
+              if (fix_rotation[j])
               {
                 current_angular_acceleration[j] = 0.00;
                 middle_angular_velocity[j] = 0.00;
@@ -847,7 +844,6 @@ namespace Kratos
 
     TimeVariables       mTime;
     DeltaTimeParameters mDeltaTime;   
-    bool                mRayleighDamping;
 
 
     /*@} */

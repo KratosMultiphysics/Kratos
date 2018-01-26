@@ -171,7 +171,7 @@ void  AddCustomStrategiesToPython()
     class_< ExplicitCentralDifferencesSchemeType,
             bases< BaseSchemeType >, boost::noncopyable >
             (
-            "ExplicitCentralDifferencesScheme", init< const double, const double, const double, const bool >() )
+            "ExplicitCentralDifferencesScheme", init< const double, const double, const double>() )
             .def("Initialize", &ExplicitCentralDifferencesScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
 

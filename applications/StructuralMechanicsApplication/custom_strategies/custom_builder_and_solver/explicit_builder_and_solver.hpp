@@ -15,7 +15,7 @@
 
 
 /* System includes */
-#include <set>
+
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -28,7 +28,6 @@
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
-#include "includes/element.h"
 
 namespace Kratos
 {
@@ -114,11 +113,11 @@ public:
     /*@{ */
 
 
-    //**************************************************************************
-    // this does not build a matrix but is used to create the LHS
-    // in explicit time integration each node is updated and thus
-    // does not need to assemble any matrix
-    //**************************************************************************
+    /**
+     * This does not build a matrix but is used to create the LHS
+     * in explicit time integration each node is updated and thus
+     * does not need to assemble any matrix
+     */
 
     void BuildLHS(
             typename TSchemeType::Pointer pScheme,
@@ -246,9 +245,9 @@ public:
 
             LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
 
-            Element::EquationIdVectorType EquationId; //Dummy
+            Element::EquationIdVectorType equation_id_vector_dummy; //Dummy
 
-            pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Condition_Contribution, EquationId, rCurrentProcessInfo);
+            pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Condition_Contribution, equation_id_vector_dummy, rCurrentProcessInfo);
         }
         }
 
@@ -286,9 +285,9 @@ public:
             {
 
                 LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-                Element::EquationIdVectorType EquationId; //Dummy
+                Element::EquationIdVectorType equation_id_vector_dummy; //Dummy
 
-                pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, rCurrentProcessInfo);
+                pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, equation_id_vector_dummy, rCurrentProcessInfo);
 
             }
         }
@@ -354,7 +353,7 @@ public:
     {
         this->mDofSet.clear(); // = DofsArrayType();
 
-        if (this->mpReactionsVector != NULL)
+        if (this->mpReactionsVector != nullptr)
             TSparseSpace::Clear((this->mpReactionsVector));
         //      this->mReactionsVector = TSystemVectorType();
 
