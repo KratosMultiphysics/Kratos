@@ -120,9 +120,9 @@ public:
         KRATOS_TRY
 
         //Set Nodal Mass to zero
-        NodesArrayType& pNodes             = rModelPart.Nodes();
-        ElementsArrayType& pElements       = rModelPart.Elements();
-        ProcessInfo& rCurrentProcessInfo   = rModelPart.GetProcessInfo();
+        NodesArrayType& r_nodes             = rModelPart.Nodes();
+        ElementsArrayType& r_elements       = rModelPart.Elements();
+        ProcessInfo& r_current_process_info   = rModelPart.GetProcessInfo();
 
         #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
@@ -131,10 +131,10 @@ public:
         #endif
 
         vector<unsigned int> node_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, r_nodes.size(), node_partition);
 
         vector<unsigned int> element_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, r_elements.size(), element_partition);
 
 
         #pragma omp parallel
@@ -144,8 +144,8 @@ public:
 
                 for(int k=0; k<number_of_threads; k++)
                 {
-                    typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-                    typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+                    typename NodesArrayType::iterator i_begin=r_nodes.ptr_begin()+node_partition[k];
+                    typename NodesArrayType::iterator i_end=r_nodes.ptr_begin()+node_partition[k+1];
 
                     for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
                     {
@@ -165,8 +165,8 @@ public:
         #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
-            typename ElementsArrayType::iterator ElemBegin = pElements.begin() + element_partition[k];
-            typename ElementsArrayType::iterator ElemEnd = pElements.begin() + element_partition[k + 1];
+            typename ElementsArrayType::iterator ElemBegin = r_elements.begin() + element_partition[k];
+            typename ElementsArrayType::iterator ElemEnd = r_elements.begin() + element_partition[k + 1];
 
             for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  
             {
@@ -175,7 +175,7 @@ public:
 
                 // this function needs to be implemented in the respective 
                 // element to provide inertias and nodal masses 
-                itElem->AddExplicitContribution(Testtemp,RESIDUAL_VECTOR,NODAL_INERTIA,rCurrentProcessInfo);
+                itElem->AddExplicitContribution(Testtemp,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
             }
         }
         
