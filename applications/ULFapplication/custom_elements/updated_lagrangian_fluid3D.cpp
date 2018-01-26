@@ -122,6 +122,17 @@ void UpdatedLagrangianFluid3D::CalculateLocalSystem(MatrixType& rLeftHandSideMat
                      GetGeometry()[3].FastGetSolutionStepValue(BULK_MODULUS));
     K *= density;
 
+int is_int = GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[3].FastGetSolutionStepValue(IS_INTERFACE);
+    
+
+  int is_wall = GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[3].FastGetSolutionStepValue(IS_STRUCTURE);
+
     unsigned int dim = 3;
     unsigned int number_of_nodes = 4;
 
@@ -134,6 +145,15 @@ void UpdatedLagrangianFluid3D::CalculateLocalSystem(MatrixType& rLeftHandSideMat
     //calculate current volume
     double current_volume;
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_Dx, msN, current_volume);
+
+    if (is_int!=0 && is_wall!=0)
+	{
+	//current_area=0.0;
+	//mA0=0.0;
+
+	current_volume*=0.0000000001;
+	mA0*=0.0000000001;
+	}
 
 
     //writing the body force
@@ -278,6 +298,19 @@ void UpdatedLagrangianFluid3D::CalculateRightHandSide(VectorType& rRightHandSide
                      GetGeometry()[3].FastGetSolutionStepValue(BULK_MODULUS));
     K *= density;
 
+int is_int = GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[3].FastGetSolutionStepValue(IS_INTERFACE);
+    
+
+  int is_wall = GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[3].FastGetSolutionStepValue(IS_STRUCTURE);
+
+
+
     //	KRATOS_THROW_ERROR(std::logic_error,"not goooood","");
     if(rRightHandSideVector.size() != 12)
         rRightHandSideVector.resize(12,false);
@@ -286,6 +319,15 @@ void UpdatedLagrangianFluid3D::CalculateRightHandSide(VectorType& rRightHandSide
     //calculate current area
     double current_volume;
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_Dx, msN, current_volume);
+
+    if (is_int!=0 && is_wall!=0)
+	{
+	//current_area=0.0;
+	//mA0=0.0;
+
+	current_volume*=0.0000000001;
+	mA0*=0.0000000001;
+	}
 
     //writing the body force
     const array_1d<double,3>& body_force = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+
@@ -353,6 +395,20 @@ void UpdatedLagrangianFluid3D::CalculateMassMatrix(MatrixType& rMassMatrix, Proc
                                   GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
                                   GetGeometry()[2].FastGetSolutionStepValue(DENSITY)+
                                   GetGeometry()[3].FastGetSolutionStepValue(DENSITY));
+
+
+int is_int = GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[3].FastGetSolutionStepValue(IS_INTERFACE);
+    
+
+  int is_wall = GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[3].FastGetSolutionStepValue(IS_STRUCTURE);
+
+
     //lumped
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int NumberOfNodes = GetGeometry().size();
@@ -362,6 +418,14 @@ void UpdatedLagrangianFluid3D::CalculateMassMatrix(MatrixType& rMassMatrix, Proc
         rMassMatrix.resize(MatSize,MatSize,false);
 
     noalias(rMassMatrix) = ZeroMatrix(MatSize,MatSize);
+
+
+    if (is_int!=0 && is_wall!=0)
+	{
+	//mA0=0.0;
+	mA0*=0.0000000001;
+	}
+
 
     double nodal_mass = mA0 * density * 0.25;
 
@@ -387,6 +451,17 @@ void UpdatedLagrangianFluid3D::CalculateDampingMatrix(MatrixType& rDampingMatrix
     boost::numeric::ublas::bounded_matrix<double,6,6> ms_constitutive_matrix;
     boost::numeric::ublas::bounded_matrix<double,6,12> ms_temp;
 
+int is_int = GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[3].FastGetSolutionStepValue(IS_INTERFACE);
+    
+
+  int is_wall = GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[3].FastGetSolutionStepValue(IS_STRUCTURE);
+
     //the one below - not changed yet (coz I dont know what is stored in this vector)
     array_1d<double,6> ms_temp_vec;
 
@@ -404,6 +479,12 @@ void UpdatedLagrangianFluid3D::CalculateDampingMatrix(MatrixType& rDampingMatrix
     double current_volume;
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_Dx, msN, current_volume);
 
+    if (is_int!=0 && is_wall!=0)
+	{
+	
+	current_volume*=0.0000000001;
+	}
+
     //getting properties
     const double& nu = 0.25*(GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY)+
                              GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY) +
@@ -416,6 +497,11 @@ void UpdatedLagrangianFluid3D::CalculateDampingMatrix(MatrixType& rDampingMatrix
                                   GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
                                   GetGeometry()[2].FastGetSolutionStepValue(DENSITY)+
                                   GetGeometry()[3].FastGetSolutionStepValue(DENSITY));
+
+
+
+
+
     //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
     // rLeftHandSideMatrix += Laplacian * nu;
     //filling matrix B
@@ -617,13 +703,36 @@ void  UpdatedLagrangianFluid3D::Calculate(const Variable<double >& rVariable, do
 
         K *= density;
 
+int is_int = GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+    is_int += GetGeometry()[3].FastGetSolutionStepValue(IS_INTERFACE);
+    
+
+  int is_wall = GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);
+    is_wall += GetGeometry()[3].FastGetSolutionStepValue(IS_STRUCTURE);
+
+
         double current_volume = GeometryUtils::CalculateVolume3D(GetGeometry());
+
+    if (is_int!=0 && is_wall!=0)
+	{
+//	current_area=0.0;
+//	mA0=0.0;
+	current_volume*=0.0000000001;
+	mA0*=0.0000000001;
+
+
+	}
 
         //save in msN the old pressure
         msN[0] = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
         msN[1] = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
         msN[2] = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);
         msN[3] = GetGeometry()[3].FastGetSolutionStepValue(PRESSURE,1);
+
         double diag_term = 0.1*current_volume;
         double out_term = 0.05*current_volume;
 

@@ -51,8 +51,6 @@ gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_cond
 model_part_io_origin = ModelPartIO(input_file_name)
 model_part_io_origin.ReadModelPart(fluid_model_part)
 
-
-
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(3)
 
@@ -100,37 +98,16 @@ density=problem_settings.density
 viscosity=problem_settings.viscosity
 blow_pressure=problem_settings.blow_pressure
 
-print ("LALALA")
-#creating the solvers
-#fluid solver
-##check to ensure that no node has zero density or pressure
-
-#for node in fluid_model_part.Nodes:
-    #node.SetSolutionStepValue(BULK_MODULUS,0, bulk_modulus)   
-    #node.SetSolutionStepValue(DENSITY,0, density)
-    #node.SetSolutionStepValue(VISCOSITY,0, viscosity)
-    #node.SetSolutionStepValue(BODY_FORCE_Y,0, -9.8)   
-    
-    
-    
 
 for node in fluid_model_part.Nodes:
 	node.SetSolutionStepValue(BULK_MODULUS,0, bulk_modulus)
-	node.SetSolutionStepValue(DENSITY,0, density)
-	#node.SetSolutionStepValue(VISCOSITY,0, 0.2)
-	node.SetSolutionStepValue(VISCOSITY,0, 0.6)
-	#node.SetSolutionStepValue(VISCOSITY,0, 4.0)
-	#node.SetSolutionStepValue(VISCOSITY,0, 0.0001)
+	node.SetSolutionStepValue(DENSITY,0, density)	
+	node.SetSolutionStepValue(VISCOSITY,0, viscosity)
 	node.SetSolutionStepValue(BODY_FORCE_Y,0, -10.00000)	
 	if (node.GetSolutionStepValue(FLAG_VARIABLE)==5.0):
             print ("SETTING FIXED WALL")
             node.SetSolutionStepValue(FIXED_WALL,0, 1.0)
             node.SetSolutionStepValue(FLAG_VARIABLE,0, 0.0)
-
-#for node in fluid_model_part.Nodes:
-    #if (node.GetSolutionStepValue(FLAG_VARIABLE)==4.0):
-            #node.SetSolutionStepValue(CENTER_LINE,0, 1.0)
-            #node.SetSolutionStepValue(FLAG_VARIABLE,0, 0.0)    
 
 for node in fluid_model_part.Nodes:
     if (node.GetSolutionStepValue(FLAG_VARIABLE)==2.0):
@@ -139,18 +116,6 @@ for node in fluid_model_part.Nodes:
     #if (node.GetSolutionStepValue(FLAG_VARIABLE)==3.0):
             #node.SetSolutionStepValue(SYMMETRY_CUT,0, 2.0)
             #node.SetSolutionStepValue(FLAG_VARIABLE,0, 0.0)
-
-##for node in wall_model_part.Nodes:
-##    print ("SETTING FIXED WALL")
-##    node.SetSolutionStepValue(FIXED_WALL,0, 1.0)
-##    node.SetSolutionStepValue(FLAG_VARIABLE,0, 0.0)
-##    node.SetSolutionStepValue(BULK_MODULUS,0, bulk_modulus)
-##    node.SetSolutionStepValue(DENSITY,0, density)
-##    node.SetSolutionStepValue(VISCOSITY,0, 0.6)
-##    node.SetSolutionStepValue(BODY_FORCE_Y,0, -10.00000)
-##    node.Fix(DISPLACEMENT_X)
-##    node.Fix(DISPLACEMENT_Y)
-##    node.Fix(DISPLACEMENT_Z)
 
 is_fsi_interf=0.0
 for node in fluid_model_part.Nodes:
@@ -172,11 +137,8 @@ if(SolverType == "Incompressible_Modified_FracStep"):
     solver = ulf_PGLASS.ULF_FSISolver(fluid_model_part, structure_model_part, combined_model_part, compute_reactions, box_corner1, box_corner2, domain_size, add_nodes, blow_pressure)
 
     solver.alpha_shape = problem_settings.alpha_shape;
-    solver.echo_level = 2;
-    
-    for node in fluid_model_part.Nodes:
-	node.SetSolutionStepValue(BULK_MODULUS,0, bulk_modulus)
-	node.SetSolutionStepValue(DENSITY,0, density)   
+    solver.echo_level = 2;    
+
     solver.Initialize()
     
 
@@ -207,18 +169,18 @@ outputfile3 = open(outstring3, 'w')
 #GlassBlowAuxProcess = GlassBlowAuxProcess(fluid_model_part);
 
 
-for node in fluid_model_part.Nodes:
-	node.SetSolutionStepValue(BULK_MODULUS,0, bulk_modulus)
-	node.SetSolutionStepValue(DENSITY,0, density)
-	#node.SetSolutionStepValue(VISCOSITY,0, 0.2)
-	node.SetSolutionStepValue(VISCOSITY,0, 0.6)
-	#node.SetSolutionStepValue(VISCOSITY,0, 4.0)
-	#node.SetSolutionStepValue(VISCOSITY,0, 0.0001)
-	node.SetSolutionStepValue(BODY_FORCE_Y,0, -10.00000)	
-	if (node.GetSolutionStepValue(FLAG_VARIABLE)==5.0):
-            print ("SETTING FIXED WALL")
-            node.SetSolutionStepValue(FIXED_WALL,0, 1.0)
-            node.SetSolutionStepValue(FLAG_VARIABLE,0, 0.0)
+#for node in fluid_model_part.Nodes:
+	#node.SetSolutionStepValue(BULK_MODULUS,0, bulk_modulus)
+	#node.SetSolutionStepValue(DENSITY,0, density)
+	##node.SetSolutionStepValue(VISCOSITY,0, 0.2)
+	#node.SetSolutionStepValue(VISCOSITY,0, 0.6)
+	##node.SetSolutionStepValue(VISCOSITY,0, 4.0)
+	##node.SetSolutionStepValue(VISCOSITY,0, 0.0001)
+	#node.SetSolutionStepValue(BODY_FORCE_Y,0, -10.00000)	
+	#if (node.GetSolutionStepValue(FLAG_VARIABLE)==5.0):
+            #print ("SETTING FIXED WALL")
+            #node.SetSolutionStepValue(FIXED_WALL,0, 1.0)
+            #node.SetSolutionStepValue(FLAG_VARIABLE,0, 0.0)
 
 
 for node in fluid_model_part.Nodes:
@@ -227,7 +189,6 @@ for node in fluid_model_part.Nodes:
         print "FIXED WALL"
         node.SetSolutionStepValue(FIXED_WALL,0, 1)   
     if (node.GetSolutionStepValue(FLAG_VARIABLE)==1):
-        #node.SetSolutionStepValue(EXTERNAL_PRESSURE,0, 160000.0)
         node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1)
     if (node.GetSolutionStepValue(SYMMETRY_CUT)==1):
         node.Free(DISPLACEMENT_X)
@@ -266,10 +227,6 @@ while (time < final_time):
 	#else:
         Dt=problem_settings.Dt 
         
-        #if (time>0.06 and counter==0):	  
-	#  add_wall_process.AddWall(fluid_model_part, wall_model_part)
-	#  counter=1
-        
         new_Dt = solver.EstimateDeltaTime(Dt, domain_size)
         #to preclude the ambiguous nodes in the part very close to the mould
         #for node in fluid_model_part.Nodes:
@@ -291,7 +248,7 @@ while (time < final_time):
             if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1 and node.GetSolutionStepValue(IS_INTERFACE)==0):# and node.GetSolutionStepValue(SYMMETRY_CUT)==0):
                 node.SetSolutionStepValue(FLAG_VARIABLE,0, 1)
                 #if (time>0.2):
-                node.SetSolutionStepValue(EXTERNAL_PRESSURE,0, 200000.0)                
+                node.SetSolutionStepValue(EXTERNAL_PRESSURE,0, problem_settings.blow_pressure)                
                 
             if (node.GetSolutionStepValue(SYMMETRY_CUT)==1):
                 "FIXING DISPL IN Z"
@@ -304,25 +261,6 @@ while (time < final_time):
                 node.Fix(DISPLACEMENT_Z)
                 node.Fix(DISPLACEMENT_Y)
                 node.SetSolutionStepValue(FIXED_WALL,0, 1)
-                
-           
-	      
-
-                
-##        if (time>0.085):
-##            for node in fluid_model_part.Nodes:
-##               if (node.Y<-0.1264): #base nodes    and top nodes
-##                    node.Fix(DISPLACEMENT_X)
-##                    node.Fix(DISPLACEMENT_Z)
-##                    node.Fix(DISPLACEMENT_Y)
-##                    node.SetSolutionStepValue(FIXED_WALL,0, 1)
-##        if (time>0.16):
-##            for node in fluid_model_part.Nodes:
-##               if (node.Y<-0.105): #base nodes    and top nodes
-##                    node.Fix(DISPLACEMENT_X)
-##                    node.Fix(DISPLACEMENT_Z)
-##                    node.Fix(DISPLACEMENT_Y)
-##                    node.SetSolutionStepValue(FIXED_WALL,0, 1)
 
         for node in fluid_model_part.Nodes:
             if (node.GetSolutionStepValue(FIXED_WALL,0)==1.0):
@@ -336,7 +274,7 @@ while (time < final_time):
         for node in fluid_model_part.Nodes:
             if (node.GetSolutionStepValue(DENSITY_WATER)==1.0):
                 #if (time>0.2):
-                node.SetSolutionStepValue(EXTERNAL_PRESSURE,0, 200000.0)
+                node.SetSolutionStepValue(EXTERNAL_PRESSURE,0, problem_settings.blow_pressure)
                 node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)  
            
                 

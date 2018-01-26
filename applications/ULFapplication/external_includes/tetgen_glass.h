@@ -333,7 +333,7 @@ namespace Kratos
 
 				Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 				
-				double factor=0.75;
+				double factor=1.1;//0.75;
 	
 				if (edge01>factor*nodal_h)
 					{
