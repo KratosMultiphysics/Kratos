@@ -90,7 +90,7 @@ This library is normally included in the `python-dev` package and needs to be pr
 
 #### BLAS and LAPACK:  
    
-Needed for `ExternalSolversApplication` and for `Trilinos App` this libraries are the most troublesome as they need linking a fortran lib :weary: we **STRONGLY** advise the user to avoid using (*.a*) version of the libs in the compilation of  the *Kratos* (and in compiling *Trilinos*) since linking statically brings countless problems  in linking due to the need of explicitely linking in the fortran libs. This problem is automatically solved by using (*.so*) version of the libs.
+Needed for `ExternalSolversApplication` and for `Trilinos App` this libraries are the most troublesome as they need linking a fortran lib, we **STRONGLY** advise the user to avoid using (*.a*) version of the libs in the compilation of  the *Kratos* (and in compiling *Trilinos*) since linking statically brings countless problems  in linking due to the need of explicitely linking in the fortran libs. This problem is automatically solved by using (*.so*) version of the libs.
 
 Please note that on the *Kratos* webpage it is possible to download a modified version of the  ref `BLAS` which compiles to *.so*. The modified version simply replaces the Netlib's `Makefile`  with a `CMake` file.
 
