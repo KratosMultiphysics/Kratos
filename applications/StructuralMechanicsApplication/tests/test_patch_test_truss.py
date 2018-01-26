@@ -15,11 +15,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
-    def _add_expl_dofs(self,mp):
-        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_VELOCITY_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_VELOCITY_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_VELOCITY_Z,mp)
-
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -28,7 +23,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)      
 
-    def _add_expl_variables(self,mp):
+    def _add_explicit_variables(self,mp):
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
@@ -150,18 +145,14 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         strategy.Solve()
 
 
-    def _set_dynamic_explicit_strategy(self,mp):
+    def _create_dynamic_explicit_strategy(self,mp):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00,0)
 
         strategy = StructuralMechanicsApplication.ExplicitStrategy(mp,
                                             scheme,linear_solver,0,0,1)
         strategy.SetEchoLevel(0)
-        return strategy
-
-    def _solve_dynamic_explicit(self,strategy):        
-        strategy.Solve()
-        
+        return strategy     
 
 
     def _check_results_linear(self,mp):
@@ -574,7 +565,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
-        self._add_expl_variables(mp)
+        self._add_explicit_variables(mp)
         self._apply_material_properties(mp,dim)
 
         #create nodes
@@ -582,7 +573,6 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         mp.CreateNewNode(2,2.0,1.0,0.0)
         #add dofs
         self._add_dofs(mp)
-        self._add_expl_dofs(mp)
         #create condition
         mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
         #create submodelparts for dirichlet boundary conditions
@@ -611,13 +601,13 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self._set_and_fill_buffer(mp,2,time_delta)
 
 
-        strategy_expl = self._set_dynamic_explicit_strategy(mp)
+        strategy_expl = self._create_dynamic_explicit_strategy(mp)
         while (time_i <= time_end):
             
             time_i += time_delta
             mp.CloneTimeStep(time_i)            
             #solve + compare
-            self._solve_dynamic_explicit(strategy_expl)  
+            strategy_expl.Solve()
             self._check_results_dynamic_explicit_nonlinear(mp,time_i,time_step)
             time_step += 1 
 

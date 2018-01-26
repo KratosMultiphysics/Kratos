@@ -10,7 +10,7 @@ def CreateSolver(main_model_part, custom_settings):
     return ExplicitMechanicalSolver(main_model_part, custom_settings)
 
 class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
-    """The solid mechanics explicit dynamic solver.
+    """The structural mechanics explicit dynamic solver.
 
     This class creates the mechanical solvers for explicit dynamic analysis.
 
@@ -56,16 +56,6 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def AddDofs(self):
         super(ExplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
-        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_VELOCITY_X,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_VELOCITY_Y,self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_VELOCITY_Z,self.main_model_part)
-
-        if (self.settings["rotation_dofs"].GetBool()):
-            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY_Z,self.main_model_part)
-
-
         self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: DOF's ADDED")
 
 
@@ -96,6 +86,6 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                             self.settings["reform_dofs_at_each_step"].GetBool(), 
                                             self.settings["move_mesh_flag"].GetBool())
 
-        mechanical_solver.SetRebuildLevel(1)   
+        mechanical_solver.SetRebuildLevel(0)   
         return mechanical_solver
    

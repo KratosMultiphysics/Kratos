@@ -339,7 +339,7 @@ namespace Kratos
 
             for(unsigned int i=0; i< number_of_nodes; i++)
             {
-                int index = dimension * i;
+                SizeType index = dimension * i;
 
                 GetGeometry()[i].SetLock();
 
@@ -358,7 +358,7 @@ namespace Kratos
 
             for(unsigned int i=0; i< number_of_nodes; i++)
             {
-                int index = dimension * i;
+                SizeType index = dimension * i;
 
                 GetGeometry()[i].SetLock();
 

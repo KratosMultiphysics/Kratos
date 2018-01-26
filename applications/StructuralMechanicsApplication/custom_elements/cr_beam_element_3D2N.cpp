@@ -836,11 +836,11 @@ namespace Kratos
 
 		Matrix StiffnessMatrix = ZeroMatrix(msElementSize, msElementSize);
 
-		this->CalculateLumpedMassMatrix(StiffnessMatrix, rCurrentProcessInfo);
+		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
 
 		Matrix MassMatrix = ZeroMatrix(msElementSize, msElementSize);
 
-		this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+		this->CalculateLumpedMassMatrix(MassMatrix, rCurrentProcessInfo);
 
 		double alpha = 0.0;
 		if (this->GetProperties().Has(RAYLEIGH_ALPHA))
@@ -1566,18 +1566,18 @@ namespace Kratos
 		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
 		{
 
-			for (int i = 0; i< msNumberOfNodes; ++i)
+			for (SizeType i = 0; i< msNumberOfNodes; ++i)
 			{
-				int index = msLocalSize * i;
+				SizeType index = msLocalSize * i;
 
 				GetGeometry()[i].SetLock();
 
-				array_1d<double, 3> &ForceResidual =
+				array_1d<double, 3> &r_force_residual =
 					GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-				for (int j = 0; j<msDimension; ++j)
+				for (SizeType j = 0; j<msDimension; ++j)
 				{
-					ForceResidual[j] += rRHSVector[index + j];
+					r_force_residual[j] += rRHSVector[index + j];
 				}
 				GetGeometry()[i].UnSetLock();
 			}
@@ -1587,18 +1587,18 @@ namespace Kratos
 		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL)
 		{
 
-			for (int i = 0; i< msNumberOfNodes; ++i)
+			for (SizeType i = 0; i< msNumberOfNodes; ++i)
 			{
-				int index = (msLocalSize * i) + msDimension;
+				SizeType index = (msLocalSize * i) + msDimension;
 
 				GetGeometry()[i].SetLock();
 
-				array_1d<double, 3> &MomentResidual =
+				array_1d<double, 3> &r_moment_residual =
 					GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
-				for (int j = 0; j<msDimension; ++j)
+				for (SizeType j = 0; j<msDimension; ++j)
 				{
-					MomentResidual[j] += rRHSVector[index + j];
+					r_moment_residual[j] += rRHSVector[index + j];
 				}			
 				GetGeometry()[i].UnSetLock();
 			}
@@ -1607,27 +1607,27 @@ namespace Kratos
 		if (rDestinationVariable == NODAL_INERTIA)
 		{
 
-			Matrix ElementMassMatrix = ZeroMatrix(msElementSize,msElementSize);
-			ProcessInfo TempInfo;
-			this->CalculateMassMatrix(ElementMassMatrix,TempInfo);
+			Matrix element_mass_matrix = ZeroMatrix(msElementSize,msElementSize);
+			ProcessInfo temp_info; //Dummy
+			this->CalculateMassMatrix(element_mass_matrix,temp_info);
 
-			for (int i = 0; i< msNumberOfNodes; ++i)
+			for (SizeType i = 0; i< msNumberOfNodes; ++i)
 			{
 				GetGeometry()[i].SetLock();
-				double& nodal_mass = GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS);
-				array_1d<double,msDimension>& nodal_inertia = GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA); 
-				int index = i*msLocalSize;
+				double& r_nodal_mass = GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS);
+				array_1d<double,msDimension>& r_nodal_inertia = GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA); 
+				SizeType index = i*msLocalSize;
 
-				for (int j = 0; j<msElementSize; ++j)
+				for (SizeType j = 0; j<msElementSize; ++j)
 				{
-					nodal_mass += ElementMassMatrix(index, j);
+					r_nodal_mass += element_mass_matrix(index, j);
 					
-					for (int k = 0;k<msDimension; ++k)
+					for (SizeType k = 0;k<msDimension; ++k)
 					{
-						nodal_inertia[k] += ElementMassMatrix(index+msDimension+k,j);
+						r_nodal_inertia[k] += element_mass_matrix(index+msDimension+k,j);
 					}
 				}
-				for (int k = 0;k<msDimension; ++k) nodal_inertia[k] = std::abs(nodal_inertia[k]);
+				for (SizeType k = 0;k<msDimension; ++k) r_nodal_inertia[k] = std::abs(r_nodal_inertia[k]);
 						
 				GetGeometry()[i].UnSetLock();
 			}
