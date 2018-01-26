@@ -149,13 +149,13 @@ public:
 
                     for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
                     {
-                        double& nodal_mass    =  i->FastGetSolutionStepValue(NODAL_MASS);
-                        nodal_mass = 0.0;
+                        double& r_nodal_mass    =  i->FastGetSolutionStepValue(NODAL_MASS);
+                        r_nodal_mass = 0.0;
 
                         if (i->HasDofFor(ROTATION_X))
                         {
-                            array_1d<double,3>& nodal_inertia = i->FastGetSolutionStepValue(NODAL_INERTIA);
-                            noalias(nodal_inertia) = ZeroVector(3);
+                            array_1d<double,3>& r_nodal_inertia = i->FastGetSolutionStepValue(NODAL_INERTIA);
+                            noalias(r_nodal_inertia) = ZeroVector(3);
                         }
 
                     }
@@ -171,11 +171,11 @@ public:
             for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  
             {
                 //Getting nodal mass and inertia from element
-                Vector Testtemp;
+                Vector dummy_vector;
 
                 // this function needs to be implemented in the respective 
                 // element to provide inertias and nodal masses 
-                itElem->AddExplicitContribution(Testtemp,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
+                itElem->AddExplicitContribution(dummy_vector,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
             }
         }
         
@@ -295,9 +295,9 @@ public:
     
     void InitializeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb)
     {
         KRATOS_TRY
 	KRATOS_CATCH( "" )
@@ -308,9 +308,9 @@ public:
 
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb)
     {
         KRATOS_TRY
         KRATOS_CATCH( "" )
@@ -322,9 +322,9 @@ public:
     void ApplyDirichletConditions(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb)
     {
     }
 
@@ -334,7 +334,7 @@ public:
     void ApplyPointLoads(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
-        TSystemVectorType& b)
+        TSystemVectorType& rb)
     {
     }
 
