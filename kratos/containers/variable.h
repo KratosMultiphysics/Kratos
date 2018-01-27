@@ -119,7 +119,9 @@ public:
     ///@{
 
     /**
-     * The clone operation, which clones a prexisting variable
+     * Clone creates a copy of the object using a copy constructor of the class. 
+     * It is useful to avoid shallow copying of complex objects and also without 
+     * actually having information about the variable type.
      * @param pSource The pointer of the variable to be cloned
      * @return A raw pointer of the variable
      */
@@ -129,7 +131,9 @@ public:
     }
 
     /**
-     * The copy operation, which copies a variable to a destination variable
+     * Copy is very similar to Clone except that it also the destination 
+     * pointer also passed to it. It is a helpful method specially 
+     * to create a copy of heterogeneous data arrays
      * @param pSource The pointer of the variable to be copied
      * @param pDestination The pointer of the destination variable
      * @return A raw pointer of the variable
@@ -140,7 +144,9 @@ public:
     }
 
     /**
-     * This method assigns an origin value
+     * Assign is very similar to Copy. It just differs in using an assignment 
+     * operator besides the copy constructor. Copy creates a new object while 
+     * Assign does the assignment for two existing objects. 
      * @param pSource The pointer of the value to be assigned
      * @param pDestination The pointer of the destination value
      */
@@ -150,7 +156,8 @@ public:
     }
 
     /**
-     * This method assigns directly a null value to the current variable
+     * AssignZero is a special case of Assign for which variable zero value used as source. 
+     * This method is useful for initializing arrays or resetting values in memory.
      * @param pDestination The pointer of the destination variable
      */
     void AssignZero(void* pDestination) const override
@@ -160,7 +167,9 @@ public:
     }
 
     /**
-     * This method can be used to delete the variable
+     *  Delete removes an object of variable type from memory. It calls a 
+     * destructor of objects to prevent memory leak and frees the memory 
+     * allocated for this object assuming that the object is allocated in heap.
      * @param pSource The pointer of the variable to be deleted
      */
     void Delete(void* pSource) const override
@@ -169,7 +178,9 @@ public:
     }
 
     /**
-     * This method can be used to fully destroy the variable
+     *  Destruct eliminates an object maintaining the memory it is using. 
+     * However, the unlike Delete it does nothing with the memory allocated to it. 
+     * So it is very useful in case of reallocating a part of the memory.
      * @param pSource The pointer of the variable to be destructed
      */
     void Destruct(void* pSource) const override
@@ -178,7 +189,10 @@ public:
     }
 
     /**
-     * This method prints the information of the variable
+     *  Print is an auxiliary method to produce output of given variable 
+     * knowing its address. For example writing an heterogenous container 
+     * in an output stream can be done using this method. Point assumes 
+     * that the streaming operator is defined for the variable type.
      * @param pSource The pointer of the variable to be printed
      * @param rOStream The stream used to print the information
      */
