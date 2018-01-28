@@ -493,7 +493,8 @@ void SmallDisplacementBeamElement3D2N::CalculateAndAddRHS(LocalSystemComponents&
     //std::cout<<" LocalVector "<<LocalVector<<std::endl;
 
     //Stiffness Matrix
-    Matrix GlobalMatrix = ZeroMatrix(MatSize);
+    Matrix GlobalMatrix(MatSize,MatSize);
+    noalias(GlobalMatrix) = ZeroMatrix(MatSize,MatSize);
     if ( rLocalSystem.CalculationFlags.Is(SmallDisplacementBeamElement3D2N::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
 	GlobalMatrix = rLocalSystem.GetLeftHandSideMatrix();

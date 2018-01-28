@@ -53,7 +53,7 @@ namespace Kratos
 */
 
 template< int TDim, class TVarType, HistoricalValues THist> 
-class ComputeNodalGradientProcess
+class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process
 {
 public:

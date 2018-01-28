@@ -16,22 +16,27 @@ class InputManager(object):
     """
     def __init__(self, input_file):
 
+        parameters = None
         if os.path.isfile(input_file):
             parameters_file = open(input_file,'r')
-            self.parameters = KratosMultiphysics.Parameters(parameters_file.read())
+            parameters = KratosMultiphysics.Parameters(parameters_file.read())
         else:
             raise Exception("Input file "+input_file+" does not exist")
 
-        if(self.parameters.Has("input_settings")):
-            custom_settings = self.parameters["input_settings"]
-            self._set_custom_settings(custom_settings)
+        #print(" PARAMETERS ", parameters.PrettyPrintJsonString())
+
+        # Set custom input settings
+        if(parameters.Has("input_settings")):
+            self._set_custom_parameters(parameters)
+        else:
+            self.project_parameters = parameters
+
+        #print(" PROJECT_PARAMETERS ", self.project_parameters.PrettyPrintJsonString())
 
     #
     def GetProjectParameters(self):
 
-        self.project_parameters = self.parameters
-
-        if(self.parameters.Has("input_settings")):
+        if(self.project_parameters.Has("input_settings")):
             self._set_input_parts()
 
         #print(self.project_parameters.PrettyPrintJsonString())
@@ -40,7 +45,7 @@ class InputManager(object):
     #
     def HasMaterialFile(self):
 
-        if(self.parameters.Has("input_settings")):
+        if(self.project_parameters.Has("input_settings")):
             if(self.settings["materials_file_name"].GetString() != "None"):
                 return True
 
@@ -53,7 +58,7 @@ class InputManager(object):
             materials_file = open("Materials.json",'r')
             self.material_parameters = KratosMultiphysics.Parameters(materials_file.read())
 
-        if(self.parameters.Has("input_settings")):
+        if(self.project_parameters.Has("input_settings")):
             self._set_material_parts()
 
         #print(self.material_parameters.PrettyPrintJsonString())
@@ -64,7 +69,88 @@ class InputManager(object):
     #### Input manager internal methods ####
 
     #
-    def _set_custom_settings(self, custom_settings):
+    def _set_custom_parameters(self, parameters):
+
+        if(parameters["input_settings"].Has("parameters_file_name")):
+            if(parameters["input_settings"]["parameters_file_name"].GetString() != "None"):
+
+                parameters_file = parameters["input_settings"]["parameters_file_name"].GetString()
+                if os.path.isfile(parameters_file):
+                    parameters_file = open(parameters_file,'r')
+                    self.project_parameters = KratosMultiphysics.Parameters(parameters_file.read())
+                else:
+                    raise Exception("Parameters file "+parameters_file+" does not exist")
+
+                if( self.project_parameters.Has("input_settings") ):
+
+                    custom_settings  = self.project_parameters["input_settings"]
+                    project_settings = self._set_custom_input_settings(custom_settings)
+
+                    input_settings  = parameters["input_settings"]
+                    input_settings.ValidateAndAssignDefaults(project_settings)
+
+                    self.settings = input_settings
+
+                    self.project_parameters["input_settings"] = self.settings
+
+                else:
+
+                    custom_settings = parameters["input_settings"]
+                    self.settings = self._set_custom_input_settings(custom_settings)
+                    self.project_parameters.AddValue("input_settings", self.settings)
+
+
+                if( parameters.Has("problem_data") ):
+                    if( self.project_parameters.Has("problem_data") ):
+                        parameters["problem_data"].ValidateAndAssignDefaults(self.project_parameters["problem_data"])
+                        self.project_parameters["problem_data"] = parameters["problem_data"]
+
+
+                if( parameters.Has("model_settings") ):
+                    if( self.project_parameters.Has("model_settings") ):
+                        parameters["model_settings"].RecursivelyValidateAndAssignDefaults(self.project_parameters["model_settings"])
+                        self.project_parameters["model_settings"] = parameters["model_settings"]
+
+                if( parameters.Has("solver_settings") ):
+                    if( self.project_parameters.Has("solver_settings") ):
+                        parameters["solver_settings"].RecursivelyValidateAndAssignDefaults(self.project_parameters["solver_settings"])
+                        self.project_parameters["solver_settings"] = parameters["solver_settings"]
+
+                if( parameters.Has("output_process_list") ):
+                    if( self.project_parameters.Has("output_process_list") ):
+                        self.project_parameters["output_process_list"] = parameters["output_process_list"]
+                    else:
+                        process_list = parameters["output_process_list"]
+                        size = process_list.size()
+                        self.project_parameters.AddEmptyList("output_process_list")
+                        for i in range(0,size):
+                            self.project_parameters["output_process_list"].Append(parameters["output_process_list"][i])
+
+                if( parameters.Has("check_process_list") ):
+                    if( self.project_parameters.Has("check_process_list") ):
+                        self.project_parameters["check_process_list"] = parameters["check_process_list"]
+                    else:
+                        process_list = parameters["check_process_list"]
+                        size = process_list.size()
+                        self.project_parameters.AddEmptyList("check_process_list")
+                        for i in range(0,size):
+                            self.project_parameters["check_process_list"].PushBack(parameters["check_process_list"][i])
+
+            else:
+                self._set_defaults(parameters)
+        else:
+            self._set_defaults(parameters)
+
+    #
+    def _set_defaults(self, parameters):
+        if(parameters.Has("input_settings")):
+            custom_settings = parameters["input_settings"]
+            self.settings   = self._set_custom_input_settings(custom_settings)
+            self.project_parameters = parameters
+
+    #
+    @classmethod
+    def _set_custom_input_settings(self, custom_settings):
 
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -89,20 +175,15 @@ class InputManager(object):
         """)
 
         # Overwrite the default settings with user-provided parameters
-        self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        validated_settings = custom_settings
+        validated_settings.ValidateAndAssignDefaults(default_settings)
+
+        return validated_settings
 
     #
     def _set_input_parts(self):
 
         if(self.settings["parameters_file_name"].GetString() != "None"):
-
-            parameters_file = self.settings["parameters_file_name"].GetString()
-            if os.path.isfile(parameters_file):
-                parameters_file = open(parameters_file,'r')
-                self.project_parameters = KratosMultiphysics.Parameters(parameters_file.read())
-            else:
-                raise Exception("Parameters file "+parameters_file+" does not exist")
 
             # model
             self._set_model_parts()
@@ -113,6 +194,8 @@ class InputManager(object):
 
     #
     def _set_model_parts(self):
+
+        #print(" MODEL ",self.project_parameters.PrettyPrintJsonString())
 
         if( self.project_parameters["model_settings"].Has("bodies_list") == False ):
             if( self.settings["model_parts"].Has("bodies_list") ):
@@ -199,16 +282,13 @@ class InputManager(object):
     #
     def _set_material_items(self):
 
-        materials_list = KratosMultiphysics.Parameters("""
-        {
-        }
-        """)
+        materials_list  = KratosMultiphysics.Parameters("""{ }""")
 
         material = self.settings["material"]
         size = material["material_ids"].size()
         if( size > 0):
-            materials_list.AddEmptyValue("material_models_list").SetVector(KratosMultiphysics.Vector(size))
             if( material["material_parts"].size() == size ):
+                materials_list.AddEmptyList("material_models_list")
                 materials = self.material_parameters["material_models_list"]
                 if(materials.size() >= size ):
                     for i in range(0,materials.size()):
@@ -221,8 +301,7 @@ class InputManager(object):
                             else:
                                 materials[i]["Parameters"].AddEmptyValue("model_part_name").SetString(part_name)
 
-                            materials_list["material_models_list"].__setitem__(i, materials.__getitem__(i))
-
+                            materials_list["material_models_list"].Append(materials[i])
 
                 else:
                     raise Exception("material_models_list size is too small")

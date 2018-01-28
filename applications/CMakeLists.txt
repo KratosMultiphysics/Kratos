@@ -274,10 +274,6 @@ if(${TOPOLOGY_OPTIMIZATION_APPLICATION} MATCHES ON)
   add_subdirectory(TopologyOptimizationApplication)
 endif(${TOPOLOGY_OPTIMIZATION_APPLICATION} MATCHES ON)
 
-if(${MY_LAPLACIAN_APPLICATION} MATCHES ON)
-  add_subdirectory(MyLaplacianApplication)
-endif(${MY_LAPLACIAN_APPLICATION} MATCHES ON)
-
 if(${LAGRANGIAN_MPM_APPLICATION} MATCHES ON)
   add_subdirectory(LagrangianMPMApplication)
 endif(${LAGRANGIAN_MPM_APPLICATION} MATCHES ON)
