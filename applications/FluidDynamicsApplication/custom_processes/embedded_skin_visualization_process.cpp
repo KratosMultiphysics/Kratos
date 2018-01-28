@@ -12,11 +12,11 @@
 //
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
 // Project includes
-
 #include "includes/checks.h"
 #include "includes/model_part.h"
 #include "utilities/divide_triangle_2d_3.h"
@@ -65,7 +65,15 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize() {
 
 void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep() {
 
-    #pragma omp parallel for
+    // Initialize the ids. for the visualization geometries
+    unsigned int node_id = 1;
+    unsigned int elem_id = 1;
+    unsigned int cond_id = 1;
+
+    // Create the origin model part unordered_map
+    //std::unordered_map<std::array<unsigned int, 3>, Node<3>::Pointer> origin_model_part_map;
+
+    //#pragma omp parallel for
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem)
     {
         auto it_elem = mrModelPart.ElementsBegin() + i_elem;
@@ -101,8 +109,31 @@ void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep() {
             const unsigned int n_neg_geom = (p_split_utility->mNegativeSubdivisions).size();
 
             for (unsigned int i_geom = 0; i_geom < n_pos_geom; ++i_geom){
-                auto &r_geometry = (p_split_utility->mPositiveSubdivisions)[i_geom];
+                auto p_geometry = (p_split_utility->mPositiveSubdivisions)[i_geom];
+                const unsigned int n_nodes = p_geometry->PointsNumber();
+    
+                // Create the new nodes in the visualization model part
+                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+                    // Check if the node already exists
+                    bool node_exists = false;
+                    // TODO: IMPLEMENT IN HERE THE std::unordered_map CHECK
+
+                    // If the node does not exist, it is created with constructor which takes a source node is used
+                    if (!node_exists){
+                        //mrVisualizationModelPart.CreateNewNode(node_id, p_geometry->GetPoint(i_node), 0);
+                        // TODO: ADD THE NODE TO THE std::unordered_map
+                        auto &r_orig_node = p_geometry->GetPoint(i_node);
+                        Node<3>::Pointer p_new_node = mrVisualizationModelPart.CreateNewNode(node_id, r_orig_node.X(), r_orig_node.Y(), r_orig_node.Z());
+                        node_id++;
+
+                    }
+
+                }
+
+                // Create a new element with the subgeometry in the visualization model part
             }
+
+
 
         }
 
