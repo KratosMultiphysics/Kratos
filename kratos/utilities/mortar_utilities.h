@@ -45,7 +45,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
     
-class MortarUtilities
+class KRATOS_API(KRATOS_CORE) MortarUtilities
 {
 public:
     ///@name Type Definitions
@@ -90,10 +90,10 @@ public:
      * Project a point over a line/plane following an arbitrary direction
      * @param Geom The geometry where to be projected
      * @param PointDestiny The point to be projected
+     * @param PointProjected The point pojected over the plane
      * @param Normal The normal of the geometry
      * @param Vector The direction to project
-     * @return PointProjected The point pojected over the plane
-     * @return Distance The distnace between surfaces
+     * @return Distance The distance between surfaces
      */
 
     static inline double FastProjectDirection(
@@ -136,6 +136,7 @@ public:
      * @param PointOrigin A point in the plane
      * @param PointDestiny The point to be projected
      * @param Normal The normal of the plane
+     * @param Distance The distance to the projection
      * @return PointProjected The point pojected over the plane
      */
     
@@ -445,6 +446,7 @@ public:
      * It calculates the matrix of coordinates of a geometry
      * @param ThisNodes The geometry to calculate
      * @param Current If we calculate the Current coordinates or the initial ones
+     * @param Step The time step where it is computed
      * @return coordinates The matrix containing the coordinates of the geometry
      */
     
@@ -481,7 +483,7 @@ public:
      * It calculates the vector of an historical variable of a geometry
      * @param ThisNodes The geometry to calculate
      * @param rVariable The name of the variable to calculate
-     * @param Step The step where calculate
+     * @param Step The step where it is computed
      * @return var_vector The vector containing the variables of the geometry
      */
     
@@ -504,7 +506,7 @@ public:
      * It calculates the vector of an historical variable of a geometry
      * @param ThisNodes The geometry to calculate
      * @param rVariable The name of the variable to calculate
-     * @param Step The step where calculate
+     * @param Step The step where it is computed
      * @return var_vector The vector containing the variables of the geometry
      */
         
@@ -569,7 +571,7 @@ public:
      * It calculates the matrix of a variable of a geometry
      * @param Nodes The geometry to calculate
      * @param rVariable The name of the variable to calculate
-     * @param step The step where calculate
+     * @param Step The step where it is computed
      * @return var_matrix The matrix containing the variables of the geometry
      */
     
@@ -577,13 +579,13 @@ public:
     static inline Matrix GetVariableMatrix(
         const GeometryType& Nodes,
         const Variable<array_1d<double,3> >& rVariable,
-        const unsigned int step
+        const unsigned int Step
         ) {
         /* DEFINITIONS */        
         Matrix var_matrix(TNumNodes, TDim);
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
-            const array_1d<double, 3> value = Nodes[i_node].FastGetSolutionStepValue(rVariable, step);
+            const array_1d<double, 3> value = Nodes[i_node].FastGetSolutionStepValue(rVariable, Step);
             for (unsigned int i_dof = 0; i_dof < TDim; ++i_dof)
                 var_matrix(i_node, i_dof) = value[i_dof];
         }
@@ -695,7 +697,7 @@ public:
     
     /**
      * This method adds the value
-     * WARNING This operation is not threadsafe
+     * @warning This operation is not threadsafe
      * @param ThisGeometry The geometrty to update
      * @param ThisVariable The variable to set
      */
