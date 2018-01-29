@@ -105,10 +105,7 @@ public:
    */
   GlobalPointer(const GlobalPointer & rOther)
     : mDataPointer(rOther.mDataPointer)
-#ifdef KRATOS_USING_MPI
-    , mRank(rOther.mRank)
-#endif
-    {
+    , mRank(rOther.mRank) {
   }
 
   /** Move constructor
@@ -117,10 +114,7 @@ public:
    */
   GlobalPointer(const GlobalPointer && rOther)
     : mDataPointer(std::move(rOther.mDataPointer))
-#ifdef KRATOS_USING_MPI
-    , mRank(std::move(rOther.mRank))
-#endif
-    {
+    , mRank(std::move(rOther.mRank)) {
   }
 
   /** Assignment Operator
@@ -128,9 +122,8 @@ public:
    */
   GlobalPointer & operator=(const GlobalPointer & rOther) {
     mDataPointer = rOther.mDataPointer;
-#ifdef KRATOS_USING_MPI
     mRank = rOther.mRank;
-#endif
+
     return *this;
   }
 
@@ -189,11 +182,7 @@ public:
    * @return rank of the global pointer data or 0
    */
   int GetRank() {
-#ifdef KRATOS_USING_MPI
     return this->rank;
-#else
-    return 0;
-#endif
   }
 };
 
