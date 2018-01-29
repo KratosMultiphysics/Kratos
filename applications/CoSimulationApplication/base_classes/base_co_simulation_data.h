@@ -71,6 +71,14 @@ class CoSimulationData
     {
     }
 
+    virtual void Clear()
+    {
+        if(mData != nullptr)
+        {
+            delete [] mData;
+        }
+    }
+
     virtual void SetMeshData(std::string iMeshName, DataLocationOnMesh iLocationOnMesh)
     {
         mMeshName = iMeshName;
