@@ -21,8 +21,8 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "custom_python/add_base_classes_to_python.h"
-#include "custom_base_classes/base_co_simulation_application_io.h"
-#include "custom_base_classes/base_co_simulation_application.h"
+#include "base_classes/base_co_simulation_application_io.h"
+#include "base_classes/base_co_simulation_application.h"
 /*#include "custom_base_classes/base_co_simulation_coupling_strategy.h"
 #include "custom_base_classes/base_co_simulation_convergence_acceleration_scheme.h"
 #include "custom_base_classes/base_co_simulation_convergence_criterion.h"*/
