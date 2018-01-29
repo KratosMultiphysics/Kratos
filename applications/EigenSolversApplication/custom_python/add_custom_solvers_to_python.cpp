@@ -21,7 +21,9 @@
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
+#include "custom_solvers/sparse_eigensystem_solver.h"
 
 namespace Kratos
 {
@@ -59,6 +61,14 @@ void AddCustomSolversToPython()
 		("PardisoLUSolver", init<>())
 		.def(init<Parameters>());
 	#endif
+
+	using SparseEigensystemSolverType = SparseEigensystemSolver<SparseSpaceType, LocalSpaceType>;
+	class_<SparseEigensystemSolverType, SparseEigensystemSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable>
+    	("SparseEigensystemSolver", init<Parameters>())
+    	.def("Solve", &SparseEigensystemSolverType::Solve)
+    	.def("GetEigenValue", &SparseEigensystemSolverType::GetEigenValue)
+	;
+;
 }
 
 } // namespace Python

@@ -84,7 +84,7 @@ namespace Kratos
     EmcStepRotationMethod(EmcStepRotationMethod& rOther) : DerivedType(rOther) {}
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new EmcStepRotationMethod(*this) );
     }
