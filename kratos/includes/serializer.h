@@ -99,8 +99,11 @@ template <class TDataType> class Variable;
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// The serialization consist of storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media.
+/** 
+ * The serialization consist of storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media. 
+ * The idea of serialization is based on saving all object's data consecutively in the file or buffer and then load it in the same order. 
+ * In Kratos a serialization mechanism is used for creating the restart file. So for storing an object into restart file and retrieve it afterward on must add the necessary component used by serialization. 
 */
 class KRATOS_API(KRATOS_CORE) Serializer
 {
