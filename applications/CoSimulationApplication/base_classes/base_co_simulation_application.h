@@ -58,6 +58,15 @@ class CoSimulationBaseApplication
     /////////////////////////////////////////////////
     /// Methods specific for Co-Simulation
     /////////////////////////////////////////////////
+
+    virtual DataPointerType AddCoSimulationData(std::string iName, unsigned int iSize)
+    {
+        DataPointerType data = DataPointerType(new CoSimulationData<double>(iName, iSize));
+        mCoSimulationData.push_back(data);
+        return data;
+    }
+
+
     virtual void SetIo(BaseIoPointerType iIo)
     {
         mpIo = iIo;
@@ -151,6 +160,7 @@ class CoSimulationBaseApplication
     ///@{
     std::string mName;
     BaseIoPointerType mpIo;
+    std::vector<DataPointerType> mCoSimulationData;
     ///@}
     ///@name Private Operators
     ///@{
