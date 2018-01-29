@@ -16,6 +16,7 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
 {
@@ -602,8 +603,41 @@ template <class TElementData>
 void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
+    constexpr std::size_t StrainSize = (Dim-1)*3;
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
+
+    boost::numeric::ublas::bounded_matrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
+    FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
     
-    
+    // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
+    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,strain_matrix);
+    normal_stress_operator *= 2.0*this->Interpolate(rData.DynamicViscosity,rData.N);
+
+    // Contribution to boundary stress from p*n
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        for (unsigned int d = 0; d < Dim; d++) {
+            const std::size_t pressure_column = i*BlockSize + Dim;
+            normal_stress_operator(d,pressure_column) = rUnitNormal[d];
+        }
+    }
+
+    // RHS: stress computed using current solution
+    array_1d<double,LocalSize> nodal_values(LocalSize,0.0);
+    this->GetCurrentValuesVector(rData,nodal_values);
+    array_1d<double,Dim> current_stress = boost::numeric::ublas::prod(normal_stress_operator,nodal_values);
+
+    // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        const double wni = rData.Weight*rData.N[i];
+        for (unsigned int d = 0; d < Dim; d++) {
+            const unsigned int row = i*BlockSize + d;
+            for (unsigned int col = 0; col < LocalSize; col++) {
+                rLHS(row,col) -= wni*normal_stress_operator(d,col);
+            }
+            rRHS[row] += wni*current_stress[d];
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
