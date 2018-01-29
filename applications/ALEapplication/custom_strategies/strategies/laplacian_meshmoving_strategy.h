@@ -205,7 +205,10 @@ class LaplacianMeshMovingStrategy
   {
     KRATOS_TRY;
 
-    //ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
+    ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
+
+    rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
+    rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
     // Setting mesh to initial configuration
     SetMeshToInitialConfiguration();
@@ -222,6 +225,15 @@ class LaplacianMeshMovingStrategy
     //rCurrentProcessInfo[FRACTIONAL_STEP] = 3;
     //mStrategy_Z->Solve();
 
+    rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
+    // Solve for the mesh movement
+    mStrategy->Solve();
+
+    rCurrentProcessInfo[FRACTIONAL_STEP] = 2;
+    // Solve for the mesh movement
+    mStrategy->Solve();
+
+    rCurrentProcessInfo[FRACTIONAL_STEP] = 3;
     // Solve for the mesh movement
     mStrategy->Solve();
 
