@@ -65,13 +65,14 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize() {
 
 void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep() {
 
-    // Initialize the ids. for the visualization geometries
-    unsigned int node_id = 1;
-    unsigned int elem_id = 1;
-    unsigned int cond_id = 1;
+    // Initialize the ids. for the new entries
+    unsigned int node_id = mrModelPart.NumberOfNodes() + 1;
+    unsigned int elem_id = mrModelPart.NumberOfElements() + 1;
+    unsigned int cond_id = mrModelPart.NumberOfConditions() + 1;
 
     // Create the origin model part unordered_map
-    //std::unordered_map<std::array<unsigned int, 3>, Node<3>::Pointer> origin_model_part_map;
+    typedef boost::unordered_map<std::vector<unsigned int>, Geometry<Node<3>>::Pointer, KeyHasher, KeyComparor> HashMapType;
+    HashMapType origin_model_part_map;
 
     //#pragma omp parallel for
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem)
@@ -98,7 +99,47 @@ void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep() {
 
         // If is split, save it in the visualization model part
         if (is_split){
+
+            // Get the no-split geometry face local ids
+            Vector face_n_nodes;
+            Matrix face_loc_ids;
+            r_geometry.NodesInFaces(face_loc_ids);
+            r_geometry.NumberNodesInFaces(face_n_nodes);
+            std::size_t n_faces = r_geometry.FacesNumber();
+
+            std::vector<bool> add_face_vector;
+            add_face_vector.resize(n_faces);
+            for (unsigned int i_face = 0; i_face < n_faces; ++i_face){
+                
+                // Get the face global ids from the local ones
+                unsigned int aux_count = 0;
+                std::vector<unsigned int> face_nodes_ids;
+                const unsigned int n_nodes_face = face_n_nodes[i_face];
+                for (unsigned int i = 0; i < n_nodes_face; ++i){
+                    const unsigned int local_id = face_loc_ids(aux_count++,i_face);
+                    face_nodes_ids[i] = r_geometry[local_id].Id();
+                }
+
+                // Sort the global ids array
+                std::sort(face_nodes_ids.begin(),face_nodes_ids.end());
+
+                // Search for the current face in the origin model part map
+                hashmap::iterator r_neighbour_geom = faces_map.find(face_nodes_ids);
+                if (r_neighbour_geom != faces_map.end()){
+                    add_face_vector[i_face] = false;
+                } else {
+                    add_face_vector[i_face] = true;
+                }
+
+                // If the face is already added, I know its global ids
+                
+                // If not, some nodes might be already added check that node by node
+                
+            }
+
             
+
+
             // Set the split utility and compute the splitting pattern
             DivideGeometry::Pointer p_split_utility = this->GetGeometrySplitUtility(r_geometry, nodal_distances);
             p_split_utility->GenerateDivision();
@@ -111,6 +152,16 @@ void EmbeddedSkinVisualizationProcess::ExecuteAfterOutputStep() {
             for (unsigned int i_geom = 0; i_geom < n_pos_geom; ++i_geom){
                 auto p_geometry = (p_split_utility->mPositiveSubdivisions)[i_geom];
                 const unsigned int n_nodes = p_geometry->PointsNumber();
+
+                // Get subgeometry edges
+                auto edges_vect = p_geometry->Edges();
+                std::size_t n_edges = edges_vect.size(); 
+
+                // Iterate the edges
+                for (unsigned int i_edge = 0; i_edge < n_edges; ++i_edge){
+                    auto p_edge = edges_vect[i_edge];
+                }
+
     
                 // Create the new nodes in the visualization model part
                 for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){

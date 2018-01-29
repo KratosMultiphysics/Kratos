@@ -19,6 +19,8 @@
 #include <iostream>
 
 // External includes
+#include <boost/functional/hash.hpp> //TODO: remove this dependence when Kratos has en internal one
+#include <boost/unordered_map.hpp>   //TODO: remove this dependence when Kratos has en internal one
 
 // Project includes
 #include "includes/define.h"
@@ -41,8 +43,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-//typedef Geometry<Node<3>>       GeometryType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -51,12 +51,39 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
+struct KeyComparor {
+    bool operator()(const vector<int> &lhs, const vector<int> &rhs) const {
+        if (lhs.size() != rhs.size()){
+            return false;
+        }
+
+        for (unsigned int i = 0; i < lhs.size(); i++){
+            if (lhs[i] != rhs[i]){
+                return false;
+            }
+        }
+
+        return true;
+    }
+};
+
+struct KeyHasher {
+    std::size_t operator()(const vector<int> &k) const {
+        return boost::hash_range(k.begin(), k.end());
+    }
+};
+
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// This process isolates the intersected elements in a different modelpart
-/// with the objective of printing them together with the intersection skin.
+/// This process saves the intersected elements in a different model part for its visualization.
+/** For a given model part, this process checks if its elements are intersected. If they are, 
+ *  calls the corresponding splitting utility to get the subgeometries that conform the splitting
+ *  pattern. Then, it saves the such subgeometries in another model part for its visualization.
+ *  Finally, the values in the visualization model part are computed using the corresponding 
+ *  modify shape functions utility. 
+ */
 class EmbeddedSkinVisualizationProcess : public Process
 {
 public:
