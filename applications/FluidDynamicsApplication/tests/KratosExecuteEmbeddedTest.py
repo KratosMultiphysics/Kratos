@@ -80,9 +80,10 @@ class KratosExecuteEmbeddedTest(KratosUnittest.TestCase):
         while(time <= end_time):
 
             Dt = self.solver.ComputeDeltaTime()
-            time = time + Dt
-            step = step + 1
+            step += 1
+            time += Dt
             self.main_model_part.CloneTimeStep(time)
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
 
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()

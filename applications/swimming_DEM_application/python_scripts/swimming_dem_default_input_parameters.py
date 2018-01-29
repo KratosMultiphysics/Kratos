@@ -83,6 +83,11 @@ def GetDefaultInputParameters():
             "meso_scale_length"                      : 0.2,
             "meso_scale_length_comment"              : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
             "shape_factor"                           : 0.5,
+            "non_newtonian_option"                   : false,
+            "yield_stress"                           : 0.0,
+            "regularization_coefficient"             : 0.0,
+            "power_law_k"                            : 0.0,
+            "power_law_n"                            : 0.0,
 
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
@@ -136,7 +141,7 @@ def GetDefaultInputParameters():
             "print_MEAN_HYDRODYNAMIC_REACTION_option"    : false,
             "print_VELOCITY_LAPLACIAN_option"            : false,
             "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
-
+            
             "PredefinedSkinOption"             : false,
             "MeanRadius"                       : 0.0001
             }""")

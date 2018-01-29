@@ -175,6 +175,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
 
 
     def Solve(self):
+        # Note that the first time step in buffer is filled when reading the model part
         (self.solver).Solve()
 
 

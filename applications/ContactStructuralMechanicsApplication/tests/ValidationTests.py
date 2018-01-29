@@ -43,6 +43,15 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
+class ALMTaylorPatchDynamicTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_dynamic_test"
+
+class ALMMeshMovingMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_matching_test"
+    
+class ALMMeshMovingNotMatchingTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test"
+
 class ALMIroningTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/ironing_test"
     

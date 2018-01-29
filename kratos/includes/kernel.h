@@ -17,7 +17,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <unordered_map>
+#include <unordered_set>
 
 // External includes
 
@@ -134,7 +134,7 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const;
 
-    static std::unordered_map<std::string, KratosApplication::Pointer>&
+    static std::unordered_set<std::string>&
     GetApplicationsList();
 
     ///@}
@@ -142,6 +142,8 @@ class KRATOS_API(KRATOS_CORE) Kernel {
    private:
     ///@name Static Member Variables
     ///@{
+
+        KratosApplication::Pointer mpKratosCoreApplication;
 
     ///@}
     ///@name Member Variables

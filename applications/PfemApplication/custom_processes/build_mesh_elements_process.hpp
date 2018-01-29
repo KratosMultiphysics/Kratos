@@ -225,7 +225,7 @@ namespace Kratos
 	      //std::cout<<" vertices "<<vertices[0].X()<<" "<<vertices[2].X()<<std::endl;
 	      //*******************************************************************
 
-	      NodeType::Pointer p_center = boost::make_shared< NodeType >( id, xc, yc, zc );
+	      NodeType::Pointer p_center = Kratos::make_shared< NodeType >( id, xc, yc, zc );
 	      
 	      //*******************************************************************
 	      //2) Create list_of_centers 

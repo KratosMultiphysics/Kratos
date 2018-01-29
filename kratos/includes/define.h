@@ -26,17 +26,8 @@
 /* Project includes */
 #include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
+#include "includes/shared_pointers.h"
 #include "includes/exception.h"
-
-
-
-#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
-typedef boost::shared_ptr<a > SharedPointer; \
-typedef boost::weak_ptr<a > WeakPointer
-
-#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef boost::shared_ptr<a > Pointer; \
-typedef typename boost::shared_ptr<a > SharedPointer; \
-typedef typename boost::weak_ptr<a > WeakPointer
 
 //-----------------------------------------------------------------
 //

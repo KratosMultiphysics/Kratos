@@ -19,6 +19,8 @@ from SmallTests import NavierStokesWallConditionTest as TNavierStokesWallConditi
 
 from buoyancy_test import BuoyancyTest
 from volume_source_test import VolumeSourceTest
+from fluid_element_test import FluidElementTest
+from time_integrated_fluid_element_test import TimeIntegratedFluidElementTest
 from darcy_channel_test import DarcyChannelTest
 from embedded_reservoir_test import EmbeddedReservoirTest
 from embedded_ausas_couette_test import EmbeddedAusasCouetteTest
@@ -51,10 +53,15 @@ def AssambleTestSuites():
     smallSuite.addTest(TNavierStokesWallConditionTest('test_execution'))
     smallSuite.addTest(BuoyancyTest('testEulerian'))
     smallSuite.addTest(BuoyancyTest('testThermalExpansionCoefficient'))
+    smallSuite.addTest(FluidElementTest('testCavity'))
+    smallSuite.addTest(FluidElementTest('testCavityOSS'))
+    smallSuite.addTest(TimeIntegratedFluidElementTest('testCavity'))
+    smallSuite.addTest(TimeIntegratedFluidElementTest('testSymbolic'))
     smallSuite.addTest(DarcyChannelTest('testDarcyDensity'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir2D'))
     smallSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir2D'))
     smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette2D'))
+    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedDevelopmentCouette2D'))
     #smallSuite.addTest(BuoyancyTest('testBFECC')) # I'm skipping this one, it varies too much between runs JC.
 
     # Create a test suite with the selected tests plus all small tests
@@ -76,6 +83,7 @@ def AssambleTestSuites():
     allSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir3D'))
     allSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir3D'))
     allSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette3D'))
+    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedDevelopmentCouette3D'))
 
     return suites
 

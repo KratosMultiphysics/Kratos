@@ -146,15 +146,15 @@ namespace Kratos {
     }
 
     void ParticleCreatorDestructor::NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                                                    Node < 3 > ::Pointer& pnew_node,
-                                                                    int aId,
-                                                                    Node < 3 > ::Pointer& reference_node,
-                                                                    double radius,
-                                                                    Properties& params,
-                                                                    ModelPart& r_sub_model_part_with_parameters,
-                                                                    bool has_sphericity,
-                                                                    bool has_rotation,
-                                                                    bool initial) {
+                                                                      Node < 3 > ::Pointer& pnew_node,
+                                                                      int aId,
+                                                                      Node < 3 > ::Pointer& reference_node,
+                                                                      double radius,
+                                                                      Properties& params,
+                                                                      ModelPart& r_sub_model_part_with_parameters,
+                                                                      bool has_sphericity,
+                                                                      bool has_rotation,
+                                                                      bool initial) {
         KRATOS_TRY
         array_1d<double, 3 > null_vector(3, 0.0);
 
@@ -224,14 +224,14 @@ namespace Kratos {
     }
 
     void ParticleCreatorDestructor::NodeForClustersCreatorWithPhysicalParameters(ModelPart& r_modelpart,
-                                                                    Node < 3 > ::Pointer& pnew_node,
-                                                                    int aId,
-                                                                    Node < 3 > ::Pointer& reference_node,
-                                                                    Properties& params,
-                                                                    ModelPart& r_sub_model_part_with_parameters,
-                                                                    bool has_sphericity,
-                                                                    bool has_rotation,
-                                                                    bool initial) {
+                                                                                 Node < 3 > ::Pointer& pnew_node,
+                                                                                 int aId,
+                                                                                 Node < 3 > ::Pointer& reference_node,
+                                                                                 Properties& params,
+                                                                                 ModelPart& r_sub_model_part_with_parameters,
+                                                                                 bool has_sphericity,
+                                                                                 bool has_rotation,
+                                                                                 bool initial) {
         KRATOS_TRY
         array_1d<double, 3 > null_vector(3, 0.0);
 
@@ -431,8 +431,37 @@ namespace Kratos {
         //pnew_node->FastGetSolutionStepValue(SPRAYED_MATERIAL) = 0.0;
         KRATOS_CATCH("")
     }
+    
+    void ParticleCreatorDestructor::CentroidCreatorForRigidBodyElements(ModelPart& r_modelpart,
+                                                                        Node<3>::Pointer& pnew_node,
+                                                                        int aId,
+                                                                        array_1d<double, 3>& reference_coordinates) {
+        KRATOS_TRY
+        pnew_node = boost::make_shared< Node<3> >(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]);
+        pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
+        pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
-    SphericParticle* ParticleCreatorDestructor::SphereCreatorForClusters(ModelPart& r_modelpart,
+        #pragma omp critical
+        {
+            r_modelpart.Nodes().push_back(pnew_node);
+        }                        
+        
+        array_1d<double, 3> null_vector(3, 0.0);
+        pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
+        pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
+
+        pnew_node->AddDof(VELOCITY_X, REACTION_X);
+        pnew_node->AddDof(VELOCITY_Y, REACTION_Y);
+        pnew_node->AddDof(VELOCITY_Z, REACTION_Z);
+        pnew_node->AddDof(ANGULAR_VELOCITY_X, REACTION_X);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Y, REACTION_Y);
+        pnew_node->AddDof(ANGULAR_VELOCITY_Z, REACTION_Z);
+
+        KRATOS_CATCH("")
+    }
+
+    Kratos::SphericParticle* ParticleCreatorDestructor::SphereCreatorForClusters(ModelPart& r_modelpart,
+                                                                                 Node < 3 > ::Pointer& pnew_node,
                                                                                   int r_Elem_Id,
                                                                                   double radius,
                                                                                   array_1d<double, 3>& reference_coordinates,
@@ -442,7 +471,6 @@ namespace Kratos {
                                                                                   const int cluster_id,
                                                                                   PropertiesProxy* p_fast_properties) {
         KRATOS_TRY
-        Node<3>::Pointer pnew_node;
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
@@ -473,6 +501,7 @@ namespace Kratos {
     }
 
 SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(ModelPart& r_modelpart,
+                                                                              Node < 3 > ::Pointer& pnew_node,
                                                                                   int r_Elem_Id,
                                                                                   double radius,
                                                                                   array_1d<double, 3>& reference_coordinates,
@@ -481,7 +510,6 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                                                                                   const int cluster_id,
                                                                                   PropertiesProxy* p_fast_properties) {
         KRATOS_TRY
-        Node<3>::Pointer pnew_node;
 
         NodeCreatorForClusters(r_modelpart, pnew_node, r_Elem_Id, reference_coordinates, radius, *r_params);
 
@@ -569,7 +597,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             if (Orientation.w() == 0.0 && Orientation.x() == 0.0 && Orientation.y() == 0.0 && Orientation.z() == 0.0) Orientation = Quaternion<double>::Identity();
         }
 
-        p_cluster->SetOrientation(Orientation);
+        p_cluster->RigidBodyElement3D::SetOrientation(Orientation);
 
         p_cluster->Initialize(r_process_info);
 
@@ -578,7 +606,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
         if (!is_breakable) {
             mMaxNodeId++; //This must be done before CreateParticles because the creation of particles accesses mMaxNodeId to choose what Id is assigned to the new nodes/spheres
         }
-
+        
+        if (!continuum_strategy && is_breakable) KRATOS_THROW_ERROR(std::runtime_error,"Breakable cluster elements are being used inside a non-deformable strategy. The program will now stop.","")
+        
         ParticleCreatorDestructor* creator_destructor_ptr = this;
         p_cluster->CreateParticles(creator_destructor_ptr, r_spheres_modelpart, p_fast_properties, continuum_strategy);
 
