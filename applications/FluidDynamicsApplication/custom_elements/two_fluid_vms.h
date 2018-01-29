@@ -384,7 +384,11 @@ KRATOS_WATCH(Ngauss);  */
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
-            const double DarcyTerm = A + B*VelNorm;
+
+            array_1d<double, 3 > OldAdvVel;
+            this->GetAdvectiveVel(OldAdvVel, N, 1);
+            const double OldVelNorm = MathUtils<double>::Norm3(OldAdvVel);
+            const double DarcyTerm = A + B*OldVelNorm;
             // Calculate stabilization parameters
             double TauOne, TauTwo;
 
@@ -498,7 +502,11 @@ KRATOS_WATCH(Ngauss);  */
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
-            const double DarcyTerm = A + B*VelNorm;
+
+            array_1d<double, 3 > OldAdvVel;
+            this->GetAdvectiveVel(OldAdvVel, N, 1);
+            const double OldVelNorm = MathUtils<double>::Norm3(OldAdvVel);
+            const double DarcyTerm = A + B*OldVelNorm;
 
             double TauOne,TauTwo;
             this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
