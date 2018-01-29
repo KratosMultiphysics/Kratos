@@ -39,6 +39,14 @@ class CoSimulationData
         mMeshName = "NONE";
     }
 
+    virtual ~CoSimulationData()
+    {
+        if(mData != nullptr)
+        {
+            delete [] mData;
+        }
+    }
+
     ///@}
     ///@name Operators
     ///@{
