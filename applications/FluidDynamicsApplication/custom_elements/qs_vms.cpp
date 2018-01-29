@@ -606,19 +606,27 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     constexpr std::size_t StrainSize = (Dim-1)*3;
     boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
+    for (unsigned int i = 0; i < StrainSize; i++) {
+        double a = -this->Interpolate(rData.DynamicViscosity,rData.N);
+        if (i < Dim) a *= 2.0;
+        for (unsigned int j = 0; j < LocalSize; j++) {
+            strain_matrix(i,j) *= a;
+        }
+    }
 
     boost::numeric::ublas::bounded_matrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
     FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
     
     // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
     boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,strain_matrix);
-    normal_stress_operator *= 2.0*this->Interpolate(rData.DynamicViscosity,rData.N);
+    //normal_stress_operator *= 2.0*this->Interpolate(rData.DynamicViscosity,rData.N);
 
     // Contribution to boundary stress from p*n
     for (unsigned int i = 0; i < NumNodes; i++) {
+        const double ni = rData.N[i];
         for (unsigned int d = 0; d < Dim; d++) {
             const std::size_t pressure_column = i*BlockSize + Dim;
-            normal_stress_operator(d,pressure_column) = rUnitNormal[d];
+            normal_stress_operator(d,pressure_column) = rUnitNormal[d]*ni;
         }
     }
 
