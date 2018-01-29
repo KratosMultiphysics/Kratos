@@ -25,11 +25,7 @@ private:
 
   /// Pointer to the data
   TDataType * mDataPointer;
-
-#ifdef KRATOS_USING_MPI
-  /// Rank is enabled only under mpi
   int mRank;
-#endif
 
 public:
 
@@ -51,10 +47,7 @@ public:
    */
   GlobalPointer(TDataType * DataPointer, int Rank = 0)
     : mDataPointer(DataPointer)
-#ifdef KRATOS_USING_MPI
-    , mRank(Rank)
-#endif
-    {
+    , mRank(Rank) {
   }
 
   /** Constructor by boost::shared_ptr
@@ -63,10 +56,7 @@ public:
    */
   GlobalPointer(boost::shared_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
-#ifdef KRATOS_USING_MPI
-    , mRank(Rank)
-#endif
-    {
+    , mRank(Rank) {
   }
 
   /** Constructor by boost::weak_ptr
@@ -75,10 +65,7 @@ public:
    */
   GlobalPointer(boost::weak_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.lock().get())
-  #ifdef KRATOS_USING_MPI
-    , mRank(Rank)
-  #endif
-    {
+    , mRank(Rank) {
   }
 
   /** Constructor by boost::unique_ptr
@@ -94,10 +81,7 @@ public:
    */
   GlobalPointer(std::shared_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.get())
-#ifdef KRATOS_USING_MPI
-    , mRank(Rank)
-#endif
-    {
+    , mRank(Rank) {
   }
 
   /** Constructor by std::weak_ptr
@@ -106,10 +90,7 @@ public:
    */
   GlobalPointer(std::weak_ptr<TDataType> DataPointer, int Rank = 0)
     : mDataPointer(DataPointer.lock().get())
-  #ifdef KRATOS_USING_MPI
-    , mRank(Rank)
-  #endif
-      {
+    , mRank(Rank) {
     }
 
   /** Constructor by std::unique_ptr
