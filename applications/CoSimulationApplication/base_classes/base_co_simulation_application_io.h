@@ -20,8 +20,8 @@
 
 // Application includes
 #include "custom_utilities/co_simulation_include.h"
-#include "custom_base_classes/base_co_simulation_data.h"
-#include "custom_base_classes/base_co_simulation_mesh.h"
+#include "base_classes/base_co_simulation_data.h"
+#include "base_classes/base_co_simulation_mesh.h"
 
 class CoSimulationBaseIo
 {
