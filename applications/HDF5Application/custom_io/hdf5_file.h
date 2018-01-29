@@ -56,11 +56,11 @@ hid_t GetScalarDataType();
 ///@name Kratos Classes
 ///@{
 
-/// A base class for accessing an HDF5 file.
+/// A base class for reading and writing an HDF5 file.
 /**
- * Provides the interface to HDF5 files in Kratos. All functions reading or 
- * writing HDF5 meta data should be defined in this class. Functions reading
- * or writing data sets are defined by the derived class.
+ * This class stores the file id and is responsible for reading and writing
+ * meta data. Reading and writing data sets is the responsibility of the derived
+ * class.
  */
 class File
 {

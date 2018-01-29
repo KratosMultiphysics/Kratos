@@ -35,6 +35,8 @@ namespace Internals
 ///@{
 ///@name Kratos Classes
 ///@{
+
+/// A class representing connectivities in a mesh.
 class ConnectivitiesData
 {
 public:

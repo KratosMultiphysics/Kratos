@@ -32,6 +32,10 @@ namespace HDF5
 ///@{
 
 /// A class for accessing a single shared HDF5 file across MPI processes.
+/**
+ * This class is responsible for reading and writing data sets from all MPI
+ * processes.
+ */
 class FileParallel : public File
 {
     enum class DataTransferMode { independent, collective };

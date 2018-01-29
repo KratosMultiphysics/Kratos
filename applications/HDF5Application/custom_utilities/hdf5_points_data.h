@@ -37,6 +37,7 @@ namespace Internals
 ///@name Kratos Classes
 ///@{
 
+/// A class representing points in a mesh.
 class PointsData
 {
 public:

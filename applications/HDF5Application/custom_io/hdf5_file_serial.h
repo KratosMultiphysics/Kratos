@@ -32,6 +32,10 @@ namespace HDF5
 ///@{
 
 /// A class for accessing an HDF5 file from a single process.
+/**
+ * This class is responsible for reading and writing data sets from a single
+ * process.
+ */
 class FileSerial : public File
 {
 public:
