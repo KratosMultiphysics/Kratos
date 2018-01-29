@@ -30,7 +30,7 @@ void ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesList& variables_
 
 virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& container_variable)
 {
-    Kratos::shared_ptr<VelocityField> p_vel_field = boost::static_pointer_cast<VelocityField>(mpVectorField);
+    Kratos::shared_ptr<VelocityField> p_vel_field = Kratos::static_pointer_cast<VelocityField>(mpVectorField);
     p_vel_field->ImposeVelocityOnNodes(r_model_part, container_variable);
 }
 
