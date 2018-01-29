@@ -349,7 +349,7 @@ namespace Kratos
 
         for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
         {
-          array_1d<double,3>& r_middle_velocity       = i->FastGetSolutionStepValue(MIDDLE_VELOCITY);
+          array_1d<double,3>& r_middle_velocity       = i->GetValue(MIDDLE_VELOCITY);
           array_1d<double,3>& r_current_velocity      = i->FastGetSolutionStepValue(VELOCITY);
           array_1d<double,3>& r_current_residual      = i->FastGetSolutionStepValue(FORCE_RESIDUAL);
           //array_1d<double,3>& r_current_displacement  = i->FastGetSolutionStepValue(DISPLACEMENT);
@@ -364,7 +364,7 @@ namespace Kratos
 
           if (i->HasDofFor(ROTATION_X))
           {
-            array_1d<double,3>& r_middle_angular_velocity       = i->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+            array_1d<double,3>& r_middle_angular_velocity       = i->GetValue(MIDDLE_ANGULAR_VELOCITY);
             array_1d<double,3>& r_current_angular_velocity      = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
             array_1d<double,3>& r_current_residual_moment       = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
             //array_1d<double,3>& current_rotation              = i->FastGetSolutionStepValue(ROTATION);    
@@ -426,12 +426,12 @@ namespace Kratos
         {
           //Current step information "N+1" (before step update).
 
-          const double nodal_mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
+          const double nodal_mass                    = i->GetValue(NODAL_MASS);
           array_1d<double,3>& r_current_residual        = i->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
           array_1d<double,3>& r_current_velocity        = i->FastGetSolutionStepValue(VELOCITY);
           array_1d<double,3>& r_current_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT);
-          array_1d<double,3>& r_middle_velocity         = i->FastGetSolutionStepValue(MIDDLE_VELOCITY);
+          array_1d<double,3>& r_middle_velocity         = i->GetValue(MIDDLE_VELOCITY);
 
           array_1d<double,3>& r_current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
 
@@ -475,11 +475,11 @@ namespace Kratos
           ////// ROTATION DEGRESS OF FREEDOM
           if (i->HasDofFor(ROTATION_X))
           {
-            array_1d<double,3> nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);  
+            array_1d<double,3> nodal_inertia     = i->GetValue(NODAL_INERTIA);  
             array_1d<double,3>& r_current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
             array_1d<double,3>& r_current_angular_velocity         = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
             array_1d<double,3>& r_current_rotation                 = i->FastGetSolutionStepValue(ROTATION);
-            array_1d<double,3>& r_middle_angular_velocity          = i->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+            array_1d<double,3>& r_middle_angular_velocity          = i->GetValue(MIDDLE_ANGULAR_VELOCITY);
             array_1d<double,3>& r_current_angular_acceleration     = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
             for (int kk = 0; kk<3; ++kk)
@@ -548,12 +548,12 @@ namespace Kratos
 
           //Current step information "N+1" (before step update).
 
-          const double& nodal_mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
+          const double& nodal_mass                    = i->GetValue(NODAL_MASS);
           array_1d<double,3>& r_current_residual        = i->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
           array_1d<double,3>& r_current_velocity        = i->FastGetSolutionStepValue(VELOCITY);
           //array_1d<double,3>& r_current_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT);
-          array_1d<double,3>& r_middle_velocity         = i->FastGetSolutionStepValue(MIDDLE_VELOCITY);
+          array_1d<double,3>& r_middle_velocity         = i->GetValue(MIDDLE_VELOCITY);
 
           array_1d<double,3>& r_current_acceleration    = i->FastGetSolutionStepValue(ACCELERATION);
 
@@ -596,11 +596,11 @@ namespace Kratos
           if (i->HasDofFor(ROTATION_X))
           {
             
-            array_1d<double,3> nodal_inertia     = i->FastGetSolutionStepValue(NODAL_INERTIA);  
+            array_1d<double,3> nodal_inertia     = i->GetValue(NODAL_INERTIA);  
             array_1d<double,3>& r_current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
             array_1d<double,3>& r_current_angular_velocity         = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
             //array_1d<double,3>& current_rotation                 = i->FastGetSolutionStepValue(ROTATION);
-            array_1d<double,3>& r_middle_angular_velocity          = i->FastGetSolutionStepValue(MIDDLE_ANGULAR_VELOCITY);
+            array_1d<double,3>& r_middle_angular_velocity          = i->GetValue(MIDDLE_ANGULAR_VELOCITY);
             array_1d<double,3>& r_current_angular_acceleration     = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
             
@@ -694,20 +694,20 @@ namespace Kratos
         if (check_has_rot_dof) index *= 2;
 
 
-        pCurrentElement->GetGeometry()[i].FastGetSolutionStepValue(MIDDLE_VELOCITY);
+        pCurrentElement->GetGeometry()[i].GetValue(MIDDLE_VELOCITY);
 
-        rValues[index]     = pCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[0];
-        rValues[index + 1] = pCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[1];
-        rValues[index + 2] = pCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
+        rValues[index]     = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[0];
+        rValues[index + 1] = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[1];
+        rValues[index + 2] = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[2];
 
 
         if (check_has_rot_dof)
         {
-          pCurrentElement->GetGeometry()[i].FastGetSolutionStepValue(MIDDLE_VELOCITY);
+          pCurrentElement->GetGeometry()[i].GetValue(MIDDLE_VELOCITY);
           
-          rValues[index+dimension]     = pCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[0];
-          rValues[index+dimension+1] = pCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[1];
-          rValues[index+dimension+2] = pCurrentElement->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[2];          
+          rValues[index+dimension]     = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[0];
+          rValues[index+dimension+1] = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[1];
+          rValues[index+dimension+2] = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[2];          
         }
 
       }
@@ -736,15 +736,15 @@ namespace Kratos
       unsigned int index = i * dimension;
       if (check_has_rot_dof) index *= 2;
 
-      rValues[index]     = pCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[0];
-      rValues[index + 1] = pCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[1];
-      rValues[index + 2] = pCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_VELOCITY )[2];
+      rValues[index]     = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[0];
+      rValues[index + 1] = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[1];
+      rValues[index + 2] = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[2];
 
         if (check_has_rot_dof)
         {          
-          rValues[index+dimension]     = pCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[0];
-          rValues[index+dimension+1] = pCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[1];
-          rValues[index+dimension+2] = pCurrentCondition->GetGeometry()[i].FastGetSolutionStepValue( MIDDLE_ANGULAR_VELOCITY )[2];          
+          rValues[index+dimension]     = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[0];
+          rValues[index+dimension+1] = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[1];
+          rValues[index+dimension+2] = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[2];          
         }
     }
   }

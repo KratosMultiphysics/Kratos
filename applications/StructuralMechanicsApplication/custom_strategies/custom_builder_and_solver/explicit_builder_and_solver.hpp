@@ -149,12 +149,12 @@ public:
 
                     for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
                     {
-                        double& r_nodal_mass    =  i->FastGetSolutionStepValue(NODAL_MASS);
+                        double& r_nodal_mass    =  i->GetValue(NODAL_MASS);
                         r_nodal_mass = 0.0;
 
                         if (i->HasDofFor(ROTATION_X))
                         {
-                            array_1d<double,3>& r_nodal_inertia = i->FastGetSolutionStepValue(NODAL_INERTIA);
+                            array_1d<double,3>& r_nodal_inertia = i->GetValue(NODAL_INERTIA);
                             noalias(r_nodal_inertia) = ZeroVector(3);
                         }
 

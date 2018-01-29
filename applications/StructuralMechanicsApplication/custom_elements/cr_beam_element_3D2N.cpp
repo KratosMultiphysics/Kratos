@@ -1614,8 +1614,8 @@ namespace Kratos
 			for (SizeType i = 0; i< msNumberOfNodes; ++i)
 			{
 				GetGeometry()[i].SetLock();
-				double& r_nodal_mass = GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS);
-				array_1d<double,msDimension>& r_nodal_inertia = GetGeometry()[i].FastGetSolutionStepValue(NODAL_INERTIA); 
+				double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+				array_1d<double,msDimension>& r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA); 
 				SizeType index = i*msLocalSize;
 
 				for (SizeType j = 0; j<msElementSize; ++j)
