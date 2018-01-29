@@ -66,6 +66,7 @@ void AddCustomBaseClassesToPython()
            .def("Name", &CoSimulationBaseApplication::Name)
            .def("SetIo", &CoSimulationBaseApplication::SetIo)
            .def("ImportData", &CoSimulationBaseApplication::ImportData)
+           .def("ExportData", &CoSimulationBaseApplication::ExportData)
            .def("ExportMesh", &CoSimulationBaseApplication::ExportMesh)
            .def("ImportMesh", &CoSimulationBaseApplication::ImportMesh) 
            .def("MakeDataAvailable", &CoSimulationBaseApplication::MakeDataAvailable);
