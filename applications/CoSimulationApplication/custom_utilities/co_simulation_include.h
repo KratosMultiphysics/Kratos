@@ -23,7 +23,8 @@ std::string availExtension = "coav";
 
 enum DataLocationOnMesh {
     ON_NODES,
-    ON_ELEMENTS
+    ON_ELEMENTS,
+    ON_NONE
 };
 
 bool CoSimulation_FileExists(const char *iFileName)
