@@ -25,19 +25,15 @@ namespace Kratos
 {
 
 	CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
-		GeometryType::Pointer pGeometry, bool rLinear)
+		GeometryType::Pointer pGeometry)
 		: Element(NewId, pGeometry)
-	{
-		this->mIsLinearElement = rLinear;
-	}
+	{}
 
 	CrBeamElement3D2N::CrBeamElement3D2N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
-		PropertiesType::Pointer pProperties, bool rLinear)
+		PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
-	{
-		this->mIsLinearElement = rLinear;
-	}
+	{}
 
 	Element::Pointer CrBeamElement3D2N::Create(IndexType NewId,
 		NodesArrayType const& rThisNodes,
@@ -45,7 +41,7 @@ namespace Kratos
 	{
 		const GeometryType& rGeom = this->GetGeometry();
 		return Kratos::make_shared<CrBeamElement3D2N>(
-			NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement);
+			NewId, rGeom.Create(rThisNodes), pProperties);
 	}
 
 	CrBeamElement3D2N::~CrBeamElement3D2N() {}
@@ -368,34 +364,31 @@ namespace Kratos
 		Kd(5, 5) = 3.0 * E * Iz * Psi_z / L;
 
 
-		//add geometric stiffness part
-		if (this->mIsLinearElement == false)
-		{
-			const double l = this->CalculateCurrentLength();
-			const double N = this->mNodalForces[6];
+		const double l = this->CalculateCurrentLength();
+		const double N = this->mNodalForces[6];
 
-			const double Qy = -1.00 * (this->mNodalForces[5] +
-				this->mNodalForces[11]) / l;
+		const double Qy = -1.00 * (this->mNodalForces[5] +
+			this->mNodalForces[11]) / l;
 
-			const double Qz = 1.00 * (this->mNodalForces[4] +
-				this->mNodalForces[10]) / l;
+		const double Qz = 1.00 * (this->mNodalForces[4] +
+			this->mNodalForces[10]) / l;
 
-			const double N1 = l*N / 12.00;
-			const double N2 = l*N / 20.00;
-			const double Qy1 = -l*Qy / 6.00;
-			const double Qz1 = -l*Qz / 6.00;
+		const double N1 = l*N / 12.00;
+		const double N2 = l*N / 20.00;
+		const double Qy1 = -l*Qy / 6.00;
+		const double Qz1 = -l*Qz / 6.00;
 
-			Kd(1, 1) += N1;
-			Kd(2, 2) += N1;
-			Kd(4, 4) += N2;
-			Kd(5, 5) += N2;
+		Kd(1, 1) += N1;
+		Kd(2, 2) += N1;
+		Kd(4, 4) += N2;
+		Kd(5, 5) += N2;
 
-			Kd(0, 1) += Qy1;
-			Kd(0, 2) += Qz1;
-			Kd(1, 0) += Qy1;
-			Kd(2, 0) += Qz1;
+		Kd(0, 1) += Qy1;
+		Kd(0, 2) += Qz1;
+		Kd(1, 0) += Qy1;
+		Kd(2, 0) += Qz1;
 
-		}
+
 		return Kd;
 		KRATOS_CATCH("")
 	}
@@ -1011,15 +1004,6 @@ namespace Kratos
 		rRightHandSideVector = ZeroVector(msElementSize);
 		rRightHandSideVector -= nodalForcesGlobal_q;
 
-
-		//LINEAR BEAM ELEMENT
-		if (this->mIsLinearElement)
-		{
-			Vector NodalDeformation = ZeroVector(msElementSize);
-			this->GetValuesVector(NodalDeformation);
-			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
-		}
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
 		this->mIterationCount++;
@@ -1032,27 +1016,10 @@ namespace Kratos
 	{
 		KRATOS_TRY;
 		rRightHandSideVector = ZeroVector(msElementSize);
-
-		if (this->mIsLinearElement == false)
-		{
-			rRightHandSideVector -= this->mNodalForces;
-		}
-
-		//LINEAR BEAM ELEMENT
-		if (this->mIsLinearElement)
-		{
-			Matrix LeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
-			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
-			Vector NodalDeformation = ZeroVector(msElementSize);
-			this->GetValuesVector(NodalDeformation);
-			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
-		}
-
+		rRightHandSideVector -= this->mNodalForces;
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
 		KRATOS_CATCH("")
-
 	}
 
 	void CrBeamElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
@@ -1084,20 +1051,6 @@ namespace Kratos
 		rLeftHandSideMatrix = prod(aux_matrix,
 			Matrix(trans(TransformationMatrix)));
 
-		//LINEAR BEAM ELEMENT
-		if (this->mIsLinearElement)
-		{
-			TransformationMatrix = this->mRotationMatrix0;
-			rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
-			rLeftHandSideMatrix +=
-				this->CreateElementStiffnessMatrix_Material();
-			bounded_matrix<double,msElementSize,msElementSize> aux_matrix = ZeroMatrix(msElementSize);
-			aux_matrix = prod(TransformationMatrix, rLeftHandSideMatrix);
-			rLeftHandSideMatrix = prod(aux_matrix,
-				Matrix(trans(TransformationMatrix)));
-		}
-		//assign global element variables
-		this->mLHS = rLeftHandSideMatrix;
 		KRATOS_CATCH("")
 	}
 
@@ -1222,21 +1175,6 @@ namespace Kratos
 		Vector Stress = this->mNodalForces;
 		Stress = prod(Matrix(trans(TransformationMatrix)),Stress);
 
-		//LINEAR BEAM ELEMENT
-		if (this->mIsLinearElement)
-		{
-			Matrix LeftHandSideMatrix = CreateElementStiffnessMatrix_Material();
-
-			Vector NodalDeformation = ZeroVector(msElementSize);
-			this->GetValuesVector(NodalDeformation);
-
-			TransformationMatrix = this->mRotationMatrix0;
-			NodalDeformation = prod(Matrix(trans(TransformationMatrix)),NodalDeformation);
-
-			Stress = prod(LeftHandSideMatrix, NodalDeformation); 
-		}
-
-
 		//rOutput[GP 1,2,3][x,y,z]
 
 		if (rVariable == MOMENT)
@@ -1295,19 +1233,9 @@ namespace Kratos
 		{
 			rOutput.resize(3);
 			for (int i = 0; i < 3; ++i) rOutput[i] = ZeroVector(3);
-
-			if (this->mIsLinearElement)
-			{
-				rOutput[0] = this->mNX0;
-				rOutput[1] = this->mNY0;
-				rOutput[2] = this->mNZ0;
-			}
-			else
-			{
-				rOutput[0] = this->mNX;
-				rOutput[1] = this->mNY;
-				rOutput[2] = this->mNZ;
-			}
+			rOutput[0] = this->mNX;
+			rOutput[1] = this->mNY;
+			rOutput[2] = this->mNZ;
 		}
 
 		KRATOS_CATCH("");

@@ -29,7 +29,7 @@ namespace Kratos
 
 	class CrBeamElement3D2N : public Element
 	{
-	private:
+	protected:
 		//const values
 		static constexpr int msNumberOfNodes = 2;
 		static constexpr int msDimension = 3;
@@ -51,12 +51,10 @@ namespace Kratos
 		typedef BaseType::EquationIdVectorType EquationIdVectorType;
 		typedef BaseType::DofsVectorType DofsVectorType;
 
-
+		CrBeamElement3D2N() {};
+		CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
 		CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-						bool rLinear = false);
-		CrBeamElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-						PropertiesType::Pointer pProperties,
-						bool rLinear = false);
+						PropertiesType::Pointer pProperties);
 
 
 		~CrBeamElement3D2N() override;
@@ -194,7 +192,7 @@ namespace Kratos
 		Vector mNX, mNY, mNZ;
 		Vector mTotalNodalDeformation;
 		Vector mIncrementDeformation;
-		Matrix mLHS, mRotationMatrix;
+		Matrix mRotationMatrix;
 		bounded_matrix<double,msElementSize,msElementSize> mRotationMatrix0;
 		Vector mNX0, mNY0, mNZ0;
 		Vector mQuaternionVEC_A, mQuaternionVEC_B;
@@ -203,16 +201,24 @@ namespace Kratos
 		Vector mNodalForces;
 
 		int mIterationCount = 0;
-		bool mIsLinearElement = false;
 		bool mIsLumpedMassMatrix = false;
 
-		CrBeamElement3D2N() {};
+		
 
 
 
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;
 		void load(Serializer& rSerializer) override;
+
+
+	public:
+		bounded_matrix<double,msElementSize,msElementSize>
+		 GetReferenceRotationMatrix() const {return this->mRotationMatrix0;};
+		void IncrementIterationCounter() {this->mIterationCount += 1;};
+		Vector GetNX0() {return this->mNX0;};
+		Vector GetNY0() {return this->mNY0;};
+		Vector GetNZ0() {return this->mNZ0;};
 	};
 
 
