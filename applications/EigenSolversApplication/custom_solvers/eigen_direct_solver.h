@@ -21,7 +21,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
 #include "linear_solvers/direct_solver.h"
 #include "custom_utilities/ublas_wrapper.h"
 
