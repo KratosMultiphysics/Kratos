@@ -11,9 +11,8 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Non-Linear",
+        "echo_level"                         : 0,        
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_2D/simple_patch_test"
@@ -29,7 +28,7 @@
         "clear_storage"                      : true,
         "line_search"                        : false,
         "compute_reactions"                  : false,
-        "convergence_criterion"              : "Contact_Residual_criterion",
+        "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
@@ -80,7 +79,7 @@
     }
     ],
     "loads_process_list"       : [],
-    "contact_processes" :[
+    "contact_process_list" :[
     {
         "python_module"   : "alm_contact_process",
         "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
@@ -89,11 +88,13 @@
         "Parameters"            : {
             "model_part_name"             : "Structure",
             "contact_model_part"          : "Contact_Part",
+            "assume_master_slave"         : "Parts_Parts_Auto2",
             "contact_type"                : "Frictionless",
             "search_factor"               : 2.0,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "integration_order"           : 2,
+            "debug_mode"                  : false
         }
     }
     ],
@@ -139,7 +140,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
             "nodal_nonhistorical_results": ["NORMAL"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]

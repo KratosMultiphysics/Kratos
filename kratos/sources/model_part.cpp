@@ -42,7 +42,7 @@ ModelPart::ModelPart()
 {
     mName = "Default";
     MeshType mesh;
-    mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
@@ -60,7 +60,7 @@ ModelPart::ModelPart(std::string const& NewName)
 {
     mName = NewName;
     MeshType mesh;
-    mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
@@ -78,7 +78,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
 {
     mName = NewName;
     MeshType mesh;
-    mMeshes.push_back(boost::make_shared<MeshType>(mesh.Clone()));
+    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
@@ -110,9 +110,6 @@ ModelPart::~ModelPart()
 	    i_node->ClearSolutionStepsData();
 	}
     }
-      
-    for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
-      delete i_sub_model_part.base()->second;
 
     mpCommunicator->Clear();
 
@@ -336,7 +333,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(int Id, double x, double y
     }
 
     //create a new node
-    NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z );
+    NodeType::Pointer p_new_node = Kratos::make_shared< NodeType >( Id, x, y, z );
 
     // Giving model part's variables list to the node
     p_new_node->SetSolutionStepVariablesList(pNewVariablesList);
@@ -382,7 +379,7 @@ ModelPart::NodeType::Pointer ModelPart::CreateNewNode(ModelPart::IndexType Id, d
     }
 
     //create a new node
-    NodeType::Pointer p_new_node = boost::make_shared< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
+    NodeType::Pointer p_new_node = Kratos::make_shared< NodeType >( Id, x, y, z, mpVariablesList, pThisData, mBufferSize);
     //add the new node to the list of nodes
     GetMesh(ThisIndex).AddNode(p_new_node);
 
@@ -1131,17 +1128,17 @@ void ModelPart::RemoveConditionsFromAllLevels(Flags identifier_flag)
 }
 
 
-ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
+ModelPart::Pointer  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName)
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        ModelPart* p_model_part = new ModelPart(NewSubModelPartName);
+        ModelPart::Pointer p_model_part(new ModelPart(NewSubModelPartName));
         p_model_part->SetParentModelPart(this);
         delete p_model_part->mpVariablesList;
         p_model_part->mpVariablesList = mpVariablesList;
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
-        return *(mSubModelParts.insert(p_model_part));
+        return mSubModelParts.insert(p_model_part).base()->second;
     }
     else
         KRATOS_THROW_ERROR(std::logic_error, "There is an already existing sub model part with name ", NewSubModelPartName)
@@ -1149,19 +1146,19 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
         //KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
     }
 
-void ModelPart::AddSubModelPart(ModelPart& rThisSubModelPart)
+void ModelPart::AddSubModelPart(ModelPart::Pointer pThisSubModelPart)
 {
-    if (mSubModelParts.find(rThisSubModelPart.Name()) != mSubModelParts.end())
+    if (mSubModelParts.find(pThisSubModelPart->Name()) != mSubModelParts.end())
         // Here a warning would be enough. To be disscussed. Pooyan.
-        KRATOS_ERROR << "There is an already existing sub model part with name \"" << rThisSubModelPart.Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
+        KRATOS_ERROR << "There is an already existing sub model part with name \"" << pThisSubModelPart->Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
 
     if (IsSubModelPart())
     {
-        mpParentModelPart->AddSubModelPart(rThisSubModelPart);
+        mpParentModelPart->AddSubModelPart(pThisSubModelPart);
         return;
     }
 
-    rThisSubModelPart.SetParentModelPart(this);
+    pThisSubModelPart->SetParentModelPart(this);
 }
 /** Remove a sub modelpart with given name.
 */
@@ -1172,9 +1169,6 @@ void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
 
     if (i_sub_model_part == mSubModelParts.end())
         return; // TODO: send a warning here. Pooyan.
-
-    // deallocate the sub model part
-    delete i_sub_model_part.base()->second;
    
     // now erase the pointer from the list
     mSubModelParts.erase(ThisSubModelPartName);
@@ -1192,8 +1186,6 @@ void  ModelPart::RemoveSubModelPart(ModelPart& ThisSubModelPart)
         KRATOS_THROW_ERROR(std::logic_error, "The sub modelpart does not exist", "")
         //KRATOS_ERROR << "The sub modelpart  \"" << name << "\" does not exist in the \"" << Name() << "\" model part to be removed" << std::endl;
 
-        // deallocate the sub model part
-        delete i_sub_model_part.base()->second;
     
     mSubModelParts.erase(name);
 }

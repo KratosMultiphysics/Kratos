@@ -60,7 +60,7 @@ public:
 
     typedef Modeler BaseType;
 
-    typedef Point<3> PointType;
+    typedef Point PointType;
 
     typedef Node<3> NodeType;
 
@@ -387,7 +387,7 @@ public:
             std::sort(mIntersections[i].begin(), mIntersections[i].end());
     }
 
-    void CalculateBoundingBox(ModelPart& rThisModelPart, Point<3>& rMinPoint, Point<3>& rMaxPoint)
+    void CalculateBoundingBox(ModelPart& rThisModelPart, Point& rMinPoint, Point& rMaxPoint)
     {
         if(rThisModelPart.NumberOfElements() == 0)
         {

@@ -21,9 +21,8 @@
 #include "includes/model_part.h"
 #include "utilities/table_stream_utility.h"
 #include "solving_strategies/convergencecriterias/and_criteria.h"
-#if !defined(_WIN32)
-    #include "utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
+#include "utilities/condition_number_utility.h"
 
 namespace Kratos
 {
@@ -72,7 +71,8 @@ Detail class definition.
 template<class TSparseSpace,
          class TDenseSpace
          >
-class MortarAndConvergenceCriteria : public And_Criteria< TSparseSpace, TDenseSpace >
+class MortarAndConvergenceCriteria 
+    : public And_Criteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -82,19 +82,29 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(MortarAndConvergenceCriteria );
 
-    typedef And_Criteria< TSparseSpace, TDenseSpace >            BaseType;
+    typedef And_Criteria< TSparseSpace, TDenseSpace >                BaseType;
 
-    typedef TSparseSpace                                  SparseSpaceType;
+    typedef TSparseSpace                                      SparseSpaceType;
 
-    typedef typename BaseType::TDataType                        TDataType;
+    typedef typename TSparseSpace::MatrixType                SparseMatrixType;
 
-    typedef typename BaseType::DofsArrayType                DofsArrayType;
+    typedef typename TSparseSpace::VectorType                SparseVectorType;
 
-    typedef typename BaseType::TSystemMatrixType        TSystemMatrixType;
+    typedef typename TDenseSpace::MatrixType                  DenseMatrixType;
 
-    typedef typename BaseType::TSystemVectorType        TSystemVectorType;
+    typedef typename TDenseSpace::VectorType                  DenseVectorType;
+    
+    typedef typename BaseType::TDataType                            TDataType;
 
-    typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
+    typedef typename BaseType::DofsArrayType                    DofsArrayType;
+
+    typedef typename BaseType::TSystemMatrixType            TSystemMatrixType;
+
+    typedef typename BaseType::TSystemVectorType            TSystemVectorType;
+    
+    typedef TableStreamUtility::Pointer               TablePrinterPointerType;
+    
+    typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -107,11 +117,13 @@ public:
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
         typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion,
         TablePrinterPointerType pTable = nullptr,
-        const bool PrintingOutput = false 
+        const bool PrintingOutput = false,
+        ConditionNumberUtilityPointerType pConditionNumberUtility = nullptr
         )
         :And_Criteria< TSparseSpace, TDenseSpace >(pFirstCriterion, pSecondCriterion),
         mpTable(pTable),
         mPrintingOutput(PrintingOutput),
+        mpConditionNumberUtility(pConditionNumberUtility),
         mTableIsInitialized(false)
     {
     }
@@ -124,9 +136,10 @@ public:
       ,mpTable(rOther.mpTable)
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
+      ,mpConditionNumberUtility(rOther.mpConditionNumberUtility)
      {
-         BaseType::mpFirstCriterion   =  rOther.mpFirstCriterion;
-         BaseType::mpSecondCriterion  =  rOther.mpSecondCriterion;      
+         BaseType::mpFirstCriterion  = rOther.mpFirstCriterion;
+         BaseType::mpSecondCriterion = rOther.mpSecondCriterion;      
      }
 
     /** Destructor.
@@ -156,42 +169,56 @@ public:
         ) override
     {
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
+            if (mpTable != nullptr)
+                mpTable->AddToRow<unsigned int>(rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER]);
+        
+        bool criterion_result = BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
+        
+        if (mpConditionNumberUtility != nullptr)
         {
+            TSystemMatrixType copy_A; // NOTE: Can not be const, TODO: Change the solvers to const
+            const double condition_number = mpConditionNumberUtility->GetConditionNumber(copy_A);
+            
             if (mpTable != nullptr)
             {
-                const unsigned int nl_iteration = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
-                mpTable->AddToRow<unsigned int>(nl_iteration);
+                std::cout.precision(4);
+                auto& Table = mpTable->GetTable();
+                Table  << condition_number;
+            }
+            else
+            {
+                if (mPrintingOutput == false)
+                    std::cout << "\n" << BOLDFONT("CONDITION NUMBER:") << "\t " << std::scientific << condition_number << std::endl;
+                else
+                    std::cout << "\n" << "CONDITION NUMBER:" << "\t" << std::scientific << condition_number << std::endl;
             }
         }
-        
-        bool criterion_result = BaseType::PostCriteria(rModelPart,rDofSet,A,Dx,b);
         
         if (criterion_result == true && rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-        {
             if (mpTable != nullptr)
-            {
                 mpTable->PrintFooter();
-            }
-        }
         
         return criterion_result;
     }
 
     /**
      * This function initialize the convergence criteria
-     * @param rModelPart: The model part of interest
+     * @param rModelPart The model part of interest
      */ 
     
     void Initialize(ModelPart& rModelPart) override
     {
         if (mpTable != nullptr && mTableIsInitialized == false)
         {
-            auto& table = mpTable->GetTable();
-            table.AddColumn("ITER", 4);
-            mTableIsInitialized = true;
+            (mpTable->GetTable()).SetBold(!mPrintingOutput);
+            (mpTable->GetTable()).AddColumn("ITER", 4);
         }
         
-         BaseType::Initialize(rModelPart);
+        mTableIsInitialized = true;
+        BaseType::Initialize(rModelPart);
+         
+        if (mpTable != nullptr && mpConditionNumberUtility != nullptr)
+            (mpTable->GetTable()).AddColumn("COND.NUM.", 10);
     }
 
     /**
@@ -215,22 +242,12 @@ public:
         {
             std::cout.precision(4);
             if (mPrintingOutput == false)
-            {
-            #if !defined(_WIN32)
-                std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
-            #else
-                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
-            #endif
-            }
+                std::cout << "\n\n" << BOLDFONT("CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
             else
-            {
-                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[TIME_STEPS] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
-            }
+                std::cout << "\n\n" << "CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tTIME: " << std::scientific << rModelPart.GetProcessInfo()[TIME] << "\tDELTA TIME: " << std::scientific << rModelPart.GetProcessInfo()[DELTA_TIME] << std::endl;
                 
             if (mpTable != nullptr)
-            {
                 mpTable->PrintHeader();
-            }
         }
         
         BaseType::InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
@@ -313,9 +330,10 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable; // Pointer to the fancy table 
-    bool mPrintingOutput;            // If the colors and bold are printed
-    bool mTableIsInitialized;        // If the table is already initialized
+    TablePrinterPointerType mpTable;                            // Pointer to the fancy table 
+    bool mPrintingOutput;                                       // If the colors and bold are printed
+    ConditionNumberUtilityPointerType mpConditionNumberUtility; // The utility to compute the condition number
+    bool mTableIsInitialized;                                   // If the table is already initialized
     
     ///@}
     ///@name Private Operators

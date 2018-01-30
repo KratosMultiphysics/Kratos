@@ -29,7 +29,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point<3>                                  PointType;
+    typedef Point                                     PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
     typedef Geometry<PointType>               GeometryPointType;
@@ -61,39 +61,39 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<2, TNumNodes, false>                  MortarBaseType;
+    typedef AugmentedLagrangianMethodMortarContactCondition<2, TNumNodes, false, TNormalVariation> MortarBaseType;
     
-    typedef AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, TNumNodes, TNormalVariation> BaseType;
+    typedef AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, TNumNodes, TNormalVariation>  BaseType;
     
-    typedef typename MortarBaseType::MortarConditionMatrices                             MortarConditionMatrices;
+    typedef typename MortarBaseType::MortarConditionMatrices                              MortarConditionMatrices;
 
-    typedef typename MortarBaseType::GeneralVariables                                           GeneralVariables;
+    typedef typename MortarBaseType::GeneralVariables                                            GeneralVariables;
     
-    typedef typename MortarBaseType::AeData                                                               AeData;
+    typedef typename MortarBaseType::AeData                                                                AeData;
         
-    typedef Condition                                                                          ConditionBaseType;
+    typedef Condition                                                                           ConditionBaseType;
     
-    typedef typename ConditionBaseType::VectorType                                                    VectorType;
+    typedef typename ConditionBaseType::VectorType                                                     VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                                    MatrixType;
+    typedef typename ConditionBaseType::MatrixType                                                     MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                                      IndexType;
+    typedef typename ConditionBaseType::IndexType                                                       IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                                GeometryPointerType;
+    typedef typename ConditionBaseType::GeometryType::Pointer                                 GeometryPointerType;
 
-    typedef typename ConditionBaseType::NodesArrayType                                            NodesArrayType;
+    typedef typename ConditionBaseType::NodesArrayType                                             NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer                            PropertiesPointerType;
+    typedef typename ConditionBaseType::PropertiesType::Pointer                             PropertiesPointerType;
     
-    typedef typename ConditionBaseType::EquationIdVectorType                                EquationIdVectorType;
+    typedef typename ConditionBaseType::EquationIdVectorType                                 EquationIdVectorType;
     
-    typedef typename ConditionBaseType::DofsVectorType                                            DofsVectorType;
+    typedef typename ConditionBaseType::DofsVectorType                                             DofsVectorType;
     
-    typedef typename std::vector<array_1d<PointType,2>>                                   ConditionArrayListType;
+    typedef typename std::vector<array_1d<PointType,2>>                                    ConditionArrayListType;
     
-    typedef Line2D2<Point<3>>                                                                  DecompositionType;
+    typedef Line2D2<Point>                                                                      DecompositionType;
     
-    typedef DerivativeData<2, TNumNodes>                                                      DerivativeDataType;
+    typedef DerivativeData<2, TNumNodes, TNormalVariation>                                     DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
          
@@ -135,9 +135,9 @@ public:
    
     /**
      * Creates a new element pointer from an arry of nodes
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId The ID of the new element
+     * @param ThisNodes tThe nodes of the new element
+     * @param pProperties The properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -149,9 +149,9 @@ public:
     
     /**
      * Creates a new element pointer from an existing geometry
-     * @param NewId: the ID of the new element
-     * @param pGeom: the  geometry taken to create the condition
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param pGeom the  geometry taken to create the condition
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -167,14 +167,9 @@ public:
 
     /**
      * This functions computes the integration weight to consider
-     * @param ThisIntegrationMethod: The array containing the integration points
-     * @param PointNumber: The id of the integration point considered
+     * @param rVariables The kinematic variables
      */
-    double GetIntegrationWeight(
-        GeneralVariables& rVariables,
-        const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
-        const unsigned int& PointNumber
-        ) override;
+    double GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const override;
     
     /**
      * Calculates the radius of axisymmetry
@@ -182,7 +177,7 @@ public:
      * @return Radius: The radius of axisymmetry
      */
     
-    double CalculateRadius(GeneralVariables& rVariables);
+    double CalculateRadius(const GeneralVariables& rVariables) const;
     
     ///@}
     ///@name Access

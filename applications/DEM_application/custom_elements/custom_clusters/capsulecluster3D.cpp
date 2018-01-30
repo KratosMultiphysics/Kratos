@@ -64,7 +64,7 @@ namespace Kratos {
         mListOfCoordinates[4][0] = 0.9300 * cl; mListOfCoordinates[4][1] = 0.0; mListOfCoordinates[4][2] = 0.0;  
         
         double particle_density = this->SlowGetDensity();
-        double cluster_volume = 4.0 * KRATOS_M_PI_3 * 0.35 * 0.35 * 0.35 * cl * cl * cl + KRATOS_M_PI * 0.35 * 0.35 * 0.93 * cl * cl * cl;
+        double cluster_volume = 4.0 * Globals::Pi / 3.0 * 0.35 * 0.35 * 0.35 * cl * cl * cl + Globals::Pi * 0.35 * 0.35 * 0.93 * cl * cl * cl;
         double cluster_mass = particle_density * cluster_volume;
         
         GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) = cluster_mass;

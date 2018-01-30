@@ -173,24 +173,24 @@ namespace Kratos
             return dummy.CreateEmptyVectorPointer();
         }
 
-        // 	boost::shared_ptr< CompressedMatrix > CreateEmptyMatrixPointer()
+        // 	Kratos::shared_ptr< CompressedMatrix > CreateEmptyMatrixPointer()
         // 	{
-        // 		boost::shared_ptr<CompressedMatrix> pNewMat = boost::shared_ptr<CompressedMatrix>(new CompressedMatrix() );
+        // 		Kratos::shared_ptr<CompressedMatrix> pNewMat = Kratos::shared_ptr<CompressedMatrix>(new CompressedMatrix() );
         // 		return pNewMat;
         // 	}
         //
-        // 	boost::shared_ptr< Vector > CreateEmptyVectorPointer()
+        // 	Kratos::shared_ptr< Vector > CreateEmptyVectorPointer()
         // 	{
-        // 		boost::shared_ptr<Vector > pNewVec = boost::shared_ptr<Vector >(new Vector() );
+        // 		Kratos::shared_ptr<Vector > pNewVec = Kratos::shared_ptr<Vector >(new Vector() );
         // 		return pNewVec;
         // 	}
 
-        CompressedMatrix& GetMatRef(boost::shared_ptr<CompressedMatrix>& dummy)
+        CompressedMatrix& GetMatRef(Kratos::shared_ptr<CompressedMatrix>& dummy)
         {
             return *dummy;
         }
 
-        Vector& GetVecRef(boost::shared_ptr<Vector>& dummy)
+        Vector& GetVecRef(Kratos::shared_ptr<Vector>& dummy)
         {
             return *dummy;
         }
@@ -203,7 +203,7 @@ namespace Kratos
             // 			def("CreateEmptyMatrixPointer",CreateEmptyMatrixPointer);
             // 			def("CreateEmptyVectorPointer",CreateEmptyVectorPointer);
 
-            class_< boost::shared_ptr<CompressedMatrix> >("CompressedMatrixPointer", init<boost::shared_ptr<CompressedMatrix> >())
+            class_< Kratos::shared_ptr<CompressedMatrix> >("CompressedMatrixPointer", init<Kratos::shared_ptr<CompressedMatrix> >())
                     .def("GetReference", GetMatRef, return_value_policy<reference_existing_object > ())
                     //    				.def("GetReference", GetRef, return_internal_reference<1>() )
                     ;
@@ -211,7 +211,7 @@ namespace Kratos
             // // // 			class_< CompressedMatrix , boost::noncopyable >("CompressedMatrix", init< >() );
 
 
-            class_< boost::shared_ptr<Vector> >("VectorPointer", init< boost::shared_ptr<Vector> >())
+            class_< Kratos::shared_ptr<Vector> >("VectorPointer", init< Kratos::shared_ptr<Vector> >())
                     .def("GetReference", GetVecRef, return_value_policy<reference_existing_object > ())
                     ;
             // // // 			class_< Vector , boost::noncopyable >("Vector", init< >() );
@@ -253,6 +253,7 @@ namespace Kratos
                     .def(init < ModelPart& ,  BaseSchemeType::Pointer, LinearSolverType::Pointer, BuilderAndSolverType::Pointer, bool, bool, bool,  bool  >())
                     .def("GetResidualNorm", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetResidualNorm)
                     .def("SetBuilderAndSolver", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetBuilderAndSolver)
+                    .def("GetSystemMatrix", &ResidualBasedLinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetSystemMatrix, return_internal_reference<>())
                     ;
 
             typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
@@ -266,6 +267,7 @@ namespace Kratos
                     .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations)
                     .def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetInitializePerformedFlag)
                     .def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetInitializePerformedFlag)
+                    .def("GetSystemMatrix", &ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetSystemMatrix, return_internal_reference<>())
                     ;
 
             class_< AdaptiveResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >, boost::noncopyable >

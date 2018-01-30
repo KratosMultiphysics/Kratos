@@ -71,7 +71,6 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISTANCE)
     model_part.AddNodalSolutionStepVariable(IS_SLIP)
     model_part.AddNodalSolutionStepVariable(PRESSURES)
-    #model_part.AddNodalSolutionStepVariable(VELOCITIES)
     #model_part.AddNodalSolutionStepVariable(MATERIAL)
     #model_part.AddNodalSolutionStepVariable(LAST_AIR)
     #model_part.AddNodalSolutionStepVariable(NODAL_MASS)

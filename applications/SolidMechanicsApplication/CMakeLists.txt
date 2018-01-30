@@ -5,10 +5,9 @@ message("**** configuring KratosSolidMechanicsApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConstitutiveModelsApplication )
 
-
-#if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
-#    message(SEND_ERROR "The ConsitutiveModels Application must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
-#endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
+if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
+    message(SEND_ERROR "The ConsitutiveModelsApplication must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
+endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
 
 ## generate variables with the sources
 set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
@@ -20,33 +19,65 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-   
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_solid_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_small_displacement_element.cpp
- 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_U_P_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_element.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_beam_element_3D2N.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thick_element_3D4N.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_thin_element_3D3N.cpp
+	# time integration methods
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/static_step_rotation_method.cpp		
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/newmark_step_rotation_method.cpp	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/simo_step_rotation_method.cpp	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/time_integration_methods/emc_step_rotation_method.cpp
 	
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/force_load_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_axisym_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_axisym_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_3D_condition.cpp
-	
+	# solid elements
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/linear_solid_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/small_displacement_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/small_displacement_bbar_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_small_displacement_element.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/total_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_updated_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/large_displacement_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/updated_lagrangian_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/axisymmetric_updated_lagrangian_U_P_element.cpp
+
+	# beam elements
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/beam_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/small_displacement_beam_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/small_displacement_beam_element_3D2N.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_emc_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/large_displacement_beam_semc_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_elements/geometrically_exact_rod_element.cpp
+
+	# shell elements
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thick_element_3D4N.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_elements/shell_thin_element_3D3N.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/boundary_condition.cpp
+
+	# load conditions
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/line_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/surface_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/axisymmetric_point_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/load_conditions/axisymmetric_line_load_condition.cpp
+
+	# moment conditions		
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/moment_conditions/moment_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/moment_conditions/point_moment_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/moment_conditions/line_moment_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/moment_conditions/surface_moment_condition.cpp
+
+	# elastic conditions
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/elastic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/point_elastic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/line_elastic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/surface_elastic_condition.cpp	
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/axisymmetric_point_elastic_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_conditions/axisymmetric_line_elastic_condition.cpp
+
+	# utilites
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
 	
 	## Constitutive Models Application ##  DEPRECATED CONSTITUTIVE LAWS IMPLEMENTATION
@@ -153,3 +184,4 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/SolidMechanicsApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/beam_profiles.csv" DESTINATION KratosMultiphysics )

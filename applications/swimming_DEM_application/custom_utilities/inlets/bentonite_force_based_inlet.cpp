@@ -34,7 +34,7 @@ void Bentonite_Force_Based_Inlet::InitializeStep(ModelPart& r_receiver_model_par
     }
 }
 
-void Bentonite_Force_Based_Inlet::FixInjectionConditions(Element* p_element)
+void Bentonite_Force_Based_Inlet::FixInjectionConditions(Element* p_element, Element* p_injector_element)
 {
     UpdateInjectionForce(p_element);
 }

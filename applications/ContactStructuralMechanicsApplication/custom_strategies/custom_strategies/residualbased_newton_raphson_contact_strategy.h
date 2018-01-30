@@ -18,6 +18,7 @@
 #include "boost/smart_ptr.hpp"
 
 /* Project includes */
+#include "contact_structural_mechanics_application_variables.h"
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -28,9 +29,7 @@
 
 // Utilities
 #include "utilities/variable_utils.h"
-#if !defined(_WIN32)
-	#include "utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
 #include "custom_utilities/process_factory_utility.h"
 
 // TODO: Extend the descriptions
@@ -283,7 +282,7 @@ public:
                 {      
                     current_time += aux_delta_time;
                     inner_iteration += 1;
-                    this_process_info[TIME_STEPS] += 1;
+                    this_process_info[STEP] += 1;
                     
                     if (inner_iteration == 1)
                     {
@@ -293,10 +292,9 @@ public:
                         }
                         
                         NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-                        const int num_nodes = static_cast<int>(nodes_array.size());
                         
                         #pragma omp parallel for
-                        for(int i = 0; i < num_nodes; i++)  
+                        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
                         {
                             auto it_node = nodes_array.begin() + i;
                             
@@ -311,10 +309,9 @@ public:
                     else
                     {
                         NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-                        const int num_nodes = static_cast<int>(nodes_array.size());
                         
                         #pragma omp parallel for
-                        for(int i = 0; i < num_nodes; i++)  
+                        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
                         {
                             auto it_node = nodes_array.begin() + i;
                             
@@ -655,10 +652,9 @@ protected:
         }
 
         NodesArrayType& nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        const int num_nodes = static_cast<int>(nodes_array.size());
 
         #pragma omp parallel for
-        for(int i = 0; i < num_nodes; i++)  
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  
         {
             auto it_node = nodes_array.begin() + i;
 
@@ -677,7 +673,7 @@ protected:
     {
         if (mConvergenceCriteriaEchoLevel != 0)
         {
-            std::cout << "STEP: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME_STEPS] << "\t NON LINEAR ITERATION: " << StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
+            std::cout << "STEP: " << StrategyBaseType::GetModelPart().GetProcessInfo()[STEP] << "\t NON LINEAR ITERATION: " << StrategyBaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] << "\t TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] << "\t DELTA TIME: " << StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME]  << std::endl;
         }
     }
     
@@ -692,15 +688,9 @@ protected:
             const double Time = StrategyBaseType::GetModelPart().GetProcessInfo()[TIME];
             std::cout.precision(4);
             std::cout << "|----------------------------------------------------|" << std::endl;
-            #if !defined(_WIN32)
-                std::cout << "|     " << BOLDFONT("Max. iter. exceeded: SPLITTING TIME STEP") << "       |" << std::endl;
-                std::cout << "| " << BOLDFONT("COMING BACK TO TIME: ") << std::scientific << Time << "                    |" << std::endl;
-                std::cout << "| " << BOLDFONT("      NEW TIME STEP: ") << std::scientific << AuxDeltaTime << "                    |" << std::endl;
-            #else
-                std::cout << "|     Max. iter. exceeded: SPLITTING TIME STEP       |" << std::endl;
-                std::cout << "| COMING BACK TO TIME: " << std::scientific << Time << "                    |" << std::endl;
-                std::cout << "|       NEW TIME STEP: " << std::scientific << AuxDeltaTime << "                    |" << std::endl;
-            #endif
+            std::cout << "|     " << BOLDFONT("Max. iter. exceeded: SPLITTING TIME STEP") << "       |" << std::endl;
+            std::cout << "| " << BOLDFONT("COMING BACK TO TIME: ") << std::scientific << Time << "                    |" << std::endl;
+            std::cout << "| " << BOLDFONT("      NEW TIME STEP: ") << std::scientific << AuxDeltaTime << "                    |" << std::endl;
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
@@ -714,11 +704,7 @@ protected:
         if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << "|----------------------------------------------------|" << std::endl;
-            #if !defined(_WIN32)
-                std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
-            #else
-                std::cout << "|        ATTENTION: Max iterations exceeded          |" << std::endl;
-            #endif
+            std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }
@@ -732,13 +718,8 @@ protected:
         if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << "|----------------------------------------------------|" << std::endl;
-            #if !defined(_WIN32)
-                std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
-                std::cout << "|        " << BOLDFONT(FRED("   Max number of splits exceeded  ")) << "          |" << std::endl;
-            #else
-                std::cout << "|        ATTENTION: Max iterations exceeded          |" << std::endl;
-                std::cout << "|           Max number of splits exceeded            |" << std::endl;
-            #endif
+            std::cout << "|        " << BOLDFONT(FRED("ATTENTION: Max iterations exceeded")) << "          |" << std::endl;
+            std::cout << "|        " << BOLDFONT(FRED("   Max number of splits exceeded  ")) << "          |" << std::endl;
             std::cout << "|----------------------------------------------------|" << std::endl;
         }
     }

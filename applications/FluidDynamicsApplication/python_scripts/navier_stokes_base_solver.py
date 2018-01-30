@@ -1,12 +1,13 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
+
+# Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-
-#import KratosMultiphysics.MeshingApplication as KratosMeshing
-
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
 
 def CreateSolver(main_model_part, custom_settings):
     return NavierStokesBaseSolver(main_model_part, custom_settings)
@@ -33,7 +34,6 @@ class NavierStokesBaseSolver(object):
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
-            "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": true,
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -107,6 +107,8 @@ class NavierStokesBaseSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)          # PATCH_INDEX belongs to FluidDynamicsApp.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)          # Q_VALUE belongs to FluidDynamicsApp.
+
 
         print("Base class fluid solver variables added correctly")
 

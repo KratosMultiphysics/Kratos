@@ -433,9 +433,9 @@ public:
 
 
 
-    typename BaseType::Pointer Create( PointerVector< Point<3> > ,Vector const &weights, Vector const& KnotsXi, Vector const& KnotsEta ) const
+    typename BaseType::Pointer Create( PointerVector< Point > ,Vector const &weights, Vector const& KnotsXi, Vector const& KnotsEta ) const
     {
-        return typename BaseType::Pointer( new NurbsPatchGeometry3D(PointerVector< Point<3> >(),KnotsXi, KnotsEta) );
+        return typename BaseType::Pointer( new NurbsPatchGeometry3D(PointerVector< Point >(),KnotsXi, KnotsEta) );
     }
 
 
@@ -1401,7 +1401,10 @@ public:
     {
         Vector gXi,gEta;
         BaseVectors(Xi,Eta,gXi,gEta);
-        Vector Normal = MathUtils<double>::UnitCrossProduct(gXi,gEta);
+        Vector Normal;
+
+        MathUtils<double>::UnitCrossProduct(Normal, gEta, gXi);
+
         return Normal;
     }
 

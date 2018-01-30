@@ -337,7 +337,7 @@ while time < DEM_parameters["FinalTime"].GetDouble():
     # measuring mean velocities in a certain control volume (the 'velocity trap')
     if DEM_parameters["VelocityTrapOption"].GetBool():
         compute_flow = False
-        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", time)
+        post_utils.ComputeMeanVelocitiesInTrap("Average_Velocity.txt", time)
 
     #### MATERIAL TEST GRAPHS ############################
     materialTest.MeasureForcesAndPressure()
@@ -364,7 +364,6 @@ while time < DEM_parameters["FinalTime"].GetDouble():
         os.chdir(list_path)
         demio.PrintMultifileLists(time, post_path)
         os.chdir(main_path)
-
         os.chdir(post_path)
 
         if DEM_parameters["ContactMeshOption"].GetBool():

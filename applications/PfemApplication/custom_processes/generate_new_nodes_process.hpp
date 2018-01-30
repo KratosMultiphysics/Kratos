@@ -25,7 +25,7 @@
 
 ///VARIABLES used:
 //Data:      
-//StepData: DOMAIN_LABEL, CONTACT_FORCE, DISPLACEMENT
+//StepData: CONTACT_FORCE, DISPLACEMENT
 //Flags:    (checked) 
 //          (set)     
 //          (modified)  
@@ -69,8 +69,6 @@ public:
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
-    
-      mMeshId = mrRemesh.MeshId;
       mEchoLevel = EchoLevel;
     }
 
@@ -228,8 +226,6 @@ private:
 
     ModelerUtilities mModelerUtilities;  
 
-    ModelPart::IndexType mMeshId; 
-
     int mEchoLevel;
 
     ///@}
@@ -257,13 +253,13 @@ private:
       double zc = 0;
       
       //assign data to dofs
-      NodeType::DofsContainerType& ReferenceDofs = rModelPart.Nodes(mMeshId).front().GetDofs();
+      NodeType::DofsContainerType& ReferenceDofs = rModelPart.Nodes().front().GetDofs();
 
       VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 
       unsigned int id = ModelerUtilities::GetMaxNodeId(rModelPart) + 1;
 
-      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(mMeshId);	  
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();	  
       const unsigned int dimension = element_begin->GetGeometry().WorkingSpaceDimension();
 
       double* OutPointList = mrRemesh.OutMesh.GetPointList();
@@ -285,7 +281,7 @@ private:
 		zc=OutPointList[base+2];
 
 	      //create a new node
-	      pNode = boost::make_shared< NodeType >( id, xc, yc, zc );
+	      pNode = Kratos::make_shared< NodeType >( id, xc, yc, zc );
 
 	      //set new id
 	      if(mrRemesh.InputInitializedFlag){
@@ -365,7 +361,7 @@ private:
       std::vector<double>  PointsInRadiusDistances (MaximumNumberOfPointsInRadius);
       
       //geometry
-      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(mMeshId);	  
+      ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();	  
       const unsigned int nds = element_begin->GetGeometry().size();
 
       std::vector<std::vector<double> > ElementPointCoordinates(nds);
@@ -373,8 +369,8 @@ private:
       std::fill( PointCoordinates.begin(), PointCoordinates.end(), 0.0 );
       std::fill( ElementPointCoordinates.begin(), ElementPointCoordinates.end(), PointCoordinates );
       
-      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(mMeshId);
-	ie != rModelPart.ElementsEnd(mMeshId); ie++)
+      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin();
+	ie != rModelPart.ElementsEnd(); ie++)
 	{
 
 	  //coordinates
@@ -427,7 +423,7 @@ private:
       //*******************************************************************************************
     //*******************************************************************************************
 
-    virtual bool SetNewNodeVariables(ModelPart& rModelPart, NodeType::Pointer& pNode)
+    virtual void SetNewNodeVariables(ModelPart& rModelPart, NodeType::Pointer& pNode)
     {
       KRATOS_TRY
 	           	      

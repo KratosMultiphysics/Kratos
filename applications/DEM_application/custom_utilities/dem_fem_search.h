@@ -188,7 +188,7 @@ class DEM_FEM_Search : public SpatialSearch
             const array_1d<double, 3 >& aux_coor = pGeometry[0].Coordinates();
 
             SphericParticle* p_particle = dynamic_cast<SphericParticle*>((*it).get());
-            radius = p_particle->GetSearchRadiusWithFem();
+            radius = p_particle->GetSearchRadius();
 
             Vector_Ref_Radius[k]    = (Vector_Ref_Radius[k]  < radius) ? radius : Vector_Ref_Radius[k] ;
 
@@ -314,7 +314,7 @@ class DEM_FEM_Search : public SpatialSearch
             array_1d<double, 3 > & aux_coor = go_it->GetGeometry()[0].Coordinates();
 
             SphericParticle* p_particle = dynamic_cast<SphericParticle*>((*it).get());
-            double Rad = p_particle->GetSearchRadiusWithFem();
+            double Rad = p_particle->GetSearchRadius();
 
             for(unsigned int i = 0; i < 3; i++ ) {
               search_particle &= !(aux_coor[i]  < (mGlobal_BB_LowPoint[i] - Rad) ) || (aux_coor[i]  > (mGlobal_BB_HighPoint[i] + Rad) ); //amplify the BBX with the radius for every particle

@@ -19,9 +19,7 @@
 /* Project includes */
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
 #include "utilities/table_stream_utility.h"
-#if !defined(_WIN32)
-    #include "utilities/color_utilities.h"
-#endif
+#include "utilities/color_utilities.h"
 
 namespace Kratos
 {
@@ -50,7 +48,8 @@ namespace Kratos
 /** @brief Custom convergence criteria for the mortar condition 
  */
 template<class TSparseSpace, class TDenseSpace>
-class MeshTyingMortarConvergenceCriteria : public virtual  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
+class MeshTyingMortarConvergenceCriteria 
+    : public  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -76,7 +75,7 @@ public:
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
-    typedef boost::shared_ptr<TableStreamUtility>                TablePrinterPointerType;
+    typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -119,9 +118,7 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
         ) override
-    {
-        BaseType::CalculateContactReactions(rModelPart, rDofSet, b);
-        
+    {        
         if (mpTable != nullptr)
         {
             // TODO: Add somethig if necessary
@@ -132,7 +129,7 @@ public:
     
     /**
      * This function initialize the convergence criteria
-     * @param rModelPart: The model part of interest
+     * @param rModelPart The model part of interest
      */ 
     
     void Initialize(ModelPart& rModelPart) override

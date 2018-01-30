@@ -14,9 +14,9 @@
 // Project includes
 #include "includes/model_part.h"
 
-#include "../kratos/includes/define.h"
-#include "../custom_elements/discrete_element.h"
-#include "../DEM_application_variables.h"
+//#include "../kratos/includes/define.h"
+//#include "../custom_elements/discrete_element.h"
+//#include "../DEM_application_variables.h"
 
 namespace Kratos {
 
@@ -39,9 +39,13 @@ namespace Kratos {
         double* pGetPoisson();                                                   
         void    SetPoissonFromProperties(double* poisson);                                     
             
-        double  GetRollingFriction();                                                 
-        double* pGetRollingFriction();                                            
-        void    SetRollingFrictionFromProperties(double* rolling_friction);        
+        double  GetRollingFriction();
+        double* pGetRollingFriction();
+        void    SetRollingFrictionFromProperties(double* rolling_friction);
+        
+        double  GetRollingFrictionWithWalls();
+        double* pGetRollingFrictionWithWalls();
+        void    SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
       
         double  GetTgOfFrictionAngle();                                          
         double* pGetTgOfFrictionAngle();                                          
@@ -75,7 +79,7 @@ namespace Kratos {
         double* pGetParticleKTangential();
         void    SetParticleKTangentialFromProperties(double* particle_k_tangential);
         
-        //Conical damage    
+        // Dependent Friction    
         double  GetParticleContactRadius();
         double* pGetParticleContactRadius();
         void    SetParticleContactRadiusFromProperties(double* particle_contact_radius);
@@ -83,10 +87,6 @@ namespace Kratos {
         double  GetParticleMaxStress();
         double* pGetParticleMaxStress();
         void    SetParticleMaxStressFromProperties(double* particle_max_stress);
-    
-        double  GetParticleAlpha();
-        double* pGetParticleAlpha();
-        void    SetParticleAlphaFromProperties(double* particle_alpha);
     
         double  GetParticleGamma();
         double* pGetParticleGamma();
@@ -112,6 +112,7 @@ namespace Kratos {
         double* mYoung;
         double* mPoisson;
         double* mRollingFriction;
+        double* mRollingFrictionWithWalls;
         double* mTgOfFrictionAngle;
         double* mCoefficientOfRestitution;
         double* mLnOfRestitCoeff;
@@ -120,10 +121,9 @@ namespace Kratos {
         double* mParticleCohesion;
         double* mParticleKNormal;
         double* mParticleKTangential;
-        //Conical damage    
+        //Dependent Friction
         double* mParticleContactRadius;
         double* mParticleMaxStress;
-        double* mParticleAlpha;
         double* mParticleGamma;        
         double* mContactSigmaMin; 
         double* mContactTauZero;
@@ -137,14 +137,23 @@ namespace Kratos {
     }; // class PropertiesProxy
 
     
-    inline std::ostream & operator<<( std::ostream& rOut, const std::vector<PropertiesProxy>& vector_of_proxies){
+    inline std::ostream & operator<<( std::ostream& rOut, const PropertiesProxy& rTheProxies){
             rOut << "";
             return rOut;
     }
     
-    
-    
-    
+
+
+	// Std::vecotr << operator VS2015 workaround
+	inline std::ostream& operator<<(std::ostream& os, const std::vector<PropertiesProxy> & data) {
+
+		std::cout << "[";
+		std::copy(data.begin(), data.end(), std::ostream_iterator<PropertiesProxy>(std::cout, ", "));
+		std::cout << "[";
+
+		return os;
+	}
+
     class KRATOS_API(DEM_APPLICATION) PropertiesProxiesManager {
         
     public:

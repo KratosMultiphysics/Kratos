@@ -1,20 +1,18 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics 
-from KratosMultiphysics.SolidMechanicsApplication import *
 import KratosMultiphysics.PfemApplication as KratosPfem
-import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 KratosMultiphysics.CheckForPreviousImport()
 
 
 class ModelerUtility:
     #
 
-    def __init__(self, model_part, domain_size, remesh_domains):
+    def __init__(self, model_part, dimension, remesh_domains):
 
         self.echo_level = 1        
         self.model_part = model_part
-        self.domain_size = domain_size
+        self.dimension = dimension
 
         # set remesh flags
         self.modeler_active = False
@@ -23,7 +21,6 @@ class ModelerUtility:
 
         # mesh modeler vector
         self.counter = 1
-        self.mesh_ids = []
         self.mesh_modelers = []
 
         # mesh modeler parameters
@@ -77,10 +74,9 @@ class ModelerUtility:
         # set search options:
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        mesh_id = 0
 
         # define search utility
-        nodal_neighbour_search = KratosPfem.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes, mesh_id)
+        nodal_neighbour_search = KratosPfem.NodalNeighboursSearch(self.model_part, self.echo_level, number_of_avg_elems, number_of_avg_nodes)
 
         # execute search:
         nodal_neighbour_search.Execute()
@@ -92,10 +88,9 @@ class ModelerUtility:
 
         # set search options:
         number_of_avg_elems = 10
-        mesh_id = 0
          
         # define search utility
-        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(self.model_part, self.domain_size, self.echo_level, number_of_avg_elems, mesh_id)
+        elemental_neighbour_search = KratosPfem.ElementalNeighboursSearch(self.model_part, self.dimension, self.echo_level, number_of_avg_elems)
 
         # execute search:
         elemental_neighbour_search.Execute()
@@ -122,11 +117,10 @@ class ModelerUtility:
 
         print("::[Modeler_Utility]:: Build Mesh Boundary ")
         # set building options:
-        mesh_id = 0
 
         # define building utility
-        # skin_build = BuildMeshBoundary(self.model_part, self.domain_size, self.echo_level, mesh_id)
-        skin_build = KratosPfem.BuildMeshBoundary(self.model_part, mesh_id, self.echo_level)
+        # skin_build = BuildMeshBoundary(self.model_part, self.dimension, self.echo_level)
+        skin_build = KratosPfem.BuildMeshBoundary(self.model_part, self.echo_level)
 
         # execute building:
         skin_build.Execute()
@@ -151,14 +145,13 @@ class ModelerUtility:
         #
     def ComputeAverageMeshParameters(self):
      
-        mesh_id = 0
         for domain in self.meshing_domains:
             if(domain.Active()):
                 domain.ComputeAverageMeshParameters()       
 #
     def ComputeInitialAverageMeshParameters(self):
      
-        mesh_id = 0
+
         for domain in self.meshing_domains:
             if(domain.Active()):
                 domain.ComputeInitialAverageMeshParameters()       
@@ -198,12 +191,11 @@ class ModelerUtility:
         # set the domain labels to mesh modeler
         self.modeler_utils.SetDomainLabels(self.model_part)
 
-        mesh_id = 0
 
         for parameters in configuration.mesh_conditions:
 
             # set mesh modeler
-            # if(self.domain_size == 2):
+            # if(self.dimension == 2):
             mesh_modeler = TriangularMesh2DModeler()
             # else:
             # mesh_modeler = TetrahedronMesh3DModeler()
@@ -276,10 +268,10 @@ class ModelerUtility:
             if(box_refinement_only):
 
                 radius_box = parameters["BoxRadius"] * configuration.size_scale
-                center_box = Vector(self.domain_size)
-                velocity_box = Vector(self.domain_size)
+                center_box = Vector(self.dimension)
+                velocity_box = Vector(self.dimension)
 
-                for size in range(0, self.domain_size):
+                for size in range(0, self.dimension):
                     center_box[size] = parameters["BoxCenter"][size] * configuration.size_scale
                     velocity_box[size] = parameters["BoxVelocity"][size] * configuration.size_scale
 

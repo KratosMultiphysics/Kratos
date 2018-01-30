@@ -165,6 +165,30 @@ public:
 
     void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
+
+	// More results calculation on integration points to interface with python
+	void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+		std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+	void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+		std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+	void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
+		std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
+		3> >& rVariable, std::vector<array_1d<double, 3> >& rValues,
+		const ProcessInfo& rCurrentProcessInfo);
+
+	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
+		6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
+        const ProcessInfo& rCurrentProcessInfo);
+        
+    // Calculate functions
+    void Calculate(const Variable<Matrix >& rVariable,
+        Matrix& Output,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
 
     ///@name Public specialized Access - Temporary
@@ -253,6 +277,8 @@ private:
 
         VectorType generalizedStrains;  /*!< generalized strain vector at the current integration point */
         VectorType generalizedStresses; /*!< generalized stress vector at the current integration point */
+		std::vector<VectorType> rlaminateStrains;	/*!< laminate strain vector at all surfaces at the current integration point */
+		std::vector<VectorType> rlaminateStresses;	/*!< laminate stress vector at all surfaces at the current integration point */
 
         VectorType N; /*!< shape function vector at the current integration point */
 
@@ -266,7 +292,7 @@ private:
         VectorType H4;
         MatrixType Bb;
 
-        ShellCrossSection::Parameters SectionParameters; /*!< parameters for cross section calculations */
+        ShellCrossSection::SectionParameters SectionParameters; /*!< parameters for cross section calculations */
 
         array_1d< Vector3Type, 3 > Sig;
 
@@ -285,6 +311,19 @@ private:
 
     ///@name Private Operations
     ///@{
+
+	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& ijob, bool& bGlobal);
+
+	void CalculateStressesFromForceResultants(VectorType& rstresses,
+		const double& rthickness);
+
+	void CalculateLaminaStrains(CalculationData& data);
+
+	void CalculateLaminaStresses(CalculationData& data);
+
+	double CalculateTsaiWuPlaneStress(const CalculationData& data, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
+
+	void CalculateVonMisesStress(const CalculationData& data, const Variable<double>& rVariable, double& rVon_Mises_Result);
 
     void DecimalCorrection(Vector& a);
 

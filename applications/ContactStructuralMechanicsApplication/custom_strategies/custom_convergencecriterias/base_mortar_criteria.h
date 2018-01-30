@@ -17,8 +17,12 @@
 /* External includes */
 
 /* Project includes */
+#include "contact_structural_mechanics_application_variables.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/process_info.h"
+#include "includes/gid_io.h"
+#include "utilities/mortar_utilities.h"
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
@@ -49,7 +53,8 @@ namespace Kratos
 /** @brief Custom convergence criteria for the mortar condition 
  */
 template<class TSparseSpace, class TDenseSpace>
-class BaseMortarConvergenceCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class BaseMortarConvergenceCriteria 
+    : public  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -72,14 +77,18 @@ public:
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
     
     typedef ModelPart::NodesContainerType              NodesArrayType;
+    
+    typedef GidIO<> GidIOBaseType;
 
     ///@}
     ///@name Life Cycle
     ///@{
     
     /// Default constructors
-    BaseMortarConvergenceCriteria()
-        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    BaseMortarConvergenceCriteria(const bool IODebug = false)
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+          mIODebug(IODebug),
+          mGidIO("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly)
     {
     }
 
@@ -95,7 +104,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
+    
     /**
      * Criterias that need to be called before getting the solution
      * @param rModelPart Reference to the ModelPart containing the contact problem.
@@ -115,17 +124,12 @@ public:
         ) override
     {
         // We update the normals if necessary
-        if (rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
-        {
-            // Update normal of the conditions
-            ContactUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); 
-        }
+        if (static_cast<NormalDerivativesComputation>(rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION]) != NO_DERIVATIVES_COMPUTATION)
+            MortarUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); // Update normal of the conditions
         
         // We recalculate the penalty parameter
         if (rModelPart.GetProcessInfo()[ADAPT_PENALTY] == true)
         {
-            CalculateContactReactions(rModelPart, rDofSet, b);
-            
             AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty = AALMAdaptPenaltyValueProcess( rModelPart );
             aalm_adaptation_of_penalty.Execute();
         }
@@ -151,12 +155,55 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        KRATOS_ERROR << "WARNING:: YOUR ARE CALLING THE BASE MORTAR CRITERIA" << std::endl;
+        // Set to zero the weighted gap
+        ResetWeightedGap(rModelPart);
+        
+        ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+        
+    #ifdef KRATOS_DEBUG
+        if (conditions_array.size() == 0) std::cout << "WARNING:: YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+    #endif
+        
+        #pragma omp parallel for 
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+            (conditions_array.begin() + i)->AddExplicitContribution(rModelPart.GetProcessInfo());
+        
+        // GiD IO for debugging
+        if (mIODebug == true)
+        {            
+            const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
+            const double label = static_cast<double>(nl_iter);
+            
+            if (nl_iter == 1)
+            {
+                mGidIO.InitializeMesh(label);
+                mGidIO.WriteMesh(rModelPart.GetMesh());
+                mGidIO.FinalizeMesh();
+                mGidIO.InitializeResults(label, rModelPart.GetMesh());
+            }
+            
+            mGidIO.WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
+            mGidIO.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+            mGidIO.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+            mGidIO.WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
+            mGidIO.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
+            mGidIO.WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
+            mGidIO.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+            if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X) == true)
+            {
+                mGidIO.WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
+                mGidIO.WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
+            }
+            mGidIO.WriteNodalResults(NORMAL_CONTACT_STRESS, rModelPart.Nodes(), label, 0);
+            mGidIO.WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
+        }
+        
+        return true;
     }
     
     /**
      * This function initialize the convergence criteria
-     * @param rModelPart: The model part of interest
+     * @param rModelPart The model part of interest
      */ 
     
     void Initialize(ModelPart& rModelPart) override
@@ -180,7 +227,18 @@ public:
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
         ) override
-    {
+    { 
+        // Update normal of the conditions
+        MortarUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") );
+        
+        // GiD IO for debugging
+        if (mIODebug == true)
+        {
+            mGidIO.CloseResultFile();
+            std::string new_name = "POST_LINEAR_ITER_STEP=";
+            new_name.append(std::to_string(rModelPart.GetProcessInfo()[STEP]));
+            mGidIO.ChangeOutputName(new_name);
+        }
     }
     
     /**
@@ -198,46 +256,11 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-        ) override 
-    {
-    }
-
-    /**
-     * This function initializes the non linear iteration
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     */
-    
-    void InitializeNonLinearIteration(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
         ) override
-    {
-    }
-    
-    /**
-     * This function finalizes the non linear iteration
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
-     */
-    
-    void FinalizeNonLinearIteration(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
-        ) override
-    {
+    { 
+        // GiD IO for debugging
+        if (mIODebug == true)
+            mGidIO.FinalizeResults();
     }
     
     ///@}
@@ -274,40 +297,17 @@ protected:
     ///@{
     
     /**
-     * This method calculates the reactions concerning the contact (residual of the contact)
+     * This method resets the weighted gap in the nodes of the problem
      * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param b: The residual vector
      */
     
-    void CalculateContactReactions(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        const TSystemVectorType& b
-        )
+    virtual void ResetWeightedGap(ModelPart& rModelPart)
     {       
-        const double ScaleFactor = (rModelPart.GetProcessInfo()[SCALE_FACTOR] > 0.0) ? rModelPart.GetProcessInfo()[SCALE_FACTOR] : 1.0;
-              
-        const int numDof = rDofSet.end() - rDofSet.begin();
+        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
-//         #pragma omp parallel for
-        for (int i = 0; i < numDof; i++)
-        {
-            typename DofsArrayType::iterator itDoF = rDofSet.begin() + i;
-
-            if ((itDoF)->IsFixed() == false) // TODO: Ask Riccardo how the elimination builder and solver orders the DoFs 
-            {
-                const std::size_t j = (itDoF)->EquationId();
-
-                if (((itDoF)->GetReaction().Name()).find("WEIGHTED") != std::string::npos) // Corresponding with contact
-                {
-                    (itDoF)->GetSolutionStepReactionValue() = -b[j] / ScaleFactor;
-                }
-                else if ((itDoF)->GetReaction().Name() != "NONE") // The others
-                {
-                    (itDoF)->GetSolutionStepReactionValue() = -b[j];
-                }
-            }
-        }
+        #pragma omp parallel for 
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+            (nodes_array.begin() + i)->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
     }
     
     ///@}
@@ -330,6 +330,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
+    // If we generate an output gid file in order to debug
+    bool mIODebug;          
+    GidIOBaseType mGidIO;     
     
     ///@}
     ///@name Private Operators

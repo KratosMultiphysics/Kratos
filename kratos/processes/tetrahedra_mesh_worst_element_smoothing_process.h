@@ -55,7 +55,7 @@ namespace Kratos
 
 	  typedef WeakPointerVector< Node<3> > NeighboursVectorType;
 
-	  typedef std::vector<Point<3> > PointsVectorType;
+	  typedef std::vector<Point > PointsVectorType;
 
 	  ///@}
 	  ///@name Flags
@@ -127,7 +127,7 @@ namespace Kratos
 
 		void FindOptimumPositionsAndWeights(NodeType& rNode, PointsVectorType& rOptimumPoints, Vector& rWeights) override;
 
-		void CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point<3>& rOptimumPoint);
+    void CalculateElementOptimumPosition(NodeType& rNode, Geometry<Node<3> > const& rTetrahedra, Point& rOptimumPoint);
 
       ///@}
       ///@name Protected  Access

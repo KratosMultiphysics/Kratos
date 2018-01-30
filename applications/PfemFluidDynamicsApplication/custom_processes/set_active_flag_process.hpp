@@ -138,7 +138,9 @@ namespace Kratos
 		if(dimension==2){
 		  ElementalVolume =  (itElem)->GetGeometry().Area();
 		}else if(dimension==3){
-		  ElementalVolume =  (itElem)->GetGeometry().Volume();
+		  ElementalVolume = 0;
+		  if( itElem->GetGeometry().Dimension() == 3 )
+		    ElementalVolume =  (itElem)->GetGeometry().Volume();
 		}else{
 		  ElementalVolume = 0;
 		}
@@ -173,7 +175,7 @@ namespace Kratos
 			  {
 
 			    if(itElem->GetGeometry()[j].IsNot(RIGID) && itElem->GetGeometry()[j].Is(FREE_SURFACE)){
-			      Point<3> freeSurfaceToRigidNodeVector=itElem->GetGeometry()[i].Coordinates()-itElem->GetGeometry()[j].Coordinates();
+			     Point freeSurfaceToRigidNodeVector=itElem->GetGeometry()[i].Coordinates()-itElem->GetGeometry()[j].Coordinates();
 			      const array_1d<double,3> &freeSurfaceVelocity = itElem->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
 
 			      double freeSurfaceToRigidNodeDistance=sqrt(freeSurfaceToRigidNodeVector[0]*freeSurfaceToRigidNodeVector[0]+

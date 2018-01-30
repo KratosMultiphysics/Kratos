@@ -116,7 +116,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         mesh_solver.SetEchoLevel(echo_level)        
 
         for responseFunctionId in listOfResponseFunctions:
-            listOfResponseFunctions[responseFunctionId].initialize()
+            listOfResponseFunctions[responseFunctionId].Initialize()
 
         # Start process
         for process in self.list_of_processes:
@@ -145,31 +145,31 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             print("\n> Starting calculation of strain energy")
             startTime = timer.time()                    
-            listOfResponseFunctions["strain_energy"].calculate_value()
+            listOfResponseFunctions["strain_energy"].CalculateValue()
             print("> Time needed for calculation of strain energy = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].get_value())  
+            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())  
 
         # Calculation of value of constraint function
         if communicator.isRequestingFunctionValueOf("mass"):
 
             print("\n> Starting calculation of value of mass constraint")
-            listOfResponseFunctions["mass"].calculate_value()
-            constraintFunctionValue = listOfResponseFunctions["mass"].get_value() - listOfResponseFunctions["mass"].get_initial_value()
+            listOfResponseFunctions["mass"].CalculateValue()
+            constraintFunctionValue = listOfResponseFunctions["mass"].GetValue() - listOfResponseFunctions["mass"].GetInitialValue()
             print("> Time needed for calculation of value of mass constraint = ",round(timer.time() - startTime,2),"s")
 
             communicator.reportFunctionValue("mass", constraintFunctionValue)
-            communicator.reportFunctionReferenceValue("mass", listOfResponseFunctions["mass"].get_initial_value())
+            communicator.setFunctionReferenceValue("mass", listOfResponseFunctions["mass"].GetInitialValue())
 
         # Calculation of gradients of objective function
         if communicator.isRequestingGradientOf("strain_energy"): 
 
             print("\n> Starting calculation of gradient of objective function")
             startTime = timer.time()               
-            listOfResponseFunctions["strain_energy"].calculate_gradient()
+            listOfResponseFunctions["strain_energy"].CalculateGradient()
             print("> Time needed for calculating gradient of objective function = ",round(timer.time() - startTime,2),"s")
             
-            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].get_gradient()
+            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].GetGradient()
             gradientOnDesignSurface = {}
             for node in currentDesign.Nodes:
                 gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
@@ -184,10 +184,10 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             print("\n> Starting calculation of gradient of constraint function")
             startTime = timer.time()    
-            listOfResponseFunctions["mass"].calculate_gradient()
+            listOfResponseFunctions["mass"].CalculateGradient()
             print("> Time needed for calculating gradient of constraint function = ",round(timer.time() - startTime,2),"s")
 
-            gradientForCompleteModelPart = listOfResponseFunctions["mass"].get_gradient()
+            gradientForCompleteModelPart = listOfResponseFunctions["mass"].GetGradient()
             gradientOnDesignSurface = {}
             for node in currentDesign.Nodes:
                 gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
@@ -203,7 +203,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
         # Extract surface nodes
         sub_model_part_name = "surface_nodes"     
-        GeometryUtilities(main_model_part).extract_surface_nodes(sub_model_part_name)
+        GeometryUtilities(main_model_part).ExtractSurfaceNodes(sub_model_part_name)
 
         # Apply shape update as boundary condition for computation of mesh displacement 
         for node in main_model_part.GetSubModelPart(sub_model_part_name).Nodes:
@@ -222,6 +222,14 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         # Update reference mesh (Since shape updates are imposed as incremental quantities)
         mesh_solver.get_mesh_motion_solver().UpdateReferenceMesh()
 
+        # Log absolute mesh displacement
+        for node in main_model_part.Nodes:
+            mesh_change = Vector(3)
+            mesh_change[0] = node.GetSolutionStepValue(MESH_CHANGE_X) + node.GetSolutionStepValue(MESH_DISPLACEMENT_X)
+            mesh_change[1] = node.GetSolutionStepValue(MESH_CHANGE_Y) + node.GetSolutionStepValue(MESH_DISPLACEMENT_Y)
+            mesh_change[2] = node.GetSolutionStepValue(MESH_CHANGE_Z) + node.GetSolutionStepValue(MESH_DISPLACEMENT_Z)
+            node.SetSolutionStepValue(MESH_CHANGE,0,mesh_change)                                      
+
     # --------------------------------------------------------------------------
     def solveStructure( self, optimizationIteration ): 
 
@@ -233,11 +241,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             
         # Actual solution
         CSM_solver.Solve()
-        
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
-        
-        self.gid_output.ExecuteFinalizeSolutionStep()
 
         # processes to be executed at the end of the solution step
         for process in self.list_of_processes:
@@ -250,6 +253,8 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         # write output results GiD: (frequency writing is controlled internally)
         if(self.gid_output.IsOutputStep()):
             self.gid_output.PrintOutput()
+
+        self.gid_output.ExecuteFinalizeSolutionStep()
                         
         # processes to be executed after witting the output
         for process in self.list_of_processes:

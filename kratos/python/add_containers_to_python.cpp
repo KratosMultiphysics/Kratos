@@ -22,7 +22,6 @@
 #include "containers/data_value_container.h"
 //#include "containers/hash_data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
-#include "containers/fix_data_value_container.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 //#include "containers/all_variables_data_value_container.h"
@@ -71,112 +70,7 @@ void FlagsSet2(Flags& ThisFlag, const Flags& OtherFlag, bool Value )
 {
     ThisFlag.Set(OtherFlag, Value);
 }
-/*
-void TestContainers(int repeat_number)
-{
-	Timer::Start("Properties SetValue Test");
-	Properties properties(0);
-	for(int i = 0 ; i < repeat_number ; i++)
-	{
-		double d = i/2.;
-		properties.SetValue(DISPLACEMENT_X, d);
-		properties.SetValue(TEMPERATURE, d);
-		properties.SetValue(VELOCITY_Y, d);
-		//properties.SetValue(CAUCHY_STRESS_TENSOR, ScalarMatrix(3,3,d));
-		properties.SetValue(DENSITY, d);
-		properties.SetValue(VISCOSITY, d);
-		properties.SetValue(PRESSURE, d);
-		properties.SetValue(DELTA_TIME, d);
-		properties.SetValue(TIME, d);
-		properties.SetValue(ACCELERATION_X, d);
-	}
-	Timer::Stop("Properties SetValue Test");
-	Timer::Start("Properties GetValue Test");
-	double d = 0.;
-	for(int i = 0 ; i < repeat_number ; i++)
-	{
-		d += properties.GetValue(DISPLACEMENT_X);
-		d += properties.GetValue(TEMPERATURE);
-		d += properties.GetValue(VELOCITY_Y);
-		d += properties.GetValue(DENSITY);
-		d += properties.GetValue(VISCOSITY);
-		d += properties.GetValue(PRESSURE);
-		d += properties.GetValue(DELTA_TIME);
-		d += properties.GetValue(TIME);
-		d += properties.GetValue(ACCELERATION_X);
-	}
-	Timer::Stop("Properties GetValue Test");
-	KRATOS_WATCH(d);
-	//Timer::Start("AllVariables SetValue Test");
-	//AllVariablesDataValueContainer all_variables_container;
-	//for(int i = 0 ; i < repeat_number ; i++)
-	//{
-	//	double d = i/2.;
-	//	all_variables_container.SetValue(DISPLACEMENT_X, d);
-	//	all_variables_container.SetValue(TEMPERATURE, d);
-	//	all_variables_container.SetValue(VELOCITY_Y, d);
-	//	//all_variables_container.SetValue(CAUCHY_STRESS_TENSOR, ScalarMatrix(3,3,d));
-	//	all_variables_container.SetValue(DENSITY, d);
-	//	all_variables_container.SetValue(VISCOSITY, d);
-	//	all_variables_container.SetValue(PRESSURE, d);
-	//	all_variables_container.SetValue(DELTA_TIME, d);
-	//	all_variables_container.SetValue(TIME, d);
-	//	all_variables_container.SetValue(ACCELERATION_X, d);
-	//}
-	//Timer::Stop("AllVariables SetValue Test");
-	//Timer::Start("AllVariables GetValue Test");
-	//for(int i = 0 ; i < repeat_number ; i++)
-	//{
-	//	d += all_variables_container.GetValue(DISPLACEMENT_X);
-	//	d += all_variables_container.GetValue(TEMPERATURE);
-	//	d += all_variables_container.GetValue(VELOCITY_Y);
-	//	d += all_variables_container.GetValue(DENSITY);
-	//	d += all_variables_container.GetValue(VISCOSITY);
-	//	d += all_variables_container.GetValue(PRESSURE);
-	//	d += all_variables_container.GetValue(DELTA_TIME);
-	//	d += all_variables_container.GetValue(TIME);
-	//	d += all_variables_container.GetValue(ACCELERATION_X);
-	//}
-	//Timer::Stop("AllVariables GetValue Test");
-	KRATOS_WATCH(d);
 
-	KRATOS_WATCH(properties);
-	std::cout << Timer() << std::endl;
-	Table<double> test_table;
-	test_table.insert(3.14,25.);
-
-	properties.SetTable(TEMPERATURE, DENSITY, test_table);
-
-	test_table.insert(1., 2.);
-
-	properties.SetTable(DISPLACEMENT_X, TIME, test_table);
-
-	test_table.insert(2., 3.);
-
-	properties.SetTable(TIME, DISPLACEMENT_X, test_table);
-
-	test_table.insert(3., 4.);
-
-	properties.SetTable(TIME, DISPLACEMENT_Y, test_table);
-
-	test_table.insert(4., 5.);
-
-	properties.SetTable(TIME, DENSITY, test_table);
-
-	Table<double>& retrieved_table = properties.GetTable(TEMPERATURE, DENSITY);
-
-	KRATOS_WATCH(retrieved_table);
-	KRATOS_WATCH(properties.GetTable(TEMPERATURE, DENSITY));
-	KRATOS_WATCH(properties.GetTable(DISPLACEMENT_X, TIME));
-	KRATOS_WATCH(properties.GetTable(TIME, DISPLACEMENT_X));
-	KRATOS_WATCH(properties.GetTable(TIME, DISPLACEMENT_Y));
-	KRATOS_WATCH(properties.GetTable(TIME, DENSITY));
-
-
-
-
-}
-*/
 template<class TContainerType>
 struct Array1DModifier
 {
@@ -368,15 +262,15 @@ void  AddContainersToPython()
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
     AddALEVariablesToPython(); ///@TODO: move variables to ALE application
     AddFSIVariablesToPython(); ///@TODO: move variables to FSI application
-    AddMATVariablesToPython(); ///@TODO: move variables to CFD application
-    AddALEVariablesToPython(); ///@TODO: move variables to ALE application
     AddMappingVariablesToPython(); ///@TODO: move variables to Mapping application
     AddMATVariablesToPython(); ///@TODO: move variables to CL application
     AddLegacyStructuralAppVarsToPython();
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SPACE_DIMENSION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( DOMAIN_SIZE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_RESTARTED )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(COMPUTE_LUMPED_MASS_MATRIX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( COMPUTE_LUMPED_MASS_MATRIX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( COMPUTE_DYNAMIC_TANGENT )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( THERMAL_EXPANSION_COEFFICIENT )
 
@@ -445,6 +339,10 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( CONTACT_FORCE )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( CONTACT_NORMAL )
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( EXTERNAL_FORCES_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERNAL_FORCES_VECTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONTACT_FORCES_VECTOR )
+      
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LINEAR_MOMENTUM )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( ANGULAR_MOMENTUM )
 
@@ -464,6 +362,7 @@ void  AddContainersToPython()
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WATER_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( REACTION_WATER_PRESSURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( WATER_PRESSURE_ACCELERATION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AIR_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( REACTION_AIR_PRESSURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( RHS_WATER )
@@ -626,6 +525,11 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( DIRECTION )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_SWITCH)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(Y)
+    
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LOCAL_AXIS_1 )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LOCAL_AXIS_2 )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( LOCAL_AXIS_3 ) 
+      
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SWITCH_TEMPERATURE )
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(EMBEDDED_VELOCITY)
@@ -652,6 +556,10 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_CONTACT_STRESS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENTIAL_CONTACT_STRESS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( STABILIZATION_FACTOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NEWMARK_BETA )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NEWMARK_GAMMA )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( BOSSAK_ALPHA )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( EQUILIBRIUM_POINT )      
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AIR_SOUND_VELOCITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WATER_SOUND_VELOCITY )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVATION_LEVEL )

@@ -45,7 +45,7 @@ public:
             coord[i] = rrandom();
     }
 
-    void operator=(Point<dim_type> const& Other)
+    void operator=(Point const& Other)
     {
         for(std::size_t i = 0; i < dim_type; i++)
             coord[i] = Other.coord[i];
@@ -53,7 +53,7 @@ public:
 };
 
 template< std::size_t dim_type >
-std::ostream & operator<<( std::ostream& rOut, Point<dim_type> & rPoint)
+std::ostream & operator<<( std::ostream& rOut, Point & rPoint)
 {
     rOut << "(" << rPoint.id << ") ";
     for(std::size_t i = 0 ; i < dim_type ; i++)
@@ -62,7 +62,7 @@ std::ostream & operator<<( std::ostream& rOut, Point<dim_type> & rPoint)
 };
 
 template< std::size_t dim_type >
-std::istream & operator>>( std::istream& rIn, Point<dim_type> & rPoint)
+std::istream & operator>>( std::istream& rIn, Point & rPoint)
 {
     for(std::size_t i = 0 ; i < dim_type ; i++)
         rIn >> rPoint[i];
@@ -102,7 +102,7 @@ public:
 };
 
 template< std::size_t dim >
-bool LowerPoint( Point<dim> const& reference, Point<dim> const& new_ )
+bool LowerPoint(Point const& reference,Point const& new_ )
 {
     for(std::size_t i = 0 ; i < dim ; i++)
         if( reference[i] < new_[i] )
@@ -111,7 +111,7 @@ bool LowerPoint( Point<dim> const& reference, Point<dim> const& new_ )
 };
 
 template< std::size_t dim >
-bool UpperPoint( Point<dim> const& reference, Point<dim> const& new_ )
+bool UpperPoint(Point const& reference,Point const& new_ )
 {
     for(std::size_t i = 0 ; i < dim ; i++)
         if( reference[i] > new_[i] )
@@ -157,7 +157,7 @@ int main(int arg, char* argv[])
 
     static const std::size_t Dim = 3;
 
-    typedef Point<Dim> PointType;
+    typedefPoint PointType;
 
     typedef PointType*                          PtrPointType;
     typedef PtrPointType*                       PointVector;

@@ -250,9 +250,6 @@ private:
     
     void DeletePointsList    ( struct triangulateio& tr );
 
-    void FreeTrianglesList   ( struct triangulateio& tr );
-
-
     ///@}
     ///@name Private  Access
     ///@{

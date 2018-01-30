@@ -316,21 +316,21 @@ public:
         return typename BaseType::Pointer( new Triangle2D3( ThisPoints ) );
     }
 
-    Geometry< Point<3> >::Pointer Clone() const override
-    {
-        Geometry< Point<3> >::PointsArrayType NewPoints;
+    // Geometry< Point<3> >::Pointer Clone() const override
+    // {
+    //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
-        //making a copy of the nodes TO POINTS (not Nodes!!!)
-        for ( IndexType i = 0 ; i < this->size() ; i++ )
-        {
-                NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
-        }
+    //     //making a copy of the nodes TO POINTS (not Nodes!!!)
+    //     for ( IndexType i = 0 ; i < this->size() ; i++ )
+    //     {
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
+    //     }
 
-        //creating a geometry with the new points
-        Geometry< Point<3> >::Pointer p_clone( new Triangle2D3< Point<3> >( NewPoints ) );
+    //     //creating a geometry with the new points
+    //     Geometry< Point<3> >::Pointer p_clone( new Triangle2D3< Point<3> >( NewPoints ) );
 
-        return p_clone;
-    }
+    //     return p_clone;
+    // }
 
     /**
      * returns the local coordinates of all nodes of the current geometry
@@ -439,20 +439,20 @@ public:
      * @param rLowPoint first corner of the box
      * @param rHighPoint second corner of the box
      */
-    bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint ) override 
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override 
     {
-        Point<3, double> boxcenter;
-        Point<3, double> boxhalfsize;
+        Point box_center;
+        Point box_half_size;
 
-        boxcenter[0]   = 0.50 * (rLowPoint[0] + rHighPoint[0]);
-        boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
-        boxcenter[2]   = 0.00;
+        box_center[0] = 0.50 * (rLowPoint[0] + rHighPoint[0]);
+        box_center[1] = 0.50 * (rLowPoint[1] + rHighPoint[1]);
+        box_center[2] = 0.00;
 
-        boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]);
-        boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
-        boxhalfsize[2] = 0.00;
+        box_half_size[0] = 0.50 * std::abs(rHighPoint[0] - rLowPoint[0]);
+        box_half_size[1] = 0.50 * std::abs(rHighPoint[1] - rLowPoint[1]);
+        box_half_size[2] = 0.00;
 
-        return TriBoxOverlap(boxcenter, boxhalfsize);
+        return TriBoxOverlap(box_center, box_half_size);
     }
 
     /** This method calculates and returns length, area or volume of
@@ -704,6 +704,46 @@ public:
         return false;
     }
 
+    /**
+     * Returns the local coordinates of a given arbitrary point
+     * The local coordinates are computed solving for xi and eta the system
+     * given by the linear transformation:
+     * x = (1-xi-eta)*x1 + xi*x2 + eta*x3
+     * y = (1-xi-eta)*y1 + xi*y2 + eta*y3
+     * @param rResult: The vector containing the local coordinates of the point
+     * @param rPoint: The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) override {
+
+        rResult = ZeroVector(3);
+        
+        const TPointType& point_0 = this->GetPoint(0);
+
+        // Compute the Jacobian matrix and its determinant
+        bounded_matrix<double, 2, 2> J;
+        J(0,0) = this->GetPoint(1).X() - this->GetPoint(0).X();
+        J(0,1) = this->GetPoint(2).X() - this->GetPoint(0).X();
+        J(1,0) = this->GetPoint(1).Y() - this->GetPoint(0).Y();
+        J(1,1) = this->GetPoint(2).Y() - this->GetPoint(0).Y();
+        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
+
+        // Compute eta and xi
+        const double eta = (J(1,0)*(point_0.X() - rPoint(0)) +
+                            J(0,0)*(rPoint(1) - point_0.Y())) / det_J;
+        const double xi  = (J(1,1)*(rPoint(0) - point_0.X()) + 
+                            J(0,1)*(point_0.Y() - rPoint(1))) / det_J;
+
+        rResult(0) = xi;
+        rResult(1) = eta;
+        rResult(2) = 0.0;
+
+        return rResult;
+    }
+
 
     /** This method gives you number of all edges of this
     geometry. This method will gives you number of all the edges
@@ -742,9 +782,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
 
@@ -1473,12 +1513,12 @@ private:
     *
     */
 
-    bool NoDivTriTriIsect( const Point<3,double>& V0,
-                           const Point<3,double>& V1,
-                           const Point<3,double>& V2,
-                           const Point<3,double>& U0,
-                           const Point<3,double>& U1,
-                           const Point<3,double>& U2)
+    bool NoDivTriTriIsect( const Point& V0,
+                           const Point& V1,
+                           const Point& V2,
+                           const Point& U0,
+                           const Point& U1,
+                           const Point& U2)
     {
         short index;
         double d1,d2;
@@ -1696,12 +1736,12 @@ private:
 //*************************************************************************************
 
     bool coplanar_tri_tri( const array_1d<double, 3>& N,
-                           const Point<3,double>& V0,
-                           const Point<3,double>& V1,
-                           const Point<3,double>& V2,
-                           const Point<3,double>& U0,
-                           const Point<3,double>& U1,
-                           const Point<3,double>& U2)
+                           const Point& V0,
+                           const Point& V1,
+                           const Point& V2,
+                           const Point& U0,
+                           const Point& U1,
+                           const Point& U2)
     {
         array_1d<double, 3 > A;
         short i0,i1;
@@ -1760,11 +1800,11 @@ private:
 
     bool Edge_Against_Tri_Edges(const short& i0,
                                 const short& i1,
-                                const Point<3,double>& V0,
-                                const Point<3,double>& V1,
-                                const Point<3,double>&U0,
-                                const Point<3,double>&U1,
-                                const Point<3,double>&U2)
+                                const Point& V0,
+                                const Point& V1,
+                                const Point&U0,
+                                const Point&U1,
+                                const Point&U2)
     {
 
         double Ax,Ay,Bx,By,Cx,Cy,e,d,f;
@@ -1801,9 +1841,9 @@ private:
                         double& f,
                         const short& i0,
                         const short& i1,
-                        const Point<3,double>&V0,
-                        const Point<3,double>&U0,
-                        const Point<3,double>&U1)
+                        const Point&V0,
+                        const Point&U0,
+                        const Point&U1)
     {
         Bx=U0[i0]-U1[i0];
         By=U0[i1]-U1[i1];
@@ -1838,10 +1878,10 @@ private:
 
     bool Point_In_Tri(const short& i0,
                       const short& i1,
-                      const Point<3,double>& V0,
-                      const Point<3,double>& U0,
-                      const Point<3,double>& U1,
-                      const Point<3,double>& U2)
+                      const Point& V0,
+                      const Point& U0,
+                      const Point& U1,
+                      const Point& U2)
     {
         double a,b,c,d0,d1,d2;
         // is T1 completly inside T2? //
@@ -1868,8 +1908,6 @@ private:
         return false;
     }
 
-//*************************************************************************************
-//*************************************************************************************
 
     /** 
      * @see HasIntersection
@@ -1879,7 +1917,7 @@ private:
      * 2) normal of the triangle
      * 3) crossproduct (edge from tri, {x,y,z}-direction) gives 3x3=9 more tests
      */
-    inline bool TriBoxOverlap(Point<3, double>& rBoxCenter, Point<3, double>& rBoxHalfSize)
+    inline bool TriBoxOverlap(Point& rBoxCenter, Point& rBoxHalfSize)
     {
         double abs_ex, abs_ey;
         array_1d<double,3 > vert0, vert1, vert2;
@@ -1903,15 +1941,15 @@ private:
         //    that means there is no separating axis on X,Y-axis tests
         abs_ex = std::abs(edge0[0]);
         abs_ey = std::abs(edge0[1]);
-        if (!AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge1[0]);
         abs_ey = std::abs(edge1[1]);
-        if (!AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge2[0]);
         abs_ey = std::abs(edge2[1]);
-        if (!AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
+        if (AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
 
         // Bullet 1:
         //  first test overlap in the {x,y,(z)}-directions
@@ -1939,7 +1977,7 @@ private:
     }
 
     /** AxisTestZ
-     * This method return true if there is a separating axis
+     * This method returns true if there is a separating axis
      * 
      * @param rEdgeX, rEdgeY: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge abs coordinates
@@ -1952,7 +1990,7 @@ private:
                    double& rAbsEdgeX, double& rAbsEdgeY,
                    array_1d<double,3>& rVertA, 
                    array_1d<double,3>& rVertC, 
-                   Point<3,double>& rBoxHalfSize)
+                   Point& rBoxHalfSize)
     {
         double proj_a, proj_c, rad;
         proj_a = rEdgeX*rVertA[1] - rEdgeY*rVertA[0];
@@ -1961,8 +1999,8 @@ private:
 
         rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
 
-        if(min_max.first>rad || min_max.second<-rad) return false;
-        else return true;
+        if(min_max.first>rad || min_max.second<-rad) return true;
+        else return false;
     }
 
     /** Implements the calculus of the semiperimeter

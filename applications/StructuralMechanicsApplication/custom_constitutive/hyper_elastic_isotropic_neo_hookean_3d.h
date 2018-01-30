@@ -226,16 +226,30 @@ private:
     ///@{
 
     /**
-     * It calculates the constitutive matrix C
+     * It calculates the constitutive matrix C (PK2)
      * @param ConstitutiveMatrix: The constitutive matrix
-     * @param CTensor: The right Cauchy-Green tensor
+     * @param InverseCTensor: The inverse right Cauchy-Green tensor
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param LameMu: Second Lame parameter
      */
-    virtual void CalculateConstitutiveMatrix(
+    virtual void CalculateConstitutiveMatrixPK2(
         Matrix& ConstitutiveMatrix,
         const Matrix& InverseCTensor,
+        const double& DeterminantF,
+        const double& LameLambda,
+        const double& LameMu
+        );
+
+    /**
+     * It calculates the constitutive matrix C (Kirchoff)
+     * @param ConstitutiveMatrix: The constitutive matrix
+     * @param DeterminantF: The determinant of the deformation gradient
+     * @param LameLambda: First Lame parameter
+     * @param LameMu: Second Lame parameter
+     */
+    virtual void CalculateConstitutiveMatrixKirchhoff(
+        Matrix& ConstitutiveMatrix,
         const double& DeterminantF,
         const double& LameLambda,
         const double& LameMu
@@ -247,7 +261,7 @@ private:
      * @param rStressVector: The stress vector in Voigt notation
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param LameMu: Second Lame parameter
      */
     virtual void CalculatePK2Stress(
         const Matrix& InvCTensor,
@@ -263,9 +277,9 @@ private:
      * @param rStressVector: The stress vector in Voigt notation
      * @param DeterminantF: The determinant of the deformation gradient
      * @param LameLambda: First Lame parameter
-     * @param LameMu: Seconf Lame parameter
+     * @param LameMu: Second Lame parameter
      */
-    virtual void CalculateKirchoffStress(
+    virtual void CalculateKirchhoffStress(
         const Matrix& BTensor,
         Vector& rStressVector,
         const double& DeterminantF,

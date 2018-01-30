@@ -1,26 +1,29 @@
 ﻿from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics import *
-#from KratosMultiphysics.SolidMechanicsApplication import *
+import KratosMultiphysics
+from  os.path import dirname, realpath
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
-
+    return dirname(realpath(__file__)) + "/" + fileName
 
 class TestMaterialsInput(KratosUnittest.TestCase):
 
     def test_input(self):
         try:
-            import KratosMultiphysics.SolidMechanicsApplication
+            import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
         except:
-            self.skipTest("KratosMultiphysics.SolidMechanicsApplication is not available")
+            self.skipTest("KratosMultiphysics.FluidDynamicsApplication is not available")
+            
+        try:
+            import KratosMultiphysics.StructuralMechanicsApplication
+        except:
+            self.skipTest("KratosMultiphysics.StructuralMechanicsApplication is not available")
         
-        
-        model_part = ModelPart("Main")
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-        model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part_io = ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory
+        model_part = KratosMultiphysics.ModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory
         model_part_io.ReadModelPart(model_part)
     
         #define a Model TODO: replace to use the real Model once available
@@ -32,7 +35,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             "Outlet" : model_part.GetSubModelPart("Outlet")
             }
         
-        test_settings = Parameters("""
+        test_settings = KratosMultiphysics.Parameters("""
             {
                     "Parameters": {
                             "materials_filename": "materials.json"
@@ -40,7 +43,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             }
             """)
         
-        ##assign the real path 
+        #assign the real path 
         test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("materials.json"))
         
         import read_materials_process
@@ -57,16 +60,36 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             self.assertTrue(cond.Properties.Id == 2)   
                     
         #test that the properties are read correctly
-        self.assertTrue(model_part.Properties[1].GetValue(YOUNG_MODULUS) == 200.0)
-        self.assertTrue(model_part.Properties[1].GetValue(POISSON_RATIO) == 0.3)
-        self.assertTrue(model_part.Properties[1].GetValue(YIELD_STRESS) == 400.0)
+        self.assertTrue(model_part.Properties[1].GetValue(KratosMultiphysics.YOUNG_MODULUS) == 200.0)
+        self.assertTrue(model_part.Properties[1].GetValue(KratosMultiphysics.POISSON_RATIO) == 0.3)
+        self.assertTrue(model_part.Properties[1].GetValue(KratosMultiphysics.YIELD_STRESS) == 400.0)
+        self.assertTrue(model_part.Properties[1].GetValue(KratosFluid.SUBSCALE_PRESSURE) == 0.1)
+        self.assertTrue(model_part.Properties[1].GetValue(KratosFluid.VORTICITY_MAGNITUDE) == -5.888)
+
+        self.assertTrue(model_part.Properties[2].GetValue(KratosMultiphysics.YOUNG_MODULUS) == 100.0)
+        self.assertTrue(model_part.Properties[2].GetValue(KratosMultiphysics.POISSON_RATIO) == 0.1)
+        self.assertTrue(model_part.Properties[2].GetValue(KratosMultiphysics.YIELD_STRESS) == 800.0)
+        self.assertTrue(model_part.Properties[2].GetValue(KratosMultiphysics.HTC) == 0.3)
+        self.assertTrue(model_part.Properties[2].GetValue(KratosMultiphysics.TIME_STEPS) == 159) # int
+        self.assertTrue(model_part.Properties[2].GetValue(KratosMultiphysics.UPDATE_SENSITIVITIES) == True) # bool
+        self.assertTrue(model_part.Properties[2].GetValue(KratosMultiphysics.IDENTIFIER) == "MyTestString") # std::string
+
+        mat_vector = model_part.Properties[2].GetValue(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
+        self.assertAlmostEqual(mat_vector[0],1.5)
+        self.assertAlmostEqual(mat_vector[1],0.3)
+        self.assertAlmostEqual(mat_vector[2],-2.58)
+
+        mat_matrix = model_part.Properties[2].GetValue(KratosMultiphysics.LOCAL_INERTIA_TENSOR)
+        self.assertAlmostEqual(mat_matrix[0,0],1.27)
+        self.assertAlmostEqual(mat_matrix[0,1],-22.5)
+        self.assertAlmostEqual(mat_matrix[1,0],2.01)
+        self.assertAlmostEqual(mat_matrix[1,1],0.257)
+
+        table = model_part.Properties[2].GetTable(KratosMultiphysics.TEMPERATURE, KratosMultiphysics.YOUNG_MODULUS)
+        self.assertAlmostEqual(table.GetValue(1.5),11.0)
+        self.assertAlmostEqual(table.GetNearestValue(1.1),10.0)
+        self.assertAlmostEqual(table.GetDerivative(1.2),2.0)
         
-
-
-        self.assertTrue(model_part.Properties[2].GetValue(YOUNG_MODULUS) == 100.0)
-        self.assertTrue(model_part.Properties[2].GetValue(POISSON_RATIO) == 0.1)
-        self.assertTrue(model_part.Properties[2].GetValue(YIELD_STRESS) == 800.0)
-        self.assertTrue(model_part.Properties[2].GetValue(HTC) == 0.3)
 
 if __name__ == '__main__':
     KratosUnittest.main()

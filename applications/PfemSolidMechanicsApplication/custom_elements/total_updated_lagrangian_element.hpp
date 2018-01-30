@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_element.hpp"
+#include "custom_elements/solid_elements/updated_lagrangian_element.hpp"
 
 
 namespace Kratos
@@ -150,27 +150,27 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
      * Transform Element General Variables
      */
-    void TransformGeneralVariables(GeneralVariables & rVariables,
+    void TransformElementVariables(ElementVariables & rVariables,
 				   const double& rPointNumber);
 
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables,
+    void CalculateKinematics(ElementVariables& rVariables,
                              const double& rPointNumber);
 
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    void GetHistoricalVariables( GeneralVariables& rVariables, 
+    void GetHistoricalVariables( ElementVariables& rVariables, 
 				 const double& rPointNumber );
 
     /**
@@ -183,7 +183,7 @@ protected:
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
+    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementVariables& rVariables);
 
     ///@}
     ///@name Protected  Access

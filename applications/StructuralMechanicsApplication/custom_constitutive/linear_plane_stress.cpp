@@ -15,10 +15,10 @@
 #include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/linear_plane_stress.h"
 
 #include "structural_mechanics_application_variables.h"
+
 
 namespace Kratos
 {
@@ -156,6 +156,18 @@ void LinearPlaneStress::FinalizeMaterialResponseCauchy(Parameters& rValues)
 void LinearPlaneStress::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
     // TODO: Add if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+bool& LinearPlaneStress::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+{
+    // This Constitutive Law has been checked with Stenberg Stabilization
+    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
+        rValue = true;
+    
+    return rValue;
 }
 
 //************************************************************************************

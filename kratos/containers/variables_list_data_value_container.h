@@ -88,7 +88,7 @@ public:
     /// Default constructor.
     VariablesListDataValueContainer(SizeType NewQueueSize = 1)
         : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-          mpData(0), mpVariablesList(&Globals::DefaultVariablesList)
+          mpData(0), mpVariablesList(&GetDefaultVariablesList())
     {
         // Allcating memory
         Allocate();
@@ -582,7 +582,8 @@ public:
 
     VariablesList& GetDefaultVariablesList()
     {
-        return Globals::DefaultVariablesList;
+        static VariablesList DefaultVariablesList;
+        return DefaultVariablesList;
     }
 
     void Resize(SizeType NewSize)

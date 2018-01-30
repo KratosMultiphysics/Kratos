@@ -16,12 +16,22 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
 class Solution:
-    def __init__(self, algorithm = None, varying_parameters = dict()):
-        self.alg = algorithm
+    def __enter__ (self):
+        return self
 
-        if self.alg == None:
+    def __exit__(self, exception_type, exception_value, traceback):
+        pass
+
+    def __init__(self, algorithm = None, varying_parameters = Parameters("{}")):
+
+        if algorithm == None:
             import swimming_DEM_algorithm
             self.alg = swimming_DEM_algorithm.Algorithm(varying_parameters)
+        else:
+            self.alg = algorithm.Algorithm(varying_parameters)
+
+    def Run(self):
+        return self.alg.Run()
 
 if __name__=="__main__":
-    Solution().alg.Run()
+    Solution().Run()

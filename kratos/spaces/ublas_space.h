@@ -126,8 +126,8 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef typename boost::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename boost::shared_ptr< TVectorType > VectorPointerType;
+    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
+    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -314,12 +314,12 @@ public:
         return aux_sum;
     }
 
-    static void Mult(Matrix& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const Matrix& rA, VectorType& rX, VectorType& rY)
     {
         axpy_prod(rA, rX, rY, true);
     }
 
-    static void Mult(compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
     {
 #ifndef _OPENMP
         axpy_prod(rA, rX, rY, true);
@@ -559,29 +559,6 @@ public:
         pX->resize(0, false);
     }
 
-    /*	static void Clear(MatrixType& rA)
-            {rA.clear();}
-
-    static void Clear(VectorType& rX) {rX.clear();}*/
-
-    template<class TOtherMatrixType>
-    inline static void ClearData(TOtherMatrixType& rA)
-    {
-        rA.clear();
-    }
-
-    inline static void ClearData(compressed_matrix<TDataType>& rA)
-    {
-        rA.clear();
-        //    	rA.value_data() = unbounded_array<TDataType>();
-        //if(rA.non_zeros() != 0) rA.value_data() = unbounded_array<TDataType>();
-    }
-
-    inline static void ClearData(VectorType& rX)
-    {
-        rX = VectorType();
-    }
-
     template<class TOtherMatrixType>
     inline static void ResizeData(TOtherMatrixType& rA, SizeType m)
     {
@@ -592,7 +569,7 @@ public:
 #else
         DataType* vals = rA.value_data().begin();
         #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<m; ++i)
+        for(int i=0; i<static_cast<int>(m); ++i)
             vals[i] = TDataType();
 #endif
     }
@@ -605,7 +582,7 @@ public:
 #else
         TDataType* vals = rA.value_data().begin();
         #pragma omp parallel for firstprivate(m)
-        for(int i=0; i<m; ++i)
+        for(int i=0; i<static_cast<int>(m); ++i)
             vals[i] = TDataType();
 #endif
     }
@@ -833,7 +810,7 @@ private:
     static void ParallelProductNoAdd(const MatrixType& A, const VectorType& in, VectorType& out)
     {
         //create partition
-        vector<unsigned int> partition;
+        boost::numeric::ublas::vector<unsigned int> partition;
         unsigned int number_of_threads = omp_get_max_threads();
         unsigned int number_of_initialized_rows = A.filled1() - 1;
         CreatePartition(number_of_threads, number_of_initialized_rows, partition);
@@ -859,7 +836,7 @@ private:
         }
     }
 
-    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    static void CreatePartition(unsigned int number_of_threads, const int number_of_rows, boost::numeric::ublas::vector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads + 1);
         int partition_size = number_of_rows / number_of_threads;

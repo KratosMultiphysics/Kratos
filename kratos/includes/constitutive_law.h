@@ -530,6 +530,14 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
+    virtual bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue);
+
+    /**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     virtual int& GetValue(const Variable<int>& rThisVariable, int& rValue);
 
     /**
@@ -687,7 +695,19 @@ public:
      */
     virtual array_1d<double, 6 > & CalculateValue(Parameters& rParameterValues, const Variable<array_1d<double, 6 > >& rVariable,
 						  array_1d<double, 6 > & rValue);
+
+
+     /**
+      * Is called to check whether the provided material parameters in the Properties
+      * match the requirements of current constitutive model.
+      * @param rMaterialProperties the current Properties to be validated against.
+      * @return true, if parameters are correct; false, if parameters are insufficient / faulty
+      * NOTE: this has to be implemented by each constitutive model. Returns false in base class since
+      * no valid implementation is contained here.
+      */
+    virtual bool ValidateInput(const Properties& rMaterialProperties);
     
+
     /**
      * returns the expected strain measure of this constitutive law (by default linear strains)
      * @return the expected strain measure

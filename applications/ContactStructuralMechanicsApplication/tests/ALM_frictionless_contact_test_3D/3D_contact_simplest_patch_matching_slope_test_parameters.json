@@ -11,9 +11,8 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 1,
-        "solution_type"                      : "Static",
-        "analysis_type"                      : "Linear",
+        "echo_level"                         : 0,        
+        "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_slope_test",
@@ -30,7 +29,7 @@
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"	         : true,
-        "convergence_criterion"              : "Contact_Residual_criterion",
+        "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
@@ -156,8 +155,8 @@
             "node_output"         : true,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["NORMAL","AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
+            "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","CAUCHY_STRESS_TENSOR"]
         },

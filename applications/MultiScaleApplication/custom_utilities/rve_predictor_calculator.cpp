@@ -72,10 +72,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <boost/lexical_cast.hpp>
 #include <utility>
 
-#ifndef M_PI
-#define M_PI 3.1415926535897932384626433832795
-#endif // !M_PI
-
 namespace Kratos
 {
 
@@ -214,7 +210,7 @@ namespace Kratos
 				////Calculate phi & number of division
 				//double m = 15.0; // m = max of tag
 				////std::cout << "m: " << m << std::endl;
-				//double phi = M_PI / m;
+				//double phi = Globals::Pi / m;
 				////std::cout << "phi: " << phi << " rad" << std::endl;
 				//
 				////std::cout << "norm_real_eps: " << norm_real_eps << std::endl;
@@ -565,7 +561,7 @@ namespace Kratos
 				//Calculate phi & number of division
 				double m = (sqrtl(mStrainMap.size()) - 1) / 2; // m = max of tag
 															   //std::cout << "m: " << m << std::endl;
-				double phi = M_PI / m;
+				double phi = Globals::Pi / m;
 				//std::cout << "phi: " << phi << " rad" << std::endl;
 
 				//1. Calculate the normalized Strain
@@ -1104,7 +1100,7 @@ namespace Kratos
 				//Calculate phi & number of division
 				double m = (sqrtl(mStrainMap.size()) - 1) / 5;
 				//std::cout << "m: " << m << std::endl;
-				double phi = M_PI / m;
+				double phi = Globals::Pi / m;
 
 				//1. Calculate the normalized Strain
 				double norm_real_eps = norm_2(InStrain);
@@ -1247,8 +1243,8 @@ namespace Kratos
 		//Calculate phi & number of division
 		double m = (sqrtl(mStrainMap.size()) - 1) / 2; // m = max of tag
 													   //std::cout << "PredictStress2D -> m: " << m << std::endl;
-		double phi = M_PI / m;
-		//std::cout << "PredictStress2D -> M_PI: " << M_PI << std::endl;
+		double phi = Globals::Pi / m;
+		//std::cout << "PredictStress2D -> Globals::Pi: " << Globals::Pi << std::endl;
 		//std::cout << "PredictStress2D -> phi: " << phi << std::endl;
 
 		//1. Calculate the normalized Strain
@@ -1886,7 +1882,7 @@ namespace Kratos
 		//Calculate phi & number of division
 		double m = (sqrtl(mStrainMap.size()) - 1) / 5; // m = max of tag
 													   //std::cout << "m: " << m << std::endl;
-		double phi = M_PI / m;
+		double phi = Globals::Pi / m;
 		//std::cout << "phi: " << phi << " rad" << std::endl;
 
 		//1. Calculate the normalized Strain
@@ -2285,10 +2281,10 @@ namespace Kratos
 			{
 				theta_1 = acos(NormalizedStrainVector[0] / denom_theta_1);
 			}
-			if (theta_1 > M_PI)
-				theta_1 = theta_1 - 2.0 * M_PI;
-			if (theta_1 < -M_PI)
-				theta_1 = theta_1 + 2.0 * M_PI;
+			if (theta_1 > Globals::Pi)
+				theta_1 = theta_1 - 2.0 * Globals::Pi;
+			if (theta_1 < -Globals::Pi)
+				theta_1 = theta_1 + 2.0 * Globals::Pi;
 
 			//Calculate Theta2
 			double theta_2;
@@ -2304,10 +2300,10 @@ namespace Kratos
 				if (NormalizedStrainVector[2] < 0.0)
 				{
 					//std::cout << "PredictStress2D -> NormalizedStrainVector[2] < 0.0" << std::endl;
-					//std::cout << "PredictStress2D -> 2.0 * M_PI" << 2.0 * M_PI << std::endl;
+					//std::cout << "PredictStress2D -> 2.0 * Globals::Pi" << 2.0 * Globals::Pi << std::endl;
 					//std::cout << "PredictStress2D -> NormalizedStrainVector[1] / denom_theta_2" << NormalizedStrainVector[1] / denom_theta_2 << std::endl;
 					//std::cout << "PredictStress2D -> acos(NormalizedStrainVector[1] / denom_theta_2)" << acos(NormalizedStrainVector[1] / denom_theta_2) << std::endl;
-					theta_2 = 2.0 * M_PI - acos(NormalizedStrainVector[1] / denom_theta_2);
+					theta_2 = 2.0 * Globals::Pi - acos(NormalizedStrainVector[1] / denom_theta_2);
 				}
 				else
 				{
@@ -2315,10 +2311,10 @@ namespace Kratos
 					theta_2 = acos(NormalizedStrainVector[1] / denom_theta_2);
 				}
 			}
-			if (theta_2 > M_PI)
-				theta_2 = theta_2 - 2.0 * M_PI;
-			if (theta_2 < -M_PI)
-				theta_2 = theta_2 + 2.0 * M_PI;
+			if (theta_2 > Globals::Pi)
+				theta_2 = theta_2 - 2.0 * Globals::Pi;
+			if (theta_2 < -Globals::Pi)
+				theta_2 = theta_2 + 2.0 * Globals::Pi;
 
 			//Assemble Theta
 			Theta[0] = theta_1;
@@ -2328,31 +2324,31 @@ namespace Kratos
 		{
 			//Calculate Theta1
 			double theta_1 = acos(NormalizedStrainVector[0] / sqrt(pow(NormalizedStrainVector[5], 2) + pow(NormalizedStrainVector[4], 2) + pow(NormalizedStrainVector[3], 2) + pow(NormalizedStrainVector[2], 2) + pow(NormalizedStrainVector[1], 2) + pow(NormalizedStrainVector[0], 2)));
-			if (theta_1 > M_PI)
-				theta_1 = theta_1 - 2 * M_PI;
-			if (theta_1 < -M_PI)
-				theta_1 = theta_1 + 2 * M_PI;
+			if (theta_1 > Globals::Pi)
+				theta_1 = theta_1 - 2 * Globals::Pi;
+			if (theta_1 < -Globals::Pi)
+				theta_1 = theta_1 + 2 * Globals::Pi;
 
 			//Calculate Theta2
 			double theta_2 = acos(NormalizedStrainVector[1] / sqrt(pow(NormalizedStrainVector[5], 2) + pow(NormalizedStrainVector[4], 2) + pow(NormalizedStrainVector[3], 2) + pow(NormalizedStrainVector[2], 2) + pow(NormalizedStrainVector[1], 2)));
-			if (theta_2 > M_PI)
-				theta_2 = theta_2 - 2 * M_PI;
-			if (theta_2 < -M_PI)
-				theta_2 = theta_2 + 2 * M_PI;
+			if (theta_2 > Globals::Pi)
+				theta_2 = theta_2 - 2 * Globals::Pi;
+			if (theta_2 < -Globals::Pi)
+				theta_2 = theta_2 + 2 * Globals::Pi;
 
 			//Calculate Theta3
 			double theta_3 = acos(NormalizedStrainVector[2] / sqrt(pow(NormalizedStrainVector[5], 2) + pow(NormalizedStrainVector[4], 2) + pow(NormalizedStrainVector[3], 2) + pow(NormalizedStrainVector[2], 2)));
-			if (theta_3 > M_PI)
-				theta_3 = theta_3 - 2 * M_PI;
-			if (theta_3 < -M_PI)
-				theta_3 = theta_3 + 2 * M_PI;
+			if (theta_3 > Globals::Pi)
+				theta_3 = theta_3 - 2 * Globals::Pi;
+			if (theta_3 < -Globals::Pi)
+				theta_3 = theta_3 + 2 * Globals::Pi;
 
 			//Calculate Theta4
 			double theta_4 = acos(NormalizedStrainVector[2] / sqrt(pow(NormalizedStrainVector[5], 2) + pow(NormalizedStrainVector[4], 2) + pow(NormalizedStrainVector[3], 2)));
-			if (theta_4 > M_PI)
-				theta_4 = theta_4 - 2 * M_PI;
-			if (theta_4 < -M_PI)
-				theta_4 = theta_4 + 2 * M_PI;
+			if (theta_4 > Globals::Pi)
+				theta_4 = theta_4 - 2 * Globals::Pi;
+			if (theta_4 < -Globals::Pi)
+				theta_4 = theta_4 + 2 * Globals::Pi;
 
 			//Calculate Theta5
 			double theta_5;
@@ -2365,17 +2361,17 @@ namespace Kratos
 			{
 				if (NormalizedStrainVector[5] < 0.0)
 				{
-					theta_5 = 2 * M_PI - acos(NormalizedStrainVector[4] / denom);
+					theta_5 = 2 * Globals::Pi - acos(NormalizedStrainVector[4] / denom);
 				}
 				else
 				{
 					theta_5 = acos(NormalizedStrainVector[4] / denom);
 				}
 			}
-			if (theta_5 > M_PI)
-				theta_5 = theta_5 - 2 * M_PI;
-			if (theta_5 < -M_PI)
-				theta_5 = theta_5 + 2 * M_PI;
+			if (theta_5 > Globals::Pi)
+				theta_5 = theta_5 - 2 * Globals::Pi;
+			if (theta_5 < -Globals::Pi)
+				theta_5 = theta_5 + 2 * Globals::Pi;
 
 			//Assemble Theta
 			Theta[0] = theta_1;
