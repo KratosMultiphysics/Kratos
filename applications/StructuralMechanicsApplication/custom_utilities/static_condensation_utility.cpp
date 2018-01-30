@@ -33,8 +33,8 @@ namespace Kratos
 			const std::vector<int> & rDofList)
         {
             KRATOS_TRY;
-            const SizeType dofs_condensed = rDofList.size();
-            const SizeType dofs_remaining = GetNumDofsElement(rTheElement)-dofs_condensed;
+            const SizeType num_dofs_condensed = rDofList.size();
+            const SizeType num_dofs_remaining = GetNumDofsElement(rTheElement) - num_dofs_condensed;
             const double numerical_limit = std::numeric_limits<double>::epsilon();
 
             std::vector<MatrixType> sub_matrices = CalculateSchurComplements(rTheElement, rLeftHandSideMatrix,rDofList);
@@ -42,8 +42,8 @@ namespace Kratos
             MatrixType K_temp = ZeroMatrix(sub_matrices[3].size1());
             double detK22 = 0.00;
             MathUtils<double>::InvertMatrix(sub_matrices[3],K_temp,detK22);
-            KRATOS_ERROR_IF(std::abs(detK22) < numerical_limit) << "Element " 
-                                                                << rTheElement.Id() << " is singular !" << std::endl;
+            KRATOS_ERROR_IF(std::abs(detK22) < numerical_limit) << "Element " << rTheElement.Id() 
+                                                                << " is singular !" << std::endl;
             
             //2.) K_cond = K11 - K12*inv(K22)*K21 
             K_temp = prod(K_temp,sub_matrices[2]);
@@ -56,10 +56,10 @@ namespace Kratos
 
             SizeType dofA = 0;
             SizeType dofB = 0;
-            for (SizeType i =0;i<dofs_remaining;++i)
+            for (SizeType i=0; i<num_dofs_remaining; ++i)
             {
                 dofA = remaining_dof_list[i];
-                for (SizeType j=0;j<dofs_remaining;++j)
+                for (SizeType j=0; j<num_dofs_remaining; ++j)
                 {
                     dofB = remaining_dof_list[j];
                     rLeftHandSideMatrix(dofA,dofB) = K_temp(i,j);
@@ -78,21 +78,28 @@ namespace Kratos
             // K21(2) K22(3)		K22->dofs to be cond.
             // rDofList -> List of dofs to be condensed
             const std::vector<int> remaining_dof_list = CreateRemainingDofList(rTheElement, rDofList);
-            const SizeType dofs_condensed = rDofList.size();
-            const SizeType dofs_remaining = GetNumDofsElement(rTheElement)-dofs_condensed;
+            const SizeType num_dofs_condensed = rDofList.size();
+            const SizeType num_dofs_remaining = GetNumDofsElement(rTheElement)-num_dofs_condensed;
 
-            KRATOS_ERROR_IF(dofs_remaining != remaining_dof_list.size()) << "unequal remaining dof size" << std::endl;
+            KRATOS_ERROR_IF(num_dofs_remaining != remaining_dof_list.size()) << "unequal remaining dof size" << std::endl;
 
             std::vector<MatrixType> sub_matrices(4);
-            sub_matrices[0] = ZeroMatrix(dofs_remaining, dofs_remaining);
-            sub_matrices[1] = ZeroMatrix(dofs_remaining, dofs_condensed);
-            sub_matrices[2] = ZeroMatrix(dofs_condensed, dofs_remaining);
-            sub_matrices[3] = ZeroMatrix(dofs_condensed, dofs_condensed);
+            sub_matrices[0] = ZeroMatrix(num_dofs_remaining, num_dofs_remaining);
+            sub_matrices[1] = ZeroMatrix(num_dofs_remaining, num_dofs_condensed);
+            sub_matrices[2] = ZeroMatrix(num_dofs_condensed, num_dofs_remaining);
+            sub_matrices[3] = ZeroMatrix(num_dofs_condensed, num_dofs_condensed);
 
-            FillSchurComplements(sub_matrices[0],rLeftHandSideMatrix,remaining_dof_list,remaining_dof_list,dofs_remaining,dofs_remaining);
-            FillSchurComplements(sub_matrices[1],rLeftHandSideMatrix,remaining_dof_list,rDofList,dofs_remaining,dofs_condensed);
-            FillSchurComplements(sub_matrices[2],rLeftHandSideMatrix,rDofList,remaining_dof_list,dofs_condensed,dofs_remaining);
-            FillSchurComplements(sub_matrices[3],rLeftHandSideMatrix,rDofList,rDofList,dofs_condensed,dofs_condensed);
+            FillSchurComplements(sub_matrices[0], rLeftHandSideMatrix, remaining_dof_list, 
+                                 remaining_dof_list, num_dofs_remaining, num_dofs_remaining);
+
+            FillSchurComplements(sub_matrices[1], rLeftHandSideMatrix, remaining_dof_list, 
+                                 rDofList, num_dofs_remaining, num_dofs_condensed);
+
+            FillSchurComplements(sub_matrices[2], rLeftHandSideMatrix, rDofList, 
+                                 remaining_dof_list, num_dofs_condensed, num_dofs_remaining);
+
+            FillSchurComplements(sub_matrices[3], rLeftHandSideMatrix, rDofList, 
+                                 rDofList, num_dofs_condensed, num_dofs_condensed);
 
             return sub_matrices;
             KRATOS_CATCH("") 
@@ -103,17 +110,17 @@ namespace Kratos
 			const std::vector<int> & rDofList)
         {
             KRATOS_TRY;
-            const SizeType dofs_condensed = rDofList.size();
+            const SizeType num_dofs_condensed = rDofList.size();
 
             //fill remaining dofs
             int current_dof = 0;
             bool check = false;
             std::vector<int> remaining_dofs_vec(0);
-            for (SizeType i=0;i<GetNumDofsElement(rTheElement);++i)
+            for (SizeType i=0; i<GetNumDofsElement(rTheElement); ++i)
             {
                 current_dof = i;
                 check = false;
-                for (SizeType j = 0;j<dofs_condensed;++j)
+                for (SizeType j = 0; j<num_dofs_condensed; ++j)
                 {
                     if (current_dof == rDofList[j]) check = true;
                 }
@@ -137,13 +144,13 @@ namespace Kratos
             SizeType current_dof_a = 0;
             SizeType current_dof_b = 0;
 
-            for (SizeType i=0;i<rSizeA;++i)
+            for (SizeType i=0; i<rSizeA; ++i)
             {
                 current_dof_a = rVecA[i];
-                for (SizeType j=0;j<rSizeB;++j)
+                for (SizeType j=0; j<rSizeB; ++j)
                 {
                     current_dof_b = rVecB[j];				
-                    Submatrix(i,j) = rLeftHandSideMatrix(current_dof_a,current_dof_b);
+                    Submatrix(i,j) = rLeftHandSideMatrix(current_dof_a, current_dof_b);
                 }
             }
             KRATOS_CATCH("")
@@ -159,19 +166,20 @@ namespace Kratos
             KRATOS_TRY;
             const double numerical_limit = std::numeric_limits<double>::epsilon();
             const std::vector<int> remaining_dof_list = CreateRemainingDofList(rTheElement, rDofList);
-            const SizeType dofs_condensed = rDofList.size();
+            const SizeType num_dofs_condensed = rDofList.size();
 
             const SizeType num_dofs_element = GetNumDofsElement(rTheElement);
 
-            const SizeType dofs_remaining = num_dofs_element-dofs_condensed;
+            const SizeType num_dofs_remaining = num_dofs_element - num_dofs_condensed;
             std::vector<MatrixType> sub_matrices = CalculateSchurComplements(rTheElement, rLeftHandSideMatrix,rDofList);
 
             //1.) create u1 
-            Vector remaining_dofs_disp = ZeroVector(dofs_remaining);
+            Vector remaining_dofs_disp = ZeroVector(num_dofs_remaining);
             // Vector all_dofs_disp = ZeroVector(num_dofs_element);
             // rTheElement.GetValuesVector(all_dofs_disp);
             // rTheElement.LocalizeVector(all_dofs_disp); // localize global displacement -> element lvl
-            for (SizeType i=0; i<dofs_remaining; ++i) remaining_dofs_disp[i] = rLocalizedDofVector[remaining_dof_list[i]];
+            // Note: "rLocalizedDofVector" is what was "all_dofs_disp" previously
+            for (SizeType i=0; i<num_dofs_remaining; ++i) remaining_dofs_disp[i] = rLocalizedDofVector[remaining_dof_list[i]];
 
             //2.) inverse K22
             MatrixType K22_inv = ZeroMatrix(sub_matrices[3].size1());
@@ -181,7 +189,7 @@ namespace Kratos
             KRATOS_ERROR_IF(std::abs(detK22) < numerical_limit) << "Element " << rTheElement.Id() << " is singular !" << std::endl;
 
             //3.) u2=inv(K22)*(F2-K21*u1),F2=0->u2=-inv(K22)*K21*u1
-            Vector CondensedDofsDisp = ZeroVector(dofs_condensed);
+            Vector CondensedDofsDisp = ZeroVector(num_dofs_condensed);
             CondensedDofsDisp = prod(sub_matrices[2],remaining_dofs_disp);
             CondensedDofsDisp = -prod(K22_inv,CondensedDofsDisp);
 
@@ -192,9 +200,9 @@ namespace Kratos
             {
                 check = false;
                 //check if dof i is condensed
-                for (SizeType j=0;j<dofs_condensed;++j)
+                for (SizeType j=0;j<num_dofs_condensed;++j)
                 {
-                    if (i==rDofList[j])
+                    if (i == rDofList[j])
                     {
                         rValues[i] = CondensedDofsDisp[j];
                         check = true;
@@ -206,7 +214,7 @@ namespace Kratos
                 //check remaining dofs
                 else
                 {
-                    for (SizeType j=0; j<dofs_remaining; ++j)
+                    for (SizeType j=0; j<num_dofs_remaining; ++j)
                     {
                         if (i == remaining_dof_list[j])
                         {
