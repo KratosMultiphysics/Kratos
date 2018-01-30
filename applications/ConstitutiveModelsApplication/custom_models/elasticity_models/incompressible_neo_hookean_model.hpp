@@ -201,7 +201,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      return IsochoricHyperElasticModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+      return IsochoricMooneyRivlinModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
            
       KRATOS_CATCH(" ")
     }

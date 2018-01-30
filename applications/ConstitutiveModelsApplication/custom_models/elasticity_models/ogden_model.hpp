@@ -1,21 +1,23 @@
 //
 //   Project Name:        KratosConstitutiveModelsApplication $
-//   Created by:          $Author:                  LMonforte $
+//   Created by:          $Author:                JMCarbonell $
 //   Last modified by:    $Co-Author:                         $
 //   Date:                $Date:                   April 2017 $
 //   Revision:            $Revision:                      0.0 $
 //
 //
 
-#if !defined(KRATOS_BORJA_MODEL_H_INCLUDED )
-#define  KRATOS_BORJA_MODEL_H_INCLUDED
+#if !defined(KRATOS_OGDEN_MODEL_H_INCLUDED )
+#define  KRATOS_OGDEN_MODEL_H_INCLUDED
 
 // System includes
+#include <string>
+#include <iostream>
 
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hencky_hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/hyperelastic_model.hpp"
 
 namespace Kratos
 {
@@ -44,52 +46,57 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) BorjaModel : public HenckyHyperElasticModel
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) OgdenModel : public HyperElasticModel
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
-    
-    /// Pointer definition of BorjaModel
-    KRATOS_CLASS_POINTER_DEFINITION( BorjaModel );
+
+    /// Pointer definition of OgdenModel
+    KRATOS_CLASS_POINTER_DEFINITION( OgdenModel );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.    
-    BorjaModel(); 
+    /// Default constructor.
+    OgdenModel();
 
     /// Copy constructor.
-    BorjaModel(BorjaModel const& rOther);
+    OgdenModel(OgdenModel const& rOther);
 
     /// Assignment operator.
-    BorjaModel& operator=(BorjaModel const& rOther);
+    OgdenModel& operator=(OgdenModel const& rOther);
 
     /// Clone.
     virtual ConstitutiveModel::Pointer Clone() const override;
 
 
     /// Destructor.
-    virtual ~BorjaModel();
+    virtual ~OgdenModel();
 
 
     ///@}
     ///@name Operators
     ///@{
 
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
-    
+
+
+    /**
+     * Check
+     */
+    virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
-        
-    
+
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -103,20 +110,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "BorjaModel";
+        buffer << "OgdenModel";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "BorjaModel";
+        rOStream << "OgdenModel";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "BorjaModel Data";
+      rOStream << "OgdenModel Data";
     }
 
 
@@ -131,17 +138,15 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-    
-   
+
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -154,12 +159,36 @@ namespace Kratos
     /**
      * Calculate Constitutive Tensor
      */
-    virtual void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix) override;
+    virtual void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
+
 
     /**
-      * Calculate some strain invariants
-      */
-    void SeparateVolumetricAndDeviatoricPart( const MatrixType& rA, double & rVolumetric, MatrixType& rDev, double & devNorm);
+     * Calculate Constitutive Components
+     */
+
+    virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, array1d<double>& rScalingFactors,
+					     MatrixType& rStressDerivatives, double &rCabcd,
+					     const unsigned int& a, const unsigned int& b,
+					     const unsigned int& c, const unsigned int& d);
+    
+    virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables,
+					     array1d<double>& rScalingFactors, double &rCabcd,
+					     const unsigned int& a, const unsigned int& b,
+					     const unsigned int& c, const unsigned int& d);
+
+    virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables,
+					     MatrixType& rStressDerivatives, double &rCabcd,
+					     const unsigned int& a, const unsigned int& b,
+					     const unsigned int& c, const unsigned int& d);
+
+    //************// Strain Data
+
+
+    virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override;
+
+    virtual void CalculateScalingFactors(array1d<double,6>& rScalingFactors, MatrixType& rStressDerivatives, array1d<double,3>& rStressEigenValues, array1d<double,3>& rStrainEigenValues, array1d<unsigned int,3>& rPermutation);
+
+
 
     ///@}
     ///@name Protected  Access
@@ -179,7 +208,7 @@ namespace Kratos
     ///@}
 
   private:
-    
+
     ///@name Static Member Variables
     ///@{
 
@@ -187,7 +216,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
+
 
     ///@}
     ///@name Private Operators
@@ -203,7 +232,7 @@ namespace Kratos
     ///@name Private  Access
     ///@{
 
-	
+
     ///@}
     ///@name Serialization
     ///@{
@@ -212,12 +241,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyHyperElasticModel )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
     }
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyHyperElasticModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )
     }
 
     ///@}
@@ -231,7 +260,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class BorjaModel
+  }; // Class OgdenModel
 
   ///@}
 
@@ -250,6 +279,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_BORJA_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_OGDEN_MODEL_H_INCLUDED  defined
