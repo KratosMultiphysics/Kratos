@@ -34,7 +34,7 @@
     #define KRATOS_COMPILED_IN_LINUX
 
 #elif defined(__APPLE__) && defined(__MACH__)
-    #define KRATOS_COMPILED_IN_APPLIE
+    #define KRATOS_COMPILED_IN_OSX
 
 #elif defined(_WIN32)
     #define KRATOS_COMPILED_IN_WINDOWS

@@ -27,7 +27,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-#elif defined(KRATOS_COMPILED_IN_APPLIE)
+#elif defined(KRATOS_COMPILED_IN_OSX)
 #include <mach/mach.h>
 
 #elif defined(KRATOS_COMPILED_IN_WINDOWS)
@@ -92,7 +92,7 @@ public:
     getrusage(RUSAGE_SELF, &resource_usage);
 
     return resource_usage.ru_maxrss * 1024;
-#elif defined(KRATOS_COMPILED_IN_APPLIE)
+#elif defined(KRATOS_COMPILED_IN_OSX)
     struct rusage resource_usage;
     getrusage(RUSAGE_SELF, &resource_usage);
 
@@ -128,7 +128,7 @@ public:
     process_file >> resident_size;
 
     return resident_size * sysconf(_SC_PAGESIZE);
-#elif defined(KRATOS_COMPILED_IN_APPLIE)
+#elif defined(KRATOS_COMPILED_IN_OSX)
     struct mach_task_basic_info info;
     mach_msg_type_number_t infoCount = MACH_TASK_BASIC_INFO_COUNT;
 
@@ -173,40 +173,6 @@ public:
   }
 
   ///@}
-  ///@name Friends
-  ///@{
-
-  ///@}
-
-protected:
-  ///@name Protected static Member Variables
-  ///@{
-
-  ///@}
-  ///@name Protected member Variables
-  ///@{
-
-  ///@}
-  ///@name Protected Operators
-  ///@{
-
-  ///@}
-  ///@name Protected Operations
-  ///@{
-
-  ///@}
-  ///@name Protected  Access
-  ///@{
-
-  ///@}
-  ///@name Protected Inquiry
-  ///@{
-
-  ///@}
-  ///@name Protected LifeCycle
-  ///@{
-
-  ///@}
 
 private:
   ///@name Static Member Variables
@@ -241,15 +207,6 @@ private:
     output << output_size << " " << extension[i] << 'B';
     return output.str();
   }
-
-  ///@}
-  ///@name Private  Access
-  ///@{
-
-  ///@}
-  ///@name Private Inquiry
-  ///@{
-
   ///@}
   ///@name Un accessible methods
   ///@{
