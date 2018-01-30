@@ -89,7 +89,7 @@ namespace Kratos
     {
        array_1d<double,3> Values;
        MatrixType        Vectors;
-    }
+    };
     
         
     struct StrainData
@@ -391,16 +391,6 @@ namespace Kratos
     virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction);
 
 
-    //************// dW
-
-        
-    double& GetFourthOrderUnitTensor(double& rValue,
-				     const double& a,
-				     const double& b,
-				     const double& c,
-				     const double& d); //ddC/dCdC or ddb/dbdb
-
-   
     ///@}
     ///@name Protected  Access
     ///@{

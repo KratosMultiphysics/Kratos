@@ -175,7 +175,8 @@ namespace Kratos
 
 
     //************// dW
-    
+
+   
     virtual double& GetFunction1stI1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI1
  
     virtual double& GetFunction1stI2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI2
@@ -237,7 +238,13 @@ namespace Kratos
     MatrixType& GetJRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/dC
 
 
-
+    double& GetFourthOrderUnitTensor(double& rValue,
+				     const double& a,
+				     const double& b,
+				     const double& c,
+				     const double& d); //ddC/dCdC or ddb/dbdb
+    
+    
     double& GetInverseRightCauchyGreenDerivative(const StrainData& rStrain,
 						 double& rDerivative,
 						 const double& a,

@@ -893,8 +893,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    rDerivative  = rStrain.Invariants.I1 * rStrain.Matrix(a,b) + rStrain.Matrix(a,1)*rStrain.Matrix(1,b) + rStrain.Matrix(a,2)*rStrain.Matrix(2,b) + rStrain.Matrix(a,3)*rStrain.Matrix(3,b);
-    rDerivative *= (rStrain.Invariants.I1 * rStrain.Matrix(c,d) + rStrain.Matrix(c,1)*rStrain.Matrix(1,d) + rStrain.Matrix(c,2)*rStrain.Matrix(2,d) + rStrain.Matrix(c,3)*rStrain.Matrix(3,d));
+    rDerivative  = rStrain.Invariants.I1 * rStrain.Matrix(a,b) + rStrain.Matrix(a,0)*rStrain.Matrix(0,b) + rStrain.Matrix(a,1)*rStrain.Matrix(1,b) + rStrain.Matrix(a,2)*rStrain.Matrix(2,b);
+    rDerivative *= (rStrain.Invariants.I1 * rStrain.Matrix(c,d) + rStrain.Matrix(c,0)*rStrain.Matrix(0,d) + rStrain.Matrix(c,1)*rStrain.Matrix(1,d) + rStrain.Matrix(c,2)*rStrain.Matrix(2,d));
       
     return rDerivative;
 
@@ -1012,7 +1012,26 @@ namespace Kratos
   }
 
 
-  
+  //************************************************************************************
+  //************************************************************************************
+    
+  double& MooneyRivlinModel::GetFourthOrderUnitTensor(double& rValue,
+						      const double& a,
+						      const double& b,
+						      const double& c,
+						      const double& d) //ddC/dCdC or ddb/dbdb
+  {
+    KRATOS_TRY
+
+    rValue = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,rValue,a,b,c,d);
+
+    return rValue;
+
+    KRATOS_CATCH(" ")
+  }    
+
+
+   
   //************************************************************************************
   //************************************************************************************
 

@@ -532,26 +532,6 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
-
-  //************************************************************************************
-  //************************************************************************************
-
-  
-  double& HyperElasticModel::GetFourthOrderUnitTensor(double& rValue,
-						      const double& a,
-						      const double& b,
-						      const double& c,
-						      const double& d) //ddC/dCdC or ddb/dbdb
-  {
-    KRATOS_TRY
-
-    rValue = 0.5*(msIdentityMatrix(a,c)*msIdentityMatrix(b,d)+msIdentityMatrix(a,d)*msIdentityMatrix(b,c));
-
-    return rValue;
-
-    KRATOS_CATCH(" ")
-  }
-
   
   //************************************************************************************
   //************************************************************************************

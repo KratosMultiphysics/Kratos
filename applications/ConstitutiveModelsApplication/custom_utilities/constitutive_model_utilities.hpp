@@ -1099,7 +1099,7 @@ namespace Kratos
      * @param c index for the fourth order tensor
      * @param d index for the fourth order tensor
      */
-    static inline double& CalculateFourthOrderTensorProduct( const VectorType& rVectorA, const VectorType& rVectorB, double& rValue,
+    static inline double& CalculateFourthOrderTensorProduct( const array_1d<double,3>& rVectorA, const array_1d<double,3>& rVectorB, double& rValue,
 							     const unsigned int& a, const unsigned int& b,
 							     const unsigned int& c, const unsigned int& d )
     {
