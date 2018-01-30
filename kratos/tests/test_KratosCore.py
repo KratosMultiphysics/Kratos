@@ -24,6 +24,7 @@ import test_variable_utils
 import test_reorder
 import test_exact_integration
 import test_gid_io
+import test_gid_io_gauss_points
 
 
 def AssambleTestSuites():
@@ -60,6 +61,7 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_reorder.TestReorder]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_exact_integration.TestExactIntegration]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_gid_io.TestGidIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_gid_io_gauss_points.TestGiDIOGaussPoints]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

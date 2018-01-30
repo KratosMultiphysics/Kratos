@@ -2,7 +2,9 @@
 
 The *EigenSolversApplication* is a thin wrapper for the [Eigen linear algebra library](http://eigen.tuxfamily.org/index.php?title=Main_Page).
 
-It provides the following direct sparse solvers:
+## Direct sparse solvers
+
+The application provides the following direct sparse solvers:
 
 | solver_type          | Matrix kind | Dependencies |
 |----------------------|:-----------:|:------------:|
@@ -12,6 +14,30 @@ It provides the following direct sparse solvers:
 | `eigen_pardiso_lu`   | Square      | Intel® MKL   |
 
 SPD = symmetric positive definite
+
+**Example**:
+
+```json
+{
+    "solver_type": "eigen_sparse_lu"
+}
+```
+
+## Generalized eigensystem solver
+
+The application provides a generalized eigensystem solver for sparse matrices. It gives the eigenvalues and eigenvectors for the smallest eigenvalues. MKL routines are used automatically if they are available.
+
+**Example:**
+
+```json
+{
+    "solver_type": "eigen_sparse_eigensystem",
+    "number_of_eigenvalues": 1,
+    "max_iteration": 1000,
+    "tolerance": 1e-6,
+    "echo_level": 1
+}
+```
 
 ## Build instructions
 
