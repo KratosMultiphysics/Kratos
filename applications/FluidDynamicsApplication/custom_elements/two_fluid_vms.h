@@ -385,10 +385,7 @@ KRATOS_WATCH(Ngauss);  */
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
 
-            array_1d<double, 3 > OldAdvVel;
-            this->GetAdvectiveVel(OldAdvVel, N, 1);
-            const double OldVelNorm = MathUtils<double>::Norm3(OldAdvVel);
-            const double DarcyTerm = A + B*OldVelNorm;
+            const double DarcyTerm = this->CalculateDarcyTerm(A,B,N);
             // Calculate stabilization parameters
             double TauOne, TauTwo;
 
@@ -503,10 +500,7 @@ KRATOS_WATCH(Ngauss);  */
             this->GetAdvectiveVel(AdvVel, N);
             const double VelNorm = MathUtils<double>::Norm3(AdvVel);
 
-            array_1d<double, 3 > OldAdvVel;
-            this->GetAdvectiveVel(OldAdvVel, N, 1);
-            const double OldVelNorm = MathUtils<double>::Norm3(OldAdvVel);
-            const double DarcyTerm = A + B*OldVelNorm;
+            const double DarcyTerm = this->CalculateDarcyTerm(A,B,N);
 
             double TauOne,TauTwo;
             this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
@@ -1143,6 +1137,18 @@ protected:
         TauOne = 1.0 / InvTau;
         
         TauTwo = DynamicViscosity + 0.5 * Density * ElemSize * VelNorm;
+    }
+
+    virtual double CalculateDarcyTerm(
+        const double LinearCoefficient,
+        const double NonlinearCoefficient,
+        const array_1d<double, TNumNodes>& rShapefunctions) {
+
+        array_1d<double,3> velocity;
+        this->GetAdvectiveVel(velocity, rShapefunctions);
+        const double velocity_norm = MathUtils<double>::Norm3(velocity);
+
+        return LinearCoefficient + NonlinearCoefficient*velocity_norm;
     }
 
     ///@}
