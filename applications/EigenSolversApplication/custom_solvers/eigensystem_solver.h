@@ -10,8 +10,8 @@
 //           Armin Geiser
 */
 
-#if !defined(KRATOS_SPARSE_EIGENSYSTEM_SOLVER_H_INCLUDED)
-#define KRATOS_SPARSE_EIGENSYSTEM_SOLVER_H_INCLUDED
+#if !defined(KRATOS_EIGENSYSTEM_SOLVER_H_INCLUDED)
+#define KRATOS_EIGENSYSTEM_SOLVER_H_INCLUDED
 
 // External includes
 #include <Eigen/Core>
@@ -37,13 +37,13 @@ template<
     class TDenseSpaceType,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
-class SparseEigensystemSolver
+class EigensystemSolver
     : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
 {
     Parameters mParam;
 
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(SparseEigensystemSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(EigensystemSolver);
 
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
 
@@ -53,13 +53,13 @@ class SparseEigensystemSolver
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    SparseEigensystemSolver(
+    EigensystemSolver(
         Parameters param
     ) : mParam(param)
     {
         Parameters default_params(R"(
         {
-            "solver_type": "eigen_sparse_eigensystem",
+            "solver_type": "eigen_eigensystem",
             "number_of_eigenvalues": 1,
             "max_iteration": 1000,
             "tolerance": 1e-6,
@@ -72,7 +72,7 @@ class SparseEigensystemSolver
         BaseType::SetMaxIterationsNumber(mParam["max_iteration"].GetInt());
     }
 
-    ~SparseEigensystemSolver() override {}
+    ~EigensystemSolver() override {}
 
     /**
      * Solve the generalized eigenvalue problem using an eigen subspace iteration method
@@ -319,7 +319,7 @@ class SparseEigensystemSolver
         return eigen_values[0];
     }
 
-}; // class SparseEigensystemSolver
+}; // class EigensystemSolver
 
 
 /**
@@ -328,7 +328,7 @@ class SparseEigensystemSolver
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::istream& operator >>(
     std::istream& rIStream,
-    SparseEigensystemSolver<TSparseSpaceType,
+    EigensystemSolver<TSparseSpaceType,
     TDenseSpaceType,
     TReordererType>& rThis)
 {
@@ -341,7 +341,7 @@ inline std::istream& operator >>(
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator <<(
     std::ostream& rOStream,
-    const SparseEigensystemSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
+    const EigensystemSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -352,4 +352,4 @@ inline std::ostream& operator <<(
 
 } // namespace Kratos
 
-#endif // defined(KRATOS_SPARSE_EIGENSYSTEM_SOLVER_H_INCLUDED)
+#endif // defined(KRATOS_EIGENSYSTEM_SOLVER_H_INCLUDED)

@@ -23,7 +23,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
-#include "custom_solvers/sparse_eigensystem_solver.h"
+#include "custom_solvers/eigensystem_solver.h"
 
 namespace Kratos
 {
@@ -72,14 +72,14 @@ void AddCustomSolversToPython()
 	// --- eigensystem solver
 
 	#if defined MKL
-	using SparseEigensystemSolverType = SparseEigensystemSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
+	using EigensystemSolverType = EigensystemSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
 	#else  // defined MKL
-	using SparseEigensystemSolverType = SparseEigensystemSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
+	using EigensystemSolverType = EigensystemSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
 	#endif // defined MKL
-	class_<SparseEigensystemSolverType, SparseEigensystemSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable>
-    	("SparseEigensystemSolver", init<Parameters>())
-    	.def("Solve", &SparseEigensystemSolverType::Solve)
-    	.def("GetEigenValue", &SparseEigensystemSolverType::GetEigenValue)
+	class_<EigensystemSolverType, EigensystemSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable>
+    	("EigensystemSolver", init<Parameters>())
+    	.def("Solve", &EigensystemSolverType::Solve)
+    	.def("GetEigenValue", &EigensystemSolverType::GetEigenValue)
 	;
 ;
 }
