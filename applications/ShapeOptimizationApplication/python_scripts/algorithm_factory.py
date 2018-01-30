@@ -20,27 +20,38 @@ CheckForPreviousImport()
 
 # Additional imports
 import mapper_factory
-import communicator_factory
 import optimization_data_logger_factory as optimization_data_logger_factory
 
 from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
 
 # ==============================================================================
-def CreateAlgorithm( OptimizationModelPart, Analyzer, OptimizationSettings ):
-    AlgorithmName = OptimizationSettings["optimization_algorithm"]["name"].GetString()
-
+def CreateAlgorithm( OptimizationModelPart, Analyzer, Communicator, MeshMotionSolver, OptimizationSettings ):
     DesignSurface = GetDesignSurfaceFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
     DampingRegions = GetDampingRegionsFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
 
     Mapper = mapper_factory.CreateMapper( DesignSurface, OptimizationSettings ) 
-    Communicator = communicator_factory.CreateCommunicator( OptimizationSettings )
     DataLogger = optimization_data_logger_factory.CreateDataLogger( OptimizationModelPart, DesignSurface, Communicator, OptimizationSettings )
 
+    AlgorithmName = OptimizationSettings["optimization_algorithm"]["name"].GetString()
     if AlgorithmName == "steepest_descent":
-        return AlgorithmSteepestDescent( DesignSurface, DampingRegions, Analyzer, Mapper, Communicator, DataLogger, OptimizationSettings )
+        return AlgorithmSteepestDescent( DesignSurface, 
+                                         DampingRegions, 
+                                         Analyzer, 
+                                         Communicator, 
+                                         MeshMotionSolver, 
+                                         Mapper, 
+                                         DataLogger, 
+                                         OptimizationSettings )
     elif AlgorithmName == "penalized_projection":
-        return AlgorithmPenalizedProjection( DesignSurface, DampingRegions, Analyzer, Mapper, Communicator, DataLogger, OptimizationSettings )  
+        return AlgorithmPenalizedProjection( DesignSurface, 
+                                             DampingRegions, 
+                                             Analyzer, 
+                                             Communicator, 
+                                             MeshMotionSolver, 
+                                             Mapper, 
+                                             DataLogger, 
+                                             OptimizationSettings )
     else:
         raise NameError("The following optimization algorithm not supported by the algorithm driver (name may be misspelled): " + AlgorithmName)              
 

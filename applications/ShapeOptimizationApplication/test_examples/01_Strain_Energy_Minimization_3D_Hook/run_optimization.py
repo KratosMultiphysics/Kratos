@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.ALEApplication import *
+# from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # For time measures
@@ -38,10 +38,10 @@ optimizer = optimizerFactory.CreateOptimizer( main_model_part, ProjectParameters
 responseFunctionFactory = __import__("response_function_factory")
 listOfResponseFunctions = responseFunctionFactory.CreateListOfResponseFunctions( main_model_part, ProjectParameters["optimization_settings"] )
 
-# Create solver for handling mesh-motion
-mesh_solver_module = __import__(ProjectParameters["mesh_solver_settings"]["solver_type"].GetString())
-mesh_solver = mesh_solver_module.CreateSolver(main_model_part, ProjectParameters["mesh_solver_settings"])
-mesh_solver.AddVariables()
+# # Create solver for handling mesh-motion
+# mesh_solver_module = __import__(ProjectParameters["mesh_solver_settings"]["solver_type"].GetString())
+# mesh_solver = mesh_solver_module.CreateSolver(main_model_part, ProjectParameters["mesh_solver_settings"])
+# mesh_solver.AddVariables()
 
 # Create solver to perform structural analysis
 solver_module = __import__(ProjectParameters["structure_solver_settings"]["solver_type"].GetString())
@@ -51,7 +51,7 @@ CSM_solver.ImportModelPart()
 
 # Add degrees of freedom
 CSM_solver.AddDofs()
-mesh_solver.AddDofs()
+# mesh_solver.AddDofs()
 
 # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ## Get the list of the submodel part in the object Model
@@ -112,8 +112,8 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         CSM_solver.Initialize()
         CSM_solver.SetEchoLevel(echo_level)
 
-        mesh_solver.Initialize()
-        mesh_solver.SetEchoLevel(echo_level)
+        # mesh_solver.Initialize()
+        # mesh_solver.SetEchoLevel(echo_level)
 
         for responseFunctionId in listOfResponseFunctions:
             listOfResponseFunctions[responseFunctionId].Initialize()
@@ -133,10 +133,10 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             
             self.initializeNewSolutionStep( optimizationIteration )
 
-            print("\n> Starting ALEApplication to update the mesh")
-            startTime = timer.time()
-            self.updateMeshForAnalysis()
-            print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
+            # print("\n> Starting ALEApplication to update the mesh")
+            # startTime = timer.time()
+            # self.updateMeshForAnalysis()
+            # print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
             print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()

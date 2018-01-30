@@ -24,34 +24,27 @@ def CreateMapper( designSurface, optimizationSettings ):
     # default settings string in json format
     default_settings = Parameters("""
     {
-        "design_variables_type"              : "vertex_morphing",
-        "optimization_model_part_name"       : "optimization_model_part_name",
-        "design_surface_sub_model_part_name" : "design_surface",
-        "domain_size"                  : 3,
-        "filter" : {
-            "filter_function_type"       : "linear",
-            "filter_radius"              : 1.0,
-            "max_nodes_in_filter_radius" : 10000,
-            "matrix_free_filtering"      : false,
-            "integration": {
-                "integration_method": "node_sum",
-                "number_of_gauss_points": 0
-            }
+        "filter_function_type"       : "linear",
+        "filter_radius"              : 1.0,
+        "max_nodes_in_filter_radius" : 10000,
+        "matrix_free_filtering"      : false,
+        "integration": 
+        {
+            "integration_method": "node_sum",
+            "number_of_gauss_points": 0
         },
-        "consistent_mapping_to_geometry_space": false,
-        "damping" : {
-            "perform_damping" : false,
-            "damping_regions" : []
-        }
+        "consistent_mapping_to_geometry_space": false
     }""")
 
     # overwrite the default settings with user-provided parameters
-    optimizationSettings["design_variables"].RecursivelyValidateAndAssignDefaults(default_settings)
+    optimizationSettings["design_variables"]["filter"].RecursivelyValidateAndAssignDefaults(default_settings)
 
     isMatrixFreeMappingRequired = optimizationSettings["design_variables"]["filter"]["matrix_free_filtering"].GetBool()
+    isConsistenMappingRequired = optimizationSettings["design_variables"]["filter"]["consistent_mapping_to_geometry_space"].GetBool()
     integrationMethod = optimizationSettings["design_variables"]["filter"]["integration"]["integration_method"].GetString()
+
     if isMatrixFreeMappingRequired:
-        if optimizationSettings["design_variables"]["consistent_mapping_to_geometry_space"].GetBool():
+        if isConsistenMappingRequired:
              raise ValueError ("Matrix free Mapper has no consistent_mapping_to_geometry_space option yet!")
         if integrationMethod != "node_sum":
              raise ValueError ("Matrix free Mapper can only be combined with 'node_sum' integration method!")

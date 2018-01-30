@@ -26,12 +26,21 @@ from algorithm_base import OptimizationAlgorithm
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self, DesignSurface, DampingRegions, Analyzer, Mapper, Communicator, DataLogger, OptimizationSettings ):
+    def __init__( self, 
+                  DesignSurface, 
+                  DampingRegions, 
+                  Analyzer, 
+                  Communicator, 
+                  MeshController, 
+                  Mapper, 
+                  DataLogger, 
+                  OptimizationSettings ):
 
         self.DesignSurface = DesignSurface
         self.Analyzer = Analyzer
-        self.Mapper = Mapper
         self.Communicator = Communicator
+        self.MeshController = MeshController
+        self.Mapper = Mapper
         self.DataLogger = DataLogger
         self.OptimizationSettings = OptimizationSettings
 
@@ -53,6 +62,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
+        self.MeshController.Initialize()
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
 
@@ -87,11 +97,12 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             if self.__isAlgorithmConverged( optimizationIteration ):
                 break
 
-            self.__updateShape()
+            self.__updateMesh()
 
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
+        self.MeshController.Finalize()
 
     # --------------------------------------------------------------------------
     def __callCommunicatorToRequestNewAnalyses( self ):
@@ -132,6 +143,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.optimizationTools.ComputeSearchDirectionSteepestDescent()
         self.optimizationTools.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
+        self.__determineAbsoluteChanges()
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
@@ -140,6 +152,11 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace( self ):
         self.Mapper.MapToGeometrySpace( CONTROL_POINT_UPDATE, SHAPE_UPDATE )
+
+    # --------------------------------------------------------------------------
+    def __determineAbsoluteChanges( self ):
+        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )        
+        self.OptimizationUtilities.AddFirstVariableToSecondVariable( SHAPE_UPDATE, SHAPE_CHANGE )
 
     # --------------------------------------------------------------------------
     def __dampShapeUpdate( self ):
@@ -178,8 +195,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
                 return False
 
     # --------------------------------------------------------------------------
-    def __updateShape( self ):
-        self.optimizationTools.UpdateControlPointChangeByInputVariable( CONTROL_POINT_UPDATE )
-        self.geometryTools.UpdateShapeChangeByInputVariable( SHAPE_UPDATE )
+    def __updateMesh( self ):
+        self.MeshControler.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
+        self.MeshControler.ResetReferenceMeshToCurrentShape()
 
 # ==============================================================================
