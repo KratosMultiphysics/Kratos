@@ -45,8 +45,11 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// MemoryInfo gives the OS information about the memory useage by Kratos.
+/** This class provides the peak memory usage and current memory usage. 
+ *  The information is taken bu OS and may vary in each execution depending
+ *  on page allocation and other factors. 
+ *  The supported platforms are Windows, Linux and OSX. 
 */
 class MemoryInfo {
 public:
