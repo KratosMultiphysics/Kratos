@@ -110,6 +110,26 @@ public:
         boost::numeric::ublas::bounded_matrix<double, VoigtVector3DSize, 4 * TNumNodes>& rStrainMatrix);
 
     /**
+    * Auxiliary function that writes the constitutive matrix (C) for a Newtonian fluid using the given dynamic viscosity (mu).
+    * 2D variant.
+    * @param DynamicViscosity Dynamic viscosity (mu) for the fluid.
+    * @param rConstitutiveMatrix computed constitutive matrix for the fluid (output).
+    */  
+    static void GetNewtonianConstitutiveMatrix(
+        const double DynamicViscosity,
+        boost::numeric::ublas::bounded_matrix<double, VoigtVector2DSize, VoigtVector2DSize>& rConstitutiveMatrix);
+  
+    /**
+    * Auxiliary function that writes the constitutive matrix (C) for a Newtonian fluid using the given dynamic viscosity (mu).
+    * 3D variant.
+    * @param DynamicViscosity Dynamic viscosity (mu) for the fluid.
+    * @param rConstitutiveMatrix computed constitutive matrix for the fluid (output).
+    */
+    static void GetNewtonianConstitutiveMatrix(
+        const double DynamicViscosity,
+        boost::numeric::ublas::bounded_matrix<double, VoigtVector3DSize, VoigtVector3DSize>& rConstitutiveMatrix);
+
+    /**
      * This function transforms a vector n into a matrix P that can be used to compute
      * matrix-vector product A*n for a symmetric matrix A expressed in Voigt notation.
      * If a is the Voigt-notation representation of matrix A, A*n == P*a.
