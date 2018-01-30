@@ -2248,7 +2248,7 @@ protected:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * \f$ \frac{r}{\ro} \f$
+     * \f$ \frac{r}{\rho} \f$
      *
      * @return The inradius to circumradius quality metric.
      */
