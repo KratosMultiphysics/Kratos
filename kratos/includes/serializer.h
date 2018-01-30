@@ -338,13 +338,13 @@ public:
 
 
     template<class TKeyType, class TDataType>
-    void load(std::string const & rTag, std::map<TKeyType, TDataType> const& rObject)
+    void load(std::string const & rTag, std::map<TKeyType, TDataType>& rObject)
     {
         load_map(rTag, rObject);
     }
 
     template<class TKeyType, class TDataType>
-    void load(std::string const & rTag, std::unordered_map<TKeyType, TDataType> const& rObject)
+    void load(std::string const & rTag, std::unordered_map<TKeyType, TDataType>& rObject)
     {
         load_map(rTag, rObject);
     }
@@ -826,7 +826,7 @@ private:
     VariableData* GetVariableData(std::string const & VariableName);
 
     template<class TMapType>
-    void load_map(std::string const & rTag, TMapType const& rObject)
+    void load_map(std::string const & rTag, TMapType& rObject)
     {
         load_trace_point(rTag);
         SizeType size = rObject.size();
