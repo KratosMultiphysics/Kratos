@@ -23,8 +23,8 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
-#include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.h"
-#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.h"
+#include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_bdf2_displacement_scheme.h"
 
 namespace Kratos 
