@@ -30,36 +30,36 @@
 
 namespace Kratos
 {
-    namespace Python
-    {
-        void  AddCustomProcessesToPython()
-        {
-            using namespace boost::python;
-            typedef Process  ProcessBaseType;
+namespace Python
+{
+void  AddCustomProcessesToPython()
+{
+    using namespace boost::python;
+    typedef Process  ProcessBaseType;
 
-            class_<ALMFastInit, bases<ProcessBaseType>, boost::noncopyable >
-            (
-                "ALMFastInit", init<ModelPart&>()
-            )
-            .def("Execute", &ALMFastInit::Execute)
-            ;
-            
-            class_<MasterSlaveProcess, bases<ProcessBaseType>, boost::noncopyable >
-            (
-                "MasterSlaveProcess", init<ModelPart&>()
-            )
-            .def("Execute", &MasterSlaveProcess::Execute)
-            ;
-            
-            class_<ALMVariablesCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
-            (
-                "ALMVariablesCalculationProcess", init<ModelPart&, Variable<double>&, Parameters>()
-            )
-            .def(init<ModelPart&, Variable<double>&>()) // Considering default variables
-            .def(init<ModelPart&>()) 
-            .def("Execute", &ALMVariablesCalculationProcess::Execute)
-            ;
-        }
-    }  // namespace Python.
+    class_<ALMFastInit, bases<ProcessBaseType>, boost::noncopyable >
+    (
+        "ALMFastInit", init<ModelPart&>()
+    )
+    .def("Execute", &ALMFastInit::Execute)
+    ;
+    
+    class_<MasterSlaveProcess, bases<ProcessBaseType>, boost::noncopyable >
+    (
+        "MasterSlaveProcess", init<ModelPart&>()
+    )
+    .def("Execute", &MasterSlaveProcess::Execute)
+    ;
+    
+    class_<ALMVariablesCalculationProcess, bases<ProcessBaseType>, boost::noncopyable >
+    (
+        "ALMVariablesCalculationProcess", init<ModelPart&, Variable<double>&, Parameters>()
+    )
+    .def(init<ModelPart&, Variable<double>&>()) // Considering default variables
+    .def(init<ModelPart&>()) 
+    .def("Execute", &ALMVariablesCalculationProcess::Execute)
+    ;
+}
+}  // namespace Python.
 } // Namespace Kratos
 

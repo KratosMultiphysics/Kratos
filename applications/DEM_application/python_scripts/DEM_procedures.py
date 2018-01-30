@@ -100,7 +100,7 @@ class SetOfModelParts(object):
         self.cluster_model_part    = self.Get("ClusterPart")
         self.DEM_inlet_model_part  = self.Get("DEMInletPart")
         self.mapping_model_part    = self.Get("MappingPart")
-        self.contact_model_part    = self.Get("ContactPart")        
+        self.contact_model_part    = self.Get("ContactPart")
 
     def ComputeMaxIds(self):
 
@@ -400,7 +400,7 @@ class Procedures(object):
         self.rotational_scheme=weakref.proxy(rotational_scheme)
         self.AddCommonVariables(spheres_model_part, DEM_parameters)
         self.AddSpheresVariables(spheres_model_part, DEM_parameters)
-        self.AddMpiVariables(spheres_model_part)      
+        self.AddMpiVariables(spheres_model_part)
         self.solver.AddAdditionalVariables(spheres_model_part, DEM_parameters)
         self.AddCommonVariables(cluster_model_part, DEM_parameters)
         self.AddClusterVariables(cluster_model_part, DEM_parameters)
@@ -411,7 +411,7 @@ class Procedures(object):
         self.AddCommonVariables(rigid_face_model_part, DEM_parameters)
         self.AddRigidFaceVariables(rigid_face_model_part, DEM_parameters)
         self.AddMpiVariables(rigid_face_model_part)
-
+        
     def AddCommonVariables(self, model_part, DEM_parameters):
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
@@ -503,6 +503,29 @@ class Procedures(object):
         model_part.AddNodalSolutionStepVariable(DEM_NODAL_AREA)
         model_part.AddNodalSolutionStepVariable(NON_DIMENSIONAL_VOLUME_WEAR)
         model_part.AddNodalSolutionStepVariable(IMPACT_WEAR)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
+        model_part.AddNodalSolutionStepVariable(DELTA_ROTATION)
+        model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LOCAL_ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(LOCAL_AUX_ANGULAR_VELOCITY)
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL) # JIG: SHOULD BE REMOVED IN THE FUTURE
+        model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG) # JIG: SHOULD BE REMOVED IN THE FUTURE
+        model_part.AddNodalSolutionStepVariable(ORIENTATION)
+        model_part.AddNodalSolutionStepVariable(AUX_ORIENTATION)
+        model_part.AddNodalSolutionStepVariable(ANGULAR_MOMENTUM)
+
+        # FORCES
+        model_part.AddNodalSolutionStepVariable(RIGID_ELEMENT_FORCE)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
+        model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
+        model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_MOMENT)
+        
+        # PHYSICAL PROPERTIES
+        model_part.AddNodalSolutionStepVariable(PRINCIPAL_MOMENTS_OF_INERTIA)
+        model_part.AddNodalSolutionStepVariable(CLUSTER_VOLUME)
+        model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+        model_part.AddNodalSolutionStepVariable(CHARACTERISTIC_LENGTH)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
 
     def AddElasticFaceVariables(self, model_part, DEM_parameters): #Only used in CSM coupling
         self.AddRigidFaceVariables(model_part,self.DEM_parameters)
@@ -978,10 +1001,12 @@ class DEMFEMProcedures(object):
         spheres_model_part = all_model_parts.Get("SpheresPart")
         DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
         rigid_face_model_part = all_model_parts.Get("RigidFacePart")
+        cluster_model_part = all_model_parts.Get("ClusterPart")
         
         self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
         self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
     
     def MoveAllMeshesUsingATable(self, model_part, time, dt):
 
@@ -1352,6 +1377,7 @@ class DEMIo(object):
         self.spheres_local_axis_variables              = []
         self.fem_boundary_variables                    = []
         self.clusters_variables                        = []
+        self.rigid_body_variables                      = []
         self.contact_variables                         = []
         self.multifilelists                            = []
 
@@ -1463,6 +1489,7 @@ class DEMIo(object):
         self.AddSpheresNotInClusterAndClustersVariables()
         self.AddFEMBoundaryVariables()
         self.AddClusterVariables()
+        self.AddRigidBodyVariables()
         self.AddContactVariables()
         self.AddMpiVariables()
         self.Configure(DEM_parameters["problem_name"].GetString(), DEM_parameters["OutputFileType"].GetString(), DEM_parameters["Multifile"].GetString(), DEM_parameters["ContactMeshOption"].GetBool())
@@ -1476,7 +1503,6 @@ class DEMIo(object):
         self.PushPrintVar(self.PostDisplacement,     DISPLACEMENT,                 self.global_variables)
         self.PushPrintVar(self.PostVelocity,         VELOCITY,                     self.global_variables)
         self.PushPrintVar(self.PostTotalForces,      TOTAL_FORCES,                 self.global_variables)
-
 
     def AddSpheresAndClustersVariables(self):  # variables common to spheres and clusters
         self.PushPrintVar(self.PostAppliedForces,       EXTERNAL_APPLIED_FORCE,  self.spheres_and_clusters_variables)
@@ -1557,6 +1583,14 @@ class DEMIo(object):
             self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables) # JIG: SHOULD BE REMOVED IN THE FUTURE
             self.PushPrintVar(self.PostEulerAngles, ORIENTATION_IMAG, self.clusters_variables) # JIG: SHOULD BE REMOVED IN THE FUTURE
             #self.PushPrintVar(self.PostEulerAngles, ORIENTATION, self.clusters_variables)
+
+    def AddRigidBodyVariables(self):
+        #self.PushPrintVar(1,                         ANGULAR_VELOCITY,             self.rigid_body_variables)
+        #self.PushPrintVar(1,                         PARTICLE_MOMENT,              self.rigid_body_variables)
+        #self.PushPrintVar(1,                         DELTA_DISPLACEMENT,           self.rigid_body_variables)
+        #self.PushPrintVar(1,                         DELTA_ROTATION,               self.rigid_body_variables)
+        self.PushPrintVar(1,                         EXTERNAL_APPLIED_FORCE,       self.rigid_body_variables)
+        self.PushPrintVar(1,                         EXTERNAL_APPLIED_MOMENT,      self.rigid_body_variables)
 
     def AddContactVariables(self):
         # Contact Elements Variables
@@ -1758,6 +1792,10 @@ class DEMIo(object):
 
     def PrintingClusterVariables(self, export_model_part, time):
         for variable in self.clusters_variables:
+            self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
+            
+    def PrintingRigidBodyVariables(self, export_model_part, time):
+        for variable in self.rigid_body_variables:
             self.gid_io.WriteNodalResults(variable, export_model_part.Nodes, time, 0)
 
     def PrintingContactElementsVariables(self, export_model_part, time):

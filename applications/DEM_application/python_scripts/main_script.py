@@ -81,7 +81,7 @@ class Solution(object):
         self.DEM_inlet_model_part  = ModelPart("DEMInletPart")
         self.mapping_model_part    = ModelPart("MappingPart")
         self.contact_model_part    = ModelPart("ContactPart")
-        
+
         mp_list = []
         mp_list.append(self.spheres_model_part)
         mp_list.append(self.rigid_face_model_part)
@@ -191,7 +191,6 @@ class Solution(object):
 
         return SolverStrategy
 
-
     def SetSolver(self):
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
                                                      self.creator_destructor,
@@ -234,7 +233,6 @@ class Solution(object):
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
-
         # Adding dofs
         self.AddAllDofs()
 
@@ -340,14 +338,14 @@ class Solution(object):
         old_max_elem_Id_spheres = max_elem_Id
         max_cond_Id += self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part)
         rigidFace_mp_filename   = self.GetFemFilename()
-        model_part_io_fem = self.model_part_reader(rigidFace_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
+        model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
 
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part)
         clusters_mp_filename   = self.GetClusterFilename()
-        model_part_io_clusters = self.model_part_reader(clusters_mp_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
+        model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_clusters.ReadModelPart(self.cluster_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
         if (max_elem_Id != old_max_elem_Id_spheres):
@@ -357,13 +355,11 @@ class Solution(object):
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.cluster_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.cluster_model_part)
         DEM_Inlet_filename = self.GetInletFilename()
-        model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename,max_node_Id+1, max_elem_Id+1, max_cond_Id+1)
+        model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
-
+        
         self.model_parts_have_been_read = True
-
         self.all_model_parts.ComputeMaxIds()
-
 
     def RunMainTemporalLoop(self):
 
@@ -467,7 +463,6 @@ class Solution(object):
         self.DEMFEMProcedures.FinalizeGraphs(self.rigid_face_model_part)
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
-
 
         os.chdir(self.main_path)
 

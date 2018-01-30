@@ -32,8 +32,8 @@ class TestGidIO(KratosUnittest.TestCase):
                                                 "skin_output": false,
                                                 "plane_output": [],
                                                 "nodal_results": ["DISPLACEMENT","VISCOSITY"],
-                                                "nodal_nonhistorical_results": [],
-                                                "nodal_flags_results": [],
+                                                "nodal_nonhistorical_results": ["TEMPERATURE","INERTIA","ELEMENTAL_DISTANCES"],
+                                                "nodal_flags_results": ["ISOLATED"],
                                                 "gauss_point_results": [],
                                                 "additional_list_files": []
                                             }
@@ -100,6 +100,62 @@ class TestGidIO(KratosUnittest.TestCase):
         self.__WriteOutput(model_part,"deactivated_out")
 
         self.__Check("deactivated_out_0.post.msh","deactivated_ref.ref")
+        
+    def test_gid_io_results(self):
+        model_part = self.__InitialRead()
+
+        # Initialize flag
+        for node in model_part.Nodes:
+            node.Set(KratosMultiphysics.ISOLATED, False)
+            
+        model_part.Nodes[1].Set(KratosMultiphysics.ISOLATED, True)
+        model_part.Nodes[2].Set(KratosMultiphysics.ISOLATED, True)
+        model_part.Nodes[973].Set(KratosMultiphysics.ISOLATED, True)
+        model_part.Nodes[974].Set(KratosMultiphysics.ISOLATED, True)
+        
+        # Initialize value
+        for node in model_part.Nodes:
+            node.SetValue(KratosMultiphysics.TEMPERATURE, 0.0)
+        
+        model_part.Nodes[1].SetValue(KratosMultiphysics.TEMPERATURE, 100.0)
+        model_part.Nodes[2].SetValue(KratosMultiphysics.TEMPERATURE, 200.0)
+        model_part.Nodes[973].SetValue(KratosMultiphysics.TEMPERATURE, 300.0)
+        model_part.Nodes[974].SetValue(KratosMultiphysics.TEMPERATURE, 400.0)
+        
+        vector = KratosMultiphysics.Vector(3)
+        vector[0] = 0.0
+        vector[1] = 0.0
+        vector[2] = 0.0
+        # Initialize value
+        for node in model_part.Nodes:
+            node.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, vector)
+        
+        vector[0] = 1.0
+        vector[1] = 1.0
+        model_part.Nodes[1].SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, vector)
+        model_part.Nodes[2].SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, vector)
+        model_part.Nodes[973].SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, vector)
+        model_part.Nodes[974].SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, vector)
+
+        matrix = KratosMultiphysics.Matrix(2, 2)
+        matrix[0, 0] = 0.0
+        matrix[0, 1] = 0.0
+        matrix[1, 0] = 0.0
+        matrix[1, 1] = 0.0
+        # Initialize value
+        for node in model_part.Nodes:
+            node.SetValue(KratosMultiphysics.INERTIA, matrix)
+        
+        matrix[0, 0] = 1.0
+        matrix[1, 1] = 1.0
+        model_part.Nodes[1].SetValue(KratosMultiphysics.INERTIA, matrix)
+        model_part.Nodes[2].SetValue(KratosMultiphysics.INERTIA, matrix)
+        model_part.Nodes[973].SetValue(KratosMultiphysics.INERTIA, matrix)
+        model_part.Nodes[974].SetValue(KratosMultiphysics.INERTIA, matrix)
+
+        self.__WriteOutput(model_part,"results_out")
+
+        self.__Check("results_out_0.post.res","results_out_ref.ref")
 
     def test_DoubleFreeError(self):
 
@@ -120,7 +176,21 @@ class TestGidIO(KratosUnittest.TestCase):
         gid_io_1 = None
         gid_io_2 = None
 
+    def tearDown(self):
+        self.__DeleteIfExisting("all_active_out_0.post.msh")
+        self.__DeleteIfExisting("all_active_out_0.post.res")
+        self.__DeleteIfExisting("deactivated_out_0.post.msh")
+        self.__DeleteIfExisting("deactivated_out_0.post.res")
+        self.__DeleteIfExisting("results_out_0.post.msh")
+        self.__DeleteIfExisting("results_out_0.post.res")
+        self.__DeleteIfExisting("python_scripts.post.lst")
 
+    @staticmethod
+    def __DeleteIfExisting(filename):
+        try:
+            os.remove(filename)
+        except FileNotFoundError:
+            return
 
 if __name__ == '__main__':
     KratosUnittest.main()

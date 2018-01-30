@@ -84,7 +84,7 @@ namespace Kratos
     SimoStepRotationMethod(SimoStepRotationMethod& rOther) : DerivedType(rOther) {}
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new SimoStepRotationMethod(*this) );
     }
@@ -227,6 +227,9 @@ namespace Kratos
 
   ///@name Type Definitions
   ///@{
+  
+  template<>
+  void SimoStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
 
   template<class TVariableType, class TValueType>
   void SimoStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
@@ -245,6 +248,7 @@ namespace Kratos
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, SimoStepRotationMethod<TVariableType,TValueType>& rThis)
   {
+    return rIStream;
   }
 
   template<class TVariableType, class TValueType>

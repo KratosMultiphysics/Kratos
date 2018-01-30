@@ -23,7 +23,6 @@
         "contact_settings":
         {
             "mortar_type"                    : "ALMContactFrictionless",
-            "contact_tolerance"              : 0.0e0,
             "ensure_contact"                 : true
         },
         "block_builder"                      : false,
@@ -114,8 +113,7 @@
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
             "active_check_factor"         : 1.0e-3,
-            "normal_variation"            : "NODERIVATIVESCOMPUTATION",
-            "dual_search_check"           : false,
+            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
             "manual_ALM"                  : true,

@@ -84,7 +84,7 @@ namespace Kratos
     SimoMethod(SimoMethod& rOther) : DerivedType(rOther) {}
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new SimoMethod(*this) );
     }
@@ -355,6 +355,7 @@ namespace Kratos
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, SimoMethod<TVariableType,TValueType>& rThis)
   {
+    return rIStream;
   }
 
   template<class TVariableType, class TValueType>

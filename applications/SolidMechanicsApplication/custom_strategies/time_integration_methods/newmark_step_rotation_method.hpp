@@ -87,7 +87,7 @@ namespace Kratos
     }
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new NewmarkStepRotationMethod(*this) );
     }
@@ -248,6 +248,9 @@ namespace Kratos
 
   ///@name Type Definitions
   ///@{
+  
+  template<>
+  void NewmarkStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
 
   template<class TVariableType, class TValueType>
   void NewmarkStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
@@ -267,6 +270,7 @@ namespace Kratos
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, NewmarkStepRotationMethod<TVariableType,TValueType>& rThis)
   {
+    return rIStream;
   }
 
   template<class TVariableType, class TValueType>

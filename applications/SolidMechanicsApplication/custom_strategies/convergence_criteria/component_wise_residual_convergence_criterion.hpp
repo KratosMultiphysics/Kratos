@@ -54,13 +54,12 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class ComponentWiseResidualConvergenceCriterion : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class ComponentWiseResidualConvergenceCriterion : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< DisplacementCriteria< TSparseSpace, TDenseSpace > > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ComponentWiseResidualConvergenceCriterion );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
