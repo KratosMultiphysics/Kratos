@@ -25,8 +25,6 @@
 #include "linear_solvers/direct_solver.h"
 #include "ublas_wrapper.h"
 
-#include <chrono>
-using namespace std::chrono;
 
 namespace Kratos
 {
