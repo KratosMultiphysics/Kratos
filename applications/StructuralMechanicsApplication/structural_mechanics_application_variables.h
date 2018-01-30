@@ -32,7 +32,7 @@ namespace Kratos
 {
 typedef array_1d<double, 3> Vector3;
 typedef MpcData::Pointer MpcDataPointerType;
-typedef boost::shared_ptr<std::vector<MpcDataPointerType>>
+typedef Kratos::shared_ptr<std::vector<MpcDataPointerType>>
     MpcDataSharedPointerVectorType;
 typedef std::vector<MpcDataPointerType>
     *MpcDataPointerVectorType;
