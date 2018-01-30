@@ -49,7 +49,7 @@ namespace Kratos
 	}
 
 
-	const std::array<std::size_t, PrimeNumbers::mNumberOfPreCalculatedPrimes> PrimeNumbers::mPrecalculatedPrimes = {
+	const std::array<std::size_t, PrimeNumbers::mNumberOfPreCalculatedPrimes> PrimeNumbers::mPrecalculatedPrimes = {{
 		1		,2		,3		,5		,7		,11		,13		,17
 		,19		,23		,29		,31		,37		,41		,43		,47
 		,53		,59		,61		,67		,71		,73		,79		,83
@@ -12550,7 +12550,7 @@ namespace Kratos
 		,1299343	,1299349	,1299359	,1299367	,1299377	,1299379	,1299437	,1299439
 		,1299449	,1299451	,1299457	,1299491	,1299499	,1299533	,1299541	,1299553
 		,1299583	,1299601	,1299631	,1299637	,1299647	,1299653	,1299673	,1299689
-	};
+	}};
 
   
   
