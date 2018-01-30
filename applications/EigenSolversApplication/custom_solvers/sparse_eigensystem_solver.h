@@ -222,19 +222,23 @@ class SparseEigensystemSolver
 
             r *= eig.eigenvectors();
 
-            bool is_converged = true;
+            bool is_converged = false;
 
-            for (int i = 0; i != nc; i++) {
-                double eigv = eig.eigenvalues()(i);
-                double dif = eigv - prev_eigv(i);
-                double rtolv = std::abs(dif / eigv);
+            if (iteration > 1) {
+                is_converged = true;
 
-                if (rtolv > tolerance) {
-                    is_converged = false;
-                    break;
+                for (int i = 0; i != nc; i++) {
+                    double eigv = eig.eigenvalues()(i);
+                    double dif = eigv - prev_eigv(i);
+                    double rtolv = std::abs(dif / eigv);
+
+                    if (rtolv > tolerance) {
+                        is_converged = false;
+                        break;
+                    }
                 }
             }
-
+            
             if (is_converged) {
                 if (echo_level > 0) {
                     std::cout << "EigensystemSolver: Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
