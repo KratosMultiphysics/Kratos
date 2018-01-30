@@ -26,7 +26,7 @@ namespace Kratos
       , mFilename(Filename + ".mdpa")
       , mOptions(Options)
     {
-        boost::shared_ptr<std::fstream> pFile = boost::make_shared<std::fstream>();
+        Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
         std::fstream::openmode OpenMode;
 
         // Set the mode
@@ -63,7 +63,7 @@ namespace Kratos
     }
 
     /// Constructor with stream
-    ModelPartIO::ModelPartIO(boost::shared_ptr<std::iostream> Stream)
+    ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream)
       : mNumberOfLines(1)
     {
         // nullptr test can be confusing with boost::shared_ptr. Commented until we move to std::shared_ptr
@@ -71,7 +71,7 @@ namespace Kratos
         //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         // Check if the pointer was .reset() or never initialized and if its a NULL pointer)
-        // if (Stream == NULL || Stream == boost::shared_ptr<std::iostream>(NULL))
+        // if (Stream == NULL || Stream == Kratos::shared_ptr<std::iostream>(NULL))
         //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         mpStream = Stream;
@@ -140,14 +140,14 @@ namespace Kratos
     void ModelPartIO::WriteNodes(NodesContainerType const& rThisNodes)
     {
         (*mpStream) << "Begin Nodes" << std::endl;
-        for(NodesContainerType::const_iterator i_node = rThisNodes.begin() ; i_node != rThisNodes.end() ; i_node++)
-            (*mpStream) << "\t" << i_node->Id() << "\t" << i_node->X()  << "\t" << i_node->Y() << "\t" << i_node->Z() << std::endl;
+        for(NodesContainerType::const_iterator it_node = rThisNodes.begin() ; it_node != rThisNodes.end() ; it_node++)
+            (*mpStream) << "\t" << it_node->Id() << "\t" << it_node->X()  << "\t" << it_node->Y() << "\t" << it_node->Z() << std::endl;
         (*mpStream) << "End Nodes" << std::endl << std::endl;
     }
 
     void ModelPartIO::ReadProperties(Properties& rThisProperties)
     {
-        KRATOS_THROW_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+        KRATOS_ERROR << "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
     void ModelPartIO::ReadProperties(PropertiesContainerType& rThisProperties)
@@ -241,88 +241,74 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    /***********************************************************************************/
+    /***********************************************************************************/
+
+    template<typename FirstElementType, typename SecondElementType>
+    struct IsSameElement
+    { 
+        static const bool value = 
+            std::is_same<typename std::remove_reference<FirstElementType>::type,typename std::remove_cv<typename std::remove_reference<SecondElementType>::type>::type>::value ||
+            std::is_same<typename std::remove_cv<typename std::remove_reference<FirstElementType>::type>::type,typename std::remove_reference<SecondElementType>::type>::value; 
+    };
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
+
     void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
     {        
         // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
-        
-        auto numElements = rThisElements.end() - rThisElements.begin();
-                
-        if (numElements > 0)
-        {
+        if (rThisElements.size() > 0) {
             std::string element_name;
-            auto ElementsComponents = KratosComponents<Element>::GetComponents();
+            auto elements_components = KratosComponents<Element>::GetComponents();
             
-            unsigned int element_dimension = rThisElements.begin()->GetGeometry().WorkingSpaceDimension();
-            unsigned int element_num_nodes = rThisElements.begin()->GetGeometry().size();
+            auto element_type = rThisElements.begin()->GetGeometry().GetGeometryType();
             
             // Fisrt we do the first element
-            for(auto i_comp = ElementsComponents.begin(); i_comp != ElementsComponents.end() ; i_comp++)
-            {
-                const std::type_info& type_component = typeid(*(i_comp->second));
-                if (std::type_index(typeid(*(rThisElements.begin()))) == std::type_index(type_component) &&
-                    (element_num_nodes == (i_comp->second)->GetGeometry().size()) &&
-                    (element_dimension == (i_comp->second)->GetGeometry().WorkingSpaceDimension())
-                )
-                {
-                    element_name = i_comp->first;
+            for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
+                if (IsSameElement<decltype(*(rThisElements.begin())), decltype(*(it_comp->second))>::value &&
+                    (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                    element_name = it_comp->first;
                     break;
                 }
             }
             
             (*mpStream) << "Begin Elements\t" << element_name << std::endl;
             (*mpStream) << "\t" << rThisElements.begin()->Id() << "\t" << (rThisElements.begin()->pGetProperties())->Id() << "\t";
-            for (unsigned int i_node = 0; i_node < rThisElements.begin()->GetGeometry().size(); i_node++)
-            {
+            for (std::size_t i_node = 0; i_node < rThisElements.begin()->GetGeometry().size(); i_node++)
                 (*mpStream) << rThisElements.begin()->GetGeometry()[i_node].Id() << "\t";
-            }
             (*mpStream) << std::endl;
             
-            // Now we iterate over all the nodes
-            for(unsigned int i = 1; i < numElements; i++)
-            {
-                auto itElemPrevious = rThisElements.begin() + i - 1;
-                auto itElemCurrent = rThisElements.begin() + i;
+            // Now we iterate over all the elements
+            for(std::size_t i = 1; i < rThisElements.size(); i++) {
+                auto it_elem_previous = rThisElements.begin() + i - 1;
+                auto it_elem_current = rThisElements.begin() + i;
                 
-    //             const unsigned int previous_dimension = itElemPrevious->GetGeometry().WorkingSpaceDimension(); // NOTE: In theory this is not going to change
-                const unsigned int previous_number_nodes = itElemPrevious->GetGeometry().size();
-    //             const unsigned int current_dimension = itElemCurrent->GetGeometry().WorkingSpaceDimension();
-                const unsigned int current_number_nodes = itElemCurrent->GetGeometry().size();
+                const auto previous_element_geometry_type = it_elem_previous->GetGeometry().GetGeometryType();
+                const auto current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
                 
-                if ((std::type_index(typeid(*itElemPrevious)) == std::type_index(typeid(*itElemCurrent))) && (previous_number_nodes == current_number_nodes))
-                {
-                    (*mpStream) << "\t" << itElemCurrent->Id() << "\t" << (itElemCurrent->pGetProperties())->Id() << "\t";
-                    for (unsigned int i_node = 0; i_node < itElemCurrent->GetGeometry().size(); i_node++)
-                    {
-                        (*mpStream) << itElemCurrent->GetGeometry()[i_node].Id() << "\t";
-                    }
+                if (IsSameElement<decltype(*it_elem_previous), decltype(*it_elem_current)>::value && (previous_element_geometry_type == current_element_geometry_type)) {
+                    (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
+                    for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
+                        (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
-                }
-                else
-                {
+                } else {
                     (*mpStream) << "End Elements" << std::endl << std::endl;;
                     
-                    element_dimension = itElemCurrent->GetGeometry().WorkingSpaceDimension();
-                    element_num_nodes = itElemCurrent->GetGeometry().size();
+                    element_type = it_elem_current->GetGeometry().GetGeometryType();
                         
-                    for(auto i_comp = ElementsComponents.begin(); i_comp != ElementsComponents.end() ; i_comp++)
-                    {
-                        const std::type_info& type_component = typeid(*(i_comp->second));
-                        if (std::type_index(typeid(*itElemCurrent)) == std::type_index(type_component) &&
-                            (element_num_nodes == (i_comp->second)->GetGeometry().size()) &&
-                            (element_dimension == (i_comp->second)->GetGeometry().WorkingSpaceDimension())
-                        )
-                        {
-                            element_name = i_comp->first;
+                    for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
+                        if (IsSameElement<decltype(*it_elem_current), decltype(*(it_comp->second))>::value &&
+                            (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                            element_name = it_comp->first;
                             break;
                         }
                     }
                     
                     (*mpStream) << "Begin Elements\t" << element_name << std::endl;
-                    (*mpStream) << "\t" << itElemCurrent->Id() << "\t" << (itElemCurrent->pGetProperties())->Id() << "\t";
-                    for (unsigned int i_node = 0; i_node < itElemCurrent->GetGeometry().size(); i_node++)
-                    {
-                        (*mpStream) << itElemCurrent->GetGeometry()[i_node].Id() << "\t";
-                    }
+                    (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
+                    for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
+                        (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
                 }
             }
@@ -330,6 +316,9 @@ namespace Kratos
             (*mpStream) << "End Elements" << std::endl << std::endl;
         }
     }
+    
+    /***********************************************************************************/
+    /***********************************************************************************/
 
     void ModelPartIO::ReadConditions(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions)
     {
@@ -375,89 +364,57 @@ namespace Kratos
     {
         // We are going to procede like the following, we are going to iterate over all the conditions and compare with the components, we will save the type and we will compare until we get that the type of condition has changed
         
-        auto numConditions = rThisConditions.end() - rThisConditions.begin();
-                
-        if (numConditions > 0)
-        {
+        if (rThisConditions.size() > 0) {
             std::string condition_name;
-            auto ConditionsComponents = KratosComponents<Condition>::GetComponents();
+            auto conditions_components = KratosComponents<Condition>::GetComponents();
             
-            const std::type_info& condition_type = typeid(*(rThisConditions.begin()));
-            const unsigned int condition_num_nodes = rThisConditions.begin()->GetGeometry().size();
-            const unsigned int condition_dimension = rThisConditions.begin()->GetGeometry().WorkingSpaceDimension();
+            auto condition_type = rThisConditions.begin()->GetGeometry().GetGeometryType();
             
             // Fisrt we do the first condition
-            for(auto i_comp = ConditionsComponents.begin(); i_comp != ConditionsComponents.end() ; i_comp++)
-            {
-                const std::type_info& type_component = typeid(*(i_comp->second));
-                const unsigned int component_num_nodes = (*(i_comp->second)).GetGeometry().size();
-                const unsigned int component_dimension = (*(i_comp->second)).GetGeometry().WorkingSpaceDimension();
-
-                if ((std::type_index(condition_type) == std::type_index(type_component)) &&
-                    (condition_dimension == component_dimension) &&
-                    (condition_num_nodes == component_num_nodes)) {
-
-                    condition_name = i_comp->first;
+            for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
+                if (IsSameElement<decltype(*(rThisConditions.begin())), decltype(*(it_comp->second))>::value &&
+                    (condition_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                    condition_name = it_comp->first;
                     break;
                 }
             }
             
             (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
             (*mpStream) << "\t" << rThisConditions.begin()->Id() << "\t" << (rThisConditions.begin()->pGetProperties())->Id() << "\t";
-            for (unsigned int i_node = 0; i_node < rThisConditions.begin()->GetGeometry().size(); i_node++)
-            {
+            for (std::size_t i_node = 0; i_node < rThisConditions.begin()->GetGeometry().size(); i_node++)
                 (*mpStream) << rThisConditions.begin()->GetGeometry()[i_node].Id() << "\t";
-            }
             (*mpStream) << std::endl;
             
-            // Now we iterate over all the nodes
-            for(unsigned int i = 1; i < numConditions; i++)
-            {
-                auto itCondPrevious = rThisConditions.begin() + i - 1;
-                auto itCondCurrent = rThisConditions.begin() + i;
+            // Now we iterate over all the conditions
+            for(std::size_t i = 1; i < rThisConditions.size(); i++) {
+                auto it_cond_previous = rThisConditions.begin() + i - 1;
+                auto it_cond_current = rThisConditions.begin() + i;
                 
-    //             const unsigned int previous_dimension = itCondPrevious->GetGeometry().WorkingSpaceDimension(); // NOTE: In theory this is not going to change
-                const unsigned int previous_number_nodes = itCondPrevious->GetGeometry().size();
-    //             const unsigned int current_dimension = itCondCurrent->GetGeometry().WorkingSpaceDimension();
-                const unsigned int current_number_nodes = itCondCurrent->GetGeometry().size();
+                const auto previous_condition_geometry_type = it_cond_previous->GetGeometry().GetGeometryType();
+                const auto current_condition_geometry_type = it_cond_current->GetGeometry().GetGeometryType();
                 
-                if ((std::type_index(typeid(*itCondPrevious)) == std::type_index(typeid(*itCondCurrent))) && (previous_number_nodes == current_number_nodes))
-                {
-                    (*mpStream) << "\t" << itCondCurrent->Id() << "\t" << (itCondCurrent->pGetProperties())->Id() << "\t";
-                    for (unsigned int i_node = 0; i_node < itCondCurrent->GetGeometry().size(); i_node++)
-                    {
-                        (*mpStream) << itCondCurrent->GetGeometry()[i_node].Id() << "\t";
-                    }
+                if (IsSameElement<decltype(*it_cond_previous), decltype(*it_cond_current)>::value && (previous_condition_geometry_type == current_condition_geometry_type)) {
+                    (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
+                    for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
+                        (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
-                }
-                else
-                {
+                } else {
                     (*mpStream) << "End Conditions" << std::endl << std::endl;;
                     
-                    const unsigned int current_condition_dimension = itCondCurrent->GetGeometry().WorkingSpaceDimension();
-                    const unsigned int current_condition_num_nodes = itCondCurrent->GetGeometry().size();
-                    
-                    for(auto i_comp = ConditionsComponents.begin(); i_comp != ConditionsComponents.end() ; i_comp++)
-                    {
-                        const std::type_info &type_component = typeid(*(i_comp->second));
-                        const unsigned int component_num_nodes = (*(i_comp->second)).GetGeometry().size();
-                        const unsigned int component_dimension = (*(i_comp->second)).GetGeometry().WorkingSpaceDimension();
-
-                        if (std::type_index(typeid(*itCondCurrent)) == std::type_index(type_component) &&
-                            (current_condition_dimension == component_dimension) &&
-                            (current_condition_num_nodes == component_num_nodes))
-                        {
-                            condition_name = i_comp->first;
+                    condition_type = it_cond_current->GetGeometry().GetGeometryType();
+                        
+                    for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
+                        if (IsSameElement<decltype(*it_cond_current), decltype(*(it_comp->second))>::value &&
+                            (condition_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                            condition_name = it_comp->first;
                             break;
                         }
                     }
                     
-                    (*mpStream) << "Begin Conditions " << condition_name << std::endl;
-                    (*mpStream) << "\t" << itCondCurrent->Id() << "\t" << (itCondCurrent->pGetProperties())->Id() << "\t";
-                    for (unsigned int i_node = 0; i_node < itCondCurrent->GetGeometry().size(); i_node++)
-                    {
-                        (*mpStream) << itCondCurrent->GetGeometry()[i_node].Id() << "\t";
-                    }
+                    (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
+                    (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
+                    for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
+                        (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
                 }
             }
@@ -636,7 +593,7 @@ namespace Kratos
 
         // 3. Sort each entry in the auxiliary connectivities vector, remove duplicates
         SizeType num_entries = 0;
-        for (ConnectivitiesContainerType::iterator it = aux_connectivities.begin(); it != aux_connectivities.end(); ++it)
+        for (ConnectivitiesContainerType::iterator it = aux_connectivities.begin(); it != aux_connectivities.end(); it++)
         {
             std::sort(it->begin(),it->end());
             std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
@@ -654,11 +611,11 @@ namespace Kratos
         SizeType i = 0;
         SizeType aux_index = 0;
 
-        for (ConnectivitiesContainerType::iterator it = aux_connectivities.begin(); it != aux_connectivities.end(); ++it)
+        for (ConnectivitiesContainerType::iterator it = aux_connectivities.begin(); it != aux_connectivities.end(); it++)
         {
             for (std::vector<SizeType>::iterator entry_it = it->begin(); entry_it != it->end(); entry_it++)
                 (*NodeConnectivities)[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
-            (*NodeIndices)[++i] = aux_index;
+            (*NodeIndices)[i++] = aux_index;
         }*/
 
         return num_nodes;
@@ -731,7 +688,7 @@ namespace Kratos
     }
 
     void ModelPartIO::DivideInputToPartitions(
-        boost::shared_ptr<std::iostream> * Streams,
+        Kratos::shared_ptr<std::iostream> * Streams,
         SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
         PartitionIndicesType const& NodesPartitions,
         PartitionIndicesType const& ElementsPartitions,
@@ -1149,7 +1106,7 @@ namespace Kratos
             ExtractValue(word, y);
             ReadWord(word);
             ExtractValue(word, z);
-            NodeType::Pointer temp_node = boost::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
+            NodeType::Pointer temp_node = Kratos::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
             temp_node->X0() = temp_node->X();
             temp_node->Y0() = temp_node->Y();
             temp_node->Z0() = temp_node->Z();
@@ -1335,7 +1292,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties::Pointer props = Kratos::make_shared<Properties>();
         Properties& temp_properties = *props;
         //Properties temp_properties;
 
@@ -1354,17 +1311,16 @@ namespace Kratos
             if(CheckEndBlock("Properties", variable_name))
                 break;
 
-		if(variable_name == "Begin") // here we have some nested block.
-		{
-            ReadBlockName(variable_name);
-			if(variable_name == "Table") // At this moment the only supported nested block is a table
-                ReadTableBlock(temp_properties);
-		}
-
+            if(variable_name == "Begin") // here we have some nested block.
+            {
+                ReadBlockName(variable_name);
+                if(variable_name == "Table") // At this moment the only supported nested block is a table
+                    ReadTableBlock(temp_properties);
+            }
 	    else if(KratosComponents<Variable<std::string> >::Has(variable_name))
             {
                 std::string value;
-		        std::string  temp;
+                std::string  temp;
 
                 ReadWord(value); // reading value
                 ExtractValue(value,temp);
@@ -1720,149 +1676,145 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        VariablesList rThisVariables = rThisModelPart.GetNodalSolutionStepVariablesList();
-        auto numVar = rThisVariables.end() - rThisVariables.begin();
-        
-        NodesContainerType& rThisNodes = rThisModelPart.Nodes();
-        auto numNodes = rThisNodes.end() - rThisNodes.begin();
+        VariablesList r_this_variables = rThisModelPart.GetNodalSolutionStepVariablesList();
+        NodesContainerType& r_this_nodes = rThisModelPart.Nodes();
         
         typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
         
-        std::string VariableName;
+        std::string variable_name;
         
         // FIXME: Maybe there is a better way (I get confused with to much KratosComponents)
-        for(unsigned int i = 0; i < numVar; i++) 
+        for(std::size_t i = 0; i < r_this_variables.size(); i++) 
         {
-            auto itVar = rThisVariables.begin() + i;
+            auto it_var = r_this_variables.begin() + i;
             
-            VariableName = itVar->Name();
+            variable_name = it_var->Name();
             
-            if(KratosComponents<Flags >::Has(VariableName))
+            if(KratosComponents<Flags >::Has(variable_name))
             {
-                (*mpStream) << "Begin NodalData\t" << VariableName << std::endl;
-                auto Variable = static_cast<Flags const& >(KratosComponents<Flags>::Get(VariableName)); 
-                for(unsigned int j = 0; j < numNodes; j++) 
+                (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
+                auto Variable = static_cast<Flags const& >(KratosComponents<Flags>::Get(variable_name)); 
+                for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
                 {
-                    auto itNode = rThisNodes.begin() + j;
+                    auto it_node = r_this_nodes.begin() + j;
                     
-                    const bool is_fixed = itNode->Is(Variable); // FIXME: I don't know if they are set this way
-                    (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->Is(Variable) << std::endl;
+                    const bool is_fixed = it_node->Is(Variable); // FIXME: I don't know if they are set this way
+                    (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->Is(Variable) << std::endl;
                 }
                 (*mpStream) << "End NodalData" << std::endl << std::endl;
             }
-            else if(KratosComponents<Variable<int>>::Has(VariableName))
+            else if(KratosComponents<Variable<int>>::Has(variable_name))
             {
-                (*mpStream) << "Begin NodalData\t" << VariableName << std::endl;
-                auto Variable = static_cast<Kratos::Variable<int> const& >(KratosComponents<Kratos::Variable<int> >::Get(VariableName));
-                for(unsigned int j = 0; j < numNodes; j++) 
+                (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
+                auto Variable = static_cast<Kratos::Variable<int> const& >(KratosComponents<Kratos::Variable<int> >::Get(variable_name));
+                for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
                 {
-                    auto itNode = rThisNodes.begin() + j;
+                    auto it_node = r_this_nodes.begin() + j;
                     
-                    const bool is_fixed = itNode->IsFixed(Variable);
-                    (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(Variable, 0) << std::endl;
+                    const bool is_fixed = it_node->IsFixed(Variable);
+                    (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(Variable, 0) << std::endl;
                 }
                 (*mpStream) << "End NodalData" << std::endl << std::endl;
             }
-            else if(KratosComponents<Variable<double>>::Has(VariableName))
+            else if(KratosComponents<Variable<double>>::Has(variable_name))
             {
-                (*mpStream) << "Begin NodalData\t" << VariableName << std::endl;
-                auto Variable = static_cast<Kratos::Variable<double> const& >(KratosComponents<Kratos::Variable<double> >::Get(VariableName));
-                for(unsigned int j = 0; j < numNodes; j++) 
+                (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
+                auto Variable = static_cast<Kratos::Variable<double> const& >(KratosComponents<Kratos::Variable<double> >::Get(variable_name));
+                for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
                 {
-                    auto itNode = rThisNodes.begin() + j;
+                    auto it_node = r_this_nodes.begin() + j;
                     
-                    const bool is_fixed = itNode->IsFixed(Variable);
-                    (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(Variable, 0) << std::endl;
+                    const bool is_fixed = it_node->IsFixed(Variable);
+                    (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(Variable, 0) << std::endl;
                 }
                 (*mpStream) << "End NodalData" << std::endl << std::endl;
             }
-            else if(KratosComponents<array_1d_component_type>::Has(VariableName))
+            else if(KratosComponents<array_1d_component_type>::Has(variable_name))
             {
-                (*mpStream) << "Begin NodalData\t" << VariableName << std::endl;
-                auto Variable = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName));
-                for(unsigned int j = 0; j < numNodes; j++) 
+                (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
+                auto Variable = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name));
+                for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
                 {
-                    auto itNode = rThisNodes.begin() + j;
+                    auto it_node = r_this_nodes.begin() + j;
                     
-                    const bool is_fixed = itNode->IsFixed(Variable);
-                    (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(Variable, 0) << std::endl;
+                    const bool is_fixed = it_node->IsFixed(Variable);
+                    (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(Variable, 0) << std::endl;
                 }
                 (*mpStream) << "End NodalData" << std::endl << std::endl;
             }
-            else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(VariableName))
+            else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
             {
-                if(KratosComponents<array_1d_component_type>::Has(VariableName + "_X")) // To check if it defined by components or as a vector
+                if(KratosComponents<array_1d_component_type>::Has(variable_name + "_X")) // To check if it defined by components or as a vector
                 {
-                    (*mpStream) << "Begin NodalData\t" << VariableName << "_X" << std::endl;
-                    auto VariableX = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName+"_X"));
-                    for(unsigned int j = 0; j < numNodes; j++) 
+                    (*mpStream) << "Begin NodalData\t" << variable_name << "_X" << std::endl;
+                    auto VariableX = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name+"_X"));
+                    for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
                     {
-                        auto itNode = rThisNodes.begin() + j;
+                        auto it_node = r_this_nodes.begin() + j;
                         
-                        const bool is_fixed = itNode->IsFixed(VariableX);
-                        (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(VariableX, 0) << std::endl;
+                        const bool is_fixed = it_node->IsFixed(VariableX);
+                        (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(VariableX, 0) << std::endl;
                     }
                     (*mpStream) << "End NodalData" << std::endl << std::endl;
                     
-                    (*mpStream) << "Begin NodalData\t" << VariableName << "_Y" << std::endl;
-                    auto VariableY = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName+"_Y"));
-                    for(unsigned int j = 0; j < numNodes; j++) 
+                    (*mpStream) << "Begin NodalData\t" << variable_name << "_Y" << std::endl;
+                    auto VariableY = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name+"_Y"));
+                    for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
                     {
-                        auto itNode = rThisNodes.begin() + j;
+                        auto it_node = r_this_nodes.begin() + j;
                         
-                        const bool is_fixed = itNode->IsFixed(VariableY);
-                        (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(VariableY, 0) << std::endl;
+                        const bool is_fixed = it_node->IsFixed(VariableY);
+                        (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(VariableY, 0) << std::endl;
                     }
                     (*mpStream) << "End NodalData" << std::endl << std::endl;
                     
-                    (*mpStream) << "Begin NodalData\t" << VariableName << "_Z" << std::endl;
-                    auto VariableZ = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(VariableName+"_Z"));
-                    for(unsigned int j = 0; j < numNodes; j++) 
+                    (*mpStream) << "Begin NodalData\t" << variable_name << "_Z" << std::endl;
+                    auto VariableZ = static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type >::Get(variable_name+"_Z"));
+                    for(std::size_t j = 0; j < r_this_nodes.size(); j++) 
                     {
-                        auto itNode = rThisNodes.begin() + j;
+                        auto it_node = r_this_nodes.begin() + j;
                         
-                        const bool is_fixed = itNode->IsFixed(VariableZ);
-                        (*mpStream) << itNode->Id() <<"\t" << is_fixed << "\t" << itNode->FastGetSolutionStepValue(VariableZ, 0) << std::endl;
+                        const bool is_fixed = it_node->IsFixed(VariableZ);
+                        (*mpStream) << it_node->Id() <<"\t" << is_fixed << "\t" << it_node->FastGetSolutionStepValue(VariableZ, 0) << std::endl;
                     } 
                     (*mpStream) << "End NodalData" << std::endl << std::endl;
                 }
                 else
                 {
-                   std::cout << VariableName << " is not a valid variable for output!!!" << std::endl;
-//                 (*mpStream) << "Begin NodalData\t" << VariableName << std::endl;
-//                 auto Variable = KratosComponents<array_1d<double, 3>>::Get(VariableName);
+                   std::cout << variable_name << " is not a valid variable for output!!!" << std::endl;
+//                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
+//                 auto Variable = KratosComponents<array_1d<double, 3>>::Get(variable_name);
 //                 // TODO: Finish me
 //                 (*mpStream) << "End NodalData" << std::endl << std::endl;
                 }
             }
-//             else if(KratosComponents<Variable<Quaternion<double> > >::Has(VariableName))
+//             else if(KratosComponents<Variable<Quaternion<double> > >::Has(variable_name))
 //             {
-//                 (*mpStream) << "Begin NodalData\t" << VariableName << std::endl;
-//                 auto Variable = KratosComponents<Quaternion<double>>::Get(VariableName);
+//                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
+//                 auto Variable = KratosComponents<Quaternion<double>>::Get(variable_name);
 //                 // TODO: Finish me
 //                 (*mpStream) << "End NodalData" << std::endl << std::endl;
 //             }
-//             else if(KratosComponents<Variable<Matrix> >::Has(VariableName))
+//             else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
 //             {
-//                 (*mpStream) << "Begin NodalData\t" << VariableName << std::endl;
-//                 auto Variable = KratosComponents<Matrix>::Get(VariableName);
+//                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
+//                 auto Variable = KratosComponents<Matrix>::Get(variable_name);
 //                 // TODO: Finish me
 //                 (*mpStream) << "End NodalData" << std::endl << std::endl;
 //             }
-//             else if(KratosComponents<Variable<Vector> >::Has(VariableName))
+//             else if(KratosComponents<Variable<Vector> >::Has(variable_name))
 //             {
-//                 (*mpStream) << "Begin NodalData\t" << VariableName << std::endl;
-//                 auto Variable = KratosComponents<Matrix>::Get(VariableName);
+//                 (*mpStream) << "Begin NodalData\t" << variable_name << std::endl;
+//                 auto Variable = KratosComponents<Matrix>::Get(variable_name);
 //                 // TODO: Finish me
 //                 (*mpStream) << "End NodalData" << std::endl << std::endl;
 //             }
             else
             {
-                std::cout << VariableName << " is not a valid variable for output!!!" << std::endl;
+                std::cout << variable_name << " is not a valid variable for output!!!" << std::endl;
             }
                         
         }
-
 
         KRATOS_CATCH("")
     }
@@ -1886,19 +1838,19 @@ namespace Kratos
                 break;
 
             ExtractValue(value, id);
-            typename NodesContainerType::iterator i_node = FindKey(rThisNodes, ReorderedNodeId(id), "Node");
+            typename NodesContainerType::iterator it_node = FindKey(rThisNodes, ReorderedNodeId(id), "Node");
 
             // reading is_fixed
             ReadWord(value);
             ExtractValue(value, is_fixed);
             if(is_fixed)
-                i_node->Fix(rVariable);
+                it_node->Fix(rVariable);
 
             // reading nodal_value
             ReadWord(value);
             ExtractValue(value, nodal_value);
 
-            i_node->GetSolutionStepValue(rVariable, 0) =  nodal_value;
+            it_node->GetSolutionStepValue(rVariable, 0) =  nodal_value;
         }
 
         KRATOS_CATCH("")
@@ -2607,16 +2559,16 @@ namespace Kratos
                 break;
 
             ExtractValue(word,node_id);
-            NodesContainerType::iterator i_node = FindKey(rThisNodes, ReorderedNodeId(node_id), "Node");
-			auto p_node = *(i_node.base());
+            NodesContainerType::iterator it_node = FindKey(rThisNodes, ReorderedNodeId(node_id), "Node");
+            auto p_node = *(it_node.base());
             aux_local.push_back(p_node);
             aux_interface.push_back(p_node);
         }
 
-        for(auto it = aux_local.begin(); it!= aux_local.end(); ++it)
+        for(auto it = aux_local.begin(); it!= aux_local.end(); it++)
             p_local_mesh->Nodes().push_back(*(it.base()));
 
-        for(auto it = aux_interface.begin(); it!= aux_interface.end(); ++it)
+        for(auto it = aux_interface.begin(); it!= aux_interface.end(); it++)
             p_interface_mesh->Nodes().push_back(*(it.base()));
 
         p_local_mesh->Nodes().Unique();
@@ -2676,9 +2628,9 @@ namespace Kratos
                 break;
 
             ExtractValue(word,node_id);
-            NodesContainerType::iterator i_node = FindKey(rThisNodes, ReorderedNodeId(node_id), "Node");
-            p_ghost_mesh->Nodes().push_back(*(i_node.base()));
-            p_interface_mesh->Nodes().push_back(*(i_node.base()));
+            NodesContainerType::iterator it_node = FindKey(rThisNodes, ReorderedNodeId(node_id), "Node");
+            p_ghost_mesh->Nodes().push_back(*(it_node.base()));
+            p_interface_mesh->Nodes().push_back(*(it_node.base()));
         }
 
         p_ghost_mesh->Nodes().Unique();
@@ -2715,7 +2667,7 @@ namespace Kratos
         // adding necessary meshes to the model part.
         MeshType empty_mesh;
         for(SizeType i = number_of_meshes ; i < mesh_id + 1 ; i++)
-            rModelPart.GetMeshes().push_back(boost::make_shared<MeshType>(empty_mesh.Clone()));
+            rModelPart.GetMeshes().push_back(Kratos::make_shared<MeshType>(empty_mesh.Clone()));
 
         MeshType& mesh = rModelPart.GetMesh(mesh_id);
 
@@ -2861,8 +2813,8 @@ namespace Kratos
                 break;
 
             ExtractValue(word,node_id);
-            NodesContainerType::iterator i_node = FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node");
-            rMesh.Nodes().push_back(*(i_node.base()));
+            NodesContainerType::iterator it_node = FindKey(rModelPart.Nodes(), ReorderedNodeId(node_id), "Node");
+            rMesh.Nodes().push_back(*(it_node.base()));
         }
 
         rMesh.Nodes().Sort();
@@ -2921,7 +2873,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties::Pointer props = Kratos::make_shared<Properties>();
         Properties& temp_properties = *props;
 //         Properties temp_properties;
 
@@ -3105,8 +3057,8 @@ namespace Kratos
             // Submodelpart elements section
             (*mpStream) << InitialTabulation << "\tBegin SubModelPartElements" << std::endl;
             ElementsContainerType& rThisElements = r_sub_model_part.Elements();
-            auto numElements = rThisElements.end() - rThisElements.begin();
-            for(unsigned int i = 0; i < numElements; i++) {
+            auto num_elements = rThisElements.end() - rThisElements.begin();
+            for(unsigned int i = 0; i < num_elements; i++) {
                 auto itElem = rThisElements.begin() + i;
                 (*mpStream) << InitialTabulation << "\t\t" << itElem->Id() << std::endl;
             }
@@ -4700,7 +4652,7 @@ namespace Kratos
         mNumberOfLines = 1;
     }
 
-    void ModelPartIO::SwapStreamSource(boost::shared_ptr<std::iostream> newStream)
+    void ModelPartIO::SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream)
     {
         mpStream.swap(newStream);
     }

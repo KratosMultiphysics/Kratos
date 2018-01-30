@@ -389,7 +389,7 @@ public:
             *i = typename PointType::Pointer( new PointType( **i ) );
     }
 
-    // virtual boost::shared_ptr< Geometry< Point > > Clone() const
+    // virtual Kratos::shared_ptr< Geometry< Point > > Clone() const
     // {
     //     Geometry< Point >::PointsArrayType NewPoints;
 
@@ -397,7 +397,7 @@ public:
 
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //         NewPoints.push_back(boost::make_shared< Point >((*this)[i]));
+    //         NewPoints.push_back(Kratos::make_shared< Point >((*this)[i]));
     //     }
 
     //     //NewPoints[i] = typename Point::Pointer(new Point(*mPoints[i]));
@@ -915,8 +915,8 @@ public:
                 for(unsigned int j = 0; j < WorkingSpaceDimension(); j++) {
                     DeltaXi[i] += J(i,j)*CurrentGlobalCoords[j];
                 }
+                rResult[i] += DeltaXi[i];
             }
-            noalias( rResult ) += DeltaXi;
 
             auto norm2DXi = norm_2(DeltaXi);
 
@@ -2101,26 +2101,6 @@ public:
         return rResult;
     }
 
-    boost::numeric::ublas::vector<Matrix> const& MassFactors() const
-    {
-        return mpGeometryData->MassFactors();
-    }
-
-    boost::numeric::ublas::vector<Matrix> const& MassFactors( IntegrationMethod ThisMethod ) const
-    {
-        return  mpGeometryData->MassFactors( ThisMethod );
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex ) const
-    {
-        return mpGeometryData->MassFactors( IntegrationPointIndex );
-    }
-
-    Matrix const& MassFactors( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
-    {
-        return mpGeometryData->MassFactors( IntegrationPointIndex, ThisMethod );
-    }
-
     ///@}
     ///@name Input and output
     ///@{
@@ -2268,7 +2248,7 @@ protected:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * \f$ \frac{r}{\ro} \f$
+     * \f$ \frac{r}{\rho} \f$
      *
      * @return The inradius to circumradius quality metric.
      */

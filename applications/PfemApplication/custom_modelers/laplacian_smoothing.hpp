@@ -103,7 +103,7 @@ namespace Kratos
     LaplacianSmoothing(ModelPart& rModelPart)
     {
       for (unsigned int i = 0; i < rModelPart.NumberOfMeshes(); i++)
-	mPreviousMeshes.push_back(boost::make_shared<MeshType>((rModelPart.GetMesh(i)).Clone())); //in fact do not clones
+	mPreviousMeshes.push_back(Kratos::make_shared<MeshType>((rModelPart.GetMesh(i)).Clone())); //in fact do not clones
 
     } //
 

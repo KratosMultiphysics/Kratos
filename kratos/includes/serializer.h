@@ -195,7 +195,7 @@ public:
     }
 
     template<class TDataType>
-    void load(std::string const & rTag, boost::shared_ptr<TDataType>& pValue)
+    void load(std::string const & rTag, Kratos::shared_ptr<TDataType>& pValue)
     {
         PointerType pointer_type = SP_INVALID_POINTER;
         void* p_pointer;
@@ -210,8 +210,7 @@ public:
                 if(pointer_type == SP_BASE_CLASS_POINTER)
                 {
                     if(!pValue)
-                        pValue = boost::shared_ptr<TDataType>(new TDataType);
-
+                        pValue = Kratos::shared_ptr<TDataType>(new TDataType);
                     load(rTag, *pValue);
                 }
                 else if(pointer_type == SP_DERIVED_CLASS_POINTER)
@@ -224,7 +223,7 @@ public:
                         KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with name : ", object_name)
 
                         if(!pValue)
-                            pValue = boost::shared_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+                            pValue = Kratos::shared_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
 
                     load(rTag, *pValue);
 
@@ -232,7 +231,7 @@ public:
                 mLoadedPointers[p_pointer]=&pValue;
             }
             else
-                pValue = *static_cast<boost::shared_ptr<TDataType>*>((i_pointer->second));
+                pValue = *static_cast<Kratos::shared_ptr<TDataType>*>((i_pointer->second));
         }
     }
 
@@ -281,7 +280,7 @@ public:
     }
 
     template<class TDataType>
-    void load(std::string const & rTag, boost::weak_ptr<TDataType>& pValue)
+    void load(std::string const & rTag, Kratos::weak_ptr<TDataType>& pValue)
     {
         // This is for testing. I have to change it. Pooyan.
         //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
@@ -453,7 +452,7 @@ public:
 
 
     template<class TDataType>
-    void save(std::string const & rTag, boost::shared_ptr<TDataType> pValue)
+    void save(std::string const & rTag, Kratos::shared_ptr<TDataType> pValue)
     {
         save(rTag, pValue.get());
     }
@@ -514,7 +513,7 @@ public:
     }
 
     template<class TDataType>
-    void save(std::string const & rTag, boost::weak_ptr<TDataType> pValue)
+    void save(std::string const & rTag, Kratos::weak_ptr<TDataType> pValue)
     {
         // This is for testing. I have to implement it. Pooyan.
         //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
@@ -530,7 +529,7 @@ public:
     }
 
     template<class TDataType>
-    void save(std::string const & rTag, boost::shared_ptr<const TDataType> pValue)
+    void save(std::string const & rTag, Kratos::shared_ptr<const TDataType> pValue)
     {
         // This is for testing. I have to change it. Pooyan.
 //          save_trace_point(rTag);

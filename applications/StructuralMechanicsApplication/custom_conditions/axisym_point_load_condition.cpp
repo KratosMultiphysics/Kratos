@@ -52,7 +52,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties 
         ) const
     {
-        return Condition::Pointer( new AxisymPointLoadCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+        return Kratos::make_shared<AxisymPointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************

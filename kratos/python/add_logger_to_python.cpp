@@ -16,7 +16,9 @@
 #include <boost/python/raw_function.hpp>
 
 // Project includes
+#include "includes/define.h"
 #include "input_output/logger.h"
+
 using namespace boost::python;
 
 namespace Kratos
@@ -63,7 +65,7 @@ object print(boost::python::tuple args, boost::python::dict kwargs) {
 void  AddLoggerToPython() {
 	using namespace boost::python;
 
-  class_<Logger, boost::shared_ptr<Logger>, boost::noncopyable>("Logger", no_init)
+  class_<Logger, Kratos::shared_ptr<Logger>, boost::noncopyable>("Logger", no_init)
   .def("Print", raw_function(print,1))
   .staticmethod("Print");
 }

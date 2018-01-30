@@ -43,8 +43,8 @@ namespace Kratos
 		PropertiesType::Pointer pProperties) const
 	{
 		const GeometryType& rGeom = this->GetGeometry();
-		return BaseType::Pointer(new CrBeamElement2D2N(
-			NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement));
+		return Kratos::make_shared<CrBeamElement2D2N>(
+            NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement);
 	}
 
 	CrBeamElement2D2N::~CrBeamElement2D2N() {}

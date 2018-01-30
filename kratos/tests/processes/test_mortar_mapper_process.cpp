@@ -29,7 +29,7 @@ namespace Kratos
     {
         typedef Node<3>                                                    NodeType;
 
-        void GiDIODebug(ModelPart& ThisModelPart)
+        void GiDIODebugMapper(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_MAPPER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditionsOnly);
             const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
@@ -90,7 +90,7 @@ namespace Kratos
             // Adding map
             IndexSet this_set;
             this_set.AddId(2);
-            p_cond_0->SetValue(INDEX_SET, boost::make_shared<IndexSet>(this_set));
+            p_cond_0->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
             
             // Setting flags
             // SLAVE
@@ -124,7 +124,7 @@ namespace Kratos
             process.Execute();
             
             // DEBUG         
-//             GiDIODebug(this_model_part);
+//             GiDIODebugMapper(this_model_part);
             
             const double tolerance = 1.0e-4;
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->X(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
@@ -183,7 +183,7 @@ namespace Kratos
             // Adding map
             IndexSet this_set;
             this_set.AddId(2);
-            p_cond_0->SetValue(INDEX_SET, boost::make_shared<IndexSet>(this_set));
+            p_cond_0->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set));
             
             // Setting flags
             // SLAVE
@@ -222,7 +222,7 @@ namespace Kratos
             process.Execute();
             
             // DEBUG         
-//             GiDIODebug(this_model_part);
+//             GiDIODebugMapper(this_model_part);
             
             const double tolerance = 1.0e-4;
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->X(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
@@ -295,8 +295,8 @@ namespace Kratos
             this_set0.AddId(4);
             this_set1.AddId(3);
             this_set1.AddId(4);
-            p_cond_0->SetValue(INDEX_SET, boost::make_shared<IndexSet>(this_set0));
-            p_cond_1->SetValue(INDEX_SET, boost::make_shared<IndexSet>(this_set1));
+            p_cond_0->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set0));
+            p_cond_1->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>(this_set1));
             
             // Setting flags
             // SLAVE
@@ -339,7 +339,7 @@ namespace Kratos
             process.Execute();
             
             // DEBUG         
-//             GiDIODebug(this_model_part);
+//             GiDIODebugMapper(this_model_part);
             
             const double tolerance = 1.0e-3;
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->Z(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
