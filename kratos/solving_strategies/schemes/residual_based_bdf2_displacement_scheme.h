@@ -52,9 +52,9 @@ namespace Kratos
  *      vn1 the velocity one step in the past
  *      vn2 the velocity two steps in the past
  * 
- *      un0 the displacemnt at the current step
- *      un1 the displacemnt one step in the past
- *      un2 the displacemnt two steps in the past
+ *      un0 the displacement at the current step
+ *      un1 the displacement one step in the past
+ *      un2 the displacement two steps in the past
  * 
  * Then we assume:
  *      d(vn0)/dt |tn0 = c0*vn0 + c1*vn1 + c2*vn2 
@@ -403,9 +403,9 @@ protected:
     /**
      * @brief Updating first time Derivative
      * @param vn0 the velocity at the current step
-     * @param un0 the displacemnt at the current step
-     * @param un1 the displacemnt one step in the past
-     * @param un2 the displacemnt two steps in the past
+     * @param un0 the displacement at the current step
+     * @param un1 the displacement one step in the past
+     * @param un2 the displacement two steps in the past
      */
     
     inline void UpdateVelocity(
