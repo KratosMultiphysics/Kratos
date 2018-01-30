@@ -110,7 +110,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
-            mp.ProcessInfo[KratosMultiphysics.TIME_STEPS] = step
+            mp.ProcessInfo[KratosMultiphysics.STEP] = step
 
             self.strategy.Solve()
             current_analytical_displacement_y = A * cos(omega*time)
@@ -158,7 +158,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
-            mp.ProcessInfo[KratosMultiphysics.TIME_STEPS] = step
+            mp.ProcessInfo[KratosMultiphysics.STEP] = step
 
             self.strategy.Solve()
             current_analytical_displacement_y += current_analytical_velocity_y * dt + 0.25 * (current_analytical_acceleration_y + gravity) * dt**2
