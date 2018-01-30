@@ -36,6 +36,7 @@ SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGe
 SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
         : BaseSolidElement( NewId, pGeometry, pProperties )
 {
+    //DO NOT ADD DOFS HERE!!!
 }
 
 /***********************************************************************************/

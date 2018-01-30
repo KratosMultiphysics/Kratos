@@ -25,7 +25,6 @@
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -45,11 +44,9 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Updated Lagrangian element for 2D and 3D geometries.
-
 /**
- * Implements a total Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 2D and 3D
+ * @brief Updated Lagrangian element for 2D and 3D geometries.
+ * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
  */
 
 class UpdatedLagrangian
@@ -87,35 +84,35 @@ public:
     ///@{
     
     /**
-     * Called to initialize the element.
+     * @brief Called to initialize the element.
      * Must be called before any calculation is done
      */
     void Initialize() override;
     
     /**
-     * Called at the beginning of each solution step
-     * @param rCurrentProcessInfo: the current process info instance
+     * @brief Called at the beginning of each solution step
+     * @param rCurrentProcessInfo the current process info instance
      */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
-     * Called at the end of eahc solution step
-     * @param rCurrentProcessInfo: the current process info instance
+     * @brief Called at the end of eahc solution step
+     * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
-     * Returns the currently selected integration method
+     * @brief Returns the currently selected integration method
+     * @todo ADD THE OTHER CREATE FUNCTION
      * @return current integration method selected
      */
-    //TODO: ADD THE OTHER CREATE FUNCTION
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
-     * Calculate a double Variable on the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rOutput: The values obtained int the integration points
-     * @param rCurrentProcessInfo: the current process info instance
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable, 
@@ -124,10 +121,10 @@ public:
         ) override;
 
     /**
-     * Calculate a Matrix Variable on the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rOutput: The values obtained int the integration points
-     * @param rCurrentProcessInfo: the current process info instance
+     * @brief Calculate a Matrix Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo The current process info instance
      */
     void CalculateOnIntegrationPoints(
         const Variable<Matrix >& rVariable, 
@@ -136,10 +133,10 @@ public:
         ) override;
     
      /**
-      * Set a double Value on the Element Constitutive Law
-      * @param rVariable: The variable we want to set
-      * @param rValues: The values to set in the integration points
-      * @param rCurrentProcessInfo: the current process info instance
+      * @brief Set a double Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
       */
     void SetValueOnIntegrationPoints(
         const Variable<double>& rVariable, 
@@ -148,10 +145,10 @@ public:
         ) override;
 
      /**
-      * Set a Matrix Value on the Element Constitutive Law
-      * @param rVariable: The variable we want to set
-      * @param rValues: The values to set in the integration points
-      * @param rCurrentProcessInfo: the current process info instance
+      * @brief Set a Matrix Value on the Element Constitutive Law
+      * @param rVariable The variable we want to set
+      * @param rValues The values to set in the integration points
+      * @param rCurrentProcessInfo the current process info instance
       */
     void SetValueOnIntegrationPoints(
         const Variable<Matrix>& rVariable, 
@@ -160,10 +157,10 @@ public:
         ) override;
 
     /**
-     * Get on rVariable a double Value from the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rValues: The results in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
+     * @brief Get on rVariable a double Value from the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
      */
     void GetValueOnIntegrationPoints(
         const Variable<double>& rVariable, 
@@ -172,10 +169,10 @@ public:
         ) override;
 
     /**
-     * Get on rVariable a Matrix Value from the Element Constitutive Law
-     * @param rVariable: The variable we want to get
-     * @param rValues: The results in the integration points
-     * @param rCurrentProcessInfo: the current process info instance
+     * @brief Get on rVariable a Matrix Value from the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rValues The results in the integration points
+     * @param rCurrentProcessInfo the current process info instance
      */
     void GetValueOnIntegrationPoints(
         const Variable<Matrix>& rVariable, 
@@ -184,11 +181,11 @@ public:
         ) override;
     
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
-     * @param rCurrentProcessInfo
+     * @param rCurrentProcessInfo The current process info instance
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -245,9 +242,9 @@ protected:
     ConstitutiveLaw::StressMeasure GetStressMeasure() const override;
     
     /**
-     * It updates the historical database
-     * @param rThisKinematicVariables: The kinematic variables to be calculated 
-     * @param PointNumber: The integration point considered
+     * @brief It updates the historical database
+     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param PointNumber The integration point considered
      */ 
     void UpdateHistoricalDatabase(
         KinematicVariables& rThisKinematicVariables,
@@ -255,12 +252,12 @@ protected:
         );
         
     /**
-     * This functions calculates both the RHS and the LHS
-     * @param rLeftHandSideMatrix: The LHS
-     * @param rRightHandSideVector: The RHS
-     * @param rCurrentProcessInfo: The current process info instance
-     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
-     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+     * @brief This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix The LHS
+     * @param rRightHandSideVector The RHS
+     * @param rCurrentProcessInfo The current process info instance
+     * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix, 
@@ -271,9 +268,9 @@ protected:
         ) override;
         
     /**
-     * This functions updates the kinematics variables
-     * @param rThisKinematicVariables: The kinematic variables to be calculated 
-     * @param PointNumber: The integration point considered
+     * @brief This functions updates the kinematics variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param PointNumber The integration point considered
      */ 
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
@@ -282,14 +279,14 @@ protected:
         ) override;
         
      /**
-     * This functions updates the constitutive variables
-     * @param rThisKinematicVariables: The kinematic variables to be calculated 
-     * @param rThisConstitutiveVariables: The constitutive variables
-     * @param rValues: The CL parameters
-     * @param PointNumber: The integration point considered
-     * @param IntegrationPoints: The list of integration points
-     * @param ThisStressMeasure: The stress measure considered
-     * @param Displacements: The displacements vector
+     * @brief This functions updates the constitutive variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     * @param ThisStressMeasure The stress measure considered
+     * @param Displacements The displacements vector
      */ 
     void CalculateConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables, 
@@ -302,7 +299,13 @@ protected:
         ) override;
     
     /**
-     * This functions calculate the derivatives in the reference frame
+     * @brief This functions calculate the derivatives in the reference frame
+     * @param J0 The jacobian in the reference configuration
+     * @param InvJ0 The inverse of the jacobian in the reference configuration
+     * @param DN_DX The gradient derivative of the shape function
+     * @param PointNumber The id of the integration point considered
+     * @param ThisIntegrationMethod The integration method considered
+     * @return The determinant of the jacobian in the reference configuration
      */ 
     double CalculateDerivativesOnReferenceConfiguration(
         Matrix& J0, 
@@ -337,17 +340,18 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-    void CalculateBodyForces(
-        Vector& BodyForce,
-        const ProcessInfo& CurrentProcessInfo
-        );
-
-    void InitializeVariables();
     
+    /**
+     * @brief This method computes the deformation matrix B
+     * @param rB The deformation matrix
+     * @param rDN_DX The gradient derivative of the shape function
+     * @param StrainSize The size of the Voigt notation stress vector
+     * @param IntegrationPoints The array containing the integration points
+     * @param PointNumber The integration point considered
+     */
     void CalculateB(
-        Matrix& B,
-        const Matrix& DN_DX,
+        Matrix& rB,
+        const Matrix& rDN_DX,
         const unsigned int StrainSize,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const unsigned int PointNumber
@@ -355,14 +359,14 @@ private:
     
     /**
      * It returns the reference configuration deformation gradient determinant
-     * @param PointNumber: The integration point considered
+     * @param PointNumber The integration point considered
      * @return The reference configuration deformation gradient determinant
      */
     double ReferenceConfigurationDeformationGradientDeterminant(const unsigned PointNumber) const;
     
     /**
      * It returns the reference configuration deformation gradient
-     * @param PointNumber: The integration point considered
+     * @param PointNumber The integration point considered
      * @return The reference configuration deformation gradient
      */
     Matrix ReferenceConfigurationDeformationGradient(const unsigned PointNumber) const;
