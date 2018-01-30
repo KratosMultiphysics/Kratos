@@ -315,14 +315,14 @@ public:
     }
 
 
-    // Kratos::shared_ptr< Geometry< Point<3> > > Clone() const override
+    // boost::shared_ptr< Geometry< Point<3> > > Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
 
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -400,7 +400,7 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    double Area() const override
+    double Area() const override 
     {
         const double a = MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1));
         const double b = MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2));
@@ -425,7 +425,7 @@ public:
      * :TODO: could be replaced by something more suitable
      * (comment by janosch)
      */
-    double DomainSize() const override
+    double DomainSize() const override 
     {
         return Area();
     }
@@ -440,7 +440,7 @@ public:
      * @see MaxEdgeLength()
      * @see AverageEdgeLength()
      */
-    double MinEdgeLength() const override
+    double MinEdgeLength() const override 
     {
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
@@ -461,7 +461,7 @@ public:
      * @see MinEdgeLength()
      * @see AverageEdgeLength()
      */
-    double MaxEdgeLength() const override
+    double MaxEdgeLength() const override 
     {
         const array_1d<double, 3> a = this->GetPoint(0) - this->GetPoint(1);
         const array_1d<double, 3> b = this->GetPoint(1) - this->GetPoint(2);
@@ -482,7 +482,7 @@ public:
      * @see MinEdgeLength()
      * @see MaxEdgeLength()
      */
-    double AverageEdgeLength() const override
+    double AverageEdgeLength() const override 
     {
         return CalculateAvgEdgeLength(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
@@ -498,7 +498,7 @@ public:
      *
      * @see Inradius()
      */
-    double Circumradius() const override
+    double Circumradius() const override 
     {
         return CalculateCircumradius(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
@@ -514,7 +514,7 @@ public:
      *
      * @see Circumradius()
      */
-    double Inradius() const override
+    double Inradius() const override 
     {
         return CalculateInradius(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
@@ -524,10 +524,10 @@ public:
     }
 
 
-	bool AllSameSide(array_1d<double, 3> const& Distances)
+	bool AllSameSide(array_1d<double, 3> const& Distances) 
     {
         constexpr double epsilon = std::numeric_limits<double>::epsilon();
-
+        
         // put U0,U1,U2 into plane equation 1 to compute signed distances to the plane//
         double du0 = Distances[0];
         double du1 = Distances[1];
@@ -548,13 +548,13 @@ public:
 
 	}
 
-	int GetMajorAxis(array_1d<double, 3> const& V)
+	int GetMajorAxis(array_1d<double, 3> const& V) 
     {
         int index = static_cast<int>(std::abs(V[0]) < std::abs(V[1]));
         return (std::abs(V[index]) > std::abs(V[2])) ? index : 2;
 	}
 
-	bool HasIntersection(const GeometryType& ThisGeometry) override
+	bool HasIntersection(const GeometryType& ThisGeometry) override 
 	{
         // Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/opttritri.txt
         // and the article "A Fast Triangle-Triangle Intersection Test", Journal of Graphics Tools, 2(2), 1997:
@@ -630,29 +630,29 @@ public:
 
     /**
      * Check if an axis-aliged bounding box (AABB) intersects a triangle
-     *
+     * 
      * Based on code develop by Moller: http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox3.txt
      * and the article "A Fast Triangle-Triangle Intersection Test", SIGGRAPH '05 ACM, Art.8, 2005:
      * http://fileadmin.cs.lth.se/cs/personal/tomas_akenine-moller/code/tribox_tam.pdf
-     *
+     * 
      * @return bool if the triangle overlaps a box
      * @param rLowPoint first corner of the box
      * @param rHighPoint second corner of the box
      */
     bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint) override
     {
-        Point box_center;
-        Point box_half_size;
+        Point boxcenter;
+        Point boxhalfsize;
 
-        box_center[0] = 0.5 * (rLowPoint[0] + rHighPoint[0]);
-        box_center[1] = 0.5 * (rLowPoint[1] + rHighPoint[1]);
-        box_center[2] = 0.5 * (rLowPoint[2] + rHighPoint[2]);
+        boxcenter[0]   = 0.5 * (rLowPoint[0] + rHighPoint[0]);
+        boxcenter[1]   = 0.5 * (rLowPoint[1] + rHighPoint[1]);
+        boxcenter[2]   = 0.5 * (rLowPoint[2] + rHighPoint[2]);
 
-        box_half_size[0] = 0.5 * std::abs(rHighPoint[0] - rLowPoint[0]);
-        box_half_size[1] = 0.5 * std::abs(rHighPoint[1] - rLowPoint[1]);
-        box_half_size[2] = 0.5 * std::abs(rHighPoint[2] - rLowPoint[2]);
+        boxhalfsize[0] = 0.5 * (rHighPoint[0] - rLowPoint[0]);
+        boxhalfsize[1] = 0.5 * (rHighPoint[1] - rLowPoint[1]);
+        boxhalfsize[2] = 0.5 * (rHighPoint[2] - rLowPoint[2]);
 
-        return TriBoxOverlap(box_center, box_half_size);
+        return TriBoxOverlap(boxcenter, boxhalfsize);
     }
 
     /// Quality functions
@@ -663,11 +663,11 @@ public:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * @formulae $$ \frac{r_K}{\rho_K} $$
+     * @formulae $$ \frac{r_K}{\ro_K} $$
      *
      * @return The inradius to circumradius quality metric.
      */
-    double InradiusToCircumradiusQuality() const override
+    double InradiusToCircumradiusQuality() const override 
     {
         constexpr double normFactor = 1.0;
 
@@ -688,7 +688,7 @@ public:
      *
      * @return The inradius to longest edge quality metric.
      */
-    double InradiusToLongestEdgeQuality() const override
+    double InradiusToLongestEdgeQuality() const override 
     {
         constexpr double normFactor = 1.0; // TODO: This normalization coeficient is not correct.
 
@@ -714,7 +714,7 @@ public:
      *
      * @return The Inradius to Circumradius Quality metric.
      */
-    double AreaToEdgeLengthRatio() const override
+    double AreaToEdgeLengthRatio() const override 
     {
         constexpr double normFactor = 1.0;
 
@@ -789,7 +789,7 @@ public:
      *
      * @return The shortest altitude to edge length quality metric.
      */
-    virtual double ShortestAltitudeToLongestEdge() const
+    virtual double ShortestAltitudeToLongestEdge() const 
     {
         constexpr double normFactor = 1.0;
 
@@ -808,33 +808,33 @@ public:
     }
 
     /**
-     * It computes the area normal of the geometry
-     * @param rPointLocalCoordinates Local coordinates of the point
-     * in where the area normal is to be computed
-     * @return The area normal in the given point
+     * It computes the unit normal of the geometry, if possible
+     * @return The normal of the geometry
      */
     array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const override
     {
         const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
         const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
-
+        
         array_1d<double, 3> normal;
         MathUtils<double>::CrossProduct(normal, tangent_xi, tangent_eta);
-
-        return 0.5 * normal;
+	const double norm_normal = norm_2(normal);
+	if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
+	else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
+        return normal;
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective
+     * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
      * @param rPoint: The point to be checked if is inside o note in global coordinates
      * @param rResult: The local coordinates of the point
      * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    bool IsInside(
-        const CoordinatesArrayType& rPoint,
-        CoordinatesArrayType& rResult,
+    bool IsInside( 
+        const CoordinatesArrayType& rPoint, 
+        CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
@@ -853,16 +853,16 @@ public:
 
         return false;
     }
-
+    
     /**
      * Returns the local coordinates of a given arbitrary point
      * @param rResult: The vector containing the local coordinates of the point
      * @param rPoint: The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    CoordinatesArrayType& PointLocalCoordinates(
+    CoordinatesArrayType& PointLocalCoordinates( 
         CoordinatesArrayType& rResult,
-        const CoordinatesArrayType& rPoint
+        const CoordinatesArrayType& rPoint 
         ) override
     {
         boost::numeric::ublas::bounded_matrix<double,3,3> X;
@@ -1268,9 +1268,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
 
@@ -2132,8 +2132,10 @@ private:
 		return false;
 	}
 
+//*************************************************************************************
+//*************************************************************************************
 
-    /**
+    /** 
      * @see HasIntersection
      * use separating axis theorem to test overlap between triangle and box
      * need to test for overlap in these directions:
@@ -2163,23 +2165,23 @@ private:
         abs_ex = std::abs(edge0[0]);
         abs_ey = std::abs(edge0[1]);
         abs_ez = std::abs(edge0[2]);
-        if (AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
-        if (AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
-        if (AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
+        if (!AxisTestX(edge0[1],edge0[2],abs_ey,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (!AxisTestY(edge0[0],edge0[2],abs_ex,abs_ez,vert0,vert2,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge1[0]);
         abs_ey = std::abs(edge1[1]);
         abs_ez = std::abs(edge1[2]);
-        if (AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
-        if (AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
-        if (AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
+        if (!AxisTestX(edge1[1],edge1[2],abs_ey,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (!AxisTestY(edge1[0],edge1[2],abs_ex,abs_ez,vert1,vert0,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge2[0]);
         abs_ey = std::abs(edge2[1]);
         abs_ez = std::abs(edge2[2]);
-        if (AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
-        if (AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
-        if (AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
+        if (!AxisTestX(edge2[1],edge2[2],abs_ey,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (!AxisTestY(edge2[0],edge2[2],abs_ex,abs_ez,vert2,vert1,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
 
         // Bullet 1:
         //  first test overlap in the {x,y,z}-directions
@@ -2205,19 +2207,19 @@ private:
         MathUtils<double>::CrossProduct(normal, edge0, edge1);
         distance = -inner_prod(normal, vert0);
         if(!PlaneBoxOverlap(normal, distance, rBoxHalfSize)) return false;
-
+        
         return true;  // box and triangle overlaps
     }
 
     /**
      * Check if a plane intersects a box
      * @see TriBoxOverlap
-     *
+     * 
      * @return bool intersection flagg
      * @param rNormal the plane normal
      * @param rDist   distance to origin
      * @param rMaxBox box corner from the origin
-     *
+     * 
      * plane equation: rNormal*x+rDist=0
      */
     bool PlaneBoxOverlap(const array_1d<double,3>& rNormal, const double& rDist, const array_1d<double,3>& rMaxBox)
@@ -2238,12 +2240,12 @@ private:
         }
         if(inner_prod(rNormal, vmin) + rDist >  0.00) return false;
         if(inner_prod(rNormal, vmax) + rDist >= 0.00) return true;
-
+        
         return false;
     }
 
     /** AxisTestX
-     * This method returns true if there is a separating axis
+     * This method return true if there is a separating axis
      * 
      * @param rEdgeY, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
@@ -2265,12 +2267,12 @@ private:
 
         rad = rAbsEdgeZ*rBoxHalfSize[1] + rAbsEdgeY*rBoxHalfSize[2];
 
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
+        if(min_max.first>rad || min_max.second<-rad) return false;
+        else return true;
     }
 
     /** AxisTestY
-     * This method returns true if there is a separating axis
+     * This method return true if there is a separating axis
      * 
      * @param rEdgeX, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
@@ -2292,12 +2294,12 @@ private:
 
         rad = rAbsEdgeZ*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[2];
 
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
+        if(min_max.first>rad || min_max.second<-rad) return false;
+        else return true;
     }
 
     /** AxisTestZ
-     * This method returns true if there is a separating axis
+     * This method return true if there is a separating axis
      * 
      * @param rEdgeX, rEdgeY: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
@@ -2306,10 +2308,10 @@ private:
      * @param rVertC: i+2 vertex
      * @param rBoxHalfSize
      */
-    bool AxisTestZ(double& rEdgeX, double& rEdgeY,
+    bool AxisTestZ(double& rEdgeX, double& rEdgeY, 
                    double& rAbsEdgeX, double& rAbsEdgeY,
-                   array_1d<double,3>& rVertA,
-                   array_1d<double,3>& rVertC,
+                   array_1d<double,3>& rVertA, 
+                   array_1d<double,3>& rVertC, 
                    Point& rBoxHalfSize)
     {
         double proj_a, proj_c, rad;
@@ -2319,8 +2321,8 @@ private:
 
         rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
 
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
+        if(min_max.first>rad || min_max.second<-rad) return false;
+        else return true;
     }
 
 

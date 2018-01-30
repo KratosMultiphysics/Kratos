@@ -15,8 +15,6 @@ namespace Kratos
   ///@{
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
-  typedef VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >   VariableComponentType;
-  typedef TimeIntegrationMethod<VariableComponentType, double>     TimeIntegrationMethodComponentType;
   ///@}
 
   ///@name Kratos Globals
@@ -30,8 +28,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Matrix , EIGENVECTOR_MATRIX )
 
   //explicit schemes
-  KRATOS_CREATE_VARIABLE( TimeIntegrationMethodComponentType::Pointer, TIME_INTEGRATION_METHOD )
-  KRATOS_CREATE_VARIABLE( TimeIntegrationMethodComponentType::Pointer, ANGULAR_TIME_INTEGRATION_METHOD )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
   //solution
@@ -79,7 +75,6 @@ namespace Kratos
 
   KRATOS_CREATE_VARIABLE( double, PLANE_POINT_MOMENT )
   KRATOS_CREATE_VARIABLE( double, PLANE_LINE_MOMENT )
-  KRATOS_CREATE_VARIABLE( double, BALLAST_COEFFICIENT )
   
   //nodal elastic variables
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( POINT_STIFFNESS )
@@ -105,7 +100,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( Vector, POINT_STIFFNESS_VECTOR )
   KRATOS_CREATE_VARIABLE( Vector, LINE_STIFFNESS_VECTOR )
   KRATOS_CREATE_VARIABLE( Vector, SURFACE_STIFFNESS_VECTOR )
-  KRATOS_CREATE_VARIABLE( Vector, BALLAST_COEFFICIENT_VECTOR )
   
   //element
   KRATOS_CREATE_VARIABLE( double, VON_MISES_STRESS )

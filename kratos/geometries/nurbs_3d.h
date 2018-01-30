@@ -219,18 +219,18 @@ public:
      * A constructor which reads in a NURBS-Element.
      * The needed information to identify a NURBS element are:
      *
-     * @param ControlPoints A PointerVector of pointers to node<3>, which contain x-y-z- coordinate of each Control Point
-     * @param Weights A Vector which stores each weight of the Control Point (same order as in PointerVector ControlPoints)
-     * @param KnotsXi A Vector of doubles which contains the Knot Vector in Xi- direction
-     * @param KnotsEta A Vector of doubles which contains the Knot Vector in Eta- direction
-     * @param p A Double which is the polynomial degree in Xi- direction
-     * @param q A Double which is the polynomial degree in Eta- direction
-     * @param NumberOfCpXi Number of Control Points in Xi- direction
-     * @param NumberOfCpEta Number of Control Points in Eta- direction
-     * @param LowerElementBoundaryXi Lowest possible value of Xi for the element
-     * @param HigherElementBoundaryXi Highest possible value of Xi for the element
-     * @param LowerElementBoundaryEta Lowest possible value of Eta for the element
-     * @param HigherElementBoundarEta Highest possible value of Eta for the element
+     * @param ControlPoints: A PointerVector of pointers to node<3>, which contain x-y-z- coordinate of each Control Point
+     * @param Weights: A Vector which stores each weight of the Control Point (same order as in PointerVector ControlPoints)
+     * @param KnotsXi: A Vector of doubles which contains the Knot Vector in Xi- direction
+     * @param KnotsEta: A Vector of doubles which contains the Knot Vector in Eta- direction
+     * @param p: A Double which is the polynomial degree in Xi- direction
+     * @param q: A Double which is the polynomial degree in Eta- direction
+     * @param NumberOfCpXi: Number of Control Points in Xi- direction
+     * @param NumberOfCpEta: Number of Control Points in Eta- direction
+     * @param LowerElementBoundaryXi: Lowest possible value of Xi for the element
+     * @param HigherElementBoundaryXi: Highest possible value of Xi for the element
+     * @param LowerElementBoundaryEta: Lowest possible value of Eta for the element
+     * @param HigherElementBoundarEta: Highest possible value of Eta for the element
      *
      * @note: Elements in the frame of IGA are defined on knot spans (meaning to consecutive knots which have different values)
      *
@@ -264,14 +264,14 @@ public:
      * A constructor which reads in a NURBS-patch.
      * The needed information to identify a NURBS patch are:
      *
-     * @param ControlPoints A PointerVector of pointers to node<3>, which contain x-y-z- coordinate of each Control Point
-     * @param Weights A Vector which stores each weight of the Control Point (same order as in PointerVector ControlPoints)
-     * @param KnotsXi A Vector of doubles which contains the Knot Vector in Xi- direction
-     * @param KnotsEta A Vector of doubles which contains the Knot Vector in Eta- direction
-     * @param p A Double which is the polynomial degree in Xi- direction
-     * @param q A Double which is the polynomial degree in Eta- direction
-     * @param NumberOfCpXi Number of Control Points in Xi- direction
-     * @param NumberOfCpEta Number of Control Points in Eta- direction
+     * @param ControlPoints: A PointerVector of pointers to node<3>, which contain x-y-z- coordinate of each Control Point
+     * @param Weights: A Vector which stores each weight of the Control Point (same order as in PointerVector ControlPoints)
+     * @param KnotsXi: A Vector of doubles which contains the Knot Vector in Xi- direction
+     * @param KnotsEta: A Vector of doubles which contains the Knot Vector in Eta- direction
+     * @param p: A Double which is the polynomial degree in Xi- direction
+     * @param q: A Double which is the polynomial degree in Eta- direction
+     * @param NumberOfCpXi: Number of Control Points in Xi- direction
+     * @param NumberOfCpEta: Number of Control Points in Eta- direction
      *
      * @note:   As the same class for elements and patches is used, the number of elements will be initialized to 1
      *          but once calling NurbsPatchGeometry3D::DefineGeometries() the number of elements will be set to the
@@ -552,10 +552,10 @@ public:
      * TODO: implemented but not yet tested
      */
     /**
-    * Jacobian in given point. This method calculate jacobian
-    * matrix in given point.
-    *
-    * @param rPoint point which jacobians has to
+       * Jacobian in given point. This method calculate jacobian
+       * matrix in given point.
+       *
+       * @param rPoint point which jacobians has to
     * be calculated in it.
     *
     * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
@@ -795,8 +795,8 @@ public:
      * This is a function which will be used to transform a c-array to a Kratos::Vector.
      * Will be needed to use the OpenNURBS library (wrapper)
      *
-     * @param array specifies which array will be transformed
-     * @param size size of the array
+     * @param array: specifies which array will be transformed
+     * @param size: size of the array
      * @return: Vector which contains the same information as the array passed to this function
      */
 
@@ -907,8 +907,8 @@ public:
 
     /**
      * ShapeFunctionsValues: Will compute all shape functions values at all Gauss Points
-     * @param ThisMethod Specifies which Gauss Scheme is used
-     * @return  The Shape Functions Values will be stored in a Matrix \f$ F_{ij} \f$ where
+     * @param ThisMethod: Specifies which Gauss Scheme is used
+     * @return  The Shape Functions Values will be stored in a Matrix \f$ F_i_j \f$ where
      *          i is the given integration point index of the integration method and j defines
      *          the shape function index.
      */
@@ -951,9 +951,9 @@ public:
     /**
      * @brief ShapeFunctionsValues: Computes the potentially non-zero shape functions values
      *          at a given point in the local parameter space
-     * @param rResult Vector which will be filled with the shape functions values
-     * @param Xi Xi-Coordinate in the local parameter space where the shape functions will be evaluated
-     * @param Eta Eta-Coordinate in the local parameter space where the shape functions will be evaluated
+     * @param rResult: Vector which will be filled with the shape functions values
+     * @param Xi: Xi-Coordinate in the local parameter space where the shape functions will be evaluated
+     * @param Eta: Eta-Coordinate in the local parameter space where the shape functions will be evaluated
      * @return Vector of doubles where F_i provides the value of the i-th shape function
      *
      * @note: Potentially at a B-Spline/NURBS Basis Function (p+1) shape functions are unequal to 0. As
@@ -1166,7 +1166,7 @@ public:
      * derivatives in a knot span. Furthermore the upper and lower limits for the Xi- and
      * Eta-values are stored.
      *
-     * @param GeometryContainer a container which holds all created geometries.
+     * @param GeometryContainer: a container which holds all created geometries.
      */
     void DefineGeometries(std::vector< Geometry< Node<3> >::Pointer>& GeometryContainer)
     {
@@ -1265,8 +1265,8 @@ public:
      * FindGeometryId: This function will provide the id of the geometry corresponding to an arbitrary
      * Xi and Eta combination.
      *
-     * @param Xi Value of the Xi- coordinate for which the right geometry is searched
-     * @param Eta Value of the Eta- coordinate for which the right geometry is searched
+     * @param Xi: Value of the Xi- coordinate for which the right geometry is searched
+     * @param Eta: Value of the Eta- coordinate for which the right geometry is searched
      * @return: Integer which gives the correct Id to the searched geometry.
      */
 
@@ -1318,8 +1318,8 @@ public:
     /**
      * @brief GeometryConvertToGlobalCoordinates will return the global coordinates
      * of a point in the parameter space
-     * @param LocalCoordinates Provides the local coordinates of the point
-     * @param GlobalCoordinates Provides the global coordinates of the point
+     * @param LocalCoordinates: Provides the local coordinates of the point
+     * @param GlobalCoordinates: Provides the global coordinates of the point
      * @return: GlobalCoordinates
      */
     CoordinatesArrayType& GeometryConvertToGlobalCoordinates(CoordinatesArrayType &LocalCoordinates,
@@ -1351,10 +1351,10 @@ public:
      * @brief BaseVectors: Will compute the base vectors of a NURBS-surface at a given
      * point in local coordinates.
      *
-     * @param Xi Local Xi-coordinate
-     * @param Eta Local Eta-coordinate
-     * @param gXi Vector for the base vector in Xi-direction
-     * @param gEta Vector for the base vector in Eta-direction
+     * @param Xi: Local Xi-coordinate
+     * @param Eta: Local Eta-coordinate
+     * @param gXi: Vector for the base vector in Xi-direction
+     * @param gEta: Vector for the base vector in Eta-direction
      */
 
     void BaseVectors(double Xi, double Eta, Vector &gXi, Vector &gEta) const
@@ -1392,8 +1392,8 @@ public:
      * @brief NormalVectorToNurbsSurface: Will calculate the normal vector of a NURBS-surface
      * at a given point in local coordinates
      *
-     * @param Xi Local Xi-coordinate
-     * @param Eta Local Eta-coordinate
+     * @param Xi: Local Xi-coordinate
+     * @param Eta: Local Eta-coordinate
      * @return: 3D-Vector which contains the normal vector
      */
 
@@ -1401,10 +1401,7 @@ public:
     {
         Vector gXi,gEta;
         BaseVectors(Xi,Eta,gXi,gEta);
-        Vector Normal;
-
-        MathUtils<double>::UnitCrossProduct(Normal, gEta, gXi);
-
+        Vector Normal = MathUtils<double>::UnitCrossProduct(gXi,gEta);
         return Normal;
     }
 
@@ -1654,10 +1651,10 @@ private:
     /**
      * @brief FindKnotSpan returns the id of the knot which is the lower knot value of the knot span in which the searched Xi/Eta
      * value lies in.
-     * @param n n = m - p - 1 with m = size of the knot vector; p = polynomial degree
-     * @param p polynomial degree
-     * @param u Xi/Eta Value for which the id of the knot span shall be deduced
-     * @param Knots Regarded Knot Vector (either Xi- or Eta-direction)
+     * @param n: n = m - p - 1 with m = size of the knot vector; p = polynomial degree
+     * @param p: polynomial degree
+     * @param u: Xi/Eta Value for which the id of the knot span shall be deduced
+     * @param Knots: Regarded Knot Vector (either Xi- or Eta-direction)
      * @return int which deduces the id of the knot span
      */
     int FindKnotSpan(int n,
@@ -1685,10 +1682,10 @@ private:
     /**
      * @brief FindKnotsToEvaluate: Function to get all Knots which are needed for calculation of the shape functions
      * at a specific point in the parameter space
-     * @param d polynomial degree
-     * @param t Xi/Eta- Position for which the reduced Knot Vector is needed
-     * @param dimension either 1 (Xi-direction) or 2 (Eta-direction)
-     * @param knots c-array which after calling the function contains the desired knot values
+     * @param d: polynomial degree
+     * @param t: Xi/Eta- Position for which the reduced Knot Vector is needed
+     * @param dimension: either 1 (Xi-direction) or 2 (Eta-direction)
+     * @param knots: c-array which after calling the function contains the desired knot values
      * @return the index of the knot which is the lower knot value of the knot span in which the searched Xi/Eta
      * value lies in.
      */
@@ -1765,11 +1762,11 @@ private:
      * F_2_0 = dz/dXi
      * F_2_1 = dz/dEta
      *
-     * @param Xi Local Xi- Coordinate where the derivatives shall be evaluated
-     * @param Eta Local Eta- Coordinate where the derivatives shall be evaluated
-     * @param NurbsBasisFunctionDerivativesXi will contain the NURBS-Basis Functions Xi-Derivatives
-     * @param NurbsBasisFunctionDerivativesEta will contain the NURBS-Basis Functions Eta-Derivatives
-     * @param NurbsFunctionsValues will contain the NURBS-Basis Functions Values
+     * @param Xi: Local Xi- Coordinate where the derivatives shall be evaluated
+     * @param Eta: Local Eta- Coordinate where the derivatives shall be evaluated
+     * @param NurbsBasisFunctionDerivativesXi: will contain the NURBS-Basis Functions Xi-Derivatives
+     * @param NurbsBasisFunctionDerivativesEta: will contain the NURBS-Basis Functions Eta-Derivatives
+     * @param NurbsFunctionsValues: will contain the NURBS-Basis Functions Values
      * @return: Local derivatives of x and y.
      *
      * @note: The NurbsBasisFunctionDerivativesXi/Eta R_i_j are the NURBS local derivatives.
@@ -1866,10 +1863,10 @@ private:
      * F_1_0 = dy/dXi
      * F_1_1 = dy/dEta
      *
-     * @param Xi Local Xi- Coordinate where the derivatives shall be evaluated
-     * @param Eta Local Eta- Coordinate where the derivatives shall be evaluated
-     * @param NurbsBasisFunctionDerivativesXi will contain the NURBS-Basis Functions Xi-Derivatives
-     * @param NurbsBasisFunctionDerivativesEta will contain the NURBS-Basis Functions Eta-Derivatives
+     * @param Xi: Local Xi- Coordinate where the derivatives shall be evaluated
+     * @param Eta: Local Eta- Coordinate where the derivatives shall be evaluated
+     * @param NurbsBasisFunctionDerivativesXi: will contain the NURBS-Basis Functions Xi-Derivatives
+     * @param NurbsBasisFunctionDerivativesEta: will contain the NURBS-Basis Functions Eta-Derivatives
      * @return: Local derivatives of x and y.
      *
      * @note: The NurbsBasisFunctionDerivativesXi/Eta R_i_j are the NURBS local derivatives.
@@ -1905,8 +1902,8 @@ private:
      * F_1_0 = dy/dXi
      * F_1_1 = dy/dEta
      *
-     * @param Xi Local Xi- Coordinate where the derivatives shall be evaluated
-     * @param Eta Local Eta- Coordinate where the derivatives shall be evaluated
+     * @param Xi: Local Xi- Coordinate where the derivatives shall be evaluated
+     * @param Eta: Local Eta- Coordinate where the derivatives shall be evaluated
      * @return: Local derivatives of x and y.
      */
 

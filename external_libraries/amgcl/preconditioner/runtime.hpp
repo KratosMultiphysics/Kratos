@@ -78,8 +78,7 @@ inline std::istream& operator>>(std::istream &in, type &p)
     else if (val == "nested")
         p = nested;
     else
-        throw std::invalid_argument("Invalid preconditioner class. Valid choices are: "
-                "amg, relaxation, dummy, nested");
+        throw std::invalid_argument("Invalid preconditioner class");
 
     return in;
 }

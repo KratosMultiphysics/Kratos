@@ -60,9 +60,7 @@ public:
     {
         array_1d<double, 3> edge1 = p1 - p0;
         array_1d<double, 3> edge2 = p2 - p0;
-
-        MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
-
+        mNormal   =  MathUtils<double>::UnitCrossProduct(edge1,edge2);
         mConstant =  inner_prod(mNormal, p0);
     }
 
@@ -71,9 +69,7 @@ public:
     {
         array_1d<double, 3> edge1 = p1 - p0;
         array_1d<double, 3> edge2 = p2 - p0;
-
-        MathUtils<double>::UnitCrossProduct(mNormal, edge1, edge2);
-
+        mNormal   =  MathUtils<double>::UnitCrossProduct(edge1,edge2);
         mConstant =  inner_prod(mNormal, p0);
     }
 

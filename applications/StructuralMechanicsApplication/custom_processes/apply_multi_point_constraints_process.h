@@ -49,7 +49,7 @@ class ApplyMultipointConstraintsProcess : public Process
     typedef unsigned int IndexType;
     typedef std::vector<MpcDataPointerType> *MpcDataPointerVectorType;
     typedef MpcData::VariableType VariableType;
-    typedef Kratos::shared_ptr<std::vector<MpcDataPointerType>> MpcDataSharedPointerVectorType;
+    typedef boost::shared_ptr<std::vector<MpcDataPointerType>> MpcDataSharedPointerVectorType;
     typedef ModelPart::NodeIterator NodeIterator;
 
     /// Constructor.

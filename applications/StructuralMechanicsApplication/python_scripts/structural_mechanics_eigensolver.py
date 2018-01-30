@@ -1,16 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-# Importing the Kratos Library
 import KratosMultiphysics
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
-# Import applications
+import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
-# Import base class file
 import structural_mechanics_solver
+
+# Check that KratosMultiphysics was imported in the main script
+KratosMultiphysics.CheckForPreviousImport()
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -21,6 +16,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
     """The structural mechanics eigen solver.
 
     This class creates the mechanical solvers for eigenvalue analysis.
+    It currently supports the Feast solver.
 
     Public member variables:
     eigensolver_settings -- settings for the eigenvalue solvers.
@@ -28,23 +24,32 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
     See structural_mechanics_solver.py for more information.
     """
     def __init__(self, main_model_part, custom_settings):
-        # Validation of eigensolver_settings is done in the eigenvalue solvers
-        self.eigensolver_settings = custom_settings["eigensolver_settings"]
-
-        # Validate the remaining settings in the base class.
-        structural_settings = custom_settings.Clone()
-        structural_settings.RemoveValue("eigensolver_settings")
-        
-        self.structural_eigensolver_settings = KratosMultiphysics.Parameters("""
+        # Set defaults and validate custom settings.
+        eigensolver_settings = KratosMultiphysics.Parameters("""
         {
-            "scheme_type"   : "dynamic"
+            "eigensolver_settings" : {
+                "solver_type": "FEAST",
+                "print_feast_output": true,
+                "perform_stochastic_estimate": true,
+                "solve_eigenvalue_problem": true,
+                "lambda_min": 0.0,
+                "lambda_max": 1.0,
+                "search_dimension": 10,
+                "linear_solver_settings": {
+                    "solver_type": "skyline_lu"
+                }
+            }
         }
         """)
-        self.validate_and_transfer_matching_settings(structural_settings, self.structural_eigensolver_settings)
+        self.validate_and_transfer_matching_settings(custom_settings, eigensolver_settings)
+        self.eigensolver_settings = eigensolver_settings["eigensolver_settings"]
         # Validate the remaining settings in the base class.
+        if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
+            custom_settings.AddEmptyValue("scheme_type")
+            custom_settings["scheme_type"].SetString("dynamic")
         
         # Construct the base solver.
-        super(EigenSolver, self).__init__(main_model_part, structural_settings)
+        super(EigenSolver, self).__init__(main_model_part, custom_settings)
         print("::[EigenSolver]:: Construction finished")
 
     #### Private functions ####
@@ -55,7 +60,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         The scheme determines the left- and right-hand side matrices in the
         generalized eigenvalue problem. 
         """
-        scheme_type = self.structural_eigensolver_settings["scheme_type"].GetString()
+        scheme_type = self.settings["scheme_type"].GetString()
         if scheme_type == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else: # here e.g. a stability scheme could be added

@@ -112,9 +112,6 @@ public:
         Vector*              mpGeneralizedStressVector;
         Matrix*              mpConstitutiveMatrix;
 
-		double				 mStenbergShearStabilization = 1.0;
-		// refer https://doi.org/10.1016/j.cma.2003.12.036 section 3.1
-
         const Vector*        mpShapeFunctionsValues;
         const Matrix*        mpShapeFunctionsDerivatives;
         const ProcessInfo*   mpCurrentProcessInfo;
@@ -264,10 +261,6 @@ public:
         {
             mpElementGeometry =&rElementGeometry;
         };
-		void SetStenbergShearStabilization(const double& StenbergShearStabilization)
-		{
-			mStenbergShearStabilization = StenbergShearStabilization;
-		};		
 
         /**
         * returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
@@ -311,10 +304,6 @@ public:
         {
             return *mpElementGeometry;
         };
-		double GetStenbergShearStabilization()
-		{
-			return mStenbergShearStabilization;
-		};
     };
 
     class IntegrationPoint
@@ -497,7 +486,7 @@ public:
                 mOrientationAngle += 360.0;
         }
 
-		void RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps);
+		void RecoverOrthotropicProperties(const unsigned int currentPly);
 
         inline const IntegrationPointCollection& GetIntegrationPoints()const
         {
@@ -1151,10 +1140,8 @@ public:
     /**
     * Setup to get the integrated constitutive matrices for each ply
     */
-    void SetupGetPlyConstitutiveMatrices()
+    void SetupGetPlyConstitutiveMatrices(const double shear_stabilization = 1.0)
     {
-		// This function must be called before requesting un-integrated
-		// constitutive matrices for each ply!
     	mStorePlyConstitutiveMatrices = true;
     	mPlyConstitutiveMatrices = std::vector<Matrix>(this->NumberOfPlies());
     
@@ -1171,6 +1158,7 @@ public:
     
     		mPlyConstitutiveMatrices[ply].clear();
     	}
+    	mDSG_shear_stabilization = shear_stabilization;
     }
     
     /**
@@ -1305,12 +1293,12 @@ public:
     * Checks if the shell is an orthotropic material
     * @return the true/false
     */
-    static bool CheckIsOrthotropic(const Properties& rProps);
+    bool CheckIsOrthotropic(const Properties& rProps);
     
     /**
     * Parses the shell orthotropic material data from properties
     */
-    void ParseOrthotropicPropertyMatrix(const Properties::Pointer & pProps);
+    void ParseOrthotropicPropertyMatrix(Properties& rProps, Element* myElement);
     
     /**
     * Get orientation of laminae
@@ -1320,7 +1308,7 @@ public:
     /**
     * Get strengths of laminae
     */
-    void GetLaminaeStrengths(std::vector<Matrix>& rLamina_Strengths, const Properties& rProps);
+    void GetLaminaeStrengths(std::vector<Matrix>& rLamina_Strengths, Properties& rProps);
     ///@}
 
 private:
@@ -1374,6 +1362,7 @@ private:
     Vector mOOP_CondensedStrains_converged;
     bool mStorePlyConstitutiveMatrices = false;
     std::vector<Matrix> mPlyConstitutiveMatrices;
+    double mDSG_shear_stabilization;
     
     ///@}
 
@@ -1397,10 +1386,7 @@ private:
 
         rSerializer.save("init", mInitialized);
         rSerializer.save("hasOOP", mNeedsOOPCondensation);
-        rSerializer.save("OOP_eps", mOOP_CondensedStrains);
-        rSerializer.save("OOP_eps_conv", mOOP_CondensedStrains_converged);
-        rSerializer.save("store_ply_mat", mStorePlyConstitutiveMatrices);
-        rSerializer.save("ply_mat", mPlyConstitutiveMatrices);
+        rSerializer.save("OOP_eps", mOOP_CondensedStrains_converged);
     }
 
     void load(Serializer& rSerializer) override
@@ -1420,10 +1406,7 @@ private:
 
         rSerializer.load("init", mInitialized);
         rSerializer.load("hasOOP", mNeedsOOPCondensation);
-        rSerializer.load("OOP_eps", mOOP_CondensedStrains);
-        rSerializer.load("OOP_eps_conv", mOOP_CondensedStrains_converged);
-        rSerializer.load("store_ply_mat", mStorePlyConstitutiveMatrices);
-        rSerializer.load("ply_mat", mPlyConstitutiveMatrices);
+        rSerializer.load("OOP_eps", mOOP_CondensedStrains_converged);
     }
 
     ///@}

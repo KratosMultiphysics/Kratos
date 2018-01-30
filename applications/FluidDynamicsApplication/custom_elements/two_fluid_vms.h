@@ -167,13 +167,13 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
+        return boost::make_shared< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
     }
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< TwoFluidVMS >(NewId, pGeom, pProperties);
+        return boost::make_shared< TwoFluidVMS >(NewId, pGeom, pProperties);
     }
     
     /// Provides local contributions from body forces to the RHS
@@ -389,7 +389,7 @@ KRATOS_WATCH(Ngauss);  */
             double TauOne, TauTwo;
 
             //compute stabilization parameters
-            this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
+            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
             this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, DarcyTerm, TauOne, TauTwo, N, DN_DX, wGauss);
             
@@ -501,7 +501,7 @@ KRATOS_WATCH(Ngauss);  */
             const double DarcyTerm = A + B*VelNorm;
 
             double TauOne,TauTwo;
-            this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
+            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
             // Add dynamic stabilization terms ( all terms involving a delta(u) )
             this->AddMassStabTerms(MassMatrix, Density, AdvVel, DarcyTerm, TauOne, N, DN_DX, wGauss);
@@ -1120,7 +1120,7 @@ protected:
         }
     }
 
-    void CalculateStabilizationTau(
+    void CalculateTau(
         double& TauOne,
         double& TauTwo,
         const double VelNorm,

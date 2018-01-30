@@ -183,8 +183,6 @@ protected:
       * @return
       */
     bool CheckParameters(Parameters& rValues);
-
-    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
     
     virtual double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 

@@ -42,7 +42,6 @@
 
 // Builders and solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "custom_strategies/custom_builder_and_solvers/contact_residualbased_block_builder_and_solver.h"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -56,9 +55,8 @@ using namespace boost::python;
 
 void  AddCustomStrategiesToPython()
 {
-    typedef TableStreamUtility::Pointer TablePrinterPointerType;
-    typedef ProcessFactoryUtility::Pointer ProcessesListType;
-    typedef ConditionNumberUtility::Pointer ConditionNumberUtilityPointerType;
+    typedef boost::shared_ptr<TableStreamUtility> TablePrinterPointerType;
+    typedef boost::shared_ptr<ProcessFactoryUtility> ProcessesListType;
     
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -132,7 +130,7 @@ void  AddCustomStrategiesToPython()
             init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
             .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType>())
             .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool>())
-            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool, ConditionNumberUtilityPointerType>())
+            .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer,TablePrinterPointerType, bool, bool>())
             ;
             
     // Weighted residual values update
@@ -150,9 +148,9 @@ void  AddCustomStrategiesToPython()
             (
             "ALMFrictionlessMortarConvergenceCriteria", 
             init< >())
-            .def(init<TablePrinterPointerType>())
-            .def(init<TablePrinterPointerType, bool>())
-            .def(init<TablePrinterPointerType, bool, bool>())
+            .def(init<double>())
+            .def(init<double, TablePrinterPointerType>())
+            .def(init<double, TablePrinterPointerType, bool>())
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictional case)
@@ -161,9 +159,9 @@ void  AddCustomStrategiesToPython()
             (
             "ALMFrictionalMortarConvergenceCriteria", 
             init< >())
-            .def(init<TablePrinterPointerType>())
-            .def(init<TablePrinterPointerType, bool>())
-            .def(init<TablePrinterPointerType, bool, bool>())
+            .def(init<double>())
+            .def(init<double, TablePrinterPointerType>())
+            .def(init<double, TablePrinterPointerType, bool>())
             ;
             
     // Displacement and lagrange multiplier Convergence Criterion
@@ -202,9 +200,6 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************
-            
-    typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedBlockBuilderAndSolverType;
-    class_< ContactResidualBasedBlockBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("ContactResidualBasedBlockBuilderAndSolver", init< LinearSolverType::Pointer > ());
 }
 
 }  // namespace Python.

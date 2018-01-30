@@ -408,6 +408,7 @@ namespace Kratos
             KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Scheme DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part ";
         }
 
+
 	// Newmark Scheme
 	mDynamic.beta=  0.25;
 	mDynamic.gamma= 0.5;
@@ -415,6 +416,7 @@ namespace Kratos
 	// Bossak modification
 	mDynamic.beta= (1.0-mAlpha)*(1.0-mAlpha)*0.25;
 	mDynamic.gamma= 0.5-mAlpha;
+
 		
 	//Set Newmark coefficients
 	if( mDynamic.static_dynamic != 0 ){

@@ -226,7 +226,7 @@ void AxisymmetricSmallDisplacementElement::CalculateKinematics(ElementVariables&
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Set Shape Functions Values for this integration point
-    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
+    rVariables.N=row( Ncontainer, rPointNumber);
 
     //Calculate IntegrationPoint radius
     CalculateRadius(rVariables.ReferenceRadius, rVariables.N);

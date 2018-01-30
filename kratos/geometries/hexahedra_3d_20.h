@@ -349,7 +349,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
+    //         NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
     //     }
 
 
@@ -1067,9 +1067,9 @@ private:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        const IntegrationPointsContainerType  all_integration_points =
+        IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        const IntegrationPointsArrayType integration_points =
+        IntegrationPointsArrayType integration_points =
             all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();
@@ -1081,86 +1081,86 @@ private:
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            shape_function_values(pnt, 0 ) =
+            row( shape_function_values, pnt )( 0 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 2.0
                           - integration_points[pnt].X() + integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            shape_function_values(pnt, 1 ) =
+            row( shape_function_values, pnt )( 1 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 2.0
                           - integration_points[pnt].X() - integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            shape_function_values(pnt, 2 ) =
+            row( shape_function_values, pnt )( 2 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0
                           - integration_points[pnt].X() - integration_points[pnt].Y()
                           + integration_points[pnt].Z() ) ) / 8.0;
-            shape_function_values(pnt, 3 ) =
+            row( shape_function_values, pnt )( 3 ) =
                 -(( 1.0 + integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() )
                   * ( 2.0 - integration_points[pnt].X()
                       + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
-            shape_function_values(pnt, 4 ) =
+            row( shape_function_values, pnt )( 4 ) =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 - integration_points[pnt].Y() ) * ( 2.0
                           + integration_points[pnt].X() + integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            shape_function_values(pnt, 5 ) =
+            row( shape_function_values, pnt )( 5 ) =
                 -(( 1.0 - integration_points[pnt].X() )
                   * ( 1.0 + integration_points[pnt].Y() ) * ( 2.0
                           + integration_points[pnt].X() - integration_points[pnt].Y()
                           - integration_points[pnt].Z() ) * ( 1.0 + integration_points[pnt].Z() ) ) / 8.0;
-            shape_function_values(pnt, 6 ) =
+            row( shape_function_values, pnt )( 6 ) =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0
                         + integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0
                                 + integration_points[pnt].X() - integration_points[pnt].Y()
                                 + integration_points[pnt].Z() ) ) / 8.0;
-            shape_function_values(pnt, 7 ) =
+            row( shape_function_values, pnt )( 7 ) =
                 -(( 1.0 - integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                   * ( 1.0 - integration_points[pnt].Z() ) * ( 2.0 + integration_points[pnt].X()
                           + integration_points[pnt].Y() + integration_points[pnt].Z() ) ) / 8.0;
-            shape_function_values(pnt, 8 ) =
+            row( shape_function_values, pnt )( 8 ) =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            shape_function_values(pnt, 9 ) =
+            row( shape_function_values, pnt )( 9 ) =
                 (( 1.0 + integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
-            shape_function_values(pnt, 10 ) =
+            row( shape_function_values, pnt )( 10 ) =
                 (( 1.0 + integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            shape_function_values(pnt, 11 ) =
+            row( shape_function_values, pnt )( 11 ) =
                 (( 1.0 + integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;
-            shape_function_values(pnt, 12 ) =
+            row( shape_function_values, pnt )( 12 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 - integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            shape_function_values(pnt, 13 ) =
+            row( shape_function_values, pnt )( 13 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            shape_function_values(pnt, 14 ) =
+            row( shape_function_values, pnt )( 14 ) =
                 (( 1.0 - integration_points[pnt].X()
                    * integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            shape_function_values(pnt, 15 ) =
+            row( shape_function_values, pnt )( 15 ) =
                 (( 1.0 - integration_points[pnt].X() * integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0;
-            shape_function_values(pnt, 16 ) =
+            row( shape_function_values, pnt )( 16 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 + integration_points[pnt].Z() ) ) / 4.0 ;
-            shape_function_values(pnt, 17 ) =
+            row( shape_function_values, pnt )( 17 ) =
                 (( 1.0 - integration_points[pnt].X() ) * ( 1.0 + integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
-            shape_function_values(pnt, 18 ) =
+            row( shape_function_values, pnt )( 18 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() * integration_points[pnt].Y() )
                  * ( 1.0 - integration_points[pnt].Z() ) ) / 4.0 ;
-            shape_function_values(pnt, 19 ) =
+            row( shape_function_values, pnt )( 19 ) =
                 (( 1.0 - integration_points[pnt].X() )
                  * ( 1.0 - integration_points[pnt].Y() ) * ( 1.0
                          - integration_points[pnt].Z() * integration_points[pnt].Z() ) ) / 4.0 ;            
@@ -1186,9 +1186,9 @@ private:
     CalculateShapeFunctionsIntegrationPointsLocalGradients(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        const IntegrationPointsContainerType all_integration_points =
+        IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        const IntegrationPointsArrayType integration_points =
+        IntegrationPointsArrayType integration_points =
             all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();

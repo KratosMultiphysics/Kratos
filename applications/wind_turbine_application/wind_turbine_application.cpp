@@ -34,8 +34,7 @@ namespace Kratos
 //
 
 	/// default constructor
-     KratosWindTurbineApplication::KratosWindTurbineApplication(): 
-        KratosApplication("WindTurbineApplication")
+ 	KratosWindTurbineApplication::KratosWindTurbineApplication()
  	{}
 
  	void KratosWindTurbineApplication::Register()

@@ -76,8 +76,7 @@ class ParametricWall(object):
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-    
-    def BuildParametricWall(self):
+                
 
         # construct rigid wall // it will contain the array of nodes, array of elements, and the array of conditions
         self.wall_model_part = self.main_model_part.GetSubModelPart(self.settings["model_part_name"].GetString())

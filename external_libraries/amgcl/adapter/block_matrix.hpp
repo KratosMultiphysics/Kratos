@@ -40,10 +40,9 @@ THE SOFTWARE.
 namespace amgcl {
 namespace adapter {
 
-template <class Matrix, class BlockType>
+template <class Matrix, int BlockSize, class BlockType>
 struct block_matrix_adapter {
     typedef BlockType val_type;
-    static const int BlockSize = math::static_rows<BlockType>::value;
 
     const Matrix &A;
 
@@ -158,9 +157,9 @@ struct block_matrix_adapter {
 };
 
 /// Convert scalar-valued matrix to a block-valued one.
-template <class BlockType, class Matrix>
-block_matrix_adapter<Matrix, BlockType> block_matrix(const Matrix &A) {
-    return block_matrix_adapter<Matrix, BlockType>(A);
+template <int BlockSize, class BlockType, class Matrix>
+block_matrix_adapter<Matrix, BlockSize, BlockType> block_matrix(const Matrix &A) {
+    return block_matrix_adapter<Matrix, BlockSize, BlockType>(A);
 }
 
 } // namespace adapter
@@ -170,48 +169,48 @@ namespace backend {
 //---------------------------------------------------------------------------
 // Specialization of matrix interface
 //---------------------------------------------------------------------------
-template <class Matrix, class BlockType>
-struct value_type< adapter::block_matrix_adapter<Matrix, BlockType> >
+template <class Matrix, int BlockSize, class BlockType>
+struct value_type< adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> >
 {
     typedef BlockType type;
 };
 
-template <class Matrix, class BlockType>
-struct rows_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
+template <class Matrix, int BlockSize, class BlockType>
+struct rows_impl< adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> >
 {
-    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockType> &A) {
+    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> &A) {
         return A.rows();
     }
 };
 
-template <class Matrix, class BlockType>
-struct cols_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
+template <class Matrix, int BlockSize, class BlockType>
+struct cols_impl< adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> >
 {
-    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockType> &A) {
+    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> &A) {
         return A.cols();
     }
 };
 
-template <class Matrix, class BlockType>
-struct nonzeros_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
+template <class Matrix, int BlockSize, class BlockType>
+struct nonzeros_impl< adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> >
 {
-    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockType> &A) {
+    static size_t get(const adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> &A) {
         return A.nonzeros();
     }
 };
 
-template <class Matrix, class BlockType>
-struct row_iterator< adapter::block_matrix_adapter<Matrix, BlockType> >
+template <class Matrix, int BlockSize, class BlockType>
+struct row_iterator< adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> >
 {
     typedef
-        typename adapter::block_matrix_adapter<Matrix, BlockType>::row_iterator
+        typename adapter::block_matrix_adapter<Matrix, BlockSize, BlockType>::row_iterator
         type;
 };
 
-template <class Matrix, class BlockType>
-struct row_begin_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
+template <class Matrix, int BlockSize, class BlockType>
+struct row_begin_impl< adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> >
 {
-    typedef adapter::block_matrix_adapter<Matrix, BlockType> BM;
+    typedef adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> BM;
     static typename row_iterator<BM>::type
     get(const BM &matrix, size_t row) {
         return matrix.row_begin(row);
@@ -220,8 +219,8 @@ struct row_begin_impl< adapter::block_matrix_adapter<Matrix, BlockType> >
 
 namespace detail {
 
-template <class Matrix, class BlockType>
-struct use_builtin_matrix_ops< adapter::block_matrix_adapter<Matrix, BlockType> >
+template <class Matrix, int BlockSize, class BlockType>
+struct use_builtin_matrix_ops< adapter::block_matrix_adapter<Matrix, BlockSize, BlockType> >
     : boost::true_type
 {};
 

@@ -82,7 +82,7 @@ htab *gid_hcreate(/*_ word logsize _*/);
    RETURNS:
      nothing
  */
-void  htabdestroy(/*_ htab *t _*/);
+void  hdestroy(/*_ htab *t _*/);
 
 
 /* hcount, hkey, hkeyl, hstuff

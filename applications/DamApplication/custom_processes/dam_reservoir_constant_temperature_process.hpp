@@ -112,11 +112,11 @@ class DamReservoirConstantTemperatureProcess : public Process
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 0;
-        else if (mGravityDirection == "Y")
             direction = 1;
-        else
+        else if (mGravityDirection == "Y")
             direction = 2;
+        else
+            direction = 3;
 
         if (nnodes != 0)
         {
@@ -132,7 +132,7 @@ class DamReservoirConstantTemperatureProcess : public Process
                     it->Fix(var);
                 }
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
+                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinate(direction);
                 if (aux >= 0.0)
                 {
                     it->FastGetSolutionStepValue(var) = mWaterTemp;
@@ -181,11 +181,11 @@ class DamReservoirConstantTemperatureProcess : public Process
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 0;
-        else if (mGravityDirection == "Y")
             direction = 1;
-        else
+        else if (mGravityDirection == "Y")
             direction = 2;
+        else
+            direction = 3;
 
         if (nnodes != 0)
         {
@@ -201,7 +201,7 @@ class DamReservoirConstantTemperatureProcess : public Process
                     it->Fix(var);
                 }
 
-                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
+                double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinate(direction);
                 if (aux >= 0.0)
                 {
                     it->FastGetSolutionStepValue(var) = mWaterTemp;

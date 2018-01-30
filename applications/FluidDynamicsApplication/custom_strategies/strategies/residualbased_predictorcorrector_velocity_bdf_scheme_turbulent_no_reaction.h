@@ -78,6 +78,8 @@ namespace Kratos {
 		/**@name Type Definitions */
 		/*@{ */
 
+		//typedef boost::shared_ptr< ResidualBasedPredictorCorrectorBossakScheme<TSparseSpace,TDenseSpace> > Pointer;
+
 		KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction);
 
 		typedef Scheme<TSparseSpace, TDenseSpace> BaseType;

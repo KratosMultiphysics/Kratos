@@ -29,7 +29,7 @@ from KratosMultiphysics.StructuralApplication import *
 sys.path.append(kratos_applications_path + 'meshing_application/python_scripts')
 from KratosMultiphysics.MeshingApplication import *
 meshing_application = KratosMeshingApplication()
-kernel.ImportApplication(meshing_application)
+kernel.AddApplication(meshing_application)
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 
@@ -106,7 +106,7 @@ nsteps = 10
 for step in range(0, nsteps):
 
     print("TIME STEP = ", step)
-    model_part.ProcessInfo[STEP] = step
+    model_part.ProcessInfo[TIME_STEPS] = step
 
     if(step >= 3):
 

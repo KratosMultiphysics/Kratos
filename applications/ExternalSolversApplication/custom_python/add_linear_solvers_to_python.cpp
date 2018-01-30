@@ -113,6 +113,7 @@ void  AddLinearSolversToPython()
     .def(init<double, unsigned int,  PreconditionerType::Pointer>())
     .def(self_ns::str(self))
     ;
+
 }
 
 }  // namespace Python.

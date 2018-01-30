@@ -116,19 +116,6 @@ namespace Kratos
          ///@name Operations
          ///@{
 
-         /**
-          * Check
-          */    
-         virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
-         {
-            KRATOS_TRY
-
-            //LMV: to be implemented. but should not enter in the base one
-
-            return 0;
-
-            KRATOS_CATCH("")
-         }
 
          ///@}
          ///@name Access

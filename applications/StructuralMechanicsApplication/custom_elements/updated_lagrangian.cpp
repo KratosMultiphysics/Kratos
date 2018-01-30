@@ -48,7 +48,7 @@ namespace Kratos
     
     Element::Pointer UpdatedLagrangian::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
     {
-        return Kratos::make_shared<UpdatedLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return Element::Pointer( new UpdatedLagrangian( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
     }
 
     //************************************************************************************

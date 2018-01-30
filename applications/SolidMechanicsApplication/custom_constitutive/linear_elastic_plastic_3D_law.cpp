@@ -70,17 +70,6 @@ LinearElasticPlastic3DLaw::~LinearElasticPlastic3DLaw()
 //*******************************OPERATIONS FROM BASE CLASS***************************
 //************************************************************************************
 
-
-//******************CALCULATE VALUE: DOUBLE - VECTOR - MATRIX*************************
-//************************************************************************************
-
-double& LinearElasticPlastic3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue )
-{
-
-  return (this->GetValue(rThisVariable,rValue ));
-
-}
-  
 //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************
 //************************************************************************************
 

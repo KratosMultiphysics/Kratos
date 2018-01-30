@@ -30,7 +30,7 @@ def ImportApplication(application, application_name, application_folder, caller)
         constitutive_laws_path = os.path.join(python_path, 'constitutive_laws')
         sys.path.append(constitutive_laws_path)
         # Add application to kernel
-        Kernel.ImportApplication(application)
+        Kernel.AddApplication(application)
         # Dynamic renumbering of variables to ensure consistency
         Kernel.Initialize()
         for iterName, iterApplication in list(Globals.RequestedApplications.items()):

@@ -12,9 +12,10 @@
 #include <iostream>
 
 // External includes
-// #include<cmath>
+#include<cmath>
 
 // Project includes
+#include "includes/properties.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 
 #include "structural_mechanics_application_variables.h"
@@ -107,7 +108,7 @@ void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixPK
 //************************************************************************************
 //************************************************************************************
 
-void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKirchhoff(
+void HyperElasticIsotropicNeoHookeanPlaneStrain2D::CalculateConstitutiveMatrixKirchoff(
     Matrix& ConstitutiveMatrix,
     const double& DeterminantF,
     const double& LameLambda,

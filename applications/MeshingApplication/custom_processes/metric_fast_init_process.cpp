@@ -26,12 +26,20 @@ void MetricFastInit<TDim>::Execute()
 
     constexpr unsigned int size = TDim == 2  ? 3: 6;
 
-    // We iterate over the nodes
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    const array_1d<double, size> zerovector(size, 0.0);
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
-        (nodes_array.begin() + i)->SetValue(MMG_METRIC, ZeroVector(size));
+    // We iterate over the node
+    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    int num_nodes = mrThisModelPart.NumberOfNodes();
+
+    #pragma omp parallel for firstprivate(zerovector)
+    for(int i = 0; i < num_nodes; ++i) 
+    {
+        auto it_node = nodes_array.begin() + i;
+
+        // The metric
+        it_node->SetValue(MMG_METRIC, zerovector);
+    }
 
     KRATOS_CATCH("");
 }

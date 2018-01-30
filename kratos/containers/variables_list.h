@@ -86,9 +86,11 @@ namespace Kratos
 		///@{
 
 		/// Default constructor. mPosition should have at least on entry.
-        VariablesList() = default;
+		VariablesList() : mDataSize(0), mKeys(1, static_cast<IndexType>(-1)), mPositions(1, static_cast<IndexType>(-1)), mVariables()
+		{
+		}
 
-        template <class TInputIteratorType>
+		template <class TInputIteratorType>
 		VariablesList(TInputIteratorType First, TInputIteratorType Last)
 		{
 			for (; First != Last; First++)
@@ -235,8 +237,8 @@ namespace Kratos
 			mDataSize = 0;
 			mHashFunctionIndex = 0;
 			mVariables.clear();
-			mKeys = {static_cast<IndexType>(-1)};
-			mPositions = {static_cast<IndexType>(-1)};
+			mKeys.clear();
+			mPositions.clear();
 		}
 
 
@@ -337,13 +339,14 @@ namespace Kratos
 	private:
 		///@name Member Variables
 		///@{
-		SizeType mDataSize = 0;
 
-		SizeType mHashFunctionIndex = 0;
+		SizeType mDataSize;
 
-		KeysContainerType mKeys = {static_cast<IndexType>(-1)};
+		SizeType mHashFunctionIndex;
 
-		PositionsContainerType mPositions = {static_cast<IndexType>(-1)};
+		KeysContainerType mKeys;
+
+		PositionsContainerType mPositions;
 
 		VariablesContainerType mVariables;
 

@@ -207,23 +207,6 @@ namespace Kratos
       KRATOS_CATCH( "" )
 
    }
-
-   //*************************************************************************
-   //*************************************************************************
-
-   void UpdatedLagrangianUPressureElement::GetValueOnIntegrationPoints( const Variable<double> & rVariable,
-         std::vector<double>& rValues,
-         const ProcessInfo& rCurrentProcessInfo)
-   {
-      KRATOS_TRY
-
-      //Element* pBasePointer = this;
-      //pBasePointer->GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-      SolidElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo);
-
-      KRATOS_CATCH("")
-   }
-
    //*************************************************************************
    //*************************************************************************
 
@@ -365,22 +348,22 @@ namespace Kratos
       this->CalculateThisElementVariables( ElementVariables, rVariables);
 
       //respect to the current configuration n+1
-      this->CalculateAndAddKuumElemUP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
       // operation performed: add Kg to the rLefsHandSideMatrix
-      this->CalculateAndAddKuugElemUP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
       // operation performed: add Kup to the rLefsHandSideMatrix
-      this->CalculateAndAddKupElemUP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      this->CalculateAndAddKup( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
       // operation performed: add Kpu to the rLefsHandSideMatrix
-      this->CalculateAndAddKpuElemUP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      this->CalculateAndAddKpu( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
       // operation performed: add Kpp to the rLefsHandSideMatrix
-      this->CalculateAndAddKppElemUP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      this->CalculateAndAddKpp( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
       // operation performed: add Kpp Stab to the rLefsHandSideMatrix
-      this->CalculateAndAddKppStabElemUP( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
+      this->CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, ElementVariables, rIntegrationWeight );
 
 
       rVariables.detF     = DeterminantF;
@@ -431,13 +414,13 @@ namespace Kratos
       CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
       // operation performed: rRightHandSideVector -= IntForce*IntegrationWeight
-      CalculateAndAddInternalForcesElemUP( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
+      CalculateAndAddInternalForces( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
 
       // operation performed: rRightHandSideVector -= PressureForceBalance*IntegrationWeight
-      CalculateAndAddPressureForcesElemUP( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
+      CalculateAndAddPressureForces( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
 
       // operation performed: rRightHandSideVector -= Stabilized Pressure Forces
-      CalculateAndAddStabilizedPressureElemUP( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
+      CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, ElementVariables, rIntegrationWeight);
 
       rVariables.detF     = DeterminantF;
       rVariables.detF0   /= rVariables.detF;
@@ -447,7 +430,7 @@ namespace Kratos
 
    //*************************************************************************
    //*************************************************************************
-   void UpdatedLagrangianUPressureElement::CalculateAndAddInternalForcesElemUP(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUPressureElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight
@@ -478,7 +461,7 @@ namespace Kratos
    //*************************************************************************
    //*************************************************************************
 
-   void UpdatedLagrangianUPressureElement::CalculateAndAddPressureForcesElemUP(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUPressureElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -522,7 +505,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUPressureElement::CalculateAndAddStabilizedPressureElemUP(VectorType& rRightHandSideVector,
+   void UpdatedLagrangianUPressureElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -591,7 +574,7 @@ namespace Kratos
 
    // ******************************** KUUM **************************************************
    // ****************************************************************************************
-   void UpdatedLagrangianUPressureElement::CalculateAndAddKuumElemUP ( MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUPressureElement::CalculateAndAddKuum ( MatrixType& rLeftHandSideMatrix,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -700,7 +683,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void UpdatedLagrangianUPressureElement::CalculateAndAddKuugElemUP ( MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUPressureElement::CalculateAndAddKuug ( MatrixType& rLeftHandSideMatrix,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -750,7 +733,7 @@ namespace Kratos
    //********************* KuP ***********************************************
    //*************************************************************************
 
-   void UpdatedLagrangianUPressureElement::CalculateAndAddKupElemUP (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUPressureElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -783,7 +766,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUPressureElement::CalculateAndAddKpuElemUP (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUPressureElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -873,7 +856,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUPressureElement::CalculateAndAddKppElemUP (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUPressureElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -919,7 +902,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void UpdatedLagrangianUPressureElement::CalculateAndAddKppStabElemUP (MatrixType& rLeftHandSideMatrix,
+   void UpdatedLagrangianUPressureElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)

@@ -8,7 +8,7 @@ project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 5)
-set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_MINOR_VERSION 1)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Define custom compiler build types
@@ -28,10 +28,6 @@ SET( CMAKE_C_FLAGS_CUSTOM "" )
 SET( CMAKE_CXX_FLAGS_CUSTOM "" )
 SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
 SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
-
-if(USE_COTIRE MATCHES ON)
-    set(CMAKE_SKIP_RPATH ON)
-endif(USE_COTIRE MATCHES ON)
 
 # If build mode is not defined, assume Release
 if(NOT CMAKE_BUILD_TYPE)
@@ -165,10 +161,6 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
-if(USE_COTIRE MATCHES ON)
-    include(cotire)
-endif(USE_COTIRE MATCHES ON)
-
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -218,7 +210,6 @@ message("Boostlib used: ${Boost_LIBRARIES}")
 # Finding and including PYTHON
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
-list(REMOVE_ITEM PYTHON_LIBRARIES "debug" "optimized")
 link_directories(${PYTHON_LIBRARIES})
 
 # Follow the symbolic links for the python lib only if needed
@@ -407,15 +398,9 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
-# Kratos Testing. Install everything except sources
+# Kratos Testing
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests 
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
-  )
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 ################################################################################

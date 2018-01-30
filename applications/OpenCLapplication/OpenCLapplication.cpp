@@ -23,8 +23,7 @@
 namespace Kratos
 {
 
-KratosOpenCLApplication::KratosOpenCLApplication():
-    KratosApplication("OpenCLApplication")
+KratosOpenCLApplication::KratosOpenCLApplication()
 {}
 
 void KratosOpenCLApplication::Register()

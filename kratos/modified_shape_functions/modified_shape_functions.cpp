@@ -102,7 +102,7 @@ namespace Kratos
     // Given the subdivision pattern of either the positive or negative side, computes the shape function values.
     void ModifiedShapeFunctions::ComputeValuesOnOneSide(
         Matrix &rShapeFunctionsValues,
-        ShapeFunctionsGradientsType &rShapeFunctionsGradientsValues,
+        std::vector<Matrix> &rShapeFunctionsGradientsValues,
         Vector &rWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
         const Matrix &rPmatrix,
@@ -133,10 +133,9 @@ namespace Kratos
             rWeightsValues.resize(n_total_int_pts, false);
         }
 
-        // Resize the shape function gradients vector
-        if (rShapeFunctionsGradientsValues.size() != n_total_int_pts) {
-            rShapeFunctionsGradientsValues.resize(n_total_int_pts, false);
-        }
+        // Clear the gradients vector
+        rShapeFunctionsGradientsValues.clear();
+        rShapeFunctionsGradientsValues.reserve(n_total_int_pts);
 
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
@@ -181,15 +180,15 @@ namespace Kratos
                     }
                 }
 
-                rShapeFunctionsGradientsValues[i_subdivision*n_int_pts + i_gauss] = trans(prod(sh_func_gradients_mat, rPmatrix));
+                rShapeFunctionsGradientsValues.push_back(trans(prod(sh_func_gradients_mat, rPmatrix)));
             }
         }
     };
 
     // Given the interfaces pattern of either the positive or negative interface side, computes the shape function values.
-    void ModifiedShapeFunctions::ComputeFaceValuesOnOneSide(
+    void ModifiedShapeFunctions::ComputeInterfaceValuesOnOneSide(
         Matrix &rInterfaceShapeFunctionsValues,
-        ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues,
+        std::vector<Matrix> &rInterfaceShapeFunctionsGradientsValues,
         Vector &rInterfaceWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const std::vector<IndexedPointGeometryPointerType> &rParentGeometriesVector,
@@ -204,8 +203,7 @@ namespace Kratos
         const unsigned int split_edges_size = n_edges + n_nodes;                                             // Split edges vector size
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
         const unsigned int n_dim = (*rParentGeometriesVector[0]).Dimension();                                // Number of dimensions
-        const unsigned int n_int_pts = 
-            n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
+        const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
         // Resize the shape function values matrix
@@ -220,10 +218,9 @@ namespace Kratos
             rInterfaceWeightsValues.resize(n_total_int_pts, false);
         }
 
-        // Resize the shape functions gradients
-        if (rInterfaceShapeFunctionsGradientsValues.size() != n_total_int_pts) {
-            rInterfaceShapeFunctionsGradientsValues.resize(n_total_int_pts, false);
-        }
+        // Clear the gradients vector
+        rInterfaceShapeFunctionsGradientsValues.clear();
+        rInterfaceShapeFunctionsGradientsValues.reserve(n_total_int_pts);
 
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_interface = 0; i_interface < n_interfaces; ++i_interface) {
@@ -295,25 +292,24 @@ namespace Kratos
                 }
 
                 aux_grad_sh_func_cond = prod(aux_grad_sh_func_exp, rPmatrix);
-                rInterfaceShapeFunctionsGradientsValues[i_interface*n_int_pts + i_gauss] = trans(aux_grad_sh_func_cond);
+                rInterfaceShapeFunctionsGradientsValues.push_back(trans(aux_grad_sh_func_cond));
             }
         }
     };
 
-    // Given the interfaces pattern of either the positive or negative interface side, computes the outwards area normal vector
-    void ModifiedShapeFunctions::ComputeFaceNormalOnOneSide(
-        std::vector<Vector> &rInterfaceAreaNormalValues,
+    // Given the interfaces pattern of either the positive or negative interface side, computes the outwards unit normal vector
+    void ModifiedShapeFunctions::ComputeInterfaceNormalOnOneSide(
+        std::vector<Vector> &rInterfaceUnitNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod) {
 
         // Set some auxiliar variables
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
-        const unsigned int n_int_pts = 
-            n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
+        const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
-        rInterfaceAreaNormalValues.clear();
-        rInterfaceAreaNormalValues.reserve(n_total_int_pts);
+        rInterfaceUnitNormalValues.clear();
+        rInterfaceUnitNormalValues.reserve(n_total_int_pts);
 
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_interface = 0; i_interface < n_interfaces; ++i_interface) {
@@ -325,10 +321,10 @@ namespace Kratos
             IntegrationPointsArrayType interface_gauss_pts;
             interface_gauss_pts = r_interface_geom.IntegrationPoints(IntegrationMethod);
 
-            // Compute the ouwards area normal vector values
+            // Compute the ouwards unit normal vector values
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                array_1d<double,3> aux_area_normal = r_interface_geom.AreaNormal(interface_gauss_pts[i_gauss].Coordinates());
-                rInterfaceAreaNormalValues.push_back(aux_area_normal);
+                array_1d<double,3> aux_unit_normal = r_interface_geom.UnitNormal(interface_gauss_pts[i_gauss].Coordinates());
+                rInterfaceUnitNormalValues.push_back(aux_unit_normal);
             }
         }
     };

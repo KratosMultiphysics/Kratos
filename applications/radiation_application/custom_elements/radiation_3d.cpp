@@ -64,7 +64,7 @@ namespace Kratos
       
       const unsigned int number_of_points = GetGeometry().size();
     
-    //KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
+    KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
     boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
     boost::numeric::ublas::bounded_matrix<double,4,4> NN =  ZeroMatrix(4,4);
     boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX = ZeroMatrix(4,3);
@@ -100,9 +100,7 @@ namespace Kratos
     
     
     const double StefenBoltzmann = 5.67e-8;
-    double absorptioncoefficient = 75.0;
-    absorptioncoefficient = 150.0;
-    absorptioncoefficient = 75.0;
+    double absorptioncoefficient = 100.0;
     
     
     boost::numeric::ublas::bounded_matrix<double,4, 3 > coords;
@@ -134,7 +132,7 @@ namespace Kratos
     noalias(rRightHandSideVector)=ZeroVector(4);
     
     noalias(rLeftHandSideMatrix) = (conductivity) * prod(msDN_DX,trans(msDN_DX)) * Area; 
-    //noalias(rLeftHandSideMatrix) += absorptioncoefficient * msMassFactors * Area; 
+    noalias(rLeftHandSideMatrix) += absorptioncoefficient * msMassFactors * Area; 
     
     double T0,T1,T2,T3;
     T0=GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
@@ -333,9 +331,9 @@ namespace Kratos
 	
 	msAux=ZeroMatrix(4,4);
 	msAux(0,0)=N[0]*N[0]; //+ N[0]*N[1] + N[0]*N[2] + N[0]*N[3];
-	msAux(0,0)+=N[0]*N[1];
-	msAux(0,0)+=N[0]*N[2];
-	msAux(0,0)+=N[0]*N[3];
+	msAux(0,1)+=N[0]*N[1];
+	msAux(0,2)+=N[0]*N[2];
+	msAux(0,3)+=N[0]*N[3];
 	    
 	msAux(1,1)=N[1]*N[0];
 	msAux(1,1)+=N[1]*N[1];// + N[1]*N[0] + N[1]*N[2] + N[1]*N[3];
@@ -352,8 +350,8 @@ namespace Kratos
 	msAux(3,3)+=N[3]*N[2];
 	msAux(3,3)+=N[3]*N[3];// + N[3]*N[0] + N[3]*N[1] + N[3]*N[2];
 	    
-	     
-	noalias(rLeftHandSideMatrix) += 1.0 * Weight * absorptioncoefficient * msAux; 
+	    
+	//	    noalias(rLeftHandSideMatrix) += 1.0 * Weight * absorptioncoefficient * msAux; //LO COMENTO AHORA
 	noalias(rRightHandSideVector) += 4.0 * absorptioncoefficient * StefenBoltzmann * prod(msAux,msAuxVec)  * Weight;
 	    
       }

@@ -62,6 +62,7 @@ namespace Kratos
 	  /// The constructor to be called
 	  FixedSizeMemoryPool(std::size_t BlockSizeInBytes, SizeType ChunkSize = DefaultChunkSize)
 		  : LockObject()
+		  , mBlockSizeInBytes(BlockSizeInBytes)
 		  , mChunkSize(ChunkSize)
 	  {
 		  for (int i_thread = 0; i_thread < GetNumberOfThreads(); i_thread++)
@@ -180,6 +181,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
+		std::size_t mBlockSizeInBytes;
 		SizeType mChunkSize;
 		std::vector<ThreadFixedSizeMemoryPool> mThreadsPool;
 

@@ -235,15 +235,14 @@ namespace Kratos
       ///@{
 
 		void AddChunk() {
-			if (mThreadNumber != static_cast<std::size_t>(GetThreadNumber()))
-                KRATOS_ERROR;
-                
-			KRATOS_DEBUG_CHECK_EQUAL(mThreadNumber, static_cast<std::size_t>(GetThreadNumber()));
+			if (mThreadNumber != GetThreadNumber())
+				KRATOS_ERROR;
+			KRATOS_DEBUG_CHECK_EQUAL(mThreadNumber, GetThreadNumber());
 
-            mChunks.emplace_back(mBlockSizeInBytes, mChunkSize);
-            Chunk* p_available_chunk = &(mChunks.back());
-            p_available_chunk->Initialize();
-            mAvailableChunks.push_front(p_available_chunk);
+				mChunks.emplace_back(mBlockSizeInBytes, mChunkSize);
+				Chunk* p_available_chunk = &(mChunks.back());
+				p_available_chunk->Initialize();
+				mAvailableChunks.push_front(p_available_chunk);
 		}
 
 		void DeallocateFromAvailableChunk(void* pPointrerToRelease, ChunkList::iterator iChunk) {

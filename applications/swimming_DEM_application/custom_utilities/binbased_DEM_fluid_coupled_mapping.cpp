@@ -122,7 +122,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeFl
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVelocityOnDEMFromFieldToSlipVelocity(
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVelocityOnDEMFromField(
     FluidFieldUtility& r_flow,
     ModelPart& r_dem_model_part)
 {
@@ -135,7 +135,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::ImposeVe
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateVelocityOnSlipVelocity(
+void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::InterpolateVelocity(
     ModelPart& r_fluid_model_part,
     ModelPart& r_dem_model_part,
     BinBasedFastPointLocator<TDim>& bin_of_objects_fluid)
@@ -947,9 +947,7 @@ array_1d<double, 3> BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingPart
         }
 
         const array_1d<double, 3>& vel = geom[n].FastGetSolutionStepValue(VELOCITY, index);
-        array_1d<double, 3> aux;
-        MathUtils<double>::CrossProduct(aux, vel, derivatives);
-        noalias(vorticity) += aux;
+        vorticity += MathUtils<double>::CrossProduct(derivatives, vel);
     }
 
     return(vorticity);

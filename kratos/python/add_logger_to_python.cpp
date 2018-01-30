@@ -16,9 +16,7 @@
 #include <boost/python/raw_function.hpp>
 
 // Project includes
-#include "includes/define.h"
 #include "input_output/logger.h"
-
 using namespace boost::python;
 
 namespace Kratos
@@ -33,13 +31,13 @@ namespace Python
  * @kwargs: dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
  **/
-object print(boost::python::tuple args, boost::python::dict kwargs) {
+object print(tuple args, dict kwargs) {
   std::stringstream buffer;
   LoggerOutput output(buffer);
 
   LoggerMessage message;
 
-  boost::python::list keys = kwargs.keys();
+  list keys = kwargs.keys();
 
   // Extract the tuple part
   for(int i = 0; i < len(args); ++i) {
@@ -65,7 +63,7 @@ object print(boost::python::tuple args, boost::python::dict kwargs) {
 void  AddLoggerToPython() {
 	using namespace boost::python;
 
-  class_<Logger, Kratos::shared_ptr<Logger>, boost::noncopyable>("Logger", no_init)
+  class_<Logger, boost::shared_ptr<Logger>, boost::noncopyable>("Logger", no_init)
   .def("Print", raw_function(print,1))
   .staticmethod("Print");
 }

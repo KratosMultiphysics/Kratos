@@ -5,7 +5,7 @@
 //   Date:                $Date:            November 2015 $
 //   Revision:            $Revision:                  0.0 $
 //
-//
+// 
 
 // System includes
 
@@ -18,11 +18,11 @@
 
 
 //NOTE:
-//ALL TRANSFORMATION MATRICES Q ARE GIVEN IN COLUMNS
+//ALL TRANSFORMATION MATRICES Q ARE GIVEN IN COLUMNS 
 //the transformation of coordinates is done via (e'= QT * e) and (e = Q * e')
 //vector value :  v' = QT * v
 //matrix value :  A' = QT * A * Q
-//these transformations change the reference axes
+//these transformations change the reference axes 
 //they do not rotate quantities
 
 
@@ -45,7 +45,7 @@ namespace Kratos
     : BeamElement(NewId, pGeometry, pProperties)
   {
     mFinalizedStep = true; // the creation is out of the time step, it must be true
-
+    
     mReducedIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     mFullIntegrationMethod = mReducedIntegrationMethod;
     this->IncreaseIntegrationMethod(mFullIntegrationMethod,1);
@@ -99,7 +99,7 @@ namespace Kratos
   {
     return mFullIntegrationMethod;
   }
-
+  
   //************* STARTING - ENDING  METHODS
   //************************************************************************************
   //************************************************************************************
@@ -109,9 +109,9 @@ namespace Kratos
     KRATOS_TRY
 
     BeamElement::Initialize();
-
-    //------------- REDUCED QUADRATURE INTEGRATION
-
+      
+    //------------- REDUCED QUADRATURE INTEGRATION 
+      
     IntegrationMethod ReducedIntegrationMethod = this->GetReducedIntegrationMethod();
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( ReducedIntegrationMethod );
@@ -121,19 +121,19 @@ namespace Kratos
       {
         mCurrentCurvatureVectors.resize( integration_points.size() );
       }
-
+    
     for ( unsigned int i = 0; i < mCurrentCurvatureVectors.size(); i++ )
       {
 	mCurrentCurvatureVectors[i].resize(3,false);
 	noalias(mCurrentCurvatureVectors[i]) = ZeroVector(3);
       }
-
+    
 
     if ( mPreviousCurvatureVectors.size() != integration_points.size() )
       {
         mPreviousCurvatureVectors.resize( integration_points.size() );
       }
-
+    
     for ( unsigned int i = 0; i < mPreviousCurvatureVectors.size(); i++ )
       {
 	mPreviousCurvatureVectors[i].resize(3,false);
@@ -146,7 +146,7 @@ namespace Kratos
 
     Matrix Identity(dimension,dimension);
     noalias(Identity) = IdentityMatrix(dimension);
-
+   
     //Local Quaternions Initialization
     if ( mFrameQuaternionsReduced.size() != integration_points.size() )
       {
@@ -166,33 +166,33 @@ namespace Kratos
     //Compute jacobian inverses and set the domain initial size:
     GeometryType::JacobiansType J0;
     J0 = GetGeometry().Jacobian( J0, ReducedIntegrationMethod );
-
+    
     //calculating the inverse J0
     Vector Jacobian(3);
     noalias(Jacobian) = ZeroVector(3);
-
+    
     //Calculating the jacobian [dx_0/d£]
     for( unsigned int i=0; i<dimension; i++)
       {
 	Jacobian[i] = J0[0](i,0);
       }
+    
+    mInvJ0 = 1.0/norm_2(Jacobian); 
+    
 
-    mInvJ0 = 1.0/norm_2(Jacobian);
-
-
-    //------------- FULL QUADRATURE INTEGRATION
+    //------------- FULL QUADRATURE INTEGRATION 
 
     IntegrationMethod FullIntegrationMethod = this->GetFullIntegrationMethod();
 
     const GeometryType::IntegrationPointsArrayType& integration_points_full = GetGeometry().IntegrationPoints( FullIntegrationMethod );
 
-
+   
     //Local Quaternions Initialization
     if ( mFrameQuaternionsFull.size() != integration_points_full.size() )
       {
         mFrameQuaternionsFull.resize( integration_points_full.size() );
       }
-
+   
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_full.size(); PointNumber++ )
       {
        	mFrameQuaternionsFull[PointNumber]  = QuaternionType::FromRotationMatrix( Identity );
@@ -210,18 +210,17 @@ namespace Kratos
     KRATOS_TRY
 
     mFinalizedStep = false;
-
+      
     //predict is done after initialize solution step -- perform this operations in initialize to write results correctly --
-
+        
 
     // Update Frame Quaternions:
-
+    
     //create and initialize element variables:
     ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
-
+    
     //reduced quadrature integration:
     mThisIntegrationMethod = mReducedIntegrationMethod;
 
@@ -229,14 +228,14 @@ namespace Kratos
 
     //reading shape functions
     Variables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
-
+    
     //get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = Variables.GetShapeFunctions();
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
 	//set shape functions values for this integration point
-	noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
+	Variables.N=row( Ncontainer, PointNumber);
 
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
@@ -245,7 +244,7 @@ namespace Kratos
 	mFrameQuaternionsReduced[PointNumber] = QuaternionType::FromRotationMatrix(Variables.CurrentRotationMatrix);
       }
 
-
+    
     //full quadrature integration:
     mThisIntegrationMethod = mFullIntegrationMethod;
 
@@ -253,14 +252,14 @@ namespace Kratos
 
     //reading shape functions
     Variables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
-
+    
     //get the shape functions for the order of the integration method [N]
     const Matrix& NFcontainer = Variables.GetShapeFunctions();
 
     for ( unsigned int PointNumber = 0; PointNumber < full_integration_points.size(); PointNumber++ )
       {
 	//set shape functions values for this integration point
-	noalias(Variables.N) = matrix_row<const Matrix>( NFcontainer, PointNumber);
+	Variables.N=row( NFcontainer, PointNumber);
 
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
@@ -270,8 +269,8 @@ namespace Kratos
       }
 
     mThisIntegrationMethod = ThisIntegrationMethod;
-
-    mIterationCounter = 0;
+      
+    mIterationCounter = 0;   
 
     KRATOS_CATCH( "" )
   }
@@ -283,7 +282,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-
+    
     KRATOS_CATCH( "" )
   }
 
@@ -308,14 +307,14 @@ namespace Kratos
     KRATOS_TRY
 
     // Update Curvature Vectors:
-
+      
     for ( unsigned int i = 0; i < mCurrentCurvatureVectors.size(); i++ )
       {
 	mPreviousCurvatureVectors[i] = mCurrentCurvatureVectors[i] ;
       }
 
     mFinalizedStep = true;
-
+      
     KRATOS_CATCH( "" )
   }
 
@@ -343,7 +342,7 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-    	//Current Rotation Derivatives
+    	//Current Rotation Derivatives	
     	CurrentValueVector = GetNodalCurrentValue( rVariable, CurrentValueVector, i );
     	CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rVariables.PointNumber );
 
@@ -370,10 +369,10 @@ namespace Kratos
     rVariables.PreviousCurvatureVector = BeamMathUtilsType::MapToReferenceLocalFrame( CurrentStepRotationVectorQuaternion, rVariables.PreviousCurvatureVector);
 
     double CurrentStepRotationVectorModulus = norm_2(CurrentStepRotationVector);
-
+    
     double CurrentStepRotationVectorSinusI   = 0;
     double CurrentStepRotationVectorCosinusI = 0;
-
+    
     //------------------[option 0]:start
     // double CurrentStepRotationVectorSinusII  = 0;
     // Vector EquationVectorPartA(3); noalias(EquationVectorPartA) = ZeroVector(3);
@@ -387,19 +386,19 @@ namespace Kratos
     noalias(EquationMatrixPartB) = ZeroMatrix(3,3);
     Matrix EquationMatrixPartC(3,3);
     noalias(EquationMatrixPartC) = ZeroMatrix(3,3);
-
+    
     Matrix DiagonalMatrix(3,3);
     noalias(DiagonalMatrix) = IdentityMatrix(3);
-
+	
     Matrix SkewSymCurrentStepRotation(3,3);
     noalias(SkewSymCurrentStepRotation) = ZeroMatrix(3,3);
     BeamMathUtilsType::VectorToSkewSymmetricTensor(CurrentStepRotationVector, SkewSymCurrentStepRotation);
 
     if( CurrentStepRotationVectorModulus != 0.00 ){
-
+      
       CurrentStepRotationVectorSinusI   = std::sin(CurrentStepRotationVectorModulus) / CurrentStepRotationVectorModulus;
       CurrentStepRotationVectorCosinusI = std::cos(CurrentStepRotationVectorModulus);
-
+	  
       //------------------[option 0]:start
       // CurrentStepRotationVectorSinusII  = std::sin(0.5 * CurrentStepRotationVectorModulus) / (0.5 * CurrentStepRotationVectorModulus);
 
@@ -442,12 +441,12 @@ namespace Kratos
   void LargeDisplacementBeamElement::MapToSpatialFrame(const ElementVariables& rVariables, Matrix& rVariable)
   {
     KRATOS_TRY
-
+     
     BeamMathUtilsType::MapLocalToGlobal3D(rVariables.CurrentRotationMatrix, rVariable);
 
     KRATOS_CATCH( "" )
   }
-
+  
 
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
@@ -466,19 +465,19 @@ namespace Kratos
     rVariables.PointNumber = rPointNumber;
 
     //Set Shape Functions Values for this integration point
-    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
-
+    rVariables.N=row( Ncontainer, rPointNumber);
+    
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
     //TOTAL LAGRANGIAN
-    //Compute cartesian derivatives [dN/dx_0]
-    rVariables.DN_DX = mInvJ0 * DN_De[rPointNumber];
+    //Compute cartesian derivatives [dN/dx_0]    
+    rVariables.DN_DX = mInvJ0 * DN_De[rPointNumber]; 
     rVariables.detJ  = 1.0/mInvJ0;
-
+  
     //compute local to global frame
     this->CalculateFrameMapping(rVariables,rPointNumber);
-
+    
     //Compute current centroid DISPLACEMENT DERIVATIVES:
     noalias(rVariables.CurrentAxisPositionDerivatives) = ZeroVector(dimension);
 
@@ -489,17 +488,17 @@ namespace Kratos
     if( mFinalizedStep == true ){
 
       rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
-
+      
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	  //A: Current Nodes Position
 	  CurrentValueVector = GetGeometry()[i].Coordinates();
 
 	  for ( unsigned int j = 0; j < dimension; j++ )
-	    {
+	    {	  
 	      CurrentValueVector[j] -= rVariables.DeltaPosition(i,j);
 	    }
-
+	  
 	  CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
 
 	  //Current Frame Axis Position derivative
@@ -525,36 +524,36 @@ namespace Kratos
 	}
     }
 
-
+    
     //Compute current CURVATURES
     if( mFinalizedStep == true ){
-
+      
       rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
-
+      
     }
     else{
-
-      // if( mIterationCounter == 0 ){
+     
+      if( mIterationCounter == 0 ){
 
 	rVariables.PreviousCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
       	rVariables.CurrentCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
+	
+	this->CalculateCurrentCurvature(rVariables, STEP_ROTATION);      
+      
+      }
+      else{
 
-	this->CalculateCurrentCurvature(rVariables, STEP_ROTATION);
-
-      // }
-      // else{
-
-      // 	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
-      // 	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
-
-      // 	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
-      // }
-
+	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+	rVariables.CurrentCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+      
+	this->CalculateCurrentCurvature(rVariables, DELTA_ROTATION);
+      }
+     
     }
-
+    
     KRATOS_CATCH( "" )
   }
-
+ 
 
   //*************************COMPUTE FRAME MAPPING POSITION*****************************
   //************************************************************************************
@@ -570,19 +569,19 @@ namespace Kratos
 
     std::vector<QuaternionType> NodeQuaternions;
     QuaternionType QuaternionValue;
-
+    
     //strains due to displacements and rotations
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 
-	//Rotations
+	//Rotations	
 	CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
 
 	//Current Frame is the Local Frame
 	CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
 
 	QuaternionValue = QuaternionType::FromRotationVector(CurrentValueVector);
-
+	
 	NodeQuaternions.push_back(QuaternionValue);
 
       }
@@ -617,11 +616,11 @@ namespace Kratos
     // QuaternionValue.ToRotationVector(CurrentValueVector);
 
     // CurrentValueVector *= rVariables.N[0];
-
+    
     // QuaternionValue = QuaternionType::FromRotationVector(CurrentValueVector);
 
     // QuaternionValue = (NodeQuaternions.front()) * QuaternionValue;
-
+    
     // // Current Rotation Matrix
     // QuaternionValue.ToRotationMatrix(rVariables.CurrentRotationMatrix);
 
@@ -638,7 +637,7 @@ namespace Kratos
     KRATOS_TRY
 
     mCurrentCurvatureVectors[rPointNumber] = rVariables.CurrentCurvatureVector;
-
+    
     KRATOS_CATCH( "" )
   }
 
@@ -654,7 +653,6 @@ namespace Kratos
 
     //create and initialize element variables:
     ElementVariables Variables;
-    this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
     IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
     //full quadrature integration:
@@ -681,7 +679,7 @@ namespace Kratos
     const Matrix& Ncontainer = Variables.GetShapeFunctions();
 
     // initialize variables short version;
-
+ 
     MatrixType  LocalLeftHandSideMatrix;
     VectorType  LocalRightHandSideVector;
     //Initialize sizes for the system components:
@@ -694,20 +692,20 @@ namespace Kratos
 	Variables.PointNumber = PointNumber;
 
 	//set shape functions values for this integration point
-	noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
+	Variables.N=row( Ncontainer, PointNumber);
 
 	//compute local to global frame
 	this->CalculateFrameMapping( Variables, PointNumber );
-
+	
 	Variables.detJ = 1.0/mInvJ0;
-
+ 
 	double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
+	
 	if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementBeamElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
 	    LocalLeftHandSideMatrix.clear();
-
+	    
     	    this->CalculateAndAddInertiaLHS( LocalLeftHandSideMatrix, Variables, rCurrentProcessInfo, IntegrationWeight ); // (R_N+1, R_N)
 
 	    BeamMathUtilsType::MapLocalToGlobal3D(mInitialLocalQuaternion,LocalLeftHandSideMatrix);
@@ -722,9 +720,9 @@ namespace Kratos
 	if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementBeamElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	  {
 	    LocalRightHandSideVector.clear();
-
+	    
 	    this->CalculateAndAddInertiaRHS( LocalRightHandSideVector, Variables, rCurrentProcessInfo, IntegrationWeight );
-
+	    
 	    BeamMathUtilsType::MapLocalToGlobal3D(mInitialLocalQuaternion,LocalRightHandSideVector);
 
 	    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
@@ -751,7 +749,7 @@ namespace Kratos
   void LargeDisplacementBeamElement::CalculateConstitutiveMatrix(ElementVariables& rVariables)
   {
     KRATOS_TRY
-
+      
     //Material Elastic constitutive matrix
     this->CalculateMaterialConstitutiveMatrix(rVariables.ConstitutiveMatrix, rVariables);
 
@@ -789,7 +787,7 @@ namespace Kratos
 	rVariables.StrainVector[i+3] = StrainCouples[i];
       }
 
-
+    
     Matrix ConstitutiveMatrix(6,6);
     noalias(ConstitutiveMatrix) = ZeroMatrix(6,6);
     this->CalculateMaterialConstitutiveMatrix(ConstitutiveMatrix, rVariables);
@@ -828,12 +826,12 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  //Strain Energy Calculation
+  //Strain Energy Calculation 
   void LargeDisplacementBeamElement::CalculateStrainEnergy(double& rEnergy, ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    //Internal Energy Calculation: alpha = 1
+    //Internal Energy Calculation: alpha = 1     
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //compute Strain Resultants and Couples
@@ -870,7 +868,7 @@ namespace Kratos
 
     rEnergy += 0.5 * (inner_prod(StressVector, StrainVector)) * rIntegrationWeight ;
 
-
+    
     KRATOS_CATCH( "" )
   }
 
@@ -886,10 +884,10 @@ namespace Kratos
     KRATOS_TRY
 
     BeamElement::CalculateAndAddExternalForces(rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
-
+    
     //follower load forces (to implement)
     this->CalculateAndAddFollowerForces( rRightHandSideVector, rVariables, rIntegrationWeight );
-
+    
     KRATOS_CATCH( "" )
   }
 
@@ -906,8 +904,8 @@ namespace Kratos
 
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-    double DomainSize = rVariables.Section.Area;
-
+    double DomainSize = rVariables.Section.Area; 
+    
     //---------------------
 
     // External Energy Calculation:
@@ -928,13 +926,13 @@ namespace Kratos
     //for more than one integration point
     Vector PotencialForceVector(3);
     noalias(PotencialForceVector) = ZeroVector(3);
-
+    
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-    	PotencialForceVector  += rIntegrationWeight * rVariables.N[i] * rVolumeForce * DomainSize;
+    	PotencialForceVector  += rIntegrationWeight * rVariables.N[i] * rVolumeForce * DomainSize;	  
       }
-
-
+    
+	
     rEnergy += inner_prod(PotencialForceVector,CurrentDisplacementVector);
 
     //---------------------
@@ -963,16 +961,16 @@ namespace Kratos
     E1[0] = 1.0;
 
     BeamMathUtilsType::VectorToSkewSymmetricTensor(PotencialForceVector,SkewSymMatrix); // m = f x r = skewF · r
-    PotencialMomentVector = prod(SkewSymMatrix,E1);
+    PotencialMomentVector = prod(SkewSymMatrix,E1);    
+	
+    rEnergy += inner_prod(PotencialMomentVector,CurrentDisplacementVector);    
 
-    rEnergy += inner_prod(PotencialMomentVector,CurrentDisplacementVector);
-
-
+    
     KRATOS_CATCH( "" )
 
   }
 
-
+  
   //************************************************************************************
   //************************************************************************************
 
@@ -997,13 +995,13 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( FOLLOWER_LINE_LOAD ) )
+	if( GetGeometry()[i].SolutionStepsDataHas( FOLLOWER_LINE_LOAD ) ) 
 	  FollowerLoad += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FOLLOWER_LINE_LOAD );
       }
-
+    
     //Current Frame given by the frame rotation
     FollowerLoad = prod( rVariables.CurrentRotationMatrix, FollowerLoad );
-
+    
     BeamMathUtilsType::AddVector(FollowerLoad, ResultantsVector, 3);
 
     //Initialize Local Matrices
@@ -1025,7 +1023,7 @@ namespace Kratos
 	BeamMathUtilsType::SubstractVector( Fi, rRightHandSideVector, RowIndex );
 
       }
-
+ 
 
     KRATOS_CATCH( "" )
 
@@ -1059,14 +1057,14 @@ namespace Kratos
 	RowIndex = i * (dimension * 2);
 
 	noalias(Fi) = ZeroVector(6);
-
+	
  	this->CalculateDifferentialOperator(DifferentialOperatorI, rVariables, i, rVariables.Alpha );
 
 	//nodal force vector
 	Fi = prod( DifferentialOperatorI, rVariables.StressVector );
 
 	Fi *= rIntegrationWeight;
-
+	
 	BeamMathUtilsType::SubstractVector( Fi, rRightHandSideVector, RowIndex );
 
 	// bool write = true;
@@ -1081,14 +1079,14 @@ namespace Kratos
 	//   std::cout<<" STEP_ROTATION  ("<<this->Id()<<"): "<<CurrentStepRotationVector<<std::endl;
 	//   std::cout<<" DISPLACEMENT   ("<<this->Id()<<"): "<<CurrentDisplacementVector<<std::endl;
 	//   std::cout<<" INTERNAL_FORCE ("<<this->Id()<<"): "<<Fi<<" StressVector "<<rVariables.StressVector<<std::endl;
-
+	  
 	//   //std::cout<<" Btensor "<<DifferentialOperatorI<<std::endl;
 
 	//   // std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 	// }
 
       }
-
+ 
 
     KRATOS_CATCH( "" )
 
@@ -1105,8 +1103,10 @@ namespace Kratos
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int MatSize = this->GetDofsSize();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    const unsigned int MatSize = this->GetDofsSize();
+    
     VectorType Fi(6);
     noalias(Fi) = ZeroVector(6);
 
@@ -1114,23 +1114,28 @@ namespace Kratos
     MatrixType DifferentialOperatorI(MatSize,MatSize);
     noalias(DifferentialOperatorI) = ZeroMatrix(MatSize,MatSize);
 
+    unsigned int RowIndex = 0;
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	noalias(Fi) = ZeroVector(6);
 
+	RowIndex = i * (dimension * 2);
+
+	noalias(Fi) = ZeroVector(6);
+	
  	this->CalculateDifferentialOperator(DifferentialOperatorI, rVariables, i, rVariables.Alpha );
 
 	//nodal force vector
 	Fi  = prod( DifferentialOperatorI, rVariables.StressVector );
 	Fi *= rIntegrationWeight;
-
+	
 	// Internal Energy Calculation:
 	Vector Movements;
 	this->GetCurrentNodalMovements( Movements, i, rVariables.PointNumber);
-
+	
 	rEnergy += inner_prod( Fi, Movements );
       }
-
+ 
 
     KRATOS_CATCH( "" )
 
@@ -1149,7 +1154,7 @@ namespace Kratos
     //Initialize Local Matrices
     if( rOperator.size1() != 6 )
       rOperator.resize(6, 6, false);
-
+    
     noalias(rOperator) = ZeroMatrix(6,6);
 
     rOperator( 0, 0 ) =  rN[rNode];
@@ -1178,7 +1183,7 @@ namespace Kratos
     //Initialize Local Matrices
     if( rDifferentialOperator.size1() != 6 )
       rDifferentialOperator.resize(6, 6, false);
-
+    
     noalias(rDifferentialOperator) = ZeroMatrix(6,6);
 
     rDifferentialOperator( 0, 0 ) =  rVariables.DN_DX( rNode, 0 );
@@ -1188,14 +1193,14 @@ namespace Kratos
     rDifferentialOperator( 4, 4 ) =  rVariables.DN_DX( rNode, 0 );
     rDifferentialOperator( 5, 5 ) =  rVariables.DN_DX( rNode, 0 );
 
-    //locate stress resultants in skew-symmetric "transposed" form
+    //locate stress resultants in skew-symmetric "transposed" form 
     Matrix SkewSymResultants(3,3);
     noalias(SkewSymResultants) = ZeroMatrix(3,3);
 
     BeamMathUtilsType::VectorToSkewSymmetricTensor(rVariables.CurrentAxisPositionDerivatives, SkewSymResultants);
 
-    SkewSymResultants *= (-1) * rVariables.N[rNode];
-
+    SkewSymResultants *= (-1) * rVariables.N[rNode]; 
+    
     for ( unsigned int i = 0; i < 3; i++ )
       {
 	for ( unsigned int j = 0; j < 3; j++ )
@@ -1221,7 +1226,7 @@ namespace Kratos
     //Initialize Local Matrices
     if( rDiscreteOperator.size1() != 6 || rDiscreteOperator.size2() != 9)
       rDiscreteOperator.resize(6, 9, false);
-
+    
     noalias(rDiscreteOperator) = ZeroMatrix(6,9);
 
     rDiscreteOperator( 0, 0 ) =  rVariables.DN_DX( rNode, 0 );
@@ -1250,7 +1255,7 @@ namespace Kratos
     //Initialize Local Matrices
     if( rBmatrix.size1() != 9 )
       rBmatrix.resize(9, 9, false);
-
+    
     noalias(rBmatrix) = ZeroMatrix(9,9);
 
     Vector StressResultants(3);
@@ -1277,16 +1282,16 @@ namespace Kratos
 	for ( unsigned int j = 0; j < 3; j++ )
 	  {
 	    rBmatrix( i+6, j ) =  SkewSymStressResultants(i,j);
-	    rBmatrix( i, j+6 ) = -SkewSymStressResultants(i,j);
+	    rBmatrix( i, j+6 ) = -SkewSymStressResultants(i,j);  
    	  }
       }
 
     //locate stress couples in skew-symmetric form
     Matrix SkewSymStressCouples(3,3);
     noalias(SkewSymStressCouples) = ZeroMatrix(3,3);
-
+    
     BeamMathUtilsType::VectorToSkewSymmetricTensor(StressCouples, SkewSymStressCouples);
-
+ 
     //locate stress couples in skew-symmetric form
     for ( unsigned int i = 0; i < 3; i++ )
       {
@@ -1305,23 +1310,23 @@ namespace Kratos
 
     //axial skew-symmetric matrix (Simo-Vu-Quoc)
     // AxialStressMatrix = outer_prod( StressResultants, rVariables.CurrentAxisPositionDerivatives );
-
+    
     // std::cout<<" StressResultants "<<StressResultants<<std::endl;
     // std::cout<<" AxisPositionDerivatives "<<rVariables.CurrentAxisPositionDerivatives<<std::endl;
     // std::cout<<" AxialStressMatrix "<<AxialStressMatrix<<std::endl;
 
     // double AxialStressScalar = inner_prod( StressResultants, rVariables.CurrentAxisPositionDerivatives );
-
+   
     // //EXTRA :: Symmetrize the Bmatrix: (convergence performance if linear rotations)
     // // Matrix ExtraAxialStressMatrix = outer_prod( rVariables.CurrentAxisPositionDerivatives, StressResultants );
-    // // AxialStressMatrix += ExtraAxialStressMatrix;
+    // // AxialStressMatrix += ExtraAxialStressMatrix;    
     // //EXTRA ::
 
     // AxialStressMatrix( 0, 0 ) -= AxialStressScalar;
     // AxialStressMatrix( 1, 1 ) -= AxialStressScalar;
     // AxialStressMatrix( 2, 2 ) -= AxialStressScalar;
 
-
+    
     // std::cout<<" AxialStressMatrix "<<AxialStressMatrix<<std::endl;
 
     //axial skew-symmetric matrix (Crisfield)
@@ -1360,7 +1365,7 @@ namespace Kratos
     // 	    std::cout<<rBmatrix(i,j)<<", ";
     // 	  }
     // 	std::cout<<rBmatrix(i,rBmatrix.size2()-1)<<" ]"<<std::endl;
-
+	
     //   }
 
     KRATOS_CATCH( "" )
@@ -1378,7 +1383,7 @@ namespace Kratos
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     unsigned int MatSize = dimension * 2;
-
+    
     //Initialize Local Matrices
     MatrixType DifferentialOperatorI(MatSize,MatSize);
     noalias(DifferentialOperatorI) = ZeroMatrix(MatSize,MatSize);
@@ -1396,7 +1401,7 @@ namespace Kratos
 	RowIndex = i * (dimension * 2);
 
 	this->CalculateDifferentialOperator( DifferentialOperatorI, rVariables, i, rVariables.Alpha );
-
+	
 	for ( unsigned int j = 0; j < number_of_nodes; j++ )
 	  {
 
@@ -1413,13 +1418,13 @@ namespace Kratos
 	    //std::cout<<" Kij "<<Kij<<std::endl;
 
 	    //Building the Local Stiffness Matrix
-	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
 	  }
       }
 
     //std::cout<<" Kuum "<<rLeftHandSideMatrix<<std::endl;
 
-
+   
     KRATOS_CATCH( "" )
   }
 
@@ -1457,7 +1462,7 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-
+	
 	RowIndex = i * (dimension * 2);
 
  	this->CalculateDiscreteOperator( DiscreteOperatorI, rVariables, i );
@@ -1472,12 +1477,12 @@ namespace Kratos
 	    this->CalculateDiscreteOperator( DiscreteOperatorJ, rVariables, j );
 
 	    noalias(Kij) = prod( DiscreteOperatorI, Matrix( prod( Bmatrix, trans(DiscreteOperatorJ) ) ) );
-
+	    
 	    Kij *= rIntegrationWeight;
 
 	    //Building the Local Stiffness Matrix
-	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
-
+	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    
 	  }
       }
 
@@ -1492,10 +1497,10 @@ namespace Kratos
     // 	    std::cout<<std::scientific<<Kuug(i,j)<<", ";
     // 	    if( Kuug(i,j) != Kuug(j,i) )
     // 	      symmetric = false;
-
+	    
     // 	  }
     // 	std::cout<<Kuug(i,Kuug.size2()-1)<<" ]"<<std::endl;
-
+	
     //   }
 
     // if( symmetric == true )
@@ -1507,7 +1512,7 @@ namespace Kratos
 
     // Local geometrical follower load stiffness
     this->CalculateAndAddKuuf( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
+    
     KRATOS_CATCH( "" )
 
   }
@@ -1534,7 +1539,7 @@ namespace Kratos
     Matrix GabK(3,3);
     noalias(GabK) = ZeroMatrix(3,3);
     Matrix DiagonalMatrix(3,3);
-    noalias(DiagonalMatrix) = IdentityMatrix(3);
+    noalias(DiagonalMatrix) = IdentityMatrix(3);   
 
     Vector StressResultants(3);
     noalias(StressResultants) = ZeroVector(3);
@@ -1555,7 +1560,7 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-
+	
 	RowIndex = i * (dimension * 2);
 
 	for ( unsigned int j = 0; j < number_of_nodes; j++ )
@@ -1565,23 +1570,23 @@ namespace Kratos
 
 	    ColIndex = j * (dimension * 2);
 
-
+	    
 	    //term 11 -> 0
 	    //term 12
 	    noalias(GabK) = ZeroMatrix(3,3);
 	    Matrix SkewSymStressResultants(3,3);
 	    noalias(SkewSymStressResultants) = ZeroMatrix(3,3);
 	    BeamMathUtilsType::VectorToSkewSymmetricTensor(StressResultants, SkewSymStressResultants);
-	    GabK = (-1) * (rVariables.DN_DX(i, 0) * rVariables.N[j]) * SkewSymStressResultants;
+	    GabK = (-1) * (rVariables.DN_DX(i, 0) * rVariables.N[j]) * SkewSymStressResultants; 
 	    //Building the Local Stiffness Matrix
-	    BeamMathUtilsType::AddMatrix( Kij, GabK, 0, 3 );
-
+	    MathUtils<double>::AddMatrix( Kij, GabK, 0, 3 );
+		
 	    //term 21
 	    noalias(GabK) = ZeroMatrix(3,3);
 	    GabK = (rVariables.N[i] * rVariables.DN_DX(j, 0) ) * SkewSymStressResultants;
 	    //Building the Local Stiffness Matrix
-	    BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 0 );
-
+	    MathUtils<double>::AddMatrix( Kij, GabK, 3, 0 );
+	
 
 	    //term 22
 	    noalias(GabK) = ZeroMatrix(3,3);
@@ -1590,19 +1595,19 @@ namespace Kratos
 	    noalias(SkewSymStressCouples) = ZeroMatrix(3,3);
 	    BeamMathUtilsType::VectorToSkewSymmetricTensor(StressCouples, SkewSymStressCouples);
 
-	    GabK  = (-1) * (rVariables.DN_DX(i, 0) * rVariables.N[j]) * SkewSymStressCouples;
+	    GabK  = (-1) * (rVariables.DN_DX(i, 0) * rVariables.N[j]) * SkewSymStressCouples; 
 	    GabK += ( rVariables.N[i] * rVariables.N[j]) * outer_prod( StressResultants, rVariables.CurrentAxisPositionDerivatives );
-
+		
 	    GabK -= ( rVariables.N[i] * rVariables.N[j]) * inner_prod( StressResultants, rVariables.CurrentAxisPositionDerivatives ) * DiagonalMatrix;
 
 	    //Building the Local Stiffness Matrix
-	    BeamMathUtilsType::AddMatrix( Kij, GabK, 3, 3 );
+	    MathUtils<double>::AddMatrix( Kij, GabK, 3, 3 );
 
 	    Kij *= rIntegrationWeight;
 
 	    //Building the Local Stiffness Matrix
-	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
-
+	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    
 	  }
       }
 
@@ -1617,10 +1622,10 @@ namespace Kratos
     // 	    std::cout<<std::scientific<<Kuug(i,j)<<", ";
     // 	    if( Kuug(i,j) != Kuug(j,i) )
     // 	      symmetric = false;
-
+	    
     // 	  }
     // 	std::cout<<Kuug(i,Kuug.size2()-1)<<" ]"<<std::endl;
-
+	
     //   }
 
     // if( symmetric == true )
@@ -1632,7 +1637,7 @@ namespace Kratos
 
     // Local geometrical follower load stiffness
     this->CalculateAndAddKuuf( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
+    
     KRATOS_CATCH( "" )
 
   }
@@ -1661,7 +1666,7 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	if( GetGeometry()[i].SolutionStepsDataHas( FOLLOWER_LINE_LOAD ) )
+	if( GetGeometry()[i].SolutionStepsDataHas( FOLLOWER_LINE_LOAD ) ) 
 	  FollowerLoad += rVariables.N[i] *  GetGeometry()[i].FastGetSolutionStepValue( FOLLOWER_LINE_LOAD );
       }
 
@@ -1692,17 +1697,17 @@ namespace Kratos
 	    ColIndex = j * (dimension * 2);
 
 	    Lij =  rIntegrationWeight * rVariables.N[i] * rVariables.N[j] * SkewSymResultants;
-
+	    
 	    //Building the Local Stiffness Matrix
-	    BeamMathUtilsType::AddMatrix( Kij, Lij, 0, 3 );
-
+	    MathUtils<double>::AddMatrix( Kij, Lij, 0, 3 );
+	    	    
 	    //Building the Local Stiffness Matrix
-	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
-
+	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	    
 	  }
       }
 
-
+   
     KRATOS_CATCH( "" )
 
   }
@@ -1711,7 +1716,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  //Inertia in the SPATIAL configuration
+  //Inertia in the SPATIAL configuration 
   void LargeDisplacementBeamElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight )
   {
 
@@ -1732,7 +1737,7 @@ namespace Kratos
 
     //rCurrentProcessInfo must give it:
     double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-
+ 
     double Beta = 1;
     double Newmark1 = 1;
     if( rCurrentProcessInfo.Has(NEWMARK_BETA) ){
@@ -1755,9 +1760,9 @@ namespace Kratos
 
     double TotalMass = 0;
     TotalMass  = this->CalculateTotalMass( Section, TotalMass );
-
+    
     //block m(2,2) of the mass matrix
-
+     
     MatrixType m22(3,3);
     noalias(m22) = ZeroMatrix(3,3);
 
@@ -1791,29 +1796,29 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 
-	//Current Compound Rotation Vector
+	//Current Compound Rotation Vector 
 	CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
 	CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector );
 
 	CurrentCompoundRotationVector   += rVariables.N[i] * CurrentValueVector;
-
-	//Reference Compound Rotation Vector
+	
+	//Reference Compound Rotation Vector 
 	PreviousValueVector = GetNodalPreviousValue( ROTATION, PreviousValueVector, i );
 	PreviousValueVector = this->MapToInitialLocalFrame( PreviousValueVector );
 
-	ReferenceCompoundRotationVector += rVariables.N[i] * PreviousValueVector;
+	ReferenceCompoundRotationVector += rVariables.N[i] * PreviousValueVector;	
 
 	//Reference Frame is the Local Frame
 	QuaternionValue = QuaternionType::FromRotationVector(PreviousValueVector);
-
+	
 	ReferenceNodeQuaternions.push_back(QuaternionValue);
 
 
-	//Current Step Rotation Vector
+	//Current Step Rotation Vector 
 	CurrentValueVector = GetNodalCurrentValue( STEP_ROTATION, CurrentValueVector, i );
 	noalias(CurrentStepRotationVector) += rVariables.N[i] * CurrentValueVector;
 
-	//Previous Step Rotation Vector
+	//Previous Step Rotation Vector 
 	PreviousValueVector = GetNodalPreviousValue( STEP_ROTATION, PreviousValueVector, i );
 	noalias(PreviousStepRotationVector) += rVariables.N[i] * PreviousValueVector;
 
@@ -1824,13 +1829,13 @@ namespace Kratos
 	//Current Angular Acceleration Vector
 	CurrentValueVector = GetNodalCurrentValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
 	noalias(CurrentAngularAccelerationVector) += rVariables.N[i] * CurrentValueVector;
-
+        
         //Previous Angular Acceleration Vector
 	CurrentValueVector = GetNodalPreviousValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
 	noalias(PreviousAngularAccelerationVector) += rVariables.N[i] * CurrentValueVector;
-
+	
       }
-
+     
 
     //Set step variables to local frame (current Frame is the local frame)
     PreviousStepRotationVector        = this->MapToInitialLocalFrame( PreviousStepRotationVector );
@@ -1838,14 +1843,14 @@ namespace Kratos
     AngularVelocityVector             = this->MapToInitialLocalFrame( AngularVelocityVector );
     CurrentAngularAccelerationVector  = this->MapToInitialLocalFrame( CurrentAngularAccelerationVector );
     PreviousAngularAccelerationVector = this->MapToInitialLocalFrame( PreviousAngularAccelerationVector );
-
+    
     double AlphaM = 0;
     if( rCurrentProcessInfo.Has(BOSSAK_ALPHA) ){
       AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
     }
 
     AngularAccelerationVector = (1.0-AlphaM)*CurrentAngularAccelerationVector + AlphaM*(PreviousAngularAccelerationVector);
-
+      
     //1.-Get inertia dyadic
     Matrix InertiaDyadic(3,3);
     noalias(InertiaDyadic) = ZeroMatrix(3,3);
@@ -1854,13 +1859,13 @@ namespace Kratos
     InertiaDyadic = prod(InertiaDyadic,trans(rVariables.CurrentRotationMatrix));
 
     //2.- Compute Term 1:
-
+    
     Matrix MassTerm1(3,3);
     noalias(MassTerm1) = ZeroMatrix(3,3);
-
+    
     Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
     Vector InertiaxAngularAcceleration = prod( InertiaDyadic, AngularAccelerationVector );
-
+    
     Matrix TensorAngularVelocity(3,3);
     noalias(TensorAngularVelocity) = ZeroMatrix(3,3);
 
@@ -1872,12 +1877,12 @@ namespace Kratos
     VectorTerm1  = prod( TensorAngularVelocity, InertiaxAngularVelocity );
 
     VectorTerm1 += InertiaxAngularAcceleration;
-
+    
     BeamMathUtilsType::VectorToSkewSymmetricTensor(VectorTerm1, MassTerm1);
-
-
+    
+    
     //3.- Compute Term 2:
-
+    
     Matrix MassTerm2(3,3);
     noalias(MassTerm2) = ZeroMatrix(3,3);
 
@@ -1888,22 +1893,22 @@ namespace Kratos
     Matrix TensorAngularVelocityxInertia(3,3);
     noalias(TensorAngularVelocityxInertia) = ZeroMatrix(3,3);
     noalias(TensorAngularVelocityxInertia) = prod( TensorAngularVelocity, InertiaDyadic );
-
+    
     Matrix InertiaxTensorAngularVelocity(3,3);
     noalias(InertiaxTensorAngularVelocity) = ZeroMatrix(3,3);
     noalias(InertiaxTensorAngularVelocity) = prod( InertiaDyadic, TensorAngularVelocity );
-
+    
     //MassTerm2 = (1.0-AlphaM) * InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia + Newmark2 * InertiaxTensorAngularVelocity; //Cardona
 
-    MassTerm2 = (1.0-AlphaM) * InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia; //Simo
+    MassTerm2 = (1.0-AlphaM) * InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia; //Simo       
 
     MassTerm2 *= Newmark1;
-
+    
     MatrixType MassMatrixBlock2(3,3);
     noalias(MassMatrixBlock2) = ZeroMatrix(3,3);
 
     MassMatrixBlock2 = (-1) * MassTerm1 + MassTerm2;
-
+    	    
     // Compute Linear Part of the Step Rotation
     Matrix LinearPartRotationTensor(3,3);
     noalias(LinearPartRotationTensor) = ZeroMatrix(3,3);
@@ -1918,15 +1923,15 @@ namespace Kratos
       noalias(LinearPartRotationTensor) = IdentityMatrix(3);
     }
 
-
+    
     MassMatrixBlock2 = prod( MassMatrixBlock2, LinearPartRotationTensor );
-
+    
     unsigned int RowIndex = 0;
     unsigned int ColIndex = 0;
 
     Matrix DiagonalMatrix(3,3);
-    noalias(DiagonalMatrix) = IdentityMatrix(3);
-
+    noalias(DiagonalMatrix) = IdentityMatrix(3);   
+    
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	noalias(m11) = ZeroMatrix(3,3);
@@ -1943,15 +1948,15 @@ namespace Kratos
 	    m11 = (1.0-AlphaM) * Newmark1 * TotalMass * rVariables.N[i] * rVariables.N[j] * rIntegrationWeight * DiagonalMatrix;
 
 	    m22 = rVariables.N[i] * rVariables.N[j] * rIntegrationWeight * MassMatrixBlock2;
-
+	    
 
 	    //Building the Local Tangent Inertia Matrix
-	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
-
+	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+	    
 	  }
       }
-
+   
     KRATOS_CATCH( "" )
 
   }
@@ -1959,7 +1964,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  //Inertia in the SPATIAL configuration
+  //Inertia in the SPATIAL configuration 
   void LargeDisplacementBeamElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight)
   {
     KRATOS_TRY
@@ -1976,10 +1981,10 @@ namespace Kratos
     SectionProperties Section;
     this->CalculateSectionProperties(Section);
 
-
+  
     double TotalMass = 0;
-    TotalMass = this->CalculateTotalMass( Section, TotalMass );
-
+    TotalMass = this->CalculateTotalMass( Section, TotalMass );     
+ 
     //displacements and rotations vector
 
     Vector LinearAccelerationVector(3);
@@ -1997,7 +2002,7 @@ namespace Kratos
     noalias(CurrentAngularAccelerationVector) = ZeroVector(3);
     Vector PreviousAngularAccelerationVector(3);
     noalias(PreviousAngularAccelerationVector) = ZeroVector(3);
-
+ 
 
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
@@ -2019,13 +2024,13 @@ namespace Kratos
 	//CurrentAngular Acceleration Vector
 	CurrentValueVector = GetNodalCurrentValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
 	CurrentAngularAccelerationVector       += rVariables.N[i] * CurrentValueVector;
-
+        
         //Previous Angular Acceleration Vector
 	CurrentValueVector = GetNodalPreviousValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
 	PreviousAngularAccelerationVector      += rVariables.N[i] * CurrentValueVector;
-
+	
       }
-
+     
     //Set step variables to local frame (current Frame is the local frame)
     CurrentLinearAccelerationVector   = this->MapToInitialLocalFrame( CurrentLinearAccelerationVector );
     PreviousLinearAccelerationVector  = this->MapToInitialLocalFrame( PreviousLinearAccelerationVector );
@@ -2063,10 +2068,10 @@ namespace Kratos
     InertiaDyadic = prod(InertiaDyadic,trans(rVariables.CurrentRotationMatrix));
 
 
-    //Compute Angular Term:
+    //Compute Angular Term:  
     Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
     Vector InertiaxAngularAcceleration = prod( InertiaDyadic, AngularAccelerationVector );
-
+    
     Matrix TensorAngularVelocity(3,3);
     noalias(TensorAngularVelocity) = ZeroMatrix(3,3);
     BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
@@ -2077,12 +2082,12 @@ namespace Kratos
 
     // CROSS PRODUCT of AxB = prod( skewA, B )  where (skewA) = [Ax] = [A]^v =>  (skewA)^T = hat(A) (nomenclature)
     AngularInertialForceVector += InertiaxAngularAcceleration;
-
+ 
 
     //compose total acceleration integral function:
     Vector TotalInertialForceVector(6);
     noalias(TotalInertialForceVector) = ZeroVector(6);
-
+    
     BeamMathUtilsType::AddVector(LinearInertialForceVector, TotalInertialForceVector, 0);
     BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
 
@@ -2098,18 +2103,18 @@ namespace Kratos
 	RowIndex = i * (dimension * 2);
 
 	noalias(Fi) = ZeroVector(6);
-
+	
  	this->CalculateOperator( OperatorI, rVariables.N, i );
 
     	//nodal force vector
     	Fi  = prod( OperatorI, TotalInertialForceVector );
 
 	Fi *= rIntegrationWeight;
-
+	
 	BeamMathUtilsType::AddVector(Fi, rRightHandSideVector, RowIndex);
       }
 
-
+  
     KRATOS_CATCH( "" )
   }
 
@@ -2117,7 +2122,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  //Kinetic Energy Calculation
+  //Kinetic Energy Calculation 
   void LargeDisplacementBeamElement::CalculateKineticEnergy(double& rEnergy,
 							    ElementVariables& rVariables,
 							    const ProcessInfo& rCurrentProcessInfo,
@@ -2132,8 +2137,8 @@ namespace Kratos
 
     //Get total mass
     double TotalMass = 0;
-    TotalMass = this->CalculateTotalMass( Section, TotalMass );
-
+    TotalMass = this->CalculateTotalMass( Section, TotalMass );     
+ 
     //Get inertia dyadic
     Matrix InertiaDyadic(3,3);
     noalias(InertiaDyadic) = ZeroMatrix(3,3);
@@ -2149,7 +2154,7 @@ namespace Kratos
     noalias(CurrentVelocitiesVector) = ZeroVector(6);
 
     Matrix KineticMatrix;
-    this->GetKineticMatrix( KineticMatrix, TotalMass, CurrentInertiaDyadic );
+    this->GetKineticMatrix( KineticMatrix, TotalMass, CurrentInertiaDyadic );    
 
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -2161,13 +2166,13 @@ namespace Kratos
 
       }
 
-
+ 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	rEnergy += 0.5 * rVariables.N[i] * inner_prod( CurrentVelocitiesVector, prod( KineticMatrix, CurrentVelocitiesVector) ) * rIntegrationWeight;
       }
-
-
+  
+      
     KRATOS_CATCH( "" )
   }
 
@@ -2175,7 +2180,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  //Linear Momentum and Angular Momentum Calculation
+  //Linear Momentum and Angular Momentum Calculation 
   void LargeDisplacementBeamElement::CalculateMomentumRelations(array_1d<double,3>& rLinearMomentum,
 								array_1d<double,3>& rAngularMomentum,
 								ElementVariables& rVariables,
@@ -2191,7 +2196,7 @@ namespace Kratos
 
     //Get total mass
     double TotalMass = 0;
-    TotalMass = this->CalculateTotalMass( Section, TotalMass );
+    TotalMass = this->CalculateTotalMass( Section, TotalMass );     
 
     //Get inertia dyadic
     Matrix InertiaDyadic(3,3);
@@ -2202,7 +2207,7 @@ namespace Kratos
     Matrix CurrentInertiaDyadic = prod(rVariables.CurrentRotationMatrix,InertiaDyadic);
     CurrentInertiaDyadic = prod(CurrentInertiaDyadic,trans(rVariables.CurrentRotationMatrix));
 
-    Matrix DiagonalMatrix = identity_matrix<double> (3);
+    Matrix DiagonalMatrix = identity_matrix<double> (3);   
 
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
@@ -2236,7 +2241,7 @@ namespace Kratos
 
     CurrentPositionVector         = this->MapToInitialLocalFrame( CurrentPositionVector, rVariables.PointNumber );
     CurrentDisplacementVector     = this->MapToInitialLocalFrame( CurrentDisplacementVector, rVariables.PointNumber  );
-    CurrentLinearVelocityVector   = this->MapToInitialLocalFrame( CurrentLinearVelocityVector, rVariables.PointNumber  );
+    CurrentLinearVelocityVector   = this->MapToInitialLocalFrame( CurrentLinearVelocityVector, rVariables.PointNumber  );  
     CurrentAngularVelocityVector  = this->MapToInitialLocalFrame( CurrentAngularVelocityVector, rVariables.PointNumber );
 
 
@@ -2251,10 +2256,10 @@ namespace Kratos
     //for more than one integration point
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-    	LinearMomentumVector  += TotalMass * rVariables.N[i] * prod( DiagonalMatrix, CurrentLinearVelocityVector ) * rIntegrationWeight;
+    	LinearMomentumVector  += TotalMass * rVariables.N[i] * prod( DiagonalMatrix, CurrentLinearVelocityVector ) * rIntegrationWeight;	  
       }
-
-    MathUtils<double>::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
+    
+    AngularMomentumVector  =  MathUtils<double>::CrossProduct(CurrentPositionVector, LinearMomentumVector);
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -2263,10 +2268,10 @@ namespace Kratos
 
     //for only one integration point
     //LinearMomentumVector   = TotalMass * prod( DiagonalMatrix, CurrentLinearVelocityVector ) * rIntegrationWeight;
-    //MathUtils<double>::CrossProduct(AngularMomentumVector, CurrentPositionVector, LinearMomentumVector);
+    //AngularMomentumVector  = MathUtils<double>::CrossProduct(CurrentPositionVector, LinearMomentumVector);
     //AngularMomentumVector += prod( CurrentInertiaDyadic, CurrentAngularVelocityVector ) * rIntegrationWeight;
 
-    // Note:
+    // Note: 
     // LocalTransformationMatrix is a rotation matrix with new base in columns
     // That means that the standard rotation K = Q·K'·QT and F = Q·F' is the correct transformation
 
@@ -2294,7 +2299,7 @@ namespace Kratos
   void LargeDisplacementBeamElement::GetKineticMatrix(Matrix& rKineticMatrix, const double& rMass, const Matrix& rInertia)
   {
     KRATOS_TRY
-
+   
     if( rKineticMatrix.size1() != 6 || rKineticMatrix.size2() != 6 )
       rKineticMatrix.resize(6,6);
 
@@ -2314,7 +2319,7 @@ namespace Kratos
 	  }
       }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH( "" )   
   }
 
 
@@ -2335,7 +2340,7 @@ namespace Kratos
     rValues[0] = CurrentValueVector[0];
     rValues[1] = CurrentValueVector[1];
     rValues[2] = CurrentValueVector[2];
-
+	
 
     noalias(CurrentValueVector) = ZeroVector(3);
     CurrentValueVector = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, rNode );
@@ -2356,7 +2361,7 @@ namespace Kratos
       rValues.resize(6);
 
     noalias(rValues) = ZeroVector(6);
-
+  
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
     CurrentValueVector = GetNodalCurrentValue( DISPLACEMENT, CurrentValueVector, rNode );
@@ -2364,7 +2369,7 @@ namespace Kratos
 
     rValues[0] = CurrentValueVector[0];
     rValues[1] = CurrentValueVector[1];
-    rValues[2] = CurrentValueVector[2];
+    rValues[2] = CurrentValueVector[2];     
 
     noalias(CurrentValueVector) = ZeroVector(3);
     CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, rNode );
@@ -2407,13 +2412,13 @@ namespace Kratos
     TotalMass *= GetGeometry().Length();
 
     Vector LumpFact(number_of_nodes);
-    noalias(LumpFact) = ZeroVector(number_of_nodes);
+    noalias(LumpFact) = ZeroVector(number_of_nodes); 
 
     LumpFact = GetGeometry().LumpingFactors(LumpFact);
 
 
     //block m(2,2) of the mass matrix
-
+    
     MatrixType m22(3,3);
     noalias(m22) = ZeroMatrix(3,3);
 
@@ -2436,13 +2441,13 @@ namespace Kratos
 
 	m22 = InertiaDyadic * temp;
 
-
+	
 	//Building the Local Tangent Inertia Matrix
-	BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
-	BeamMathUtilsType::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
-
+	MathUtils<double>::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
+	MathUtils<double>::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
+	
       }
-
+ 
 
     // Transform Local to Global LHSMatrix:
     BeamMathUtilsType::MapLocalToGlobal3D(mInitialLocalQuaternion,rMassMatrix);
@@ -2477,9 +2482,9 @@ namespace Kratos
 
     if( rInertiaDyadic.size1() != 3 )
       rInertiaDyadic.resize(3, 3, false);
-
+    
     noalias(rInertiaDyadic) = ZeroMatrix(3,3);
-
+       
     //if the local axes are the principal axes of the cross section
 
     //Axis Local E1
@@ -2504,27 +2509,27 @@ namespace Kratos
 
     if( rRotationTensor.size1() != 3 )
       rRotationTensor.resize(3, 3, false);
-
+    
     noalias(rRotationTensor) = ZeroMatrix(3,3);
 
     // adding term 3
     BeamMathUtilsType::VectorToSkewSymmetricTensor( rRotationVector, rRotationTensor );
 
     rRotationTensor *= 0.5;
-
+    
     double NormRotation =  norm_2(rRotationVector);
     Matrix RotationxRotation = outer_prod( rRotationVector, rRotationVector );
-
+    
     if( NormRotation != 0 )
       RotationxRotation *= ( 1.0/( NormRotation * NormRotation ) );
 
     // adding term 1
     rRotationTensor += RotationxRotation;
-
+    
     double Coefficient = 0;
     if( NormRotation != 0 )
       Coefficient = 0.5 * NormRotation / std::tan( 0.5 * NormRotation );
-
+    
     for(unsigned int i=0; i<3; i++)
       RotationxRotation(i,i) -= 1.0;
 
@@ -2554,73 +2559,72 @@ namespace Kratos
 
       //create and initialize element variables:
       ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
       mThisIntegrationMethod = mFullIntegrationMethod;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
+	
       // initialize variables short version:
-
+	
       //Compute Section Properties:
       this->CalculateSectionProperties(Variables.Section);
       Variables.Length = GetGeometry().Length();
-
+	
       //Set equilibrium point initial:0/mid:0.5/final:1
       if( rCurrentProcessInfo.Has(EQUILIBRIUM_POINT) )
 	Variables.Alpha = rCurrentProcessInfo[EQUILIBRIUM_POINT];
       else
 	Variables.Alpha = 1;
-
+	
       //reading shape functions
       Variables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
-
+	
       //get the shape functions for the order of the integration method [N]
       const Matrix& Ncontainer = Variables.GetShapeFunctions();
 
       double IntegrationWeight = 0;
       double Energy = 0;
-
+	
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	{
 	  //integration point number
 	  Variables.PointNumber = PointNumber;
 
 	  //set shape functions values for this integration point
-	  noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
+	  Variables.N=row( Ncontainer, PointNumber);
 
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );
-
+	
 	  Variables.detJ = 1.0/mInvJ0;
-
+	    
 	  IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	  IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-
+	    
 	  Energy = 0;
-
+	    
 	  //Kinetic energy calculation
 	  this->CalculateKineticEnergy(Energy, Variables, rCurrentProcessInfo, IntegrationWeight);
 
 	  rOutput[PointNumber] = Energy;
-
+	    
 	  //Momentum calculation
 	  //this->CalculateMomentumRelations(Variables, rCurrentProcessInfo, IntegrationWeight);
-
+	    
 	}
 
       mThisIntegrationMethod = ThisIntegrationMethod;
-
+      
     }
     else if ( rVariable == INTERNAL_ENERGY ){
       //create and initialize element variables:
       ElementVariables Variables;
       this->InitializeElementVariables(Variables,rCurrentProcessInfo);
-
-      //reading integration points
+	
+      //reading integration points 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
       double IntegrationWeight = 1.0;
@@ -2629,19 +2633,19 @@ namespace Kratos
 	{
 	  //compute element kinematics  ...
 	  this->CalculateKinematics(Variables,PointNumber);
-
+	    
 	  //compute element ConstitutiveTensor
 	  this->CalculateConstitutiveMatrix(Variables);
-
+	    
 	  //compute element Strain and Stress Resultants and Couples
 	  this->CalculateStressResultants(Variables, PointNumber);
-
+	    
 	  IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	  IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
+	    
 	  Energy = 0;
 	  this->CalculateInternalForcesEnergy(Energy, Variables, IntegrationWeight);
-
+	    
 	  rOutput[PointNumber] = Energy;
 	}
     }
@@ -2650,37 +2654,37 @@ namespace Kratos
       //create and initialize element variables:
       ElementVariables Variables;
       this->InitializeElementVariables(Variables,rCurrentProcessInfo);
-
-      //reading integration points
+	
+      //reading integration points 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
+	
       //auxiliary terms
       Vector VolumeForce(3);
       noalias(VolumeForce) = ZeroVector(3);
-
+	
       double IntegrationWeight = 1.0;
       double Energy = 0;
-
+	
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	{
 	  //compute element kinematics  ...
 	  this->CalculateKinematics(Variables,PointNumber);
-
+	    
 	  //compute element ConstitutiveTensor
 	  this->CalculateConstitutiveMatrix(Variables);
-
+	    
 	  //compute element Strain and Stress Resultants and Couples
 	  this->CalculateStressResultants(Variables, PointNumber);
-
+	    
 	  IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	  IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
-
+	    
 	  //contribution to external forces
 	  VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables.N );
 
 	  Energy = 0;
 	  this->CalculateExternalForcesEnergy(Energy, Variables, VolumeForce, IntegrationWeight);
-
+	    
 	  rOutput[PointNumber] = Energy;
 	}
     }
@@ -2688,7 +2692,7 @@ namespace Kratos
       BeamElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
-
+    
     KRATOS_CATCH( "" )
   }
 
@@ -2696,7 +2700,7 @@ namespace Kratos
   //************************************************************************************
 
   void LargeDisplacementBeamElement::CalculateOnIntegrationPoints(  const Variable<array_1d<double, 3 > >& rVariable,
-								    std::vector< array_1d<double, 3 > >& rOutput,
+								    std::vector< array_1d<double, 3 > >& rOutput, 
 								    const ProcessInfo& rCurrentProcessInfo )
   {
 
@@ -2709,32 +2713,31 @@ namespace Kratos
 
 
     if ( rVariable == LINEAR_MOMENTUM || rVariable == ANGULAR_MOMENTUM ){
-
+      
       //create and initialize element variables:
       ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
       mThisIntegrationMethod = mFullIntegrationMethod;
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
+	
       // initialize variables short version:
-
+	
       //Compute Section Properties:
       this->CalculateSectionProperties(Variables.Section);
       Variables.Length = GetGeometry().Length();
-
+	
       //Set equilibrium point initial:0/mid:0.5/final:1
       if( rCurrentProcessInfo.Has(EQUILIBRIUM_POINT) )
 	Variables.Alpha = rCurrentProcessInfo[EQUILIBRIUM_POINT];
       else
 	Variables.Alpha = 1;
-
+	
       //reading shape functions
       Variables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
-
+	
       //get the shape functions for the order of the integration method [N]
       const Matrix& Ncontainer = Variables.GetShapeFunctions();
 
@@ -2743,35 +2746,35 @@ namespace Kratos
       array_1d<double,3> AngularMomentum;
       LinearMomentum.clear();
       AngularMomentum.clear();
-
+	    
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	{
 	  //integration point number
 	  Variables.PointNumber = PointNumber;
 
 	  //set shape functions values for this integration point
-	  noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
+	  Variables.N=row( Ncontainer, PointNumber);
 
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );
 
 	  Variables.detJ = 1.0/mInvJ0;
-
+	    
 	  IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	  IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
 	  //Momentum calculation
 	  this->CalculateMomentumRelations(LinearMomentum, AngularMomentum, Variables, rCurrentProcessInfo, IntegrationWeight);
-
+	    
 	  if( rVariable == LINEAR_MOMENTUM )
 	    rOutput[PointNumber] = LinearMomentum;
 
 	  if( rVariable == ANGULAR_MOMENTUM )
 	    rOutput[PointNumber] = AngularMomentum;
 	}
-
+      
       mThisIntegrationMethod = ThisIntegrationMethod;
-
+      
     }
     else{
       BeamElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
@@ -2794,7 +2797,7 @@ namespace Kratos
   int  LargeDisplacementBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
-
+      
     // Perform base element checks
     int ErrorCode = 0;
     ErrorCode = BeamElement::Check(rCurrentProcessInfo);
@@ -2825,7 +2828,7 @@ namespace Kratos
   void LargeDisplacementBeamElement::load( Serializer& rSerializer )
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BeamElement )
-    rSerializer.load("FinalizedStep",mFinalizedStep);
+    rSerializer.load("FinalizedStep",mFinalizedStep);  
     int IntMethod;
     rSerializer.load("ReducedIntegrationMethod",IntMethod);
     mReducedIntegrationMethod = IntegrationMethod(IntMethod);
@@ -2840,3 +2843,5 @@ namespace Kratos
 
 
 } // Namespace Kratos
+
+

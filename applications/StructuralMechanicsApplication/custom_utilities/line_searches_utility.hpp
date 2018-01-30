@@ -16,6 +16,7 @@
 /* System includes */
 
 /* External includes */
+#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -26,7 +27,7 @@
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
-//#include <cmath>
+#include <cmath>
 
 namespace Kratos
 {

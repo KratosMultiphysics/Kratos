@@ -139,12 +139,7 @@ class PfemFluidSolver:
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POISSON_RATIO)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YOUNG_MODULUS)
-        
-        #VARIABLES FOR NON-NEWTONIAN MODEL
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FLOW_INDEX)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELD_SHEAR)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)        
-
+ 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
@@ -282,7 +277,7 @@ class PfemFluidSolver:
         adaptive_time_interval = KratosPfemFluid.AdaptiveTimeIntervalProcess(self.main_model_part,self.settings["echo_level"].GetInt())
         adaptive_time_interval.Execute()
 
-        unactive_peak_elements = False
+        unactive_peak_elements = True
         unactive_sliver_elements = True
         set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
         set_active_flag.Execute()
@@ -302,7 +297,7 @@ class PfemFluidSolver:
         #pass
         self.fluid_solver.FinalizeSolutionStep()  
 
-        unactive_peak_elements = False
+        unactive_peak_elements = True
         unactive_sliver_elements = True
         set_active_flag = KratosPfemFluid.SetActiveFlagProcess(self.main_model_part,unactive_peak_elements,unactive_sliver_elements,self.settings["echo_level"].GetInt())
         set_active_flag.ExecuteFinalize()
@@ -333,9 +328,6 @@ class PfemFluidSolver:
             bulk_modulus = el.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
             young_modulus = el.Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS)
             poisson_ratio = el.Properties.GetValue(KratosMultiphysics.POISSON_RATIO)
-            flow_index = el.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
-            yield_shear = el.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
-            adaptive_exponent = el.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
             break
             
         print ("density: ",density)
@@ -343,9 +335,6 @@ class PfemFluidSolver:
         print ("bulk_modulus: ",bulk_modulus)
         print ("young_modulus: ",young_modulus)
         print ("poisson_ratio: ",poisson_ratio)
-        print ("flow_index: ",flow_index)
-        print ("yield_shear: ",yield_shear)
-        print ("adaptive_exponent: ",adaptive_exponent)
 
 #
 

@@ -59,12 +59,17 @@ class Solution(MainFluidPFEM.Solution):
         
     def AddNodalVariablesToModelPart(self):
         
-        super(Solution,self).AddNodalVariablesToModelPart() 
-
+        # Add variables (always before importing the model part)
+        self.solver.AddVariables()
         self.AddFluidVariablesBySwimmingDEMAlgorithm()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+
+        # Add PfemSolidMechanicsApplication Variables
+        import pfem_solid_variables  
+        pfem_solid_variables.AddVariables(self.main_model_part) 
         
     def AddFluidVariablesBySwimmingDEMAlgorithm(self):
+        self.vars_man.AddExtraProcessInfoVariablesToFluidModelPart(self.pp, self.main_model_part)
         self.vars_man.AddNodalVariables(self.main_model_part, self.pp.fluid_vars) 
         
     def GetDeltaTimeFromParameters(self):

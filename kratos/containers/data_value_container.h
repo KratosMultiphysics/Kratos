@@ -80,10 +80,10 @@ public:
     typedef std::vector<ValueType> ContainerType;
 
     /// Type of the container used for variables
-    typedef std::vector<ValueType>::iterator iterator;
+    typedef std::vector<ValueType>::iterator IteratorType;
 
     /// Type of the container used for variables
-    typedef std::vector<ValueType>::const_iterator const_iterator;
+    typedef std::vector<ValueType>::const_iterator ConstantIteratorType;
 
     /// Type of the container used for variables
     typedef std::vector<ValueType>::size_type SizeType;
@@ -98,14 +98,14 @@ public:
     /// Copy constructor.
     DataValueContainer(DataValueContainer const& rOther)
     {
-        for(const_iterator i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
+        for(ConstantIteratorType i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
             mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
     }
 
     /// Destructor.
     virtual ~DataValueContainer()
     {
-        for(iterator i = mData.begin() ; i != mData.end() ; ++i)
+        for(IteratorType i = mData.begin() ; i != mData.end() ; ++i)
             i->first->Delete(i->second);
     }
 
@@ -169,32 +169,12 @@ public:
         return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
     }
 
-    iterator begin()
-    {
-        return mData.begin();
-    }
-    
-    const_iterator begin() const
-    {
-        return mData.begin();
-    }
-    
-    iterator end()
-    {
-        return mData.end();
-    }
-
-    const_iterator end() const
-    {
-        return mData.end();
-    }
-
     /// Assignment operator.
     DataValueContainer& operator=(const DataValueContainer& rOther)
     {
         Clear();
 
-        for(const_iterator i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
+        for(ConstantIteratorType i = rOther.mData.begin() ; i != rOther.mData.end() ; ++i)
             mData.push_back(ValueType(i->first, i->first->Clone(i->second)));
 
         return *this;
@@ -334,7 +314,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        for(const_iterator i = mData.begin() ; i != mData.end() ; ++i)
+        for(ConstantIteratorType i = mData.begin() ; i != mData.end() ; ++i)
         {
             rOStream <<"    ";
             i->first->Print(i->second, rOStream);

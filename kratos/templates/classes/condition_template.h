@@ -24,7 +24,7 @@
 
 // Project includes
 #include "includes/condition.h"
-#include "@{APP_NAME_LOW}_application_variables.h"
+#include "@{APP_NAME_LOW}_application.h"
 
 
 namespace Kratos

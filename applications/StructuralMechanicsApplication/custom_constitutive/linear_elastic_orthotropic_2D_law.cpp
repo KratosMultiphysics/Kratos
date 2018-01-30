@@ -7,18 +7,19 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
-//       Contact:    A.Winterstein [at] tum.de
+//       Contact:    A.Winterstein@tum.de
 //
 
 // System includes
 #include <iostream>
 
 // External includes
-// #include<cmath>
+#include<cmath>
 
 // Project includes
+#include "includes/properties.h"
 #include "includes/checks.h"
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -118,18 +119,6 @@ namespace Kratos
 			this->CalculateLinearElasticMatrix(ConstitutiveMatrix, MaterialProperties);
 		}
 	}
-
-	//************************************************************************************
-	//************************************************************************************
-
-	bool& LinearElasticOrthotropic2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
-	{
-		// This Constitutive Law has been checked with Stenberg Stabilization
-		if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
-			rValue = true;
-		
-		return rValue;
-	}
 	
 	//***********************COMPUTE TOTAL STRAIN*****************************************
 	//************************************************************************************
@@ -204,6 +193,7 @@ namespace Kratos
 
 	//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 	//************************************************************************************
+
 	
 	void LinearElasticOrthotropic2DLaw::GetLawFeatures(Features& rFeatures)
 	{
@@ -217,10 +207,10 @@ namespace Kratos
 		rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
 		//Set the strain size
-		rFeatures.mStrainSize = 3;
+		rFeatures.mStrainSize = GetStrainSize();
 
 		//Set the spacedimension
-		rFeatures.mSpaceDimension = 2;
+		rFeatures.mSpaceDimension = WorkingSpaceDimension();
 	}
 	
 

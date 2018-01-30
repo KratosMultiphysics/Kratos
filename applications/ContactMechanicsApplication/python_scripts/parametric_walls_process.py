@@ -68,9 +68,6 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
     #
     def ExecuteInitialize(self):
 
-        for i in range(0,self.number_of_walls):
-            self.parametric_walls[i].BuildParametricWall()
-
         # check restart
         self.restart = False
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] ):
@@ -175,9 +172,3 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
             return ( self.main_model_part.ProcessInfo[TIME] > self.next_search )
         else:
             return ( self.step_count >= self.next_search )
-
-
-    #
-    def GetVariables(self):
-        nodal_variables = ['VOLUME_ACCELERATION', 'CONTACT_FORCE', 'CONTACT_NORMAL']
-        return nodal_variables

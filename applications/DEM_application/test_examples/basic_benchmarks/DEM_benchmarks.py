@@ -27,34 +27,33 @@ listDISclRK   = [31,33]
 class Solution(main_script.Solution):
 
     def LoadParametersFile(self):
-        file_name = None
         if benchmark_number in listDISCONT:
             self.nodeplotter = True
-            file_name = "ProjectParametersDISCONT.json"
+            parameters_file = open("ProjectParametersDISCONT.json",'r')
         elif benchmark_number in listROLLFR:
-            file_name = "ProjectParametersROLLFR.json"
+            parameters_file = open("ProjectParametersROLLFR.json",'r')
         elif benchmark_number in listDEMFEM:
-            file_name = "ProjectParametersDEMFEM.json"
+            parameters_file = open("ProjectParametersDEMFEM.json",'r')
         elif benchmark_number in listCONT:
-            file_name = "ProjectParametersDEMCONT.json"
+            parameters_file = open("ProjectParametersDEMCONT.json",'r')
         elif benchmark_number == 27:
-            file_name = "ProjectParametersUCS.json"
+            parameters_file = open("ProjectParametersUCS.json",'r')
         #elif benchmark_number == 28:
         #    import DEM_explicit_solver_var_PENDULO3D as DEM_parameters  #disappeared?
         #    parameters_file = open("ProjectParametersDEM.json",'r')
         elif benchmark_number in listDISclZHAO:
-            file_name = "ProjectParametersDISclZHAO.json"
+            parameters_file = open("ProjectParametersDISclZHAO.json",'r')
         elif benchmark_number in listDISclRK:
-            file_name = "ProjectParametersDISclRK.json"
+            parameters_file = open("ProjectParametersDISclRK.json",'r')
         else:
             print('Benchmark number does not exist')
             sys.exit()
+        self.DEM_parameters = Parameters(parameters_file.read())
 
-        with open(file_name, 'r') as parameters_file:
-            self.DEM_parameters = Parameters(parameters_file.read())
 
     def __init__(self):
         super(Solution, self).__init__()
+        os.chdir('..')
         self.nodeplotter = False
         self.LoadParametersFile()
         self.main_path = os.getcwd()
@@ -86,11 +85,7 @@ class Solution(main_script.Solution):
         return SolverStrategy
 
     def SetSolver(self):
-        return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
-                                                     self.creator_destructor,
-                                                     self.dem_fem_search,
-                                                     self.DEM_parameters,
-                                                     self.procedures)
+        return self.solver_strategy.ExplicitStrategy(self.all_model_parts, self.creator_destructor, self.dem_fem_search, self.scheme, self.DEM_parameters, self.procedures)
 
     def SetFinalTime(self):
         self.final_time = final_time

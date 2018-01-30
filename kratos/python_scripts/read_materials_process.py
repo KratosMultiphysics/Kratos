@@ -1,13 +1,13 @@
-import KratosMultiphysics  
-import sys
+from KratosMultiphysics import * 
+import importlib
         
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if(type(settings) != Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ReadMaterialsProcess(Model, settings["Parameters"])
 
 
-class ReadMaterialsProcess(KratosMultiphysics.Process):
+class ReadMaterialsProcess(Process):
     def __init__(self, Model, settings):
         """Read constitutive law and material properties from a json file and assign them to elements and conditions.
 
@@ -26,71 +26,47 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         See _AssignPropertyBlock for detail on how properties are imported.
         """
-        KratosMultiphysics.Process.__init__(self) 
-        default_settings = KratosMultiphysics.Parameters("""
+        Process.__init__(self) 
+        default_settings = Parameters("""
             {
             "materials_filename" : "please specify the file to be opened"
             }
             """
-        )
-
+            )
+            
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
 
-        with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
-            materials = KratosMultiphysics.Parameters(parameter_file.read())
+        parameter_file = open(settings["materials_filename"].GetString(), 'r')
+        materials = Parameters(parameter_file.read())
         
         for i in range(materials["properties"].size()):
             self._AssignPropertyBlock(materials["properties"][i])
         
         print("finished reading materials")
         
-    def _GetVariable(self,my_string):
-        """Return the python object of a Variable named by the string argument.
-
-        Examples:
-        variable = self._GetVariable("VELOCITY")
-        variable = self._GetVariable("KratosMultiphysics.VELOCITY")
-        variable = self._GetVariable("SUBSCALE_PRESSURE")
-        variable = self._GetVariable("FluidDynamicsApplication.SUBSCALE_PRESSURE")
-        variable = self._GetVariable("KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE")
-        """
-        splitted = my_string.split(".")
-
-        if len(splitted) == 0:
-            raise Exception("Something wrong. Trying to split the string " + my_string)
-        if len(splitted) > 3:
-            raise Exception("Something wrong. String " + my_string + " has too many arguments")
-
-        return KratosMultiphysics.KratosGlobals.GetVariable(splitted[-1]) # This also checks if the application has been imported
-
-    def _GetConstitutiveLaw(self,my_string):
-        """Return the python object of a Constitutive Law named by the string argument.
+    def _GetItemFromModule(self,my_string):
+        """Return the python object named by the string argument.
 
         Example:
-        constitutive_law = self._GetConstitutiveLaw('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
+        constitutive_law = self._GetItemFromModule('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
         model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
         """
         splitted = my_string.split(".")
         if(len(splitted) == 0):
             raise Exception("something wrong. Trying to split the string "+my_string)
         if(len(splitted) == 1):
-            raise Exception("Please also provide the name of the application of constitutive law "+my_string)
-
-        constitutive_law_name = splitted[-1]
-        module_name = splitted[-2]
-
-        if module_name == "KratosMultiphysics":
-            return getattr(KratosMultiphysics, constitutive_law_name) 
+            return eval(my_string)
         else:
-            application_name = "Kratos" + module_name
-            if application_name not in KratosMultiphysics.KratosGlobals.RequestedApplications:
-                raise ImportError(module_name + " is not imported!")
-            module1 = KratosMultiphysics.KratosGlobals.RequestedApplications[application_name]
-            module2 = sys.modules[application_name]
-            
-            return getattr(module2, constitutive_law_name) 
+            module_name = ""
+            for i in range(len(splitted)-1):
+                module_name += splitted[i] 
+                if i != len(splitted)-2:
+                    module_name += "."
 
+            module = importlib.import_module(module_name)
+            return getattr(module,splitted[-1]) 
+             
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
 
@@ -132,15 +108,15 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         # Set the CONSTITUTIVE_LAW for the current properties.
         if "Variables" in mat["constitutive_law"].keys(): #pass the list of variables when constructing the constitutive law
-           constitutive_law = self._GetVariable( mat["constitutive_law"]["name"].GetString())(mat["constitutive_law"]["Variables"])
+           constitutive_law = self._GetItemFromModule( mat["constitutive_law"]["name"].GetString())(mat["constitutive_law"]["Variables"])
         else:
-           constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString())()
+           constitutive_law = self._GetItemFromModule( mat["constitutive_law"]["name"].GetString())()
            
-        prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law)
+        prop.SetValue(CONSTITUTIVE_LAW, constitutive_law)
         
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():
-            var = self._GetVariable(key)
+            var = self._GetItemFromModule(key)
             if value.IsDouble():
                 prop.SetValue( var, value.GetDouble() )
             elif value.IsInt():
@@ -160,10 +136,10 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         for key, table in mat["Tables"].items():
             table_name = key
 
-            input_var = self._GetVariable(table["input_variable"].GetString())
-            output_var = self._GetVariable(table["output_variable"].GetString())
+            input_var = self._GetItemFromModule(table["input_variable"].GetString())
+            output_var = self._GetItemFromModule(table["output_variable"].GetString())
 
-            new_table = KratosMultiphysics.PiecewiseLinearTable()
+            new_table = PiecewiseLinearTable()
 
             for i in range(table["data"].size()):
                 new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())

@@ -38,8 +38,7 @@
 namespace Kratos
 {
 
-KratosPoromechanicsApplication::KratosPoromechanicsApplication()
-    : KratosApplication("PoromechanicsApplication"),
+KratosPoromechanicsApplication::KratosPoromechanicsApplication():
 
     mUPwSmallStrainElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType(3)))),
     mUPwSmallStrainElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType(4)))),

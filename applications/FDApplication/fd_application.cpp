@@ -21,9 +21,7 @@
 
 namespace Kratos {
 
-    KratosFDApplication::KratosFDApplication():
-        KratosApplication("FDApplication")
-    {}
+	KratosFDApplication::KratosFDApplication() {}
 
 	void KratosFDApplication::Register() {
 		KratosApplication::Register();

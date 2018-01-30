@@ -31,7 +31,6 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
 
   
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
-  KratosApplication("SwimmingDEMApplication"),
   mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
   mMonolithicDEMCoupled3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
   mMonolithicDEMCoupledWeak2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -96,6 +95,7 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_CONDITION("MonolithicDEMCoupledWallCondition3D",mMonolithicDEMCoupledWallCondition3D)
   KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition2D",  mComputeLaplacianSimplexCondition2D)
   KRATOS_REGISTER_CONDITION("ComputeLaplacianSimplexCondition3D", mComputeLaplacianSimplexCondition3D)
+  Serializer::Register( "VariablesList", mVariablesList );
  }
 
 }  // namespace Kratos.

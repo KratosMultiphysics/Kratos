@@ -147,7 +147,7 @@ public:
     // --------------------------------------------------------------------------
     void CreateSearchTreeWithAllNodesOfModelPart()
     {
-        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfModelPart.begin(), mListOfNodesOfModelPart.end(), mBucketSize));
+        mpSearchTree = boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfModelPart.begin(), mListOfNodesOfModelPart.end(), mBucketSize));
     }      
 
     // --------------------------------------------------------------------------
@@ -219,7 +219,7 @@ public:
     // --------------------------------------------------------------------------
     DampingFunction::Pointer CreateDampingFunction( std::string damping_type, double damping_radius )
     {
-        return Kratos::shared_ptr<DampingFunction>(new DampingFunction(damping_type, damping_radius));
+        return boost::shared_ptr<DampingFunction>(new DampingFunction(damping_type, damping_radius));
     }    
 
     // --------------------------------------------------------------------------

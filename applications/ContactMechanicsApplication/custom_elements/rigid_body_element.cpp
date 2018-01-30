@@ -1180,11 +1180,11 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 	    
 
     	    //Building the Local Tangent Inertia Matrix
-    	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+    	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
 	    if(dimension == 2)
 	      rLeftHandSideMatrix(RowIndex+3,ColIndex+3) = m22(2,2);
 	    else  
-	      BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+	      MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
 	    
     	  }
       }
@@ -1286,8 +1286,8 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 	    
 
     // 	    //Building the Local Tangent Inertia Matrix
-    // 	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-    // 	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+    // 	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+    // 	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
 	    
     // 	  }
     //   }
@@ -1523,12 +1523,12 @@ void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo&
     	m22 = InertiaDyadic * temp;
 
     	//Building the Local Tangent Inertia Matrix
-    	BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
+    	MathUtils<double>::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
 
 	if(dimension == 2)
 	  rMassMatrix(RowIndex+3,RowIndex+3) = m22(2,2);
 	else
-	  BeamMathUtilsType::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
+	  MathUtils<double>::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
 
       }
  

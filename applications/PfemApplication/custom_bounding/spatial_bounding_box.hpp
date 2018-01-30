@@ -1432,10 +1432,10 @@ protected:
 
       double tolerance = 1.0/64.0;
       if(fabs(rDirectionVectorX[0])< tolerance && fabs(rDirectionVectorX[1])< tolerance){
-	MathUtils<double>::CrossProduct(rDirectionVectorY, GlobalY, rDirectionVectorX);
+	rDirectionVectorY = MathUtils<double>::CrossProduct(GlobalY, rDirectionVectorX);
       }
       else{
-	MathUtils<double>::CrossProduct(rDirectionVectorY, GlobalZ, rDirectionVectorX);
+	rDirectionVectorY = MathUtils<double>::CrossProduct(GlobalZ, rDirectionVectorX);
       }
 
 
@@ -1444,7 +1444,7 @@ protected:
 	rDirectionVectorY /= VectorNorm;
 
       // local z-axis (e3_local) (in GID is e2_local)
-      MathUtils<double>::CrossProduct(rDirectionVectorZ, rDirectionVectorX,rDirectionVectorY);
+      rDirectionVectorZ = MathUtils<double>::CrossProduct(rDirectionVectorX,rDirectionVectorY);
  
       VectorNorm = MathUtils<double>::Norm(rDirectionVectorZ);
       if( VectorNorm != 0 )

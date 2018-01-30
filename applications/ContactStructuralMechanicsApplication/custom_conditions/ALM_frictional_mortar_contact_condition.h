@@ -29,7 +29,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point                                     PointType;
+    typedef Point                                  PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
     typedef Geometry<PointType>               GeometryPointType;
@@ -54,7 +54,7 @@ namespace Kratos
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
 template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
-class AugmentedLagrangianMethodFrictionalMortarContactCondition: public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, true, TNormalVariation> 
+class AugmentedLagrangianMethodFrictionalMortarContactCondition: public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, true> 
 {
 public:
     ///@name Type Definitions
@@ -63,41 +63,37 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionalMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionalMortarContactCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, true, TNormalVariation> BaseType;
+    typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, true>       BaseType;
     
-    typedef typename BaseType::MortarConditionMatrices                                MortarConditionMatrices;
+    typedef typename BaseType::MortarConditionMatrices                    MortarConditionMatrices;
     
-    typedef Condition                                                                       ConditionBaseType;
+    typedef Condition                                                           ConditionBaseType;
     
-    typedef PairedCondition                                                           PairedConditionBaseType;
-    
-    typedef typename ConditionBaseType::VectorType                                                 VectorType;
+    typedef typename ConditionBaseType::VectorType                                     VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                                 MatrixType;
+    typedef typename ConditionBaseType::MatrixType                                     MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                                   IndexType;
+    typedef typename ConditionBaseType::IndexType                                       IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                             GeometryPointerType;
+    typedef typename ConditionBaseType::GeometryType::Pointer                 GeometryPointerType;
 
-    typedef typename ConditionBaseType::NodesArrayType                                         NodesArrayType;
+    typedef typename ConditionBaseType::NodesArrayType                             NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType                                         PropertiesType;
+    typedef typename ConditionBaseType::PropertiesType::Pointer             PropertiesPointerType;
     
-    typedef typename ConditionBaseType::PropertiesType::Pointer                         PropertiesPointerType;
+    typedef typename ConditionBaseType::EquationIdVectorType                 EquationIdVectorType;
     
-    typedef typename ConditionBaseType::EquationIdVectorType                             EquationIdVectorType;
+    typedef typename ConditionBaseType::DofsVectorType                             DofsVectorType;
     
-    typedef typename ConditionBaseType::DofsVectorType                                         DofsVectorType;
+    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
     
-    typedef typename std::vector<array_1d<PointType,TDim>>                             ConditionArrayListType;
+    typedef Line2D2<Point>                                                            LineType;
     
-    typedef Line2D2<Point>                                                                           LineType;
+    typedef Triangle3D3<Point>                                                    TriangleType;
     
-    typedef Triangle3D3<Point>                                                                   TriangleType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
     
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type             DecompositionType;
-    
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>                    DerivativeDataType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes>                          DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TDim * (TNumNodes + TNumNodes + TNumNodes);
          
@@ -106,35 +102,17 @@ public:
     ///@{
 
     /// Default constructor
-    AugmentedLagrangianMethodFrictionalMortarContactCondition()
-        : BaseType() 
+    AugmentedLagrangianMethodFrictionalMortarContactCondition(): BaseType() 
     {
     }
     
     // Constructor 1
-    AugmentedLagrangianMethodFrictionalMortarContactCondition(
-        IndexType NewId, 
-        GeometryPointerType pGeometry
-        ):BaseType(NewId, pGeometry)
+    AugmentedLagrangianMethodFrictionalMortarContactCondition(IndexType NewId, GeometryPointerType pGeometry):BaseType(NewId, pGeometry)
     {
     }
     
     // Constructor 2
-    AugmentedLagrangianMethodFrictionalMortarContactCondition(
-        IndexType NewId, 
-        GeometryPointerType pGeometry, 
-        PropertiesPointerType pProperties
-        ):BaseType( NewId, pGeometry, pProperties )
-    {
-    }
-    
-    // Constructor 3
-    AugmentedLagrangianMethodFrictionalMortarContactCondition(
-        IndexType NewId, 
-        GeometryPointerType pGeometry, 
-        PropertiesPointerType pProperties,
-        GeometryType::Pointer pMasterGeometry
-        ):BaseType( NewId, pGeometry, pProperties, pMasterGeometry )
+    AugmentedLagrangianMethodFrictionalMortarContactCondition(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties):BaseType( NewId, pGeometry, pProperties )
     {
     }
 
@@ -157,9 +135,9 @@ public:
    
     /**
      * Creates a new element pointer from an arry of nodes
-     * @param NewId the ID of the new element
-     * @param ThisNodes the nodes of the new element
-     * @param pProperties the properties assigned to the new element
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -171,9 +149,9 @@ public:
     
     /**
      * Creates a new element pointer from an existing geometry
-     * @param NewId the ID of the new element
-     * @param pGeom the  geometry taken to create the condition
-     * @param pProperties the properties assigned to the new element
+     * @param NewId: the ID of the new element
+     * @param pGeom: the  geometry taken to create the condition
+     * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -183,29 +161,14 @@ public:
         PropertiesPointerType pProperties
         ) const override;
         
-    /**
-     * Creates a new element pointer from an existing geometry
-     * @param NewId the ID of the new element
-     * @param pGeom the  geometry taken to create the condition
-     * @param pProperties the properties assigned to the new element
-     * @param pMasterGeom the paired geometry
-     * @return a Pointer to the new element
-     */
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryPointerType pGeom,
-        PropertiesPointerType pProperties,
-        GeometryPointerType pMasterGeom
-        ) const override;
-        
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
-     * @return rResult The result vector with the ID's of the DOF
-     * @param rCurrentProcessInfo the current process info instance
+     * @return rResult: The result vector with the ID's of the DOF
+     * @param rCurrentProcessInfo: the current process info instance
      */
     
     void EquationIdVector( 
@@ -216,7 +179,7 @@ public:
     /**
      * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
      * @return rConditionalDofList
-     * @param rCurrentProcessInfo the current process info instance
+     * @param rCurrentProcessInfo: the current process info instance
      */
     
     void GetDofList( 
@@ -224,15 +187,6 @@ public:
         ProcessInfo& rCurrentProcessInfo 
         ) override;
 
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-        
     ///@}
     ///@name Access
     ///@{
@@ -280,7 +234,7 @@ protected:
     bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const unsigned int& rActiveInactive
         ) override;
     
     /*
@@ -290,7 +244,7 @@ protected:
     array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const unsigned int& rActiveInactive
         ) override;
         
     /******************************************************************/
@@ -304,14 +258,19 @@ protected:
     unsigned int GetActiveInactiveValue(GeometryType& CurrentGeometry) const override
     {
         unsigned int value = 0;
-        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+        
+        for (unsigned int i_node = 0; i_node < CurrentGeometry.size(); i_node++)
         {
-            if (CurrentGeometry[i_node].Is(ACTIVE) == true)
+            if ((CurrentGeometry[i_node].Is(ACTIVE) == true) || (this->Is(VISITED) == true))
             {
-                if (CurrentGeometry[i_node].Is(SLIP) == true)
+                if ((CurrentGeometry[i_node].Is(SLIP) == true) || (this->Is(VISITED) == true))
+                {
                     value += std::pow(3, i_node);
+                }
                 else
+                {
                     value += 2 * std::pow(3, i_node);
+                }
             }
         }
         

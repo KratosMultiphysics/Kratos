@@ -1,5 +1,4 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import python_process
 
 def Factory(settings, Model):
@@ -57,16 +56,16 @@ class ComputeDragProcess(python_process.PythonProcess):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
 
         if((current_time >= self.interval[0]) and  (current_time < self.interval[1])):
-            # Compute the drag force
-            drag_force = KratosFluid.DragUtilities().CalculateBodyFittedDrag(self.model_part)
 
-            # Write the drag force values
+            # Note that MPI communication is done within VariableUtils().SumHistoricalNodeVectorVariable()
+            reaction_vector = KratosMultiphysics.VariableUtils().SumHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.model_part, 0)
+
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 if (self.print_drag_to_screen):
                     print("DRAG RESULTS:")
-                    print("Current time: " + str(current_time) + " x-drag: " + str(drag_force[0]) + " y-drag: " + str(drag_force[1]) + " z-drag: " + str(drag_force[2]))
+                    print("Current time: " + str(current_time) + " x-drag: " + str(-reaction_vector[0]) + " y-drag: " + str(-reaction_vector[1]) + " z-drag: " + str(-reaction_vector[2]))
 
                 if (self.write_drag_output_file):
                     with open(self.drag_filename, 'a') as file:
-                        file.write(str(current_time)+"   "+str(drag_force[0])+"   "+str(drag_force[1])+"   "+str(drag_force[2])+"\n")
+                        file.write(str(current_time)+"   "+str(-reaction_vector[0])+"   "+str(-reaction_vector[1])+"   "+str(-reaction_vector[2])+"\n")
                         file.close()

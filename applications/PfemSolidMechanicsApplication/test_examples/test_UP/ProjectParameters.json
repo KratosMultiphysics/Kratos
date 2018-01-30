@@ -41,7 +41,7 @@
     },
     "problem_process_list"     : [{
         "help"          : "This process applies meshing to the problem domains",
-        "kratos_module" : "KratosMultiphysics.PfemApplication",
+        "kratos_module" : "KratosMultiphysics.PfemBaseApplication",
         "python_module" : "remesh_domains_process",
         "process_name"  : "RemeshDomainsProcess",
         "Parameters"    : {
@@ -51,6 +51,7 @@
             "meshing_before_output" : true,
             "meshing_domains"       : [{
                 "python_module"                   : "meshing_domain",
+                "mesh_id"                         : 0,
                 "model_part_name"                 : "Body1",
                 "alpha_shape"                     : 2.4,
                 "offset_factor"                   : 0.0,
@@ -122,6 +123,7 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
+            "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
@@ -133,6 +135,7 @@
         "help"          : "This process fixes the selected components of a given vector variable",
         "process_name"  : "AssignVectorComponentsToNodesProcess",
         "Parameters"    : {
+            "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,null,0.0],
@@ -146,6 +149,7 @@
         "check"         : "DirectorVectorNonZero direction",
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
+            "mesh_id"         : 0,
             "model_part_name" : "LineLoad2D_Load_on_lines_Auto1",
             "variable_name"   : "LINE_LOAD",
             "modulus"         : 20.0,

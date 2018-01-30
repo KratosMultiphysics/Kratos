@@ -1,16 +1,10 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-# Importing the Kratos Library
 import KratosMultiphysics
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
-# Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-
-# Import base class file
 import structural_mechanics_solver
+
+# Check that KratosMultiphysics was imported in the main script
+KratosMultiphysics.CheckForPreviousImport()
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -105,23 +99,39 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         
     def _create_mechanical_solver(self):
-        analysis_type = self.settings["analysis_type"].GetString()
-        if analysis_type == "linear":
-            mechanical_solver = self._create_linear_strategy()
-        elif analysis_type == "non_linear":
-            if(self.settings["line_search"].GetBool() == False):
-                mechanical_solver = self._create_newton_raphson_strategy()
-            else:
-                mechanical_solver = self._create_line_search_strategy()
-        elif analysis_type == "arc_length":
-            mechanical_solver = self._create_arc_length_strategy()
-        elif analysis_type == "formfinding":
-            mechanical_solver = self._create_formfinding_strategy()
+        if(self.settings["line_search"].GetBool()):
+            mechanical_solver = self._create_line_search_strategy()
         else:
-            err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-            err_msg += "Available options are: \"linear\", \"non_linear\", \"arc_length\", \"formfinding\""
-            raise Exception(err_msg)
+            analysis_type = self.settings["analysis_type"].GetString()
+            if analysis_type == "linear":
+                mechanical_solver = self._create_linear_strategy()
+            elif analysis_type == "non_linear":
+                mechanical_solver = self._create_newton_raphson_strategy()
+            elif analysis_type == "arc_length":
+                mechanical_solver = self._create_arc_length_strategy()
+            elif analysis_type == "formfinding":
+                mechanical_solver = self._create_formfinding_strategy()
+            else:
+                err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
+                err_msg += "Available options are: \"linear\", \"non_linear\", \"arc_length\", \"formfinding\""
+                raise Exception(err_msg)
         return mechanical_solver
+
+    def _create_line_search_strategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        mechanical_scheme = self.get_solution_scheme()
+        linear_solver = self.get_linear_solver()
+        mechanical_convergence_criterion = self.get_convergence_criterion()
+        builder_and_solver = self.get_builder_and_solver()
+        return KratosMultiphysics.LineSearchStrategy(computing_model_part, 
+                                                     mechanical_scheme, 
+                                                     linear_solver, 
+                                                     mechanical_convergence_criterion, 
+                                                     builder_and_solver, 
+                                                     self.settings["max_iteration"].GetInt(), 
+                                                     self.settings["compute_reactions"].GetBool(), 
+                                                     self.settings["reform_dofs_at_each_step"].GetBool(), 
+                                                     self.settings["move_mesh_flag"].GetBool())
 
     def _create_arc_length_strategy(self):
         computing_model_part = self.GetComputingModelPart()
@@ -148,13 +158,14 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
+
         return StructuralMechanicsApplication.FormfindingUpdatedReferenceStrategy(
-                                                                computing_model_part, 
-                                                                mechanical_scheme, 
-                                                                linear_solver, 
-                                                                mechanical_convergence_criterion, 
-                                                                builder_and_solver, 
-                                                                self.settings["max_iteration"].GetInt(), 
-                                                                self.settings["compute_reactions"].GetBool(), 
-                                                                self.settings["reform_dofs_at_each_step"].GetBool(), 
-                                                                self.settings["move_mesh_flag"].GetBool())
+                                                                        computing_model_part, 
+                                                                        mechanical_scheme, 
+                                                                        linear_solver, 
+                                                                        mechanical_convergence_criterion, 
+                                                                        builder_and_solver, 
+                                                                        self.settings["max_iteration"].GetInt(), 
+                                                                        self.settings["compute_reactions"].GetBool(), 
+                                                                        self.settings["reform_dofs_at_each_step"].GetBool(), 
+                                                                        self.settings["move_mesh_flag"].GetBool())

@@ -45,8 +45,6 @@
 #include "utilities/geometry_utilities.h"
 #include "includes/c2c_variables.h"
 #include "includes/cfd_variables.h"
-#include "includes/deprecated_variables.h"
-
 
 namespace Kratos
 {

@@ -323,7 +323,7 @@ void UpdatedLagrangianUPElement::CalculateKinematics(ElementVariables& rVariable
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Set Shape Functions Values for this integration point
-    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
+    rVariables.N=row( Ncontainer, rPointNumber);
 
     //Current Deformation Gradient [dx_n+1/dx_n]
     //this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition);

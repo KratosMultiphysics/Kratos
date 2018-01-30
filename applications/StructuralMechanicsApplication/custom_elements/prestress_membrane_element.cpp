@@ -44,7 +44,7 @@ Element::Pointer PrestressMembraneElement::Create(
     PropertiesType::Pointer pProperties) const
 
 {
-    return Kratos::make_shared< PrestressMembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return boost::make_shared< PrestressMembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //***********************************************************************************

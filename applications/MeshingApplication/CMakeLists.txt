@@ -2,6 +2,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMeshingApplication ****")
 
+
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
@@ -57,15 +59,13 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 )
 endif(${INCLUDE_MMG} MATCHES ON)
 
-if(${KRATOS_BUILD_TESTING} MATCHES ON) 
-    file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp) 
-endif(${KRATOS_BUILD_TESTING} MATCHES ON) 
+
+
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
+add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
 target_link_libraries(KratosMeshingApplication KratosCore triangle tetMeshOpt)
-
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     target_link_libraries(KratosMeshingApplication ${TETGEN_LIBRARIES})
@@ -94,10 +94,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosMeshingApplication)
-endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosMeshingApplication DESTINATION libs )
 

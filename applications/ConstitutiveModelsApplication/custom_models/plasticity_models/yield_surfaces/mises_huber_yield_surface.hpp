@@ -83,9 +83,9 @@ namespace Kratos
     }
     
     /// Clone.
-    virtual BaseTypePointer Clone() const override
+    virtual BaseTypePointer Clone() const //do no override -> windows compilation error
     {
-      return BaseTypePointer(new MisesHuberYieldSurface(*this));
+      return ( MisesHuberYieldSurface::Pointer(new MisesHuberYieldSurface(*this)) );
     }
     
     /// Destructor.

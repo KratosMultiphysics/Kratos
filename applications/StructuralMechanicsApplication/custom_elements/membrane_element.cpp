@@ -47,7 +47,8 @@ Element::Pointer MembraneElement::Create(
     PropertiesType::Pointer pProperties ) const
 
 {
-    return Kratos::make_shared< MembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return boost::make_shared< MembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+//     return Element::Pointer( new MembraneElement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //***********************************************************************************

@@ -27,7 +27,7 @@ namespace Kratos
    BorjaHenckyCamClayPlastic3DLaw::BorjaHenckyCamClayPlastic3DLaw()
       : NonLinearHenckyElasticPlastic3DLaw()
    {
-      mpHardeningLaw   = HardeningLaw::Pointer( new CamClayHardeningLaw() );
+      mpHardeningLaw   = HardeningLaw::Pointer( new CamClayKinematicHardeningLaw() );
       mpYieldCriterion = YieldCriterion::Pointer( new CamClayYieldCriterion(mpHardeningLaw) );
       mpFlowRule       = FlowRule::Pointer( new BorjaCamClayExplicitFlowRule(mpYieldCriterion) );
    }

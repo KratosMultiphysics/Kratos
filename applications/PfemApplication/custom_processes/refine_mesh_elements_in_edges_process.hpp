@@ -459,7 +459,7 @@ private:
 
 	      
 	  //create a new node
-	  pNode = Kratos::make_shared< Node<3> >( id, xc, yc, zc );
+	  pNode = boost::make_shared< Node<3> >( id, xc, yc, zc );
 
 	  //giving model part variables list to the node
 	  pNode->SetSolutionStepVariablesList(&VariablesList);

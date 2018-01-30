@@ -83,7 +83,7 @@ Element::Pointer NodalConcentratedElement::Create(
     ) const
 {
     //NEEDED TO CREATE AN ELEMENT   
-    return Kratos::make_shared<NodalConcentratedElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mUseRayleighDamping );
+    return boost::make_shared<NodalConcentratedElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties, mUseRayleighDamping );
 }
 
 
@@ -100,7 +100,7 @@ Element::Pointer NodalConcentratedElement::Clone(
 
     NodalConcentratedElement new_element(NewId, GetGeometry().Create( rThisNodes ), pGetProperties(), mUseRayleighDamping );
 
-    return Kratos::make_shared<NodalConcentratedElement>(new_element);
+    return boost::make_shared<NodalConcentratedElement>(new_element);
 }
 
 

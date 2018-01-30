@@ -25,6 +25,7 @@
         "contact_settings":
         {
             "mortar_type"                    : "ALMContactFrictionless",
+            "contact_tolerance"              : 0.0e0,
             "ensure_contact"                 : true
         },
         "block_builder"                      : true,
@@ -94,16 +95,17 @@
             "assume_master_slave"         : "Parts_Parts_Auto2",
             "contact_model_part"          : "CONTACT_Contact_Auto1",
             "contact_type"                : "Frictionless",
-            "search_factor"               : 2.5,
+            "search_factor"               : 1.5,
             "max_number_results"          : 1000,
             "type_search"                 : "InRadius",
             "integration_order"           : 2,
-            "active_check_factor"         : 1.0e-0,
-            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
+            "active_check_factor"         : 3.0e-1,
+            "normal_variation"            : true,
+            "dual_search_check"           : true,
             "stiffness_factor"            : 10.0,
             "penalty_scale_factor"        : 1.0,
-            "manual_ALM"                  : false,
-            "penalty"                     : 1.0e12,
+            "manual_ALM"                  : true,
+            "penalty"                     : 1.0e3,
             "scale_factor"                : 1.0e0,
             "debug_mode"                  : false
         }
@@ -150,8 +152,8 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
-            "nodal_nonhistorical_results": ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","NORMAL_CONTACT_STRESS","WEIGHTED_GAP"],
+            "nodal_nonhistorical_results": ["NORMAL","AUGMENTED_NORMAL_CONTACT_PRESSURE"],
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },

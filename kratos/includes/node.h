@@ -335,7 +335,7 @@ public:
 
     typename Node<TDimension>::Pointer Clone()
     {
-        Node<3>::Pointer p_new_node = Kratos::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
+        Node<3>::Pointer p_new_node = boost::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
         p_new_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
 
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
@@ -1021,7 +1021,7 @@ public:
             return *(it_dof.base());
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -1049,7 +1049,7 @@ public:
             return *(it_dof.base());
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(SourceDof);
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(SourceDof);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
         p_new_dof->SetId(Id());
@@ -1087,7 +1087,7 @@ public:
             return *(it_dof.base());
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -1118,7 +1118,7 @@ public:
             return *it_dof;
         }
             
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -1154,7 +1154,7 @@ public:
             return *it_dof;
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        typename DofType::Pointer p_new_dof =  boost::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())

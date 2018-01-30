@@ -15,18 +15,21 @@
 // System includes
 
 // External includes
+#include "structural_mechanics_application.h"
+#include "structural_mechanics_application_variables.h"
+#include "boost/smart_ptr.hpp"
+#include <vector>
 
 // Project includes
-#include "contact_structural_mechanics_application_variables.h"
-#include "custom_conditions/paired_condition.h"
+#include "includes/serializer.h"
+#include "includes/ublas_interface.h"
+#include "includes/condition.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_flags.h"
-#include "includes/checks.h"
 #include "includes/mortar_classes.h"
 
 /* Utilities */
-#include "utilities/exact_mortar_segmentation_utility.h"
-#include "custom_utilities/derivatives_utilities.h"
+#include "custom_utilities/contact_utilities.h"
 #include "custom_utilities/logging_settings.hpp"
 
 /* Geometries */
@@ -43,7 +46,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
     
-    typedef Point                                     PointType;
+    typedef Point                                  PointType;
     typedef Node<3>                                    NodeType;
     typedef Geometry<NodeType>                     GeometryType;
     typedef Geometry<PointType>               GeometryPointType;
@@ -67,8 +70,8 @@ namespace Kratos
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  */
-template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional, bool TNormalVariation>
-class AugmentedLagrangianMethodMortarContactCondition: public PairedCondition 
+template< unsigned int TDim, unsigned int TNumNodes, bool TFrictional>
+class AugmentedLagrangianMethodMortarContactCondition: public Condition 
 {
 public:
     ///@name Type Definitions
@@ -77,91 +80,67 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodMortarContactCondition );
 
-    typedef PairedCondition                                                                              BaseType;
+    typedef Condition                                                                     BaseType;
     
-    typedef typename BaseType::VectorType                                                              VectorType;
+    typedef typename BaseType::VectorType                                               VectorType;
 
-    typedef typename BaseType::MatrixType                                                              MatrixType;
+    typedef typename BaseType::MatrixType                                               MatrixType;
 
-    typedef typename BaseType::IndexType                                                                IndexType;
+    typedef typename BaseType::IndexType                                                 IndexType;
 
-    typedef typename BaseType::GeometryType::Pointer                                          GeometryPointerType;
+    typedef typename BaseType::GeometryType::Pointer                           GeometryPointerType;
 
-    typedef typename BaseType::NodesArrayType                                                      NodesArrayType;
+    typedef typename BaseType::NodesArrayType                                       NodesArrayType;
 
-    typedef typename BaseType::PropertiesType::Pointer                                      PropertiesPointerType;
+    typedef typename BaseType::PropertiesType::Pointer                       PropertiesPointerType;
     
     typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, PointBelongsTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type BelongType;
     
-    typedef PointBelong<TNumNodes>                                                                PointBelongType;
+    typedef PointBelong<TNumNodes>                                                 PointBelongType;
     
-    typedef Geometry<PointBelongType>                                                     GeometryPointBelongType;
+    typedef Geometry<PointBelongType>                                      GeometryPointBelongType;
     
-    typedef array_1d<PointBelongType,TDim>                                                     ConditionArrayType;
+    typedef array_1d<PointBelongType,TDim>                                      ConditionArrayType;
     
-    typedef typename std::vector<ConditionArrayType>                                       ConditionArrayListType;
+    typedef typename std::vector<ConditionArrayType>                        ConditionArrayListType;
     
-    typedef Line2D2<PointType>                                                                           LineType;
+    typedef Line2D2<PointType>                                                            LineType;
     
-    typedef Triangle3D3<PointType>                                                                   TriangleType;
+    typedef Triangle3D3<PointType>                                                    TriangleType;
     
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                 DecompositionType;
+    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
     
-    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>, DerivativeData<TDim, TNumNodes, TNormalVariation> >::type DerivativeDataType;
+    typedef typename std::conditional<TFrictional == true, DerivativeDataFrictional<TDim, TNumNodes>, DerivativeData<TDim, TNumNodes> >::type DerivativeDataType;
     
     static constexpr unsigned int MatrixSize = TFrictional == true ? TDim * (TNumNodes + TNumNodes + TNumNodes) : TDim * (TNumNodes + TNumNodes) + TNumNodes;
     
-    typedef bounded_matrix<double, MatrixSize, MatrixSize>                                        LocalMatrixType;
+    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>              GeneralVariables;
     
-    typedef array_1d<double, MatrixSize>                                                          LocalVectorType;
+    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional>    AeData;
     
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes>                             GeneralVariables;
-    
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation> AeData;
-    
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional, TNormalVariation> MortarConditionMatrices;
-    
-    typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true>                               IntegrationUtility;
-    
-    typedef DerivativesUtilities<TDim, TNumNodes, TFrictional, TNormalVariation>         DerivativesUtilitiesType;
+    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, TFrictional>    MortarConditionMatrices;
          
     ///@}
     ///@name Life Cycle
     ///@{
 
- /// Default constructor
-    AugmentedLagrangianMethodMortarContactCondition()
-        : PairedCondition(),
-          mIntegrationOrder(2)
-    {}
+    /// Default constructor
+    AugmentedLagrangianMethodMortarContactCondition(): Condition() 
+    {
+        mIntegrationOrder = 2; // Default value
+    }
     
     // Constructor 1
-    AugmentedLagrangianMethodMortarContactCondition(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry
-        ) :PairedCondition(NewId, pGeometry),
-           mIntegrationOrder(2)
-    {}
+    AugmentedLagrangianMethodMortarContactCondition(IndexType NewId, GeometryType::Pointer pGeometry):Condition(NewId, pGeometry)
+    {
+        mIntegrationOrder = 2; // Default value
+    }
     
     // Constructor 2
-    AugmentedLagrangianMethodMortarContactCondition(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
-        PropertiesType::Pointer pProperties
-        ) :PairedCondition( NewId, pGeometry, pProperties ),
-           mIntegrationOrder(2)
-    {}
-    
-    // Constructor 3
-    AugmentedLagrangianMethodMortarContactCondition(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
-        PropertiesType::Pointer pProperties, 
-        GeometryType::Pointer pMasterGeometry
-        )
-        :PairedCondition( NewId, pGeometry, pProperties, pMasterGeometry),
-         mIntegrationOrder(2)
-    {}
+    AugmentedLagrangianMethodMortarContactCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):Condition( NewId, pGeometry, pProperties )
+    {
+        mIntegrationOrder = 2; // Default value
+    }
 
     ///Copy constructor
     AugmentedLagrangianMethodMortarContactCondition( AugmentedLagrangianMethodMortarContactCondition const& rOther){}
@@ -175,6 +154,8 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
     ///@}
     ///@name Operators
@@ -209,6 +190,16 @@ public:
     * Called at the end of each iteration
     */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    
+    /**
+    * Initialize System Matrices
+    */
+    
+    void InitializeSystemMatrices( 
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        Flags& rCalculationFlags
+        );
 
     /**
     * Initialize Mass Matrix
@@ -230,9 +221,9 @@ public:
     
     /**
      * Creates a new element pointer from an arry of nodes
-     * @param NewId the ID of the new element
-     * @param rThisNodes the nodes of the new element
-     * @param pProperties the properties assigned to the new element
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -244,9 +235,9 @@ public:
     
     /**
      * Creates a new element pointer from an existing geometry
-     * @param NewId the ID of the new element
-     * @param pGeom the  geometry taken to create the condition
-     * @param pProperties the properties assigned to the new element
+     * @param NewId: the ID of the new element
+     * @param pGeom: the  geometry taken to create the condition
+     * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
     
@@ -254,21 +245,6 @@ public:
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
-        ) const override;
-        
-    /**
-     * Creates a new element pointer from an existing geometry
-     * @param NewId the ID of the new element
-     * @param pGeom the  geometry taken to create the condition
-     * @param pProperties the properties assigned to the new element
-     * @param pMasterGeom the paired geometry
-     * @return a Pointer to the new element
-     */
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties,
-        GeometryType::Pointer pMasterGeom
         ) const override;
        
     /**
@@ -279,7 +255,7 @@ public:
      * IS ALLOWED TO WRITE ON ITS NODES.
      * the caller is expected to ensure thread safety hence
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-      * @param rCurrentProcessInfo the current process info instance
+      * @param rCurrentProcessInfo: the current process info instance
      */
     void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override;
         
@@ -289,8 +265,8 @@ public:
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
-     * @param rResult The result vector with the ID's of the DOF
-     * @param rCurrentProcessInfo the current process info instance
+     * @return rResult: The result vector with the ID's of the DOF
+     * @param rCurrentProcessInfo: the current process info instance
      */
     
     void EquationIdVector( 
@@ -300,8 +276,8 @@ public:
 
     /**
      * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
-     * @param rConditionalDofList The list of DoF
-     * @param rCurrentProcessInfo the current process info instance
+     * @return rConditionalDofList
+     * @param rCurrentProcessInfo: the current process info instance
      */
     
     void GetDofList( 
@@ -311,9 +287,9 @@ public:
 
     /**
      * Get on rVariable a double Value
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rValues The values of interest (doubles)
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rValues: The values of interest (doubles)
      */
     
     void GetValueOnIntegrationPoints( 
@@ -324,9 +300,9 @@ public:
     
     /**
      * Get on rVariable a array_1d Value
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rValues The values of interest (array_1d)
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rValues: The values of interest (array_1d)
      */
     
     void GetValueOnIntegrationPoints( 
@@ -337,9 +313,9 @@ public:
     
     /**
      * Get on rVariable a Vector Value
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rValues The values of interest (vector)
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rValues: The values of interest (vector)
      */
     
     void GetValueOnIntegrationPoints( 
@@ -350,9 +326,9 @@ public:
 
     /**
      * Calculate a double Variable
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rOutput The values of interest (doubles)
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rOutput: The values of interest (doubles)
      */
     
     void CalculateOnIntegrationPoints( 
@@ -363,9 +339,9 @@ public:
     
     /**
      * Calculate a array_1d Variable
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rOutput The values of interest (array_1d)
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rOutput: The values of interest (array_1d)
      */
     
     void CalculateOnIntegrationPoints( 
@@ -376,9 +352,9 @@ public:
     
     /**
      * Calculate a Vector Variable
-     * @param rVariable Internal values
-     * @param rCurrentProcessInfo The current process information
-     * @param rOutput The values of interest (vector)
+     * @param rVariable: Internal values
+     * @param rCurrentProcessInfo: The current process information
+     * @return rOutput: The values of interest (vector)
      */
     
     void CalculateOnIntegrationPoints( 
@@ -387,15 +363,6 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo The current process information
-     */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-        
     ///@}
     ///@name Access
     ///@{
@@ -417,15 +384,66 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
+    
+   /**
+    * This struct is used in the component wise calculation only
+    * is defined here and is used to declare a member variable in the component wise condition
+    * private pointers can only be accessed by means of set and get functions
+    * this allows to set and not copy the local system variables
+    */
+    struct LocalSystemComponents
+    {
+    private:
+            //for calculation local system with compacted LHS and RHS
+            MatrixType *mpLeftHandSideMatrix;
+            VectorType *mpRightHandSideVector;
+
+            //for calculation local system with LHS and RHS components
+            std::vector<MatrixType> *mpLeftHandSideMatrices;
+            std::vector<VectorType> *mpRightHandSideVectors;
+            
+            //LHS variable components
+            const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
+
+            //RHS variable components
+            const std::vector< Variable< VectorType > > *mpRightHandSideVariables;
+
+    public:
+            // Calculation flags
+            Flags  CalculationFlags;
+
+           /**
+            * Sets the value of a specified pointer variable
+            */
+            void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
+            void SetLeftHandSideMatrices( std::vector<MatrixType>& rLeftHandSideMatrices ) { mpLeftHandSideMatrices = &rLeftHandSideMatrices; };
+            void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; };
+
+            void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
+            void SetRightHandSideVectors( std::vector<VectorType>& rRightHandSideVectors ) { mpRightHandSideVectors = &rRightHandSideVectors; };
+            void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; };
+
+           /**
+            * Returns the value of a specified pointer variable
+            */
+            MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
+            std::vector<MatrixType>& GetLeftHandSideMatrices() { return *mpLeftHandSideMatrices; };
+            const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; };
+
+            VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
+            std::vector<VectorType>& GetRightHandSideVectors() { return *mpRightHandSideVectors; };
+            const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; };
+    };
 
     ///@}
     ///@name Protected member Variables
     ///@{
-    
-    Flags  mCalculationFlags;                            // Calculation flags
-    
+
     IntegrationMethod mThisIntegrationMethod;            // Integration order of the element
-    
+    unsigned int mPairSize;                              // The number of contact pairs
+    std::vector<Condition::Pointer> mThisMasterElements; // Vector which contains the pointers to the master elements
+    std::vector<bool> mThisMasterElementsActive;         // Vector which contains if the conditions are active or not
+   
     unsigned int mIntegrationOrder;                      // The integration order to consider
     
     ///@}
@@ -444,9 +462,9 @@ protected:
      * This is called during the assembling process in order
      * to calculate all condition contributions to the global system
      * matrix and the right hand side
-     * @param rLeftHandSideMatrix the condition left hand side matrix
-     * @param rRightHandSideVector the condition right hand side
-     * @param rCurrentProcessInfo the current process info instance
+     * @param rLeftHandSideMatrix: the condition left hand side matrix
+     * @param rRightHandSideVector: the condition right hand side
+     * @param rCurrentProcessInfo: the current process info instance
      */
     
     void CalculateLocalSystem( 
@@ -456,10 +474,28 @@ protected:
         ) override;
 
     /**
+     * This function provides a more general interface to the condition.
+     * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
+     * thus telling what is the desired output
+     * @param rLeftHandSideMatrices: container with the output left hand side matrices
+     * @param rLHSVariables: paramter describing the expected LHSs
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
+    
+    void CalculateLocalSystem( 
+        std::vector< MatrixType >& rLeftHandSideMatrices,
+        const std::vector< Variable< MatrixType > >& rLHSVariables,
+        std::vector< VectorType >& rRightHandSideVectors,
+        const std::vector< Variable< VectorType > >& rRHSVariables,
+        ProcessInfo& rCurrentProcessInfo 
+        ) override;
+
+    /**
      * This is called during the assembling process in order
      * to calculate the condition right hand side vector only
-     * @param rRightHandSideVector the condition right hand side vector
-     * @param rCurrentProcessInfo the current process info instance
+     * @param rRightHandSideVector: the condition right hand side vector
+     * @param rCurrentProcessInfo: the current process info instance
      */
     
     void CalculateRightHandSide(
@@ -468,10 +504,24 @@ protected:
         ) override;
 
     /**
+     * This function provides a more general interface to the condition.
+     * it is designed so that rRHSvariables are passed TO the condition
+     * thus telling what is the desired output
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
+    
+    void CalculateRightHandSide(
+        std::vector< VectorType >& rRightHandSideVectors,
+        const std::vector< Variable< VectorType > >& rRHSVariables,
+        ProcessInfo& rCurrentProcessInfo 
+        ) override;
+
+    /**
      * This is called during the assembling process in order
      * to calculate the condition left hand side matrix only
-     * @param rLeftHandSideMatrix the condition left hand side matrix
-     * @param rCurrentProcessInfo the current process info instance
+     * @param rLeftHandSideMatrix: the condition left hand side matrix
+     * @param rCurrentProcessInfo: the current process info instance
      */
     
     void CalculateLeftHandSide( 
@@ -480,14 +530,48 @@ protected:
         ) override;
 
     /**
+     * This function provides a more general interface to the condition.
+     * it is designed so that rRHSvariables are passed TO the condition
+     * thus telling what is the desired output
+     * @param rRightHandSideVectors: container for the desired LHS output
+     * @param rRHSVariables: parameter describing the expected LHSs
+     */
+    
+    void CalculateLeftHandSide( 
+        std::vector< MatrixType >& rLeftHandSideMatrices,
+        const std::vector< Variable< MatrixType > >& rLHSVariables,
+        ProcessInfo& rCurrentProcessInfo 
+        ) override;
+
+    /**
      * Calculates the condition contribution
      */
     
     void CalculateConditionSystem( 
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
+        LocalSystemComponents& rLocalSystem,
         const ProcessInfo& CurrentProcessInfo 
         );
+    
+    /**
+     * Calculate Ae and DeltaAe matrices
+     */
+    
+    bool CalculateAeAndDeltaAe( 
+        DerivativeDataType& rDerivativeData,
+        GeneralVariables& rVariables,
+        const ProcessInfo& rCurrentProcessInfo,
+        const unsigned int PairIndex,
+        ConditionArrayListType& ConditionsPointsSlave,
+        IntegrationMethod ThisIntegrationMethod,
+        const array_1d<double, 3>& MasterNormal
+        );
+    
+    /**
+     * This function loops over all conditions and calculates the overall number of DOFs
+     * total_dofs = SUM( master_u_dofs + 2 * slave_u_dofs) 
+     */
+    
+    const unsigned int CalculateConditionSize( );
     
     /**
      * Calculate condition kinematics
@@ -495,17 +579,39 @@ protected:
     
     void CalculateKinematics( 
         GeneralVariables& rVariables,
-        const DerivativeDataType& rDerivativeData,
-        const array_1d<double, 3>& NormalMaster,
+        const DerivativeDataType rDerivativeData,
+        const array_1d<double, 3> MasterNormal,
+        const unsigned int PairIndex,
         const PointType& LocalPointDecomp,
         const PointType& LocalPointParent,
         GeometryPointType& GeometryDecomp,
-        const bool DualLM = true
+        const bool DualLM = true,
+        Matrix DeltaPosition = ZeroMatrix(TNumNodes, TDim)
         );
 
     /********************************************************************************/
     /**************** METHODS TO CALCULATE MORTAR CONDITION MATRICES ****************/
     /********************************************************************************/
+
+    /**
+     * Calculation and addition of the matrices of the LHS of a contact pair
+     */
+
+    void CalculateAndAddLHS( 
+        LocalSystemComponents& rLocalSystem,
+        const bounded_matrix<double, MatrixSize, MatrixSize>& LHS_contact_pair, 
+        const unsigned int rPairIndex
+        );
+
+    /**
+     * Assembles the contact pair LHS block into the condition's LHS
+     */
+    
+    void AssembleContactPairLHSToConditionSystem( 
+        const bounded_matrix<double, MatrixSize, MatrixSize>& rPairLHS,
+        MatrixType& rConditionLHS,
+        const unsigned int rPairIndex
+        );
 
     /**
      * Calculates the local contibution of the LHS
@@ -514,7 +620,27 @@ protected:
     virtual bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const unsigned int& rActiveInactive
+        );
+    
+    /**
+     * Calculation and addition fo the vectors of the RHS of a contact pair
+     */
+    
+    void CalculateAndAddRHS( 
+        LocalSystemComponents& rLocalSystem,
+        const array_1d<double, MatrixSize>& RHS_contact_pair, 
+        const unsigned int rPairIndex
+        );
+    
+    /**
+     * Assembles the contact pair RHS block into the condition's RHS
+     */
+    
+    void AssembleContactPairRHSToConditionSystem( 
+        const array_1d<double, MatrixSize>& rPairRHS,
+        VectorType& rConditionRHS,
+        const unsigned int rPairIndex
         );
     
     /**
@@ -524,7 +650,103 @@ protected:
     virtual array_1d<double, MatrixSize> CalculateLocalRHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DerivativeDataType& rDerivativeData,
-        const unsigned int rActiveInactive
+        const unsigned int& rActiveInactive
+        );
+    
+    /********************************************************************************/
+    /*************** METHODS TO CALCULATE MORTAR CONDITION DERIVATIVES **************/
+    /********************************************************************************/
+    
+    /**
+     * This method is used to compute the directional derivatives of the cell vertex
+     */
+    void CalculateDeltaCellVertex(
+        GeneralVariables& rVariables,
+        DerivativeDataType& rDerivativeData,
+        const array_1d<BelongType, TDim>& TheseBelongs,
+        const bool& ConsiderNormalVariation,
+        GeometryType& MasterGeometry
+        );
+    
+    /**
+     * This method computes the equivalent indexes to the auxiliar hash
+     */
+    void ConvertAuxHashIndex(
+        const unsigned int& AuxIndex,
+        unsigned int& BelongIndexSlaveStart, 
+        unsigned int& BelongIndexSlaveEnd, 
+        unsigned int& BelongIndexMasterStart, 
+        unsigned int& BelongIndexMasterEnd
+        );
+    
+    /**
+     * This method is used to compute the directional derivatives of the cell vertex (locally)
+     */
+    void LocalDeltaVertex(
+        array_1d<double, 3> DeltaVertexMatrix,
+        const array_1d<double, 3>& Normal,
+        const bounded_matrix<double, TDim, TDim>& DeltaNormal,
+        const VectorType& N1,
+        const VectorType& N2,
+        const unsigned & iDoF,
+        const unsigned & BelongIndex,
+        const bool& ConsiderNormalVariation,
+        GeometryType& MasterGeometry,
+        const double Coeff = 1.0
+        );
+    
+    /**
+     * This method is used to compute the directional derivatives of the jacobian determinant
+     */
+    void CalculateDeltaDetjSlave(
+        GeneralVariables& rVariables,
+        DerivativeDataType& rDerivativeData
+        );
+    
+    /**
+     * This method is used to compute the local increment of the normal
+     */
+    bounded_matrix<double, TDim, TDim> LocalDeltaNormal(
+        const GeometryType& CondGeometry,
+        const unsigned int NodeIndex
+        );
+
+    /**
+     * Calculates the increment of the normal in the slave condition
+     */
+    
+    void CalculateDeltaNormalSlave(DerivativeDataType& rDerivativeData);
+    
+    /**
+     * Calculates the increment of the normal and in the master condition
+     */
+    
+    void CalculateDeltaNormalMaster(
+        DerivativeDataType& rDerivativeData,
+        GeometryType& MasterGeometry
+        );
+    
+    /**
+     * Calculates the increment of the shape functions
+     */
+    
+    void CalculateDeltaN(
+        GeneralVariables& rVariables,
+        DerivativeDataType& rDerivativeData,
+        GeometryType& MasterGeometry,
+        const array_1d<double, 3> MasterNormal,
+        const DecompositionType& DecompGeom,
+        const PointType& LocalPointDecomp,
+        const PointType& LocalPointParent
+        );
+    
+    /**
+     * Calculates the increment of Phi (the dual shape function)
+     */
+    
+    void CalculateDeltaPhi(
+        GeneralVariables& rVariables,
+        DerivativeDataType& rDerivativeData
         );
     
     /***********************************************************************************/
@@ -537,8 +759,9 @@ protected:
     
     void MasterShapeFunctionValue(
         GeneralVariables& rVariables,
-        const array_1d<double, 3>& NormalMaster,
-        const PointType& LocalPoint
+        const array_1d<double, 3> MasterNormal,
+        const PointType& LocalPoint,
+        const unsigned int PairIndex
     );
     
     /******************************************************************/
@@ -561,24 +784,98 @@ protected:
      */
     
     IntegrationMethod GetIntegrationMethod() override
-    {        
-        // Setting the auxiliar integration points
-        switch (mIntegrationOrder) {
-        case 1: return GeometryData::GI_GAUSS_1;
-        case 2: return GeometryData::GI_GAUSS_2;
-        case 3: return GeometryData::GI_GAUSS_3;
-        case 4: return GeometryData::GI_GAUSS_4;
-        case 5: return GeometryData::GI_GAUSS_5;
-        default: return GeometryData::GI_GAUSS_2;
+    {
+        if (mIntegrationOrder == 1)
+        {
+            return GeometryData::GI_GAUSS_1;
+        }
+        else if (mIntegrationOrder == 2)
+        {
+            return GeometryData::GI_GAUSS_2;
+        }
+        else if (mIntegrationOrder == 3)
+        {
+            return GeometryData::GI_GAUSS_3;
+        }
+        else if (mIntegrationOrder == 4)
+        {
+            return GeometryData::GI_GAUSS_4;
+        }
+        else if (mIntegrationOrder == 5)
+        {
+            return GeometryData::GI_GAUSS_5;
+        }
+        else
+        {
+            return GeometryData::GI_GAUSS_2;
         }
     }
     
     /**
-     * This functions computes the integration weight to consider
-     * @param rVariables The kinematic variables
+     * Returns a matrix with the increment of displacements, that can be used for compute the Jacobian reference (current) configuration
+     * @param DeltaPosition: The matrix with the increment of displacements 
+     * @param LocalCoordinates: The array containing the local coordinates of the exact integration segment
      */
     
-    virtual double GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const;
+    Matrix& CalculateDeltaPosition(
+        Matrix& DeltaPosition,
+        const ConditionArrayType& LocalCoordinates
+        );
+    
+    /**
+     * Returns a matrix with the increment of displacements
+     * @param DeltaPosition: The matrix with the increment of displacements 
+     * @param ThisGeometry: The geometry considered 
+     */
+    
+    Matrix& CalculateDeltaPosition(
+        Matrix& DeltaPosition,
+        GeometryType& ThisGeometry
+        );
+    
+    /**
+     * Returns a vector with the increment of displacements
+     */
+    
+    void CalculateDeltaPosition(
+        VectorType& DeltaPosition,
+        GeometryType& MasterGeometry,
+        const unsigned int& IndexNode
+        );
+    
+    /**
+     * Returns a vector with the increment of displacements
+     */
+    
+    void CalculateDeltaPosition(
+        VectorType& DeltaPosition,
+        GeometryType& MasterGeometry,
+        const unsigned int& IndexNode,
+        const unsigned int& iDoF
+        );
+    
+    /**
+     * Returns a vector with the increment of displacements
+     */
+    
+    void CalculateDeltaPosition(
+        double& DeltaPosition,
+        GeometryType& MasterGeometry,
+        const unsigned int& IndexNode,
+        const unsigned int& iDoF
+        );
+    
+    /**
+     * This functions computes the integration weight to consider
+     * @param ThisIntegrationMethod: The array containing the integration points
+     * @param PointNumber: The id of the integration point considered
+     */
+    
+    virtual double GetIntegrationWeight(
+        GeneralVariables& rVariables,
+        const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
+        const unsigned int& PointNumber
+        );
     
     ///@}
     ///@name Protected  Access

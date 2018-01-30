@@ -15,9 +15,12 @@
 
 
 /* External includes */
+#include "boost/smart_ptr.hpp"
+
 
 /* Project includes */
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "includes/variables.h"
 #include "containers/array_1d.h"
@@ -85,7 +88,7 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef Kratos::shared_ptr< ResidualBasedRelaxationScheme<TSparseSpace,TDenseSpace> > Pointer;
+    //typedef boost::shared_ptr< ResidualBasedRelaxationScheme<TSparseSpace,TDenseSpace> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedRelaxationScheme );
 
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;

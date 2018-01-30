@@ -38,7 +38,7 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
     if (dimension == 2)
     {
         Point point_projected;
-        Point point_to_project = Point(this->X(), this->Y(), this->Z());
+        Point point_to_project = Point(this->Coordinate(1), this->Coordinate(2), this->Coordinate(3));
         ProjectPointToLine(rOriginGeom[0], point_to_project, point_projected, Dist);
 
         array_1d<double, 3> point_projected_local_coor;
@@ -61,7 +61,9 @@ void GaussPointItem::Project(Condition::Pointer pOriginCond,
 
         array_1d<double, 3> RHS, Res;
 
-        noalias(RHS) = this->Coordinates() - rOriginGeom[0].Coordinates();
+        RHS[0] = this->Coordinate(1) - rOriginGeom[0].X();
+        RHS[1] = this->Coordinate(2) - rOriginGeom[0].Y();
+        RHS[2] = this->Coordinate(3) - rOriginGeom[0].Z();
 
         ChangeMatrix(0, 0) = rOriginGeom[1].X() - rOriginGeom[0].X();
         ChangeMatrix(1, 0) = rOriginGeom[1].Y() - rOriginGeom[0].Y();
@@ -235,10 +237,9 @@ AdvancedNMPointsMapper::AdvancedNMPointsMapper(ModelPart& rOriginModelPart,
 
             for(unsigned int i = 0; i < nnodes; i++)
             {
-                const array_1d<double,3>& r_coordinates = rGeom[i].Coordinates();
                 for(unsigned int j = 0; j < 3; j++)
                 {
-                    Nodes(i,j) = r_coordinates[j];
+                    Nodes(i,j) = rGeom[i].Coordinate(j + 1);
                 }
             }
 
@@ -422,10 +423,9 @@ void AdvancedNMPointsMapper::ComputeGeometryCenterAndRadius(const Condition::Poi
 
     for(unsigned int i = 0; i < nnodes; i++)
     {
-        const Node<3>& r_node = Cond->GetGeometry()[i];
-        double dx = Center.X() - r_node.X();
-        double dy = Center.Y() - r_node.Y();
-        double dz = Center.Z() - r_node.Z();
+        double dx = Center.Coordinate(1) - Cond->GetGeometry()[i].X();
+        double dy = Center.Coordinate(2) - Cond->GetGeometry()[i].Y();
+        double dz = Center.Coordinate(3) - Cond->GetGeometry()[i].Z();
 
         double tmp = dx*dx + dy*dy + dz*dz;
         Radius = std::max(Radius,tmp);
@@ -588,7 +588,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
 
         MInterp = prod(MCons, inv_aux_GPPos); // Interpolation matrix (NodalValues = (L/6)*MInterp*GaussValues)
 
-        std::vector< Kratos::shared_ptr<array_1d<double,2> > > pInterpValues;
+        std::vector< boost::shared_ptr<array_1d<double,2> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -627,7 +627,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
             NodalValues[0] = K*(MInterp(0,0)*GPValues[0] + MInterp(0,1)*GPValues[1]);
             NodalValues[1] = K*(MInterp(1,0)*GPValues[0] + MInterp(1,1)*GPValues[1]);
 
-            Kratos::shared_ptr< array_1d<double,2> > pNodalValues(new array_1d<double,2>(NodalValues) );
+            boost::shared_ptr< array_1d<double,2> > pNodalValues(new array_1d<double,2>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 2; // 1 Condition = 2 Gauss Points
@@ -724,7 +724,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
         MInterp(1, 0) = 1.0; MInterp(1, 1) = 6.0; MInterp(1, 2) = 1.0;
         MInterp(2, 0) = 1.0; MInterp(2, 1) = 1.0; MInterp(2, 2) = 6.0;
 
-        std::vector< Kratos::shared_ptr< array_1d<double, 3> > > pInterpValues;
+        std::vector< boost::shared_ptr< array_1d<double, 3> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -752,7 +752,7 @@ void AdvancedNMPointsMapper::ScalarToNormalVectorMap(const Variable<double> & rO
 
             noalias(NodalValues) = (CondArea/24.0) * prod(MInterp, GPValues);
 
-            Kratos::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
+            boost::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 3; // 1 Condition = 3 Gauss Points
@@ -889,7 +889,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
 
         MInterp = prod(MCons, inv_aux_GPPos); // Interpolation matrix (NodalValues = (L/6)*MInterp*GaussValues)
 
-        std::vector< Kratos::shared_ptr<array_1d<double,6> > > pInterpValues;
+        std::vector< boost::shared_ptr<array_1d<double,6> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -934,7 +934,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
                 NodalValues[3 + j] = K*(MInterp(1,0)*GPValues[j] + MInterp(1,1)*GPValues[3 + j]);
             }
 
-            Kratos::shared_ptr< array_1d<double,6> > pNodalValues(new array_1d<double,6>(NodalValues) );
+            boost::shared_ptr< array_1d<double,6> > pNodalValues(new array_1d<double,6>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 2; // 1 Condition = 2 Gauss Points
@@ -1040,7 +1040,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
     else
     {
 
-        std::vector< Kratos::shared_ptr<array_1d<double,9> > > pInterpValues;
+        std::vector< boost::shared_ptr<array_1d<double,9> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1085,7 +1085,7 @@ void AdvancedNMPointsMapper::NormalVectorToScalarMap(const Variable<array_1d<dou
                 NodalValues[6 + i] = K*(1.0 * GPValues[i] + 1.0 * GPValues[3 + i] + 6.0 * GPValues[6 + i]);
             }
 
-            Kratos::shared_ptr< array_1d<double,9> > pNodalValues(new array_1d<double,9>(NodalValues) );
+            boost::shared_ptr< array_1d<double,9> > pNodalValues(new array_1d<double,9>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 3; // 1 Condition = 3 Gauss Points
@@ -1241,7 +1241,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
 
         MInterp = prod(MCons, inv_aux_GPPos); // Interpolation Matrix (NodalValues = (L/6)*MInterp*GaussValues)
 
-        std::vector< Kratos::shared_ptr<array_1d<double,2> > > pInterpValues;
+        std::vector< boost::shared_ptr<array_1d<double,2> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1270,7 +1270,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
             NodalValues[0] = K*(MInterp(0,0)*GPValues[0] + MInterp(0,1)*GPValues[1]);
             NodalValues[1] = K*(MInterp(1,0)*GPValues[0] + MInterp(1,1)*GPValues[1]);
 
-            Kratos::shared_ptr< array_1d<double,2> > pNodalValues(new array_1d<double,2>(NodalValues));
+            boost::shared_ptr< array_1d<double,2> > pNodalValues(new array_1d<double,2>(NodalValues));
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 2; // 1 Condition = 2 Gauss Points
@@ -1364,7 +1364,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
         MInterp(1, 0) = 1.0; MInterp(1, 1) = 6.0; MInterp(1, 2) = 1.0;
         MInterp(2, 0) = 1.0; MInterp(2, 1) = 1.0; MInterp(2, 2) = 6.0;
 
-        std::vector< Kratos::shared_ptr< array_1d<double, 3> > > pInterpValues;
+        std::vector< boost::shared_ptr< array_1d<double, 3> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1386,7 +1386,7 @@ void AdvancedNMPointsMapper::ScalarMap(const Variable<double> & rOriginVar,
 
             noalias(NodalValues) = (CondArea/24.0) * prod(MInterp, GPValues);
 
-            Kratos::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
+            boost::shared_ptr< array_1d<double, 3> > pNodalValues(new array_1d<double, 3>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 3; // 1 Condition = 3 Gauss Points
@@ -1515,7 +1515,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
 
         MInterp = prod(MCons, inv_aux_GPPos); // Interpolation matrix (NodalValues = (L/6)*MInterp*GaussValues)
 
-        std::vector< Kratos::shared_ptr<array_1d<double,6> > > pInterpValues;
+        std::vector< boost::shared_ptr<array_1d<double,6> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1554,7 +1554,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
             NodalValues[4] = K*(MInterp(1,0)*GPValues[1] + MInterp(1,1)*GPValues[4]);
             NodalValues[5] = 0.0;
 
-            Kratos::shared_ptr< array_1d<double,6> > pNodalValues(new array_1d<double,6>(NodalValues) );
+            boost::shared_ptr< array_1d<double,6> > pNodalValues(new array_1d<double,6>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 2; // 1 Condition = 2 Gauss Points
@@ -1648,7 +1648,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
     }
     else // 3D case
     {
-        std::vector< Kratos::shared_ptr<array_1d<double,9> > > pInterpValues;
+        std::vector< boost::shared_ptr<array_1d<double,9> > > pInterpValues;
 
         // Here we loop both the Destination Model Part and the Gauss Point List, using the
         // fact that the GP list was created by a loop over the Dest. Model Part's conditions
@@ -1685,7 +1685,7 @@ void AdvancedNMPointsMapper::VectorMap(const Variable<array_1d<double,3> >& rOri
                 NodalValues[6 + i] = K*(1.0 * GPValues[i] + 1.0 * GPValues[3 + i] + 6.0 * GPValues[6 + i]);
             }
 
-            Kratos::shared_ptr< array_1d<double,9> > pNodalValues(new array_1d<double,9>(NodalValues) );
+            boost::shared_ptr< array_1d<double,9> > pNodalValues(new array_1d<double,9>(NodalValues) );
             pInterpValues.push_back(pNodalValues); // This is computed here because it is the constant part of RHS
 
             GPi += 3; // 1 Condition = 3 Gauss Points

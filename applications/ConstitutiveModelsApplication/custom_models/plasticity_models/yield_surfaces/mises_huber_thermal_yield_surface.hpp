@@ -85,7 +85,7 @@ namespace Kratos
     /// Clone.
     virtual BaseTypePointer Clone() const override
     {
-      return BaseTypePointer(new MisesHuberThermalYieldSurface(*this));
+      return ( MisesHuberThermalYieldSurface::Pointer(new MisesHuberThermalYieldSurface(*this)) );
     }
     
     /// Destructor.

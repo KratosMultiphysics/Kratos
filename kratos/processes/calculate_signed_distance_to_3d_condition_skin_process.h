@@ -58,7 +58,7 @@ class DistanceSpatialContainersConditionConfigure
         double& X() {return mCoordinates[0];}
         double& Y() {return mCoordinates[1];}
         double& Z() {return mCoordinates[2];}
-        double& operator[](int i) {return mCoordinates[i];}
+        double& Coordinate(int i) {return mCoordinates[i-1];}
         std::size_t& Id(){return mId;}
     };
 
@@ -1180,10 +1180,9 @@ private:
           for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() ; i_node != mrSkinModelPart.NodesEnd() ; i_node++)
           {
               double temp_point[3];
-              const array_1d<double,3>& r_coordinates = i_node->Coordinates();
-              temp_point[0] = r_coordinates[0];
-              temp_point[1] = r_coordinates[1];
-              temp_point[2] = r_coordinates[2];
+              temp_point[0] = i_node->Coordinate(1);
+              temp_point[1] = i_node->Coordinate(2);
+              temp_point[2] = i_node->Coordinate(3);
               mOctree.Insert(temp_point);
           }
 
@@ -1217,7 +1216,7 @@ private:
         
         for (int i = 0 ; i < 3; i++)
         {
-            low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinates()[i];
+            low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinate(i+1);
         }
         
         // loop over all structure nodes
@@ -1225,11 +1224,10 @@ private:
             i_node != mrFluidModelPart.NodesEnd();
             i_node++)
         {
-            const array_1d<double,3>& r_coordinates = i_node->Coordinates();
             for (int i = 0 ; i < 3; i++)
             {
-                low[i]  = r_coordinates[i] < low[i]  ? r_coordinates[i] : low[i];
-                high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
+                low[i]  = i_node->Coordinate(i+1) < low[i]  ? i_node->Coordinate(i+1) : low[i];
+                high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
             }
         }
 // KRATOS_WATCH( low[0] )      
@@ -1494,7 +1492,7 @@ private:
 //            KRATOS_WATCH(nodes_array.size())
             for (std::size_t i_node = 0; i_node < nodes_array.size() ; i_node++)
             {
-                double coord = (*nodes_array[i_node])[i_direction];
+                double coord = nodes_array[i_node]->Coordinate(i_direction+1);
    //             KRATOS_WATCH(intersections.size());
 
                 int ray_color= 1;
@@ -1552,6 +1550,10 @@ private:
 
                 double cell_point[3];
                 mOctree.CalculateCoordinates(keys,cell_point);
+
+//                cell_point[0] = pCell->GetCoordinate(keys[0]);
+//                cell_point[1] = pCell->GetCoordinate(keys[1]);
+//                cell_point[2] = pCell->GetCoordinate(keys[2]);
 
                 double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point(cell_point[0], cell_point[1], cell_point[2]));
 
@@ -1989,7 +1991,7 @@ private:
 
           for(ConfigurationType::data_type::const_iterator i_node = mOctreeNodes.begin() ; i_node != mOctreeNodes.end() ; i_node++)
           {
-              rOStream << (*i_node)->Id() << "  " << (*i_node)->X() << "  " << (*i_node)->Y() << "  " << (*i_node)->Z() << std::endl;
+              rOStream << (*i_node)->Id() << "  " << (*i_node)->Coordinate(1) << "  " << (*i_node)->Coordinate(2) << "  " << (*i_node)->Coordinate(3) << std::endl;
               //mOctree.Insert(temp_point);
           }
             std::cout << "Nodes written..." << std::endl;

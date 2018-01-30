@@ -14,7 +14,7 @@ KratosMultiphysics.CheckForPreviousImport()
 class convergence_criterion:
     def __init__(self, convergence_criterion_parameters):
         # Note that all the convergence settings are introduced via a Kratos parameters object.
-        echo_level = convergence_criterion_parameters["echo_level"].GetInt()
+        
         if "contact" in convergence_criterion_parameters["convergence_criterion"].GetString():
             D_RT = convergence_criterion_parameters["displacement_relative_tolerance"].GetDouble()
             D_AT = convergence_criterion_parameters["displacement_absolute_tolerance"].GetDouble()
@@ -24,11 +24,12 @@ class convergence_criterion:
             CD_AT = convergence_criterion_parameters["contact_displacement_absolute_tolerance"].GetDouble()
             CR_RT = convergence_criterion_parameters["contact_residual_relative_tolerance"].GetDouble()
             CR_AT = convergence_criterion_parameters["contact_residual_absolute_tolerance"].GetDouble()
+            contact_tolerance = convergence_criterion_parameters["contact_tolerance"].GetDouble()
             condn_convergence_criterion = convergence_criterion_parameters["condn_convergence_criterion"].GetBool()
             fancy_convergence_criterion = convergence_criterion_parameters["fancy_convergence_criterion"].GetBool()
             print_convergence_criterion = convergence_criterion_parameters["print_convergence_criterion"].GetBool()
             ensure_contact = convergence_criterion_parameters["ensure_contact"].GetBool()
-            gidio_debug = convergence_criterion_parameters["gidio_debug"].GetBool()
+            echo_level = convergence_criterion_parameters["echo_level"].GetInt()
             
             if(echo_level >= 1):
                 print("::[Mechanical Solver]:: CONVERGENCE CRITERION : ", convergence_criterion_parameters["convergence_criterion"].GetString())
@@ -84,14 +85,14 @@ class convergence_criterion:
             # Adding the mortar criteria
             if  (convergence_criterion_parameters["mortar_type"].GetString() == "ALMContactFrictionless"):
                 if (fancy_convergence_criterion == True):
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(table, print_convergence_criterion, gidio_debug)
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(contact_tolerance, table, print_convergence_criterion)
                 else:
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria()
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionlessMortarConvergenceCriteria(contact_tolerance)
             elif  (convergence_criterion_parameters["mortar_type"].GetString() == "ALMContactFrictional"):
                 if (fancy_convergence_criterion == True):
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(table, print_convergence_criterion, gidio_debug)
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(contact_tolerance, table, print_convergence_criterion)
                 else:
-                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria()
+                    Mortar = ContactStructuralMechanicsApplication.ALMFrictionalMortarConvergenceCriteria(contact_tolerance)
             elif ("MeshTying" in convergence_criterion_parameters["mortar_type"].GetString()):
                 if (fancy_convergence_criterion == True):
                     Mortar = ContactStructuralMechanicsApplication.MeshTyingMortarConvergenceCriteria(table)
@@ -101,50 +102,7 @@ class convergence_criterion:
             Mortar.SetEchoLevel(echo_level)
 
             if (fancy_convergence_criterion == True):
-                
-                if (condn_convergence_criterion == True):
-                    # Construct the solver
-                    import eigen_solver_factory
-                    settings_max = KratosMultiphysics.Parameters("""
-                    {
-                        "solver_type"             : "power_iteration_highest_eigenvalue_solver",
-                        "max_iteration"           : 10000,
-                        "tolerance"               : 1e-9,
-                        "required_eigen_number"   : 1,
-                        "verbosity"               : 0,
-                        "linear_solver_settings"  : {
-                            "solver_type"             : "SuperLUSolver",
-                            "max_iteration"           : 500,
-                            "tolerance"               : 1e-9,
-                            "scaling"                 : false,
-                            "verbosity"               : 0
-                        }
-                    }
-                    """)
-                    eigen_solver_max = eigen_solver_factory.ConstructSolver(settings_max)
-                    settings_min = KratosMultiphysics.Parameters("""
-                    {
-                        "solver_type"             : "power_iteration_eigenvalue_solver",
-                        "max_iteration"           : 10000,
-                        "tolerance"               : 1e-9,
-                        "required_eigen_number"   : 1,
-                        "verbosity"               : 0,
-                        "linear_solver_settings"  : {
-                            "solver_type"             : "SuperLUSolver",
-                            "max_iteration"           : 500,
-                            "tolerance"               : 1e-9,
-                            "scaling"                 : false,
-                            "verbosity"               : 0
-                        }
-                    }
-                    """)
-                    eigen_solver_min = eigen_solver_factory.ConstructSolver(settings_min)
-                    
-                    condition_number_utility = KratosMultiphysics.ConditionNumberUtility(eigen_solver_max, eigen_solver_min)
-                else:
-                    condition_number_utility = None
-                
-                self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar, table, print_convergence_criterion, condition_number_utility)
+                self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar, table, print_convergence_criterion, condn_convergence_criterion)
             else:
                 self.mechanical_convergence_criterion = ContactStructuralMechanicsApplication.MortarAndConvergenceCriteria(self.mechanical_convergence_criterion, Mortar)
             self.mechanical_convergence_criterion.SetEchoLevel(echo_level)

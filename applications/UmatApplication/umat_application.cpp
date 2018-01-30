@@ -20,9 +20,7 @@
 
 namespace Kratos {
 
-  KratosUmatApplication::KratosUmatApplication():
-    KratosApplication("UmatApplication")
-    {}
+  KratosUmatApplication::KratosUmatApplication() {}
 
   void KratosUmatApplication::Register() {
     // calling base class register to register Kratos components

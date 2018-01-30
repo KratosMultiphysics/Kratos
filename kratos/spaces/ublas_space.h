@@ -126,8 +126,8 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
-    typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
+    typedef typename boost::shared_ptr< TMatrixType > MatrixPointerType;
+    typedef typename boost::shared_ptr< TVectorType > VectorPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -810,7 +810,7 @@ private:
     static void ParallelProductNoAdd(const MatrixType& A, const VectorType& in, VectorType& out)
     {
         //create partition
-        boost::numeric::ublas::vector<unsigned int> partition;
+        vector<unsigned int> partition;
         unsigned int number_of_threads = omp_get_max_threads();
         unsigned int number_of_initialized_rows = A.filled1() - 1;
         CreatePartition(number_of_threads, number_of_initialized_rows, partition);

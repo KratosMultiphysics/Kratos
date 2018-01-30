@@ -1,0 +1,80 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "Shell_T3_Thin__BendingRollUp_test",
+        "model_part_name" : "SolidDomain",
+        "dimension"       : 3,
+        "time_step"       : 0.05,
+        "start_time"      : 0.001,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+        "solver_settings"          : {
+            "solver_type"                        : "solid_mechanics_static_solver",
+            "solution_type"                      : "Dynamic",
+	    "scheme_type"                        : "Non-Linear",				    
+            "echo_level"      			 : 0,
+            "model_import_settings"              : {
+                "input_type"     : "mdpa",
+                "input_filename" : "element_tests/shell_elements/Shell_T3_Thin__BendingRollUp"
+            },
+            "line_search"                        : false,
+            "dofs"                               : ["ROTATION"],
+            "convergence_criterion"              : "Residual_criterion",
+            "displacement_relative_tolerance"    : 1e-6,
+            "displacement_absolute_tolerance"    : 1e-9,
+            "residual_relative_tolerance"        : 1e-6,
+            "residual_absolute_tolerance"        : 1e-6,
+            "max_iteration"                      : 30,
+            "linear_solver_settings"             : {
+                "solver_type": "SuperLUSolver",
+                "max_iteration": 500,
+                "tolerance": 1e-9,
+                "scaling": false,
+                "verbosity": 1
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"]
+    },
+    "constraints_process_list" : [],
+    "loads_process_list" : [],
+    "list_other_processes" :[],
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
+            "output_file_name" : "element_tests/shell_elements/Shell_T3_Thin__BendingRollUp_test_results.json",
+            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
+            "time_frequency"   : 0.01
+        }
+    }
+    ],
+    "json_check_process" : [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables" : ["DISPLACEMENT_X","VELOCITY_X","ACCELERATION_X"],
+            "input_file_name" : "element_tests/shell_elements/Shell_T3_Thin__BendingRollUp_test_results.json",
+            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
+            "time_frequency"   : 0.01
+        }
+    }
+    ],
+    "apply_custom_function_process" : [],
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : true,
+        "incremental_displacement" : true
+    }
+}

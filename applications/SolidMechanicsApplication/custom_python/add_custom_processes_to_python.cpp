@@ -2,7 +2,7 @@
 //   Project Name:        KratosSolidMechanicsApplication $
 //   Created by:          $Author:            JMCarbonell $
 //   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:              August 2017 $
+//   Date:                $Date:              August 2016 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
@@ -33,8 +33,8 @@
 #include "custom_processes/fix_scalar_dof_process.h"
 #include "custom_processes/free_scalar_dof_process.h"
 #include "custom_processes/add_dofs_process.h"
-#include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.h"
-#include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.h"
+#include "custom_processes/apply_rigid_body_rotation_to_nodes_process.h"
+#include "custom_processes/apply_rigid_body_rotation_field_to_nodes_process.h"
 
 namespace Kratos
 {
@@ -191,48 +191,26 @@ namespace Kratos
       	;
 
 
-      //**********ASSIGN ROTATION ABOUT AND AXIS*********//
+      //**********APPLY RIGID BODY ROTATION*********//
 
-      class_<AssignRotationAboutAnAxisToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
+      class_<ApplyRigidBodyRotationToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "AssignRotationAboutAnAxisToNodesProcess", init<ModelPart&, Parameters>()
+      	 "ApplyRigidBodyRotationToNodesProcess", init<ModelPart&, Parameters>()
       	)
         .def(init< ModelPart&, Parameters& >())
-        .def("Execute", &AssignRotationAboutAnAxisToNodesProcess::Execute)
+        .def("Execute", &ApplyRigidBodyRotationToNodesProcess::Execute)
 
       	;
 
       
-      class_<AssignRotationFieldAboutAnAxisToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
+      class_<ApplyRigidBodyRotationFieldToNodesProcess, bases<ProcessBaseType>, boost::noncopyable >
       	(
-      	 "AssignRotationFieldAboutAnAxisToNodesProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
+      	 "ApplyRigidBodyRotationFieldToNodesProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
       	)
 	.def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
-        .def("Execute", &AssignRotationFieldAboutAnAxisToNodesProcess::Execute)
+        .def("Execute", &ApplyRigidBodyRotationFieldToNodesProcess::Execute)
 
       	;
-
-      //**********ASSIGN TORQUE ABOUT AN AXIS*********//
-
-      class_<AssignTorqueAboutAnAxisToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignTorqueAboutAnAxisToConditionsProcess", init<ModelPart&, Parameters>()
-      	)
-        .def(init< ModelPart&, Parameters& >())
-        .def("Execute", &AssignTorqueAboutAnAxisToConditionsProcess::Execute)
-
-      	;
-
-      
-      class_<AssignTorqueFieldAboutAnAxisToConditionsProcess, bases<ProcessBaseType>, boost::noncopyable >
-      	(
-      	 "AssignTorqueFieldAboutAnAxisToConditionsProcess", init<ModelPart&, PyObject* ,const char* ,const bool, Parameters>()
-      	)
-	.def(init< ModelPart&, PyObject* ,const char* ,const bool, Parameters& >())
-        .def("Execute", &AssignTorqueFieldAboutAnAxisToConditionsProcess::Execute)
-
-      	;
-      
       
     }
  

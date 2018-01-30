@@ -15,11 +15,16 @@
 // System includes
 
 // External includes
+#include "boost/smart_ptr.hpp"
 #include <vector>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/serializer.h"
+#include "includes/ublas_interface.h"
+#include "includes/constitutive_law.h"
+#include "includes/variables.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 

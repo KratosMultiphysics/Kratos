@@ -369,8 +369,7 @@ namespace Kratos
             {
                KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in FlowRule ... illegal operation!!", "" );
 
-               Matrix ErrorMatrix(1,1);
-	       noalias(ErrorMatrix) = ZeroMatrix(1,1);
+               Matrix ErrorMatrix = ZeroMatrix(1);
                return ErrorMatrix;
             };
 

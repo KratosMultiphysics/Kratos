@@ -201,7 +201,7 @@ namespace Kratos
    //*************************************************************************
    //*************************************************************************
 
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddPressureForcesElemUP(VectorType& rRightHandSideVector,
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -240,7 +240,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddStabilizedPressureElemUP(VectorType& rRightHandSideVector,
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -313,7 +313,7 @@ namespace Kratos
 
    // ******************************** KUUM **************************************************
    // ****************************************************************************************
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKuumElemUP ( MatrixType& rLeftHandSideMatrix,
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKuum ( MatrixType& rLeftHandSideMatrix,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -330,6 +330,12 @@ namespace Kratos
       Matrix ConstitutiveMatrix = ZeroMatrix(rElementVariables.voigtsize,rElementVariables.voigtsize); 
 
       ECConstitutiveMatrix = prod( rElementVariables.DeviatoricTensor, ECConstitutiveMatrix);
+
+      // that collection of terms.
+
+      if ( this->Id() < 0) {
+         std::cout << " CONST MATRIX FROM EECC " << ECConstitutiveMatrix << std::endl;
+      }
 
 
       // a. 2 ( pElem - p Nodal) I4S
@@ -406,7 +412,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKuugElemUP ( MatrixType& rLeftHandSideMatrix,
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKuug ( MatrixType& rLeftHandSideMatrix,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -487,7 +493,7 @@ namespace Kratos
    //********************* KuP ***********************************************
    //*************************************************************************
 
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKupElemUP (MatrixType& rLeftHandSideMatrix,
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -528,7 +534,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKpuElemUP (MatrixType& rLeftHandSideMatrix,
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -617,7 +623,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKppElemUP (MatrixType& rLeftHandSideMatrix,
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
          ElementVariables& rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)
@@ -660,7 +666,7 @@ namespace Kratos
 
    //************************************************************************************
    //************************************************************************************
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKppStabElemUP (MatrixType& rLeftHandSideMatrix,
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
          ElementVariables & rVariables,
          ThisElementVariables& rElementVariables, 
          double& rIntegrationWeight)

@@ -306,8 +306,7 @@ namespace Kratos
       void ComputeMaterialParameters (double& Density,
 				      double& DeviatoricCoeff,
 				      double& VolumetricCoeff,
-				      double timeStep,
-				      ElementalVariables& rElementalVariables);
+				      double timeStep);
 
    
 
@@ -333,8 +332,6 @@ namespace Kratos
 						   double& bulkCoefficient,
 						   double timeStep);
       
-      double ComputeNonLinearViscosity(double & equivalentStrainRate);
-
      void ComputeBulkMatrixForPressureVelLump(MatrixType& BulkVelMatrix,
 					      const double Weight);
 	

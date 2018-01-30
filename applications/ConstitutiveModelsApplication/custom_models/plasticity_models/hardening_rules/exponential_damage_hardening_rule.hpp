@@ -47,20 +47,9 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ExponentialDamageHardeningRule
     : public HardeningRule
   {
-  protected:
-
-    //warning::this variable is going to be shadowed by they derived classes
-    //if any problem is detected an alternative method must be used instead
-    constexpr static std::size_t VarSize = 2; 
-
-    
   public:
     ///@name Type Definitions
     ///@{
-
-    typedef InternalVariables<VarSize>   InternalVariablesType;
-    typedef PlasticModelData<VarSize>          PlasticDataType;
-
 
     /// Pointer definition of ExponentialDamageHardeningRule
     KRATOS_CLASS_POINTER_DEFINITION( ExponentialDamageHardeningRule );
@@ -97,13 +86,13 @@ namespace Kratos
      * Calculate Hardening functions
      */
 
-    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening); //do not override -> it must hide the method
+    virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening) override;
       
     /**
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening); //do not override -> it must hide the method
+    virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening) override;
     
  
     ///@}

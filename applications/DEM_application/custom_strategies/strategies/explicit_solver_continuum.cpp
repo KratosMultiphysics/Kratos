@@ -120,7 +120,6 @@ namespace Kratos {
             CalculateMeanContactArea();
             CalculateMaxSearchDistance();
         }
-        BaseType::ComputeNodalArea();
 
         // 5. Finalize Solution Step
         //BaseType::FinalizeSolutionStep();

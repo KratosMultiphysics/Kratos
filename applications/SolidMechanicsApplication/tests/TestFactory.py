@@ -5,9 +5,11 @@ from KratosMultiphysics import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import MainSolid
+import Kratos_Execute_Solid_Test as Execute_Test
 
-# This utility will control the execution scope
+# This utiltiy will control the execution scope in case we need to acces files or we depend
+# on specific relative locations of the files.
+
 class controlledExecutionScope:
     def __init__(self, scope):
         self.currentPath = os.getcwd()
@@ -19,18 +21,22 @@ class controlledExecutionScope:
     def __exit__(self, type, value, traceback):
         os.chdir(self.currentPath)
 
-# General test factory        
 class TestFactory(KratosUnittest.TestCase):
 
     def setUp(self):
+        # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            if( self.file_parameters == None ):
-                self.file_parameters = self.file_name + "_parameters.json"            
-            self.test = MainSolid.Solution(self.file_parameters,self.file_name)
+            # Initialize GiD  I/O
+            parameter_file = open(self.file_name + "_parameters.json", 'r')
+            ProjectParameters = Parameters(parameter_file.read())
+
+            # Creating the model part
+            self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
 
     def test_execution(self):
+        # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Run()
+            self.test.Solve()
 
     def tearDown(self):
         pass

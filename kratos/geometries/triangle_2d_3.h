@@ -323,7 +323,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -441,18 +441,18 @@ public:
      */
     bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override 
     {
-        Point box_center;
-        Point box_half_size;
+        Point boxcenter;
+        Point boxhalfsize;
 
-        box_center[0] = 0.50 * (rLowPoint[0] + rHighPoint[0]);
-        box_center[1] = 0.50 * (rLowPoint[1] + rHighPoint[1]);
-        box_center[2] = 0.00;
+        boxcenter[0]   = 0.50 * (rLowPoint[0] + rHighPoint[0]);
+        boxcenter[1]   = 0.50 * (rLowPoint[1] + rHighPoint[1]);
+        boxcenter[2]   = 0.00;
 
-        box_half_size[0] = 0.50 * std::abs(rHighPoint[0] - rLowPoint[0]);
-        box_half_size[1] = 0.50 * std::abs(rHighPoint[1] - rLowPoint[1]);
-        box_half_size[2] = 0.00;
+        boxhalfsize[0] = 0.50 * (rHighPoint[0] - rLowPoint[0]);
+        boxhalfsize[1] = 0.50 * (rHighPoint[1] - rLowPoint[1]);
+        boxhalfsize[2] = 0.00;
 
-        return TriBoxOverlap(box_center, box_half_size);
+        return TriBoxOverlap(boxcenter, boxhalfsize);
     }
 
     /** This method calculates and returns length, area or volume of
@@ -584,7 +584,7 @@ public:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * @formulae $$ \frac{r_K}{\rho_K} $$
+     * @formulae $$ \frac{r_K}{\ro_K} $$
      *
      * @return The inradius to circumradius quality metric.
      */
@@ -782,9 +782,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
 
@@ -1908,6 +1908,8 @@ private:
         return false;
     }
 
+//*************************************************************************************
+//*************************************************************************************
 
     /** 
      * @see HasIntersection
@@ -1941,15 +1943,15 @@ private:
         //    that means there is no separating axis on X,Y-axis tests
         abs_ex = std::abs(edge0[0]);
         abs_ey = std::abs(edge0[1]);
-        if (AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge0[0],edge0[1],abs_ex,abs_ey,vert0,vert2,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge1[0]);
         abs_ey = std::abs(edge1[1]);
-        if (AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge1[0],edge1[1],abs_ex,abs_ey,vert1,vert0,rBoxHalfSize)) return false;
 
         abs_ex = std::abs(edge2[0]);
         abs_ey = std::abs(edge2[1]);
-        if (AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
+        if (!AxisTestZ(edge2[0],edge2[1],abs_ex,abs_ey,vert2,vert1,rBoxHalfSize)) return false;
 
         // Bullet 1:
         //  first test overlap in the {x,y,(z)}-directions
@@ -1977,7 +1979,7 @@ private:
     }
 
     /** AxisTestZ
-     * This method returns true if there is a separating axis
+     * This method return true if there is a separating axis
      * 
      * @param rEdgeX, rEdgeY: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge abs coordinates
@@ -1999,8 +2001,8 @@ private:
 
         rad = rAbsEdgeY*rBoxHalfSize[0] + rAbsEdgeX*rBoxHalfSize[1];
 
-        if(min_max.first>rad || min_max.second<-rad) return true;
-        else return false;
+        if(min_max.first>rad || min_max.second<-rad) return false;
+        else return true;
     }
 
     /** Implements the calculus of the semiperimeter

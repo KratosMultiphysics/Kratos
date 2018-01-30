@@ -340,12 +340,12 @@ namespace Kratos
    
    void BorjaCamClayExplicitFlowRule::save( Serializer& rSerializer) const 
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonAssociativeExplicitPlasticFlowRule )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
    }
 
    void BorjaCamClayExplicitFlowRule::load( Serializer& rSerializer)
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonAssociativeExplicitPlasticFlowRule )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
 
    }
 

@@ -53,7 +53,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties 
         ) const
     {
-        return Kratos::make_shared<AxisymTotalLagrangian>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return Element::Pointer( new AxisymTotalLagrangian( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
     }
     
     //******************************* DESTRUCTOR *****************************************

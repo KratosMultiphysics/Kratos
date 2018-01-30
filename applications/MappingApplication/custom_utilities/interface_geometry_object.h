@@ -351,12 +351,12 @@ private:
 
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const 
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
     }
-    virtual void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer) 
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;        
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);

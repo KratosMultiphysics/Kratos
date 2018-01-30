@@ -52,7 +52,6 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
     /// Counted pointer of ProcessFactoryUtility
     KRATOS_CLASS_POINTER_DEFINITION( ProcessFactoryUtility );
 

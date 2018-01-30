@@ -96,7 +96,7 @@ protected:
         double  ReferenceRadius;
 
         //general variables for large displacement use
-        double  detF; 
+        double  detF;
         double  detF0; 
         double  detH; //Wildcard ( detF(0 to n+1) )
         double  detJ;
@@ -650,12 +650,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * Increases the integration method in the "increment" order
-     */
-    void IncreaseIntegrationMethod(IntegrationMethod& rThisIntegrationMethod,
-				   unsigned int increment) const;
- 
+
     /**
      * Calculates the elemental contributions
      */
@@ -794,12 +789,7 @@ protected:
     virtual void CalculateKinematics(ElementVariables& rVariables,
                                      const double& rPointNumber);
 
-    /**
-     * Calculate Element Jacobian
-     */
-    virtual void CalculateKinetics(ElementVariables& rVariables,
-				   const double& rPointNumber);
-    
+
     /**
      * Initialize Element General Variables
      */

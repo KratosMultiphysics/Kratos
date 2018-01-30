@@ -95,8 +95,8 @@ namespace Kratos
                typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
 
                /** Counted pointer of ClassName */
-
-	       KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonLineSearchImplexStrategy );
+               //typedef boost::shared_ptr< ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+               KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonLineSearchImplexStrategy );
 
                typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 

@@ -145,15 +145,11 @@ namespace Kratos
           * Get on rVariable a Matrix Value from the Element Constitutive Law
           */
          void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-         
-         
-         // Get Values defined in order to avoid a clang warning (?)
-         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
          /**
           * Calculate a Matrix Variable on the Element Constitutive Law
           */
-         virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+         void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
          ///@}
@@ -221,7 +217,7 @@ namespace Kratos
          /**
           * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
           */
-         virtual void CalculateAndAddKuumElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKuum(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
@@ -230,7 +226,7 @@ namespace Kratos
          /**
           * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
           */
-         virtual void CalculateAndAddKuugElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKuug(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
@@ -239,7 +235,7 @@ namespace Kratos
          /**
           * Calculation of the Kup matrix
           */
-         virtual void CalculateAndAddKupElemUP (MatrixType& rK,
+         virtual void CalculateAndAddKup (MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
@@ -248,7 +244,7 @@ namespace Kratos
          /**
           * Calculation of the Kpu matrix
           */
-         virtual void CalculateAndAddKpuElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKpu(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
@@ -258,7 +254,7 @@ namespace Kratos
          /**
           * Calculation of the Kpp matrix
           */
-         virtual void CalculateAndAddKppElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKpp(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
@@ -268,7 +264,7 @@ namespace Kratos
          /**
           * Calculation of the Kpp Stabilization Term matrix
           */
-         virtual void CalculateAndAddKppStabElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKppStab(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
@@ -277,7 +273,7 @@ namespace Kratos
          /*
           * Calculation of the Internal Forces due to sigma. Fi = B * sigma
           */
-         void CalculateAndAddInternalForcesElemUP(VectorType& rRightHandSideVector,
+         void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
@@ -286,7 +282,7 @@ namespace Kratos
          /**
           * Calculation of the Internal Forces due to Pressure-Balance
           */
-         virtual void CalculateAndAddPressureForcesElemUP(VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
@@ -296,7 +292,7 @@ namespace Kratos
          /**
           * Calculation of the Internal Forces due to Pressure-Balance
           */
-         virtual void CalculateAndAddStabilizedPressureElemUP(VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight

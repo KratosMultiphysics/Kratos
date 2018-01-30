@@ -121,9 +121,9 @@ public:
         this->SetRebuildLevel(1);
         
         SparseMatrixType* AuxMassMatrix = new SparseMatrixType;
-        mpMassMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxMassMatrix);
+        mpMassMatrix = boost::shared_ptr<SparseMatrixType>(AuxMassMatrix);
         SparseMatrixType* AuxStiffnessMatrix = new SparseMatrixType;
-        mpStiffnessMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
+        mpStiffnessMatrix = boost::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
         
         KRATOS_CATCH("")
     }

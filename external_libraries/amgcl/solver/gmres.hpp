@@ -41,7 +41,6 @@ THE SOFTWARE.
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
 #include <amgcl/solver/detail/givens_rotations.hpp>
-#include <amgcl/solver/precond_side.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
@@ -74,9 +73,6 @@ class gmres {
             /// Number of iterations before restart.
             unsigned M;
 
-            /// Preconditioning kind (left/right).
-            preconditioner::side::type pside;
-
             /// Maximum number of iterations.
             unsigned maxiter;
 
@@ -86,25 +82,22 @@ class gmres {
             /// Target absolute residual error.
             scalar_type abstol;
 
-            params()
-                : M(30), pside(preconditioner::side::right),
-                  maxiter(100), tol(1e-8),
+            params(unsigned M = 30, unsigned maxiter = 100, scalar_type tol = 1e-8)
+                : M(M), maxiter(maxiter), tol(tol),
                   abstol(std::numeric_limits<scalar_type>::min())
             { }
 
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, M),
-                  AMGCL_PARAMS_IMPORT_VALUE(p, pside),
                   AMGCL_PARAMS_IMPORT_VALUE(p, maxiter),
                   AMGCL_PARAMS_IMPORT_VALUE(p, tol),
                   AMGCL_PARAMS_IMPORT_VALUE(p, abstol)
             {
-                AMGCL_PARAMS_CHECK(p, (M)(pside)(maxiter)(tol)(abstol));
+                AMGCL_PARAMS_CHECK(p, (M)(maxiter)(tol)(abstol));
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, M);
-                AMGCL_PARAMS_EXPORT_VALUE(p, path, pside);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, maxiter);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, tol);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, abstol);
@@ -149,10 +142,7 @@ class gmres {
                 Vec2          &x
                 ) const
         {
-            namespace side = preconditioner::side;
-
-            static const scalar_type zero = math::zero<scalar_type>();
-            static const scalar_type one  = math::identity<scalar_type>();
+            size_t iter = 0;
 
             scalar_type norm_rhs = norm(rhs);
             if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
@@ -161,26 +151,26 @@ class gmres {
             }
 
             scalar_type eps = std::max(prm.tol * norm_rhs, prm.abstol);
-            scalar_type norm_r = zero;
+            scalar_type norm_r = math::zero<scalar_type>();
 
-            size_t iter = 0;
             while(true) {
-                if (prm.pside == side::left) {
-                    backend::residual(rhs, A, x, *v[0]);
-                    P.apply(*v[0], *r);
-                } else {
-                    backend::residual(rhs, A, x, *r);
-                }
+                backend::residual(rhs, A, x, *r);
 
                 // -- Check stopping condition
-                norm_r = norm(*r);
-                if (norm_r < eps || iter >= prm.maxiter) break;
+                if ((norm_r = norm(*r)) < eps || iter >= prm.maxiter)
+                    break;
 
                 // -- Inner GMRES iteration
-                backend::axpby(math::inverse(norm_r), *r, zero, *v[0]);
+                P.apply(*r, *v[0]);
 
                 std::fill(s.begin(), s.end(), 0);
-                s[0] = norm_r;
+                s[0] = norm(*v[0]);
+
+                precondition(!math::is_zero(s[0]),
+                        "Preconditioner returned a zero vector");
+
+                backend::axpby(math::inverse(s[0]), *v[0], math::zero<scalar_type>(), *v[0]);
+
 
                 unsigned j = 0;
                 while(true) {
@@ -189,16 +179,16 @@ class gmres {
                     // Build an orthonormal basis V and matrix H such that
                     //     A V_{i-1} = V_{i} H
                     vector &v_new = *v[j+1];
-
-                    preconditioner::spmv(prm.pside, P, A, *v[j], v_new, *r);
+                    backend::spmv(math::identity<scalar_type>(), A, *v[j], math::zero<scalar_type>(), *r);
+                    P.apply(*r, v_new);
 
                     for(unsigned k = 0; k <= j; ++k) {
                         H[k][j] = inner_product(v_new, *v[k]);
-                        backend::axpby(-H[k][j], *v[k], one, v_new);
+                        backend::axpby(-H[k][j], *v[k], math::identity<scalar_type>(), v_new);
                     }
                     H[j+1][j] = norm(v_new);
 
-                    backend::axpby(math::inverse(H[j+1][j]), v_new, zero, v_new);
+                    backend::axpby(math::inverse(H[j+1][j]), v_new, math::zero<scalar_type>(), v_new);
 
                     for(unsigned k = 0; k < j; ++k)
                         detail::apply_plane_rotation(H[k][j], H[k+1][j], cs[k], sn[k]);
@@ -222,17 +212,7 @@ class gmres {
                         s[k] -= H[k][i] * s[i];
                 }
 
-                // -- Apply step
-                vector &dx = *r;
-                backend::lin_comb(j, s, v, zero, dx);
-
-                if (prm.pside == side::left) {
-                    backend::axpby(one, dx, one, x);
-                } else {
-                    vector &tmp = *v[0];
-                    P.apply(dx, tmp);
-                    backend::axpby(one, tmp, one, x);
-                }
+                backend::lin_comb(j, s, v, math::identity<scalar_type>(), x);
             }
 
             return boost::make_tuple(iter, norm_r / norm_rhs);

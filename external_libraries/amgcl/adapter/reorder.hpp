@@ -102,12 +102,7 @@ struct reordered_matrix {
 
 template <class Vector>
 struct reordered_vector {
-    typedef typename backend::value_type<typename boost::decay<Vector>::type>::type raw_value_type;
-    typedef typename boost::conditional<
-        boost::is_const<Vector>::value,
-        const raw_value_type,
-        raw_value_type
-        >::type value_type;
+    typedef typename backend::value_type<typename boost::decay<Vector>::type>::type value_type;
 
     Vector &x;
     const ptrdiff_t *perm;
@@ -118,7 +113,11 @@ struct reordered_vector {
         return boost::size(x);
     }
 
-    value_type& operator[](size_t i) const {
+    const value_type& operator[](size_t i) const {
+        return x[perm[i]];
+    }
+
+    value_type& operator[](size_t i) {
         return x[perm[i]];
     }
 

@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author Julio Marti.
+//  Main authors:    Author Julio Marti
 //
 
 #if !defined(KRATOS_ULF_UTILITIES_INCLUDED )
@@ -35,7 +35,6 @@
 #include "pfem_2_application.h"
 #include "boost/smart_ptr.hpp"
 #include "includes/cfd_variables.h"
-#include "includes/c2c_variables.h"
 #include "includes/deprecated_variables.h"
 
 #include "processes/process.h"
@@ -657,7 +656,7 @@ public:
                         if(area_base >0.0000000001)
                             vol/= area_base;
                         else
-                            KRATOS_ERROR<<"error: BAse element has zero area";
+                            KRATOS_THROW_ERROR(std::logic_error,"error: BAse element has zero area","");
 
                         //vol/=area_base;
                         double length_measure1 = norm_2(vec2);
@@ -1224,12 +1223,11 @@ public:
         reduced_model_part.Conditions().clear();
         reduced_model_part.Elements().clear();
         reduced_model_part.Nodes().clear();
-        unsigned int NumberOfProperties = full_model_part.NumberOfProperties();
       
 	//change the name of the var to another one  - otherwise confusing
 	for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
 	{	  	
-	in->FastGetSolutionStepValue(ACTIVATION_LEVEL)=false;
+	in->FastGetSolutionStepValue(IS_INACTIVE)=false;
 	in->FastGetSolutionStepValue(MATERIAL_VARIABLE)=false;
 	}
 
@@ -1243,7 +1241,7 @@ public:
 	    for (int i=0; i<n_nodes; i++)
         {
 	
-            if(im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1) n_int+=1.0;//im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);   
+            if(im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)>0.5) n_int+=1.0;//im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);   
 		}
         if (n_int==n_nodes)
         {
@@ -1272,12 +1270,12 @@ public:
 
 		for (int i=0;i<n_nodes;i++)
 			{
-			im->GetGeometry()[i].FastGetSolutionStepValue(ACTIVATION_LEVEL)=true;
+			im->GetGeometry()[i].FastGetSolutionStepValue(IS_INACTIVE)=true;
 			}               
             }
 
             if (n_int>n_nodes)
-                KRATOS_ERROR<<"Number of DISABLE flags cant exceed number of the element nodes.... ";
+                KRATOS_THROW_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
 
         }
 
@@ -1285,7 +1283,7 @@ public:
 
 	for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
         {
-            int n_disabled=in->FastGetSolutionStepValue(ACTIVATION_LEVEL);
+            int n_disabled=in->FastGetSolutionStepValue(IS_INACTIVE);
             if (n_disabled==1)
             {
                 reduced_model_part.Nodes().push_back(*(in.base()));
@@ -1296,7 +1294,7 @@ public:
         for(ModelPart::PropertiesContainerType::iterator i_properties = full_model_part.PropertiesBegin() ;
                 i_properties != full_model_part.PropertiesEnd() ; ++i_properties)
         {
-            reduced_model_part.AddProperties(*(i_properties.base()),NumberOfProperties);
+            reduced_model_part.AddProperties(*(i_properties.base()));
 
         }
 	

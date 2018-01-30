@@ -72,7 +72,7 @@ SpringDamperElement3D2N&  SpringDamperElement3D2N::operator=(SpringDamperElement
 Element::Pointer SpringDamperElement3D2N::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
     //NEEDED TO CREATE AN ELEMENT   
-    return Kratos::make_shared<SpringDamperElement3D2N>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
+    return Element::Pointer( new SpringDamperElement3D2N( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
 
@@ -86,7 +86,7 @@ Element::Pointer SpringDamperElement3D2N::Clone( IndexType NewId, NodesArrayType
 
     SpringDamperElement3D2N NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
-    return Kratos::make_shared<SpringDamperElement3D2N>(NewElement);
+    return Element::Pointer( new SpringDamperElement3D2N(NewElement) );
 }
 
 

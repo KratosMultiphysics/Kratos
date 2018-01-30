@@ -44,12 +44,6 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
 class SimpleMeshMovingTest(StructuralMechanichsTestFactory):
     file_name = "mesh_moving_test/simple_mesh_moving_test"
-    
-class DynamicBossakTests(StructuralMechanichsTestFactory):
-    file_name = "dynamic_test/dynamic_bossak_test"
-
-class DynamicNewmarkTests(StructuralMechanichsTestFactory):
-    file_name = "dynamic_test/dynamic_newmark_test"
 
 class SDTwoDShearQuaPatchTest(StructuralMechanichsTestFactory):
     file_name = "patch_test/small_disp/patch_test_2D_shear_qua"
@@ -168,5 +162,3 @@ class Simple3D2NBeamCrLinearTest(StructuralMechanichsTestFactory):
 class Simple3D2NBeamCrDynamicTest(StructuralMechanichsTestFactory):
     file_name = "beam_test/dynamic_3D2NBeamCr_test"  
 
-class Simple2D2NBeamCrTest(StructuralMechanichsTestFactory):
-    file_name = "beam_test/nonlinear_2D2NBeamCr_test"

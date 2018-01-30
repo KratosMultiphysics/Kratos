@@ -12,9 +12,10 @@
 #include <iostream>
 
 // External includes
-// #include<cmath>
+#include<cmath>
 
 // Project includes
+#include "includes/properties.h"
 #include "custom_constitutive/linear_plane_strain.h"
 
 #include "structural_mechanics_application_variables.h"
@@ -152,18 +153,6 @@ void LinearPlaneStrain::FinalizeMaterialResponsePK1 (Parameters& rValues)
 void LinearPlaneStrain::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
     // TODO: Add if necessary
-}
-
-//************************************************************************************
-//************************************************************************************
-
-bool& LinearPlaneStrain::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
-{
-    // This Constitutive Law has been checked with Stenberg Stabilization
-    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
-        rValue = true;
-    
-    return rValue;
 }
 
 //************************************************************************************

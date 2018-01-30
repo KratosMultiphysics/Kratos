@@ -295,8 +295,7 @@ namespace Kratos
 
       //create and initialize element variables:
       ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
-      
+
       IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
       //full quadrature integration:
       mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
@@ -333,7 +332,7 @@ namespace Kratos
 	  Variables.PointNumber = PointNumber;
 
 	  //set shape functions values for this integration point
-	  noalias(Variables.N) = matrix_row<const Matrix>( Ncontainer, PointNumber);
+	  Variables.N=row( Ncontainer, PointNumber);
 
 	  //compute local to global frame
 	  this->CalculateFrameMapping( Variables, PointNumber );
@@ -400,8 +399,8 @@ namespace Kratos
 	  m22 = InertiaDyadic * temp;
 	
 	  //Building the Local Tangent Inertia Matrix
-	  BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
-	  BeamMathUtilsType::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
+	  MathUtils<double>::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
+	  MathUtils<double>::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
 	
 	}
  
@@ -519,8 +518,7 @@ namespace Kratos
       noalias(InertiaxRotationTensor) = ZeroMatrix(3,3);
       BeamMathUtilsType::VectorToSkewSymmetricTensor( InertiaxRotationVector, InertiaxRotationTensor );
 
-      Vector RotationxInertiaRotationVector;
-      MathUtils<double>::CrossProduct(RotationxInertiaRotationVector, CurrentStepRotationVector, InertiaxRotationVector);
+      Vector RotationxInertiaRotationVector = MathUtils<double>::CrossProduct(CurrentStepRotationVector, InertiaxRotationVector);
       //Vector RotationxInertiaRotationVector = prod(RotationTensor,InertiaxRotationVector);
 
       // (3) tangent:
@@ -553,8 +551,8 @@ namespace Kratos
 	    
 
 	    //Building the Local Tangent Inertia Matrix
-	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
+	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
 	    
 	  }
       }
@@ -647,8 +645,7 @@ namespace Kratos
 
       // (2) rotation and inertia terms:
       Vector InertiaxRotationVector = prod(InertiaDyadic, CurrentStepRotationVector);
-      Vector RotationxInertiaRotationVector;
-      MathUtils<double>::CrossProduct(RotationxInertiaRotationVector, CurrentStepRotationVector, InertiaxRotationVector);
+      Vector RotationxInertiaRotationVector = MathUtils<double>::CrossProduct(CurrentStepRotationVector, InertiaxRotationVector);
  
       // (3) residual:
       Residual  = c1 * InertiaxRotationVector + c2 * RotationxInertiaRotationVector;

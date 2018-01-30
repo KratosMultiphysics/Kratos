@@ -4,26 +4,21 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import NonConformant_OneSideMap                # Import non-conformant mapper
 import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
 import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
-import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
-# Importing the Kratos Library
+# Import kratos core and applications
 import KratosMultiphysics
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications(
-    "FSIApplication",
-    "ALEApplication",
-    "FluidDynamicsApplication",
-    "StructuralMechanicsApplication")
-
-# Import applications
-import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.ALEApplication as KratosALE
+import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
+# Check that KratosMultiphysics was imported in the main script
+KratosMultiphysics.CheckForPreviousImport()
+
+
 def CreateSolver(structure_main_model_part, fluid_main_model_part, project_parameters):
     return PartitionedFSIBaseSolver(structure_main_model_part, fluid_main_model_part, project_parameters)
+
 
 class PartitionedFSIBaseSolver:
     def __init__(self, structure_main_model_part, fluid_main_model_part, project_parameters):
@@ -86,6 +81,7 @@ class PartitionedFSIBaseSolver:
         print("* Fluid solver constructed.")
 
         # Construct the coupling partitioned strategy
+        import convergence_accelerator_factory
         self.coupling_utility = convergence_accelerator_factory.CreateConvergenceAccelerator(coupling_utility_parameters)
         print("* Coupling strategy constructed.")
 
@@ -193,8 +189,8 @@ class PartitionedFSIBaseSolver:
 
 
     def SetTimeStep(self, step):
-        self.fluid_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-        self.structure_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+        self.fluid_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_STEPS, step)
+        self.structure_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME_STEPS, step)
 
 
     def Clear(self):
@@ -235,20 +231,10 @@ class PartitionedFSIBaseSolver:
 
     def _GetNodalUpdateUtilities(self):
 
-        structure_time_scheme = self.structure_solver.dynamic_settings["scheme_type"].GetString()
-        if (structure_time_scheme == "newmark"):
-            damp_factor_m = 0.0
-        elif (structure_time_scheme == "bossak"):
-            damp_factor_m = -0.3
-        else:
-            err_msg =  "Requested structure time scheme type \"" + structure_time_scheme + "\" is not available!\n"
-            err_msg += "Available options are: \"newmark\", \"bossak\", \"relaxation\""
-            raise Exception(err_msg)
-
         if (self.domain_size == 2):
-            return KratosFSI.NodalUpdateNewmark2D(damp_factor_m)
+            return KratosFSI.NodalUpdateNewmark2D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
         else:
-            return KratosFSI.NodalUpdateNewmark3D(damp_factor_m)
+            return KratosFSI.NodalUpdateNewmark3D(self.settings["fluid_solver_settings"]["alpha"].GetDouble())
 
 
     def _GetPartitionedFSIUtilities(self):
@@ -376,7 +362,7 @@ class PartitionedFSIBaseSolver:
 
     def _ComputeMeshPredictionSingleFaced(self):
 
-            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]," prediction...")
+            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS]," prediction...")
             # Get the previous step fluid interface nodal fluxes
             keep_sign = False
             distribute_load = True
@@ -404,7 +390,7 @@ class PartitionedFSIBaseSolver:
 
     def _ComputeMeshPredictionDoubleFaced(self):
 
-            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP],"double faced prediction...")
+            print("Computing time step ",self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS],"double faced prediction...")
             # Get the previous step fluid interface nodal fluxes from both positive and negative faces
             keep_sign = False
             distribute_load = True

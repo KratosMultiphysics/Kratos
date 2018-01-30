@@ -27,10 +27,9 @@
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
 
-#ifndef KRATOS_DISABLE_AMGCL
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
-#endif
+
 
 namespace Kratos
 {
@@ -39,7 +38,6 @@ namespace Python
 {
 void  AddAMGCLSolverToPython()
 {
-#ifndef KRATOS_DISABLE_AMGCL
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
@@ -69,6 +67,7 @@ void  AddAMGCLSolverToPython()
     .value("SA_EMIN",SA_EMIN)
     ;
 
+
     typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
     class_<AMGCLSolverType, bases<LinearSolverType>, boost::noncopyable >
     ( "AMGCLSolver",init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
@@ -83,7 +82,6 @@ void  AddAMGCLSolverToPython()
     class_<AMGCL_NS_SolverType, bases<LinearSolverType>, boost::noncopyable >
     ( "AMGCL_NS_Solver", init<Parameters>())
     ;
-#endif
 
 
 }

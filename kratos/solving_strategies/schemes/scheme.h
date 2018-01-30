@@ -393,17 +393,17 @@ public:
         KRATOS_TRY
         //initialize solution step for all of the elements
         ElementsArrayType& pElements = r_model_part.Elements();
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& current_process_info = r_model_part.GetProcessInfo();
 
         for (ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
         {
-            (it) -> InitializeSolutionStep(CurrentProcessInfo);
+            (it) -> InitializeSolutionStep(current_process_info);
         }
 
         ConditionsArrayType& pConditions = r_model_part.Conditions();
         for (ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
         {
-            (it) -> InitializeSolutionStep(CurrentProcessInfo);
+            (it) -> InitializeSolutionStep(current_process_info);
         }
         KRATOS_CATCH("")
     }
@@ -421,13 +421,13 @@ public:
         KRATOS_TRY
         //finalizes solution step for all of the elements
 //         ElementsArrayType& rElements = rModelPart.Elements();
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
         
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
         {
             auto itElem = rModelPart.ElementsBegin() + i;
-            itElem->FinalizeSolutionStep(CurrentProcessInfo);
+            itElem->FinalizeSolutionStep(current_process_info);
         }
         
         
@@ -435,7 +435,7 @@ public:
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); i++)
         {
             auto itElem = rModelPart.ConditionsBegin() + i;
-            itElem->FinalizeSolutionStep(CurrentProcessInfo);
+            itElem->FinalizeSolutionStep(current_process_info);
         }        
 
 //         int NumThreads = OpenMPUtils::GetNumThreads();
@@ -451,7 +451,7 @@ public:
 // 
 //             for (ElementsArrayType::iterator itElem = ElementsBegin; itElem != ElementsEnd; itElem++)
 //             {
-//                 itElem->FinalizeSolutionStep(CurrentProcessInfo);
+//                 itElem->FinalizeSolutionStep(current_process_info);
 //             }
 //         }
 
@@ -469,7 +469,7 @@ public:
 // 
 //             for (ConditionsArrayType::iterator itCond = ConditionsBegin; itCond != ConditionsEnd; itCond++)
 //             {
-//                 itCond->FinalizeSolutionStep(CurrentProcessInfo);
+//                 itCond->FinalizeSolutionStep(current_process_info);
 //             }
 //         }
         KRATOS_CATCH("")
@@ -568,17 +568,17 @@ public:
     {
         KRATOS_TRY
         ElementsArrayType& pElements = r_model_part.Elements();
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        ProcessInfo& current_process_info = r_model_part.GetProcessInfo();
 
         for (ElementsArrayType::iterator it = pElements.begin(); it != pElements.end(); ++it)
         {
-            (it) -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            (it) -> FinalizeNonLinearIteration(current_process_info);
         }
 
         ConditionsArrayType& pConditions = r_model_part.Conditions();
         for (ConditionsArrayType::iterator it = pConditions.begin(); it != pConditions.end(); ++it)
         {
-            (it) -> FinalizeNonLinearIteration(CurrentProcessInfo);
+            (it) -> FinalizeNonLinearIteration(current_process_info);
         }
         KRATOS_CATCH("")
     }

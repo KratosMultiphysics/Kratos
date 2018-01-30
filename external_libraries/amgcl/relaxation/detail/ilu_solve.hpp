@@ -165,6 +165,8 @@ class ilu_solve< backend::builtin<value_type> > {
         }
 
     private:
+        bool is_serial;
+
         static int num_threads() {
 #ifdef _OPENMP
             return omp_get_max_threads();

@@ -361,7 +361,6 @@ void AddCustomStrategiesToPython()
             .def("SolveStep1", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
             .def("SolveStep2", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
             .def("SolveStep3", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
-            .def("UpdateDensityIdealGas", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::UpdateDensityIdealGas)
             .def("Clear", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
 
     class_< FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,

@@ -57,37 +57,42 @@ AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNo
 /***********************************************************************************/
 
 template< unsigned int TNumNodes, bool TNormalVariation >
-double AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
+double AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetIntegrationWeight(
+    GeneralVariables& rVariables,
+    const GeometryType::IntegrationPointsArrayType& ThisIntegrationMethod,
+    const unsigned int& PointNumber
+    )
 {
-    const double radius = CalculateRadius(rVariables);
-    const double thickness = this->GetProperties()[THICKNESS];
-    return (2.0 * Globals::Pi * radius/thickness);
+    const double Radius = CalculateRadius(rVariables);
+    const double Thickness = (this->GetValue(ELEMENT_POINTER))->GetProperties()[THICKNESS];
+    const double AxiSymCoefficient = 2.0 * Globals::Pi * Radius/Thickness;
+    return MortarBaseType::GetIntegrationWeight(rVariables, ThisIntegrationMethod, PointNumber) * AxiSymCoefficient;
 }
 
 /*************************COMPUTE AXYSIMMETRIC RADIUS*******************************/
 /***********************************************************************************/
 
 template< unsigned int TNumNodes, bool TNormalVariation >
-double AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateRadius(const GeneralVariables& rVariables) const
+double AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateRadius(GeneralVariables& rVariables)
 {
     KRATOS_TRY;
 
-    double current_radius = 0.0;
-//     double reference_radius = 0.0;
+    double CurrentRadius = 0.0;
+//     double ReferenceRadius = 0.0;
 
-    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+    for (unsigned int iNode = 0; iNode < TNumNodes; iNode++)
     {
         // Displacement from the reference to the current configuration
-//         const array_1d<double, 3 > DeltaDisplacement = this->GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[i_node].FastGetSolutionStepValue(DISPLACEMENT,1);  
-	    const array_1d<double, 3 > current_position = this->GetGeometry()[i_node].Coordinates();
-// 	    const array_1d<double, 3 > ReferencePosition = current_position - DeltaDisplacement;
+//         const array_1d<double, 3 > DeltaDisplacement = this->GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);  
+	    const array_1d<double, 3 > CurrentPosition = this->GetGeometry()[iNode].Coordinates();
+// 	    const array_1d<double, 3 > ReferencePosition = CurrentPosition - DeltaDisplacement;
 	    
-	    current_radius   += current_position[0] * rVariables.NSlave[i_node];
-// 	    reference_radius += ReferencePosition[0] * rVariables.NSlave[i_node];
+	    CurrentRadius   += CurrentPosition[0] * rVariables.NSlave[iNode];
+// 	    ReferenceRadius += ReferencePosition[0] * rVariables.NSlave[iNode];
     }
     
-    return current_radius;
-//     return reference_radius;
+    return CurrentRadius;
+//     return ReferenceRadius;
         
     KRATOS_CATCH( "" );
 }

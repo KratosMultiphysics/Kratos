@@ -15,10 +15,6 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_python_application.cpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/symbolic_navier_stokes.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fractional_step_discontinuous.cpp
@@ -27,7 +23,6 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stokes_3D.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/stokes_3D_twofluid.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/navier_stokes.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/embedded_ausas_navier_stokes.cpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fs_werner_wengle_wall_condition.cpp
@@ -37,20 +32,14 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/stokes_wall_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fs_periodic_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/navier_stokes_wall_condition.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/embedded_ausas_navier_stokes_wall_condition.cpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bingham_3d_law.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/euler_2d_law.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/euler_3d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_2d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/newtonian_3d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/herschel_bulkey_3d_law.cpp
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_force_process.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_modification_process.cpp
 
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_data.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/drag_utilities.cpp
 )
 
 ## fluid dynamics testing sources
@@ -61,7 +50,6 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosFluidDynamicsApplication SHARED ${KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES} ${KRATOS_FLUID_DYNAMICS_TESTING_SOURCES})
-
 target_link_libraries(KratosFluidDynamicsApplication KratosCore )
 set_target_properties(KratosFluidDynamicsApplication PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosFluidDynamicsApplication PROPERTIES PREFIX "")
@@ -75,10 +63,6 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosFluidDynamicsApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosFluidDynamicsApplication)
-endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
 

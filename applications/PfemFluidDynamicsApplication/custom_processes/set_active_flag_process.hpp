@@ -138,9 +138,7 @@ namespace Kratos
 		if(dimension==2){
 		  ElementalVolume =  (itElem)->GetGeometry().Area();
 		}else if(dimension==3){
-		  ElementalVolume = 0;
-		  if( itElem->GetGeometry().Dimension() == 3 )
-		    ElementalVolume =  (itElem)->GetGeometry().Volume();
+		  ElementalVolume =  (itElem)->GetGeometry().Volume();
 		}else{
 		  ElementalVolume = 0;
 		}

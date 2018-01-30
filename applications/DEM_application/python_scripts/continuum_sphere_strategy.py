@@ -9,9 +9,9 @@ import math
 
 class ExplicitStrategy(BaseExplicitStrategy):
 
-    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
+    def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
 
-        BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures)
+        BaseExplicitStrategy.__init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
 
         self.print_skin_sphere = 0 #TODO: check if this variable is important. There's a similar one in DEM_procedures called PostSkinSphere
         if "PostSkinSphere" in DEM_parameters.keys():
@@ -98,12 +98,12 @@ class ExplicitStrategy(BaseExplicitStrategy):
                 self.spheres_model_part.ProcessInfo.SetValue(COMPUTE_STRESS_TENSOR_OPTION, 1)
                 break
 
-        if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
-            self.cplusplus_strategy = ContinuumVelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                                            self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy)
+        if (self.DEM_parameters["IntegrationScheme"].GetString() == 'Verlet_Velocity'):
+            self.cplusplus_strategy = ContinuumVerletVelocitySolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                                            self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
         else:
             self.cplusplus_strategy = ContinuumExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                  self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy)
+                                                  self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
     
     def Initialize(self):        
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy Initialize function (initializes all elements and performs other necessary tasks before starting the time loop) (C++)
@@ -121,10 +121,9 @@ class ExplicitStrategy(BaseExplicitStrategy):
         spheres_model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
         spheres_model_part.AddNodalSolutionStepVariable(SKIN_SPHERE)
 
-    def ModifyProperties(self, properties, param = 0):
-        BaseExplicitStrategy.ModifyProperties(self, properties, param)
-        
-        if not param:
-            ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
-            ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
-            ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+    def ModifyProperties(self, properties):
+        BaseExplicitStrategy.ModifyProperties(self, properties)
+
+        ContinuumConstitutiveLawString = properties[DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME]
+        ContinuumConstitutiveLaw = globals().get(ContinuumConstitutiveLawString)()
+        ContinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)

@@ -39,13 +39,9 @@ namespace Kratos {
         double* pGetPoisson();                                                   
         void    SetPoissonFromProperties(double* poisson);                                     
             
-        double  GetRollingFriction();
-        double* pGetRollingFriction();
-        void    SetRollingFrictionFromProperties(double* rolling_friction);
-        
-        double  GetRollingFrictionWithWalls();
-        double* pGetRollingFrictionWithWalls();
-        void    SetRollingFrictionWithWallsFromProperties(double* rolling_friction_with_walls);
+        double  GetRollingFriction();                                                 
+        double* pGetRollingFriction();                                            
+        void    SetRollingFrictionFromProperties(double* rolling_friction);        
       
         double  GetTgOfFrictionAngle();                                          
         double* pGetTgOfFrictionAngle();                                          
@@ -79,7 +75,7 @@ namespace Kratos {
         double* pGetParticleKTangential();
         void    SetParticleKTangentialFromProperties(double* particle_k_tangential);
         
-        // Dependent Friction    
+        //Conical damage    
         double  GetParticleContactRadius();
         double* pGetParticleContactRadius();
         void    SetParticleContactRadiusFromProperties(double* particle_contact_radius);
@@ -87,6 +83,10 @@ namespace Kratos {
         double  GetParticleMaxStress();
         double* pGetParticleMaxStress();
         void    SetParticleMaxStressFromProperties(double* particle_max_stress);
+    
+        double  GetParticleAlpha();
+        double* pGetParticleAlpha();
+        void    SetParticleAlphaFromProperties(double* particle_alpha);
     
         double  GetParticleGamma();
         double* pGetParticleGamma();
@@ -112,7 +112,6 @@ namespace Kratos {
         double* mYoung;
         double* mPoisson;
         double* mRollingFriction;
-        double* mRollingFrictionWithWalls;
         double* mTgOfFrictionAngle;
         double* mCoefficientOfRestitution;
         double* mLnOfRestitCoeff;
@@ -121,9 +120,10 @@ namespace Kratos {
         double* mParticleCohesion;
         double* mParticleKNormal;
         double* mParticleKTangential;
-        //Dependent Friction
+        //Conical damage    
         double* mParticleContactRadius;
         double* mParticleMaxStress;
+        double* mParticleAlpha;
         double* mParticleGamma;        
         double* mContactSigmaMin; 
         double* mContactTauZero;

@@ -1,15 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
-//    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
-
 
 #if !defined(KRATOS_ADD_C2C_VARIABLES_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_C2C_VARIABLES_TO_PYTHON_H_INCLUDED
@@ -23,7 +22,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 
 
 namespace Kratos

@@ -40,7 +40,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class KRATOS_API(KRATOS_CORE) TetrahedraMeshEdgeSwappingProcess : public Process
+  class TetrahedraMeshEdgeSwappingProcess : public Process
     {
     public:
       ///@name Type Definitions

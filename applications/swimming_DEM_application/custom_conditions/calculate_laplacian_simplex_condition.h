@@ -181,7 +181,7 @@ public:
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return Kratos::make_shared< ComputeLaplacianSimplexCondition >(NewId, pGeom, pProperties);
+        return boost::make_shared< ComputeLaplacianSimplexCondition >(NewId, pGeom, pProperties);
     }
 
     /// Return local contributions of the correct size, filled with zeros (for compatibility with time schemes).

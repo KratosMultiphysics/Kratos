@@ -249,7 +249,7 @@ namespace Kratos
           * Calculation and addition of the vectors of the RHS
           */
 
-         void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+         virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                ElementVariables& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight);
@@ -258,7 +258,7 @@ namespace Kratos
          /**
           * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
           */
-         void CalculateAndAddKuumElemUJP(MatrixType& rK,
+         virtual void CalculateAndAddKuum(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -267,7 +267,7 @@ namespace Kratos
          /**
           * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
           */
-         void CalculateAndAddKuugElemUJP(MatrixType& rK,
+         virtual void CalculateAndAddKuug(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -276,7 +276,7 @@ namespace Kratos
          /**
           * Calculation of the KuJ matrix
           */
-         void CalculateAndAddKuJElemUJP (MatrixType& rK,
+         virtual void CalculateAndAddKuJ (MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -284,7 +284,7 @@ namespace Kratos
          /**
           * Calculation of the Kup matrix
           */
-         void CalculateAndAddKup (MatrixType& rK,
+         virtual void CalculateAndAddKup (MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -292,7 +292,7 @@ namespace Kratos
          /**
           * Calculation of the KJu matrix
           */
-         void CalculateAndAddKJuElemUJP(MatrixType& rK,
+         virtual void CalculateAndAddKJu(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -300,7 +300,7 @@ namespace Kratos
          /**
           * Calculation of the KJJ matrix
           */
-         void CalculateAndAddKJJElemUJP(MatrixType& rK,
+         virtual void CalculateAndAddKJJ(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -308,7 +308,7 @@ namespace Kratos
          /**
           * Calculation of the KJp matrix
           */
-         void CalculateAndAddKJp(MatrixType& rK,
+         virtual void CalculateAndAddKJp(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -317,7 +317,7 @@ namespace Kratos
          /**
           * Calculation of the Kpu matrix
           */
-         void CalculateAndAddKpu(MatrixType& rK,
+         virtual void CalculateAndAddKpu(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -326,7 +326,7 @@ namespace Kratos
          /**
           * Calculation of the KpJ matrix
           */
-         void CalculateAndAddKpJ(MatrixType& rK,
+         virtual void CalculateAndAddKpJ(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -335,7 +335,7 @@ namespace Kratos
          /**
           * Calculation of the Kpp matrix
           */
-         void CalculateAndAddKpp(MatrixType& rK,
+         virtual void CalculateAndAddKpp(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -345,7 +345,7 @@ namespace Kratos
          /**
           * Calculation of the Kpp Stabilization Term matrix
           */
-         void CalculateAndAddKppStab(MatrixType& rK,
+         virtual void CalculateAndAddKppStab(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -353,7 +353,7 @@ namespace Kratos
          /**
           * Calculation of the KJJ Stabilization Term matrix
           */
-         void CalculateAndAddKJJStabElemUJP(MatrixType& rK,
+         virtual void CalculateAndAddKJJStab(MatrixType& rK,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -363,7 +363,7 @@ namespace Kratos
          /**
           * Calculation of the Internal Forces due to Jacobian-Balance
           */
-         void CalculateAndAddJacobianForcesElemUJP( VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddJacobianForces( VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -374,7 +374,7 @@ namespace Kratos
          /**
           * Calculation of the Internal Forces due to Pressure-Balance
           */
-         void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -384,7 +384,7 @@ namespace Kratos
          /**
           * Calculation of the Stabilization for the Pressure
           */
-         void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -394,7 +394,7 @@ namespace Kratos
          /**
           * Calculation of the Stabilization for the Jacobian
           */
-         void CalculateAndAddStabilizedJacobianElemUJP( VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddStabilizedJacobian( VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -403,7 +403,7 @@ namespace Kratos
          /**
           * Calculation of the Internal Forces due to sigma. Fi = B * sigma
           */
-         void CalculateAndAddInternalForcesElemUJP(VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                UJPElementVariables& rElementVariables,
                double& rIntegrationWeight
@@ -430,7 +430,7 @@ namespace Kratos
          /*
           * Compute Some integration point variables only once
           */ 
-         void CalculateThisElementVariables( UJPElementVariables& rElementVariables, const ElementVariables& rVariables);
+         virtual void CalculateThisElementVariables( UJPElementVariables& rElementVariables, const ElementVariables& rVariables);
          ///@}
          ///@name Protected  Access
          ///@{

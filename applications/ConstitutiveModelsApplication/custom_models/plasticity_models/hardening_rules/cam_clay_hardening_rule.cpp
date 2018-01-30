@@ -70,20 +70,15 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const ModelDataType & rModelData = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-
     // get values
-    const double & rVolumetricPlasticDeformation = rVariables.GetInternalVariables()[1];
+      const double & rVolumetricPlasticDeformation = rVariables.GetInternalVariables()[1];
 
-    // Set constitutive parameters
-    const double & rFirstPreconsolidationPressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
-    const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-    const double & rOtherSlope = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
+    double FirstPreconsolidationPressure = 70.0;
+    double SwellingSlope = 0.016;
+    double OtherSlope = 0.1;
 
 
-    rHardening = -rFirstPreconsolidationPressure*(std::exp (-rVolumetricPlasticDeformation/(rOtherSlope-rSwellingSlope)) ) ;
-
+    rHardening = -FirstPreconsolidationPressure*(std::exp (-rVolumetricPlasticDeformation/(OtherSlope-SwellingSlope)) ) ;
     return rHardening;
 	
     KRATOS_CATCH(" ")
@@ -98,13 +93,11 @@ namespace Kratos
   {
     KRATOS_TRY
       
+    double SwellingSlope = 0.016;
+    double OtherSlope = 0.1;
+
     const ModelDataType & rModelData = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
     const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
-
-    const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-    const double & rOtherSlope = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
-
 
     double MeanStress = 0.0;
     for (unsigned int i = 0; i <3; i++)
@@ -115,7 +108,7 @@ namespace Kratos
 
     rDeltaHardening = (2.0*MeanStress-PreconsolidationStress) ;
     rDeltaHardening *= (-MeanStress);
-    rDeltaHardening *= PreconsolidationStress/ ( rOtherSlope - rSwellingSlope);
+    rDeltaHardening *= PreconsolidationStress/ ( OtherSlope - SwellingSlope);
     return rDeltaHardening;	
 
     KRATOS_CATCH(" ")

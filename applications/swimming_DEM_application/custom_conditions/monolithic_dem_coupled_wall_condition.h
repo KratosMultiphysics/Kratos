@@ -191,7 +191,7 @@ public:
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const
     {
-        return Kratos::make_shared< MonolithicDEMCoupledWallCondition >(NewId, pGeom, pProperties);
+        return boost::make_shared< MonolithicDEMCoupledWallCondition >(NewId, pGeom, pProperties);
     }
 
     /// Return local contributions of the correct size, filled with zeros (for compatibility with time schemes).

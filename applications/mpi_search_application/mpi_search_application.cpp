@@ -22,8 +22,7 @@ namespace Kratos
 {
     KRATOS_CREATE_VARIABLE(int, NEIGHBOUR_PARTITION_INDEX) 
 
-    KratosMPISearchApplication::KratosMPISearchApplication():
-        KratosApplication("MPISearchApplication")
+    KratosMPISearchApplication::KratosMPISearchApplication()
     {}
 
     void KratosMPISearchApplication::Register()

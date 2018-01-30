@@ -59,17 +59,6 @@ LinearElastic3DLaw::~LinearElastic3DLaw()
 //************************************************************************************
 //************************************************************************************
 
-
-//******************CALCULATE VALUE: DOUBLE - VECTOR - MATRIX*************************
-//************************************************************************************
-
-double& LinearElastic3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue )
-{
-
-  return (this->GetValue(rThisVariable,rValue ));
-
-}
-  
 double& LinearElastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     if (rThisVariable == STRAIN_ENERGY)

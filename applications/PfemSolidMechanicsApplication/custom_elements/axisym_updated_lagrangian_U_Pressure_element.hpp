@@ -100,7 +100,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
          /**
           * clones the selected element variables, creating a new one
@@ -109,7 +109,7 @@ namespace Kratos
           * @param pProperties: the properties assigned to the new element
           * @return a Pointer to the new element
           */
-         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
+         Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
 
 
@@ -123,14 +123,14 @@ namespace Kratos
           * or that no common error is found.
           * @param rCurrentProcessInfo
           */
-         int Check(const ProcessInfo& rCurrentProcessInfo) override;
+         int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
          /**
           * Called to initialize the element.
           * Must be called before any calculation is done
           */
-         virtual void Initialize() override;
+         virtual void Initialize();
 
          ///@}
          ///@name Access
@@ -172,7 +172,7 @@ namespace Kratos
 
          virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                ElementVariables& rVariables,
-               double& rIntegrationWeight) override;
+               double& rIntegrationWeight);
 
          /**
           * Calculation and addition of the vectors of the RHS
@@ -181,94 +181,94 @@ namespace Kratos
          virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                ElementVariables& rVariables,
                Vector& rVolumeForce,
-               double& rIntegrationWeight) override;
+               double& rIntegrationWeight);
 
          /**
           * Initialize Element General Variables
           */
          virtual void InitializeElementVariables(ElementVariables & rVariables, 
-               const ProcessInfo& rCurrentProcessInfo) override;
+               const ProcessInfo& rCurrentProcessInfo);
 
 
          /**
           * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
           */
-         virtual void CalculateAndAddKuumElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKuum(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
-               ) override;
+               );
 
          /**
           * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
           */
-         virtual void CalculateAndAddKuugElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKuug(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
-               ) override;
+               );
 
          /**
           * Calculation of the Kup matrix
           */
-         virtual void CalculateAndAddKupElemUP (MatrixType& rK,
+         virtual void CalculateAndAddKup (MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
-               ) override;
+               );
 
          /**
           * Calculation of the Kpu matrix
           */
-         virtual void CalculateAndAddKpuElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKpu(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
-               ) override;
+               );
 
 
          /**
           * Calculation of the Kpp matrix
           */
-         virtual void CalculateAndAddKppElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKpp(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
-               ) override;
+               );
 
 
          /**
           * Calculation of the Kpp Stabilization Term matrix
           */
-         virtual void CalculateAndAddKppStabElemUP(MatrixType& rK,
+         virtual void CalculateAndAddKppStab(MatrixType& rK,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
-               ) override;
+               );
 
          /**
           * Calculation of the Internal Forces due to Pressure-Balance
           */
-         virtual void CalculateAndAddPressureForcesElemUP(VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
-               ) override;
+               );
 
 
          /**
           * Calculation of the Internal Forces due to Pressure-Balance
           */
-         virtual void CalculateAndAddStabilizedPressureElemUP(VectorType& rRightHandSideVector,
+         virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
                ElementVariables & rVariables,
                ThisElementVariables & rElementVariables,
                double& rIntegrationWeight
-               ) override;
+               );
 
          /**
           * Calculate ThisElementVariables ( variables that are easy computations that are performed several times 
           */
-         virtual void CalculateThisElementVariables( ThisElementVariables& rElementVariables, const ElementVariables & rVariables) override;
+         virtual void CalculateThisElementVariables( ThisElementVariables& rElementVariables, const ElementVariables & rVariables);
 
 
 
@@ -276,7 +276,7 @@ namespace Kratos
           * Calculate Element Kinematics
           */
          virtual void CalculateKinematics(ElementVariables& rVariables,
-               const double& rPointNumber) override;
+               const double& rPointNumber);
 
 
          /**
@@ -308,13 +308,13 @@ namespace Kratos
           * Calculation of the Green Lagrange Strain Vector
           */
          void CalculateGreenLagrangeStrain(const Matrix& rF,
-               Vector& rStrainVector) override;
+               Vector& rStrainVector);
 
          /**
           * Calculation of the Almansi Strain Vector
           */
          void CalculateAlmansiStrain(const Matrix& rF,
-               Vector& rStrainVector) override;
+               Vector& rStrainVector);
 
 
 
@@ -360,9 +360,9 @@ namespace Kratos
 
          // A private default constructor necessary for serialization
 
-         virtual void save(Serializer& rSerializer) const override;
+         virtual void save(Serializer& rSerializer) const;
 
-         virtual void load(Serializer& rSerializer) override;
+         virtual void load(Serializer& rSerializer);
 
 
          ///@name Private Inquiry

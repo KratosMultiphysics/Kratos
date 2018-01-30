@@ -231,10 +231,10 @@ public:
                 d = 1e-15;
             }
             else{
-                if(d > 0.0) //set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
-                    d = 1.0e15;
+                if(d > 0.0)
+                    d = 1.0e9;
                 else
-                    d = -1.015;
+                    d = -1.0e9;
             }
             
             
@@ -283,37 +283,6 @@ public:
                 }
             }
         }
-        
-        //compute the maximum and minimum distance for the fixed nodes
-        double max_dist = 0.0;
-        double min_dist = 0.0;
-        for(int iii=0; iii<nnodes; iii++)
-        {
-            auto it = mp_distance_model_part->NodesBegin() + iii;
-            if(it->IsFixed(DISTANCE))
-            {
-                const double& d = it->FastGetSolutionStepValue(DISTANCE);
-                if(d>max_dist)
-                    max_dist = d;
-                if(d<min_dist)
-                    min_dist = d;
-            }
-        }        
-        
-        //assign the max dist to all of the non-fixed positve nodes and the minimum one to the non-fixed negatives
-        #pragma omp parallel for
-        for(int iii=0; iii<nnodes; iii++)
-        {
-            auto it = mp_distance_model_part->NodesBegin() + iii;
-            if(!it->IsFixed(DISTANCE))
-            {
-                double& d = it->FastGetSolutionStepValue(DISTANCE);
-                if(d>0)
-                    d = max_dist;
-                else
-                    d = min_dist;
-            }
-        }  
         
         //
         if(mp_distance_model_part->GetCommunicator().TotalProcesses() != 1) //MPI case

@@ -74,7 +74,7 @@ Detail class definition.
 template<class TSparseSpace,
          class TDenseSpace
          >
-class ResidualCriteria : public  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class ResidualCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions 
@@ -117,7 +117,7 @@ public:
       :BaseType(rOther) 
       ,mInitialResidualIsSet(rOther.mInitialResidualIsSet)
       ,mRatioTolerance(rOther.mRatioTolerance)
-      ,mInitialResidualNorm(rOther.mInitialResidualNorm)
+      ,mInitialExternalForceNorm(rOther.mInitialExternalForceNorm)
       ,mCurrentResidualNorm(rOther.mCurrentResidualNorm)
       ,mAlwaysConvergedNorm(rOther.mAlwaysConvergedNorm)
       ,mReferenceDispNorm(rOther.mReferenceDispNorm)
@@ -145,35 +145,31 @@ public:
     {
         if (TSparseSpace::Size(b) != 0) //if we are solving for something
         {
-
             if (mInitialResidualIsSet == false)
             {
-                mInitialResidualNorm = TSparseSpace::TwoNorm(b);
+                mInitialExternalForceNorm = ComputeExternalForcesVector(rDofSet,A,b);
                 mInitialResidualIsSet = true;
             }
 
             TDataType ratio;
             mCurrentResidualNorm = TSparseSpace::TwoNorm(b);
 
-            if(mInitialResidualNorm == 0.00)
+            const double b_size = TSparseSpace::Size(b);
+            
+            if (mInitialExternalForceNorm/b_size < mAlwaysConvergedNorm)
             {
-                ratio = 0.00;
+                ratio = 0.0;
             }
-
             else
             {
-                ratio = mCurrentResidualNorm/mInitialResidualNorm;
+                ratio = mCurrentResidualNorm/mInitialExternalForceNorm;
             }
 
-	    double b_size = TSparseSpace::Size(b);
-	    TDataType absolute_norm = (mCurrentResidualNorm/b_size);
-			
-            if (rModelPart.GetCommunicator().MyPID() == 0)
+            TDataType absolute_norm = (mCurrentResidualNorm/b_size);
+                    
+            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() >= 1)
             {
-                if (this->GetEchoLevel() >= 1)
-                {
-                    std::cout << "RESIDUAL CRITERION :: Ratio = "<< ratio  << ";  Norm = " << absolute_norm << std::endl;
-                }
+                std::cout << "RESIDUAL CRITERION :: Ratio = "<< ratio  << ";  Norm = " << absolute_norm << std::endl;
             }
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
@@ -271,6 +267,26 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    TDataType ComputeExternalForcesVector(        
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& b
+        ) const 
+    {
+        TSystemVectorType f_ext(b.size());
+        TSystemVectorType x(b.size());
+        
+        #pragma omp parallel
+        for (auto it_dof = rDofSet.begin(); it_dof != rDofSet.end(); ++it_dof)
+        {
+            x[it_dof->EquationId()] = it_dof->GetSolutionStepValue();
+        }
+        
+        TSparseSpace::Mult(A, x, f_ext);
+        f_ext += b;
+        
+        return TSparseSpace::TwoNorm(f_ext);
+    }
 
     ///@} 
     ///@name Protected  Access 
@@ -303,15 +319,14 @@ private:
     bool mInitialResidualIsSet;
 
     TDataType mRatioTolerance;
-
-    TDataType mInitialResidualNorm;
+    
+    TDataType mInitialExternalForceNorm;
 
     TDataType mCurrentResidualNorm;
 
     TDataType mAlwaysConvergedNorm;
 
     TDataType mReferenceDispNorm;
-
 
     ///@} 
     ///@name Private Operators

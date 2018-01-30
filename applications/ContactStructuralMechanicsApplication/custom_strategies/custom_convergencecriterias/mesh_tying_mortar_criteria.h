@@ -48,8 +48,7 @@ namespace Kratos
 /** @brief Custom convergence criteria for the mortar condition 
  */
 template<class TSparseSpace, class TDenseSpace>
-class MeshTyingMortarConvergenceCriteria 
-    : public  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
+class MeshTyingMortarConvergenceCriteria : public virtual  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
@@ -75,7 +74,7 @@ public:
     
     typedef ModelPart::NodesContainerType                                 NodesArrayType;
     
-    typedef TableStreamUtility::Pointer                          TablePrinterPointerType;
+    typedef boost::shared_ptr<TableStreamUtility>                TablePrinterPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -129,7 +128,7 @@ public:
     
     /**
      * This function initialize the convergence criteria
-     * @param rModelPart The model part of interest
+     * @param rModelPart: The model part of interest
      */ 
     
     void Initialize(ModelPart& rModelPart) override

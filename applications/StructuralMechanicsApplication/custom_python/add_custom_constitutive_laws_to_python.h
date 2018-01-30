@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"

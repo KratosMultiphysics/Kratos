@@ -1,4 +1,3 @@
-#pragma once
 // Author: Miguel Angel Celigueta maceli@cimne.upc.edu
 
 #include "includes/define.h"

@@ -26,8 +26,17 @@
 /* Project includes */
 #include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
-#include "includes/shared_pointers.h"
 #include "includes/exception.h"
+
+
+
+#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
+typedef boost::shared_ptr<a > SharedPointer; \
+typedef boost::weak_ptr<a > WeakPointer
+
+#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef boost::shared_ptr<a > Pointer; \
+typedef typename boost::shared_ptr<a > SharedPointer; \
+typedef typename boost::weak_ptr<a > WeakPointer
 
 //-----------------------------------------------------------------
 //
@@ -348,18 +357,6 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
 
-    
-    
-    
-#ifdef __GNUC__
-#define KRATOS_DEPRECATED __attribute__((deprecated))
-#elif defined(_MSC_VER)
-#define KRATOS_DEPRECATED __declspec(deprecated)
-#else
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
-#define KRATOS_DEPRECATED
-#endif
-    
 
 namespace Kratos
 {

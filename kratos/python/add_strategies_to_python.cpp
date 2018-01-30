@@ -38,8 +38,10 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
-#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
-#include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_implicit_time_scheme.h"
+#include "solving_strategies/schemes/residual_based_bdf2_displacement_scheme.h"
+#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.h"
+#include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -173,24 +175,24 @@ namespace Kratos
             return dummy.CreateEmptyVectorPointer();
         }
 
-        // 	Kratos::shared_ptr< CompressedMatrix > CreateEmptyMatrixPointer()
+        // 	boost::shared_ptr< CompressedMatrix > CreateEmptyMatrixPointer()
         // 	{
-        // 		Kratos::shared_ptr<CompressedMatrix> pNewMat = Kratos::shared_ptr<CompressedMatrix>(new CompressedMatrix() );
+        // 		boost::shared_ptr<CompressedMatrix> pNewMat = boost::shared_ptr<CompressedMatrix>(new CompressedMatrix() );
         // 		return pNewMat;
         // 	}
         //
-        // 	Kratos::shared_ptr< Vector > CreateEmptyVectorPointer()
+        // 	boost::shared_ptr< Vector > CreateEmptyVectorPointer()
         // 	{
-        // 		Kratos::shared_ptr<Vector > pNewVec = Kratos::shared_ptr<Vector >(new Vector() );
+        // 		boost::shared_ptr<Vector > pNewVec = boost::shared_ptr<Vector >(new Vector() );
         // 		return pNewVec;
         // 	}
 
-        CompressedMatrix& GetMatRef(Kratos::shared_ptr<CompressedMatrix>& dummy)
+        CompressedMatrix& GetMatRef(boost::shared_ptr<CompressedMatrix>& dummy)
         {
             return *dummy;
         }
 
-        Vector& GetVecRef(Kratos::shared_ptr<Vector>& dummy)
+        Vector& GetVecRef(boost::shared_ptr<Vector>& dummy)
         {
             return *dummy;
         }
@@ -203,7 +205,7 @@ namespace Kratos
             // 			def("CreateEmptyMatrixPointer",CreateEmptyMatrixPointer);
             // 			def("CreateEmptyVectorPointer",CreateEmptyVectorPointer);
 
-            class_< Kratos::shared_ptr<CompressedMatrix> >("CompressedMatrixPointer", init<Kratos::shared_ptr<CompressedMatrix> >())
+            class_< boost::shared_ptr<CompressedMatrix> >("CompressedMatrixPointer", init<boost::shared_ptr<CompressedMatrix> >())
                     .def("GetReference", GetMatRef, return_value_policy<reference_existing_object > ())
                     //    				.def("GetReference", GetRef, return_internal_reference<1>() )
                     ;
@@ -211,7 +213,7 @@ namespace Kratos
             // // // 			class_< CompressedMatrix , boost::noncopyable >("CompressedMatrix", init< >() );
 
 
-            class_< Kratos::shared_ptr<Vector> >("VectorPointer", init< Kratos::shared_ptr<Vector> >())
+            class_< boost::shared_ptr<Vector> >("VectorPointer", init< boost::shared_ptr<Vector> >())
                     .def("GetReference", GetVecRef, return_value_policy<reference_existing_object > ())
                     ;
             // // // 			class_< Vector , boost::noncopyable >("Vector", init< >() );
@@ -299,8 +301,9 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
 
-	    typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
-	    typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+            typedef ResidualBasedBDF2DisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDF2DisplacementSchemeType;
+            typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
+            typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
 
             class_< BaseSchemeType, boost::noncopyable >
                     ("Scheme", init< >())
@@ -334,20 +337,28 @@ namespace Kratos
                     boost::noncopyable >
                     ("ResidualBasedIncrementalUpdateStaticSchemeSlip", init<unsigned int, unsigned int>());
 
-	    // Residual Based Bossak Scheme Type
-	    class_< ResidualBasedBossakDisplacementSchemeType,
+            // Residual Based BDF2 Scheme Type
+            class_< ResidualBasedBDF2DisplacementSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ResidualBasedBDF2DisplacementScheme", init< >() )
+            .def("Initialize", &ResidualBasedBDF2DisplacementSchemeType::Initialize)
+            ;
+            
+            // Residual Based Bossak Scheme Type
+            class_< ResidualBasedBossakDisplacementSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedBossakDisplacementScheme", init< double >() )
-            .def("Initialize", &ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            .def("Initialize", &ResidualBasedBossakDisplacementSchemeType::Initialize)
             ;
 
-	    // Residual Based Newmark Scheme Type
-	    class_< ResidualBasedNewmarkDisplacementSchemeType,
+            // Residual Based Newmark Scheme Type
+            class_< ResidualBasedNewmarkDisplacementSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedNewmarkDisplacementScheme", init< >() )
-            .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            .def("Initialize", &ResidualBasedNewmarkDisplacementSchemeType::Initialize)
             ;
 
             //********************************************************************

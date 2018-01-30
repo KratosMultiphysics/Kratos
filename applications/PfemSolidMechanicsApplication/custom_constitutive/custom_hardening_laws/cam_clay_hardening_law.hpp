@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_CAM_CLAY_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_CAM_CLAY_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOS_CAM_CLAY_KINEMATIC_HARDENING_LAW_H_INCLUDED )
+#define  KRATOS_CAM_CLAY_KINEMATIC_HARDENING_LAW_H_INCLUDED
 
 
 
@@ -46,32 +46,32 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class CamClayHardeningLaw 
+class CamClayKinematicHardeningLaw 
         : public HardeningLaw 
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of CamClayHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION( CamClayHardeningLaw );
+    /// Pointer definition of CamClayKinematicHardeningLaw
+    KRATOS_CLASS_POINTER_DEFINITION( CamClayKinematicHardeningLaw );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    CamClayHardeningLaw();
+    CamClayKinematicHardeningLaw();
 
 
     /// Copy constructor.
-    CamClayHardeningLaw(CamClayHardeningLaw const& rOther);
+    CamClayKinematicHardeningLaw(CamClayKinematicHardeningLaw const& rOther);
 
     /// Assignment operator.
-    CamClayHardeningLaw& operator=(CamClayHardeningLaw const& rOther);
+    CamClayKinematicHardeningLaw& operator=(CamClayKinematicHardeningLaw const& rOther);
 
     /// Destructor.
-    ~CamClayHardeningLaw();
+    ~CamClayKinematicHardeningLaw();
 
     ///@}
     ///@name Operators
@@ -207,7 +207,7 @@ private:
 
     ///@}
 
-}; // Class CamClayHardeningLaw
+}; // Class LinearIsotropicKinematicHardeningLaw
 
 ///@}
 
@@ -222,11 +222,11 @@ private:
 
 // /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   LinearIsotropicHardeningLaw& rThis);
+//                                   LinearIsotropicKinematicHardeningLaw& rThis);
 
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const LinearIsotropicHardeningLaw& rThis)
+//                                   const LinearIsotropicKinematicHardeningLaw& rThis)
 // {
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
@@ -240,5 +240,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CAM_CLAY_HARDENING_LAW_H_INCLUDED defined
+#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED  defined 
+
 

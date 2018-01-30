@@ -1106,7 +1106,7 @@ namespace Kratos
 
 		ShellCrossSection::Pointer& section = mSections[data.gpIndex];
 		data.SectionParameters.SetShapeFunctionsValues( data.N );
-		section->CalculateSectionResponse( data.SectionParameters, ConstitutiveLaw::StressMeasure_Kirchhoff );
+		section->CalculateSectionResponse( data.SectionParameters, ConstitutiveLaw::StressMeasure_PK2 );
 	}
 
 	void ShellThinElement3D3N::CalculateGaussPointContribution(CalculationData& data, MatrixType& LHS, VectorType& RHS)

@@ -15,7 +15,6 @@
 #include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
 #include "testing/testing.h"
 
 
@@ -32,7 +31,7 @@ void ListOfAllTestCases() {
 void  AddTestingToPython() {
 	using namespace boost::python;
 
-  scope tester_scope = class_<Testing::Tester, Kratos::shared_ptr<Testing::Tester>, boost::noncopyable>("Tester", no_init)
+  scope tester_scope = class_<Testing::Tester, boost::shared_ptr<Testing::Tester>, boost::noncopyable>("Tester", no_init)
 
   // Properties
   .def("SetVerbosity",&Testing::Tester::SetVerbosity)

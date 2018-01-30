@@ -6,9 +6,13 @@
 //
 //
 
+
+
 // System includes
 
+
 // External includes
+
 
 // Project includes
 #include "includes/define.h"
@@ -17,7 +21,9 @@
 #include "includes/variables.h"
 //#include "geometries/triangle_2d.h"
 
-namespace Kratos {
+
+namespace Kratos
+{
 
 /*	KRATOS_CREATE_VARIABLE(double, NODAL_AREA)
 	KRATOS_CREATE_VARIABLE(double, NODAL_H)
@@ -33,12 +39,19 @@ namespace Kratos {
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
 KratosMetisApplication::KratosMetisApplication()
-    : KratosApplication("MetisApplication") {}
+{}
 
-void KratosMetisApplication::Register() {
+
+void KratosMetisApplication::Register()
+{
     // calling base class register to register Kratos components
     KratosApplication::Register();
     std::cout << "Initializing Kratos MetisApplication... " << std::endl;
+
 }
 
+
+
 }  // namespace Kratos.
+
+

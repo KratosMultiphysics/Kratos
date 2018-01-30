@@ -84,7 +84,6 @@
         "process_name"          : "MeshTyingProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto2",
             "mesh_tying_model_part"       : "Tying_Part",
             "type_variable"               : "Components",
             "geometry_element"            : "Quadrilateral",
@@ -139,7 +138,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_VECTOR_RESIDUAL"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER","WEIGHTED_VECTOR_RESIDUAL"],
             "nodal_nonhistorical_results": ["NORMAL"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },

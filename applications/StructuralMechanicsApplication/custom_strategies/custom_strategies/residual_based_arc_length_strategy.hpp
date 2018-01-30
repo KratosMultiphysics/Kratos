@@ -19,9 +19,10 @@
 #include<iomanip>
 
 /* External includes */
+#include "boost/smart_ptr.hpp"
 
 /* Project includes */
-// #include "structural_mechanics_application.h"
+#include "structural_mechanics_application.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
@@ -367,7 +368,7 @@ public:
 	
         // Creating models part for analysis
         InitializeAuxiliaryModelParts(BaseType::GetModelPart());
-        mstep = BaseType::GetModelPart().GetProcessInfo()[STEP];
+        mstep = BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS];
 	
         if (this->GetEchoLevel() > 0)
         {

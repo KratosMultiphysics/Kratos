@@ -292,7 +292,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -523,12 +523,10 @@ public:
       const CoordinatesArrayType& rP2 = this->Points()[2].Coordinates();
       const CoordinatesArrayType& rP3 = this->Points()[3].Coordinates();
 
-      array_1d<double, 3> c012, c013, c023, c123;
-
-      MathUtils<double>::CrossProduct(c012, rP2-rP0, rP1-rP0);
-      MathUtils<double>::CrossProduct(c013, rP3-rP0, rP1-rP0);
-      MathUtils<double>::CrossProduct(c023, rP3-rP0, rP2-rP0);
-      MathUtils<double>::CrossProduct(c123, rP3-rP1, rP2-rP1);
+      auto c012 = MathUtils<double>::CrossProduct(rP1-rP0, rP2-rP0);
+      auto c013 = MathUtils<double>::CrossProduct(rP1-rP0, rP3-rP0);
+      auto c023 = MathUtils<double>::CrossProduct(rP2-rP0, rP3-rP0);
+      auto c123 = MathUtils<double>::CrossProduct(rP2-rP1, rP3-rP1);
 
       double n012 = std::sqrt(c012[0]*c012[0] + c012[1]*c012[1] + c012[2]*c012[2]);
       double n013 = std::sqrt(c013[0]*c013[0] + c013[1]*c013[1] + c013[2]*c013[2]);
@@ -561,7 +559,7 @@ public:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * \f$ \frac{r}{\rho} \f$
+     * \f$ \frac{r}{\ro} \f$
      *
      * @return The inradius to circumradius quality metric.
      */
@@ -1315,10 +1313,12 @@ public:
         array_1d<double, 3> edge21 = geom_1[2].Coordinates() - geom_1[1].Coordinates();
         array_1d<double, 3> edge31 = geom_1[3].Coordinates() - geom_1[1].Coordinates();
 
-        MathUtils<double>::UnitCrossProduct(plane[0].mNormal, edge10, edge20);  // <v0,v2,v1>
-        MathUtils<double>::UnitCrossProduct(plane[1].mNormal, edge30, edge10);  // <v0,v1,v3>
-        MathUtils<double>::UnitCrossProduct(plane[2].mNormal, edge20, edge30);  // <v0,v3,v2>
-        MathUtils<double>::UnitCrossProduct(plane[3].mNormal, edge31, edge21);  // <v1,v2,v3>
+
+        plane[0].mNormal = MathUtils<double>::UnitCrossProduct(edge20,edge10);  // <v0,v2,v1>
+        plane[1].mNormal = MathUtils<double>::UnitCrossProduct(edge10,edge30);  // <v0,v1,v3>
+        plane[2].mNormal = MathUtils<double>::UnitCrossProduct(edge30,edge20);  // <v0,v3,v2>
+        plane[3].mNormal = MathUtils<double>::UnitCrossProduct(edge21,edge31);  // <v1,v2,v3>
+
 
         double det = inner_prod(edge10, plane[3].mNormal);
         if (det < 0.00)

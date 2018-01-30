@@ -69,7 +69,7 @@ ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart:
     // adding necessary meshes to the model part.
     ModelPart::MeshType empty_mesh;
     for(ModelPart::IndexType i = number_of_meshes ; i < MeshIndex + 1 ; i++)
-        rModelPart.GetMeshes().push_back(Kratos::make_shared<ModelPart::MeshType>(empty_mesh.Clone()));
+        rModelPart.GetMeshes().push_back(boost::make_shared<ModelPart::MeshType>(empty_mesh.Clone()));
 
     return rModelPart.pGetMesh(MeshIndex);
 }
@@ -625,7 +625,7 @@ void AddModelPartToPython()
 
 
 
-	class_<ModelPart, ModelPart::Pointer, bases<DataValueContainer, Flags>, boost::noncopyable >("ModelPart")
+	class_<ModelPart, bases<DataValueContainer, Flags>, boost::noncopyable >("ModelPart")
 		.def(init<std::string const&>())
 		.def(init<>())
 		.add_property("Name", GetModelPartName, SetModelPartName)
@@ -699,7 +699,6 @@ void AddModelPartToPython()
 		.def("RemoveElement", ModelPartRemoveElement2)
 		.def("RemoveElement", ModelPartRemoveElement3)
 		.def("RemoveElement", ModelPartRemoveElement4)
-                .def("RemoveElements", &ModelPart::RemoveElements)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels1)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels2)
 		.def("RemoveElementFromAllLevels", ModelPartRemoveElementFromAllLevels3)
@@ -723,9 +722,9 @@ void AddModelPartToPython()
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels2)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
-		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart)
+		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart, return_internal_reference<>())
 		.def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
-		.def("GetSubModelPart", &ModelPart::pGetSubModelPart)
+		.def("GetSubModelPart", &ModelPart::GetSubModelPart, return_internal_reference<>())
 		.def("RemoveSubModelPart", RemoveSubModelPart1)
 		.def("RemoveSubModelPart", RemoveSubModelPart2)
 		.def("HasSubModelPart", &ModelPart::HasSubModelPart)

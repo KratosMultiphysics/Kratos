@@ -85,6 +85,7 @@ namespace Kratos {
                 const int delta_option,
                 ParticleCreatorDestructor::Pointer p_creator_destructor,
                 DEM_FEM_Search::Pointer p_dem_fem_search,
+                DEMIntegrationScheme::Pointer pScheme,
                 SpatialSearch::Pointer pSpSearch,
                 const bool do_search_balls = true):
                 ExplicitSolverStrategy(settings,
@@ -94,6 +95,7 @@ namespace Kratos {
                                        delta_option,
                                        p_creator_destructor,
                                        p_dem_fem_search,
+                                       pScheme,
                                        pSpSearch,
                                        do_search_balls)
         {

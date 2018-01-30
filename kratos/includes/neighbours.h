@@ -70,9 +70,9 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef Kratos::weak_ptr<TNodeType> NodeWeakPointer;
+    typedef boost::weak_ptr<TNodeType> NodeWeakPointer;
 
-    typedef Kratos::weak_ptr<TElementType> ElementWeakPointer;
+    typedef boost::weak_ptr<TElementType> ElementWeakPointer;
 
     /** An array of pointers to elements. */
     typedef WeakPointerVector<TElementType> NeighbourElementsArrayType;

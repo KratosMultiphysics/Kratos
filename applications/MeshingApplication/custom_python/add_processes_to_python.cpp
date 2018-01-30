@@ -27,6 +27,7 @@
 // #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 // #include "custom_processes/set_h_map_process.h"
+//#include "custom_processes/find_nodal_h_process.h"
 // #include "custom_processes/embedded_mesh_locator_process.h"
 
 #ifdef INCLUDE_MMG
@@ -51,6 +52,10 @@ void  AddProcessesToPython()
 // 	  class_<EmbeddedMeshLocatorProcess, bases<Process> >("EmbeddedMeshLocatorProcess",init<ModelPart&>())
 // 		   .def("Locate",&EmbeddedMeshLocatorProcess::Locate)
 // 		 ;
+//	class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
+//		   .def("Execute",&FindNodalHProcess::Execute)
+//		 ;
+    
 //         // The process to interpolate nodal values
 //         class_<NodalValuesInterpolationProcess<2>, bases<Process> >("NodalValuesInterpolationProcess2D",init<ModelPart&, ModelPart&>())
 //         .def(init<ModelPart&, ModelPart&, Parameters>())

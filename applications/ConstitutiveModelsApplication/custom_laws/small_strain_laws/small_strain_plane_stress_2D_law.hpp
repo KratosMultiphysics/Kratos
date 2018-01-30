@@ -225,6 +225,8 @@ namespace Kratos
 				       const Properties& rMaterialProperties) override
       {
 	KRATOS_TRY
+
+	rConstitutiveMatrix.clear();
 		
 	// Lame constants
 	const double& rYoungModulus          = rMaterialProperties[YOUNG_MODULUS];
@@ -238,12 +240,7 @@ namespace Kratos
 	
 	rConstitutiveMatrix ( 0 , 1 ) = rConstitutiveMatrix ( 0 , 0 )*rPoissonCoefficient;
 	rConstitutiveMatrix ( 1 , 0 ) = rConstitutiveMatrix ( 0 , 1 );	  
-
-	rConstitutiveMatrix ( 0 , 2 ) = 0.0;
-	rConstitutiveMatrix ( 2 , 0 ) = 0.0;
-	rConstitutiveMatrix ( 1 , 2 ) = 0.0;
-	rConstitutiveMatrix ( 2 , 1 ) = 0.0;
-		
+    
 	KRATOS_CATCH(" ")
       }    
       

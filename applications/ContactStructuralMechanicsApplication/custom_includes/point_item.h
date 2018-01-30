@@ -20,6 +20,9 @@
 #include "includes/condition.h"
 #include "geometries/point.h"
 
+/* Custom utilities */
+#include "custom_utilities/contact_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -49,9 +52,6 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
-    typedef Point BaseType; 
-    
     /// Counted pointer of PointItem
     KRATOS_CLASS_POINTER_DEFINITION( PointItem );
 
@@ -61,32 +61,30 @@ public:
 
     /// Default constructors
     PointItem():
-        BaseType(),
-        mpOriginCond(nullptr)
+        Point()
     {}
 
-    PointItem(const array_1d<double, 3>& Coords)
-        :BaseType(Coords),
-         mpOriginCond(nullptr)
+    PointItem(const array_1d<double, 3> Coords):
+        Point(Coords)
     {}
     
     PointItem(Condition::Pointer pCond):
         mpOriginCond(pCond)
     {
-        UpdatePoint();
+        UpdatePoint(0.0);
     }
     
     PointItem(
-        const array_1d<double, 3>& Coords,
+        const array_1d<double, 3> Coords,
         Condition::Pointer pCond
     ):
-        BaseType(Coords),
+        Point(Coords),
         mpOriginCond(pCond)
     {}
 
     ///Copy constructor  (not really required)
     PointItem(const PointItem& rhs):
-        BaseType(rhs),
+        Point(rhs),
         mpOriginCond(rhs.mpOriginCond)
     {
     }
@@ -106,25 +104,25 @@ public:
      * Returns the point
      * @return The point
      */
-    BaseType GetPoint()
+    Point GetPoint()
     {
-        BaseType Point(this->Coordinates());
+        Point Point(this->Coordinates());
         
         return Point;
     }
     
     /**
      * Set the point
-     * @param Point The point
+     * @param The point
      */
-    void SetPoint(const BaseType Point)
+    void SetPoint(const Point Point)
     {
         this->Coordinates() = Point.Coordinates();
     }
 
     /**
      * Sets the condition associated to the point
-     * @param pCond The pointer to the condition
+     * @param Cond: The pointer to the condition
      */
 
     void SetCondition(Condition::Pointer pCond)
@@ -134,39 +132,34 @@ public:
     
     /**
      * Returns the condition associated to the point
-     * @return mpOriginCond The pointer to the condition associated to the point
+     * @return mpOriginCond: The pointer to the condition associated to the point
      */
 
     Condition::Pointer GetCondition()
     {
-    #ifdef KRATOS_DEBUG
-        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointItem class" << std::endl;
-    #endif
         return mpOriginCond;
     }
     
     /**
-     * This method checks everything is right
-     */
-
-    void Check()
-    {
-        KRATOS_TRY;
-        
-        auto aux_coord = std::make_shared<array_1d<double, 3>>(this->Coordinates());
-        KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointItem class" << std::endl;
-        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointItem class" << std::endl;
-        
-        KRATOS_CATCH("Error checking the PointItem");
-    }
-    
-    /**
      * This function updates the database, using as base for the coordinates the condition center
+     * @return Coordinates: The coordinates of the item
      */
 
-    void UpdatePoint()
-    {
-        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+    void UpdatePoint(const double& DeltaTime)
+    {        
+        bool update_coordinates = false;
+        if (mpOriginCond->GetGeometry()[0].SolutionStepsDataHas(VELOCITY_X) == true && DeltaTime > 0.0)
+        {
+            update_coordinates = true;
+        }
+        if (update_coordinates == true)
+        {
+            this->Coordinates() = ContactUtilities::GetHalfJumpCenter(mpOriginCond->GetGeometry(), DeltaTime); // NOTE: Center in half delta time
+        }
+        else
+        {
+            this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates(); // NOTE: Real center
+        }
     }
 
 protected:

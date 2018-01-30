@@ -8,7 +8,6 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//  Collaborator:    Vicente Mataix Ferrandiz
 //                    
 //
 
@@ -16,13 +15,20 @@
 #define  KRATOS_FIND_NODAL_H_PROCESS_INCLUDED
 
 // System includes
-
+#include <string>
+#include <iostream>
+#include <algorithm>
+#include <limits>
 // External includes
+
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
 #include "includes/model_part.h"
+
 
 namespace Kratos
 {
@@ -33,6 +39,7 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name  Enum's
@@ -46,12 +53,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Computes NODAL_H
-/** FindNodalHProcess
- * Calculate the NODAL_H for all the nodes by means of the element sides minimum length
+/// Short class definition.
+/** Detail class definition.
+	Calculate the NODAL_H for all the nodes by means of the element sides minimum length
 */
 
-class KRATOS_API(KRATOS_CORE) FindNodalHProcess : public Process
+class FindNodalHProcess : public Process
 {
 public:
     ///@name Type Definitions
@@ -65,8 +72,7 @@ public:
     ///@{
 
     /// Default constructor.
-    FindNodalHProcess(ModelPart& rModelPart) 
-        : mrModelPart(rModelPart)
+    FindNodalHProcess(ModelPart& model_part) : mr_model_part(model_part)
     {
     }
 
@@ -90,7 +96,48 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override;
+    void Execute() override
+    {
+        KRATOS_TRY
+        
+        // Check if variables are available 
+        if( mr_model_part.NodesBegin()->SolutionStepsDataHas( NODAL_H ) == false )        
+            KRATOS_ERROR << "Variable NODAL_H not in the model part!";
+        
+        const int NNodes = static_cast<int>(mr_model_part.Nodes().size());
+        
+        #pragma omp parallel for 
+        for(int i=0; i<NNodes; i++)
+        {
+            auto itNode = mr_model_part.NodesBegin() + i;
+            itNode->GetSolutionStepValue(NODAL_H, 0) = std::numeric_limits<double>::max();
+        }
+        
+        for(unsigned int i=0; i<mr_model_part.Elements().size(); i++)
+        {
+            auto itElement = mr_model_part.ElementsBegin() + i;
+            auto& geom = itElement->GetGeometry();
+            
+            for(unsigned int k=0; k<geom.size()-1; k++)
+            {
+                double& h1 = geom[k].FastGetSolutionStepValue(NODAL_H);
+                for(unsigned int l=k+1; l<geom.size(); l++)
+                {
+                    double hedge = norm_2(geom[l].Coordinates() - geom[k].Coordinates());
+                    double& h2 = geom[l].FastGetSolutionStepValue(NODAL_H);
+                    
+                    // Get minimum between the existent value and the considered edge length 
+                    geom[k].FastGetSolutionStepValue(NODAL_H) = std::min(h1, hedge);
+                    geom[l].FastGetSolutionStepValue(NODAL_H) = std::min(h2, hedge);
+                }
+            }
+        }
+        
+        mr_model_part.GetCommunicator().SynchronizeCurrentDataToMin(NODAL_H);
+
+        KRATOS_CATCH("")
+    }
+
 
     ///@}
     ///@name Access
@@ -176,9 +223,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
-    ModelPart& mrModelPart;
-    double mMinH;
+    ModelPart& mr_model_part;
+    double m_min_h;
+
 
     ///@}
     ///@name Private Operators

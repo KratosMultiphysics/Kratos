@@ -80,8 +80,6 @@ namespace Kratos
 
       const array_1d<double, TVarSize>& GetVariables() {return Variables;};
 
-      unsigned int size() {return TVarSize;}
-
     private:
 
       friend class Serializer;
