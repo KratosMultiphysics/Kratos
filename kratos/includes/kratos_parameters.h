@@ -65,7 +65,7 @@ private:
 
   public:
     iterator_adaptor(value_iterator it,
-                     boost::shared_ptr<rapidjson::Document> pdoc)
+                     Kratos::shared_ptr<rapidjson::Document> pdoc)
         : mValueIterator(it), mpParameters(new Parameters(&it->value, pdoc)) {}
     iterator_adaptor(const iterator_adaptor &it)
         : mValueIterator(it.mValueIterator),
@@ -106,7 +106,7 @@ private:
 
   public:
     const_iterator_adaptor(value_iterator it,
-                           boost::shared_ptr<rapidjson::Document> pdoc)
+                           Kratos::shared_ptr<rapidjson::Document> pdoc)
         : mValueIterator(it),
           mpParameters(new Parameters(
               const_cast<rapidjson::Value *>(&it->value), pdoc)) {}
@@ -153,7 +153,7 @@ public:
 
   Parameters(const std::string json_string) {
 
-    mpdoc = boost::shared_ptr<rapidjson::Document>(new rapidjson::Document());
+    mpdoc = Kratos::make_shared<rapidjson::Document>();
     rapidjson::ParseResult ok = mpdoc->Parse<0>(json_string.c_str());
 
     if (!ok) {
@@ -191,8 +191,8 @@ public:
 
   // generates a clone of the current document
   Parameters Clone() {
-    boost::shared_ptr<rapidjson::Document> pnew_cloned_doc =
-        boost::shared_ptr<rapidjson::Document>(new rapidjson::Document());
+    auto pnew_cloned_doc =
+        Kratos::make_shared<rapidjson::Document>();
     rapidjson::ParseResult ok =
         pnew_cloned_doc->Parse<0>(this->WriteJsonString().c_str());
     if (!ok) {
@@ -945,11 +945,11 @@ private:
   // ATTENTION: please DO NOT use this constructor. It assumes rapidjson and
   // hence it should be considered as an implementation detail
   Parameters(rapidjson::Value *pvalue,
-             boost::shared_ptr<rapidjson::Document> pdoc)
+             Kratos::shared_ptr<rapidjson::Document> pdoc)
       : mpvalue(pvalue), mpdoc(pdoc) {}
 
   rapidjson::Value *mpvalue;
-  boost::shared_ptr<rapidjson::Document> mpdoc;
+  Kratos::shared_ptr<rapidjson::Document> mpdoc;
 
   // ATTENTION: please DO NOT use this method. It is a low level accessor, and
   // may change in the future

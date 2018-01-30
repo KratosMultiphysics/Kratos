@@ -160,25 +160,29 @@ class Solution(object):
 
     #### Main internal methods ####
 
+
     def _get_solver_process(self, solver_settings):
         solver_module = __import__(solver_settings["solver_type"].GetString())
         return (solver_module.CreateSolver(self.model_part, solver_settings["Parameters"]))
 
+
     def _construct_material_processes(self, material_parameters):
         import process_factory
-        assign_materials_processes = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(material_parameters)
+        return (process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(material_parameters))
 
+    @classmethod
     def _start_time_measuring(self):
         # Measure process time
         time_ip = timer.clock()
         return time_ip
 
+    @classmethod
     def _stop_time_measuring(self, time_ip, process, report):
         # Measure process time
         time_fp = timer.clock()
         if( report ):
             used_time = time_fp - time_ip
-            print("::[Material Modelling]:: [ %.2f" % round(used_time,2),"s", process," ] ")
+            print("::[Material Modelling]:: [  %.2f" % round(used_time,2),"s", process," ] ")
 
 if __name__ == "__main__":
     Solution().Run()

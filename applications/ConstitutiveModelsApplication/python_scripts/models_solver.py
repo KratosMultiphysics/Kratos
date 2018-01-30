@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import sys
-import os
 #import kratos core and applications
 import KratosMultiphysics
 
@@ -89,7 +88,7 @@ class MaterialsSolver(object):
 
         # Print output
         self.print_output = self.settings["print_output"].GetBool()
-        
+
         # Echo level
         self.echo_level = 0
 
@@ -103,7 +102,7 @@ class MaterialsSolver(object):
 
         if( self.print_output ):
             self._file_open()
-            
+
         print("::[Material_Solver]:: Solver Ready")
 
 
@@ -120,8 +119,6 @@ class MaterialsSolver(object):
         #check material parameters
         self._check_material_parameters()
 
-        pass
-
     def Solve(self):
 
         #calculate material response
@@ -137,7 +134,7 @@ class MaterialsSolver(object):
 
         if( self.print_output ):
             self._file_close()
-        
+
         #set strain parameters
         self._set_calculation_options()
 
@@ -293,10 +290,7 @@ class MaterialsSolver(object):
 
     def _get_strain_value(self, value):
 
-        self.value_is_numeric = False
-
         if value.IsNumber():
-            value_is_numeric = True
             return value.GetDouble()
         else:
             function_expression = value.GetString()
@@ -325,6 +319,7 @@ class MaterialsSolver(object):
             return value
 
     #
+    @classmethod
     def _get_matrix_determinant(self, F):
         value = ((F[0,0]*F[1,1]*F[2,2])+(F[0,1]*F[1,2]*F[2,0])+(F[0,2]*F[1,0]*F[2,1])-(F[0,2]*F[1,1]*F[2,0])-(F[0,0]*F[1,2]*F[2,1])-(F[0,1]*F[1,0]*F[2,2]))
         return value
@@ -333,7 +328,7 @@ class MaterialsSolver(object):
     def _file_open(self):
         self.file = open("stress_strain_evolution.txt", 'w')
         self.file.write("Time Strain_X Stress_X Strain_Y Stress_Y\n")
-        
+
     #
     def _write_data_in_file(self):
 
@@ -344,11 +339,11 @@ class MaterialsSolver(object):
         stress = self.parameters.GetStressVector()
         #strain = self.parameters.GetStrainVector()
         strain = self._compute_infinitessimal_strain()
-        
+
         string = str(time)+" "+str(strain[0])+" "+str(stress[0])+" "+str(strain[1])+" "+str(stress[1])+"\n"
 
         self.file.write(string)
-        
+
     #
     def _file_close(self):
         self.file.close()
@@ -380,5 +375,5 @@ class MaterialsSolver(object):
         strain[3] = E[0,1]
         strain[4] = E[1,2]
         strain[5] = E[2,0]
-        
+
         return strain

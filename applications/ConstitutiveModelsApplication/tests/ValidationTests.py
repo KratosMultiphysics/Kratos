@@ -13,7 +13,7 @@ class Shear_Test_Von_Misses_Model(TF.TestFactory):
 class Shear_Traction_Test_Von_Misses_Model(TF.TestFactory):
     file_materials  = "validation/shear_materials.json"
     file_parameters = "validation/shear_traction_parameters.json"
-    
+
 def SetTestSuite(suites):
     validation_suite = suites['validation']
 
