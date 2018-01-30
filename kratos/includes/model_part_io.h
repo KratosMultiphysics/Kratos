@@ -78,6 +78,9 @@ public:
     typedef std::vector<std::ostream*>            OutputFilesContainerType;
     typedef std::size_t                           SizeType;
 
+    // Prevents this class from hidding IO::WriteProperties(Properties)
+    using BaseType::WriteProperties;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -135,7 +138,7 @@ public:
 
     std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
-    virtual void WriteConditions(ConditionsContainerType const& rThisConditions);
+    virtual void WriteConditions(ConditionsContainerType const& rThisConditions) override;
 
     void ReadInitialValues(ModelPart& rThisModelPart) override;
 
