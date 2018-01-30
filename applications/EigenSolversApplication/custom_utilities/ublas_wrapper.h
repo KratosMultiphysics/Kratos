@@ -1,4 +1,27 @@
-#pragma once
+/*
+//  KRATOS _______
+//        / ____(_)___ ____  ____
+//       / __/ / / __ `/ _ \/ __ \
+//      / /___/ / /_/ /  __/ / / /
+//     /_____/_/\__, /\___/_/ /_/ SolversApplication
+//             /____/
+//
+//  Authors: Thomas Oberbichler
+*/
+
+#if !defined(KRATOS_UBLAS_WRAPPER_H_INCLUDED)
+#define KRATOS_UBLAS_WRAPPER_H_INCLUDED
+
+// System includes
+#include <vector>
+
+// External includes
+#include <Eigen/Core>
+#include <Eigen/Sparse>
+
+// Project includes
+#include "includes/define.h"
+
 
 namespace Kratos
 {
@@ -26,4 +49,6 @@ public:
     }
 };
 
-}
+} // namespace Kratos
+
+#endif // defined(KRATOS_UBLAS_WRAPPER_H_INCLUDED)

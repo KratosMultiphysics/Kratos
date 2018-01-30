@@ -26,7 +26,7 @@
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
-#include "ublas_wrapper.h"
+#include "custom_utilities/ublas_wrapper.h"
 
 namespace Kratos
 {
