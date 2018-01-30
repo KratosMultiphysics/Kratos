@@ -44,8 +44,27 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-    
-class KRATOS_API(KRATOS_CORE) MortarUtilities
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class MortarUtilities
+ *
+ * \ingroup KratosCore
+ *
+ * @brief This is a class that provides auxiliar utilities for the mortar integration
+ *
+ * @details This is a class that provides auxiliar utilities for the mortar integration. Many methods
+ * in the following class are templatizaded and with explicit instantations delclared. 
+ * Check the documentation for more details
+ *
+ * @author Vicente Mataix Ferrandiz
+ *
+ * Contact: vmataix@cimne.upc.edu
+ */
+class MortarUtilities
 {
 public:
     ///@name Type Definitions
