@@ -188,8 +188,9 @@ namespace Kratos
 
     virtual void CalculateScalingFactors(array_1d<double,6>& rScalingFactors, MatrixType& rStressDerivatives, array_1d<double,3>& rStressEigenValues, array_1d<double,3>& rStrainEigenValues, array_1d<unsigned int,3>& rPermutation);
 
+    virtual void CalculateMainStressDerivatives(HyperElasticDataType& rVariables, MatrixType& rStressDerivatives);
 
-
+    
     ///@}
     ///@name Protected  Access
     ///@{
