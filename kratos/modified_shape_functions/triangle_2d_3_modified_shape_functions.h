@@ -100,6 +100,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    
+    /**
+    * Returns the member pointer to the splitting utility.
+    */
+    const DivideGeometry::Pointer pGetSplittingUtil() const override;
 
     /**
     * Returns the shape function values in the positive split element side for a given quadrature.

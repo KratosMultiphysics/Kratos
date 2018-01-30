@@ -57,6 +57,12 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::PrintData(std::ostream& rOStream)
     rOStream << "\tDistance values: " << distances_buffer.str();
 };
 
+
+// Returns a pointer to the splitting utility
+const DivideGeometry::Pointer Tetrahedra3D4AusasModifiedShapeFunctions::pGetSplittingUtil() const {
+    return mpTetrahedraSplitter;
+};
+
 // Returns true if the element is splitting
 bool Tetrahedra3D4AusasModifiedShapeFunctions::IsSplit() {
     return mpTetrahedraSplitter->mIsSplit;

@@ -105,6 +105,11 @@ public:
     ///@{
 
     /**
+    * Returns the member pointer to the splitting utility.
+    */
+    virtual const DivideGeometry::Pointer pGetSplittingUtil() const;
+
+    /**
     * Returns a the member pointer to the input geometry.
     */
     const GeometryPointerType GetInputGeometry() const;

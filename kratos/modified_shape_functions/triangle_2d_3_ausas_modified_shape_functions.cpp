@@ -57,6 +57,11 @@ void Triangle2D3AusasModifiedShapeFunctions::PrintData(std::ostream& rOStream) c
     rOStream << "\tDistance values: " << distances_buffer.str();
 };
 
+// Returns a pointer to the splitting utility
+const DivideGeometry::Pointer Triangle2D3AusasModifiedShapeFunctions::pGetSplittingUtil() const {
+    return mpTriangleSplitter;
+};
+
 // Returns true if the element is splitting
 bool Triangle2D3AusasModifiedShapeFunctions::IsSplit() {
     return mpTriangleSplitter->mIsSplit;

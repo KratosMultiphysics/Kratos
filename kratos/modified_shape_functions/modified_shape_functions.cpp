@@ -51,6 +51,12 @@ namespace Kratos
         rOStream << "\tDistance values: " << distances_buffer.str();
     };
 
+    // Returns a pointer to the splitting utility
+    const DivideGeometry::Pointer ModifiedShapeFunctions::pGetSplittingUtil() const {
+        KRATOS_ERROR << "Trying to retrieve the splitting utility from the modified shape functions base class. \n" <<
+                         "Implement the pGetSplittingUtil according to the input geometry in the proper modified shape functions derived class.";
+    };
+
     // Returns the input original geometry.
     const ModifiedShapeFunctions::GeometryPointerType ModifiedShapeFunctions::GetInputGeometry() const {
         return mpInputGeometry;

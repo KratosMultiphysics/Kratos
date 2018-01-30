@@ -102,6 +102,11 @@ public:
     ///@{
 
     /**
+    * Returns the member pointer to the splitting utility.
+    */
+    const DivideGeometry::Pointer pGetSplittingUtil() const override;
+
+    /**
     * Returns the shape function values in the positive split element side for a given quadrature.
     * @return rPositiveSideShapeFunctionValues: Matrix containing the positive side computed shape function values.
     * @return rPositiveSideShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values on the positive side.
@@ -126,8 +131,6 @@ public:
         ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
         Vector &rNegativeSideWeightsValues,
         const IntegrationMethodType IntegrationMethod) override;
-
-    ///@}
 
     /**
     * Returns the shape function values in the positive split element interface side for a given quadrature.
