@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Klauss B Sautter
+//                   Philipp Bucher
 //
 
 
@@ -25,7 +26,39 @@ namespace Kratos
 {
 	namespace StaticCondensationUtility
 	{
-		
+		void CondenseLeftHandSide(){}
+
+        std::vector<MatrixType> CalculateSchurComplements(
+			const MatrixType& rLeftHandSideMatrix,
+			const std::vector<int> & rDofList)
+        {
+            
+        }
+
+		std::vector<int> CreateRemainingDofList(
+			const std::vector<int> & rDofList)
+        {
+
+        }
+
+		void FillSchurComplements(
+			MatrixType& Submatrix,
+			const MatrixType& rLeftHandSideMatrix,
+			const std::vector<int>& rVecA,
+			const std::vector<int>& rVecB,
+			const SizeType& rSizeA,
+			const SizeType& rSizeB) //maybe inline
+        {
+
+        }
+
+		void ConvertingCondensation(
+			Vector& rValues,
+			const std::vector<int>& rDofList,
+			const MatrixType& rLeftHandSideMatrix)
+        {
+
+        }
 
 	}  // namespace StaticCondensationUtility
   

@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Klauss B Sautter
+//                   Philipp Bucher
 //
 
 #if !defined(KRATOS_STATIC_CONDENSATION_UTILITY_H_INCLUDED )
@@ -15,8 +16,6 @@
 
 
 // System includes
-// #include <string>
-// #include <iostream> 
 
 
 // External includes 
@@ -24,15 +23,39 @@
 
 // Project includes
 #include "includes/define.h"
-// #include "includes/element.h"
-// #include "includes/properties.h"
+#include "utilities/math_utils.h"
 
 
 namespace Kratos
 {
 	namespace StaticCondensationUtility
 	{
-		
+        typedef std::size_t SizeType;
+        typedef Matrix MatrixType;
+
+		void CondenseLeftHandSide(
+			MatrixType& rLeftHandSideMatrix,
+			const std::vector<int> & rDofList);
+
+		std::vector<MatrixType> CalculateSchurComplements(
+			const MatrixType& rLeftHandSideMatrix,
+			const std::vector<int> & rDofList);
+
+		std::vector<int> CreateRemainingDofList(
+			const std::vector<int> & rDofList);
+
+		void FillSchurComplements(
+			MatrixType& Submatrix,
+			const MatrixType& rLeftHandSideMatrix,
+			const std::vector<int>& rVecA,
+			const std::vector<int>& rVecB,
+			const SizeType& rSizeA,
+			const SizeType& rSizeB); //maybe inline
+
+		void ConvertingCondensation(
+			Vector& rValues,
+			const std::vector<int>& rDofList,
+			const MatrixType& rLeftHandSideMatrix);
 
 	}  // namespace StaticCondensationUtility
   
