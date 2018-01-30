@@ -13,8 +13,6 @@
 #define KRATOS_EIGEN_SOLVER_H_INCLUDED
 
 // External includes
-#include "boost/smart_ptr.hpp"
-
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #if defined EIGEN_USE_MKL_ALL
