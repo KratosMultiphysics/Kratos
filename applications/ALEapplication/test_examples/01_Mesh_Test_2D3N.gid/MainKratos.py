@@ -6,7 +6,7 @@ from math import sin,cos
 
 movementList = ["TRANSLATION_X", "TRANSLATION_Y", "BENDING", "ROTATION"]
 # =============================================================
-movement = 0             # set 0-3
+movement = 2             # set 0-3
 amplificationFactor = 2  # factor to amplify the movement
 solveMesh = True         # set to "True" to solve the mesh
 # =============================================================

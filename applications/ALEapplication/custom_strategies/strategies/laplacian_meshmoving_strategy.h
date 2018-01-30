@@ -43,8 +43,7 @@
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
  *  Last Modified by:    $Author: A.Winterstein@tum.de $
- *  Date:                $Date: June 2016 $
- *  Revision:            $Revision: 1.5 $
+ *  Date:                $Date: February 2018 $
  * ***************************************************************************/
 
 #if !defined(KRATOS_NEW_LAPLACIAN_MESHMOVING_STRATEGY )
@@ -66,6 +65,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "custom_elements/laplacian_meshmoving_element.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 namespace Kratos {
 
@@ -117,8 +117,6 @@ class LaplacianMeshMovingStrategy
    */
   /*@{ */
 
-  /************************************* CONSTRUCTOR *********************************/
-  /***********************************************************************************/
   LaplacianMeshMovingStrategy(
       ModelPart& model_part,
       typename TLinearSolver::Pointer pNewLinearSolver,
@@ -142,21 +140,6 @@ class LaplacianMeshMovingStrategy
         <TSparseSpace, TDenseSpace>());
 
     GenerateMeshPart();
-
-    
-    mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
-    (new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pNewLinearSolver) );
-
-    mStrategy = typename BaseType::Pointer
-    ( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver >
-    (*mpMeshModelPart,pscheme,pNewLinearSolver,mpBuilderAndSolver,compute_reactions,mReformDofSetAtEachStep,calculate_norm_dx_flag) );
-    
-    mStrategy->SetEchoLevel(mEchoLevel);
-    /*
-    
-    typedef typename BuilderAndSolver
-    <TSparseSpace,TDenseSpace,TLinearSolver>
-    ::Pointer BuilderSolverTypePointer;
 
     typedef typename Kratos::VariableComponent
     <Kratos::VectorComponentAdaptor<Kratos
@@ -183,16 +166,22 @@ class LaplacianMeshMovingStrategy
         (*mpMeshModelPart,pscheme,pNewLinearSolver,mpBuilderAndSolverX,
             compute_reactions,mReformDofSetAtEachStep,calculate_norm_dx_flag));
 
+    mStrategy_X->SetEchoLevel(mEchoLevel);
+
     mStrategy_Y = typename BaseType::Pointer
     (new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
         (*mpMeshModelPart,pscheme,pNewLinearSolver,mpBuilderAndSolverY,
             compute_reactions,mReformDofSetAtEachStep,calculate_norm_dx_flag));
 
+    mStrategy_Y->SetEchoLevel(mEchoLevel);
+
     mStrategy_Z = typename BaseType::Pointer
     (new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
         (*mpMeshModelPart,pscheme,pNewLinearSolver,mpBuilderAndSolverZ,
             compute_reactions,mReformDofSetAtEachStep,calculate_norm_dx_flag));
-    */
+    
+    mStrategy_Z->SetEchoLevel(mEchoLevel);
+
     KRATOS_CATCH("")
   }
 
@@ -200,42 +189,39 @@ class LaplacianMeshMovingStrategy
 
   };
    
+  void Initialize() override
+  {
+    uint n_average_elements = 10;
+    uint n_average_nodes = 10;
+  	FindNodalNeighboursProcess find_nodal_neighbours_process=FindNodalNeighboursProcess(*mpMeshModelPart,
+                                                                                        n_average_elements,
+                                                                                        n_average_nodes);
+		find_nodal_neighbours_process.Execute();
+  }
 
   double Solve() override
   {
     KRATOS_TRY;
-
+    
     ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
 
-    rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
-    rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+    //rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
+    //rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
     // Setting mesh to initial configuration
     SetMeshToInitialConfiguration();
 
     //X DIRECTION
-    //rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
-    //mStrategy_X->Solve();
+    rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 1;
+    mStrategy_X->Solve();
 
     //Y DIRECTION
-    //rCurrentProcessInfo[FRACTIONAL_STEP] = 2;
-    //mStrategy_Y->Solve();
+    rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 2;
+    mStrategy_Y->Solve();
 
     //Z DIRECTION
-    //rCurrentProcessInfo[FRACTIONAL_STEP] = 3;
-    //mStrategy_Z->Solve();
-
-    rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
-    // Solve for the mesh movement
-    mStrategy->Solve();
-
-    rCurrentProcessInfo[FRACTIONAL_STEP] = 2;
-    // Solve for the mesh movement
-    mStrategy->Solve();
-
-    rCurrentProcessInfo[FRACTIONAL_STEP] = 3;
-    // Solve for the mesh movement
-    mStrategy->Solve();
+    rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 3;
+    mStrategy_Z->Solve();
 
     // Update FEM-base
     CalculateMeshVelocities();
@@ -320,6 +306,8 @@ class LaplacianMeshMovingStrategy
       (i)->Z() = (i)->Z0();
     }
   }
+
+
   /*@} */
   /**@name Operators
    */

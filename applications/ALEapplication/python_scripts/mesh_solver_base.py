@@ -59,6 +59,11 @@ class MeshSolverBase(object):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.mesh_model_part = mesh_model_part
+
+            # neighbour search
+        #number_of_avg_elems = 10
+        #number_of_avg_nodes = 10
+        #self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.mesh_model_part, number_of_avg_elems, number_of_avg_nodes)
         print("::[MeshSolverBase]:: Construction finished")
 
     #### Public user interface functions ####
@@ -75,8 +80,10 @@ class MeshSolverBase(object):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, self.mesh_model_part)
         print("::[MeshSolverBase]:: DOFs ADDED.")
 
+
     def Initialize(self):
         self.get_mesh_motion_solver().Initialize()
+        #self.neighbour_search.Execute()
         print("::[MeshSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self):

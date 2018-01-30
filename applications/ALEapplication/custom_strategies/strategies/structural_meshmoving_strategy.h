@@ -153,7 +153,8 @@ class StructuralMeshMovingStrategy : public SolvingStrategy<TSparseSpace,
   virtual ~StructuralMeshMovingStrategy() {}
 
   void Initialize() override
-  {}
+  {
+  }
 
   double Solve() override
   {

@@ -42,8 +42,7 @@
 /* ****************************************************************************
  *  Projectname:         $KratosALEApplication
  *  Last Modified by:    $Author: A.Winterstein@tum.de $
- *  Date:                $Date: June 2016 $
- *  Revision:            $Revision: 1.5 $
+ *  Date:                $Date: February 2018 $
  * ***************************************************************************/
 
 #if !defined(KRATOS_LAPLACIAN_MESHMOVING_ELEMENT_INCLUDED)
@@ -52,7 +51,7 @@
 // System includes
 
 // External includes
-//#include "boost/smart_ptr.hpp"
+#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -140,7 +139,7 @@ public:
                              GeometryType::Pointer pGeom,
                              PropertiesType::Pointer pProperties) const;
 
-    void Initialize();
+    //void Initialize();
 
     MatrixType CalculateDerivatives(const int& rdimension, const double& rPointNumber);
 
@@ -154,6 +153,8 @@ public:
 
     void CalculateDeltaPosition(VectorType& IntermediateDisplacements,
                                 ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateInitialJacobianValues(MatrixType& rJ0, MatrixType& rInvJ0, double& rDetJ0, const double& rPointNumber);
 
     ///@{
 
@@ -188,7 +189,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    void GetDisplacementValues(VectorType& rValues, const int Step = 0);
+    
     ///@}
 
     ///@name Protected  Access
@@ -210,11 +211,6 @@ private:
 
     ///@name Member Variables
     ///@{
-    IntegrationMethod mThisIntegrationMethod;
-    GeometryType::JacobiansType mJ0;
-    GeometryType::JacobiansType mInvJ0;
-    VectorType mDetJ0;
-    double mTotalDomainInitialSize;
     SizeType mLocalSize;
     ///@}
 
