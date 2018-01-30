@@ -40,14 +40,10 @@ SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGe
 
 /***********************************************************************************/
 /***********************************************************************************/
-    Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
-    {
-        return Kratos::make_shared<SmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
-    }
 
 Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Element::Pointer( new SmallDisplacement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+    return Kratos::make_shared<SmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
