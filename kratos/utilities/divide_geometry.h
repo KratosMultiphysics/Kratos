@@ -232,8 +232,29 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * Returns the member vector containing the edges node I ids.
+     */
+    virtual const std::vector<int>& GetEdgeIdsI() const = 0;
+
+    /**
+     * Returns the member vector containing the edges node J ids.
+     */
+    virtual const std::vector<int>& GetEdgeIdsJ() const = 0;
+
+    /**
+     * Returns the member vector containing the split edges member vector.
+     */
+    virtual std::vector<int>& GetSplitEdges() = 0;
+
+    /**
+     * Returns the nodal distance values.
+     */
     Vector GetNodalDistances() const;
 
+    /**
+     * Returns a reference to the input geometry.
+     */
     GeometryType GetInputGeometry() const;
 
     /**
