@@ -165,7 +165,7 @@ public:
    * Fills buffer with the GlobalPoiter data
    * @param buffer Object data buffer
    */
-  void Save(char * buffer) {
+  void save(char * buffer) {
     memcpy(buffer, this, sizeof(GlobalPointer));
   }
 
@@ -173,7 +173,7 @@ public:
    * Restores the GlobalPoiter with the data from the buffer
    * @param buffer Object data buffer
    */
-  void Load(char * buffer) {
+  void load(char * buffer) {
     memcpy(this, buffer, sizeof(GlobalPointer));
   }
 
