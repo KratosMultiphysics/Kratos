@@ -48,6 +48,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   # Adding the beam element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_2D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_2D2N.cpp
+  
 
   # Adding shells and membranes elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp

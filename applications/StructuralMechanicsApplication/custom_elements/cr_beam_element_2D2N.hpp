@@ -29,7 +29,7 @@ namespace Kratos
 
 	class CrBeamElement2D2N : public Element
 	{
-	private:
+	protected:
 		//const values
 		static constexpr int msNumberOfNodes = 2;
 		static constexpr int msDimension = 2;
@@ -51,12 +51,10 @@ namespace Kratos
 		typedef BaseType::EquationIdVectorType EquationIdVectorType;
 		typedef BaseType::DofsVectorType DofsVectorType;
 
-
+		CrBeamElement2D2N() {};
+		CrBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry);
 		CrBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-						bool rLinear = false);
-		CrBeamElement2D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-						PropertiesType::Pointer pProperties,
-						bool rLinear = false);
+						PropertiesType::Pointer pProperties);
 
 
 		~CrBeamElement2D2N() override;
@@ -136,7 +134,6 @@ namespace Kratos
 		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Kr();
 		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Total();
 
-		void CalculateRightHandSideLinear(VectorType& rRightHandSideVector, MatrixType rLeftHandSideMatrix);
 
 		void GlobalizeMatrix(Matrix &A);
 		void GlobalizeVector(Vector &A);
@@ -149,18 +146,14 @@ namespace Kratos
 		bounded_vector<double,msElementSize> ReturnElementForces_Local();
 
 	private:
-
-		bool mIsLinearElement = false;
 		bounded_vector<double,msLocalSize> DeformationForces = ZeroVector(msLocalSize);
 		Vector F_int_global = ZeroVector(msElementSize);
-		Matrix K_master = ZeroMatrix(msElementSize,msElementSize);
-		CrBeamElement2D2N() {};
-
-
+		
 
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;
 		void load(Serializer& rSerializer) override;
+
 	};
 
 }

@@ -24,19 +24,15 @@ namespace Kratos
 {
 
 	CrBeamElement2D2N::CrBeamElement2D2N(IndexType NewId,
-		GeometryType::Pointer pGeometry, bool rLinear)
+		GeometryType::Pointer pGeometry)
 		: Element(NewId, pGeometry)
-	{
-		this->mIsLinearElement = rLinear;
-	}
+	{}
 
 	CrBeamElement2D2N::CrBeamElement2D2N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
-		PropertiesType::Pointer pProperties, bool rLinear)
+		PropertiesType::Pointer pProperties)
 		: Element(NewId, pGeometry, pProperties)
-	{
-		this->mIsLinearElement = rLinear;
-	}
+	{}
 
 	Element::Pointer CrBeamElement2D2N::Create(IndexType NewId,
 		NodesArrayType const& rThisNodes,
@@ -44,7 +40,7 @@ namespace Kratos
 	{
 		const GeometryType& rGeom = this->GetGeometry();
 		return Kratos::make_shared<CrBeamElement2D2N>(
-            NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement);
+            NewId, rGeom.Create(rThisNodes), pProperties);
 	}
 
 	CrBeamElement2D2N::~CrBeamElement2D2N() {}
@@ -251,7 +247,6 @@ namespace Kratos
 			KRATOS_TRY;
 			// t 
 			this->DeformationForces = this->CalculateInternalStresses_DeformationModes();
-			if(this->mIsLinearElement) this->DeformationForces = ZeroVector(msLocalSize);
 
 			// qe
 			Vector NodalForces = ZeroVector(msElementSize);
@@ -263,12 +258,9 @@ namespace Kratos
 			this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
 				
 			// residual >>> r = f_ext - f_int
-			if(this->mIsLinearElement) this->CalculateRightHandSideLinear(rRightHandSideVector,rLeftHandSideMatrix);
-			else
-			{
-				rRightHandSideVector = ZeroVector(msElementSize);
-				rRightHandSideVector -= NodalForces;
-			}
+			rRightHandSideVector = ZeroVector(msElementSize);
+			rRightHandSideVector -= NodalForces;
+	
 
 			rRightHandSideVector += this->CalculateBodyForces();
 
@@ -279,12 +271,8 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo)
 		{
 			KRATOS_TRY;
-			if(this->mIsLinearElement) this->CalculateRightHandSideLinear(rRightHandSideVector,this->K_master);
-			else
-			{
-				rRightHandSideVector = ZeroVector(msElementSize);
-				rRightHandSideVector -= this->F_int_global;
-			}
+			rRightHandSideVector = ZeroVector(msElementSize);
+			rRightHandSideVector -= this->F_int_global;
 			rRightHandSideVector += this->CalculateBodyForces();
 			KRATOS_CATCH("")
 		}
@@ -295,7 +283,6 @@ namespace Kratos
 			KRATOS_TRY;
 			rLeftHandSideMatrix = this->CreateElementStiffnessMatrix_Total();
 			this->GlobalizeMatrix(rLeftHandSideMatrix);
-			this->K_master = rLeftHandSideMatrix;
 			KRATOS_CATCH("")
 		}
 
@@ -418,18 +405,6 @@ namespace Kratos
 
 		KRATOS_CATCH("")
 	}
-	void CrBeamElement2D2N::CalculateRightHandSideLinear(
-		VectorType& rRightHandSideVector, MatrixType rLeftHandSideMatrix)
-		{
-			KRATOS_TRY;
-			Vector NodalDeformation = ZeroVector(msElementSize);
-			this->GetValuesVector(NodalDeformation);
-			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
-			KRATOS_CATCH("")
-		}
-
-
 
 
 	double CrBeamElement2D2N::CalculateShearModulus() {
@@ -884,11 +859,17 @@ namespace Kratos
 	void CrBeamElement2D2N::save(Serializer& rSerializer) const
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		// PROBLEM ::: serializer cant save and load bounded_vectors
+		//rSerializer.save("DeformationForces", this->DeformationForces);
+		rSerializer.save("GlobalInternalForces", this->F_int_global);
 	}
 
 	void CrBeamElement2D2N::load(Serializer& rSerializer)
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+		// PROBLEM ::: serializer cant save and load bounded_vectors
+		//rSerializer.load("DeformationForces", this->DeformationForces);
+		rSerializer.load("GlobalInternalForces", this->F_int_global);
 	}
 } // namespace Kratos.
 
