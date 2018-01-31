@@ -201,10 +201,10 @@ def AssambleTestSuites():
     # Dynamic basic tests 
     smallSuite.addTest(TDynamicSchemesTests('test_spring_bossak_scheme')) 
     smallSuite.addTest(TDynamicSchemesTests('test_spring_newmark_scheme')) 
-    #smallSuite.addTest(TDynamicSchemesTests('test_spring_bdf2_scheme')) 
+    smallSuite.addTest(TDynamicSchemesTests('test_spring_bdf2_scheme')) 
     smallSuite.addTest(TDynamicSchemesTests('test_fall_bossak_scheme')) 
     smallSuite.addTest(TDynamicSchemesTests('test_fall_newmark_scheme')) 
-    #smallSuite.addTest(TDynamicSchemesTests('test_fall_bdf2_scheme')) 
+    smallSuite.addTest(TDynamicSchemesTests('test_fall_bdf2_scheme')) 
     
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)

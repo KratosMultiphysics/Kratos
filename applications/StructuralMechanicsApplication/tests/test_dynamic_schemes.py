@@ -116,6 +116,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, - A * omega * sin(omega*time))
             node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y, 0, - A * omega**2 * cos(omega*time))
         
+        # Solve the problem
         while(time <= end_time):
             time = time + dt
             step = step + 1
@@ -161,9 +162,9 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)
 
         #time integration parameters
-        dt = 0.01
+        dt = 1.0e-2
         time = 0.0
-        end_time = 0.1
+        end_time = 1.0e-1
         step = 0
 
         self._set_and_fill_buffer(mp,buffer_size,dt)
@@ -174,6 +175,23 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         current_analytical_displacement_y = 0.0
         current_analytical_velocity_y = 0.0
         current_analytical_acceleration_y = 0.0
+        
+        # Fill buffer solution
+        for i in range(buffer_size):
+            time = time + dt
+            step = step + 1
+            mp.CloneTimeStep(time)
+            mp.ProcessInfo[KratosMultiphysics.STEP] = step
+            
+            current_analytical_displacement_y += current_analytical_velocity_y * dt + 0.25 * (current_analytical_acceleration_y + gravity) * dt**2
+            current_analytical_velocity_y += dt * 0.5 * (current_analytical_acceleration_y + gravity)
+            current_analytical_acceleration_y = gravity
+            
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, current_analytical_displacement_y)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y, 0, current_analytical_velocity_y)
+            node.SetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y, 0, current_analytical_acceleration_y)
+        
+        # Solve the problem
         while(time <= end_time):
             time = time + dt
             step = step + 1
@@ -184,10 +202,10 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             current_analytical_displacement_y += current_analytical_velocity_y * dt + 0.25 * (current_analytical_acceleration_y + gravity) * dt**2
             current_analytical_velocity_y += dt * 0.5 * (current_analytical_acceleration_y + gravity)
             current_analytical_acceleration_y = gravity
-            ## DEBUG
-            #print("DISPLACEMENT_Y:\t", node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), "\t", current_analytical_acceleration_y)
+            ### DEBUG
+            #print("DISPLACEMENT_Y:\t", node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), "\t", current_analytical_displacement_y)
             #print("VELOCITY_Y:\t",node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), "\t", current_analytical_velocity_y)
-            #print("ACCELERATION_Y:\t",node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), "\t", current_analytical_displacement_y)
+            #print("ACCELERATION_Y:\t",node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), "\t", current_analytical_acceleration_y )
             # ASSERT
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), current_analytical_acceleration_y, delta=1e-6)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), current_analytical_velocity_y, delta=1e-6)
@@ -199,8 +217,8 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
     def test_spring_newmark_scheme(self):
         self._base_spring_test_dynamic_schemes("newmark")
         
-    #def test_spring_bdf2_scheme(self):
-        #self._base_spring_test_dynamic_schemes("bdf2")
+    def test_spring_bdf2_scheme(self):
+        self._base_spring_test_dynamic_schemes("bdf2", 3)
         
     def test_fall_bossak_scheme(self):
         self._base_fall_test_dynamic_schemes("bossak")
@@ -208,8 +226,8 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
     def test_fall_newmark_scheme(self):
         self._base_fall_test_dynamic_schemes("newmark")
         
-    #def test_fall_bdf2_scheme(self):
-        #self._base_fall_test_dynamic_schemes("bdf2")
+    def test_fall_bdf2_scheme(self):
+        self._base_fall_test_dynamic_schemes("bdf2", 3)
 
 if __name__ == '__main__':
     KratosUnittest.main()

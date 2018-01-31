@@ -40,6 +40,10 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
+        
+        # Setting minimum buffer
+        if(self.dynamic_settings["scheme_type"].GetString() == "bdf2"): 
+            self.settings["buffer_size"].SetInt(3)
 
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
