@@ -102,6 +102,8 @@ namespace Kratos
 
     mAxisymUpdatedLagrangianUJElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUJwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymUpdatedLagrangianUJWwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+    mAxisymUpdatedLagrangianUJWwPDMEElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUPressureElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUPwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
    
@@ -248,6 +250,8 @@ namespace Kratos
 
     //New Mixed elements. Two-phase. Ax
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUJwPElement2D3N", mAxisymUpdatedLagrangianUJwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUJWwPElement2D3N", mAxisymUpdatedLagrangianUJWwPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUJWwPDMEElement2D3N", mAxisymUpdatedLagrangianUJWwPDMEElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymUpdatedLagrangianUPwPElement2D3N", mAxisymUpdatedLagrangianUPwPElement2D3N )
 
 
