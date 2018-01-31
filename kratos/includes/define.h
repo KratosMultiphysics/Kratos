@@ -24,7 +24,6 @@
 
 
 /* Project includes */
-#include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
 #include "includes/shared_pointers.h"
 #include "includes/exception.h"
@@ -44,65 +43,6 @@
 // Exceptions
 //
 //-----------------------------------------------------------------
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_1)
-#define KRATOS_EXCEPTION_LEVEL_1
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_2)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_3)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#define KRATOS_EXCEPTION_LEVEL_3
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_4)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#define KRATOS_EXCEPTION_LEVEL_3
-#define KRATOS_EXCEPTION_LEVEL_4
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_1)
-#define KRATOS_TRY_LEVEL_1 try {
-#define KRATOS_CATCH_LEVEL_1(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_1 {
-#define KRATOS_CATCH_LEVEL_1(MoreInfo) }
-#endif
-
-
-#if defined(KRATOS_EXCEPTION_LEVEL_2)
-#define KRATOS_TRY_LEVEL_2 try {
-#define KRATOS_CATCH_LEVEL_2(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_2 {
-#define KRATOS_CATCH_LEVEL_2(MoreInfo) }
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_3)
-#define KRATOS_TRY_LEVEL_3 try {
-#define KRATOS_CATCH_LEVEL_3(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_3 {
-#define KRATOS_CATCH_LEVEL_3(MoreInfo) }
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_4)
-#define KRATOS_TRY_LEVEL_4 try {
-#define KRATOS_CATCH_LEVEL_4(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_4 {
-#define KRATOS_CATCH_LEVEL_4(MoreInfo) }
-#endif
 
 #ifndef KRATOS_CURRENT_FUNCTION
 #define KRATOS_CURRENT_FUNCTION BOOST_CURRENT_FUNCTION
@@ -149,11 +89,11 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 
 #define KRATOS_CATCH(MoreInfo) { };
 #endif
+
 //-----------------------------------------------------------------
 //
 // variables
 //
-
 //-----------------------------------------------------------------
 
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT

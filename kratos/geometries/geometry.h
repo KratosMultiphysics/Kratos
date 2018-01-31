@@ -820,9 +820,9 @@ public:
     */
     const typename TPointType::Pointer pGetPoint( const int Index ) const
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
         return ( *this )( Index );
-        KRATOS_CATCH_LEVEL_3( *this )
+        KRATOS_CATCH( *this )
     }
 
     /** An access method to the i'th points stored in
@@ -833,9 +833,9 @@ public:
     */
     typename TPointType::Pointer pGetPoint( const int Index )
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
         return ( *this )( Index );
-        KRATOS_CATCH_LEVEL_3( *this );
+        KRATOS_CATCH( *this );
     }
 
     /** A constant access method to the i'th points stored in
@@ -846,9 +846,9 @@ public:
     */
     TPointType const& GetPoint( const int Index ) const
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
         return ( *this )[Index];
-        KRATOS_CATCH_LEVEL_3( *this )
+        KRATOS_CATCH( *this );
     }
 
 
@@ -860,9 +860,9 @@ public:
     */
     TPointType& GetPoint( const int Index )
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
         return ( *this )[Index];
-        KRATOS_CATCH_LEVEL_3( *this );
+        KRATOS_CATCH( *this );
     }
 
     /**
