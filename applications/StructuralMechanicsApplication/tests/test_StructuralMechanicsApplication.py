@@ -37,8 +37,7 @@ from test_loading_conditions_surface import TestLoadingConditionsSurface as Test
 # Basic moving mesh test
 from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 # Dynamic basic tests
-from SmallTests import DynamicBossakTests as TDynamicBossakTests
-from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
+from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 # Patch test Small Displacements
 from SmallTests import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from SmallTests import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -168,8 +167,12 @@ def AssambleTestSuites():
     # Basic moving mesh test
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Dynamic basic tests
-    smallSuite.addTest(TDynamicBossakTests('test_execution'))
-    smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
+    smallSuite.addTest(TDynamicSchemesTests('test_spring_bossak_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_spring_newmark_scheme'))
+    #smallSuite.addTest(TDynamicSchemesTests('test_spring_bdf2_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_fall_bossak_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_fall_newmark_scheme'))
+    #smallSuite.addTest(TDynamicSchemesTests('test_fall_bdf2_scheme'))
     # Patch test Small Displacements
     smallSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     smallSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
