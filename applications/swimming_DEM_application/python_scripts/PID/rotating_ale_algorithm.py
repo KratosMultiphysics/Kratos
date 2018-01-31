@@ -90,5 +90,5 @@ class Algorithm(BaseAlgorithm):
         if solve_system:
             self.fluid_solution.fluid_solver.Solve()
         else:
-            self.rotator.RotateFluidVelocities(time)
             Say("Skipping solving system and rotating stationary velocity field...\n")
+            self.rotator.RotateFluidVelocities(time)
