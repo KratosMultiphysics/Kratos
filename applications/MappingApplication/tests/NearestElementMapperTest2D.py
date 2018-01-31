@@ -55,7 +55,7 @@ class NearestElementMapperTest2D(KratosUnittest.TestCase):
         self.interface_sub_model_part_destination = self.model_part_destination.GetSubModelPart("interface_destination")
 
         # Initialize Mapper
-        self.mapper = MapperFactory(self.model_part_origin,
+        self.mapper = MapperFactory.CreateMapper(self.model_part_origin,
                                     self.model_part_destination,
                                     project_parameters_mapper_1)
 
@@ -100,7 +100,7 @@ class NearestElementMapperTest2D(KratosUnittest.TestCase):
         # Adding Values
         self.mapper.Map(variable_origin,
                                          variable_destination,
-                                         MapperFactory.ADD_VALUES)
+                                         Mapper.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -115,7 +115,7 @@ class NearestElementMapperTest2D(KratosUnittest.TestCase):
         # Swaping the sign of the Values
         self.mapper.Map(variable_origin,
                                          variable_destination,
-                                         MapperFactory.SWAP_SIGN)
+                                         Mapper.SWAP_SIGN)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -163,7 +163,7 @@ class NearestElementMapperTest2D(KratosUnittest.TestCase):
         # Adding Values
         self.mapper.InverseMap(variable_origin,
                                                 variable_destination,
-                                                MapperFactory.ADD_VALUES)
+                                                Mapper.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -179,7 +179,7 @@ class NearestElementMapperTest2D(KratosUnittest.TestCase):
         # Swaping the sign of the Values and adding them
         self.mapper.InverseMap(variable_origin,
                                                 variable_destination,
-                                                MapperFactory.ADD_VALUES | MapperFactory.SWAP_SIGN)
+                                                Mapper.ADD_VALUES | Mapper.SWAP_SIGN)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -192,7 +192,7 @@ class NearestElementMapperTest2D(KratosUnittest.TestCase):
                          map_value)
 
 
-        self.mapper.UpdateInterface(MapperFactory.REMESHED)
+        self.mapper.UpdateInterface(Mapper.REMESHED)
 
     def TestMapConstantVectorValues(self, output_time):
         map_value = [15.99, -2.88, 3.123]
@@ -228,7 +228,7 @@ class NearestElementMapperTest2D(KratosUnittest.TestCase):
         # Adding Values
         self.mapper.Map(variable_origin,
                                          variable_destination,
-                                         MapperFactory.ADD_VALUES)
+                                         Mapper.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -244,7 +244,7 @@ class NearestElementMapperTest2D(KratosUnittest.TestCase):
         # Swaping the sign of the Values
         self.mapper.Map(variable_origin,
                                          variable_destination,
-                                         MapperFactory.SWAP_SIGN)
+                                         Mapper.SWAP_SIGN)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -288,7 +288,7 @@ class NearestElementMapperTest2D(KratosUnittest.TestCase):
         # Adding Values
         self.mapper.InverseMap(variable_origin,
                                                 variable_destination,
-                                                MapperFactory.ADD_VALUES)
+                                                Mapper.ADD_VALUES)
 
         if (self.GiD_output):
             self.WriteNodalResultsCustom(self.gid_io_origin,

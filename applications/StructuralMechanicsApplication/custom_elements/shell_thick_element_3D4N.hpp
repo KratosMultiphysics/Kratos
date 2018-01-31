@@ -75,7 +75,7 @@ public:
 
     typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
-    typedef boost::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
+    typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
 
     typedef array_1d<double, 3> Vector3Type;
 
