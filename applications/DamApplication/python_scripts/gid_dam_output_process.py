@@ -1,9 +1,10 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
+import gid_output_process
 CheckForPreviousImport()
 
-class GiDOutputProcess(Process):
+class GiDDamOutputProcess(Process):
 
     defaults = Parameters('''{
         "result_file_configuration": {
@@ -14,9 +15,8 @@ class GiDOutputProcess(Process):
                 "MultiFileFlag": "SingleFile"
             },
             "file_label": "time",
-            "output_control_type": "step",
+            "output_control_type": "time_s",
             "output_frequency": 1.0,
-            "time_scale": "days",
             "body_output": true,
             "node_output": false,
             "skin_output": false,
@@ -155,15 +155,22 @@ class GiDOutputProcess(Process):
             raise Exception(msg)
 
         output_control_type = result_file_configuration["output_control_type"].GetString()
-        if output_control_type == "time":
+        if output_control_type == "time_s":
+            self.output_control_is_time = True
+        elif output_control_type == "time_h":
+            self.output_control_is_time = True
+        elif output_control_type == "time_d":
+            self.output_control_is_time = True
+        elif output_control_type == "time_w":
             self.output_control_is_time = True
         elif output_control_type == "step":
             self.output_control_is_time = False
         else:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
+            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_control_type,"output_control_type")
             raise Exception(msg)
 
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.next_output += self.output_frequency
 
         # get .post.lst files
         additional_list_file_data = result_file_configuration["additional_list_files"]
@@ -239,12 +246,26 @@ class GiDOutputProcess(Process):
     def IsOutputStep(self):
 
         if self.output_control_is_time:
+            result_file_configuration = self.param["result_file_configuration"]
+            time = self.model_part.ProcessInfo[TIME]
+            
+            if result_file_configuration["output_control_type"].GetString() == "time_s":         
+                time = time
+            elif result_file_configuration["output_control_type"].GetString() == "time_h":
+                time = time/3600.0
+            elif result_file_configuration["output_control_type"].GetString() == "time_d":
+                time = time/86400.0
+            elif result_file_configuration["output_control_type"].GetString() == "time_w":
+                time = time/604800.0
             #print( str(self.model_part.ProcessInfo[TIME])+">"+ str(self.next_output) )
-            return ( self.model_part.ProcessInfo[TIME] > self.next_output )
+            return ( time >= self.next_output )
         else:
             return ( self.step_count >= self.next_output )
 
     def PrintOutput(self):
+        
+        result_file_configuration = self.param["result_file_configuration"]
+        self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
@@ -254,7 +275,19 @@ class GiDOutputProcess(Process):
         self.printed_step_count += 1
         self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
         if self.output_label_is_time:
-            label = time/3600
+            if result_file_configuration["output_control_type"].GetString() == "time_s":         
+                label = time
+                time = time
+            elif result_file_configuration["output_control_type"].GetString() == "time_h":
+                label = time/3600
+                time = time/3600.0
+            elif result_file_configuration["output_control_type"].GetString() == "time_d":
+                label = time/86400
+                time = time/86400.0
+            elif result_file_configuration["output_control_type"].GetString() == "time_w":
+                label = time/604800
+                time = time/604800.0
+
         else:
             label = self.printed_step_count
 
