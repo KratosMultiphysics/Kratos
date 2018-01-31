@@ -154,7 +154,7 @@ void Point::load(Serializer &rSerializer)
 }
 
 // Explicit instantiation of the component
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Point>;
+template class KratosComponents<Point>;
 
 /// input stream function
 inline std::istream &operator>>(std::istream &rIStream,
