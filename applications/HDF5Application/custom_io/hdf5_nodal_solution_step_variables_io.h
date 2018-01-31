@@ -53,7 +53,7 @@ public:
     ///@{
 
     /// Constructor.
-    NodalSolutionStepVariablesIO(std::string Prefix, File::Pointer pFile);
+    NodalSolutionStepVariablesIO(const std::string& rPrefix, File::Pointer pFile);
 
     ///@}
     ///@name Operations

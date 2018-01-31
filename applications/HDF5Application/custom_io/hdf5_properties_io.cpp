@@ -11,8 +11,8 @@ namespace HDF5
 namespace Internals
 {
 
-PropertiesIO::PropertiesIO(std::string Prefix, File::Pointer pFile)
-    : mPrefix(Prefix), mpFile(pFile)
+PropertiesIO::PropertiesIO(const std::string& rPrefix, File::Pointer pFile)
+    : mPrefix(rPrefix), mpFile(pFile)
 {
 }
 

@@ -190,7 +190,7 @@ void PartitionedModelPartIO::Check()
         KRATOS_ERROR << "Using PartitionedModelPartIO with single process file access." << std::endl;
 }
 
-void PartitionedModelPartIO::WritePartitionIndex(std::string Path, NodesContainerType const& rGhostNodes)
+void PartitionedModelPartIO::WritePartitionIndex(const std::string& rPath, NodesContainerType const& rGhostNodes)
 {
     KRATOS_TRY;
 
@@ -209,12 +209,12 @@ void PartitionedModelPartIO::WritePartitionIndex(std::string Path, NodesContaine
         }
     }
     WriteInfo info;
-    mpFile->WriteDataSet(Path + "/PARTITION_INDEX", partition_ids, info);
+    mpFile->WriteDataSet(rPath + "/PARTITION_INDEX", partition_ids, info);
 
     KRATOS_CATCH("");
 }
 
-void PartitionedModelPartIO::ReadAndAssignPartitionIndex(std::string Path, ModelPart& rModelPart) const
+void PartitionedModelPartIO::ReadAndAssignPartitionIndex(const std::string& rPath, ModelPart& rModelPart) const
 {
     KRATOS_TRY;
 
@@ -242,10 +242,10 @@ void PartitionedModelPartIO::ReadAndAssignPartitionIndex(std::string Path, Model
     // is initialized.
     unsigned start_index, block_size;
     File& r_file = GetFile();
-    std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(r_file, Path);
+    std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(r_file, rPath);
     Vector<int> partition_ids, node_ids;
-    r_file.ReadDataSet(Path + "/PARTITION_INDEX", partition_ids, start_index, block_size);
-    r_file.ReadDataSet(Path + "/Ids", node_ids, start_index, block_size);
+    r_file.ReadDataSet(rPath + "/PARTITION_INDEX", partition_ids, start_index, block_size);
+    r_file.ReadDataSet(rPath + "/Ids", node_ids, start_index, block_size);
     for (unsigned i = 0; i < node_ids.size(); ++i)
         r_nodes[node_ids[i]].FastGetSolutionStepValue(PARTITION_INDEX) = partition_ids[i];
 

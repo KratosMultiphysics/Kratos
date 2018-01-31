@@ -52,7 +52,7 @@ public:
     ///@{
 
     /// Constructor.
-    PropertiesIO(std::string Prefix, File::Pointer pFile);
+    PropertiesIO(const std::string& rPrefix, File::Pointer pFile);
 
     ///@}
     ///@name Operations

@@ -91,9 +91,9 @@ private:
 
     ///@name Private Operations
     ///@{
-    void WritePartitionIndex(std::string Path, NodesContainerType const& rGhostNodes);
+    void WritePartitionIndex(const std::string& rPath, NodesContainerType const& rGhostNodes);
 
-    void ReadAndAssignPartitionIndex(std::string Path, ModelPart& rModelPart) const;
+    void ReadAndAssignPartitionIndex(const std::string& rPath, ModelPart& rModelPart) const;
     ///@}
 };
 

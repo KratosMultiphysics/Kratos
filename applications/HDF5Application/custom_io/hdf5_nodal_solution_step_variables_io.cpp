@@ -10,8 +10,8 @@ namespace HDF5
 {
 namespace Internals
 {
-NodalSolutionStepVariablesIO::NodalSolutionStepVariablesIO(std::string Prefix, File::Pointer pFile)
-: mPrefix(Prefix), mpFile(pFile)
+NodalSolutionStepVariablesIO::NodalSolutionStepVariablesIO(const std::string& rPrefix, File::Pointer pFile)
+: mPrefix(rPrefix), mpFile(pFile)
 {
 }
 
