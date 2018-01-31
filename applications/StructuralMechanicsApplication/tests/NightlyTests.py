@@ -169,6 +169,33 @@ class Simple2D2NBeamCrTest(StructuralMechanichsTestFactory):
 class IsotropicDamageSimoJuPSTest(StructuralMechanichsTestFactory):
     file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
 
+class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
+
+class ShellT3AndQ4LinearStaticStructScordelisLoRoofTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_linear_static_struct_scordelis_lo_roof"
+
+class ShellT3AndQ4LinearStaticStructPinchedCylinderTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_linear_static_struct_pinched_cylinder"
+
+class ShellT3AndQ4LinearStaticStructPinchedHemisphereTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_linear_static_struct_pinched_hemisphere"
+
+class ShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_linear_static_struct_clamped_cylinder_orthotropic"
+
+class ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_static_struct_hinged_cyl_roof_snapthrough"
+    
+class ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_static_struct_hinged_cyl_roof_snapthrough_orthotropic"
+
+class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate"
+
+class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_oscillating_plate_lumped"
+
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanichsTestFactory):
     file_name = "shell_test/Shell_Q4_Thick__BendingRollUp_test"
