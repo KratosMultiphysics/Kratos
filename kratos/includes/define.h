@@ -306,9 +306,6 @@ namespace Kratos
 
 /**@name Type Definitions */
 /*@{ */
-/** Pointer to char
- */
-typedef const char* PointerToConstCharType;
 
 /*@} */
 
