@@ -31,7 +31,7 @@ The application provides a generalized eigensystem solver for sparse matrices. I
 
 ```json
 {
-    "solver_type": "eigen_sparse_eigensystem",
+    "solver_type": "eigen_eigensystem",
     "number_of_eigenvalues": 1,
     "max_iteration": 1000,
     "tolerance": 1e-6,

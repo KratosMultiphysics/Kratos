@@ -10,8 +10,8 @@
 //           Armin Geiser
 */
 
-#if !defined(KRATOS_SPARSE_EIGENSYSTEM_SOLVER_H_INCLUDED)
-#define KRATOS_SPARSE_EIGENSYSTEM_SOLVER_H_INCLUDED
+#if !defined(KRATOS_EIGENSYSTEM_SOLVER_H_INCLUDED)
+#define KRATOS_EIGENSYSTEM_SOLVER_H_INCLUDED
 
 // External includes
 #include <Eigen/Core>
@@ -26,22 +26,24 @@
 #include "includes/kratos_parameters.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/openmp_utils.h"
+#include "custom_utilities/ublas_wrapper.h"
 
 namespace Kratos
 {
 
 template<
+    class TSolver,
     class TSparseSpaceType,
     class TDenseSpaceType,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
-class SparseEigensystemSolver
+class EigensystemSolver
     : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
 {
     Parameters mParam;
 
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(SparseEigensystemSolver);
+    KRATOS_CLASS_POINTER_DEFINITION(EigensystemSolver);
 
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
 
@@ -51,13 +53,13 @@ class SparseEigensystemSolver
 
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
-    SparseEigensystemSolver(
+    EigensystemSolver(
         Parameters param
     ) : mParam(param)
     {
         Parameters default_params(R"(
         {
-            "solver_type": "eigen_sparse_eigensystem",
+            "solver_type": "eigen_eigensystem",
             "number_of_eigenvalues": 1,
             "max_iteration": 1000,
             "tolerance": 1e-6,
@@ -70,7 +72,7 @@ class SparseEigensystemSolver
         BaseType::SetMaxIterationsNumber(mParam["max_iteration"].GetInt());
     }
 
-    ~SparseEigensystemSolver() override {}
+    ~EigensystemSolver() override {}
 
     /**
      * Solve the generalized eigenvalue problem using an eigen subspace iteration method
@@ -90,12 +92,6 @@ class SparseEigensystemSolver
         using scalar_t = double;
         using vector_t = Eigen::VectorXd;
         using matrix_t = Eigen::MatrixXd;
-        using sparse_t = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
-	    #if defined EIGEN_USE_MKL_ALL
-        using ldlt_solver_t = Eigen::PardisoLDLT<sparse_t>;
-        #else
-        using ldlt_solver_t = Eigen::SparseLU<sparse_t>;
-        #endif
 
         // --- get settings
 
@@ -107,32 +103,11 @@ class SparseEigensystemSolver
 
         // --- wrap ublas matrices
 
-        std::vector<int> index1_vector_a(rK.index1_data().size());
-        std::vector<int> index2_vector_a(rK.index2_data().size());
+        UblasWrapper<> a_wrapper(rK);
+        UblasWrapper<> b_wrapper(rM);
 
-        for (size_t i = 0; i < rK.index1_data().size(); i++) {
-            index1_vector_a[i] = (int)rK.index1_data()[i];
-        }
-
-        for (size_t i = 0; i < rK.index2_data().size(); i++) {
-            index2_vector_a[i] = (int)rK.index2_data()[i];
-        }
-
-        Eigen::Map<sparse_t> a(rK.size1(), rK.size2(), rK.nnz(), index1_vector_a.data(), index2_vector_a.data(), rK.value_data().begin());
-
-
-        std::vector<int> index1_vector_b(rM.index1_data().size());
-        std::vector<int> index2_vector_b(rM.index2_data().size());
-
-        for (size_t i = 0; i < rM.index1_data().size(); i++) {
-            index1_vector_b[i] = (int)rM.index1_data()[i];
-        }
-
-        for (size_t i = 0; i < rM.index2_data().size(); i++) {
-            index2_vector_b[i] = (int)rM.index2_data()[i];
-        }
-
-        Eigen::Map<sparse_t> b(rM.size1(), rM.size2(), rM.nnz(), index1_vector_b.data(), index2_vector_b.data(), rM.value_data().begin());
+        const auto& a = a_wrapper.matrix();
+        const auto& b = b_wrapper.matrix();
 
 
         // --- timer
@@ -140,7 +115,7 @@ class SparseEigensystemSolver
         double start_time = OpenMPUtils::GetCurrentTime();
 
         if (echo_level > 0) {
-            std::cout << "SparseEigensystemSolver: Start"  << std::endl;
+            std::cout << "EigensystemSolver: Start"  << std::endl;
         }
 
 
@@ -164,7 +139,7 @@ class SparseEigensystemSolver
 
         vector_t tmp(nn);
 
-        // woaing vector
+        // working vector
         vector_t w(nn);
         for (int i = 0; i != nn; ++i) {
             w(i) = r(i, 0) / a.coeff(i, i);
@@ -203,7 +178,7 @@ class SparseEigensystemSolver
             r(ij, j) = 1.0;
         }
 
-        ldlt_solver_t solver;
+        typename TSolver::TSolver solver;
         solver.compute(a);
 
         int iteration = 0;
@@ -214,7 +189,7 @@ class SparseEigensystemSolver
             iteration++;
 
             if (echo_level > 1) {
-                std::cout << "SparseEigensystem: Iteration " << iteration <<std::endl;
+                std::cout << "EigensystemSolver: Iteration " << iteration <<std::endl;
             }
 
             for (int j = 0; j != nc; ++j) {
@@ -241,33 +216,37 @@ class SparseEigensystemSolver
             eig.compute(ar, br);
 
             if(eig.info() != Eigen::Success) {
-                std::cout << "SparseEigensystem: Eigen solution was not successful!" << std::endl;
+                std::cout << "EigensystemSolver: Eigen solution was not successful!" << std::endl;
                 break;
             }
 
             r *= eig.eigenvectors();
 
-            bool is_converged = true;
+            bool is_converged = false;
 
-            for (int i = 0; i != nc; i++) {
-                double eigv = eig.eigenvalues()(i);
-                double dif = eigv - prev_eigv(i);
-                double rtolv = std::abs(dif / eigv);
+            if (iteration > 1) {
+                is_converged = true;
 
-                if (rtolv > tolerance) {
-                    is_converged = false;
-                    break;
+                for (int i = 0; i != nc; i++) {
+                    double eigv = eig.eigenvalues()(i);
+                    double dif = eigv - prev_eigv(i);
+                    double rtolv = std::abs(dif / eigv);
+
+                    if (rtolv > tolerance) {
+                        is_converged = false;
+                        break;
+                    }
                 }
             }
 
             if (is_converged) {
                 if (echo_level > 0) {
-                    std::cout << "SparseEigensystem: Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
+                    std::cout << "EigensystemSolver: Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
                 }
                 break;
             } else if (iteration >= max_iteration) {
                 if (echo_level > 0) {
-                    std::cout << "SparseEigensystem: Convergence not reached in " << max_iteration << " iterations." << std::endl;
+                    std::cout << "EigensystemSolver: Convergence not reached in " << max_iteration << " iterations." << std::endl;
                 }
                 break;
             }
@@ -293,13 +272,16 @@ class SparseEigensystemSolver
             eigvecs.row(i) = solver.solve(tmp).normalized();
         }
 
-        // --- timer
+        // --- output
 
         if (echo_level > 0) {
             double end_time = OpenMPUtils::GetCurrentTime();
             double duration = end_time - start_time;
-            std::cout << "SparseEigensystemSolver: Completed in " << duration << " seconds" << std::endl;
-            KRATOS_WATCH(rEigenvalues);
+
+            Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");
+
+            std::cout << "EigensystemSolver: Completed in " << duration << " seconds" << std::endl
+                      << "                   Eigenvalues = " << eigvals.transpose().format(fmt) << std::endl;
         }
     }
 
@@ -308,7 +290,7 @@ class SparseEigensystemSolver
      */
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "SparseEigensystemSolver";
+        rOStream << "EigensystemSolver";
     }
 
     /**
@@ -337,7 +319,7 @@ class SparseEigensystemSolver
         return eigen_values[0];
     }
 
-}; // class SparseEigensystemSolver
+}; // class EigensystemSolver
 
 
 /**
@@ -346,7 +328,7 @@ class SparseEigensystemSolver
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::istream& operator >>(
     std::istream& rIStream,
-    SparseEigensystemSolver<TSparseSpaceType,
+    EigensystemSolver<TSparseSpaceType,
     TDenseSpaceType,
     TReordererType>& rThis)
 {
@@ -359,7 +341,7 @@ inline std::istream& operator >>(
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator <<(
     std::ostream& rOStream,
-    const SparseEigensystemSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
+    const EigensystemSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -370,4 +352,4 @@ inline std::ostream& operator <<(
 
 } // namespace Kratos
 
-#endif // defined(KRATOS_SPARSE_EIGENSYSTEM_SOLVER_H_INCLUDED)
+#endif // defined(KRATOS_EIGENSYSTEM_SOLVER_H_INCLUDED)
