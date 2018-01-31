@@ -40,7 +40,7 @@ namespace Kratos
 
     Element::Pointer SmallDisplacement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
     {
-        return Element::Pointer( new SmallDisplacement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+        return Kratos::make_shared<SmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     SmallDisplacement::~SmallDisplacement()
