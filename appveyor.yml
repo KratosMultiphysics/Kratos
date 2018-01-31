@@ -1,3 +1,8 @@
+# build only master
+branches:
+  only:
+    - master
+
 # Specify version format
 version: "{build}"
 
