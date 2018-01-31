@@ -372,7 +372,8 @@ private:
 
 ///@}
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<PeriodicCondition >;
+// Explicit instantiation declaration
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<PeriodicCondition >;
 
 ///@name Type Definitions
 ///@{

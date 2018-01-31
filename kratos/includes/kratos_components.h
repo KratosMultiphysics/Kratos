@@ -454,19 +454,19 @@ private:
 
 }; // Class KratosComponents
 
-
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
+// Explicit instantiation declaration
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<bool> >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<int> >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<unsigned int> >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<double> >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 3> > >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double> > >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector> >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix> >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string> >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
 
 #ifdef KratosCore_EXPORTS
 template<class TComponentType>

@@ -159,5 +159,8 @@ void PeriodicCondition::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
 }
 
+// Explicit instantiation of the component
+template class KRATOS_API(KRATOS_CORE) KratosComponents<PeriodicCondition>;
+
 }
 

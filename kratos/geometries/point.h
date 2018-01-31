@@ -61,7 +61,7 @@ namespace Kratos
 @see Node
 @see IntegrationPoint
 */
-class Point : public array_1d<double, 3>
+class KRATOS_API(KRATOS_CORE) Point : public array_1d<double, 3>
 {
     static constexpr int mDimension = 3;
 
@@ -77,11 +77,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Point);
 
     typedef array_1d<double, mDimension> BaseType;
-
     typedef BaseType CoordinatesArrayType;
-
     typedef std::size_t SizeType;
-
     typedef std::size_t IndexType;
 
     ///@}
@@ -89,63 +86,38 @@ public:
     ///@{
 
     /// Default constructor.
-    Point() : BaseType(mDimension)
-    {
-        SetAllCoordinates();
-    }
+    Point();
 
     /// 3d constructor.
-    Point(double NewX, double NewY = 0, double NewZ = 0) : BaseType(mDimension)
-    {
-        this->operator()(0) = NewX;
-        this->operator()(1) = NewY;
-        this->operator()(2) = NewZ;
-    }
+    Point(double NewX, double NewY = 0, double NewZ = 0);
 
     /** Copy constructor. Initialize this point with the coordinates
     of given point.*/
-    Point(Point const &rOtherPoint)
-        : BaseType(rOtherPoint) {}
+    Point(Point const &rOtherPoint);
 
     /** Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
-    Point(CoordinatesArrayType const &rOtherCoordinates)
-        : BaseType(rOtherCoordinates) {}
+    Point(CoordinatesArrayType const &rOtherCoordinates);
 
     /** Constructor using coordinates stored in given array. Initialize
     this point with the coordinates in the array. */
     template <class TVectorType>
-    Point(vector_expression<TVectorType> const &rOtherCoordinates)
-        : BaseType(rOtherCoordinates) {}
+    Point(vector_expression<TVectorType> const &rOtherCoordinates) : BaseType(rOtherCoordinates) {}
 
     /** Constructor using coordinates stored in given std::vector. Initialize
     this point with the coordinates in the array. */
-    Point(std::vector<double> const &rOtherCoordinates) : BaseType(mDimension)
-    {
-        SizeType size = rOtherCoordinates.size();
-        size = (mDimension < size) ? mDimension : size;
-        for (IndexType i = 0; i < size; i++)
-            this->operator[](i) = rOtherCoordinates[i];
-    }
+    Point(std::vector<double> const &rOtherCoordinates);
 
     /// Destructor.
-    virtual ~Point() {}
+    virtual ~Point();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    Point &operator=(const Point &rOther)
-    {
-        CoordinatesArrayType::operator=(rOther);
-        return *this;
-    }
-
-    bool operator==(const Point &rOther)
-    {
-        return std::equal(this->begin(), this->end(), rOther.begin());
-    }
+    Point &operator=(const Point &rOther);
+    bool operator==(const Point &rOther);
 
     ///@}
     ///@name Operations
@@ -155,80 +127,41 @@ public:
     ///@name Access
     ///@{
 
-    static constexpr IndexType Dimension()
-    {
-        return 3;
-    }
+    static constexpr IndexType Dimension();
 
     /** Returns X coordinate */
-    double X() const
-    {
-        return this->operator[](0);
-    }
+    double X() const;
 
     /** Returns Y coordinate */
-    double Y() const
-    {
-        return this->operator[](1);
-    }
+    double Y() const;
 
     /** Returns Z coordinate */
-    double Z() const
-    {
-        return this->operator[](2);
-    }
+    double Z() const;
 
-    double &X()
-    {
-        return this->operator[](0);
-    }
+    /** Returns X coordinate */
+    double &X();
 
     /** Returns Y coordinate */
-    double &Y()
-    {
-        return this->operator[](1);
-    }
+    double &Y();
 
     /** Returns Z coordinate */
-    double &Z()
-    {
-        return this->operator[](2);
-    }
+    double &Z();
 
-    CoordinatesArrayType const &Coordinates() const
-    {
-        return *this;
-    }
-
-    CoordinatesArrayType &Coordinates()
-    {
-        return *this;
-    }
+    CoordinatesArrayType const &Coordinates() const;
+    CoordinatesArrayType &Coordinates();
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "Point";
-    }
+    virtual std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream &rOStream) const
-    {
-        rOStream << this->Info();
-    }
+    virtual void PrintInfo(std::ostream &rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream &rOStream) const
-    {
-        rOStream << "(" << this->operator[](0)
-                        << this->operator[](1)  
-                        << this->operator[](2) 
-                 << ")";
-    }
+    virtual void PrintData(std::ostream &rOStream) const;
 
     ///@}
 
@@ -236,11 +169,7 @@ public:
     ///@name Private Operations
     ///@{
 
-    void SetAllCoordinates(double const &Value = double())
-    {
-        for (IndexType i = 0; i < mDimension; i++)
-            this->operator()(i) = Value;
-    }
+    void SetAllCoordinates(double const &Value = double());
 
     ///@}
     ///@name Serialization
@@ -248,15 +177,8 @@ public:
 
     friend class Serializer;
 
-    virtual void save(Serializer &rSerializer) const
-    {
-        rSerializer.save_base("BaseClass", *static_cast<const array_1d<double, mDimension> *>(this));
-    }
-
-    virtual void load(Serializer &rSerializer)
-    {
-        rSerializer.load_base("BaseClass", *static_cast<array_1d<double, mDimension> *>(this));
-    }
+    virtual void save(Serializer &rSerializer) const;
+    virtual void load(Serializer &rSerializer);
 
     ///@}
 
@@ -264,7 +186,8 @@ public:
 
 ///@}
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Point>;
+// Explicit instantiation declaration
+extern template class KRATOS_API(KRATOS_CORE) KratosComponents<Point>;
 
 ///@name Type Definitions
 ///@{
@@ -273,21 +196,6 @@ template class KRATOS_API(KRATOS_CORE) KratosComponents<Point>;
 ///@name Input and output
 ///@{
 
-/// input stream function
-inline std::istream &operator>>(std::istream &rIStream,
-                                Point &rThis){
-                                    return rIStream;
-                                }
-
-/// output stream function
-inline std::ostream &operator<<(std::ostream &rOStream,
-                                const Point &rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 } // namespace Kratos.
