@@ -71,7 +71,7 @@ namespace Kratos {
         /* Testing the Datatypes that for which the 
            "KRATOS_SERIALIZATION_DIRECT_LOAD" macro is used */
         /*********************************************************************/
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerBool, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerBool, KratosCoreFastSuite)
         {
             bool object_to_be_saved = true;
             bool object_to_be_loaded;
@@ -79,7 +79,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerInt, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerInt, KratosCoreFastSuite)
         {
             int object_to_be_saved = -105;
             int object_to_be_loaded;
@@ -87,7 +87,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerLong, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerLong, KratosCoreFastSuite)
         {
             long object_to_be_saved = -1598456605;
             long object_to_be_loaded;
@@ -95,7 +95,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerDouble, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerDouble, KratosCoreFastSuite)
         {
             double object_to_be_saved = -159845.6605;
             double object_to_be_loaded;
@@ -103,7 +103,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerUnsignedLong, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedLong, KratosCoreFastSuite)
         {
             unsigned long object_to_be_saved = 1598456605;
             unsigned long object_to_be_loaded;
@@ -111,7 +111,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerUnsignedInt, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerUnsignedInt, KratosCoreFastSuite)
         {
             unsigned int object_to_be_saved = 15905;
             unsigned int object_to_be_loaded;
@@ -119,7 +119,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerStdString, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerStdString, KratosCoreFastSuite)
         {
             std::string object_to_be_saved = "MyStringToBeSerialized";
             std::string object_to_be_loaded;
@@ -127,7 +127,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerMatrix, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerMatrix, KratosCoreFastSuite)
         {
             Matrix object_to_be_saved(5,3);
             Matrix object_to_be_loaded;
@@ -141,7 +141,7 @@ namespace Kratos {
             TestObjectSerializationComponentwise2D(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerMatrix3, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerMatrix3, KratosCoreFastSuite)
         {
             using Matrix3 = bounded_matrix<double,3,3>; // see serializer.h
             Matrix3 object_to_be_saved;
@@ -156,7 +156,7 @@ namespace Kratos {
             TestObjectSerializationComponentwise2D(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerLongLong, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerLongLong, KratosCoreFastSuite)
         {
             long long object_to_be_saved = -1598456546843565605;
             long long object_to_be_loaded;
@@ -168,7 +168,7 @@ namespace Kratos {
         /* Testing the Datatypes that have a specific save/load implementation */
         /*********************************************************************/
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerKratosSharedPtr, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtr, KratosCoreFastSuite)
         {
             Serializer serializer;
 
@@ -183,7 +183,7 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(object_to_be_loaded, object_to_be_saved);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerVariable, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerVariable, KratosCoreFastSuite)
         {
             Serializer serializer;
 
@@ -198,7 +198,7 @@ namespace Kratos {
             // KRATOS_CHECK_EQUAL(object_to_be_loaded, object_to_be_saved);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerStdVector, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerStdVector, KratosCoreFastSuite)
         {
             std::vector<double> object_to_be_saved{1.235, 4.66, 1.23, -88.2, -66.1};
             std::vector<double> object_to_be_loaded(3); // initialized smaller to check if resizing works
@@ -206,7 +206,7 @@ namespace Kratos {
             TestObjectSerializationComponentwise1D(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerUblasVector, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerUblasVector, KratosCoreFastSuite)
         {
             constexpr std::size_t size_vector = 5;
             Vector object_to_be_saved(size_vector);
@@ -219,7 +219,7 @@ namespace Kratos {
             TestObjectSerializationComponentwise1D(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerMap, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerMap, KratosCoreFastSuite)
         {
             std::map <std::string, double> object_to_be_saved { 
                 { "42", -30.556 }, 
@@ -230,7 +230,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerUnorderedMap, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerUnorderedMap, KratosCoreFastSuite)
         {
             std::unordered_map <std::string, double> object_to_be_saved { 
                 { "42", -30.556 }, 
@@ -241,7 +241,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerArray1D, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerArray1D, KratosCoreFastSuite)
         {
             constexpr std::size_t size_object = 5;
             array_1d<double, size_object> object_to_be_saved;
@@ -253,7 +253,7 @@ namespace Kratos {
             TestObjectSerializationComponentwise1D(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZ_SerializerPair, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerPair, KratosCoreFastSuite)
         {
             std::pair<int, double> object_to_be_saved(42, 0.123);
             std::pair<int, double> object_to_be_loaded(42, 0.123);
