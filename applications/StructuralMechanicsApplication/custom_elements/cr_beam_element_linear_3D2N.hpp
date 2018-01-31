@@ -61,7 +61,7 @@ namespace Kratos
 				MatrixType& rLeftHandSideMatrix,
 				ProcessInfo& rCurrentProcessInfo) override;
 
-			bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
+			bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() override;
 
 			void CalculateOnIntegrationPoints(
 				const Variable<array_1d<double, 3 > >& rVariable,

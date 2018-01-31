@@ -77,7 +77,7 @@ namespace Kratos
 
 		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material();
 		bounded_matrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
-		bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
+		virtual bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
 		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
 		bounded_vector<double,msLocalSize> GetCurrentNodalPosition();
 

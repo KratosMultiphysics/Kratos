@@ -139,7 +139,7 @@ namespace Kratos
 		void GlobalizeVector(Vector &A);
 		double Modulus2Pi(double A);
 
-		bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix();
+		virtual bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix();
 
 		bounded_vector<double,msLocalSize> CalculateDeformationParameters();
 		bounded_vector<double,msLocalSize> CalculateInternalStresses_DeformationModes();

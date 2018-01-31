@@ -64,7 +64,7 @@ namespace Kratos
 	/////////////////////////////////////////////////
 	///////////// CUSTOM FUNCTIONS --->>
 	/////////////////////////////////////////////////
-		bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix();
+		bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix() override;
 
 	private:
 		CrBeamElementLinear2D2N() {};
