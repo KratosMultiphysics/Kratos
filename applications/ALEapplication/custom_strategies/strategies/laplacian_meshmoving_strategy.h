@@ -1,57 +1,19 @@
-// ==============================================================================
-/*
- KratosALEApllication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Pooyan Dadvand, Riccardo Rossi, Andreas Winterstein
-                     pooyan@cimne.upc.edu
-                     rrossi@cimne.upc.edu
-                     a.winterstein@tum.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-  Gran Capita' s/n, 08034 Barcelona, Spain
-- Chair of Structural Analysis, Technical University of Munich
-  Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
-
-
-/* ****************************************************************************
- *  Projectname:         $KratosALEApplication
- *  Last Modified by:    $Author: A.Winterstein@tum.de $
- *  Date:                $Date: February 2018 $
- * ***************************************************************************/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics 
+//
+//  License:		 BSD License 
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
+//
 
 #if !defined(KRATOS_NEW_LAPLACIAN_MESHMOVING_STRATEGY )
 #define  KRATOS_NEW_LAPLACIAN_MESHMOVING_STRATEGY
 
 /* System includes */
-#include "boost/smart_ptr.hpp"
-#include "boost/timer.hpp"
 
 /* External includes */
 
@@ -63,7 +25,6 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "custom_elements/laplacian_meshmoving_element.h"
 #include "processes/find_nodal_neighbours_process.h"
 
@@ -381,7 +342,6 @@ private:
   typename TBuilderAndSolverType::Pointer mpBuilderAndSolverZ;
   
 
-
   bool mReformDofSetAtEachStep;
   int mTimeOrder;
   int mEchoLevel;
@@ -409,10 +369,10 @@ private:
 
         it != BaseType::GetModelPart().ElementsEnd(); ++it) {
 
-      pElem = Element::Pointer(new LaplacianMeshMovingElement(
+      pElem = Kratos::make_shared<LaplacianMeshMovingElement>(
               (*it).Id(),
               (*it).pGetGeometry(),
-              (*it).pGetProperties() ) );
+              (*it).pGetProperties() );
       MeshElems.push_back(pElem);
     }
   }
