@@ -997,6 +997,9 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
 template class QSVMS< QSVMSData<2,3> >;
 template class QSVMS< QSVMSData<3,4> >;
 
+template class QSVMS< QSVMSData<2,4> >;
+template class QSVMS< QSVMSData<3,8> >;
+
 template class QSVMS< TimeIntegratedQSVMSData<2,3> >;
 template class QSVMS< TimeIntegratedQSVMSData<3,4> >;
 
