@@ -182,8 +182,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
-        const Vector Displacements = ZeroVector(1)
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure
         ) override;
     
     ///@}
