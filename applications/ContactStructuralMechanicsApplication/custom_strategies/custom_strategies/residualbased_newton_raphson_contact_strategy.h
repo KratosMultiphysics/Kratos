@@ -103,7 +103,7 @@ public:
     
     typedef ModelPart::ConditionsContainerType                                ConditionsArrayType;
     
-    typedef boost::shared_ptr<ProcessFactoryUtility>                            ProcessesListType;
+    typedef ProcessFactoryUtility::Pointer                                      ProcessesListType;
     
     /**
      * Default constructor 
