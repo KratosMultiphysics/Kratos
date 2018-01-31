@@ -148,17 +148,29 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
             // Check if the element is split
             const bool is_split = this->ElementIsSplit(p_geometry, nodal_distances);
 
-            // If the element is split, call the splitting utility 
+            // If the element is split, create the new entities
             if (is_split){
+
                 // Set the split utility and compute the splitting pattern
                 ModifiedShapeFunctions::Pointer p_modified_shape_functions = this->SetModifiedShapeFunctionsUtility(p_geometry, nodal_distances);
                 DivideGeometry::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
 
+                // Create the auxiliar map that will be used to generate the skin
+                std::unordered_map<int, int> new_nodes_map;
+
                 // Save the geometries from the splitting pattern in the visualization model part
                 const unsigned int n_pos_split_geom = (p_split_utility->mPositiveSubdivisions).size();
+                const unsigned int n_neg_split_geom = (p_split_utility->mNegativeSubdivisions).size();
                 std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_geometries;
-                split_geometries.insert(split_geometries.end(), (p_split_utility->mPositiveSubdivisions).begin(), (p_split_utility->mPositiveSubdivisions).end());
-                split_geometries.insert(split_geometries.end(), (p_split_utility->mNegativeSubdivisions).begin(), (p_split_utility->mNegativeSubdivisions).end());
+                split_geometries.reserve(n_pos_split_geom + n_neg_split_geom);
+                split_geometries.insert(
+                    split_geometries.end(), 
+                    (p_split_utility->mPositiveSubdivisions).begin(), 
+                    (p_split_utility->mPositiveSubdivisions).end());
+                split_geometries.insert(
+                    split_geometries.end(), 
+                    (p_split_utility->mNegativeSubdivisions).begin(), 
+                    (p_split_utility->mNegativeSubdivisions).end());
 
                 for (unsigned int i_geom = 0; i_geom < split_geometries.size(); ++i_geom){
                     auto p_sub_geom = split_geometries[i_geom];
@@ -206,6 +218,9 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
                             auto new_node_info = std::make_tuple(p_node_i, p_node_j, node_i_weight, node_j_weight);                            
                             mCutNodesMap.insert(CutNodesMapType::value_type(p_new_node, new_node_info));
 
+                            // Link the new node global id. to its local index in the splitting util
+                            new_nodes_map.insert(std::make_pair<int, int>(local_id, new_node_id));
+
                             // Update the new nodes id. counter
                             new_node_id++;
                         }
@@ -222,7 +237,56 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
                     // Update the new elements id. counter
                     new_elem_id++;
                 }
-                
+
+                // Save the interface geometries from the splitting pattern in the visualization model part
+                const unsigned int n_pos_interface_geom = (p_split_utility->mPositiveInterfaces).size();
+                const unsigned int n_neg_interface_geom = (p_split_utility->mNegativeInterfaces).size();
+                std::vector<DivideGeometry::IndexedPointGeometryPointerType> split_interface_geometries;
+                split_interface_geometries.reserve(n_pos_interface_geom + n_neg_interface_geom);
+                split_interface_geometries.insert(
+                    split_interface_geometries.end(), 
+                    (p_split_utility->mPositiveInterfaces).begin(), 
+                    (p_split_utility->mPositiveInterfaces).end());
+                split_interface_geometries.insert(
+                    split_interface_geometries.end(), 
+                    (p_split_utility->mNegativeInterfaces).begin(), 
+                    (p_split_utility->mNegativeInterfaces).end());
+
+                for (unsigned int i_int_geom = 0; i_int_geom < split_interface_geometries.size(); ++i_int_geom){
+                    auto p_int_sub_geom = split_interface_geometries[i_int_geom];
+                    const unsigned int sub_int_geom_n_nodes = p_int_sub_geom->PointsNumber();
+
+                    // Fill the new condition nodes array
+                    Condition::NodesArrayType sub_int_geom_nodes_array;
+                    for (unsigned int i_node = 0; i_node < sub_int_geom_n_nodes; ++i_node){
+
+                        auto sub_int_geom_node = p_int_sub_geom->operator[](i_node);
+                        const unsigned int local_id = sub_int_geom_node.Id();
+
+                        // Get the global id from the intersection nodes map
+                        unsigned int global_id;
+                        auto got = new_nodes_map.find(local_id);
+                        if (got != new_nodes_map.end()){
+                            global_id = got->second;
+                        } else {
+                            KRATOS_ERROR << "Local id " << got->first << " not found in new nodes map for element " << it_elem->Id();
+                        }
+
+                        sub_int_geom_nodes_array.push_back(mrVisualizationModelPart.pGetNode(global_id));
+                    }
+
+                    // Set the new condition properties
+                    Properties::Pointer p_cond_prop = (i_int_geom < n_pos_interface_geom)? p_pos_prop : p_neg_prop;
+
+                    // Create the new condition
+                    Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(new_cond_id, sub_int_geom_nodes_array);
+                    p_new_cond->SetProperties(p_cond_prop);
+                    mrVisualizationModelPart.AddCondition(p_new_cond);
+
+                    // Update the new elements id. counter
+                    new_cond_id++;
+
+                }
             // Otherwise add an element with the original geometry
             } else {
                 // Add the current element as it was in the origin model part
