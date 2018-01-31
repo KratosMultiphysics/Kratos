@@ -45,7 +45,7 @@ namespace Kratos
     
     Condition::Pointer PointContactCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
-        return boost::make_shared<PointContactCondition>(NewId, pGeom, pProperties);
+        return Kratos::make_shared<PointContactCondition>(NewId, pGeom, pProperties);
     }
 
     //************************************************************************************
@@ -53,7 +53,7 @@ namespace Kratos
     
     Condition::Pointer PointContactCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {
-        return boost::make_shared<PointContactCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return Kratos::make_shared<PointContactCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************

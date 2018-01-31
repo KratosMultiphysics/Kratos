@@ -593,7 +593,7 @@ public:
             }
             else
             {
-                PropertiesType::Pointer pnew_property = boost::make_shared<PropertiesType>(PropertiesId);
+                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return pnew_property;
             }
@@ -618,7 +618,7 @@ public:
             }
             else
             {
-                PropertiesType::Pointer pnew_property = boost::make_shared<PropertiesType>(PropertiesId);
+                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return *pnew_property;
             }

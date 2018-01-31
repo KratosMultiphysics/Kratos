@@ -60,7 +60,17 @@ def GetDefaultInputParameters():
             "MaxTimeStep"                      : 5e-5,
             "FinalTime"                        : 0.05,
             "ControlTime"                      : 4.0,
-            "NeighbourSearchFrequency"         : 50,                        
+            "NeighbourSearchFrequency"         : 50,   
+            
+            "TestType"                         : false,
+            "ConfinementPressure"              : 0.0,
+            "LoadingVelocityTop"               : -0.10,
+            "LoadingVelocityBot"               : 0.0,
+            "MeshType"                         : "1",
+            "MeshPath"                         : "0",
+            "SpecimenLength"                   : 0.3,
+            "SpecimenDiameter"                 : 0.15,
+            "MeasuringSurface"                 : 0.01767145867644375,                                             
 
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
@@ -97,9 +107,9 @@ def GetDefaultInputParameters():
             "PostAppliedForces"                : false,
             "PostGroupId"                      : false,
             "PostExportId"                     : false,
-            
+                      
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
-
+            
             "problem_name" : "dummy_name.Provide_a_real_one"
             }""")
             
