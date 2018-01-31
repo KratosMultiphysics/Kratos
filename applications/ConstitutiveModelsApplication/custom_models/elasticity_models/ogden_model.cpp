@@ -89,7 +89,7 @@ namespace Kratos
 		MainStresses[i] += (mu_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) ) ) + rBulkModulus * std::log(rVariables.Strain.Invariants.J) ) / (rVariables.Strain.Eigen.Values[i]*rVariables.Strain.Eigen.Values[i]);
 	    }
 
-	    noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors, i);
+	    noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
 	    rStressMatrix += MainStresses[i] * outer_prod(EigenVector,EigenVector);
 	}
 
@@ -391,11 +391,10 @@ namespace Kratos
 		    const double& alpha_p = rModelParameters[p+size];
 		    double f = athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) );
 
-		    StressDerivatives(i,j) += (mu_p * alpha_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( f - std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - std::pow(rVariables.Strain.Eigen.Values[j],alpha_p) + 3.0 * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * this->msIdentityMatrix(i,j) ) / 6.0 + 0.5 * rBulkModulus) / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i]);
+		    StressDerivatives(i,j) += (mu_p * alpha_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( f - std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - std::pow(rVariables.Strain.Eigen.Values[j],alpha_p) + 3.0 * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * this->msIdentityMatrix(i,j) ) / 6.0 + 0.5 * rBulkModulus ) / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i]);
 		
-		    StressDerivatives(i,j) += (mu_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - f ) * this->msIdentityMatrix(i,j) ) / (2.0*rVariables.Strain.Eigen.Values[j]);
+		    StressDerivatives(i,j) -= (mu_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - f ) + rBulkModulus * std::log(rVariables.Strain.Invariants.J) ) * 2.0  / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i]);
 		    
-		    StressDerivatives(i,j) += 0.5 * rBulkModulus / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[j]);
 		}
 	    }
 	

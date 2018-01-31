@@ -13,7 +13,8 @@
 	    "strain_settings":{
 		"description": "shear strain time dependent field",
 		"deformation_gradient" : [ ["1+t*y","t*x",0.0], ["t*y","1+t*x",0.0], [0.0,0.0,1.0] ]
-	    }
+	    },
+	    "stress_measure": "PK2"
 	}
 
     }	        
