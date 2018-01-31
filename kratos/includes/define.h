@@ -330,26 +330,10 @@ namespace Kratos
 /* #define KRATOS_REGISTER_LINEAR_SOLVER_BEGIN \ */
 /* template<class TFunction> ApplyToLinearSolver(String Name){ */
 
-
-
-
 //Print Trace if defined
-//#define KRATOS_PRINT_TRACE
-#ifdef KRATOS_PRINT_TRACE
-
-#define KRATOS_TRACE(A,B) gTrace.Inform(A,B)
-
-#else
-
-#define KRATOS_TRACE(A,B)
-#endif
-
-#define KRATOS_WATCH(variable) \
-  std::cout << #variable << " : " << variable << std::endl;
+#define KRATOS_WATCH(variable) std::cout << #variable << " : " << variable << std::endl;
 
 }  /* namespace Kratos.*/
-
-
 
 #define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
 	Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));
