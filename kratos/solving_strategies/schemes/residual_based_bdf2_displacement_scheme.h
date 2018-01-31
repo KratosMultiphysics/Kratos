@@ -41,35 +41,43 @@ namespace Kratos
 ///@{
 
 /** @brief BDF2 integration scheme (for dynamic problems, displacement based)
- * @details This scheme is designed to solve a system of the type M*d2(un0)/dt2 + D*d(un0)/dt + K*un0 = fext
+ * @details The second order Backward Differentiation Formula (BDF2) method is a two step second order accurate method. 
+ * This scheme is designed to solve a system of the type:
+ *\f[
+ *   \mathbf{M} \frac{d^2(u_{n0})}{dt^2} + \mathbf{D} \frac{d(un0)}{dt} + \mathbf{K} u_{n0} = \mathbf{f}_{ext}
+ * \f]
+ * 
  * If we call:
  * 
- *      an0 the acceleration at the current step
- *      an1 the acceleration one step in the past
- *      an2 the acceleration two steps in the past
- * 
- *      vn0 the velocity at the current step
- *      vn1 the velocity one step in the past
- *      vn2 the velocity two steps in the past
- * 
- *      un0 the displacement at the current step
- *      un1 the displacement one step in the past
- *      un2 the displacement two steps in the past
+ * - Acelerations: 
+ *      -# \f$ a_{n0} \f$ the acceleration at the current step
+ *      -# \f$ a_{n1} \f$ the acceleration one step in the past
+ *      -# \f$ a_{n2} \f$ the acceleration two steps in the past
+ * - Velocities:
+ *     -# \f$ v_{n0} \f$ the velocity at the current step
+ *     -# \f$ v_{n1} \f$ the velocity one step in the past
+ *     -# \f$ v_{n2} \f$ the velocity two steps in the past
+ * - Displacements:
+ *     -# \f$ u_{n0} \f$ the displacement at the current step
+ *     -# \f$ u_{n1} \f$ the displacement one step in the past
+ *     -# \f$ u_{n2} \f$ the displacement two steps in the past
  * 
  * Then we assume:
- *      d(vn0)/dt |tn0 = c0*vn0 + c1*vn1 + c2*vn2 
- *      d(un0)/dt |tn0 = c0*un0 + c1*un1 + c2*un2
+ *  \f[ \frac{d(vn0)}{dt} \|t_{n0} = c_0 v_{n0} + c_1 v_{n1} + c_2 v_{n2} \f]
+ *  \f[ \frac{d(un0)}{dt} \|t_{n0} = c_0 u_{n0} + c_1 u_{n1} + c_2 u_{n2} \f]
  * with:
- *      c0 = 1.5/dt
- *      c1 = -2.0/dt
- *      c2 = 0.5/dt 
+ *  -# \f$ c_0 = \frac{1.5}{dt} \f$ 
+ *  -# \f$ c_1 = \frac{-2.0}{dt} \f$ 
+ *  -# \f$ c_2 = \frac{0.5}{dt} \f$  
  * 
  * The LHS and RHS can be defined as:
- *      RHS = fext - M*d(vn0)/dt - D*d(un0)/dt - K*dn0
+ *      \f[ RHS = \mathbf{f}_{ext} - \mathbf{M} \frac{d(v_{n0})}{dt} - \mathbf{D} \frac{d(u_{n0})}{dt} - \mathbf{K} u_{n0} \f]
  * and 
- *      LHS = d(-RHS)/d(un0) = c0*c0*M + c0*D + K
+ *      \f[ LHS = \frac{d(-RHS)}{d(u_{n0})} = c_0^2 \mathbf{M} + c_0 \mathbf{D} + K \f]
  * @note This implies that elements are expected to be written in terms 
  * of unknown DISPLACEMENTS
+ * <a href="https://mediatum.ub.tum.de/doc/1223319/80942.pdf">Main reference</a> 
+ * @todo Create a BibTeX file https://www.stack.nl/~dimitri/doxygen/manual/commands.html#cmdcite
  */
 template<class TSparseSpace,  class TDenseSpace >
 class ResidualBasedBDF2DisplacementScheme
