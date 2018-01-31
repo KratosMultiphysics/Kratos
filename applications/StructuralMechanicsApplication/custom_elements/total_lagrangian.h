@@ -49,7 +49,7 @@ namespace Kratos
  * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
  */
 
-class TotalLagrangian
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
     : public BaseSolidElement
 {
 public:
