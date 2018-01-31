@@ -30,7 +30,8 @@ class PfemDynamicMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
 
     def _create_solution_scheme(self):
         
-        scheme_type = self.settings["scheme_type"].GetString()
+        #scheme_type = self.settings["solver_type"].GetString()
+	#integration_method = self.time_integration_settings["integration_method"].GetString()
         
 #        beta = self.settings["beta"].GetDouble()
         damp_factor_m = 0.0
