@@ -17,6 +17,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <unordered_map>
 
 // External includes
 #include <boost/functional/hash.hpp> //TODO: remove this dependence when Kratos has en internal one
@@ -27,6 +28,7 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "utilities/divide_geometry.h"
+#include "modified_shape_functions/modified_shape_functions.h"
 
 // Application includes
 
@@ -51,25 +53,19 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-struct KeyComparor {
-    bool operator()(const vector<int> &lhs, const vector<int> &rhs) const {
-        if (lhs.size() != rhs.size()){
+struct NodeKeyComparor {
+    bool operator()(const Node<3>::Pointer& p_lhs, const Node<3>::Pointer& p_rhs) const {
+        if (p_lhs->Id() != p_rhs->Id()){
             return false;
-        }
-
-        for (unsigned int i = 0; i < lhs.size(); i++){
-            if (lhs[i] != rhs[i]){
-                return false;
-            }
         }
 
         return true;
     }
 };
 
-struct KeyHasher {
-    std::size_t operator()(const vector<int> &k) const {
-        return boost::hash_range(k.begin(), k.end());
+struct NodeKeyHasher {
+    std::size_t operator()(const Node<3>::Pointer& k) const {
+        return k->Id();
     }
 };
 
@@ -80,7 +76,11 @@ struct KeyHasher {
 /// This process saves the intersected elements in a different model part for its visualization.
 /** For a given model part, this process checks if its elements are intersected. If they are, 
  *  calls the corresponding splitting utility to get the subgeometries that conform the splitting
- *  pattern. Then, it saves the such subgeometries in another model part for its visualization.
+ *  pattern. Then, it saves that subgeometries in another model part for its visualization.
+ * 
+ *  It has to be mentioned that all the origin model part nodes are kept. Then, the unique nodes
+ *  that are created are that ones in the intersection edge points.
+ * 
  *  Finally, the values in the visualization model part are computed using the corresponding 
  *  modify shape functions utility. 
  */
@@ -93,18 +93,24 @@ public:
     /// Pointer definition of EmbeddedSkinVisualizationProcess
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedSkinVisualizationProcess);
 
+    typedef std::unordered_map< Node<3>::Pointer, std::tuple< const Node<3>::Pointer, const Node<3>::Pointer, const double, const double >, NodeKeyHasher, NodeKeyComparor > CutNodesMapType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
     EmbeddedSkinVisualizationProcess(
-        const ModelPart& rModelPart,
-        ModelPart& rVisualizationModelPart);
+        ModelPart& rModelPart,
+        ModelPart& rVisualizationModelPart,
+        const std::vector<Variable< double> > VisualizationScalarVariables,
+        const std::vector<Variable< array_1d<double, 3> > > VisualizationVectorVariables,
+        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > > VisualizationComponentVariables,
+        const std::string ShapeFunctions = "standard");
 
     /// Constructor with Kratos parameters.
     EmbeddedSkinVisualizationProcess(
-        const ModelPart& rModelPart,
+        ModelPart& rModelPart,
         ModelPart& rVisualizationModelPart,
         Parameters& rParameters);
 
@@ -125,7 +131,9 @@ public:
 
     void ExecuteInitialize() override;
 
-    void ExecuteAfterOutputStep() override;
+    void ExecuteInitializeSolutionStep() override;
+
+    void ExecuteBeforeOutputStep() override;
 
     ///@}
     ///@name Inquiry
@@ -164,8 +172,20 @@ private:
     ///@name Member Variables
     ///@{
 
-    const ModelPart&        mrModelPart;
-    ModelPart&              mrVisualizationModelPart;
+    ModelPart&                                                                          mrModelPart;
+    ModelPart&                                                                          mrVisualizationModelPart;
+
+    CutNodesMapType                                                                     mCutNodesMap;
+
+    std::vector<unsigned int>                                                           mNewElementsIds;
+
+    std::vector<Variable< double> >                                                     mVisualizationScalarVariables;
+    std::vector<Variable< array_1d<double, 3> > >                                       mVisualizationVectorVariables;
+    std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >    mVisualizationComponentVariables;
+
+    std::string                                                                         mShapeFunctions;
+
+    bool                                                                                mMeshCreationWasPerformed = false;
 
     ///@}
     ///@name Protected Operators
@@ -176,8 +196,15 @@ private:
     ///@name Private Operations
     ///@{
 
-    DivideGeometry::Pointer GetGeometrySplitUtility(
-        const Geometry<Node<3>> &rGeometry,
+    const bool ElementIsSplit(
+        Geometry<Node<3>>::Pointer pGeometry,
+        Vector& rNodalDistances);
+
+    const bool ElementIsPositive(
+        Geometry<Node<3>>::Pointer pGeometry);
+
+    ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
+        const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
     ///@}
