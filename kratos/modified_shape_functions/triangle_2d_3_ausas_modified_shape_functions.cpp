@@ -351,4 +351,50 @@ void Triangle2D3AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNorm
     }
 };
 
+// Computes the positive side shape function values in the edges intersections
+void Triangle2D3AusasModifiedShapeFunctions::ComputeShapeFunctionsOnPositiveEdgeIntersections(
+    Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues){
+
+    if (this->IsSplit()) {
+        // Get the positive side condensation matrix
+         Matrix p_matrix_pos_side;
+        this->SetPositiveSideCondensationMatrix(
+            p_matrix_pos_side,
+            mpTriangleSplitter->mEdgeNodeI,
+            mpTriangleSplitter->mEdgeNodeJ,
+            mpTriangleSplitter->mSplitEdges);
+
+        // Compute the edge intersections shape function values
+        this->ComputeEdgeIntersectionValuesOnOneSide(
+            p_matrix_pos_side,
+            rPositiveEdgeIntersectionsShapeFunctionsValues);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputeShapeFunctionsOnPositiveEdgeIntersections method for a non divided geometry.";
+    }
+};
+
+// Computes the negative side shape function values in the edges intersections
+void Triangle2D3AusasModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeIntersections(
+    Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues){
+
+    if (this->IsSplit()) {
+        // Get the positive side condensation matrix
+        Matrix p_matrix_neg_side;
+        this->SetNegativeSideCondensationMatrix(
+            p_matrix_neg_side,
+            mpTriangleSplitter->mEdgeNodeI,
+            mpTriangleSplitter->mEdgeNodeJ,
+            mpTriangleSplitter->mSplitEdges);
+
+        // Compute the edge intersections shape function values
+        this->ComputeEdgeIntersectionValuesOnOneSide(
+            p_matrix_neg_side,
+            rNegativeEdgeIntersectionsShapeFunctionsValues);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputeShapeFunctionsOnNegativeEdgeIntersections method for a non divided geometry.";
+    }
+};
+
 }; //namespace Kratos

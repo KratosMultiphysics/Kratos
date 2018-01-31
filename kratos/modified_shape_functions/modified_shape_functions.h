@@ -242,6 +242,22 @@ public:
         const IntegrationMethodType IntegrationMethod) = 0;
 
     /**
+    * Returns the positive side edge intersections shape function values.
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * containing the positive side edge intersection shape function values.
+    */
+    virtual void ComputeShapeFunctionsOnPositiveEdgeIntersections(
+        Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues) = 0;
+
+    /**
+    * Returns the negative side edge intersections shape function values.
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * containing the negative side edge intersection shape function values.
+    */
+    virtual void ComputeShapeFunctionsOnNegativeEdgeIntersections(
+        Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues) = 0;
+
+    /**
     * Returns true if the element is split and false otherwise.
     */
     virtual bool IsSplit() = 0;
@@ -327,6 +343,15 @@ protected:
         std::vector<Vector> &rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod);
+
+    /**
+    * Given a condensation matrix, extracts the edge intersection points shape function values.
+    * @param rPmatrix Reference to the condensation matrix.
+    * @return rEdgeShapeFunctionValues Reference to the matrix containing the shape function values.
+    */
+    virtual void ComputeEdgeIntersectionValuesOnOneSide(
+        const Matrix &rPmatrix,
+        Matrix &rEdgeShapeFunctionValues);
 
     ///@}
     ///@name Protected  Access

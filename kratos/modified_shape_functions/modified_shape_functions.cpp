@@ -338,4 +338,27 @@ namespace Kratos
             }
         }
     };
+
+    // Computes the edge intersection shape function values for either the positive or negative sides
+    void ModifiedShapeFunctions::ComputeEdgeIntersectionValuesOnOneSide(
+        const Matrix &rPmatrix,
+        Matrix &rEdgeShapeFunctionValues){
+
+        // Get geometry information
+        GeometryPointerType p_input_geometry = this->GetInputGeometry();
+        const unsigned int n_edges = p_input_geometry->EdgesNumber();
+        const unsigned int n_nodes = p_input_geometry->PointsNumber();
+
+        // Initialize the output matrix. Note that the non-split edges values must be equal to zero
+        rEdgeShapeFunctionValues = ZeroMatrix(n_edges, n_nodes);
+        
+        // Take the shape function values from the condensation matrix
+        for (unsigned int i_edge = 0; i_edge < n_edges; ++i_edge){
+            const unsigned int p_mat_row = n_nodes + i_edge;
+            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+                rEdgeShapeFunctionValues(i_edge, i_node) = rPmatrix(p_mat_row, i_node);
+            }
+        }
+    };
+
 }; // namespace Kratos

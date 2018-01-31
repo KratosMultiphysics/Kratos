@@ -343,4 +343,40 @@ void Triangle2D3ModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNormals(
     }
 };
 
+// Computes the positive side shape function values in the edges intersections
+void Triangle2D3ModifiedShapeFunctions::ComputeShapeFunctionsOnPositiveEdgeIntersections(
+    Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues){
+
+    if (this->IsSplit()) {
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(
+            p_matrix,
+            mpTriangleSplitter->mEdgeNodeI,
+            mpTriangleSplitter->mEdgeNodeJ,
+            mpTriangleSplitter->mSplitEdges);
+
+        // Compute the edge intersections shape function values
+        this->ComputeEdgeIntersectionValuesOnOneSide(
+            p_matrix,
+            rPositiveEdgeIntersectionsShapeFunctionsValues);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputeShapeFunctionsOnPositiveEdgeIntersections method for a non divided geometry.";
+    }
+};
+
+// Computes the negative side shape function values in the edges intersections
+void Triangle2D3ModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeIntersections(
+    Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues){
+    
+    if (this->IsSplit()) {
+        // Note that positive and negative sides values are equal for standard shape functions
+        this->ComputeShapeFunctionsOnPositiveEdgeIntersections(
+            rNegativeEdgeIntersectionsShapeFunctionsValues);
+    } else {
+        KRATOS_ERROR << "Using the ComputeShapeFunctionsOnNegativeEdgeIntersections method for a non divided geometry.";
+    }
+};
+
 }; //namespace Kratos

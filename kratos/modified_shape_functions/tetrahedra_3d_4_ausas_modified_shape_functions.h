@@ -231,6 +231,24 @@ public:
         const IntegrationMethodType IntegrationMethod) override;
 
     /**
+    * Returns the positive side edge intersections shape function values.
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * containing the positive side edge intersection shape function values. For non-split edges,
+    * the corresponding row is plenty of zeros.
+    */
+    void ComputeShapeFunctionsOnPositiveEdgeIntersections(
+        Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues) override;
+
+    /**
+    * Returns the negative side edge intersections shape function values.
+    * @return rPositiveEdgeIntersectionsShapeFunctionsValues A matrix, which size is edges x nodes, 
+    * containing the negative side edge intersection shape function values. For non-split edges,
+    * the corresponding row is plenty of zeros.
+    */
+    void ComputeShapeFunctionsOnNegativeEdgeIntersections(
+        Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues) override;
+
+    /**
     * Returns true if the element is split and false otherwise.
     */
     bool IsSplit() override;
