@@ -121,11 +121,11 @@ from NightlyTests import ShellQ4ThinNonLinearDynamicTests as TShellQ4ThinNonLine
 from NightlyTests import ShellQ4ThinOrthotropicLaminateLinearStaticTests as TShellQ4ThinOrthotropicLaminateLinearStaticTests
 
 # CL tests
-#from NightlyTests import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
+from NightlyTests import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
 
 ##### VALIDATION TESTS #####
 # SPRISM tests
-#from ValidationTests import SprismPanTests              as TSprismPanTests
+from ValidationTests import SprismPanTests              as TSprismPanTests
 # Pendulus Tests with Solid Elements
 from ValidationTests import PendulusTLTest              as TPendulusTLTest
 from ValidationTests import PendulusULTest              as TPendulusULTest
@@ -153,8 +153,9 @@ def AssambleTestSuites():
     nightSuite = suites['nightly'] # These tests are executed in the nightly build
 
     ### Adding the self-contained tests
-    #Solids
+    # Constitutive Law tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
+    # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
@@ -167,13 +168,13 @@ def AssambleTestSuites():
     # Beams
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N])) # TODO should be in smallSuite but is too slow
-    # Test loading conditions
+    # Loading Conditions
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsSurface]))
-    # Nodal damping test
+    # Nodal Damping
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
-    # Multipoint constraint tests
+    # Multipoint Constraint
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
     
     ### Adding Small Tests
@@ -242,8 +243,7 @@ def AssambleTestSuites():
     nightSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
     nightSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
-    
-    # CL tests
+    # Constitutive Law tests
     #nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
 
     if (missing_external_dependencies == False):
@@ -265,7 +265,7 @@ def AssambleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
     # SPRISM tests
-    ####validationSuite.addTest(TSprismPanTests('test_execution'))
+    ####validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
     validationSuite.addTest(TPendulusTLTest('test_execution'))
     validationSuite.addTest(TPendulusULTest('test_execution'))
     validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
