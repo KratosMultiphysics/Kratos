@@ -108,7 +108,6 @@
             "design_variables_type"              : "vertex_morphing",
             "optimization_model_part_name"       : "3D_Hook",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 30.0,
@@ -116,7 +115,7 @@
                 "matrix_free_filtering"      : true
             },
             "mesh_motion" : {
-                "move_mesh_according_to_shape_update" : true,
+                "move_entire_optimization_model_part" : true,
                 "mesh_solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
                     "ale_linear_solver_settings"  : {

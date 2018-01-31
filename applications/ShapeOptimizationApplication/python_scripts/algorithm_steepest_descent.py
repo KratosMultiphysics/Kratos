@@ -49,8 +49,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.initialStepSize = OptimizationSettings["line_search"]["step_size"].GetDouble()
         self.performDamping = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
-        self.geometryTools = GeometryUtilities( DesignSurface )
-        self.optimizationTools = OptimizationUtilities( DesignSurface, OptimizationSettings )
+        self.GeometryUtilities = GeometryUtilities( DesignSurface )
+        self.OptimizationUtilities = OptimizationUtilities( DesignSurface, OptimizationSettings )
         if self.performDamping:
             self.dampingUtilities = DampingUtilities( DesignSurface, DampingRegions, self.OptimizationSettings )
             
@@ -130,8 +130,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __alignSensitivitiesToLocalSurfaceNormal( self ):
-            self.geometryTools.ComputeUnitSurfaceNormals()
-            self.geometryTools.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
+            self.GeometryUtilities.ComputeUnitSurfaceNormals()
+            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
@@ -140,8 +140,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __computeShapeUpdate( self ):
         self.__mapSensitivitiesToDesignSpace()
-        self.optimizationTools.ComputeSearchDirectionSteepestDescent()
-        self.optimizationTools.ComputeControlPointUpdate()
+        self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
+        self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
         self.__determineAbsoluteChanges()
 
@@ -196,7 +196,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __updateMesh( self ):
-        self.MeshControler.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
-        self.MeshControler.ResetReferenceMeshToCurrentShape()
+        self.MeshController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
+        self.MeshController.SetCurrentMeshAsNewReference()
 
 # ==============================================================================

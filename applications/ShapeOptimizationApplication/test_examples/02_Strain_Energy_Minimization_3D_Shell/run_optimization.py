@@ -123,11 +123,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             self.initializeNewSolutionStep( optimizationIteration )
 
-            print("\n> Starting to update the mesh")
-            startTime = timer.time()
-            self.updateMeshForAnalysis( currentDesign )
-            print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
-
             print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
             self.solveStructure( optimizationIteration )
@@ -158,13 +153,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     # --------------------------------------------------------------------------
     def initializeNewSolutionStep( self, optimizationIteration ):
         main_model_part.CloneTimeStep( optimizationIteration )
-
-    # --------------------------------------------------------------------------
-    def updateMeshForAnalysis( self, currentDesign ):
-        for node in currentDesign.Nodes:
-            node.X0 = node.X0 + node.GetSolutionStepValue(SHAPE_UPDATE_X)
-            node.Y0 = node.Y0 + node.GetSolutionStepValue(SHAPE_UPDATE_Y)
-            node.Z0 = node.Z0 + node.GetSolutionStepValue(SHAPE_UPDATE_Z)
 
     # --------------------------------------------------------------------------
     def solveStructure( self, optimizationIteration ): 

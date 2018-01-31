@@ -23,6 +23,7 @@ import timer_factory
 import algorithm_factory
 # import analyzer_factory
 import communicator_factory
+import mesh_controller_factory
 
 # ==============================================================================
 def CreateOptimizer( OptimizationModelPart, OptimizationSettings ):
@@ -40,14 +41,14 @@ class VertexMorphingMethod:
         self.OptimizationModelPart = OptimizationModelPart
         self.OptimizationSettings = OptimizationSettings
 
-        self.__CreateAnalyzerIfSpecified()
+        self.__CreateKratosSpecificAnalyzerIfSpecified()
         self.__CreateCommunicator()
         self.__CreateMeshController()
 
         self.__addVariablesNeededForOptimization()
 
     # --------------------------------------------------------------------------
-    def __CreateAnalyzerIfSpecified( self ):
+    def __CreateKratosSpecificAnalyzerIfSpecified( self ):
         if self.__IsInternalAnalyzerSpecified():
             # If some use kratos is defined, the use analyzer templates
             pass
@@ -55,25 +56,16 @@ class VertexMorphingMethod:
             self.Analyzer = None
 
     # --------------------------------------------------------------------------
+    def __IsInternalAnalyzerSpecified( self ):
+        return False
+
+    # --------------------------------------------------------------------------
     def __CreateCommunicator( self ):
         self.Communicator = communicator_factory.CreateCommunicator( self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
     def __CreateMeshController( self ):
-        if self.__IsInternalMeshSolverSpecified():
-            import mesh_controller_factory
-            MeshSolverSettings = self.OptimizationSettings["design_variables"]["mesh_motion"]["mesh_solver_settings"]
-            self.MeshController = mesh_controller_factory.CreateMeshController( self.OptimizationModelPart, MeshSolverSettings )
-        else:
-            self.MeshController= None
-
-    # --------------------------------------------------------------------------
-    def __IsInternalAnalyzerSpecified( self ):
-        return False
-
-    # --------------------------------------------------------------------------
-    def __IsInternalMeshSolverSpecified( self ):
-        return self.OptimizationSettings["design_variables"]["mesh_motion"]["move_mesh_according_to_shape_update"].GetBool()
+        self.MeshController = mesh_controller_factory.CreateMeshController( self.OptimizationModelPart, self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
     def __addVariablesNeededForOptimization( self ):
@@ -91,15 +83,12 @@ class VertexMorphingMethod:
         self.OptimizationModelPart.AddNodalSolutionStepVariable(SHAPE_UPDATE) 
         self.OptimizationModelPart.AddNodalSolutionStepVariable(SHAPE_CHANGE)
         self.OptimizationModelPart.AddNodalSolutionStepVariable(MESH_CHANGE)        
-        if self.__IsInternalMeshSolverSpecified():
-            self.MeshController.AddVariables() 
 
     # --------------------------------------------------------------------------
     def importModelPart( self ):
         model_part_io = ModelPartIO( self.OptimizationSettings["design_variables"]["optimization_model_part_name"].GetString() )
         model_part_io.ReadModelPart( self.OptimizationModelPart )
-        buffer_size = 1
-        self.OptimizationModelPart.SetBufferSize( buffer_size )
+        self.OptimizationModelPart.SetBufferSize( 1 )
         self.OptimizationModelPart.ProcessInfo.SetValue( DOMAIN_SIZE, self.OptimizationSettings["design_variables"]["domain_size"].GetInt() )
 
     # --------------------------------------------------------------------------
