@@ -13,8 +13,8 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED )
-#define  KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED
+#if !defined(KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED )
+#define  KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED
 
 // System includes
 
@@ -26,6 +26,8 @@
 
 namespace Kratos
 {
+///@addtogroup ApplicationNameApplication
+///@{
 
 ///@name Kratos Globals
 ///@{
@@ -45,36 +47,37 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/// Nearest Neighbor Mapper
-/** This class implements the Nearest Neighbor Mapping technique.
-* Each node on the destination side gets assigned is's closest neighbor on the other side of the interface.
-* In the mapping phase every node gets assigned the value of it's neighbor
+
+/// Interpolative Mapper
+/** This class implements the Nearest Element Mapping technique.
+* Each node on the destination side gets assigned is's closest condition or element (distance to center) 
+* on the other side of the interface.
+* In the mapping phase every node gets assigned the interpolated value of the condition/element.
+* The interpolation is done with the shape funcitons
 * For information abt the available echo_levels and the JSON default-parameters
 * look into the class description of the MapperCommunicator
 */
-
-class NearestNeighborMapper : public Mapper
+class NearestElementMapper : public Mapper
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
-    ///@}
-    ///@name Pointer Definitions
-    /// Pointer definition of NearestNeighborMapper
-    KRATOS_CLASS_POINTER_DEFINITION(NearestNeighborMapper);
+    /// Pointer definition of NearestElementMapper
+    KRATOS_CLASS_POINTER_DEFINITION(NearestElementMapper);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    NearestNeighborMapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
-                          Parameters JsonParameters) : Mapper(
-                                  rModelPartOrigin, rModelPartDestination, JsonParameters)
+    NearestElementMapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination) : Mapper(
+                         rModelPartOrigin, rModelPartDestination) {}
+
+    NearestElementMapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination,
+                         Parameters JsonParameters) : Mapper(
+                                 rModelPartOrigin, rModelPartDestination, JsonParameters)
     {
-        mpMapperCommunicator->InitializeOrigin(MapperUtilities::Node_Coords);
+        mpMapperCommunicator->InitializeOrigin(MapperUtilities::Condition_Center);
         mpMapperCommunicator->InitializeDestination(MapperUtilities::Node_Coords);
         mpMapperCommunicator->Initialize();
 
@@ -82,11 +85,13 @@ public:
     }
 
     /// Destructor.
-    virtual ~NearestNeighborMapper() { }
+    virtual ~NearestElementMapper() { }
+
 
     ///@}
     ///@name Operators
     ///@{
+
 
     ///@}
     ///@name Operations
@@ -123,7 +128,7 @@ public:
         ProcessMappingOptions(MappingOptions, factor);
 
         // Creating the function pointers for the InterfaceObjects
-        auto function_pointer_origin = std::bind(&GetValueOfNode<double>,
+        auto function_pointer_origin = std::bind(&GetInterpolatedValueFromGeometryScalar,
                                        std::placeholders::_1,
                                        rOriginVariable,
                                        MappingOptions,
@@ -158,7 +163,7 @@ public:
         ProcessMappingOptions(MappingOptions, factor);
 
         // Creating the function pointers for the InterfaceObjects
-        auto function_pointer_origin = std::bind(&GetValueOfNode< array_1d<double, 3> >,
+        auto function_pointer_origin = std::bind(&GetInterpolatedValueFromGeometryVector,
                                        std::placeholders::_1,
                                        rOriginVariable,
                                        MappingOptions,
@@ -185,9 +190,9 @@ public:
         // It is constructed with the order of the model_parts changed!
         if (!mpInverseMapper)
         {
-            mpInverseMapper = Mapper::Pointer( new NearestNeighborMapper(mModelPartDestination,
-                                               mModelPartOrigin,
-                                               mJsonParameters) );
+            mpInverseMapper = this->Clone(mModelPartDestination,
+                                          mModelPartOrigin,
+                                          mJsonParameters);
         }
         mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
     }
@@ -201,20 +206,32 @@ public:
         // It is constructed with the order of the model_parts changed!
         if (!mpInverseMapper)
         {
-            mpInverseMapper = Mapper::Pointer( new NearestNeighborMapper(mModelPartDestination,
-                                               mModelPartOrigin,
-                                               mJsonParameters) );
+            mpInverseMapper = this->Clone(mModelPartDestination,
+                                          mModelPartOrigin,
+                                          mJsonParameters);
         }
         mpInverseMapper->Map(rDestinationVariable, rOriginVariable, MappingOptions);
     }
+
+    Mapper::Pointer Clone(ModelPart& rModelPartOrigin,
+                          ModelPart& rModelPartDestination,
+                          Parameters JsonParameters) override
+    {
+        return Kratos::make_shared<NearestElementMapper>(rModelPartOrigin,
+                                                         rModelPartDestination,
+                                                         JsonParameters);
+    }
+
 
     ///@}
     ///@name Access
     ///@{
 
+
     ///@}
     ///@name Inquiry
     ///@{
+
 
     ///@}
     ///@name Input and output
@@ -223,61 +240,69 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const override
     {
-        return "NearestNeighborMapper";
+        std::stringstream buffer;
+        buffer << "NearestElementMapper" ;
+        return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "NearestNeighborMapper";
+        rOStream << "NearestElementMapper";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    virtual void PrintData(std::ostream& rOStream) const override {}
+
 
     ///@}
     ///@name Friends
     ///@{
 
+
     ///@}
 
 protected:
-
     ///@name Protected static Member Variables
     ///@{
+
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
+
     ///@}
     ///@name Protected Operators
     ///@{
+
 
     ///@}
     ///@name Protected Operations
     ///@{
 
+
     ///@}
     ///@name Protected  Access
     ///@{
+
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
+
     ///@}
 
 private:
-
     ///@name Static Member Variables
     ///@{
+
 
     ///@}
     ///@name Member Variables
@@ -289,20 +314,47 @@ private:
     ///@name Private Operators
     ///@{
 
+
     ///@}
     ///@name Private Operations
     ///@{
 
-    template <typename T>
-    static T GetValueOfNode(InterfaceObject* pInterfaceObject, //TODO const
-                            const Variable< T >& rVariable,
-                            const Kratos::Flags& rOptions,
-                            const std::vector<double>& rShapeFunctionValues)
+    static double GetInterpolatedValueFromGeometryScalar(InterfaceObject* pInterfaceObject, //TODO const
+            const Variable<double>& rVariable,
+            const Kratos::Flags& rOptions,
+            const std::vector<double>& rShapeFunctionValues)
     {
-        Node<3>* p_base_node = static_cast<InterfaceNode*>(pInterfaceObject)->pGetBase();
-        KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+        Geometry<Node<3>>* p_base_geometry = static_cast<InterfaceGeometryObject*>(pInterfaceObject)->pGetBase();
+        KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
 
-        return p_base_node->FastGetSolutionStepValue(rVariable);
+        double interpolated_value = 0.0f;
+
+        for (std::size_t i = 0; i < p_base_geometry->PointsNumber(); ++i)
+        {
+            interpolated_value += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable) * rShapeFunctionValues[i];
+        }
+        return interpolated_value;
+    }
+
+    static array_1d<double, 3> GetInterpolatedValueFromGeometryVector(InterfaceObject* pInterfaceObject, //TODO const
+            const Variable< array_1d<double, 3> >& rVariable,
+            const Kratos::Flags& rOptions,
+            const std::vector<double>& rShapeFunctionValues)
+    {
+        Geometry<Node<3>>* p_base_geometry = static_cast<InterfaceGeometryObject*>(pInterfaceObject)->pGetBase();
+        KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
+
+        array_1d<double, 3> interpolated_value;
+        interpolated_value[0] = 0.0f;
+        interpolated_value[1] = 0.0f;
+        interpolated_value[2] = 0.0f;
+        for (std::size_t i = 0; i < p_base_geometry->PointsNumber(); ++i)
+        {
+            interpolated_value[0] += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[0] * rShapeFunctionValues[i];
+            interpolated_value[1] += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[1] * rShapeFunctionValues[i];
+            interpolated_value[2] += p_base_geometry->GetPoint(i).FastGetSolutionStepValue(rVariable)[2] * rShapeFunctionValues[i];
+        }
+        return interpolated_value;
     }
 
 
@@ -330,23 +382,28 @@ private:
     ///@name Private  Access
     ///@{
 
+
     ///@}
     ///@name Private Inquiry
     ///@{
+
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    NearestNeighborMapper& operator=(NearestNeighborMapper const& rOther);
+    NearestElementMapper& operator=(NearestElementMapper const& rOther);
 
-    /// Copy constructor.
-    //NearestNeighborMapper(NearestNeighborMapper const& rOther);
+    //   /// Copy constructor.
+    //   NearestElementMapper(NearestElementMapper const& rOther){}
+
 
     ///@}
 
-}; // Class NearestNeighborMapper
+}; // Class NearestElementMapper
+
+///@}
 
 ///@name Type Definitions
 ///@{
@@ -358,18 +415,15 @@ private:
 
 
 /// input stream function
-
-
-inline std::istream & operator >>(std::istream& rIStream,
-                                  NearestNeighborMapper& rThis)
+inline std::istream& operator >> (std::istream& rIStream,
+                                  NearestElementMapper& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-
-inline std::ostream & operator <<(std::ostream& rOStream,
-                                  const NearestNeighborMapper& rThis)
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const NearestElementMapper& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -380,6 +434,7 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 
 ///@} addtogroup block
+
 }  // namespace Kratos.
 
-#endif // KRATOS_NEAREST_NEIGHBOR_MAPPER_H_INCLUDED  defined
+#endif // KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED  defined

@@ -22,14 +22,14 @@
 
 // Project includes
 #include "includes/define.h"
-#include "mapper_communicator.h"
-#include "mapper_utilities.h"
-#include "mapper_flags.h"
+#include "custom_utilities/mapper_communicator.h"
+#include "custom_utilities/mapper_utilities.h"
+#include "custom_utilities/mapper_flags.h"
 
 // For MPI-parallel Mapper
 #ifdef KRATOS_USING_MPI
 #include "mpi.h"
-#include "mapper_mpi_communicator.h"
+#include "custom_utilities/mapper_mpi_communicator.h"
 #endif
 
 
@@ -84,6 +84,10 @@ public:
     ///@name Life Cycle
     ///@{
 
+    Mapper(ModelPart& rModelPartOrigin, ModelPart& rModelPartDestination) :
+        mModelPartOrigin(rModelPartOrigin),
+        mModelPartDestination(rModelPartDestination),
+        mJsonParameters(Parameters(R"({})")) {}
 
     /// Destructor.
     virtual ~Mapper()
@@ -119,6 +123,10 @@ public:
     virtual void InverseMap(const Variable< array_1d<double, 3> >& rOriginVariable,
                             const Variable< array_1d<double, 3> >& rDestinationVariable,
                             Kratos::Flags MappingOptions) = 0;
+
+    virtual Mapper::Pointer Clone(ModelPart& rModelPartOrigin, 
+                                  ModelPart& rModelPartDestination,
+                                  Parameters JsonParameters) = 0;
 
     MapperCommunicator::Pointer pGetMapperCommunicator()
     {
@@ -199,7 +207,6 @@ protected:
         mModelPartDestination(rModelPartDestination),
         mJsonParameters(JsonParameters)
     {
-
         ComputeNumberOfNodesAndConditions();
 
         // Create the mapper communicator
