@@ -92,7 +92,7 @@ class EigensystemSolver
         using scalar_t = double;
         using vector_t = Eigen::VectorXd;
         using matrix_t = Eigen::MatrixXd;
-        
+
         // --- get settings
 
         const int nroot = mParam["number_of_eigenvalues"].GetInt();
@@ -139,7 +139,7 @@ class EigensystemSolver
 
         vector_t tmp(nn);
 
-        // woaing vector
+        // working vector
         vector_t w(nn);
         for (int i = 0; i != nn; ++i) {
             w(i) = r(i, 0) / a.coeff(i, i);
@@ -177,7 +177,7 @@ class EigensystemSolver
 
             r(ij, j) = 1.0;
         }
-       
+
         typename TSolver::TSolver solver;
         solver.compute(a);
 
@@ -238,7 +238,7 @@ class EigensystemSolver
                     }
                 }
             }
-            
+
             if (is_converged) {
                 if (echo_level > 0) {
                     std::cout << "EigensystemSolver: Convergence reached after " << iteration << " iterations within a relative tolerance: " << tolerance << std::endl;
