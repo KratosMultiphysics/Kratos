@@ -532,7 +532,182 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
+
+  void HyperElasticModel::CalculateScalingFactors(HyperElasticDataType& rVariables)
+  {
+    KRATOS_TRY
+
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
+
+    KRATOS_CATCH(" ")
+  }
+    
+  //************************************************************************************
+  //************************************************************************************
+
   
+  //************// right cauchy green: C
+    
+  HyperElasticModel::MatrixType& HyperElasticModel::GetJRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative) //dJ/dC
+  {
+    KRATOS_TRY
+	
+    noalias(rDerivative) = rStrain.InverseMatrix;
+    rDerivative *= rStrain.Invariants.J * 0.5;
+	
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+
+    
+  double& HyperElasticModel::GetJRightCauchyGreen1stDerivative(const StrainData& rStrain,
+							       double& rDerivative,
+							       const double& a,
+							       const double& b) ///dJ/dC
+  {
+    KRATOS_TRY
+	
+    rDerivative = 0.5 * rStrain.Invariants.J * rStrain.InverseMatrix(a,b);
+	
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+
+  double& HyperElasticModel::GetJRightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
+								     double& rDerivative,
+								     const double& a,
+								     const double& b,
+								     const double& c,
+								     const double& d) //dJ/dC * dJ/dC
+  {
+    KRATOS_TRY
+	
+    rDerivative  = 0.5 * rStrain.Invariants.J * rStrain.InverseMatrix(a,b);
+    rDerivative *= (0.5 * rStrain.Invariants.J * rStrain.InverseMatrix(c,d));
+	
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+
+
+  double& HyperElasticModel::GetJRightCauchyGreen2ndDerivative(const StrainData& rStrain,
+							       double& rDerivative,
+							       const double& a,
+							       const double& b,
+							       const double& c,
+							       const double& d) //ddJ/dCdC
+  {
+    KRATOS_TRY
+
+    rDerivative  = (-1) * ConstitutiveModelUtilities::CalculateFourthOrderTensor(rStrain.InverseMatrix,rDerivative,a,b,c,d);
+    rDerivative += 0.5 * rStrain.InverseMatrix(a,b)*rStrain.InverseMatrix(c,d);
+    rDerivative *= 0.5 * rStrain.Invariants.J;
+	
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+    
+  //************// left cauchy green : b
+
+  HyperElasticModel::MatrixType& HyperElasticModel::GetJLeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative) //dJ/db
+  {
+    KRATOS_TRY
+	
+    noalias(rDerivative)  = this->msIdentityMatrix;
+    rDerivative *= rStrain.Invariants.J * 0.5;
+	
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+    
+  double& HyperElasticModel::GetJLeftCauchyGreen1stDerivative(const StrainData& rStrain,
+							      double& rDerivative,
+							      const double& a,
+							      const double& b) //dJ/db
+  {
+    KRATOS_TRY
+	
+    rDerivative  = 0.5 * rStrain.Invariants.J * this->msIdentityMatrix(a,b);
+	
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+
+
+  double& HyperElasticModel::GetJLeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
+								    double& rDerivative,
+								    const double& a,
+								    const double& b,
+								    const double& c,
+								    const double& d) //dJ/db * dJ/db
+  {
+    KRATOS_TRY
+
+    rDerivative  = 0.5 * rStrain.Invariants.J * this->msIdentityMatrix(a,b);
+    rDerivative *= (0.5 * rStrain.Invariants.J * this->msIdentityMatrix(c,d));
+	
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+
+  double& HyperElasticModel::GetJLeftCauchyGreen2ndDerivative(const StrainData& rStrain,
+							      double& rDerivative,
+							      const double& a,
+							      const double& b,
+							      const double& c,
+							      const double& d) //ddJ/dbdb
+  {
+    KRATOS_TRY      
+
+    rDerivative  = (-1.0) * ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,rDerivative,a,b,c,d);
+    rDerivative += 0.5 * this->msIdentityMatrix(a,b)*this->msIdentityMatrix(c,d);
+    rDerivative *= 0.5 * rStrain.Invariants.J;
+	
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+
+  //isochoric volumetric slit
+
+  double& HyperElasticModel::GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
+  {
+    KRATOS_TRY
+	
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
+
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+    
+  double& HyperElasticModel::GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //ddU/dJdJ
+  {
+    KRATOS_TRY
+	
+    KRATOS_ERROR << "calling the base class function in HyperElasticModel ... illegal operation" << std::endl;
+
+    return rDerivative;
+
+    KRATOS_CATCH(" ")
+  }
+    
+    
   //************************************************************************************
   //************************************************************************************
 

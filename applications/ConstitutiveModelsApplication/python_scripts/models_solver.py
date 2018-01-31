@@ -111,7 +111,7 @@ class MaterialsSolver(object):
         if( self.print_output ):
             self._file_open()
 
-        print("::[Material_Solver]:: Solver Ready")
+        print("::[Material_Solver]:: Solver Ready -"+self.settings["strain_settings"]["description"].GetString()+"-")
 
 
     #### Solve loop methods ####

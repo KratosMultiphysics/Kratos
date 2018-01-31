@@ -52,6 +52,7 @@
 #include "custom_models/elasticity_models/incompressible_neo_hookean_model.hpp"
 #include "custom_models/elasticity_models/borja_model.hpp"
 #include "custom_models/elasticity_models/ogden_model.hpp"
+#include "custom_models/elasticity_models/isochoric_ogden_model.hpp"
 
 //plasticity models
 #include "custom_models/plasticity_models/von_mises_linear_elastic_plasticity_model.hpp"
@@ -209,7 +210,11 @@ namespace Kratos
       	( "OgdenModel",
       	  init<>() )
        	;
-      
+      class_< IsochoricOgdenModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
+      	( "IsochoricOgdenModel",
+      	  init<>() )
+       	;
+
       //plasticity models
       class_< VonMisesLinearElasticPlasticityModel, bases< ConstitutiveModelBaseType >, boost::noncopyable >
        	( "VonMisesLinearElasticPlasticityModel",

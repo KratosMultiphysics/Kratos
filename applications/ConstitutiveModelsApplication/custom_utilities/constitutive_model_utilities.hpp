@@ -1028,6 +1028,28 @@ namespace Kratos
       
       return rValue;      
     }
+
+
+    /**
+     * Computes fourth order unit tensor
+     * @param rMatrix input tensor identity matrix 3x3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderTensor(const MatrixType& rMatrix,
+						     double& rValue,
+						     const double& a,
+						     const double& b,
+						     const double& c,
+						     const double& d)
+    {
+	rValue = 0.5*(rMatrix(a,c)*rMatrix(b,d)+rMatrix(a,d)*rMatrix(b,c));
+	
+	return rValue;
+    }
     
     /**
      * Computes the Square Tensor Derivative
@@ -1110,11 +1132,50 @@ namespace Kratos
 
 
      /**
+     * Computes the FourthOrder Tensor Product
+     * @param rMatrixA input tensor matrix 3x3
+     * @param rVectorB input vector 3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderTensorProduct( const MatrixType& rMatrixA, const array_1d<double,3>& rVectorB, double& rValue,
+							     const unsigned int& a, const unsigned int& b,
+							     const unsigned int& c, const unsigned int& d )
+    {
+      rValue = rMatrixA(a,b)*(rVectorB[c]*rVectorB[d]);
+
+      return rValue;      
+    }
+    
+     /**
+     * Computes the FourthOrder Tensor Product
+     * @param rVectorA input vector 3
+     * @param rMatrixB input tensor matrix 3x3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderTensorProduct( const array_1d<double,3>& rVectorA, const MatrixType& rMatrixB, double& rValue,
+							     const unsigned int& a, const unsigned int& b,
+							     const unsigned int& c, const unsigned int& d )
+    {
+      rValue = (rVectorA[a]*rVectorA[b])*rMatrixB(c,d);
+
+      return rValue;      
+    }
+
+    
+     /**
      * Checks if two doubles are equal
      * @param rA input double
      * @param rB input double
      */
-    static inline bool IsEqual( const double& rA, const double& rB )
+    static inline bool AreEqual( const double& rA, const double& rB )
     {
 	double value = rA-rB;
 	if( fabs(rA) > 0 )
@@ -1127,7 +1188,7 @@ namespace Kratos
 	return false;
     }
     
-    
+
     ///@}
     ///@name Access
     ///@{

@@ -208,7 +208,7 @@ namespace Kratos
     
     //************// dW
         
-    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
+    virtual double& GetVolumetricFunction1srtDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 

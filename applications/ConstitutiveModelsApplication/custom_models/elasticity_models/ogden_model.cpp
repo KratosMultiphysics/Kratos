@@ -57,79 +57,154 @@ namespace Kratos
   {
   }
 
-
   //************************************************************************************
   //************************************************************************************
 
-  void OgdenModel::CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix)
+  void OgdenModel::CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction)
+  {
+      KRATOS_TRY
+	
+      HyperElasticDataType Variables;
+      this->CalculateStrainData(rValues, Variables);
+
+      this->CalculateAndAddVolumetricStrainEnergy( Variables, rDensityFunction );
+
+      
+      const MaterialDataType& rMaterial = Variables.GetMaterialParameters();
+
+      const std::vector<double>& rModelParameters = rMaterial.GetModelParameters(); //nu values, lambda values
+
+      unsigned int size = (rModelParameters.size()/2.0);	
+
+      for(unsigned int p=0; p<size; p++)
+      {
+	  const double& mu_p = rModelParameters[p];
+	  const double& alpha_p = rModelParameters[p+size];
+	  rDensityFunction += (mu_p/alpha_p) * ( std::pow(Variables.Strain.Eigen.Values[0],alpha_p) + std::pow(Variables.Strain.Eigen.Values[1],alpha_p) + std::pow(Variables.Strain.Eigen.Values[2],alpha_p) - 3.0 );
+      }
+      
+      KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+  
+  void OgdenModel::CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix)
   {
     KRATOS_TRY
 
-    const ModelDataType&  rModelData        = rVariables.GetModelData();
-    const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
+    //Initialize ConstitutiveMatrix  
+    HyperElasticDataType Variables;
+    this->CalculateStrainData(rValues,Variables);
 
-    if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = RightCauchyGreen (C)
+    //Calculate Stress
+    MatrixType StressMatrix;
+    noalias(StressMatrix) = ZeroMatrix(3,3);
+    this->CalculateAndAddStressTensor(Variables,StressMatrix);
+    rValues.StressMatrix = StressMatrix; //store total stress as StressMatrix
 
-	const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-
-	const double& rBulkModulus = rMaterial.GetBulkModulus();
-	const std::vector<double>& rModelParameters = rMaterial.GetModelParameters(); //nu values, lambda values
-	
-	array_1d<double,3> MainStresses;
-	array_1d<double,3> EigenVector;
-	unsigned int size = (rModelParameters.size()/2.0);
-	double athird = 1.0/3.0;
-	for(unsigned int i=0; i<3; i++)
-	{
-	    MainStresses[i]=0.0;
-	    for(unsigned int p=0; p<size; p++)
-	    {
-		const double& mu_p = rModelParameters[p];
-		const double& alpha_p = rModelParameters[p+size];
-		MainStresses[i] += (mu_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) ) ) + rBulkModulus * std::log(rVariables.Strain.Invariants.J) ) / (rVariables.Strain.Eigen.Values[i]*rVariables.Strain.Eigen.Values[i]);
-	    }
-
-	    noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
-	    rStressMatrix += MainStresses[i] * outer_prod(EigenVector,EigenVector);
-	}
-
-    }
-    else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b)
-
-	const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
-
-	const double& rBulkModulus = rMaterial.GetBulkModulus();
-	const std::vector<double>& rModelParameters = rMaterial.GetModelParameters(); //nu values, lambda values
-      
-	array_1d<double,3> MainStresses;
-	array_1d<double,3> EigenVector;
-	unsigned int size = (rModelParameters.size()/2.0);
-	double athird = 1.0/3.0;
-	for(unsigned int i=0; i<3; i++)
-	{
-	    MainStresses[i]=0.0;
-	    for(unsigned int p=0; p<size; p++)
-	    {
-		const double& mu_p = rModelParameters[p];
-		const double& alpha_p = rModelParameters[p+size];
-		MainStresses[i] += mu_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) ) ) + rBulkModulus * std::log(rVariables.Strain.Invariants.J);
-	    }
-
-	    noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors, i);
-	    rStressMatrix += MainStresses[i] * outer_prod(EigenVector,EigenVector);
-	}
-
-    }
-
-    rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
-
+    
+    //Calculate Constitutive Matrix
+    this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);   
+    	
     KRATOS_CATCH(" ")
   }
 
 
   //***********************PROTECTED OPERATIONS FROM BASE CLASS*************************
   //************************************************************************************
+    
+  //************// W
 
+  //option: g(J) = (K/2)*ln(J)²  (default implemented)
+  void OgdenModel::CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction)
+  {
+      KRATOS_TRY
+
+      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+
+      //g(J) = (K/2)*ln(J)² 
+      rVolumetricDensityFunction += rMaterial.GetBulkModulus() * 0.5 * std::pow(std::log(rVariables.Strain.Invariants.J),2);
+	
+      KRATOS_CATCH(" ")
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+    
+  void OgdenModel::CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix)
+  {
+      KRATOS_TRY
+
+      const ModelDataType&  rModelData        = rVariables.GetModelData();
+      const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
+
+      array_1d<double,3> MainStresses;
+      this->CalculateMainStresses(rVariables,MainStresses);
+    
+      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = RightCauchyGreen (C)
+	  array_1d<double,3> EigenVector;
+
+	  for(unsigned int i=0; i<3; i++)
+	  {
+	      noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
+	      EigenVector /= rVariables.Strain.Eigen.Values[i];
+	      noalias(rStressMatrix) += MainStresses[i] * outer_prod(EigenVector,EigenVector);
+	  }
+
+      }
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Strain.Matrix = LeftCauchyGreen (b)
+	  
+	  array_1d<double,3> EigenVector;
+	  for(unsigned int i=0; i<3; i++)
+	  {
+	      noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
+	      noalias(rStressMatrix) += MainStresses[i] * outer_prod(EigenVector,EigenVector);
+	  }
+
+      }
+
+      rVariables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
+
+      KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+  
+    
+  void OgdenModel::CalculateMainStresses(HyperElasticDataType& rVariables, array_1d<double,3>& rMainStresses)
+  {
+      KRATOS_TRY
+	    
+ 
+      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+      const std::vector<double>& rModelParameters = rMaterial.GetModelParameters(); //nu values, lambda values
+      const double& rBulkModulus = rMaterial.GetBulkModulus();
+      unsigned int size = (rModelParameters.size()/2.0);
+      double athird = 1.0/3.0;
+	
+      for(unsigned int i=0; i<3; i++)
+      {
+	  for(unsigned int p=0; p<size; p++)
+	  {
+	      const double& mu_p = rModelParameters[p];
+	      const double& alpha_p = rModelParameters[p+size];
+	      rMainStresses[i] += (mu_p) * std::pow(rVariables.Strain.Invariants.J, (-alpha_p*athird)) * ( std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) ) );
+	      rMainStresses[i] += rBulkModulus * std::log(rVariables.Strain.Invariants.J);
+	  }	    
+	    
+      }
+	    
+      KRATOS_CATCH(" ")
+   }
+
+    
+  //************************************************************************************
+  //************************************************************************************
+  
+    
   void OgdenModel::CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables)
   {
     KRATOS_TRY
@@ -222,140 +297,10 @@ namespace Kratos
     //Calculate Jacobian   
     rVariables.Strain.Invariants.J = rVariables.GetModelData().GetTotalDeformationDet();
     
-    //Calculate Invariants
-    //this->CalculateInvariants(rVariables);
-
-    //Calculate LameMuBar
-    //rValues.MaterialParameters.LameMuBar = rValues.MaterialParameters.LameMu * ( rVariables.Strain.Matrix(0,0) + rVariables.Strain.Matrix(1,1) + rVariables.Strain.Matrix(2,2) ) * rVariables.Strain.Invariants.J_13 * rVariables.Strain.Invariants.J_13 * (1.0/3.0) ;
-
-    //std::cout<<" LameMuBar "<<rValues.MaterialParameters.LameMuBar<<std::endl;
-
-    //Algorithmic moduli factors
-    //this->CalculateScalingFactors(rVariables);
-
 
     KRATOS_CATCH(" ")
   }
 
-  //************************************************************************************
-  //************************************************************************************
-  
-  void OgdenModel::CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix)
-  {
-    KRATOS_TRY
-              
-    //Calculate Ogden ConstitutiveMatrix
-    const ModelDataType&  rModelData        = rVariables.GetModelData();
-    const SizeType&       rVoigtSize        = rModelData.GetVoigtSize();      
-    const VoigtIndexType& rIndexVoigtTensor = rModelData.GetVoigtIndexTensor();
-
-    //Calculate Stress main streches derivatives
-    MatrixType StressDerivatives;
-    noalias(StressDerivatives)=ZeroMatrix(3,3);
-
-    this->CalculateMainStressDerivatives(rVariables, StressDerivatives);
-    
-    //Calculate Stress left cauchy green derivatives
-    array_1d<double,3> StrainEigenValues;
-    for (unsigned int i = 0; i < 3; i++)
-	StrainEigenValues[i] = rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i];
-    
-    MatrixType EigenValues;
-    MatrixType EigenVectors;
-
-    MathUtils<double>::EigenSystem<3>(rModelData.StressMatrix, EigenVectors, EigenValues);
-
-    array_1d<double,3> StressEigenValues;
-    for (unsigned int i = 0; i < 3; i++)
-	StressEigenValues[i] = EigenValues(i,i);
-    
-    //Store stress eigenvalues in strain invariants variables in a vector
-    array_1d<double,6> ScalingFactors;
-    //get stress eigen values
-    ScalingFactors[0] = StressEigenValues[0];
-    ScalingFactors[1] = StressEigenValues[1];
-    ScalingFactors[2] = StressEigenValues[2];
-    //get strain eigen values
-    ScalingFactors[3] = StrainEigenValues[0]; 
-    ScalingFactors[4] = StrainEigenValues[1]; 
-    ScalingFactors[5] = StrainEigenValues[2]; 
-
-    
-    if( ConstitutiveModelUtilities::IsEqual(StrainEigenValues[0],StrainEigenValues[1]) ){
-	
-	if( ConstitutiveModelUtilities::IsEqual(StrainEigenValues[1],StrainEigenValues[2]) ){
-	    //Calculate constitutive components OPTION 3
-	    for(SizeType i=0; i<rVoigtSize; i++)
-	    {
-		for(SizeType j=0; j<rVoigtSize; j++)
-		{
-		    rConstitutiveMatrix(i,j) = this->AddConstitutiveComponentC(rVariables,StressDerivatives,rConstitutiveMatrix(i,j),
-									       rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
-									       rIndexVoigtTensor[j][0],rIndexVoigtTensor[j][1]);
-		}
-		
-	    }
-	    rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
-	}
-	else{	    
-	    array_1d<unsigned int,3> Permutation;
-	    Permutation[0] = 2;
-	    Permutation[1] = 0;
-	    Permutation[2] = 1;
-	    this->CalculateScalingFactors(ScalingFactors,StressDerivatives,StrainEigenValues,StressEigenValues,Permutation);
-	}
-    }
-    else{
-	if( ConstitutiveModelUtilities::IsEqual(StrainEigenValues[0],StrainEigenValues[2]) ){
-	    array_1d<unsigned int,3> Permutation;
-	    Permutation[0] = 1;
-	    Permutation[1] = 2;
-	    Permutation[2] = 0;
-	    this->CalculateScalingFactors(ScalingFactors,StressDerivatives,StrainEigenValues,StressEigenValues,Permutation);
-	}
-	else if( ConstitutiveModelUtilities::IsEqual(StrainEigenValues[1],StrainEigenValues[2]) ){
-	    array_1d<unsigned int,3> Permutation;
-	    Permutation[0] = 0;
-	    Permutation[1] = 1;
-            Permutation[2] = 2;
-	    this->CalculateScalingFactors(ScalingFactors,StressDerivatives,StrainEigenValues,StressEigenValues,Permutation);
-	}
-	else{
-	    //Calculate constitutive components OPTION 1
-	    for(SizeType i=0; i<rVoigtSize; i++)
-	    {
-		for(SizeType j=0; j<rVoigtSize; j++)
-		{
-		    rConstitutiveMatrix(i,j) = this->AddConstitutiveComponentA(rVariables,ScalingFactors,StressDerivatives,rConstitutiveMatrix(i,j),
-									       rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
-									       rIndexVoigtTensor[j][0],rIndexVoigtTensor[j][1]);
-		}
-		
-	    }
-	    rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
-	}
-    }
-
-    
-    if(rVariables.State().IsNot(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED)){
-
-	//Calculate constitutive components OPTION 2
-	for(SizeType i=0; i<rVoigtSize; i++)
-	{
-	    for(SizeType j=0; j<rVoigtSize; j++)
-	    {
-		rConstitutiveMatrix(i,j) = this->AddConstitutiveComponentB(rVariables,ScalingFactors,rConstitutiveMatrix(i,j),
-									   rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
-									   rIndexVoigtTensor[j][0],rIndexVoigtTensor[j][1]);
-	    }
-	
-	}
-
-	rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
-    }    
-    
-    KRATOS_CATCH(" ")
-  }
 
   //************************************************************************************
   //************************************************************************************
@@ -377,9 +322,6 @@ namespace Kratos
     double athird = 1.0/3.0;
 
     //Calculate Stress main streches derivatives
-    MatrixType StressDerivatives;
-    noalias(StressDerivatives)=ZeroMatrix(3,3);
-
     if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Strain.Matrix = LeftCauchyGreen (C)
 	for(SizeType i=0; i<3; i++)
 	{
@@ -391,10 +333,12 @@ namespace Kratos
 		    const double& alpha_p = rModelParameters[p+size];
 		    double f = athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) );
 
-		    StressDerivatives(i,j) += (mu_p * alpha_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( f - std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - std::pow(rVariables.Strain.Eigen.Values[j],alpha_p) + 3.0 * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * this->msIdentityMatrix(i,j) ) / 6.0 + 0.5 * rBulkModulus ) / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i]);
+		    rStressDerivatives(i,j) += (mu_p * alpha_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( f - std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - std::pow(rVariables.Strain.Eigen.Values[j],alpha_p) + 3.0 * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * this->msIdentityMatrix(i,j) ) / 6.0 ) / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i]);
 		
-		    StressDerivatives(i,j) -= (mu_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - f ) + rBulkModulus * std::log(rVariables.Strain.Invariants.J) ) * 2.0  / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i]);
+		    rStressDerivatives(i,j) -= (mu_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - f )) * 2.0  / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i]);
 		    
+		    rStressDerivatives(i,j) += 0.5 * rBulkModulus / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i]);
+		    rStressDerivatives(i,j) -= 2.0 * rBulkModulus * std::log(rVariables.Strain.Invariants.J) * this->msIdentityMatrix(i,j) / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i]);
 		}
 	    }
 	
@@ -412,7 +356,7 @@ namespace Kratos
 		    const double& alpha_p = rModelParameters[p+size];
 		    double f = athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) );
 
-		    StressDerivatives(i,j) += (mu_p * alpha_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( f - std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - std::pow(rVariables.Strain.Eigen.Values[j],alpha_p) + 3.0 * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * this->msIdentityMatrix(i,j) ) / 6.0 + 0.5 * rBulkModulus) / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[j]);
+		    rStressDerivatives(i,j) += (mu_p * alpha_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * ( f - std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - std::pow(rVariables.Strain.Eigen.Values[j],alpha_p) + 3.0 * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * this->msIdentityMatrix(i,j) ) / 6.0 + 0.5 * rBulkModulus) / (rVariables.Strain.Eigen.Values[j] * rVariables.Strain.Eigen.Values[j]);
 	      
 		}
 	    }
@@ -426,7 +370,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
    
-  void OgdenModel::CalculateScalingFactors(array_1d<double,6>& rScalingFactors, MatrixType& rStressDerivatives, array_1d<double,3>& rStressEigenValues, array_1d<double,3>& rStrainEigenValues, array_1d<unsigned int,3>& rPermutation)
+  void OgdenModel::CalculateDerivativeFactors(array_1d<double,6>& rDerivativeFactors, MatrixType& rStressDerivatives, array_1d<double,3>& rStressEigenValues, array_1d<double,3>& rStrainEigenValues, array_1d<unsigned int,3>& rPermutation)
   {
     KRATOS_TRY
 
@@ -439,14 +383,14 @@ namespace Kratos
     //double& b2 = rStrainEigenValues[rPermutation[1]]; 
     double& b3 = rStrainEigenValues[rPermutation[2]]; 
 	
-    rScalingFactors[0] = (t1-t3)/((b1-b3)*(b1-b3)) + (rStressDerivatives(rPermutation[2],rPermutation[1]) - rStressDerivatives(rPermutation[2],rPermutation[2]))/(b1-b3);
-    rScalingFactors[1] =  2*b3*(t1-t3)/((b1-b3)*(b1-b3)) + (rStressDerivatives(rPermutation[2],rPermutation[1]) - rStressDerivatives(rPermutation[2],rPermutation[2]))*(b1+b3)/(b1-b3);
-    rScalingFactors[2] =  2*(t1-t3)/((b1-b3)*(b1-b3)*(b1-b3)) + (rStressDerivatives(rPermutation[0],rPermutation[2]) + rStressDerivatives(rPermutation[2],rPermutation[0]) - rStressDerivatives(rPermutation[0],rPermutation[0]) - rStressDerivatives(rPermutation[2],rPermutation[2]))/((b1-b3)*(b1-b3)); 
+    rDerivativeFactors[0] = (t1-t3)/((b1-b3)*(b1-b3)) + (rStressDerivatives(rPermutation[2],rPermutation[1]) - rStressDerivatives(rPermutation[2],rPermutation[2]))/(b1-b3);
+    rDerivativeFactors[1] =  2*b3*(t1-t3)/((b1-b3)*(b1-b3)) + (rStressDerivatives(rPermutation[2],rPermutation[1]) - rStressDerivatives(rPermutation[2],rPermutation[2]))*(b1+b3)/(b1-b3);
+    rDerivativeFactors[2] =  2*(t1-t3)/((b1-b3)*(b1-b3)*(b1-b3)) + (rStressDerivatives(rPermutation[0],rPermutation[2]) + rStressDerivatives(rPermutation[2],rPermutation[0]) - rStressDerivatives(rPermutation[0],rPermutation[0]) - rStressDerivatives(rPermutation[2],rPermutation[2]))/((b1-b3)*(b1-b3)); 
 
 	
-    rScalingFactors[3] = rScalingFactors[2] * b3 + (rStressDerivatives(rPermutation[0],rPermutation[2]) - rStressDerivatives(rPermutation[2],rPermutation[1]))/(b1-b3);    
-    rScalingFactors[4] = rScalingFactors[2] * b3 + (rStressDerivatives(rPermutation[2],rPermutation[0]) - rStressDerivatives(rPermutation[2],rPermutation[1]))/(b1-b3); 
-    rScalingFactors[5] = 2*b3*b3*(t1-t3)/((b1-b3)*(b1-b3)*(b1-b3)) + (rStressDerivatives(rPermutation[0],rPermutation[2]) - rStressDerivatives(rPermutation[2],rPermutation[0]))*b1*b3/((b1-b3)*(b1-b3)) - (rStressDerivatives(rPermutation[0],rPermutation[0]) + rStressDerivatives(rPermutation[2],rPermutation[2]))*b3*b3/((b1-b3)*(b1-b3)) - rStressDerivatives(rPermutation[2],rPermutation[1])*(b1+b3)/(b1-b3);
+    rDerivativeFactors[3] = rDerivativeFactors[2] * b3 + (rStressDerivatives(rPermutation[0],rPermutation[2]) - rStressDerivatives(rPermutation[2],rPermutation[1]))/(b1-b3);    
+    rDerivativeFactors[4] = rDerivativeFactors[2] * b3 + (rStressDerivatives(rPermutation[2],rPermutation[0]) - rStressDerivatives(rPermutation[2],rPermutation[1]))/(b1-b3); 
+    rDerivativeFactors[5] = 2*b3*b3*(t1-t3)/((b1-b3)*(b1-b3)*(b1-b3)) + (rStressDerivatives(rPermutation[0],rPermutation[2]) - rStressDerivatives(rPermutation[2],rPermutation[0]))*b1*b3/((b1-b3)*(b1-b3)) - (rStressDerivatives(rPermutation[0],rPermutation[0]) + rStressDerivatives(rPermutation[2],rPermutation[2]))*b3*b3/((b1-b3)*(b1-b3)) - rStressDerivatives(rPermutation[2],rPermutation[1])*(b1+b3)/(b1-b3);
 
     // std::cout<<" Alpha["<<rVariables.Factors.Alpha1<<" "<<rVariables.Factors.Alpha2<<" "<<rVariables.Factors.Alpha3<<"]"<<std::endl;
     // std::cout<<" Beta ["<<rVariables.Factors.Beta1<<" "<<rVariables.Factors.Beta2<<" "<<rVariables.Factors.Beta3<<"]"<<std::endl;
@@ -456,178 +400,198 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
+  
+  void OgdenModel::CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix)
+  {
+    KRATOS_TRY
+              
+    //Calculate Ogden ConstitutiveMatrix
+    const ModelDataType&  rModelData        = rVariables.GetModelData();
+    const SizeType&       rVoigtSize        = rModelData.GetVoigtSize();      
+    const VoigtIndexType& rIndexVoigtTensor = rModelData.GetVoigtIndexTensor();
     
-    double& OgdenModel::AddConstitutiveComponentA(HyperElasticDataType& rVariables, array_1d<double,6>& rScalingFactors,
-						  MatrixType& rStressDerivatives, double &rCabcd,
-						  const unsigned int& a, const unsigned int& b,
-						  const unsigned int& c, const unsigned int& d)
+    //Calculate constitutive components OPTION 2
+    for(SizeType i=0; i<rVoigtSize; i++)
+    {
+	for(SizeType j=0; j<rVoigtSize; j++)
+	{
+	    rConstitutiveMatrix(i,j) = this->AddConstitutiveComponent(rVariables,rConstitutiveMatrix(i,j),
+								      rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
+								      rIndexVoigtTensor[j][0],rIndexVoigtTensor[j][1]);
+	}
+	
+    }
+    
+	
+    rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
+    
+    KRATOS_CATCH(" ")
+  }
+    
+  //************************************************************************************
+  //************************************************************************************
+    
+   double& OgdenModel::AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+						const unsigned int& a, const unsigned int& b,
+						const unsigned int& c, const unsigned int& d)
   {
     KRATOS_TRY
 
-    //this is a simplified version, more terms of the derivatives are needed to be general:
-
     const ModelDataType&  rModelData  = rVariables.GetModelData();
     const MatrixType& rStressMatrix   = rModelData.GetStressMatrix(); //stress stored as StressMatrix
+    
+    //Calculate Stress main streches derivatives
+    MatrixType StressDerivatives;
+    noalias(StressDerivatives)=ZeroMatrix(3,3);
+    this->CalculateMainStressDerivatives(rVariables, StressDerivatives);
 
     double Cabcd = 0;
-    double Dabce = 0;
     double Cabce = 0;
-    double Eabce = 0;
-    
-
-    array_1d<double,3> EigenVectorA;
-    array_1d<double,3> EigenVectorB;    
-
-    array_1d<unsigned int,5> Permutation;
-    Permutation[0] = 0;
-    Permutation[1] = 1;
-    Permutation[2] = 2;
-    Permutation[3] = 0;
-    Permutation[4] = 1;
-    
+   
     for(unsigned int e=0; e<3; e++)
     {
-	Cabce = 0;	    
-	for(unsigned int i=0; i<3; i++)
-	{
-	    double alpha = rScalingFactors[Permutation[i]]/((rScalingFactors[Permutation[i]+3]-rScalingFactors[Permutation[i+1]+3])*(rScalingFactors[Permutation[i]+3]-rScalingFactors[Permutation[i+2]+3]));
-	    Dabce = ConstitutiveModelUtilities::CalculateSquareTensorDerivative(rVariables.Strain.Matrix,this->msIdentityMatrix,Dabce,a,b,c,e);
-	    Eabce  = Dabce;
-	    Dabce = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Dabce,a,b,c,e);
-	    Eabce -= (rScalingFactors[Permutation[i+1]+3]+rScalingFactors[Permutation[i+2]+3]) * Dabce;
-	    noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,Permutation[i]);		
-	    Dabce = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabce,a,b,c,e);
-	    Eabce -= ((rScalingFactors[Permutation[i]+3]-rScalingFactors[Permutation[i+1]+3])+(rScalingFactors[Permutation[i]+3]-rScalingFactors[Permutation[i+2]+3])) * Dabce;
-	    noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,Permutation[i+1]);
-	    Dabce = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabce,a,b,c,e);
-	    Eabce -= (rScalingFactors[Permutation[i+1]+3]-rScalingFactors[Permutation[i+2]+3]) * Dabce;
-	    noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,Permutation[i+2]);
-	    Dabce = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabce,a,b,c,e);
-	    Eabce += (rScalingFactors[Permutation[i+1]+3]-rScalingFactors[Permutation[i+2]+3]) * Dabce;
-	    Cabce += Eabce * alpha;
-	}
-
-	for(unsigned int i=0; i<3; i++)
-	{     
-	    for(unsigned int j=0; j<3; j++)
-	    {
-		noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
-		noalias(EigenVectorB) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,j);	      
-		Dabce = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorB,Dabce,a,b,c,e);
-
-		Cabce += rStressDerivatives(i,j) * Dabce;
-	    }
-	}
-
+	Cabce = CalculateIsotropicTensorDerivative(rVariables,StressDerivatives,Cabce,a,b,c,e);	
 	//std::cout<<" Cabce e["<<e<<"]: "<<Cabce<<std::endl;
 	Cabcd += Cabce * rVariables.Strain.Matrix(e,d);
     }
 	
     Cabcd *= 2.0;    	    
-    Cabcd -= rStressMatrix(a,d)*this->msIdentityMatrix(b,c);
-    //std::cout<<" Cabcd "<<Cabcd<<std::endl;
+    Cabcd -= (1.0/rVariables.Strain.Invariants.J)*rStressMatrix(a,d)*this->msIdentityMatrix(b,c);
+    //std::cout<<" Cabcd "<<Cabcd<<" stress "<<rStressMatrix(a,d)<<std::endl;
     
     rCabcd += Cabcd;
     //std::cout<<" rCabcd "<<rCabcd<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<std::endl;
     return rCabcd;
-
-
+	
     KRATOS_CATCH(" ")
   }
 
   //************************************************************************************
   //************************************************************************************
     
-  double& OgdenModel::AddConstitutiveComponentB(HyperElasticDataType& rVariables,
-						array_1d<double,6>& rScalingFactors, double &rCabcd,
-						const unsigned int& a, const unsigned int& b,
-						const unsigned int& c, const unsigned int& d)
+  double& OgdenModel::CalculateIsotropicTensorDerivative(HyperElasticDataType& rVariables,
+							 MatrixType& rStressDerivatives, double &rCabcd,
+							 const unsigned int& a, const unsigned int& b,
+							 const unsigned int& c, const unsigned int& d)
   {
     KRATOS_TRY
 
-    //this is a simplified version, more terms of the derivatives are needed to be general:
-
-    const ModelDataType&  rModelData = rVariables.GetModelData();
-    const MatrixType& rStressMatrix  = rModelData.GetStressMatrix(); //stress stored as StressMatrix
-
-    double Cabcd = 0;
-    double Dabce = 0;
-    double Cabce = 0;
+    //strain eigenvalues	
+    array_1d<double,3> StrainEigenValues;
+    for (unsigned int i = 0; i < 3; i++)
+	StrainEigenValues[i] = rVariables.Strain.Eigen.Values[i] * rVariables.Strain.Eigen.Values[i];
     
-    for(unsigned int e=0; e<3; e++)
-    {     	    	    
-	Dabce = ConstitutiveModelUtilities::CalculateSquareTensorDerivative(rVariables.Strain.Matrix,this->msIdentityMatrix,Dabce,a,b,c,e);
-	Cabce = rScalingFactors[0] * Dabce;
-	
-	Dabce = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Dabce,a,b,c,e);
-	Cabce -= rScalingFactors[1] * Dabce;
-	
-	Dabce = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(rVariables.Strain.Eigen.Vectors,rVariables.Strain.Eigen.Vectors,Dabce,a,b,c,e);
-	Cabce -= rScalingFactors[2] * Dabce;
-	
-	Dabce = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(rVariables.Strain.Eigen.Vectors,this->msIdentityMatrix,Dabce,a,b,c,e);
-	Cabce += rScalingFactors[3] * Dabce;
-	
-	Dabce = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(this->msIdentityMatrix,rVariables.Strain.Eigen.Vectors,Dabce,a,b,c,e);
-	Cabce += rScalingFactors[4] * Dabce;
-	
-	Dabce = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(this->msIdentityMatrix,this->msIdentityMatrix,Dabce,a,b,c,e);
+    array_1d<double,3> StressEigenValues;
+    noalias(StressEigenValues)=ZeroVector(3);
+    this->CalculateMainStresses(rVariables, StressEigenValues);
+        
+    if( ConstitutiveModelUtilities::AreEqual(StrainEigenValues[0],StrainEigenValues[1]) && ConstitutiveModelUtilities::AreEqual(StrainEigenValues[1],StrainEigenValues[2]) ){
 
-	Cabce -= rScalingFactors[5] * Dabce;
+	//std::cout<<" option all equal "<<StrainEigenValues<<std::endl;
+	double Cabcd = 0;
+	
+	Cabcd = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Cabcd,a,b,c,d);
+
+	rCabcd += (rStressDerivatives(0,0)-rStressDerivatives(0,1)) * Cabcd;
 	    
-	Cabcd += Cabce * rVariables.Strain.Matrix(e,d);
+	Cabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(this->msIdentityMatrix,this->msIdentityMatrix,Cabcd,a,b,c,d);
+	rCabcd += rStressDerivatives(0,1) * Cabcd;
+
+    }
+    else{
+	array_1d<unsigned int,3> Permuta;
+	bool set = false;
+    	if( ConstitutiveModelUtilities::AreEqual(StrainEigenValues[0],StrainEigenValues[1]) ){	    
+    	    Permuta[0] = 2;
+    	    Permuta[1] = 0;
+    	    Permuta[2] = 1;
+    	}
+    	else if( ConstitutiveModelUtilities::AreEqual(StrainEigenValues[2],StrainEigenValues[0]) ){
+    	    Permuta[0] = 1;
+    	    Permuta[1] = 2;
+    	    Permuta[2] = 0;
+	}
+	else if( ConstitutiveModelUtilities::AreEqual(StrainEigenValues[1],StrainEigenValues[2]) ){
+    	    Permuta[0] = 0;
+    	    Permuta[1] = 1;
+            Permuta[2] = 2;
+    	}
+    	else{
+
+	    array_1d<double,3> EigenVectorA;
+	    array_1d<double,3> EigenVectorB;    
+	    
+	    array_1d<unsigned int,5> Permutation;
+	    Permutation[0] = 0;
+	    Permutation[1] = 1;
+	    Permutation[2] = 2;
+	    Permutation[3] = 0;
+	    Permutation[4] = 1;
+	    
+	    double Dabcd = 0;
+	    double Cabcd = 0;
+	    for(unsigned int i=0; i<3; i++)
+	    {
+		double alpha = StressEigenValues[i]/((StrainEigenValues[i]-StrainEigenValues[Permutation[i+1]])*(StrainEigenValues[i]-StrainEigenValues[Permutation[i+2]]));
+		
+		Dabcd = ConstitutiveModelUtilities::CalculateSquareTensorDerivative(rVariables.Strain.Matrix,this->msIdentityMatrix,Dabcd,a,b,c,d);
+		Cabcd  = Dabcd;
+		Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Dabcd,a,b,c,d);
+		Cabcd -= (StrainEigenValues[Permutation[i+1]]+StrainEigenValues[Permutation[i+2]]) * Dabcd;
+		noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,Permutation[i]);		
+		Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabcd,a,b,c,d);
+		Cabcd -= ((StrainEigenValues[i]-StrainEigenValues[Permutation[i+1]])+(StrainEigenValues[i]-StrainEigenValues[Permutation[i+2]])) * Dabcd;
+		noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,Permutation[i+1]);
+		Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabcd,a,b,c,d);
+		Cabcd -= (StrainEigenValues[Permutation[i+1]]-StrainEigenValues[Permutation[i+2]]) * Dabcd;
+		noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,Permutation[i+2]);
+		Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabcd,a,b,c,d);
+		Cabcd += (StrainEigenValues[Permutation[i+1]]-StrainEigenValues[Permutation[i+2]]) * Dabcd;
+		rCabcd += Cabcd * alpha;
+		
+	    }
+
+	    for(unsigned int i=0; i<3; i++)
+	    {
+		noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
+		for(unsigned int j=0; j<3; j++)
+		{
+		    noalias(EigenVectorB) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,j);	      
+		    Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorB,Dabcd,a,b,c,d);
+
+		    rCabcd += rStressDerivatives(i,j) * Dabcd;
+		}
+	    }
+	    set = true;
+
+	    //std::cout<<" option all different "<<StrainEigenValues<<std::endl;
+    	}
+
+	double Cabcd = 0;
+	if( !set ){
+	    
+	    array_1d<double,6> DerivativeFactors;
+	    this->CalculateDerivativeFactors(DerivativeFactors,rStressDerivatives,StrainEigenValues,StressEigenValues,Permuta);
+
+	    //std::cout<<" option some different "<<StrainEigenValues<<std::endl;
+	    
+	    Cabcd = ConstitutiveModelUtilities::CalculateSquareTensorDerivative(rVariables.Strain.Matrix,this->msIdentityMatrix,Cabcd,a,b,c,d);
+	    rCabcd += DerivativeFactors[0] * Cabcd;
+	    Cabcd = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Cabcd,a,b,c,d);
+	    rCabcd -= DerivativeFactors[1] * Cabcd;
+	    Cabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(rVariables.Strain.Matrix,rVariables.Strain.Matrix,Cabcd,a,b,c,d);
+	    rCabcd -= DerivativeFactors[2] * Cabcd;
+	    Cabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(rVariables.Strain.Matrix,this->msIdentityMatrix,Cabcd,a,b,c,d);
+	    rCabcd += DerivativeFactors[3] * Cabcd;
+	    Cabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(this->msIdentityMatrix,rVariables.Strain.Matrix,Cabcd,a,b,c,d);
+	    rCabcd += DerivativeFactors[4] * Cabcd;
+	    Cabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(this->msIdentityMatrix,this->msIdentityMatrix,Cabcd,a,b,c,d);
+	    rCabcd -= DerivativeFactors[5] * Cabcd;
+	}
     }
 
-    Cabcd *= 2.0;    	    
-    Cabcd -= rStressMatrix(a,d)*this->msIdentityMatrix(b,c);
-    
-    rCabcd += Cabcd;
-    
     return rCabcd;
-
-
-    KRATOS_CATCH(" ")
-  }
     
-  //************************************************************************************
-  //************************************************************************************
-    
-  double& OgdenModel::AddConstitutiveComponentC(HyperElasticDataType& rVariables,
-						MatrixType& rStressDerivatives, double &rCabcd,
-						const unsigned int& a, const unsigned int& b,
-						const unsigned int& c, const unsigned int& d)
-  {
-    KRATOS_TRY
-
-    //this is a simplified version, more terms of the derivatives are needed to be general:
-
-    const ModelDataType&  rModelData = rVariables.GetModelData();
-    const MatrixType& rStressMatrix  = rModelData.GetStressMatrix(); //stress stored as StressMatrix
-    
-    double Cabce = 0;
-    double Dabce = 0;
-    double Cabcd = 0;
-    
-
-    for(unsigned int e=0; e<3; e++)
-    {     	    
-	Dabce = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Dabce,a,b,c,e);
-	Cabce = (rStressDerivatives(0,0)-rStressDerivatives(0,1)) * Dabce;
-	    
-	Dabce = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(this->msIdentityMatrix,this->msIdentityMatrix,Dabce,a,b,c,e);
-	Cabce -= rStressDerivatives(0,1) * Dabce;
-
-	Cabcd += Cabce * rVariables.Strain.Matrix(e,d);
-    }
-
-    Cabcd *= 2.0;    	    
-    Cabcd -= rStressMatrix(a,d)*this->msIdentityMatrix(b,c);
-
-    rCabcd += Cabcd;
-    
-    return rCabcd;
-
-
     KRATOS_CATCH(" ")
   }
 

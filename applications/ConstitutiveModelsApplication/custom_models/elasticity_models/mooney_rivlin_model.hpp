@@ -171,20 +171,21 @@ namespace Kratos
 
     virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override;    
     
-    virtual void CalculateScalingFactors(HyperElasticDataType& rVariables);
+    virtual void CalculateScalingFactors(HyperElasticDataType& rVariables) override;
 
 
     //************// dW
+    
+    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //dU/dJ
 
-   
+    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override; //ddU/dJdJ
+
+    
     virtual double& GetFunction1stI1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI1
  
     virtual double& GetFunction1stI2Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI2
  
     virtual double& GetFunction1stI3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //dW/dI3
-
-    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative); //dU/dJ
-
 
     
     virtual double& GetFunction2ndI1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI1dI1
@@ -193,8 +194,6 @@ namespace Kratos
 
     virtual double& GetFunction2ndI3Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI3dI3
     
-    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative); //ddU/dJdJ
-
     // the implementation of the crossed derivatives have to be added for a more general form (usually they are zero)
     // virtual double& GetFunction2ndI2I1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI2dI1
     // virtual double& GetFunction2ndI3I1Derivative(HyperElasticDataType& rVariables, double& rDerivative); //ddW/dI3dI1
@@ -205,8 +204,6 @@ namespace Kratos
 
     //isochoric volumetric slit
       
-    MatrixType& GetJLeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/db
- 
     MatrixType& GetIsochoricRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dC'/dC
 
     double& GetIsochoricRightCauchyGreenDerivative(const StrainData& rStrain,
@@ -235,7 +232,6 @@ namespace Kratos
 
     MatrixType& GetI3RightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dI3/dC 
 
-    MatrixType& GetJRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/dC
 
 
     double& GetFourthOrderUnitTensor(double& rValue,
@@ -273,10 +269,6 @@ namespace Kratos
 
 
 
-    double& GetJRightCauchyGreen1stDerivative(const StrainData& rStrain,
-					      double& rDerivative,
-					      const double& a,
-					      const double& b); ///dJ/dC
  
 
     //Invariants Square of the 1st derivatives by components
@@ -303,15 +295,7 @@ namespace Kratos
 						     const double& c,
 						     const double& d); //dI3/dC * dI3/dC
  
-    
-    double& GetJRightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-						    double& rDerivative,
-						    const double& a,
-						    const double& b,
-						    const double& c,
-						    const double& d); //dJ/dC * dJ/dC
-
-    
+       
     
     //Invariants 2nd derivatives by components
     double& GetI1RightCauchyGreen2ndDerivative(const StrainData& rStrain,
@@ -336,15 +320,6 @@ namespace Kratos
 					       const double& b,
 					       const double& c,
 					       const double& d); //ddI3/dCdC
-
-
-    double& GetJRightCauchyGreen2ndDerivative(const StrainData& rStrain,
-					      double& rDerivative,
-					      const double& a,
-					      const double& b,
-					      const double& c,
-					      const double& d); //ddJ/dCdC
-
 
     
     //************// left cauchy green : b
@@ -375,10 +350,6 @@ namespace Kratos
 					      const double& b); //dI3/db
 
     
-    double& GetJLeftCauchyGreen1stDerivative(const StrainData& rStrain,
-					     double& rDerivative,
-					     const double& a,
-					     const double& b); //dJ/db
   
     //Invariants Square of the 1st derivatives by components
     double& GetI1LeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
@@ -404,15 +375,7 @@ namespace Kratos
 						    const double& c,
 						    const double& d); //dI3/db * dI3/db
 
-
-    
-    double& GetJLeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-						   double& rDerivative,
-						   const double& a,
-						   const double& b,
-						   const double& c,
-						   const double& d); //dJ/db * dJ/db
-
+  
     
     //Invariants 2nd derivatives by components
     double& GetI1LeftCauchyGreen2ndDerivative(const StrainData& rStrain,
@@ -439,14 +402,6 @@ namespace Kratos
 					      const double& d); //ddI3/dbdb
 
 
-    double& GetJLeftCauchyGreen2ndDerivative(const StrainData& rStrain,
-					     double& rDerivative,
-					     const double& a,
-					     const double& b,
-					     const double& c,
-					     const double& d); //ddJ/dbdb
- 
-    
     ///@}
     ///@name Protected  Access
     ///@{

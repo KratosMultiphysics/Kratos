@@ -14,7 +14,7 @@
 		"description": "shear strain time dependent field",
 		"deformation_gradient" : [ [1.0,"t",0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ]
 	    },
-	    "stress_measure": "PK2"
+	    "stress_measure": "Kirchhoff"
 	    
 	}
     }

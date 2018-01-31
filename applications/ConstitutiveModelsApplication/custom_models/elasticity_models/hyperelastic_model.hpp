@@ -380,7 +380,8 @@ namespace Kratos
         
     virtual void CalculateInvariants(HyperElasticDataType& rVariables);
         
- 
+    virtual void CalculateScalingFactors(HyperElasticDataType& rVariables);
+     
     void CalculateStrainInvariants(const MatrixType& rStrainMatrix, double& rI1, double& rI2, double& rI3);
     
 
@@ -391,6 +392,59 @@ namespace Kratos
     virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction);
 
 
+    //************// dW
+    
+    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative); //dU/dJ
+
+    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative); //ddU/dJdJ
+
+
+    //************// right cauchy green: C
+    MatrixType& GetJRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/dC
+    
+    double& GetJRightCauchyGreen1stDerivative(const StrainData& rStrain,
+					      double& rDerivative,
+					      const double& a,
+					      const double& b); ///dJ/dC
+
+    double& GetJRightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
+						    double& rDerivative,
+						    const double& a,
+						    const double& b,
+						    const double& c,
+						    const double& d); //dJ/dC * dJ/dC
+    
+    double& GetJRightCauchyGreen2ndDerivative(const StrainData& rStrain,
+					      double& rDerivative,
+					      const double& a,
+					      const double& b,
+					      const double& c,
+					      const double& d); //ddJ/dCdC
+
+    //************// left cauchy green : b
+    
+    MatrixType& GetJLeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative); //dJ/db
+
+    double& GetJLeftCauchyGreen1stDerivative(const StrainData& rStrain,
+					     double& rDerivative,
+					     const double& a,
+					     const double& b); //dJ/db
+
+    double& GetJLeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
+						   double& rDerivative,
+						   const double& a,
+						   const double& b,
+						   const double& c,
+						   const double& d); //dJ/db * dJ/db
+    
+    double& GetJLeftCauchyGreen2ndDerivative(const StrainData& rStrain,
+					     double& rDerivative,
+					     const double& a,
+					     const double& b,
+					     const double& c,
+					     const double& d); //ddJ/dbdb
+
+    
     ///@}
     ///@name Protected  Access
     ///@{

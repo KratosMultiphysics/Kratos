@@ -86,7 +86,17 @@ namespace Kratos
     ///@name Operations
     ///@{
 
+   /**
+     * Calculate Strain Energy Density Functions
+     */
+    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override;
 
+    /**
+     * Calculate Constitutive Tensor
+     */
+    virtual void CalculateConstitutiveTensor(ModelDataType& rValues, Matrix& rConstitutiveMatrix) override; 
+
+    
     /**
      * Check
      */
@@ -165,32 +175,38 @@ namespace Kratos
     /**
      * Calculate Constitutive Components
      */
+    virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+					     const unsigned int& a, const unsigned int& b,
+					     const unsigned int& c, const unsigned int& d) override;
 
-    virtual double& AddConstitutiveComponentA(HyperElasticDataType& rVariables, array_1d<double,6>& rScalingFactors,
-					      MatrixType& rStressDerivatives, double &rCabcd,
-					      const unsigned int& a, const unsigned int& b,
-					      const unsigned int& c, const unsigned int& d);
+    /**
+     * Calculate Derivative of a general isotropic tensor
+     */
+    double& CalculateIsotropicTensorDerivative(HyperElasticDataType& rVariables,
+					       MatrixType& rStressDerivatives, double &rCabcd,
+					       const unsigned int& a, const unsigned int& b,
+					       const unsigned int& c, const unsigned int& d);
     
-    virtual double& AddConstitutiveComponentB(HyperElasticDataType& rVariables,
-					      array_1d<double,6>& rScalingFactors, double &rCabcd,
-					      const unsigned int& a, const unsigned int& b,
-					      const unsigned int& c, const unsigned int& d);
 
-    virtual double& AddConstitutiveComponentC(HyperElasticDataType& rVariables,
-					      MatrixType& rStressDerivatives, double &rCabcd,
-					      const unsigned int& a, const unsigned int& b,
-					      const unsigned int& c, const unsigned int& d);
+    /**
+     * Calculate Tensor Derivative Factors
+     */
+    void CalculateDerivativeFactors(array_1d<double,6>& rDerivativeFactors, MatrixType& rStressDerivatives, array_1d<double,3>& rStressEigenValues, array_1d<double,3>& rStrainEigenValues, array_1d<unsigned int,3>& rPermutation);
 
+    
     //************// Strain Data
 
 
     virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override;
 
-    virtual void CalculateScalingFactors(array_1d<double,6>& rScalingFactors, MatrixType& rStressDerivatives, array_1d<double,3>& rStressEigenValues, array_1d<double,3>& rStrainEigenValues, array_1d<unsigned int,3>& rPermutation);
+    virtual void CalculateMainStresses(HyperElasticDataType& rVariables, array_1d<double,3>& rMainStresses);
 
     virtual void CalculateMainStressDerivatives(HyperElasticDataType& rVariables, MatrixType& rStressDerivatives);
 
-    
+    //************//W
+
+    virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override;
+
     ///@}
     ///@name Protected  Access
     ///@{

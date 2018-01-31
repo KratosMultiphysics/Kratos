@@ -119,6 +119,8 @@ namespace Kratos
       rValues.StressMatrix = rStressMatrix; //store isochoric stress matrix as StressMatrix
 
       this->CalculateAndAddVolumetricStressTensor(Variables, rStressMatrix);
+
+      Variables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
       
       KRATOS_CATCH(" ")
     }
@@ -323,6 +325,8 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
+
+    
     virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 					     const unsigned int& a, const unsigned int& b,
 					     const unsigned int& c, const unsigned int& d) override
@@ -572,7 +576,7 @@ namespace Kratos
 
       MooneyRivlinModel::CalculateScalingFactors(rVariables);
 	
-      rVariables.Factors.Alpha4 = this->GetVolumetricFunctionJDerivative(rVariables,rVariables.Factors.Alpha4);
+      rVariables.Factors.Alpha4 = this->GetVolumetricFunction1stJDerivative(rVariables,rVariables.Factors.Alpha4);
       rVariables.Factors.Beta4  = this->GetVolumetricFunction2ndJDerivative(rVariables,rVariables.Factors.Beta4);
 		
       KRATOS_CATCH(" ")
@@ -580,7 +584,7 @@ namespace Kratos
 
     // set the default volumetric function for the incompressible case
     
-    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
+    virtual double& GetVolumetricFunction1srtDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
     {
       KRATOS_TRY
 	

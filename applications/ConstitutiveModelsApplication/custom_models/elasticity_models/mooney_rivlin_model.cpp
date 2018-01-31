@@ -337,17 +337,6 @@ namespace Kratos
   }
 
 
-  double& MooneyRivlinModel::GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
-  {
-    KRATOS_TRY
-	
-    KRATOS_ERROR << "calling the base class function in MooneyRivlinModel ... illegal operation" << std::endl;
-
-    return rDerivative;
-
-    KRATOS_CATCH(" ")
-  }
-
   //************************************************************************************
   //************************************************************************************
   
@@ -386,35 +375,11 @@ namespace Kratos
   }
     
   
+   
   //************************************************************************************
   //************************************************************************************
 
   //isochoric volumetric slit
-    
-  double& MooneyRivlinModel::GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //ddU/dJdJ
-  {
-    KRATOS_TRY
-	
-    KRATOS_ERROR << "calling the base class function in MooneyRivlinModel ... illegal operation" << std::endl;
-
-    return rDerivative;
-
-    KRATOS_CATCH(" ")
-  }
-    
-
-  MooneyRivlinModel::MatrixType& MooneyRivlinModel::GetJLeftCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative) //dJ/db
-  {
-    KRATOS_TRY
-	
-    noalias(rDerivative)  = this->msIdentityMatrix;
-    rDerivative *= rStrain.Invariants.J * 0.5;
-	
-    return rDerivative;
-
-    KRATOS_CATCH(" ")
-  }
-
     
   MooneyRivlinModel::MatrixType& MooneyRivlinModel::GetIsochoricRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative) //dC'/dC
   {
@@ -530,18 +495,6 @@ namespace Kratos
   }
    
 
-  MooneyRivlinModel::MatrixType& MooneyRivlinModel::GetJRightCauchyGreenDerivative(const StrainData& rStrain, MatrixType& rDerivative) //dJ/dC
-  {
-    KRATOS_TRY
-	
-    noalias(rDerivative) = rStrain.InverseMatrix;
-    rDerivative *= rStrain.Invariants.J * 0.5;
-	
-    return rDerivative;
-
-    KRATOS_CATCH(" ")
-  }
-
 
   double& MooneyRivlinModel::GetInverseRightCauchyGreenDerivative(const StrainData& rStrain,
 								  double& rDerivative,
@@ -604,19 +557,6 @@ namespace Kratos
   }
 
 
-  double& MooneyRivlinModel::GetJRightCauchyGreen1stDerivative(const StrainData& rStrain,
-							       double& rDerivative,
-							       const double& a,
-							       const double& b) ///dJ/dC
-  {
-    KRATOS_TRY
-	
-    rDerivative = 0.5 * rStrain.Invariants.J * rStrain.InverseMatrix(a,b);
-	
-    return rDerivative;
-
-    KRATOS_CATCH(" ")
-  }
 
   //************************************************************************************
   //************************************************************************************
@@ -673,23 +613,6 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
     
-  double& MooneyRivlinModel::GetJRightCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-								     double& rDerivative,
-								     const double& a,
-								     const double& b,
-								     const double& c,
-								     const double& d) //dJ/dC * dJ/dC
-  {
-    KRATOS_TRY
-	
-    rDerivative  = 0.5 * rStrain.Invariants.J * rStrain.InverseMatrix(a,b);
-    rDerivative *= (0.5 * rStrain.Invariants.J * rStrain.InverseMatrix(c,d));
-	
-    return rDerivative;
-
-    KRATOS_CATCH(" ")
-  }
-
 
   //************************************************************************************
   //************************************************************************************
@@ -746,23 +669,6 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
-  double& MooneyRivlinModel::GetJRightCauchyGreen2ndDerivative(const StrainData& rStrain,
-							       double& rDerivative,
-							       const double& a,
-							       const double& b,
-							       const double& c,
-							       const double& d) //ddJ/dCdC
-  {
-    KRATOS_TRY
-
-    rDerivative  = GetInverseRightCauchyGreenDerivative(rStrain,rDerivative,a,b,c,d);
-    rDerivative += 0.5 * rStrain.InverseMatrix(a,b)*rStrain.InverseMatrix(c,d);
-    rDerivative *= 0.5 * rStrain.Invariants.J;
-	
-    return rDerivative;
-
-    KRATOS_CATCH(" ")
-  }
 
 
   //************************************************************************************
@@ -852,19 +758,7 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
-  double& MooneyRivlinModel::GetJLeftCauchyGreen1stDerivative(const StrainData& rStrain,
-							      double& rDerivative,
-							      const double& a,
-							      const double& b) //dJ/db
-  {
-    KRATOS_TRY
-	
-    rDerivative  = 0.5 * rStrain.Invariants.J * this->msIdentityMatrix(a,b);
-	
-    return rDerivative;
 
-    KRATOS_CATCH(" ")
-  }
    
   //Invariants Square of the 1st derivatives by components
   double& MooneyRivlinModel::GetI1LeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
@@ -919,23 +813,6 @@ namespace Kratos
   }
 
     
-  double& MooneyRivlinModel::GetJLeftCauchyGreenSquare1stDerivative(const StrainData& rStrain,
-								    double& rDerivative,
-								    const double& a,
-								    const double& b,
-								    const double& c,
-								    const double& d) //dJ/db * dJ/db
-  {
-    KRATOS_TRY
-
-    rDerivative  = 0.5 * rStrain.Invariants.J * this->msIdentityMatrix(a,b);
-    rDerivative *= (0.5 * rStrain.Invariants.J * this->msIdentityMatrix(c,d));
-	
-    return rDerivative;
-
-    KRATOS_CATCH(" ")
-  }
-
 
   //************************************************************************************
   //************************************************************************************
@@ -993,23 +870,7 @@ namespace Kratos
     KRATOS_CATCH(" ")
   }
 
-  double& MooneyRivlinModel::GetJLeftCauchyGreen2ndDerivative(const StrainData& rStrain,
-							      double& rDerivative,
-							      const double& a,
-							      const double& b,
-							      const double& c,
-							      const double& d) //ddJ/dbdb
-  {
-    KRATOS_TRY      
 
-    rDerivative  = (-1.0) * GetFourthOrderUnitTensor(rDerivative,a,b,c,d);
-    rDerivative += 0.5 * this->msIdentityMatrix(a,b)*this->msIdentityMatrix(c,d);
-    rDerivative *= 0.5 * rStrain.Invariants.J;
-	
-    return rDerivative;
-
-    KRATOS_CATCH(" ")
-  }
 
 
   //************************************************************************************
@@ -1028,10 +889,58 @@ namespace Kratos
     return rValue;
 
     KRATOS_CATCH(" ")
-  }    
+  }
 
+    
+  //************************************************************************************
+  //************************************************************************************
 
-   
+  double& MooneyRivlinModel::GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
+  {
+      KRATOS_TRY
+	
+      // const ModelDataType&  rValues = rVariables.GetModelData();
+      
+      // rDerivative = rValues.GetPressure();
+
+      // return rDerivative;
+
+      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+
+      //derivative of "U(J) = (K/2)*ln(J)²"
+      //dU(J)/dJ = (K)*(lnJ/J)
+      rDerivative = rMaterial.GetBulkModulus() * std::log( rVariables.Strain.Invariants.J );
+
+      rDerivative /= rVariables.Strain.Invariants.J;
+      
+      return rDerivative;
+      
+      KRATOS_CATCH(" ")
+  };
+    
+  //************************************************************************************
+  //************************************************************************************
+
+  double& MooneyRivlinModel::GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //ddU/dJdJ
+  {
+      KRATOS_TRY
+
+      // rDerivative = 0.0;
+
+      // return rDerivative;
+	  
+      const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+
+      //derivative of "dU(J)/dJ = (K)*(lnJ/J)"
+      //ddU(J)/dJdJ = (K)*(1-lnJ)/J²
+      rDerivative = rMaterial.GetBulkModulus() * (1.0 -std::log(rVariables.Strain.Invariants.J)) / (rVariables.Strain.Invariants.J * rVariables.Strain.Invariants.J);
+
+      return rDerivative;
+      
+      KRATOS_CATCH(" ")
+  }
+
+    
   //************************************************************************************
   //************************************************************************************
 

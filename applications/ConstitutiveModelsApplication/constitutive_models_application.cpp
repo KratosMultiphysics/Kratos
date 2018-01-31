@@ -71,6 +71,7 @@ namespace Kratos {
     Serializer::Register( "IncompressibleNeoHookeanModel", mIncompressibleNeoHookeanModel );
     Serializer::Register( "BorjaModel", mBorjaModel );
     Serializer::Register( "OgdenModel", mOgdenModel );
+    Serializer::Register( "IsochoricOgdenModel", mIsochoricOgdenModel );
     
     //plasticity models
     Serializer::Register( "VonMisesLinearElasticPlasticityModel", mVonMisesLinearElasticPlasticityModel );
