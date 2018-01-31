@@ -17,89 +17,32 @@
 
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
 
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/node.h"
-#include "utilities/geometry_utilities.h"
-#include "ale_application.h"
 #include "ale_application.h"
 
 namespace Kratos
 {
+	namespace MoveMeshUtilities
+	{
 
-class MoveMeshUtilities
-{
-public:
+        typedef Element BaseType;
+        typedef BaseType::MatrixType MatrixType;
+		typedef Element::GeometryType GeometryType;
+        typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    MoveMeshUtilities() {};
-    ~MoveMeshUtilities() {};
+    	//typedef Properties PropertiesType;
 
-    void BDF_MoveMesh(unsigned int time_order, ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-        //calculating time integration coefficients
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        double dt = CurrentProcessInfo[DELTA_TIME];
+        MatrixType CalculateShapeFunctionDerivatives(const int& rdimension, const double& rPointNumber, GeometryType& rGeometry);
 
-        Vector BDFcoeffs(time_order+1);
+        void CalculateInitialJacobian(MatrixType& rJ0, const double& rPointNumber, GeometryType& rGeometry);
 
-        if(time_order == 2)
-        {
-            if(rModelPart.GetBufferSize() < 3)
-                KRATOS_THROW_ERROR(std::logic_error,"insufficient buffer size for BDF2","")
-
-                BDFcoeffs[0] =	1.5 / dt;	//coefficient for step n+1
-            BDFcoeffs[1] =	-2.0 / dt;//coefficient for step n
-            BDFcoeffs[2] =	0.5 / dt;//coefficient for step n-1
-        }
-        else
-        {
-            BDFcoeffs[0] =	1.0 / dt;	//coefficient for step n+1
-            BDFcoeffs[1] =	-1.0 / dt;//coefficient for step n
-        }
-
-        //update nodal coordinates
-        array_1d<double,3> mesh_vel;
-        for(ModelPart::NodesContainerType::iterator i = rModelPart.NodesBegin();
-                i!=rModelPart.NodesEnd(); i++)
-        {
-            const array_1d<double,3>& disp = i->FastGetSolutionStepValue(DISPLACEMENT);
-            i->X() = i->X0() + disp[0];
-            i->Y() = i->Y0() + disp[1];
-            i->Z() = i->Z0() + disp[2];
-
-            //calculating the mesh velocity
-            noalias(mesh_vel) = BDFcoeffs[0] * disp;
-            for(unsigned int step=1; step<time_order+1; step++)
-                noalias(mesh_vel) += BDFcoeffs[step]*i->FastGetSolutionStepValue(DISPLACEMENT,step);
-
-            //saving the mesh velocity
-            noalias(i->FastGetSolutionStepValue(MESH_VELOCITY)) = mesh_vel;
-        }
-
-
-        KRATOS_CATCH("");
-    }
-
-
-
-
-
-
-private:
-
-};
-
-
-
+	}  // namespace Move Mesh Utilities.
+  
 }  // namespace Kratos.
 
 #endif // KRATOS_MESHMOVING_UTILITIES_H_INCLUDED  defined

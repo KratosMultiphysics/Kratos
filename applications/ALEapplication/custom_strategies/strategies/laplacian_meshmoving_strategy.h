@@ -18,7 +18,7 @@
 /* External includes */
 
 /* Project includes */
-#include "includes/define.h"
+//#include "includes/define.h"
 #include "includes/model_part.h"
 #include "ale_application.h"
 #include "solving_strategies/strategies/solving_strategy.h"

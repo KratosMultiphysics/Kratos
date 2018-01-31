@@ -15,11 +15,10 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "ale_application.h"
 #include "utilities/math_utils.h"
-#include "utilities/geometry_utilities.h"
 #include "custom_elements/laplacian_meshmoving_element.h"
+#include "custom_utilities/move_mesh_utilities.h"
 
 namespace Kratos
 {
@@ -52,55 +51,6 @@ Element::Pointer LaplacianMeshMovingElement::Create(IndexType NewId,
     return BaseType::Pointer(new LaplacianMeshMovingElement(NewId, pGeom, pProperties));
 }
 
-void LaplacianMeshMovingElement::CalculateInitialJacobianValues(MatrixType &rJ0, MatrixType &rInvJ0, double &rDetJ0, const double &rPointNumber)
-{
-    KRATOS_TRY;
-
-    const IntegrationMethod ThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
-    const MatrixType &DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[rPointNumber];
-
-    for (unsigned int i = 0; i < GetGeometry().size(); i++)
-    {
-        const array_1d<double, 3> &coords = GetGeometry()[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
-        for (unsigned int k = 0; k < GetGeometry().WorkingSpaceDimension(); k++)
-        {
-            for (unsigned int m = 0; m < GetGeometry().LocalSpaceDimension(); m++)
-            {
-                rJ0(k, m) += coords[k] * DN_De(i, m);
-            }
-        }
-    }
-
-    MathUtils<double>::InvertMatrix(rJ0, rInvJ0, rDetJ0);
-
-    KRATOS_CATCH("");
-}
-
-LaplacianMeshMovingElement::MatrixType LaplacianMeshMovingElement::CalculateDerivatives(
-    const int &rdimension, const double &rPointNumber)
-{
-    KRATOS_TRY;
-
-    const IntegrationMethod ThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
-    uint dimension = GetGeometry().WorkingSpaceDimension();
-    uint number_of_nodes = GetGeometry().size();
-    MatrixType DN_DX(number_of_nodes, dimension);
-    MatrixType rJ0(dimension, dimension);
-    MatrixType rinvJ0(dimension, dimension);
-
-    rJ0.clear();
-
-    double rdetJ0;
-    const MatrixType &DN_De = this->GetGeometry().ShapeFunctionsLocalGradients(ThisIntegrationMethod)[rPointNumber];
-
-    CalculateInitialJacobianValues(rJ0, rinvJ0, rdetJ0, rPointNumber);
-
-    noalias(DN_DX) = prod(DN_De, rinvJ0);
-
-    return DN_DX;
-
-    KRATOS_CATCH("");
-}
 
 void LaplacianMeshMovingElement::CalculateDeltaPosition(VectorType &rIntermediateDisplacements,
                                                         ProcessInfo &rCurrentProcessInfo)
@@ -127,9 +77,10 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideM
 {
     KRATOS_TRY;
 
-    const SizeType num_nodes = this->GetGeometry().PointsNumber();
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-    const IntegrationMethod ThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
+    GeometryType &r_geom = this->GetGeometry();
+    const SizeType num_nodes = r_geom.PointsNumber();
+    const unsigned int dimension = r_geom.WorkingSpaceDimension();
+    const IntegrationMethod ThisIntegrationMethod = r_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType &integration_points =
         GetGeometry().IntegrationPoints(ThisIntegrationMethod);
 
@@ -144,11 +95,11 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideM
 
     for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
     {
-        // We do not multiply by DetJ0 since this stabilizes the simulation
+        // We do not multiply by DetJ0, since this additionally stabilizes the simulation
         double IntegrationWeight = integration_points[PointNumber].Weight();
 
         // Compute LHS
-        Matrix DN_DX = CalculateDerivatives(dimension, PointNumber);
+        Matrix DN_DX = MoveMeshUtilities::CalculateShapeFunctionDerivatives(dimension, PointNumber, r_geom);
         noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(DN_DX, trans(DN_DX));
     }
 
