@@ -253,8 +253,8 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Transfer fluid reaction to solid interface
         self.interface_mapper.Map(KratosMultiphysics.REACTION,
                                   KratosStructural.POINT_LOAD,
-                                  KratosMapping.MapperFactory.SWAP_SIGN |
-                                  KratosMapping.MapperFactory.CONSERVATIVE)
+                                  KratosMapping.Mapper.SWAP_SIGN |
+                                  KratosMapping.Mapper.CONSERVATIVE)
 
         # Solve the structure problem
         self.structure_solver.SolveSolutionStep()

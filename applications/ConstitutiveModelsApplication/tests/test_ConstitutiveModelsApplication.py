@@ -1,56 +1,37 @@
 # import Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.ConstitutiveModelsApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.ConstitutiveModelsApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
-from generalTests import KratosConstitutiveModelsGeneralTests
+# Import the tests o test_classes to create the suits:
 
-from test_modified_cam_clay import TestModifiedCamClayModel as TModifiedCamClay
+# VALIDATION TESTS
+import ValidationTests
+
+from test_modified_cam_clay import TestModifiedCamClayModel
 
 def AssambleTestSuites():
-    ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
-
-    Return
-    ------
-
-    suites: A dictionary of suites
-        The set of suites with its test_cases added.
-    '''
-
+    # Suites to run
     suites = KratosUnittest.KratosSuites
 
-    # Create a test suit with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
-    smallSuite = suites['small']
-    smallSuite.addTest(KratosConstitutiveModelsGeneralTests('testSmallExample'))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TModifiedCamClay]))
+    # SMALL TESTS
+    #small_suite = suites['small']
 
-    # Create a test suit with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
-    nightSuite = suites['nightly']
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([KratosConstitutiveModelsGeneralTests]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TModifiedCamClay]))
+    # NIGHT TESTS
+    night_suite = suites['nightly']
+    night_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModifiedCamClayModel]))
 
-    # Create a test suit that contains all the tests from every testCase
-    # in the list:
-    allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            KratosConstitutiveModelsGeneralTests
-        ])
-    )
-    allSuite.addTests(nightSuite)
-    allSuite.addTests(smallSuite)
+    # VALIDATION TESTS
+    validation_suite = ValidationTests.SetTestSuite(suites)
+    night_suite.addTests(validation_suite)
+
+    # ALL TESTS
+    all_suite = suites['all']
+
+    all_suite.addTests(night_suite)
 
     return suites
 

@@ -53,8 +53,9 @@ DistanceModificationProcess::DistanceModificationProcess(
     {
         "model_part_name"                        : "default_model_part_name",
         "distance_factor"                        : 2.0,
-        "distance_threshold"                     : 0.01,
+        "distance_threshold"                     : 0.001,
         "check_at_each_time_step"                : false,
+        "avoid_almost_empty_elements"            : true,
         "deactivate_full_negative_elements"      : true,
         "recover_original_distance_at_each_step" : false
     }  )" );
@@ -64,6 +65,7 @@ DistanceModificationProcess::DistanceModificationProcess(
     mFactorCoeff = rParameters["distance_factor"].GetDouble();
     mDistanceThreshold = rParameters["distance_threshold"].GetDouble();
     mCheckAtEachStep = rParameters["check_at_each_time_step"].GetBool();
+    mAvoidAlmostEmptyElements = rParameters["avoid_almost_empty_elements"].GetBool();
     mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
     mRecoverOriginalDistance = rParameters["recover_original_distance_at_each_step"].GetBool();
 }
@@ -77,10 +79,6 @@ void DistanceModificationProcess::ExecuteInitialize() {
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_H, r_node);
     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
 
-    // Obtain NODAL_H values
-    FindNodalHProcess NodalHCalculator(mrModelPart);
-    NodalHCalculator.Execute();
-
     KRATOS_CATCH("");
 }
 
@@ -88,13 +86,21 @@ void DistanceModificationProcess::ExecuteBeforeSolutionLoop() {
 
     KRATOS_TRY;
 
+    // Initialize the number of bad cuts to a non-zero value
     unsigned int bad_cuts = 1;
+
+    // Compute NODAL_H values
+    FindNodalHProcess NodalHCalculator(mrModelPart);
+    NodalHCalculator.Execute();
 
     // Modify the nodal distance values until there is no bad intersections
     while (bad_cuts > 0) {
         bad_cuts = this->ModifyDistance();
         mDistanceThreshold /= mFactorCoeff;
     }
+
+    // Set the ELEMENTAL_DISTANCE values considering the modified distance values
+    this->SetElementalDistances();
 
     // If proceeds (depending on the formulation), perform the deactivation
     // Deactivates the full negative elements and sets values in the full negative elements
@@ -115,7 +121,8 @@ void DistanceModificationProcess::ExecuteInitializeSolutionStep() {
 void DistanceModificationProcess::ExecuteFinalizeSolutionStep() {
 
     if(mRecoverOriginalDistance == true) {
-        RecoverOriginalDistance();
+        this->RecoverOriginalDistance();
+        this->SetElementalDistances();
     }
 }
 
@@ -136,9 +143,24 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
             const double tol_d = mDistanceThreshold*h;
             double& d = itNode->FastGetSolutionStepValue(DISTANCE);
 
+            // Check if the distance values are close to zero
+            // If proceeds, set the tolerance as distance value
+            if(std::abs(d) < tol_d){
+                if (d <= 0.0){
+                    d = -tol_d;
+                } else {
+                    // If selected, avoid almost empty elements
+                    if (mAvoidAlmostEmptyElements){
+                        d = -tol_d;
+                    } else {
+                        d = tol_d;
+                    }
+                }
+            }
+
             // Modify the distance to avoid almost empty fluid elements
-            if((d >= 0.0) && (d < tol_d))
-                d = -0.001*tol_d;
+            // if((d >= 0.0) && (d < tol_d))
+            //     d = -0.001*tol_d;
         }
     }
     // Case in where the original distance needs to be kept to track the interface (e.g. FSI)
@@ -160,15 +182,35 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
                 const double tol_d = mDistanceThreshold*h;
                 double& d = itNode->FastGetSolutionStepValue(DISTANCE);
 
-                if((d >= 0.0) && (d < tol_d)) {
+                // Check if the distance values are close to zero
+                // If proceeds, set the tolerance as distance value
+                if(std::abs(d) < tol_d){
 
                     // Store the original distance to be recovered at the end of the step
                     LocalModifiedDistancesIDs.push_back(d);
                     LocalModifiedDistancesValues.push_back(itNode->Id());
 
-                    // Modify the distance to avoid almost empty fluid elements
-                    d = -0.001*tol_d;
+                    if (d <= 0.0){
+                        d = -tol_d;
+                    } else {
+                        // If selected, avoid almost empty elements
+                        if (mAvoidAlmostEmptyElements){
+                            d = -tol_d;
+                        } else {
+                            d = tol_d;
+                        }
+                    }
                 }
+
+                // if((d >= 0.0) && (d < tol_d)) {
+
+                //     // Store the original distance to be recovered at the end of the step
+                //     LocalModifiedDistancesIDs.push_back(d);
+                //     LocalModifiedDistancesValues.push_back(itNode->Id());
+
+                //     // Modify the distance to avoid almost empty fluid elements
+                //     d = -0.001*tol_d;
+                // }
             }
 
             AuxModifiedDistancesIDs[ThreadId] = LocalModifiedDistancesIDs;
@@ -210,10 +252,15 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
                 const double tol_d = (mDistanceThreshold*mFactorCoeff)*h;
                 const double d = rConstNode.FastGetSolutionStepValue(DISTANCE);
 
-                if((d >= 0.0) && (d < tol_d)) {
+                if(std::abs(d) < tol_d){
                     num_bad_cuts++;
                     break;
                 }
+
+                // if((d >= 0.0) && (d < tol_d)) {
+                //     num_bad_cuts++;
+                //     break;
+                // }
             }
         }
     }
@@ -222,6 +269,22 @@ unsigned int DistanceModificationProcess::ModifyDistance() {
     mrModelPart.GetCommunicator().SumAll(num_bad_cuts);
 
     return num_bad_cuts;
+}
+
+void DistanceModificationProcess::SetElementalDistances(){
+
+    unsigned int n_nodes = ((mrModelPart.ElementsBegin())->GetGeometry()).PointsNumber();
+    Vector elem_distances = ZeroVector(n_nodes);
+
+    #pragma omp parallel for firstprivate(n_nodes, elem_distances)
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        const auto& r_geom = it_elem->GetGeometry();
+        for (unsigned int i_node = 0; i_node < n_nodes; ++ i_node){
+            elem_distances[i_node] = r_geom[i_node].FastGetSolutionStepValue(DISTANCE);
+        }
+        it_elem->SetValue(ELEMENTAL_DISTANCES, elem_distances);
+    }
 }
 
 void DistanceModificationProcess::RecoverOriginalDistance() {

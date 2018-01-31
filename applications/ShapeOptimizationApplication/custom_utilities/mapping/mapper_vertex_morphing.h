@@ -147,7 +147,7 @@ public:
     // --------------------------------------------------------------------------
     void CreateFilterFunction()
     {
-        mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
+        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
     }
 
     // --------------------------------------------------------------------------
@@ -188,7 +188,7 @@ public:
     // --------------------------------------------------------------------------
     void CreateSearchTreeWithAllNodesOnDesignSurface()
     {
-        mpSearchTree = boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
+        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
     }
 
     // --------------------------------------------------------------------------
