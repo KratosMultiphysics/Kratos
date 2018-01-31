@@ -38,6 +38,11 @@
         load_trace_point(rTag);                                      \
             read(rValue);                                             \
     }                                \
+    void load(std::string const & rTag, type const& rValue)                \
+    {                                                                \
+        load_trace_point(rTag);                                      \
+            read(const_cast<type&>(rValue));                                             \
+    }                                \
                                      \
     void load_base(std::string const & rTag, type& rValue)           \
     {                                                                \
@@ -361,7 +366,7 @@ public:
     }
 
     template<class TFirstType, class TSecondType>
-    void load(std::string const & rTag, std::pair<TFirstType, TSecondType> rObject)
+    void load(std::string const & rTag, std::pair<TFirstType, TSecondType>& rObject)
     {
         load_trace_point(rTag);
         load("First", rObject.first);
