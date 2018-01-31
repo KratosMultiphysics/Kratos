@@ -33,7 +33,7 @@ class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
                 normal_params.AddValue("reference_coordinate",settings["reference_coordinate"])
                 normal_params.AddValue("specific_weight",settings["specific_weight"])
                 if settings["table"][0].GetInt() == 0:
-                    self.components_process_list.append(ApplyConstantHydrostaticPressureProcess(model_part, normal_params))
+                    self.components_process_list.append(KratosPoro.ApplyConstantHydrostaticPressureProcess(model_part, normal_params))
                 else:
                     normal_params.AddValue("table",settings["table"][0])
                     self.components_process_list.append(KratosPoro.ApplyHydrostaticPressureTableProcess(model_part, normal_params))

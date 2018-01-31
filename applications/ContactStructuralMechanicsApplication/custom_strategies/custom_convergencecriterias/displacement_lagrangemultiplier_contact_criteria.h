@@ -88,11 +88,13 @@ public:
 
     /// Constructor.
     /**
-     * @param DispRatioTolerance: Relative tolerance for displacement error
-     * @param DispAbsTolerance: Absolute tolerance for displacement error
-     * @param LMRatioTolerance: Relative tolerance for lagrange multiplier error
-     * @param LMAbsTolerance: Absolute tolerance for lagrange multiplier error
-     * @param EnsureContact: To check if the contact is lost
+     * @param DispRatioTolerance Relative tolerance for displacement error
+     * @param DispAbsTolerance Absolute tolerance for displacement error
+     * @param LMRatioTolerance Relative tolerance for lagrange multiplier error
+     * @param LMAbsTolerance Absolute tolerance for lagrange multiplier error
+     * @param EnsureContact To check if the contact is lost
+     * @param pTable The pointer to the output table
+     * @param PrintingOutput If the output is going to be printed in a txt file
      */
     
     DisplacementLagrangeMultiplierContactCriteria(  

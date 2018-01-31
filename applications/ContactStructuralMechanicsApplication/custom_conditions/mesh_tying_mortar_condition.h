@@ -694,7 +694,7 @@ protected:
         DofData& rDofData,
 //         const boost::numeric::ublas::bounded_matrix<double, DimensionLocalElem, DimensionLocalElem> LHS_SlaveElem_Contribution,
 //         const Element::EquationIdVectorType& EquationIdSlaveElem,
-        const unsigned int& rMasterElementIndex,
+        const unsigned int rMasterElementIndex,
         const ProcessInfo& rCurrentProcessInfo
         );
     
@@ -756,7 +756,7 @@ protected:
         DofData& rDofData,
 //         array_1d<double, DimensionLocalElem> RHS_SlaveElem_Contribution,
 //         const Element::EquationIdVectorType& EquationIdSlaveElem,
-        const unsigned int& rMasterElementIndex,
+        const unsigned int rMasterElementIndex,
         const ProcessInfo& rCurrentProcessInfo
         );
     

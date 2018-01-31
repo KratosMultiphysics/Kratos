@@ -389,7 +389,7 @@ KRATOS_WATCH(Ngauss);  */
             double TauOne, TauTwo;
 
             //compute stabilization parameters
-            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
+            this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
             this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, DarcyTerm, TauOne, TauTwo, N, DN_DX, wGauss);
             
@@ -501,7 +501,7 @@ KRATOS_WATCH(Ngauss);  */
             const double DarcyTerm = A + B*VelNorm;
 
             double TauOne,TauTwo;
-            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
+            this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
             // Add dynamic stabilization terms ( all terms involving a delta(u) )
             this->AddMassStabTerms(MassMatrix, Density, AdvVel, DarcyTerm, TauOne, N, DN_DX, wGauss);
@@ -1120,7 +1120,7 @@ protected:
         }
     }
 
-    void CalculateTau(
+    void CalculateStabilizationTau(
         double& TauOne,
         double& TauTwo,
         const double VelNorm,

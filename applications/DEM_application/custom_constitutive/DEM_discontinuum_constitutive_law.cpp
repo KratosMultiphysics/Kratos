@@ -131,17 +131,17 @@ namespace Kratos {
     }
     
     void DEMDiscontinuumConstitutiveLaw::CalculateForces(const ProcessInfo& r_process_info,
-                                                        const double OldLocalContactForce[3],
-                                                        double LocalElasticContactForce[3],
-                                                        double LocalDeltDisp[3],
-                                                        double LocalRelVel[3],            
-                                                        double indentation,
-                                                        double previous_indentation,
-                                                        double ViscoDampingLocalContactForce[3],
-                                                        double& cohesive_force,
-                                                        SphericParticle* element1,
-                                                        SphericParticle* element2,
-                                                        bool& sliding, double LocalCoordSystem[3][3]) {
+                                                         const double OldLocalContactForce[3],
+                                                         double LocalElasticContactForce[3],
+                                                         double LocalDeltDisp[3],
+                                                         double LocalRelVel[3],            
+                                                         double indentation,
+                                                         double previous_indentation,
+                                                         double ViscoDampingLocalContactForce[3],
+                                                         double& cohesive_force,
+                                                         SphericParticle* element1,
+                                                         SphericParticle* element2,
+                                                         bool& sliding, double LocalCoordSystem[3][3]) {
 
         KRATOS_THROW_ERROR(std::runtime_error,"This function (DEMDiscontinuumConstitutiveLaw::CalculateForces) should not be called.","")
     }

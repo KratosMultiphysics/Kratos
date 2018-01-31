@@ -8,7 +8,7 @@ project (KratosMultiphysics)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 5)
-set (KratosMultiphysics_MINOR_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 3)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # Define custom compiler build types
@@ -161,6 +161,10 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
+if(USE_COTIRE MATCHES ON)
+    include(cotire)
+endif(USE_COTIRE MATCHES ON)
+
 ######################################################################################
 ######################################################################################
 ######################################################################################
@@ -210,6 +214,7 @@ message("Boostlib used: ${Boost_LIBRARIES}")
 # Finding and including PYTHON
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
+list(REMOVE_ITEM PYTHON_LIBRARIES "debug" "optimized")
 link_directories(${PYTHON_LIBRARIES})
 
 # Follow the symbolic links for the python lib only if needed
