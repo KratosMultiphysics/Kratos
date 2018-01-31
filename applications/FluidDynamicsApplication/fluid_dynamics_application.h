@@ -237,6 +237,8 @@ private:
     /// Expermiental fluid element
     const QSVMS< QSVMSData<2,3> > mQSVMS2D3N;
     const QSVMS< QSVMSData<3,4> > mQSVMS3D4N;
+    const QSVMS< QSVMSData<2,4> > mQSVMS2D4N;
+    const QSVMS< QSVMSData<3,8> > mQSVMS3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
