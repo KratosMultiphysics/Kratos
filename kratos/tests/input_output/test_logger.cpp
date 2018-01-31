@@ -113,19 +113,6 @@ namespace Kratos {
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test info message");
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoFirst, KratosCoreFastSuite)
-        {
-            static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
-
-            for(std::size_t i = 0; i < 10; i++) {
-                KRATOS_INFO_FIRST("TestInfo") << "Test info message - " << i;
-            }
-
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test info message - 0");
-        }
-
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoOnce, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
@@ -133,10 +120,23 @@ namespace Kratos {
 			Logger::AddOutput(output);
 
 			for(std::size_t i = 0; i < 10; i++) {
-                KRATOS_INFO_ONCE("TestInfo", 4) << "Test info message - " << i;
+                KRATOS_INFO_ONCE("TestInfo") << "Test info message - " << i;
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test info message - 4");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test info message - 0");
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoFirst, KratosCoreFastSuite)
+        {
+            static std::stringstream buffer;
+			LoggerOutput output(buffer);
+			Logger::AddOutput(output);
+
+            for(std::size_t i = 0; i < 10; i++) {
+                KRATOS_INFO_FIRST_N("TestInfo", 4) << ".";
+            }
+
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "....");
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarning, KratosCoreFastSuite)
@@ -162,19 +162,6 @@ namespace Kratos {
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test warning message");
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningFirst, KratosCoreFastSuite)
-        {
-            static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
-
-            for(std::size_t i = 0; i < 10; i++) {
-                KRATOS_INFO_FIRST("TestWarning") << "Test warning message - " << i;
-            }
-
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test warning message - 0");
-        }
-
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningOnce, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
@@ -182,10 +169,23 @@ namespace Kratos {
 			Logger::AddOutput(output);
 
 			for(std::size_t i = 0; i < 10; i++) {
-                KRATOS_INFO_ONCE("TestWarning", 4) << "Test warning message - " << i;
+                KRATOS_INFO_ONCE("TestWarning") << "Test warning message - " << i;
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test warning message - 4");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test warning message - 0");
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningFirst, KratosCoreFastSuite)
+        {
+            static std::stringstream buffer;
+			LoggerOutput output(buffer);
+			Logger::AddOutput(output);
+
+            for(std::size_t i = 0; i < 10; i++) {
+                KRATOS_INFO_FIRST_N("TestWarning", 4) << ".";
+            }
+
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "....");
         }
 
 	}   // namespace Testing
