@@ -102,6 +102,7 @@ from NightlyTests import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from NightlyTests import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
 from NightlyTests import Simple2D2NBeamCrTest as T2D2NBeamCrTest
 # Shell tests
+### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 from NightlyTests import ShellQ4ThickBendingRollUpTests as TShellQ4ThickBendingRollUpTests
 from NightlyTests import ShellQ4ThickDrillingRollUpTests as TShellQ4ThickDrillingRollUpTests
 from NightlyTests import ShellQ4ThickOrthotropicLaminateLinearStaticTests as TShellQ4ThickOrthotropicLaminateLinearStaticTests
@@ -119,7 +120,17 @@ from NightlyTests import ShellQ4ThinNonLinearStaticTests as TShellQ4ThinNonLinea
 from NightlyTests import ShellQ4ThinLinearDynamicTests as TShellQ4ThinLinearDynamicTests
 from NightlyTests import ShellQ4ThinNonLinearDynamicTests as TShellQ4ThinNonLinearDynamicTests
 from NightlyTests import ShellQ4ThinOrthotropicLaminateLinearStaticTests as TShellQ4ThinOrthotropicLaminateLinearStaticTests
-
+### ---| OLD Tests End
+# Shell tests
+from NightlyTests import ShellT3IsotropicLinearStaticStructScordelisLoRoofTests as TShellT3IsotropicLinearStaticStructScordelisLoRoofTests
+from NightlyTests import ShellT3AndQ4LinearStaticStructScordelisLoRoofTests as TShellT3AndQ4LinearStaticStructScordelisLoRoofTests
+from NightlyTests import ShellT3AndQ4LinearStaticStructPinchedCylinderTests as TShellT3AndQ4LinearStaticStructPinchedCylinderTests
+from NightlyTests import ShellT3AndQ4LinearStaticStructPinchedHemisphereTests as TShellT3AndQ4LinearStaticStructPinchedHemisphereTests
+from NightlyTests import ShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests as TShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests
+from NightlyTests import ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests as TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests
+from NightlyTests import ShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests as TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests
+from NightlyTests import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests
+from NightlyTests import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests
 # CL tests
 from NightlyTests import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
 
@@ -129,6 +140,20 @@ from ValidationTests import SprismPanTests              as TSprismPanTests
 # Pendulus Tests with Solid Elements
 from ValidationTests import PendulusTLTest              as TPendulusTLTest
 from ValidationTests import PendulusULTest              as TPendulusULTest
+# Pendulus Tests with Shell Elements
+from ValidationTests import ShellT3AndQ4NonLinearDynamicStructPendulusTests as TShellT3AndQ4NonLinearDynamicStructPendulusTests
+from ValidationTests import ShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests as TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests
+from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructPendulusTests as TShellT3AndQ4NonLinearDynamicUnstructPendulusTests
+from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests
+# Shell tests
+from ValidationTests import ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests as TShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests
+from ValidationTests import ShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests as TShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests
+from ValidationTests import ShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests as TShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests
+from ValidationTests import ShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests as TShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests
+from ValidationTests import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests as TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests
+from ValidationTests import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests as TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests
+from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests
+from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests
 
 
 def AssambleTestSuites():
@@ -228,23 +253,17 @@ def AssambleTestSuites():
     nightSuite.addTest(T3D2NBeamCrLinearTest('test_execution'))
     nightSuite.addTest(T3D2NBeamCrDynamicTest('test_execution'))
     # Shell tests
-    nightSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    nightSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
-    nightSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
-    nightSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
-    nightSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))
-    nightSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
-    nightSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
-    nightSuite.addTest(TShellT3ThickLinearDynamicTests('test_execution'))
-    nightSuite.addTest(TShellT3ThickNonLinearDynamicTests('test_execution'))
-    nightSuite.addTest(TShellT3ThickOrthotropicLaminateLinearStaticTests('test_execution'))
-    nightSuite.addTest(TShellQ4ThinLinearStaticTests('test_execution'))
-    nightSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution'))
-    nightSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
-    nightSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
-    nightSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
+    nightSuite.addTest(TShellT3IsotropicLinearStaticStructScordelisLoRoofTests('test_execution'))
+    nightSuite.addTest(TShellT3AndQ4LinearStaticStructScordelisLoRoofTests('test_execution'))
+    nightSuite.addTest(TShellT3AndQ4LinearStaticStructPinchedCylinderTests('test_execution'))
+    nightSuite.addTest(TShellT3AndQ4LinearStaticStructPinchedHemisphereTests('test_execution'))
+    nightSuite.addTest(TShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests('test_execution'))
+    nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests('test_execution'))
+    nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
+    nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests('test_execution'))
+    nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
     # Constitutive Law tests
-    #nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
+    # nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
 
     if (missing_external_dependencies == False):
         if (hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver")):
@@ -265,12 +284,46 @@ def AssambleTestSuites():
     # For very long tests that should not be in nighly and you can use to validate 
     validationSuite = suites['validation']
     # SPRISM tests
-    ####validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
+    # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
+    validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
+    # Pendulus tests with Solid Elements
     validationSuite.addTest(TPendulusTLTest('test_execution'))
     validationSuite.addTest(TPendulusULTest('test_execution'))
+    # Pendulus Tests with Shell Elements
+    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests('test_execution'))
+    # Shell tests
+    validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests('test_execution'))
+    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
+    
+    ### OLD Shell Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
+    # They have been moved to validation temporarily until they will be removed
     validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
-    validationSuite.addTest(T2D2NBeamCrTest('test_execution')) # TODO should be in nightSuite but is too slow
+    validationSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
+    validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    validationSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
+    validationSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
+    validationSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))
+    validationSuite.addTest(TShellT3ThickLinearStaticTests('test_execution'))
+    validationSuite.addTest(TShellT3ThickNonLinearStaticTests('test_execution'))
+    validationSuite.addTest(TShellT3ThickLinearDynamicTests('test_execution'))
+    validationSuite.addTest(TShellT3ThickNonLinearDynamicTests('test_execution'))
+    validationSuite.addTest(TShellT3ThickOrthotropicLaminateLinearStaticTests('test_execution'))
+    validationSuite.addTest(TShellQ4ThinLinearStaticTests('test_execution'))
+    validationSuite.addTest(TShellQ4ThinNonLinearStaticTests('test_execution'))
+    validationSuite.addTest(TShellQ4ThinLinearDynamicTests('test_execution'))
+    validationSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
+    validationSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
+    ### ---| OLD Shell Tests End
     
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
