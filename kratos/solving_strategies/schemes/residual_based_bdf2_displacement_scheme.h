@@ -324,6 +324,13 @@ public:
         mBDF2.c1 = -time_coeff * (std::pow(rho, 2) + 2.0 * rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
         mBDF2.c2 =  time_coeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
         
+        // Adding to the process info
+        Vector bdf_vector(3);
+        bdf_vector[0] = mBDF2.c0;
+        bdf_vector[1] = mBDF2.c1;
+        bdf_vector[2] = mBDF2.c2;
+        current_process_info(BDF_COEFFICIENTS) = bdf_vector;
+        
         KRATOS_CATCH( "" );
     }
 
@@ -489,16 +496,34 @@ protected:
     {
         // Adding inertia contribution
         if (M.size1() != 0) {
-            Vector a;
-            pElement->GetSecondDerivativesVector(a, 0);
-            noalias(RHS_Contribution) -= prod(M, a);
+//             const double delta_time = CurrentProcessInfo[DELTA_TIME];
+//             Vector un1, un2, un3, un4;
+//             pElement->GetValuesVector(un1, 1);
+//             pElement->GetValuesVector(un2, 2);
+//             pElement->GetValuesVector(un3, 3);
+//             pElement->GetValuesVector(un4, 4);
+//             const Vector pseudoa = - 1.0/std::pow(delta_time, 2) * ( 6 * un1 - 11.0/2.0 * un2 + 2.0 * un3 - 1.0/4.0 * un4);
+//             Vector un1, un2;
+//             pElement->GetValuesVector(un1, 1);
+//             pElement->GetValuesVector(un2, 2);
+//             Vector vn1, vn2;
+//             pElement->GetFirstDerivativesVector(vn1, 1);
+//             pElement->GetFirstDerivativesVector(vn2, 2);
+//             const Vector pseudoa =  mBDF2.c0 * (mBDF2.c1 * un1 + mBDF2.c2 * un2) + mBDF2.c1 * vn1 + mBDF2.c2 * vn2;
+            Vector pseudoa;
+            pElement->GetSecondDerivativesVector(pseudoa, 0);
+            noalias(RHS_Contribution) -= prod(M, pseudoa);
         }
 
         // Adding damping contribution
         if (D.size1() != 0) {
-            Vector v;
-            pElement->GetFirstDerivativesVector(v, 0);
-            noalias(RHS_Contribution) -= prod(D, v);
+            Vector un1, un2;
+            pElement->GetValuesVector(un1, 1);
+            pElement->GetValuesVector(un2, 2);
+            const Vector pseudov =  mBDF2.c1 * un1 + mBDF2.c2 * un2;
+            Vector pseudov;
+            pElement->GetFirstDerivativesVector(pseudov, 0);
+            noalias(RHS_Contribution) -= prod(D, pseudov);
         }
     }
 
@@ -521,17 +546,28 @@ protected:
     {
         // Adding inertia contribution
         if (M.size1() != 0) {
-            Vector a;
-            pCondition->GetSecondDerivativesVector(a, 0);
-            noalias(RHS_Contribution)  -= prod(M, a);
+//             Vector un1, un2;
+//             pCondition->GetValuesVector(un1, 1);
+//             pCondition->GetValuesVector(un2, 2);
+//             Vector vn1, vn2;
+//             pCondition->GetFirstDerivativesVector(vn1, 1);
+//             pCondition->GetFirstDerivativesVector(vn2, 2);
+//             const Vector pseudoa =  mBDF2.c0 * (mBDF2.c1 * un1 + mBDF2.c2 * un2) + mBDF2.c1 * vn1 + mBDF2.c2 * vn2;
+            Vector pseudoa;
+            pCondition->GetSecondDerivativesVector(pseudoa, 0);
+            noalias(RHS_Contribution) -= prod(M, pseudoa);
         }
 
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0) {
-            Vector v;
-            pCondition->GetFirstDerivativesVector(v, 0);
-            noalias(RHS_Contribution) -= prod(D, v);
+//             Vector un1, un2;
+//             pCondition->GetValuesVector(un1, 1);
+//             pCondition->GetValuesVector(un2, 2);
+//             const Vector pseudov =  mBDF2.c1 * un1 + mBDF2.c2 * un2;
+            Vector pseudov;
+            pCondition->GetFirstDerivativesVector(pseudov, 0);
+            noalias(RHS_Contribution) -= prod(D, pseudov);
         }
     }
 
