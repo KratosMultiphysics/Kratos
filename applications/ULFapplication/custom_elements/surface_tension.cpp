@@ -7,8 +7,8 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
-//
+//  Main authors:    
+
 
 #include "includes/define.h"
 #include "custom_elements/surface_tension.h"

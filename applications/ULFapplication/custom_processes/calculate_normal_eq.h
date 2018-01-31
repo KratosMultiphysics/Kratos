@@ -70,26 +70,7 @@ namespace Kratos
 		im->FastGetSolutionStepValue(NORMAL_CL_EQ_Y) = -cos(theta_rad)*temp[1];		
 		im->FastGetSolutionStepValue(NORMAL_CL_EQ_Z) = sin(theta_rad);
 		im->FastGetSolutionStepValue(NORMAL_CL_EQ) = NormalizeVec3D(im->FastGetSolutionStepValue(NORMAL_CL_EQ));
-/*		
-		theta = (im->FastGetSolutionStepValue(CONTACT_ANGLE))*pi/180.0;
-		im->FastGetSolutionStepValue(NORMAL_CL_X) = -cos(theta)*temp[0];
-		im->FastGetSolutionStepValue(NORMAL_CL_Y) = -cos(theta)*temp[1];		
-		im->FastGetSolutionStepValue(NORMAL_CL_Z) = sin(theta);
-		im->FastGetSolutionStepValue(NORMAL_CL) = NormalizeVec3D(im->FastGetSolutionStepValue(NORMAL_CL));*/
-		
-		//Printing stuff:
-// 		double dotprod = DotProduct3D(im->FastGetSolutionStepValue(NORMAL_EQ), im->FastGetSolutionStepValue(ADHESION_FORCE));
-// 		KRATOS_WATCH("Dot product is:");
-// 		KRATOS_WATCH(dotprod);
-// 		double angle = Angle2vecs3D(normal_eq,normal_xy);
-// 		KRATOS_WATCH("Angle between N_eq and vertical is: ");
-// 		KRATOS_WATCH(angle);	
-// 		double angle_vec = Angle2vecs3D(im->FastGetSolutionStepValue(NORMAL_TP),normal_xy);
-// 		KRATOS_WATCH("Angle between N_tp and vertical is: ");
-// 		KRATOS_WATCH(angle_vec);
-// 		double angle_m = Angle2vecs3D(im->FastGetSolutionStepValue(ADHESION_FORCE),normal_xy);
-// 		KRATOS_WATCH("Angle between m_vec and vertical is: ");
-// 		KRATOS_WATCH(angle_m);	
+
 	    }
 	    else
 		im->FastGetSolutionStepValue(NORMAL_EQ) = ZeroVector(3);
@@ -97,90 +78,7 @@ namespace Kratos
 	KRATOS_CATCH("")
     }    
     
-    ///////////////////////////////////////////////////////////////
-    /// NOT WORKING VERSION
-    ///////////////////////////////////////////////////////////////
-    /*void CalculateNormalEq3D(ModelPart& ThisModelPart)
-    {
-	KRATOS_TRY
-	
-	double pi = 3.14159265359;
-	double theta = 0.0;
-	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
-	double x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3,dist_struct;
-	int neighnum;
-	array_1d<double,3> struct_dist = ZeroVector(3);
-	
-	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ;
-	    im != ThisModelPart.NodesEnd() ; im++)
-	    {
-	      //Find the neighbours of TRIPLE_POINT at the boundary
-	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
-	      {
-		WeakPointerVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
-		x0 = im->X();
-		y0 = im->Y();
-		z0 = im->Z();
-		x1 = y1 = z1 = x2 = y2 = z2 = x3 = z3 = dist_struct = 0.0;
-		neighnum = 0;
-		struct_dist = ZeroVector(3);
-		for (unsigned int i = 0; i < neighb.size(); i++)
-		{
-		  if ((neighb[i].FastGetSolutionStepValue(TRIPLE_POINT))*1000.0 != 0.0)
-		  {
-		    array_1d<double,3> vtemp = ZeroVector(3);
-		    double xtemp = neighb[i].X();
-		    double ytemp = neighb[i].Y();
-		    double ztemp = neighb[i].Z();
-		    vtemp = Vector3D(xtemp,ytemp,ztemp,x0,y0,z0);
-		    double norm_temp = Norm3D(vtemp);
-		    if (norm_temp < 1e-20)
-		    {
-		      if (neighnum == 0)
-		      {
-			x1 = neighb[i].X();
-			y1 = neighb[i].Y();
-			z1 = neighb[i].Z();
-		      }
-		      else
-		      {
-			x2 = neighb[i].X();
-			y2 = neighb[i].Y();
-			z2 = neighb[i].Z();		      
-		      }
-		      neighnum++;
-		    }
-		  }
-		  if ((neighb[i].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0) && (neighb[i].FastGetSolutionStepValue(TRIPLE_POINT) == 0.0))
-		  {
-		      x3 = neighb[i].X();
-		      y3 = neighb[i].Y();
-		      struct_dist = Vector3D(x0,y0,z0,x3,y3,z3);
-		      dist_struct = Norm3D(struct_dist);
-		      if (dist_struct < 5.0e-5)
-			neighb[i].GetValue(ERASE_FLAG) = 1.0;
-		  }		  
-		}
-		
-		//Obtain the vectors pointing from node 0 to node 1 (r10) and from 0 to 2 (r20)
-		array_1d<double,3> r10 = ZeroVector(3);
-		array_1d<double,3> r20 = ZeroVector(3);
-		array_1d<double,3> nu0 = ZeroVector(3);
-		r10 = Vector3D(x1,y1,z1,x0,y0,z0);
-		r20 = Vector3D(x2,y2,z2,x0,y0,z0);
-		r10 = NormalizeVec3D();
-		r20 = NormalizeVec3D();
-		nu0 = SumVecs3D(r10,r20);
-		nu0 = NormalizeVec3D();
-		
-// 		theta = theta_eq*pi/180.0;
-// 		im->FastGetSolutionStepValue(NORMAL_EQ_X) = (sin(theta))*nu0[0];
-// 		im->FastGetSolutionStepValue(NORMAL_EQ_Y) = (sin(theta))*nu0[1];
-// 		im->FastGetSolutionStepValue(NORMAL_EQ_Z) = (sin(theta))*nu0[2] + cos(theta);
-	      }
-	    }
-	KRATOS_CATCH("")
-    }*/    
+   
     
     array_1d<double,2> Vector2D(const double x0, const double y0, const double x1, const double y1)
     {

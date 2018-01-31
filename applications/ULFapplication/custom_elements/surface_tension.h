@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Jordi Cotela
+//  Main authors:
 //
 
 
@@ -71,45 +71,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// A stabilized element for the incompressible Navier-Stokes equations.
+/// A stabilized element for the incompressible Navier-Stokes equations, utilizing lagrangian_Eulerian approach for droplet dynamics.
 /**
- * This class implements a stabilized formulation based on the
- * Variational Multiscale framework. The the subscales can be modeled
- * using either Algebraic Subgird Scales (ASGS) or Orthogonal Subscales (OSS).
- * In the case of OSS, the projection terms are treated explicitly (computed
- * using the results of the previous iteration) and the subscales are not
- * tracked in time. The choice of subscale model is made based on the ProcessInfo
- * variable OSS_SWITCH (OSS if 1, ASGS otherwise).
- * This class implements both the 2D and 3D versions of the element.
- *
- * The ASGS implementation follows Ramon Codina, A stabilized finite element
- * method for generalized stationary incompressible flows, Computer Methods in
- * Applied Mechanics and Engineering. Vol. 190 (2001), 2681-2706.
- *
- * The OSS implementation corresponds to the case identified as explicit, quasi-
- * static orthogonal subscales in Ramon Codina, Stabilized finite element approximation
- * of transient incompressible flows using orthogonal subscales, Computer Methods
- * in Applied Mechanics and Engineering. Vol. 191 (2002), 4295-4321.
- *
- * In addition to the stabilization, this element implements the Smagorinsky
- * model of turbulence. This turbulent term is only activated if the elemental
- * value C_SMAGORINSKY is set to something other than zero.
- *
- * This class requires at least the following variables:\n
- * On each Node, as solution step variables VELOCITY, PRESSURE, ACCELERATION, MESH_VELOCITY, DENSITY, VISCOSITY.\n
- * On ProcessInfo OSS_SWITCH, DYNAMIC_TAU, DELTA_TIME.\n
- * If OSS is used, the nodes also require NODAL_AREA, ADVPROJ and DIVPROJ as solution step variables.\n
- * If Smagorinsky is used, C_SMAGORINSKY has to be defined on the elements.\n
- * Error estimation stores ERROR_RATIO on the elements.\n
- * Some additional variables can be used to print results on the element: SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
- *
- * @see ResidualBasedEliminationBuilderAndSolver compatible monolithic solution strategy.
- * @see PressureSplittingBuilderAndSolver compatible segregated solution strategy.
- * @see TrilinosPressureSplittingBuilderAndSolver compatible mpi strategy.
- * @see DynamicSmagorinskyUtils to set the Smagorinsky parameter dynamically.
- * @see ResidualBasedPredictorCorrectorVelocityBossakScheme time scheme that can use
- * OSS stabilization.
+ * This class is based on the VMS element in the fluid dynamics, 
+ * It is extended to solve for the droplet dynamics, and surface tensions.
+ * for more information about the the governer equations and thier discretization, please find it in the below references:
+ * Alex Jarauta, Pavel Ryzhakov, Marc Secanell, Prashant R Waghmare, and Jordi Pons-Prats. Numerical study of droplet dynamics in a polymer electrolyte fuel cell gas channel using an embedded eulerian-lagrangian approach. Journal of Power Sources, 323:201–212, 2016.
  */
+
 template< unsigned int TDim,
           unsigned int TNumNodes = TDim + 1 >
 class SurfaceTension : public Element
@@ -2319,4 +2288,4 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 } // namespace Kratos.
 
-#endif // KRATOS_ST_H_INCLUDED  defined
+#endif // KRATOS_ST_H_INCLUDED  defined 

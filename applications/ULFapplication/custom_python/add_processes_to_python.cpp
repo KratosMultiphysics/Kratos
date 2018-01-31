@@ -77,11 +77,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/remove_and_save_wall_process.h"
 #include "custom_processes/add_wall_process.h"
 #include "custom_processes/calculate_curvature.h"
+#include "custom_processes/find_triple_point.h"
+#include "custom_processes/calculate_contact_angle.h"
+
+#include "custom_processes/calculate_nodal_length.h"
+#include "custom_processes/find_nodal_neighbours_surface_process.h"
 
 #include "includes/node.h"
 
 #include "custom_processes/calculate_normal_eq.h"
 
+// #include "custom_processes/assign_surface_tension_conditions.h"
+#include "custom_processes/calculate_adhesion_force.h"
 
 
 
@@ -181,8 +188,34 @@ void  AddProcessesToPython()
     class_<CalculateNormalEq > ("CalculateNormalEq", init<>())
     .def("CalculateNormalEq3D", &CalculateNormalEq::CalculateNormalEq3D)
     ;   
-
     
+    class_<CalculateContactAngle > ("CalculateContactAngle", init<>())
+    .def("CalculateContactAngle2D", &CalculateContactAngle::CalculateContactAngle2D)
+    .def("CalculateContactAngle3D", &CalculateContactAngle::CalculateContactAngle3D)
+    ;   
+    
+     class_<FindTriplePoint > ("FindTriplePoint", init<>())
+    .def("FindTriplePoint2D", &FindTriplePoint::FindTriplePoint2D)
+    .def("FindTriplePoint3D", &FindTriplePoint::FindTriplePoint3D)
+    ;
+    
+     class_<CalculateNodalLength > ("CalculateNodalLength", init<>())
+    .def("CalculateNodalLength2D", &CalculateNodalLength::CalculateNodalLength2D)
+    .def("CalculateNodalLength3D", &CalculateNodalLength::CalculateNodalLength3D)
+    ;    
+    
+    class_<FindNodalNeighboursSurfaceProcess > ("FindNodalNeighboursSurfaceProcess", init<ModelPart&, const int, const int>())
+    .def("Execute", &FindNodalNeighboursSurfaceProcess::Execute)
+    ; 
+    
+
+    class_<CalculateAdhesionForce > ("CalculateAdhesionForce", init<>())
+    .def("CalculateAdhesionForce3D", &CalculateAdhesionForce::CalculateAdhesionForce3D)
+    ;
+    
+//      class_<AssignSurfaceTensionConditions > ("AssignSurfaceTensionConditions", init<>())
+//     .def("AssignSurfaceTensionConditions2D", &AssignSurfaceTensionConditions::AssignSurfaceTensionConditions2D)
+//     ;
 }
 
 }  // namespace Python.

@@ -230,48 +230,7 @@ class STMonolithicSolver:
 
 # print "Initialization monolithic solver finished"
     #
-    def Solve(self):  
-
-        #if self.divergence_clearance_steps > 0:
-            #print("Calculating divergence-free initial condition")
-            ## initialize with a Stokes solution step
-            #try:
-                #import KratosMultiphysics.ExternalSolversApplication as kes
-                #smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
-                #solver_type = kes.AMGCLIterativeSolverType.CG
-                #gmres_size = 50
-                #max_iter = 200
-                #tol = 1e-6
-                #verbosity = 0
-                #stokes_linear_solver = kes.AMGCLSolver(
-                    #smoother_type,
-                    #solver_type,
-                    #tol,
-                    #max_iter,
-                    #verbosity,
-                    #gmres_size)
-            #except:
-                #pPrecond = DiagonalPreconditioner()
-                #stokes_linear_solver = BICGSTABSolver(1e-6, 5000, pPrecond)
-            #stokes_process = StokesInitializationProcess(
-                #self.model_part,
-                #stokes_linear_solver,
-                #self.domain_size,
-                #PATCH_INDEX)
-            ## copy periodic conditions to Stokes problem
-            #stokes_process.SetConditions(self.model_part.Conditions)
-            ## execute Stokes process
-            #stokes_process.Execute()
-            #stokes_process = None
-            
-            #for node in self.model_part.Nodes:
-                #node.SetSolutionStepValue(PRESSURE, 0, 0.0)
-                #node.SetSolutionStepValue(ACCELERATION_X, 0, 0.0)
-                #node.SetSolutionStepValue(ACCELERATION_Y, 0, 0.0)
-                #node.SetSolutionStepValue(ACCELERATION_Z, 0, 0.0)
-
-            #self.divergence_clearance_steps = 0
-            #print("Finished divergence clearance")
+    def Solve(self):
             
         if self.ReformDofSetAtEachStep:
             if self.use_slip_conditions:
@@ -290,6 +249,9 @@ class STMonolithicSolver:
 
         if (self.domain_size == 2):
             CalculateCurvature().CalculateCurvature2D(self.model_part)
+            CalculateNodalLength().CalculateNodalLength2D(self.model_part)
+            CalculateContactAngle().CalculateContactAngle2D(self.model_part)
+            self.cont_angle_cond()
 
             
         #self.solver.MoveMesh()
@@ -302,6 +264,7 @@ class STMonolithicSolver:
         if(self.eul_model_part == 0):
             (self.fluid_neigh_finder).Execute();
             #(self.fluid_neigh_finder).Execute();
+            FindTriplePoint().FindTriplePoint2D(self.model_part)
             self.Remesh();
 
     #
@@ -317,7 +280,7 @@ class STMonolithicSolver:
     ##########################################
     def Remesh(self):
        
-	#self.PfemUtils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
+        self.UlfUtils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
 			
         ##erase all conditions and elements prior to remeshing
         ((self.model_part).Elements).clear();
@@ -368,6 +331,9 @@ class STMonolithicSolver:
                     node.SetSolutionStepValue(NORMAL_Z,0,0.0)	      
 	  
             CalculateCurvature().CalculateCurvature2D(self.model_part)
+            CalculateNodalLength().CalculateNodalLength2D(self.model_part)
+            CalculateContactAngle().CalculateContactAngle2D(self.model_part)
+            self.cont_angle_cond()
 	  
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
         print("end of remesh function")
@@ -376,28 +342,28 @@ class STMonolithicSolver:
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
         
-    #def cont_angle_cond(self):
-        #theta_adv = 105
-        #theta_rec = 70
-	##theta_adv = self.contact_angle + 0.5
-	##theta_rec = self.contact_angle - 0.5
-        #time = self.model_part.ProcessInfo.GetValue(TIME)
-        #dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
-	##x_mean = 0.0
+    def cont_angle_cond(self):
+        theta_adv = 105
+        theta_rec = 70
+	#theta_adv = self.contact_angle + 0.5
+	#theta_rec = self.contact_angle - 0.5
+        time = self.model_part.ProcessInfo.GetValue(TIME)
+        dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+	#x_mean = 0.0
 	##found_tp = 0
 	################### For sessile drop examples
-        #for node in self.model_part.Nodes:
-	    ##if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
-		##if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
-		    ##node.Free(VELOCITY_X)
-		##else:
-            ##node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-            ##node.Fix(VELOCITY_X)
-            #if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                    #node.Fix(VELOCITY_X)
-                    #node.Fix(VELOCITY_Y)    
+        for node in self.model_part.Nodes:
+            if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+                if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
+                    node.Free(VELOCITY_X)
+                else:
+                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    node.Fix(VELOCITY_X)
+            if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
+                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)    
 
 
 def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR 3D!!!!!!!!!!
