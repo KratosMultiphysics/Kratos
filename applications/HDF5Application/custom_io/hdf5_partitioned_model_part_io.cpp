@@ -79,14 +79,14 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     local_points.SetData(local_nodes);
     WriteInfo info;
     local_points.WriteData(r_file, mPrefix + "/Nodes/Local", info);
-    DataSetPartitionUtility::WritePartition(r_file, mPrefix + "/Nodes/Local", info);
+    DataSetPartitionUtility::WritePartitionTable(r_file, mPrefix + "/Nodes/Local", info);
     local_points.Clear();
 
     // Write ghost nodes.
     Internals::PointsData ghost_points;
     ghost_points.SetData(ghost_nodes);
     ghost_points.WriteData(r_file, mPrefix + "/Nodes/Ghost", info);
-    DataSetPartitionUtility::WritePartition(r_file, mPrefix + "/Nodes/Ghost", info);
+    DataSetPartitionUtility::WritePartitionTable(r_file, mPrefix + "/Nodes/Ghost", info);
     WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
     ghost_points.Clear();
 
@@ -123,7 +123,7 @@ void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElement
     for (auto& r_item : elem_outputs)
     {
         r_item.WriteConnectivities(r_file, info);
-        DataSetPartitionUtility::WritePartition(r_file, r_item.Path, info);
+        DataSetPartitionUtility::WritePartitionTable(r_file, r_item.Path, info);
     }
 
     KRATOS_CATCH("");
@@ -160,7 +160,7 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
     for (auto& r_item : cond_outputs)
     {
         r_item.WriteConnectivities(r_file, info);
-        DataSetPartitionUtility::WritePartition(r_file, r_item.Path, info);
+        DataSetPartitionUtility::WritePartitionTable(r_file, r_item.Path, info);
     }
 
     KRATOS_CATCH("");

@@ -5,7 +5,7 @@ namespace Kratos
 namespace HDF5
 {
 
-void DataSetPartitionUtility::WritePartition(File& rFile, std::string const& rPath, WriteInfo const& rInfo)
+void DataSetPartitionUtility::WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo)
 {
     KRATOS_TRY;
 
@@ -29,7 +29,7 @@ void DataSetPartitionUtility::WritePartition(File& rFile, std::string const& rPa
     KRATOS_CATCH("");
 }
 
-void DataSetPartitionUtility::WritePartitionIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition)
+void DataSetPartitionUtility::WritePartitionTableIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition)
 {
     KRATOS_TRY;
 
@@ -40,7 +40,7 @@ void DataSetPartitionUtility::WritePartitionIndependent(File& rFile, std::string
     KRATOS_CATCH("");
 }
 
-bool DataSetPartitionUtility::HasPartition(File& rFile, std::string const& rPath)
+bool DataSetPartitionUtility::HasPartitionTable(File& rFile, std::string const& rPath)
 {
     KRATOS_TRY;
 

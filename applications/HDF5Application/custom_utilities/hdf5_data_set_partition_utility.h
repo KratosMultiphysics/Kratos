@@ -52,16 +52,16 @@ public:
     /**
      * Performs collective write.
      */
-    static void WritePartition(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
+    static void WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
 
     /// Write a user-defined partition table of start and end indices (by process rank).
     /**
      * Performs independent write.
      */
-    static void WritePartitionIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition);
+    static void WritePartitionTableIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition);
 
     // Check if a path has a data set partition.
-    static bool HasPartition(File& rFile, std::string const& rPath);
+    static bool HasPartitionTable(File& rFile, std::string const& rPath);
 
     // Get the start index and block size from an existing partition for this PID.
     static std::tuple<unsigned, unsigned> StartIndexAndBlockSize(File& rFile, std::string const& rPath);
