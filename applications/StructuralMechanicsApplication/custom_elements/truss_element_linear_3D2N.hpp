@@ -73,6 +73,13 @@ namespace Kratos
 
 		void WriteTransformationCoordinates(
 			bounded_vector<double,msLocalSize>& rReferenceCoordinates) override;
+
+
+		private:
+		
+			friend class Serializer;
+			void save(Serializer& rSerializer) const override;
+			void load(Serializer& rSerializer) override;
 	};
 
 

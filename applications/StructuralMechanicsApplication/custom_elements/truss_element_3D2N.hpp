@@ -178,7 +178,6 @@ namespace Kratos
 
 	private:
 		bool mIsCompressed;
-		bool mIsLinearElement = false;
 
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;

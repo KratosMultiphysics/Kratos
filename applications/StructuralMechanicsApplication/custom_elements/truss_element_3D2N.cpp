@@ -866,14 +866,12 @@ namespace Kratos
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 		rSerializer.save("mIscompressed", this->mIsCompressed);
-		rSerializer.save("LinerEle", this->mIsLinearElement);
 
 	}
 	void TrussElement3D2N::load(Serializer& rSerializer)
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 		rSerializer.load("mIscompressed", this->mIsCompressed);
-		rSerializer.load("LinerEle", this->mIsLinearElement);
 	}
 } // namespace Kratos.
 

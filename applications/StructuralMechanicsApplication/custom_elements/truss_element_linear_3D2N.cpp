@@ -165,6 +165,7 @@ namespace Kratos
 				this->CreateTransformationMatrix(transformation_matrix);
 				Vector f_int = prod(left_hand_side_matrix, nodal_deformation);
 				f_int = prod(Matrix(trans(transformation_matrix)),f_int);
+				truss_forces[0] = f_int[3] + prestress*A;
 
 				rOutput[0] = truss_forces;
 			}
@@ -184,6 +185,17 @@ namespace Kratos
 		KRATOS_CATCH("");
 	}
 
+
+
+	void TrussElementLinear3D2N::save(Serializer& rSerializer) const
+	{
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+
+	}
+	void TrussElementLinear3D2N::load(Serializer& rSerializer)
+	{
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+	}
 
 
 
