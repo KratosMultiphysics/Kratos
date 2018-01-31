@@ -114,7 +114,6 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
     }
 
     // Write block partition.
-    Vector<int> dummy(local_nodes.size());
     DataSetPartitionUtility::WritePartitionTable(*mpFile, mPrefix + "/NodalResults", info);
 
     KRATOS_CATCH("");
