@@ -30,15 +30,18 @@ class PfemDynamicMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
 
     def _create_solution_scheme(self):
         
-        integration_method = self.time_integration_settings["integration_method"].GetString()
-
-        #if(integration_method == "Newmark"):           
+        scheme_type = self.settings["scheme_type"].GetString()
+        
+#        beta = self.settings["beta"].GetDouble()
         damp_factor_m = 0.0
-        alphaM = 0
+#        alphaM =-0.1;
+        alphaM = 0.0
         dynamic = 1
         alphaF = 0
-        beta = 0.25
-        gamma = 0.5
+        beta = 0.3025
+        gamma = 0.6
+#        beta = 0.25*(1-alphaM+alphaF)*(1-alphaM+alphaF);
+#        gamma = 0.5-alphaM+alphaF;
         mechanical_scheme = KratosPfemSolid.ResidualBasedUWBossakScheme(alphaM, dynamic, alphaF, beta, gamma)
                     
         return mechanical_scheme
