@@ -18,7 +18,7 @@
 namespace Kratos {
     namespace Testing {
 
-        KRATOS_TEST_CASE_IN_SUITE(ZZZMyCustomTest, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerMap, KratosCoreFastSuite)
         {
             Serializer serializer;
 
@@ -36,6 +36,8 @@ namespace Kratos {
             serializer.save(tag_string, first);
 
             serializer.load(tag_string, loaded);
+
+            KRATOS_CHECK_EQUAL(first,loaded);
 
 
         }
