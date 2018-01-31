@@ -2,6 +2,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_structural_mesh_motion_2d
+import test_laplacian_mesh_motion_2d
 
 ## NIGTHLY TESTS
 
@@ -24,6 +25,7 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
     smallSuite.addTest(test_structural_mesh_motion_2d.TestCase('test_Rectangle_2D3N'))
+    smallSuite.addTest(test_laplacian_mesh_motion_2d.TestCase('test_Rectangle_2D3N'))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']

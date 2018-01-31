@@ -18,13 +18,21 @@ class MainKratos:
             import KratosMultiphysics.mpi as KratosMPI
             import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
-        self.main_model_part = ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+        #self.main_model_part = ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
+        #self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
+
+        #self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
+
+
+        self.main_model_part_name = ProjectParameters["problem_data"]["model_part_name"].GetString()
+        self.main_model_part = ModelPart(self.main_model_part_name)
         self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
-        self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
+        #self.solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
+        #self.solver = self.solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
 
-        self.solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-        self.solver = self.solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+        import python_solvers_wrapper_mesh_motion
+        self.solver = python_solvers_wrapper_mesh_motion.CreateSolver(self.main_model_part, self.ProjectParameters)
         self.solver.AddVariables()
         self.solver.ImportModelPart()
         self.solver.AddDofs()
@@ -42,24 +50,27 @@ class MainKratos:
 
         #self.gid_output.ExecuteInitialize()
 
-        for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
-            skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-            self.Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
 
-        for i in range(self.ProjectParameters["solver_settings"]["no_skin_parts"].size()):
-            no_skin_part_name = self.ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
-            self.Model.update({no_skin_part_name: self.main_model_part.GetSubModelPart(no_skin_part_name)})
+        self.Model = Model()
+        self.Model.AddModelPart(self.main_model_part)
+        #for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
+        #    skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
+        #    self.Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
 
-        for i in range(self.ProjectParameters["initial_conditions_process_list"].size()):
-            initial_cond_part_name = self.ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-            self.Model.update({initial_cond_part_name: self.main_model_part.GetSubModelPart(initial_cond_part_name)})
+        #for i in range(self.ProjectParameters["solver_settings"]["no_skin_parts"].size()):
+        #    no_skin_part_name = self.ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
+        #    self.Model.update({no_skin_part_name: self.main_model_part.GetSubModelPart(no_skin_part_name)})
 
-        for i in range(self.ProjectParameters["gravity"].size()):
-            gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-            self.Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
+        #for i in range(self.ProjectParameters["initial_conditions_process_list"].size()):
+        #    initial_cond_part_name = self.ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
+        #    self.Model.update({initial_cond_part_name: self.main_model_part.GetSubModelPart(initial_cond_part_name)})
 
-        self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["initial_conditions_process_list"] )
+        #for i in range(self.ProjectParameters["gravity"].size()):
+        #    gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
+        #    self.Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
+
+        #self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
+        self.list_of_processes  = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["initial_conditions_process_list"] )
         self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
         self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["auxiliar_process_list"] )
 
@@ -84,11 +95,20 @@ class MainKratos:
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
+
+        ## Stepping and time settings
+        delta_time = self.ProjectParameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+        start_time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
+        end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
+
+        time = start_time
+        self.main_model_part.ProcessInfo[STEP] = 0
+
         while(time <= end_time):
 
-            Dt = self.solver.ComputeDeltaTime()
+            #delta_time = self.solver.ComputeDeltaTime()
             step += 1
-            time = time + Dt
+            time = time + delta_time
             self.main_model_part.CloneTimeStep(time)
 
             #if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
@@ -102,7 +122,7 @@ class MainKratos:
             #self.gid_output.ExecuteInitializeSolutionStep()
 
             if(step >= 3):
-                self.solver.GetMeshMotionSolver().Solve()
+                self.solver.Solve()
 
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
@@ -118,7 +138,7 @@ class MainKratos:
             for process in self.list_of_processes:
                 process.ExecuteAfterOutputStep()
 
-            out = out + Dt
+            out = out + delta_time
 
         for process in self.list_of_processes:
             process.ExecuteFinalize()
