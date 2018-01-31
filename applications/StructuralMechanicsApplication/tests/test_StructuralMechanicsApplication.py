@@ -257,11 +257,11 @@ def AssambleTestSuites():
     nightSuite.addTest(TShellT3AndQ4LinearStaticStructScordelisLoRoofTests('test_execution'))
     nightSuite.addTest(TShellT3AndQ4LinearStaticStructPinchedCylinderTests('test_execution'))
     nightSuite.addTest(TShellT3AndQ4LinearStaticStructPinchedHemisphereTests('test_execution'))
-    nightSuite.addTest(TShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests('test_execution'))
+    # nightSuite.addTest(TShellT3AndQ4LinearStaticStructClampedCylinderOrthotropicTests('test_execution'))
     nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughTests('test_execution'))
-    nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
-    nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests('test_execution'))
-    nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
+    # nightSuite.addTest(TShellT3AndQ4NonLinearStaticStructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
+    # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests('test_execution'))
+    # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
     # Constitutive Law tests
     # nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
 
@@ -290,20 +290,20 @@ def AssambleTestSuites():
     validationSuite.addTest(TPendulusTLTest('test_execution'))
     validationSuite.addTest(TPendulusULTest('test_execution'))
     # Pendulus Tests with Shell Elements
-    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests('test_execution'))
     # Shell tests
     validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests('test_execution'))
     validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests('test_execution'))
     validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests('test_execution'))
     validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests('test_execution'))
-    validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
-    
+    # validationSuite.addTest(TShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests('test_execution'))
+    # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
+
     ### OLD Shell Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
     # They have been moved to validation temporarily until they will be removed
     validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
