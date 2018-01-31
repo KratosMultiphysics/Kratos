@@ -480,6 +480,13 @@ protected:
         {
             KRATOS_ERROR << "Type of interface object construction not implemented" << std::endl;
         }
+
+        int num_interface_objects = mInterfaceObjects.size();
+        mrModelPart.GetCommunicator().SumAll(num_interface_objects);
+
+        KRATOS_ERROR_IF_NOT(num_interface_objects > 0) 
+            << "No interface objects were created in ModelPart \""
+            << mrModelPart.Name() << "\"!" << std::endl;
     }
 
     ModelPart& mrModelPart;

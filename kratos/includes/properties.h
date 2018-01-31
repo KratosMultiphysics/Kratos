@@ -58,9 +58,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/// Properties encapsulates data shared by different Elements or Conditions
+/** 
+ * Properties encapsulates data shared by different Elements or Conditions. It can store any type of data and provides a variable base access to them.
+ *  These are all parameters that can be shared between Element. Usually material parameters are common for a set of element, so this category of data is referred as properties. 
+ * But in general it can be any common parameter for a group of Elements. Sharing these data as properties reduces the memory used by the application and also helps updating them if necessary. 
+ * As mentioned before Properties is a shared data container between Elements or Conditions. In finite element problems there are several parameters which are the same for a set of elements and conditions. 
+ * Thermal conductivity, elasticity of the material and viscosity of the fluid are examples of these parameters. Properties holds these data and is shared by elements or Conditions. This eliminates memory overhead due to redundant copies of these data for each element and Condition. Properties also can be used to access nodal data if it is necessary. 
+ * It is important to mention that accessing the nodal data via Properties is not the same as accessing it via Node. When user asks Properties for a variable data in a Node, the process starts with finding the variable in the Properties data container and if it does not exist then get it from Node. 
+ * This means that the priority of data is with the one stored in Properties and then in Node.
+ */
 class Properties : public IndexedObject
 {
 public:
@@ -81,7 +88,7 @@ public:
 
     typedef NodeType::IndexType IndexType;
 
-	typedef Table<double> TableType;
+    typedef Table<double> TableType;
 
 	typedef PointerVectorMap<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
