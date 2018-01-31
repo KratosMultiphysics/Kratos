@@ -24,21 +24,15 @@
 namespace Kratos
 {
 	TrussElement3D2N::TrussElement3D2N(IndexType NewId, 
-									GeometryType::Pointer pGeometry,
-									bool rLinear)
+									GeometryType::Pointer pGeometry)
 									: Element(NewId, pGeometry)
-	{
-		this->mIsLinearElement = rLinear;
-	}
+	{}
 
 	TrussElement3D2N::TrussElement3D2N(IndexType NewId,
 									GeometryType::Pointer pGeometry,
-									PropertiesType::Pointer pProperties,
-									bool rLinear) 
+									PropertiesType::Pointer pProperties) 
 									: Element(NewId, pGeometry, pProperties) 
-	{
-		this->mIsLinearElement = rLinear;
-	}
+	{}
 
 	Element::Pointer TrussElement3D2N::Create(IndexType NewId,
 									NodesArrayType const& rThisNodes,
@@ -46,7 +40,7 @@ namespace Kratos
 	{
 		const GeometryType& rGeom = this->GetGeometry();
 		return Kratos::make_shared<TrussElement3D2N>(
-			NewId, rGeom.Create(rThisNodes),pProperties, this->mIsLinearElement);
+			NewId, rGeom.Create(rThisNodes),pProperties);
 	}
 
 	TrussElement3D2N::~TrussElement3D2N(){}
@@ -111,13 +105,10 @@ namespace Kratos
 		{
 			this->CalculateElasticStiffnessMatrix(LocalStiffnessMatrix,
 				rCurrentProcessInfo);
-			if (this->mIsLinearElement == false) 
-			{
-				bounded_matrix<double,msLocalSize,msLocalSize> K_geo = ZeroMatrix(msLocalSize, msLocalSize);
-				this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
+			bounded_matrix<double,msLocalSize,msLocalSize> K_geo = ZeroMatrix(msLocalSize, msLocalSize);
+			this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
 
-				LocalStiffnessMatrix += K_geo;
-			}
+			LocalStiffnessMatrix += K_geo;
 		}
 
 		return LocalStiffnessMatrix;
@@ -309,17 +300,6 @@ namespace Kratos
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
 
-
-		if (this->mIsLinearElement)
-		{
-			Vector NodalDeformation = ZeroVector(msLocalSize);
-			this->GetValuesVector(NodalDeformation, 0);
-			rRightHandSideVector = ZeroVector(msLocalSize);
-			rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
-			rRightHandSideVector += this->CalculateBodyForces();
-			this->AddPrestressLinear(rRightHandSideVector);
-		}
-
 		if (this->ReturnIfIsCable() == true && this->mIsCompressed == true) {
 			rRightHandSideVector = ZeroVector(msLocalSize);
 		}
@@ -335,18 +315,6 @@ namespace Kratos
 		bounded_vector<double,msLocalSize> InternalForces = ZeroVector(msLocalSize);
 		this->UpdateInternalForces(InternalForces);
 		rRightHandSideVector -= InternalForces;
-
-
-		if (this->mIsLinearElement)
-		{
-			Matrix LeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
-			Vector NodalDeformation = ZeroVector(msLocalSize);
-			this->GetValuesVector(NodalDeformation);
-			rRightHandSideVector = ZeroVector(msLocalSize);
-			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
-			this->AddPrestressLinear(rRightHandSideVector);
-		}
 
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
@@ -423,69 +391,27 @@ namespace Kratos
 		}
 
 		if (rVariable == FORCE)
-				{
-					bounded_vector<double,msDimension> truss_forces = ZeroVector(msDimension);
-					truss_forces[2] = 0.00;
-					truss_forces[1] = 0.00;
-					const double A = this->GetProperties()[CROSS_AREA];
+			{
+				bounded_vector<double,msDimension> truss_forces = ZeroVector(msDimension);
+				truss_forces[2] = 0.00;
+				truss_forces[1] = 0.00;
+				const double A = this->GetProperties()[CROSS_AREA];
 
-					double prestress = 0.00;
-					if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-						prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
-					}
-
-					if (!this->mIsLinearElement)
-					{					
-						const double internal_strain_gl = this->CalculateGreenLagrangeStrain();
-						const double L0 = this->CalculateReferenceLength();
-						const double l = this->CalculateCurrentLength();
-						const double E = this->GetProperties()[YOUNG_MODULUS];
-						
-						truss_forces[0] = ((E*internal_strain_gl + prestress) * l * A) / L0;
-					}
-
-					else 
-					{
-					Matrix left_hand_side_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-					ProcessInfo dummy_info; //CalculateLeftHandSide does not take const ProcessInfo
-					this->CalculateLeftHandSide(left_hand_side_matrix, dummy_info);
-					Vector nodal_deformation = ZeroVector(msLocalSize);
-					this->GetValuesVector(nodal_deformation);
-					bounded_matrix<double,msLocalSize,msLocalSize>
-					transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-					this->CreateTransformationMatrix(transformation_matrix);
-					Vector f_int = prod(left_hand_side_matrix, nodal_deformation);
-					f_int = prod(Matrix(trans(transformation_matrix)),f_int);
-					truss_forces[0] = f_int[3] + prestress*A;
-					}
-
-
-					rOutput[0] = truss_forces;
+				double prestress = 0.00;
+				if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+					prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
 				}
+	
+				const double internal_strain_gl = this->CalculateGreenLagrangeStrain();
+				const double L0 = this->CalculateReferenceLength();
+				const double l = this->CalculateCurrentLength();
+				const double E = this->GetProperties()[YOUNG_MODULUS];
+				
+				truss_forces[0] = ((E*internal_strain_gl + prestress) * l * A) / L0;
+
+				rOutput[0] = truss_forces;
+			}
 		}
-
-
-
-	void TrussElement3D2N::AddPrestressLinear(VectorType& rRightHandSideVector)
-	{
-		KRATOS_TRY;
-		bounded_matrix<double,msLocalSize,msLocalSize>
-		 transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-		this->CreateTransformationMatrix(transformation_matrix);
-		double prestress = 0.00;
-		if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-			prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
-		}
-		const double A = this->GetProperties()[CROSS_AREA];
-		const double N = prestress * A;
-
-		//internal force vectors
-		bounded_vector<double,msLocalSize> f_local = ZeroVector(msLocalSize);
-		f_local[0] = -1.00 * N;
-		f_local[3] = 1.00 * N;
-		rRightHandSideVector -= prod(transformation_matrix, f_local);
-		KRATOS_CATCH("")
-	}
 
 
 	void TrussElement3D2N::GetValueOnIntegrationPoints(
@@ -665,12 +591,7 @@ namespace Kratos
 		arraydim GlobalZ = ZeroVector(msDimension);
 		GlobalZ[2] = 1.0;
 
-		ReferenceCoordinates[0] = this->GetGeometry()[0].X();
-		ReferenceCoordinates[1] = this->GetGeometry()[0].Y();
-		ReferenceCoordinates[2] = this->GetGeometry()[0].Z();
-		ReferenceCoordinates[3] = this->GetGeometry()[1].X();
-		ReferenceCoordinates[4] = this->GetGeometry()[1].Y();
-		ReferenceCoordinates[5] = this->GetGeometry()[1].Z();
+		this->WriteTransformationCoordinates(ReferenceCoordinates);
 
 		for (unsigned int i = 0; i < msDimension; ++i)
 		{
@@ -720,6 +641,23 @@ namespace Kratos
 		KRATOS_CATCH("")
 
 	}	
+
+
+	void TrussElement3D2N::WriteTransformationCoordinates(
+		bounded_vector<double,TrussElement3D2N::msLocalSize>& rReferenceCoordinates)
+	{
+		KRATOS_TRY;
+		rReferenceCoordinates = ZeroVector(msLocalSize);
+		Vector current_displacement = ZeroVector(msLocalSize);
+		this->GetValuesVector(current_displacement,0);
+		rReferenceCoordinates[0] = this->GetGeometry()[0].X0()+current_displacement[0];
+		rReferenceCoordinates[1] = this->GetGeometry()[0].Y0()+current_displacement[1];
+		rReferenceCoordinates[2] = this->GetGeometry()[0].Z0()+current_displacement[2];
+		rReferenceCoordinates[3] = this->GetGeometry()[1].X0()+current_displacement[3];
+		rReferenceCoordinates[4] = this->GetGeometry()[1].Y0()+current_displacement[4];
+		rReferenceCoordinates[5] = this->GetGeometry()[1].Z0()+current_displacement[5];
+		KRATOS_CATCH("");
+	}
 
 
 

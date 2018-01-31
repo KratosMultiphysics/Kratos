@@ -27,7 +27,7 @@ namespace Kratos
 {
 	class TrussElement3D2N : public Element
 	{
-	private:
+	protected:
 		//const values
 		static constexpr int msNumberOfNodes = 2;
 		static constexpr int msDimension = 3;
@@ -48,13 +48,12 @@ namespace Kratos
 		typedef BaseType::DofsVectorType DofsVectorType;
 
 
+		TrussElement3D2N() {};
 		TrussElement3D2N(IndexType NewId, 
-						GeometryType::Pointer pGeometry,
-						bool rLinear = false);
+						GeometryType::Pointer pGeometry);
 		TrussElement3D2N(IndexType NewId,
 						GeometryType::Pointer pGeometry,
-						PropertiesType::Pointer pProperties,
-						bool rLinear = false);
+						PropertiesType::Pointer pProperties);
 
 
 		~TrussElement3D2N() override;
@@ -75,7 +74,8 @@ namespace Kratos
 
 		void Initialize() override;
 
-		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+		virtual bounded_matrix<double,msLocalSize,msLocalSize>
+		 CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateOnIntegrationPoints(
 			const Variable<double>& rVariable,
@@ -163,7 +163,7 @@ namespace Kratos
 
 		bool ReturnIfIsCable();
 		
-		void AddPrestressLinear(VectorType& rRightHandSideVector);
+		
 
 		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
@@ -172,10 +172,13 @@ namespace Kratos
 			ProcessInfo& rCurrentProcessInfo);
 
 
+		virtual void WriteTransformationCoordinates(
+			bounded_vector<double,msLocalSize>& rReferenceCoordinates);
+
+
 	private:
 		bool mIsCompressed;
 		bool mIsLinearElement = false;
-		TrussElement3D2N() {};
 
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;

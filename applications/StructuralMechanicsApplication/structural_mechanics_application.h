@@ -29,6 +29,7 @@
 
 /* Adding truss element */
 #include "custom_elements/truss_element_3D2N.hpp"
+#include "custom_elements/truss_element_linear_3D2N.hpp"
 
 /* Adding beam element */
 #include "custom_elements/cr_beam_element_3D2N.hpp"
@@ -249,7 +250,7 @@ private:
 
     // Adding the truss element
     const TrussElement3D2N mTrussElement3D2N; 
-    const TrussElement3D2N mTrussLinearElement3D2N;
+    const TrussElementLinear3D2N mTrussLinearElement3D2N;
 
     // Adding the beam element 
     const CrBeamElement3D2N mCrBeamElement3D2N;
