@@ -17,8 +17,6 @@
 #include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application_variables.h"
 
-#include "custom_utilities/axisym_water_pressure_utilities_Jacobian.hpp"
-
 namespace Kratos
 {
 
@@ -495,11 +493,11 @@ namespace Kratos
       unsigned int dofs_per_node = 2*dimension + 2;
 
       Matrix Q = ZeroMatrix(number_of_nodes*dimension, number_of_nodes);
-      unsigned int voigtSize = 3;
-      if ( dimension == 3) voigtSize = 6;
 
+      unsigned int voigtSize = 4;
       Matrix m = ZeroMatrix( voigtSize, 1);
-      for ( unsigned int i = 0; i < dimension; i++)
+
+      for ( unsigned int i = 0; i < 3; i++)
          m(i,0) = 1.0;
       Matrix partial =  prod( trans( rVariables.B), m );
 
@@ -746,11 +744,9 @@ namespace Kratos
       for (unsigned int i = 0; i < number_of_nodes; i++)
          WaterPressure += GetGeometry()[i].FastGetSolutionStepValue( WATER_PRESSURE ) * rVariables.N[i];
 
-      unsigned int voigt_size = 6;
-      if (dimension == 2)
-         voigt_size = 3;
+      unsigned int voigt_size = 4;
       Vector StressVector = ZeroVector(voigt_size);
-      for (unsigned int i = 0; i < dimension; i++)
+      for (unsigned int i = 0; i < 3; i++)
          StressVector(i) -= WaterPressure;
 
       VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), StressVector );
@@ -903,10 +899,9 @@ namespace Kratos
          // Q Matrix //
 
          Matrix Q = ZeroMatrix( number_of_nodes, dimension*number_of_nodes);
-         unsigned int voigtSize = 3;
-         if ( dimension == 3) voigtSize = 6;
+         unsigned int voigtSize = 4;
          Matrix m = ZeroMatrix( 1, voigtSize);
-         for ( unsigned int i = 0; i < dimension; i++)
+         for ( unsigned int i = 0; i < 3; i++)
             m(0,i) = 1.0;
          Matrix partial =  prod( m, Variables.B );
          for (unsigned int i = 0; i < number_of_nodes; i++) {
