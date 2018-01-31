@@ -20,7 +20,6 @@
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
-#include "boost/current_function.hpp"
 
 
 /* Project includes */
@@ -43,11 +42,6 @@
 // Exceptions
 //
 //-----------------------------------------------------------------
-
-#ifndef KRATOS_CURRENT_FUNCTION
-#define KRATOS_CURRENT_FUNCTION BOOST_CURRENT_FUNCTION
-#endif
-
 
 #define KRATOS_CATCH_AND_THROW(ExceptionType, MoreInfo, Block) \
 catch(ExceptionType& e)                                        \
