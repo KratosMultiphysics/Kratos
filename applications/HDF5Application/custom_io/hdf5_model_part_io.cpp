@@ -42,7 +42,8 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     Internals::PointsData points;
     points.SetData(rNodes);
     File& r_file = GetFile();
-    points.WriteData(r_file, mPrefix + "/Nodes/Local");
+    WriteInfo info;
+    points.WriteData(r_file, mPrefix + "/Nodes/Local", info);
     
     KRATOS_CATCH("");
 }
@@ -73,8 +74,9 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
 
     Internals::ConnectivitiesOutput<ElementType> elem_outputs(mElementIO, rElements);
     File& r_file = GetFile();
+    WriteInfo info;
     for (auto& r_item : elem_outputs)
-        r_item.WriteConnectivities(r_file);
+        r_item.WriteConnectivities(r_file, info);
 
     KRATOS_CATCH("");
 }
@@ -104,8 +106,9 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
 
     Internals::ConnectivitiesOutput<ConditionType> cond_outputs(mConditionIO, rConditions);
     File& r_file = GetFile();
+    WriteInfo info;
     for (auto& r_item : cond_outputs)
-        r_item.WriteConnectivities(r_file);
+        r_item.WriteConnectivities(r_file, info);
 
     KRATOS_CATCH("");
 }

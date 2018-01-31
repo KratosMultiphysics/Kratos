@@ -62,15 +62,15 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteDataSet(std::string Path, const Vector<int>& rData) override;
+    void WriteDataSet(std::string Path, const Vector<int>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSet(std::string Path, const Vector<double>& rData) override;
+    void WriteDataSet(std::string Path, const Vector<double>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData) override;
+    void WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSet(std::string Path, const Matrix<int>& rData) override;
+    void WriteDataSet(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSet(std::string Path, const Matrix<double>& rData) override;
+    void WriteDataSet(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo) override;
 
     void WriteDataPartition(std::string Path, const Vector<int>& rData) override;
 
@@ -82,16 +82,16 @@ public:
 
     void WriteDataPartition(std::string Path, const Matrix<double>& rData) override;
 
-    void WriteDataSetIndependent(std::string Path, const Vector<int>& rData) override;
+    void WriteDataSetIndependent(std::string Path, const Vector<int>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSetIndependent(std::string Path, const Vector<double>& rData) override;
+    void WriteDataSetIndependent(std::string Path, const Vector<double>& rData, WriteInfo& rInfo) override;
 
     void WriteDataSetIndependent(std::string Path,
-                                 const Vector<array_1d<double, 3>>& rData) override;
+                                 const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSetIndependent(std::string Path, const Matrix<int>& rData) override;
+    void WriteDataSetIndependent(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataSetIndependent(std::string Path, const Matrix<double>& rData) override;
+    void WriteDataSetIndependent(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo) override;
 
     unsigned GetPID() const override;
 
@@ -161,7 +161,7 @@ private:
     ///@name Private Operations
     ///@{
     template <class T>
-    void WriteDataSetVectorImpl(std::string Path, const Vector<T>& rData)
+    void WriteDataSetVectorImpl(std::string Path, const Vector<T>& rData, WriteInfo& rInfo)
     {
         KRATOS_TRY;
         boost::timer timer;
@@ -215,7 +215,7 @@ private:
     }
 
     template <class T>
-    void WriteDataSetMatrixImpl(std::string Path, const Matrix<T>& rData)
+    void WriteDataSetMatrixImpl(std::string Path, const Matrix<T>& rData, WriteInfo& rInfo)
     {
         KRATOS_TRY;
         boost::timer timer;
@@ -262,7 +262,8 @@ private:
         Vector<int> partition(2); // Serial partition.
         partition[0] = 0;
         partition[1] = n;
-       WriteDataSet(Path, partition);
+        WriteInfo info;
+        WriteDataSet(Path, partition, info);
     }
 
     template <class T>
@@ -272,7 +273,8 @@ private:
         Vector<int> partition(2); // Serial partition.
         partition[0] = 0;
         partition[1] = n;
-       WriteDataSet(Path, partition);
+        WriteInfo info;
+        WriteDataSet(Path, partition, info);
     }
 
     template <class T>

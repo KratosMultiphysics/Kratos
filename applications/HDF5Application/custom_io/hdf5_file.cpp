@@ -216,35 +216,35 @@ void File::AddPath(std::string Path)
     }
 }
 
-void File::WriteDataSet(std::string Path, const Vector<int>& rData)
+void File::WriteDataSet(std::string Path, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSet(std::string Path, const Vector<double>& rData)
+void File::WriteDataSet(std::string Path, const Vector<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void File::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSet(std::string Path, const Matrix<int>& rData)
+void File::WriteDataSet(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSet(std::string Path, const Matrix<double>& rData)
+void File::WriteDataSet(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
@@ -286,35 +286,35 @@ void File::WriteDataPartition(std::string Path, const Matrix<double>& rData)
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Vector<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
     KRATOS_CATCH("");
 }
 
-void File::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
+void File::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
     KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;

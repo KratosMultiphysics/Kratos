@@ -18,12 +18,12 @@ void ConnectivitiesData::ReadData(File& rFile, std::string Path, unsigned StartI
     KRATOS_CATCH("");
 }
 
-void ConnectivitiesData::WriteData(File& rFile, std::string Path)
+void ConnectivitiesData::WriteData(File& rFile, std::string Path, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    rFile.WriteDataSet(Path + "/Ids", mIds);
-    rFile.WriteDataSet(Path + "/PropertiesIds", mPropertiesIds);
-    rFile.WriteDataSet(Path + "/Connectivities", mConnectivities);
+    rFile.WriteDataSet(Path + "/Ids", mIds, rInfo);
+    rFile.WriteDataSet(Path + "/PropertiesIds", mPropertiesIds, rInfo);
+    rFile.WriteDataSet(Path + "/Connectivities", mConnectivities, rInfo);
     KRATOS_CATCH("");
 }
 

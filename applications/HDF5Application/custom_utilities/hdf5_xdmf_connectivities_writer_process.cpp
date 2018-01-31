@@ -93,7 +93,8 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(std::string Krato
         }
     }
 
-    mpFile->WriteDataSet(XdmfConnectivitiesPath + "/Connectivities", xdmf_connectivities);
+    WriteInfo info;
+    mpFile->WriteDataSet(XdmfConnectivitiesPath + "/Connectivities", xdmf_connectivities, info);
 
     int tmp;
     mpFile->ReadAttribute(KratosConnectivitiesPath, "WorkingSpaceDimension", tmp);

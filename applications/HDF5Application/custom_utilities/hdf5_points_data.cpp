@@ -17,11 +17,11 @@ void PointsData::ReadData(File& rFile, std::string Path, unsigned StartIndex, un
     KRATOS_CATCH("");
 }
 
-void PointsData::WriteData(File& rFile, std::string Path)
+void PointsData::WriteData(File& rFile, std::string Path, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    rFile.WriteDataSet(Path + "/Ids", mIds);
-    rFile.WriteDataSet(Path + "/Coordinates", mCoords);
+    rFile.WriteDataSet(Path + "/Ids", mIds, rInfo);
+    rFile.WriteDataSet(Path + "/Coordinates", mCoords, rInfo);
     KRATOS_CATCH("");
 }
 

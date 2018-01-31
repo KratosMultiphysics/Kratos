@@ -78,15 +78,18 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     // Write local nodes.
     Internals::PointsData local_points;
     local_points.SetData(local_nodes);
-    local_points.WriteData(r_file, mPrefix + "/Nodes/Local");
+    WriteInfo info;
+    local_points.WriteData(r_file, mPrefix + "/Nodes/Local", info);
+    // DataSetPartitionUtility::WritePartition(r_file, mPrefix + "/Nodes/Local/", info);
     r_file.WriteDataPartition(mPrefix + "/Nodes/Local/Partition", local_points.GetIds());
     local_points.Clear();
 
     // Write ghost nodes.
     Internals::PointsData ghost_points;
     ghost_points.SetData(ghost_nodes);
-    ghost_points.WriteData(r_file, mPrefix + "/Nodes/Ghost");
+    ghost_points.WriteData(r_file, mPrefix + "/Nodes/Ghost", info);
     r_file.WriteDataPartition(mPrefix + "/Nodes/Ghost/Partition", ghost_points.GetIds());
+    // DataSetPartitionUtility::WritePartition(r_file, mPrefix + "/Nodes/Ghost/", info);
     WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
     ghost_points.Clear();
 
@@ -120,9 +123,11 @@ void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElement
 
     Internals::ConnectivitiesOutput<ElementType> elem_outputs(mElementIO, rElements);
     File& r_file = GetFile();
+    WriteInfo info;
     for (auto& r_item : elem_outputs)
     {
-        r_item.WriteConnectivities(r_file);
+        r_item.WriteConnectivities(r_file, info);
+        // DataSetPartitionUtility::WritePartition(r_file, r_item.Path, info);
         r_file.WriteDataPartition(r_item.Path + "/Partition", r_item.Connectivities.GetIds());
     }
 
@@ -157,9 +162,11 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
 
     Internals::ConnectivitiesOutput<ConditionType> cond_outputs(mConditionIO, rConditions);
     File& r_file = GetFile();
+    WriteInfo info;
     for (auto& r_item : cond_outputs)
     {
-        r_item.WriteConnectivities(r_file);
+        r_item.WriteConnectivities(r_file, info);
+        // DataSetPartitionUtility::WritePartition(r_file, r_item.Path, info);
         r_file.WriteDataPartition(r_item.Path + "/Partition", r_item.Connectivities.GetIds());
     }
 
@@ -218,7 +225,8 @@ void PartitionedModelPartIO::WritePartitionIndex(std::string Path, NodesContaine
             ++it;
         }
     }
-    mpFile->WriteDataSet(Path + "/PARTITION_INDEX", partition_ids);
+    WriteInfo info;
+    mpFile->WriteDataSet(Path + "/PARTITION_INDEX", partition_ids, info);
 
     KRATOS_CATCH("");
 }

@@ -62,6 +62,10 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
 {
     KRATOS_TRY;
 
+    if (mVariableNames.size() == 0)
+        return;
+
+    WriteInfo info;
     std::vector<NodeType*> local_nodes;
     GetLocalNodes(rNodes, local_nodes);
 
@@ -74,7 +78,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
                 KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
             Vector<array_1d<double, 3>> data;
             Internals::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
-            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data);
+            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
         }
         else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
                      r_variable_name))
@@ -84,7 +88,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
                     r_variable_name);
             Vector<double> data;
             Internals::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
-            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data);
+            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
         }
         else if (KratosComponents<Variable<double>>::Has(r_variable_name))
         {
@@ -92,7 +96,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
                 KratosComponents<Variable<double>>::Get(r_variable_name);
             Vector<double> data;
             Internals::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
-            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data);
+            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
         }
         else if (KratosComponents<Variable<int>>::Has(r_variable_name))
         {
@@ -100,7 +104,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
                 KratosComponents<Variable<int>>::Get(r_variable_name);
             Vector<int> data;
             Internals::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
-            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data);
+            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
         }
         else
         {
@@ -110,6 +114,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
 
     // Write block partition.
     Vector<int> dummy(local_nodes.size());
+    // DataSetPartitionUtility::WritePartition(*mpFile, mPrefix + "/NodalResults/", info);
     mpFile->WriteDataPartition(mPrefix + "/NodalResults/Partition", dummy);
 
     KRATOS_CATCH("");

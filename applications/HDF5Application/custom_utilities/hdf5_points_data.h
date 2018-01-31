@@ -69,7 +69,7 @@ public:
 
     void ReadData(File& rFile, std::string Path, unsigned StartIndex, unsigned BlockSize);
 
-    void WriteData(File& rFile, std::string Path);
+    void WriteData(File& rFile, std::string Path, WriteInfo& rInfo);
 
     void CreateNodes(NodesContainerType& rNodes);
 

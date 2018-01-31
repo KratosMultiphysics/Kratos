@@ -56,6 +56,13 @@ hid_t GetScalarDataType();
 ///@name Kratos Classes
 ///@{
 
+struct WriteInfo
+{
+    std::size_t StartIndex = -1;
+    std::size_t BlockSize = -1;
+    std::size_t GlobalSize = -1;
+};
+
 /// A base class for reading and writing an HDF5 file.
 /**
  * This class stores the file id and is responsible for reading and writing
@@ -128,15 +135,15 @@ public:
      *  Performs collective write in MPI. The data is written blockwise according to
      *  processor rank.
      */
-    virtual void WriteDataSet(std::string Path, const Vector<int>& rData);
+    virtual void WriteDataSet(std::string Path, const Vector<int>& rData, WriteInfo& rInfo);
 
-    virtual void WriteDataSet(std::string Path, const Vector<double>& rData);
+    virtual void WriteDataSet(std::string Path, const Vector<double>& rData, WriteInfo& rInfo);
 
-    virtual void WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData);
+    virtual void WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo);
 
-    virtual void WriteDataSet(std::string Path, const Matrix<int>& rData);
+    virtual void WriteDataSet(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo);
     
-    virtual void WriteDataSet(std::string Path, const Matrix<double>& rData);
+    virtual void WriteDataSet(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo);
 
     /// Write the start and end indices of data blocks (by process rank).
     /**
@@ -158,16 +165,16 @@ public:
      * Performs independent write in MPI. Must be called collectively. Throws 
      * if more than one process has non-empty data.
      */
-    virtual void WriteDataSetIndependent(std::string Path, const Vector<int>& rData);
+    virtual void WriteDataSetIndependent(std::string Path, const Vector<int>& rData, WriteInfo& rInfo);
 
-    virtual void WriteDataSetIndependent(std::string Path, const Vector<double>& rData);
+    virtual void WriteDataSetIndependent(std::string Path, const Vector<double>& rData, WriteInfo& rInfo);
 
     virtual void WriteDataSetIndependent(std::string Path,
-                                         const Vector<array_1d<double, 3>>& rData);
+                                         const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo);
 
-    virtual void WriteDataSetIndependent(std::string Path, const Matrix<int>& rData);
+    virtual void WriteDataSetIndependent(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo);
 
-    virtual void WriteDataSetIndependent(std::string Path, const Matrix<double>& rData);
+    virtual void WriteDataSetIndependent(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo);
 
     std::vector<unsigned> GetDataDimensions(std::string Path) const;
 

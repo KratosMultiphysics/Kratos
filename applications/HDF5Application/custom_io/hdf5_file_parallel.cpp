@@ -8,38 +8,38 @@ FileParallel::FileParallel(Parameters& rParams) : File(rParams)
 {
 }
 
-void FileParallel::WriteDataSet(std::string Path, const Vector<int>& rData)
+void FileParallel::WriteDataSet(std::string Path, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData, DataTransferMode::collective);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::collective, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataSet(std::string Path, const Vector<double>& rData)
+void FileParallel::WriteDataSet(std::string Path, const Vector<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData, DataTransferMode::collective);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::collective, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void FileParallel::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData, DataTransferMode::collective);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::collective, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataSet(std::string Path, const Matrix<int>& rData)
+void FileParallel::WriteDataSet(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::collective);
+    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::collective, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataSet(std::string Path, const Matrix<double>& rData)
+void FileParallel::WriteDataSet(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::collective);
+    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::collective, rInfo);
     KRATOS_CATCH("");
 }
 
@@ -78,38 +78,38 @@ void FileParallel::WriteDataPartition(std::string Path, const Matrix<double>& rD
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
+void FileParallel::WriteDataSetIndependent(std::string Path, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
+void FileParallel::WriteDataSetIndependent(std::string Path, const Vector<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void FileParallel::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent);
+    WriteDataSetVectorImpl(Path, rData, DataTransferMode::independent, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
+void FileParallel::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::independent);
+    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::independent, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
+void FileParallel::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::independent);
+    WriteDataSetMatrixImpl(Path, rData, DataTransferMode::independent, rInfo);
     KRATOS_CATCH("");
 }
 

@@ -121,9 +121,9 @@ class ConnectivitiesOutput
         const int NumberOfNodes;
         Internals::ConnectivitiesData Connectivities;
 
-        void WriteConnectivities(File& rFile)
+        void WriteConnectivities(File& rFile, WriteInfo& rInfo)
         {
-            Connectivities.WriteData(rFile, Path);
+            Connectivities.WriteData(rFile, Path, rInfo);
             rFile.WriteAttribute(Path, "WorkingSpaceDimension", WorkingSpaceDimension);
             rFile.WriteAttribute(Path, "Dimension", Dimension);
             rFile.WriteAttribute(Path, "NumberOfNodes", NumberOfNodes);

@@ -8,38 +8,38 @@ FileSerial::FileSerial(Parameters& rParams) : File(rParams)
 {
 }
 
-void FileSerial::WriteDataSet(std::string Path, const Vector<int>& rData)
+void FileSerial::WriteDataSet(std::string Path, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileSerial::WriteDataSet(std::string Path, const Vector<double>& rData)
+void FileSerial::WriteDataSet(std::string Path, const Vector<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileSerial::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void FileSerial::WriteDataSet(std::string Path, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileSerial::WriteDataSet(std::string Path, const Matrix<int>& rData)
+void FileSerial::WriteDataSet(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetMatrixImpl(Path, rData);
+    WriteDataSetMatrixImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileSerial::WriteDataSet(std::string Path, const Matrix<double>& rData)
+void FileSerial::WriteDataSet(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetMatrixImpl(Path, rData);
+    WriteDataSetMatrixImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
@@ -79,38 +79,38 @@ void FileSerial::WriteDataPartition(std::string Path, const Matrix<double>& rDat
     KRATOS_CATCH("");
 }
 
-void FileSerial::WriteDataSetIndependent(std::string Path, const Vector<int>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileSerial::WriteDataSetIndependent(std::string Path, const Vector<double>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Vector<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileSerial::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetVectorImpl(Path, rData);
+    WriteDataSetVectorImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetMatrixImpl(Path, rData);
+    WriteDataSetMatrixImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
-void FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData)
+void FileSerial::WriteDataSetIndependent(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    WriteDataSetMatrixImpl(Path, rData);
+    WriteDataSetMatrixImpl(Path, rData, rInfo);
     KRATOS_CATCH("");
 }
 
