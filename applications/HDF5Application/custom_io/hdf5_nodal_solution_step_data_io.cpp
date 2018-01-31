@@ -23,7 +23,7 @@ void SetNodalSolutionStepData(TVariableType const& rVariable,
                               unsigned Step);
 } // namespace Internals.
 
-NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters& rParams, File::Pointer pFile)
+NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters Settings, File::Pointer pFile)
 : mpFile(pFile)
 {
     KRATOS_TRY;
@@ -35,14 +35,14 @@ NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters& rParams, File::Poin
             "list_of_variables": []
         })");
 
-    rParams.ValidateAndAssignDefaults(default_params);
+    Settings.ValidateAndAssignDefaults(default_params);
 
-    mDoPartitionedIO = rParams["partitioned"].GetBool();
-    mPrefix = rParams["prefix"].GetString();
+    mDoPartitionedIO = Settings["partitioned"].GetBool();
+    mPrefix = Settings["prefix"].GetString();
 
-    mVariableNames.resize(rParams["list_of_variables"].size());
+    mVariableNames.resize(Settings["list_of_variables"].size());
     for (unsigned i = 0; i < mVariableNames.size(); ++i)
-        mVariableNames[i] = rParams["list_of_variables"].GetArrayItem(i).GetString();
+        mVariableNames[i] = Settings["list_of_variables"].GetArrayItem(i).GetString();
 
     KRATOS_ERROR_IF(mDoPartitionedIO && mpFile->GetTotalProcesses() == 1)
         << "Attempting partitioned IO with a single process." << std::endl;

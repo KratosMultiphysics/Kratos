@@ -54,7 +54,7 @@ public:
     ///@{
 
     /// Constructor.
-    NodalSolutionStepDataIO(Parameters& rParams, File::Pointer pFile);
+    NodalSolutionStepDataIO(Parameters Settings, File::Pointer pFile);
 
     ///@}
     ///@name Operations

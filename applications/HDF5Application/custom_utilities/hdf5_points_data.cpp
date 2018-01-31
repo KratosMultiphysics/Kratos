@@ -8,20 +8,20 @@ namespace HDF5
 {
 namespace Internals
 {
-void PointsData::ReadData(File& rFile, std::string Path, unsigned StartIndex, unsigned BlockSize)
+void PointsData::ReadData(File& rFile, const std::string& rPath, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     Clear();
-    rFile.ReadDataSet(Path + "/Ids", mIds, StartIndex, BlockSize);
-    rFile.ReadDataSet(Path + "/Coordinates", mCoords, StartIndex, BlockSize);
+    rFile.ReadDataSet(rPath + "/Ids", mIds, StartIndex, BlockSize);
+    rFile.ReadDataSet(rPath + "/Coordinates", mCoords, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void PointsData::WriteData(File& rFile, std::string Path, WriteInfo& rInfo)
+void PointsData::WriteData(File& rFile, const std::string& rPath, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    rFile.WriteDataSet(Path + "/Ids", mIds, rInfo);
-    rFile.WriteDataSet(Path + "/Coordinates", mCoords, rInfo);
+    rFile.WriteDataSet(rPath + "/Ids", mIds, rInfo);
+    rFile.WriteDataSet(rPath + "/Coordinates", mCoords, rInfo);
     KRATOS_CATCH("");
 }
 

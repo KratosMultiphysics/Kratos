@@ -8,22 +8,22 @@ namespace HDF5
 {
 namespace Internals
 {
-void ConnectivitiesData::ReadData(File& rFile, std::string Path, unsigned StartIndex, unsigned BlockSize)
+void ConnectivitiesData::ReadData(File& rFile, const std::string& rPath, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
     Clear();
-    rFile.ReadDataSet(Path + "/Ids", mIds, StartIndex, BlockSize);
-    rFile.ReadDataSet(Path + "/PropertiesIds", mPropertiesIds, StartIndex, BlockSize);
-    rFile.ReadDataSet(Path + "/Connectivities", mConnectivities, StartIndex, BlockSize);
+    rFile.ReadDataSet(rPath + "/Ids", mIds, StartIndex, BlockSize);
+    rFile.ReadDataSet(rPath + "/PropertiesIds", mPropertiesIds, StartIndex, BlockSize);
+    rFile.ReadDataSet(rPath + "/Connectivities", mConnectivities, StartIndex, BlockSize);
     KRATOS_CATCH("");
 }
 
-void ConnectivitiesData::WriteData(File& rFile, std::string Path, WriteInfo& rInfo)
+void ConnectivitiesData::WriteData(File& rFile, const std::string& rPath, WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    rFile.WriteDataSet(Path + "/Ids", mIds, rInfo);
-    rFile.WriteDataSet(Path + "/PropertiesIds", mPropertiesIds, rInfo);
-    rFile.WriteDataSet(Path + "/Connectivities", mConnectivities, rInfo);
+    rFile.WriteDataSet(rPath + "/Ids", mIds, rInfo);
+    rFile.WriteDataSet(rPath + "/PropertiesIds", mPropertiesIds, rInfo);
+    rFile.WriteDataSet(rPath + "/Connectivities", mConnectivities, rInfo);
     KRATOS_CATCH("");
 }
 

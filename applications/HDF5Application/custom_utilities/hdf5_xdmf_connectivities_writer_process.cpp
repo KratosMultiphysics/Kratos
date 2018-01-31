@@ -7,7 +7,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(std::string FileName, std::string Prefix)
+XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::string& rFileName, const std::string& rPrefix)
 {
     KRATOS_TRY;
 
@@ -16,9 +16,9 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(std::string Fil
                 "file_name" : "",
                 "file_access_mode": "read_write"
             })");
-    file_params["file_name"].SetString(FileName);
+    file_params["file_name"].SetString(rFileName);
     mpFile = FileSerial::Pointer(new FileSerial(file_params));
-    mPrefix = Prefix;
+    mPrefix = rPrefix;
     std::string node_ids_path = mPrefix + "/Nodes/Local/Ids";
 
     KRATOS_ERROR_IF(mpFile->HasPath(node_ids_path) == false)
@@ -65,14 +65,14 @@ void XdmfConnectivitiesWriterProcess::Execute()
     KRATOS_CATCH("");
 }
 
-void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(std::string KratosConnectivitiesPath, std::string XdmfConnectivitiesPath) const
+void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const
 {
     KRATOS_TRY;
 
     Matrix<int> kratos_connectivities, xdmf_connectivities;
 
-    const unsigned block_size = mpFile->GetDataDimensions(KratosConnectivitiesPath + "/Connectivities")[0];
-    mpFile->ReadDataSet(KratosConnectivitiesPath + "/Connectivities", kratos_connectivities, 0, block_size);
+    const unsigned block_size = mpFile->GetDataDimensions(rKratosConnectivitiesPath + "/Connectivities")[0];
+    mpFile->ReadDataSet(rKratosConnectivitiesPath + "/Connectivities", kratos_connectivities, 0, block_size);
 
     xdmf_connectivities.resize(kratos_connectivities.size1(), kratos_connectivities.size2(), false);
 
@@ -94,15 +94,15 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(std::string Krato
     }
 
     WriteInfo info;
-    mpFile->WriteDataSet(XdmfConnectivitiesPath + "/Connectivities", xdmf_connectivities, info);
+    mpFile->WriteDataSet(rXdmfConnectivitiesPath + "/Connectivities", xdmf_connectivities, info);
 
     int tmp;
-    mpFile->ReadAttribute(KratosConnectivitiesPath, "WorkingSpaceDimension", tmp);
-    mpFile->WriteAttribute(XdmfConnectivitiesPath, "WorkingSpaceDimension", tmp);
-    mpFile->ReadAttribute(KratosConnectivitiesPath, "Dimension", tmp);
-    mpFile->WriteAttribute(XdmfConnectivitiesPath, "Dimension", tmp);
-    mpFile->ReadAttribute(KratosConnectivitiesPath, "NumberOfNodes", tmp);
-    mpFile->WriteAttribute(XdmfConnectivitiesPath, "NumberOfNodes", tmp);
+    mpFile->ReadAttribute(rKratosConnectivitiesPath, "WorkingSpaceDimension", tmp);
+    mpFile->WriteAttribute(rXdmfConnectivitiesPath, "WorkingSpaceDimension", tmp);
+    mpFile->ReadAttribute(rKratosConnectivitiesPath, "Dimension", tmp);
+    mpFile->WriteAttribute(rXdmfConnectivitiesPath, "Dimension", tmp);
+    mpFile->ReadAttribute(rKratosConnectivitiesPath, "NumberOfNodes", tmp);
+    mpFile->WriteAttribute(rXdmfConnectivitiesPath, "NumberOfNodes", tmp);
 
     KRATOS_CATCH("");
 }

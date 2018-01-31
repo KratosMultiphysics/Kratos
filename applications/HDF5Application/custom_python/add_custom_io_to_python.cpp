@@ -66,7 +66,7 @@ void AddCustomIOToPython()
     ;
 
     class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer, boost::noncopyable>(
-        "HDF5NodalSolutionStepDataIO", init<Parameters&, HDF5::File::Pointer>())
+        "HDF5NodalSolutionStepDataIO", init<Parameters, HDF5::File::Pointer>())
         .def("GetPrefix", &HDF5::NodalSolutionStepDataIO::GetPrefix)
         .def("SetPrefix", &HDF5::NodalSolutionStepDataIO::SetPrefix)
         .def("WriteNodalResults", &HDF5::NodalSolutionStepDataIO::WriteNodalResults)

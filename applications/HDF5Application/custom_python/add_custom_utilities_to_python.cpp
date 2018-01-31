@@ -18,7 +18,7 @@ void AddCustomUtilitiesToPython()
     using namespace boost::python;
 
     class_<HDF5::XdmfConnectivitiesWriterProcess, bases<Process>, boost::noncopyable>(
-        "HDF5XdmfConnectivitiesWriterProcess", init<std::string, std::string>())
+        "HDF5XdmfConnectivitiesWriterProcess", init<const std::string&, const std::string&>())
         ;
 }
 } // namespace Python.

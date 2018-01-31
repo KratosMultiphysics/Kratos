@@ -53,7 +53,7 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
-    XdmfConnectivitiesWriterProcess(std::string FileName, std::string Prefix);
+    XdmfConnectivitiesWriterProcess(const std::string& rFileName, const std::string& rPrefix);
 
     ///@}
     ///@name Operations
@@ -74,7 +74,7 @@ private:
     ///@name Private Operations
     ///@{
     
-    void CreateXdmfConnectivities(std::string KratosConnectivitiesPath, std::string XdmfConnectivitiesPath) const;
+    void CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const;
 
     ///@}
 
