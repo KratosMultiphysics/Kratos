@@ -92,7 +92,7 @@ namespace Kratos
 			std::vector< array_1d<double, 3 > >& rOutput,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
-		void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces);
+		virtual void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces);
 		void CreateTransformationMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
 
 		void CalculateOnIntegrationPoints(
@@ -160,9 +160,6 @@ namespace Kratos
 		double CalculateCurrentLength();
 
 		bounded_vector<double,msLocalSize> CalculateBodyForces();  
-
-		bool ReturnIfIsCable();
-		
 		
 
 		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
