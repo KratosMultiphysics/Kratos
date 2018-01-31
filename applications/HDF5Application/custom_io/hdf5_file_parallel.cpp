@@ -43,41 +43,6 @@ void FileParallel::WriteDataSet(std::string Path, const Matrix<double>& rData, W
     KRATOS_CATCH("");
 }
 
-void FileParallel::WriteDataPartition(std::string Path, const Vector<int>& rData)
-{
-    KRATOS_TRY;
-    WriteDataPartitionVectorImpl(Path, rData);
-    KRATOS_CATCH("");
-}
-
-void FileParallel::WriteDataPartition(std::string Path, const Vector<double>& rData)
-{
-    KRATOS_TRY;
-    WriteDataPartitionVectorImpl(Path, rData);
-    KRATOS_CATCH("");
-}
-
-void FileParallel::WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData)
-{
-    KRATOS_TRY;
-    WriteDataPartitionVectorImpl(Path, rData);
-    KRATOS_CATCH("");
-}
-
-void FileParallel::WriteDataPartition(std::string Path, const Matrix<int>& rData)
-{
-    KRATOS_TRY;
-    WriteDataPartitionMatrixImpl(Path, rData);
-    KRATOS_CATCH("");
-}
-
-void FileParallel::WriteDataPartition(std::string Path, const Matrix<double>& rData)
-{
-    KRATOS_TRY;
-    WriteDataPartitionMatrixImpl(Path, rData);
-    KRATOS_CATCH("");
-}
-
 void FileParallel::WriteDataSetIndependent(std::string Path, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;

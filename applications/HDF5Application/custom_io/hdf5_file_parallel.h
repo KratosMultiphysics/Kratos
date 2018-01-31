@@ -73,16 +73,6 @@ public:
 
     void WriteDataSet(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo) override;
     
-    void WriteDataPartition(std::string Path, const Vector<int>& rData) override;
-    
-    void WriteDataPartition(std::string Path, const Vector<double>& rData) override;
-    
-    void WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData) override;
-
-    void WriteDataPartition(std::string Path, const Matrix<int>& rData) override;
-
-    void WriteDataPartition(std::string Path, const Matrix<double>& rData) override;
-    
     void WriteDataSetIndependent(std::string Path, const Vector<int>& rData, WriteInfo& rInfo) override;
     
     void WriteDataSetIndependent(std::string Path, const Vector<double>& rData, WriteInfo& rInfo) override;
@@ -248,6 +238,12 @@ private:
         }
         KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
+
+        // Set the write info.
+        rInfo.StartIndex = local_start[0];
+        rInfo.BlockSize = local_dims[0];
+        rInfo.TotalSize = global_dims[0];
+
         if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
         KRATOS_CATCH("Path: \"" + Path + "\".");
@@ -325,75 +321,15 @@ private:
         }
         KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
+
+        // Set the write info.
+        rInfo.StartIndex = local_start[0];
+        rInfo.BlockSize = local_dims[0];
+        rInfo.TotalSize = global_dims[0];
+
         if (GetEchoLevel() == 1 && GetPID() == 0)
             std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
         KRATOS_CATCH("Path: \"" + Path + "\".");
-    }
-
-    template <class T>
-    void WriteDataPartitionVectorImpl(std::string Path, const Vector<T>& rData)
-    {
-        KRATOS_TRY;
-        int rank, end_pos, ierr;
-        int block_size = rData.size();
-        Vector<int> partition;
-        ierr = MPI_Scan(&block_size, &end_pos, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Scan failed." << std::endl;
-        ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_rank failed." << std::endl;
-
-        if (rank == 0)
-        {
-            int num_proc;
-            ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_size failed." << std::endl;
-            partition.resize(num_proc + 1, false);
-            partition[0] = 0; // Partition always starts at 0.
-            ierr = MPI_Gather(&end_pos, 1, MPI_INT, &partition[1], 1, MPI_INT, 0, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
-        }
-        else
-        {
-            ierr = MPI_Gather(&end_pos, 1, MPI_INT, nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
-        }
-
-        WriteInfo info;
-        WriteDataSetIndependent(Path, partition, info);
-        KRATOS_CATCH("");
-    }
-
-    template <class T>
-    void WriteDataPartitionMatrixImpl(std::string Path, const Matrix<T>& rData)
-    {
-        KRATOS_TRY;
-        int rank, end_pos, ierr;
-        int block_size = rData.size1();
-        Vector<int> partition;
-        ierr = MPI_Scan(&block_size, &end_pos, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Scan failed." << std::endl;
-        ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_rank failed." << std::endl;
-
-        if (rank == 0)
-        {
-            int num_proc;
-            ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_size failed." << std::endl;
-            partition.resize(num_proc + 1, false);
-            partition[0] = 0; // Partition always starts at 0.
-            ierr = MPI_Gather(&end_pos, 1, MPI_INT, &partition[1], 1, MPI_INT, 0, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
-        }
-        else
-        {
-            ierr = MPI_Gather(&end_pos, 1, MPI_INT, nullptr, 0, MPI_INT, 0, MPI_COMM_WORLD);
-            KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Gather failed." << std::endl;
-        }
-
-        WriteInfo info;
-        WriteDataSetIndependent(Path, partition, info);
-        KRATOS_CATCH("");
     }
 
     template <class T>

@@ -60,7 +60,7 @@ struct WriteInfo
 {
     std::size_t StartIndex = -1;
     std::size_t BlockSize = -1;
-    std::size_t GlobalSize = -1;
+    std::size_t TotalSize = -1;
 };
 
 /// A base class for reading and writing an HDF5 file.
@@ -144,21 +144,6 @@ public:
     virtual void WriteDataSet(std::string Path, const Matrix<int>& rData, WriteInfo& rInfo);
     
     virtual void WriteDataSet(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo);
-
-    /// Write the start and end indices of data blocks (by process rank).
-    /**
-     * Writes the partition array required to reconstruct a partitioned data set
-     * from a file.
-     */
-    virtual void WriteDataPartition(std::string Path, const Vector<int>& rData);
-
-    virtual void WriteDataPartition(std::string Path, const Vector<double>& rData);
-
-    virtual void WriteDataPartition(std::string Path, const Vector<array_1d<double,3>>& rData);
-    
-    virtual void WriteDataPartition(std::string Path, const Matrix<int>& rData);
-    
-    virtual void WriteDataPartition(std::string Path, const Matrix<double>& rData);
 
     /// Independently write data set to the HDF5 file.
     /**

@@ -2,6 +2,7 @@
 
 #include "includes/kratos_components.h"
 #include "utilities/openmp_utils.h"
+#include "custom_utilities/hdf5_data_set_partition_utility.h"
 
 namespace Kratos
 {
@@ -114,8 +115,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
 
     // Write block partition.
     Vector<int> dummy(local_nodes.size());
-    // DataSetPartitionUtility::WritePartition(*mpFile, mPrefix + "/NodalResults/", info);
-    mpFile->WriteDataPartition(mPrefix + "/NodalResults/Partition", dummy);
+    DataSetPartitionUtility::WritePartition(*mpFile, mPrefix + "/NodalResults", info);
 
     KRATOS_CATCH("");
 }
@@ -124,10 +124,13 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
 {
     KRATOS_TRY;
 
+    if (mVariableNames.size() == 0)
+        return;
+
     std::vector<NodeType*> local_nodes;
     GetLocalNodes(rNodes, local_nodes);
     unsigned start_index, block_size;
-    std::tie(start_index, block_size) = GetStartIndexAndBlockSize();
+    std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(*mpFile, mPrefix + "/NodalResults");
 
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
@@ -178,44 +181,6 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
 
     // Synchronize ghost nodes.
     rComm.SynchronizeNodalSolutionStepsData();
-
-    KRATOS_CATCH("");
-}
-
-std::tuple<unsigned, unsigned> NodalSolutionStepDataIO::GetStartIndexAndBlockSize() const
-{
-    KRATOS_TRY;
-
-    std::vector<unsigned> dims =
-        mpFile->GetDataDimensions(mPrefix + "/NodalResults/Partition");
-    KRATOS_ERROR_IF(dims.size() != 1) << "Invalid partition dimension." << std::endl;
-    const unsigned file_partition_size = dims[0] - 1; // Number of procs that wrote the data block.
-    unsigned start_index;
-    unsigned block_size;
-    if (mDoPartitionedIO == false)
-    {
-        start_index = 0;
-        // Read the global size of the data block.
-        Vector<int> last_partition_index;
-        mpFile->ReadDataSet(mPrefix + "/NodalResults/Partition", last_partition_index, file_partition_size, 1);
-        block_size = last_partition_index[0];
-    }
-    else if (mpFile->GetTotalProcesses() == file_partition_size)
-    {
-        Vector<int> my_partition;
-        unsigned my_pid = mpFile->GetPID();
-        mpFile->ReadDataSet(mPrefix + "/NodalResults/Partition", my_partition, my_pid, 2);
-        start_index = my_partition[0];
-        block_size = my_partition[1] - my_partition[0];
-    }
-    else
-    {
-        KRATOS_ERROR << "Failed to find a valid data block for reading. Number "
-                        "of processors does not match the file partition."
-                     << std::endl;
-    }
-
-    return std::make_tuple(start_index, block_size);
 
     KRATOS_CATCH("");
 }

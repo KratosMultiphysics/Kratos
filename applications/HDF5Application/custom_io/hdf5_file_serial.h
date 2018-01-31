@@ -72,16 +72,6 @@ public:
 
     void WriteDataSet(std::string Path, const Matrix<double>& rData, WriteInfo& rInfo) override;
 
-    void WriteDataPartition(std::string Path, const Vector<int>& rData) override;
-
-    void WriteDataPartition(std::string Path, const Vector<double>& rData) override;
-
-    void WriteDataPartition(std::string Path, const Vector<array_1d<double, 3>>& rData) override;
-
-    void WriteDataPartition(std::string Path, const Matrix<int>& rData) override;
-
-    void WriteDataPartition(std::string Path, const Matrix<double>& rData) override;
-
     void WriteDataSetIndependent(std::string Path, const Vector<int>& rData, WriteInfo& rInfo) override;
 
     void WriteDataSetIndependent(std::string Path, const Vector<double>& rData, WriteInfo& rInfo) override;
@@ -209,6 +199,10 @@ private:
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
 
+        // Set the write info.
+        rInfo.StartIndex = 0;
+        rInfo.TotalSize = rInfo.BlockSize = rData.size();
+
         if (GetEchoLevel() == 1)
             std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
         KRATOS_CATCH("Path: \"" + Path + "\".");
@@ -250,31 +244,13 @@ private:
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
 
+        // Set the write info.
+        rInfo.StartIndex = 0;
+        rInfo.TotalSize = rInfo.BlockSize = rData.size1();
+
         if (GetEchoLevel() == 1)
             std::cout << "Write time \"" << Path << "\": " << timer.elapsed() << std::endl;
         KRATOS_CATCH("Path: \"" + Path + "\".");
-    }
-
-    template <class T>
-    void WriteDataPartitionVectorImpl(std::string Path, const Vector<T>& rData)
-    {
-        int n = rData.size();
-        Vector<int> partition(2); // Serial partition.
-        partition[0] = 0;
-        partition[1] = n;
-        WriteInfo info;
-        WriteDataSet(Path, partition, info);
-    }
-
-    template <class T>
-    void WriteDataPartitionMatrixImpl(std::string Path, const Matrix<T>& rData)
-    {
-        int n = rData.size1();
-        Vector<int> partition(2); // Serial partition.
-        partition[0] = 0;
-        partition[1] = n;
-        WriteInfo info;
-        WriteDataSet(Path, partition, info);
     }
 
     template <class T>
