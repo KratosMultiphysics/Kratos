@@ -74,6 +74,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",optimizationIteration)
             print(">===================================================================\n")
 
+            self.__updateMeshAccordingCurrentShapeUpdate()    
+
             self.__callCommunicatorToRequestNewAnalyses()
 
             self.__callAnalyzerToPerformRequestedAnalyses( optimizationIteration )
@@ -97,12 +99,14 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             if self.__isAlgorithmConverged( optimizationIteration ):
                 break
 
-            self.__updateMesh()
-
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
         self.MeshController.Finalize()
+
+    # --------------------------------------------------------------------------
+    def __updateMeshAccordingCurrentShapeUpdate( self ):
+        self.MeshController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )  
 
     # --------------------------------------------------------------------------
     def __callCommunicatorToRequestNewAnalyses( self ):
@@ -113,6 +117,11 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __callAnalyzerToPerformRequestedAnalyses( self, optimizationIteration ):
         self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, optimizationIteration, self.Communicator )
+        self.__ResetPossibleMeshDisplacementDuringAnalysis()
+
+    # --------------------------------------------------------------------------
+    def __ResetPossibleMeshDisplacementDuringAnalysis( self ):
+        self.MeshController.ResetMeshDisplacement()
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
@@ -192,11 +201,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             # Check if value of objective increases
             if relativeChangeOfObjectiveValue > 0:
                 print("\n> Value of objective function increased!")
-                return False
-
-    # --------------------------------------------------------------------------
-    def __updateMesh( self ):
-        self.MeshController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
-        self.MeshController.SetCurrentMeshAsNewReference()
+                return False          
 
 # ==============================================================================

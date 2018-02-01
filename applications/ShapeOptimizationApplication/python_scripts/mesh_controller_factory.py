@@ -20,6 +20,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # Additional imports
+import time as timer
 
 # ==============================================================================
 def CreateMeshController( OptimizationModelPart, OptimizationSettings ):
@@ -42,11 +43,14 @@ class MeshController:
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
+        print("\n> Starting to update the mesh")
+        startTime = timer.time()
         self.MeshControllerUtilities.UpdateMeshAccordingInputVariable( InputVariable )  
+        print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
     # --------------------------------------------------------------------------    
-    def SetCurrentMeshAsNewReference( self ):
-        self.MeshControllerUtilities.SetCurrentMeshAsNewReference()        
+    def ResetMeshDisplacement( self ):
+        self.MeshControllerUtilities.ResetMeshDisplacement()        
 
     # --------------------------------------------------------------------------
     def Finalize( self ):

@@ -104,28 +104,27 @@ public:
 
         for(auto & node_i: mrModelPart.Nodes())
         {
-            array_1d<double,3> shape_update = node_i.FastGetSolutionStepValue(rInputVariable);
-            node_i.X() += shape_update[0];
-            node_i.Y() += shape_update[1];
-            node_i.Z() += shape_update[2];
+            array_1d<double,3> variable_value = node_i.FastGetSolutionStepValue(rInputVariable);
+            node_i.X0() += variable_value[0];
+            node_i.Y0() += variable_value[1];
+            node_i.Z0() += variable_value[2];
+            node_i.X() += variable_value[0];
+            node_i.Y() += variable_value[1];
+            node_i.Z() += variable_value[2];            
         }
 
         KRATOS_CATCH("");
     }
 
     // --------------------------------------------------------------------------
-    void SetCurrentMeshAsNewReference()
+    void ResetMeshDisplacement()
     {
-        KRATOS_TRY;
-
         for(auto & node_i: mrModelPart.Nodes())
         {
-            node_i.X0() = node_i.X();
-            node_i.Y0() = node_i.Y();
-            node_i.Z0() = node_i.Z();
+            node_i.X() = node_i.X0();
+            node_i.Y() = node_i.Y0();
+            node_i.Z() = node_i.Z0();
         }
-
-        KRATOS_CATCH("");
     }
 
     // ==============================================================================
@@ -215,9 +214,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    // ==============================================================================
     // Initialized by class constructor
-    // ==============================================================================
     ModelPart& mrModelPart;
 
     ///@}
