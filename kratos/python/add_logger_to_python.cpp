@@ -72,14 +72,23 @@ object printWarning(tuple args, dict kwargs) {
 
 void  AddLoggerToPython() {
 
-    class_<Logger, boost::shared_ptr<Logger>, boost::noncopyable>("Logger", init<std::string const &>())
+    scope logger_scope = class_<Logger, boost::shared_ptr<Logger>, boost::noncopyable>("Logger", init<std::string const &>())
     .def("PrintInfo", raw_function(printInfo,1))
     .def("PrintWarning", raw_function(printWarning,1))
     .staticmethod("PrintInfo")
     .staticmethod("PrintWarning")
     ;
 
-    // Enums for severity
+    // Enums for Severity
+    enum_<Logger::Category>("Severity")
+    .value("ERROR", Logger::Severity::ERROR)
+    .value("WARNING", Logger::Severity::WARNING)
+    .value("INFO", Logger::Severity::INFO)
+    .value("DETAIL", Logger::Severity::DETAIL)
+    .value("DEBUG", Logger::Severity::DEBUG)
+    .value("TRACE", Logger::Severity::TRACE);
+
+    // Enums for Category
     enum_<Logger::Category>("Category")
     .value("STATUS", Logger::Category::STATUS)
     .value("CRITICAL", Logger::Category::CRITICAL)
