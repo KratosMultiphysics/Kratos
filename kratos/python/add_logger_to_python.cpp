@@ -27,27 +27,21 @@ namespace Python
 {
 
 object printImpl(tuple args, dict kwargs, Logger::Severity severity) {
-    std::cout << "?" << std::endl;
     if(len(args) == 0)
         std::cout << "ERROR" << std::endl;
-
-    Logger& loggerRef = boost::python::extract<Logger&>(args[0]);
     
     std::stringstream buffer;
 
     // Extract the tuple part
-    std::cout << len(args)-1 << std::endl;
     for(int i = 1; i < len(args); ++i) {
         object curArg = args[i];
-        std::cout << "Printing arg " << i << std::endl;
-        std::cout << extract<const char *>(boost::python::str(args[i])) << std::endl;
         if(curArg) {
-            buffer << extract<const char *>(boost::python::str(args[i])) << std::endl;
+            buffer << extract<const char *>(boost::python::str(args[i]));
         }
     }
 
-    loggerRef << KRATOS_CODE_LOCATION << buffer.str() << severity;
-    std::cout << "--?" << std::endl;
+    const char* label = extract<const char *>(boost::python::str(args[0]));
+    Logger(label) << KRATOS_CODE_LOCATION << "NEWLOG: " << buffer.str() << severity << std::endl;
 
     return object();
 }
@@ -78,7 +72,17 @@ void  AddLoggerToPython() {
     class_<Logger, boost::shared_ptr<Logger>, boost::noncopyable>("Logger", init<std::string const &>())
     .def("PrintInfo", raw_function(printInfo,1))
     .def("PrintWarning", raw_function(printWarning,1))
+    .staticmethod("PrintInfo")
+    .staticmethod("PrintWarning")
     ;
+
+    // Enums
+    enum_<Logger::Category>("Category")
+    .value("STATUS", Logger::Category::STATUS)
+    .value("CRITICAL", Logger::Category::CRITICAL)
+    .value("STATISTICS", Logger::Category::STATISTICS)
+    .value("PROFILING", Logger::Category::PROFILING)
+    .value("CHECKING", Logger::Category::CHECKING);
 }
 
 }  // namespace Python.
