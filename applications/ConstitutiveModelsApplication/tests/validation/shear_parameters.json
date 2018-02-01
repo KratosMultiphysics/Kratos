@@ -14,8 +14,8 @@
 		"description": "shear",
 		"deformation_gradient" : [ [1.0,"t",0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ]
 	    },
-	    "stress_measure": "Kirchhoff",
-	    "print_output": true
+	    "stress_measure": "PK2",
+	    "print_output": false
 	    
 	}
     }

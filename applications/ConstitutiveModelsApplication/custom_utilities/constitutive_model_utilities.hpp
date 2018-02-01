@@ -11,6 +11,9 @@
 #define  KRATOS_CONSTITUTIVE_MODEL_UTILITIES
 
 // System includes
+#include <cmath>
+#include <limits>
+#include <algorithm>
 
 // External includes
 
@@ -1177,15 +1180,21 @@ namespace Kratos
      */
     static inline bool AreEqual( const double& rA, const double& rB )
     {
-	double value = rA-rB;
-	if( fabs(rA) > 0 )
-	    value /= rA;
-    
-	if( fabs(value) < 1e-20 ){
+	//different sign
+	if( rA*rB < 0 )
+	    return false;
+
+	//different order of magnitude
+	double absDiff = std::fabs(rA - rB);
+	if(absDiff <= std::numeric_limits<double>::epsilon())
+	{
 	    return true;
 	}
 
-	return false;
+	//similar order of magnitude
+	double maxAbs  = std::max(std::fabs(rA), std::fabs(rB));
+	return (absDiff/maxAbs) < 1E-8;
+	
     }
     
 

@@ -101,7 +101,7 @@ namespace Kratos
       rDensityFunction = 0;
       this->CalculateAndAddIsochoricStrainEnergy( Variables, rDensityFunction );
       this->CalculateAndAddVolumetricStrainEnergy( Variables, rDensityFunction );
-
+           
 	
       KRATOS_CATCH(" ")
     }
@@ -239,6 +239,35 @@ namespace Kratos
 
 	//Algorithmic moduli factors
 	this->CalculateScalingFactors(rVariables);
+
+	//strain check
+	// double D = 0;
+	// MatrixType maxma;
+	// MatrixType MaxMa;
+	// for(unsigned int i=0; i<3; i++)
+	// {
+	//     noalias(maxma) = ZeroMatrix(3,3);
+	//     noalias(MaxMa) = ZeroMatrix(3,3);
+	//     const double& lambda = rVariables.Strain.Eigen.Values[i];
+      
+	//     D = 2.0 * lambda*lambda*lambda*lambda - rVariables.Strain.Invariants.I1 * lambda*lambda + rVariables.Strain.Invariants.I3 / (lambda*lambda);
+	    
+	//     array_1d<double,3> EigenVector;
+	//     noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
+
+	//     std::cout<<" naxna "<<outer_prod(EigenVector,EigenVector)<<std::endl;
+	    
+	//     if( D!= 0 ){
+	// 	noalias(maxma)=(prod(rVariables.Strain.Matrix,rVariables.Strain.Matrix) - (rVariables.Strain.Invariants.I1-rVariables.Strain.Eigen.Values[i]*rVariables.Strain.Eigen.Values[i]) * rVariables.Strain.Matrix + (rVariables.Strain.Invariants.I3 /(rVariables.Strain.Eigen.Values[i]*rVariables.Strain.Eigen.Values[i])) * this->msIdentityMatrix)/D;
+
+	// 	noalias(MaxMa)=(rVariables.Strain.Matrix - (rVariables.Strain.Invariants.I1-rVariables.Strain.Eigen.Values[i]*rVariables.Strain.Eigen.Values[i]) * this->msIdentityMatrix + (rVariables.Strain.Invariants.I3 /(rVariables.Strain.Eigen.Values[i]*rVariables.Strain.Eigen.Values[i])) * rVariables.Strain.InverseMatrix)*(rVariables.Strain.Eigen.Values[i]*rVariables.Strain.Eigen.Values[i])/D;
+
+	//     }
+	//     std::cout<<" maxma "<<maxma<<std::endl;
+	//     std::cout<<" MaxMa "<<MaxMa<<std::endl;		
+				
+	// }
+	
 
 	KRATOS_CATCH(" ")
     }
@@ -401,10 +430,10 @@ namespace Kratos
 		    const double& mu_p = rModelParameters[p];
 		    const double& alpha_p = rModelParameters[p+size];
 
-		    rStressDerivatives(i,j) += (mu_p) * ( athird * (std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) + athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) ) ) );
+		    rStressDerivatives(i,j) += mu_p * alpha_p * ( athird * (std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) + athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) ) ) );
 
 		    if( i != j ){
-			rStressDerivatives(i,j) -= (mu_p) * ( athird * ( 2.0 * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[j],alpha_p) ) );
+			rStressDerivatives(i,j) -= mu_p * alpha_p * ( athird * ( 2.0 * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[j],alpha_p) ) );
 		    }
 		}
 	    }
@@ -478,52 +507,172 @@ namespace Kratos
 	
       double Dabcd = 0;
       double Cabcd = 0;
-      
-      array_1d<double,3> EigenVectorA;
-      array_1d<double,3> EigenVectorB;    
-      
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
-	  for(unsigned int i=0; i<3; i++)
-	  {
-	      noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
-	      EigenVectorA /= rVariables.Strain.Eigen.Values[i];
-	      for(unsigned int j=0; j<3; j++)
-	      {
-		  
-		  noalias(EigenVectorB) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,j);
-		  EigenVectorB /= rVariables.Strain.Eigen.Values[j];
-								
-		  Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorB,Dabcd,a,b,c,d);
 
-		  Cabcd += rStressDerivatives(i,j) * Dabcd;
+      unsigned int option = 0;
+      array_1d<unsigned int,3> Permuta;
+
+      // std::cout<<" a "<<rVariables.Strain.Eigen.Values[0]<<" b "<<rVariables.Strain.Eigen.Values[1]<<" equal "<<ConstitutiveModelUtilities::AreEqual(rVariables.Strain.Eigen.Values[0],rVariables.Strain.Eigen.Values[1])<<std::endl;
+      // std::cout<<" b "<<rVariables.Strain.Eigen.Values[1]<<" c "<<rVariables.Strain.Eigen.Values[2]<<" equal "<<ConstitutiveModelUtilities::AreEqual(rVariables.Strain.Eigen.Values[1],rVariables.Strain.Eigen.Values[2])<<std::endl;
+
+      
+      if( ConstitutiveModelUtilities::AreEqual(rVariables.Strain.Eigen.Values[0],rVariables.Strain.Eigen.Values[1]) && ConstitutiveModelUtilities::AreEqual(rVariables.Strain.Eigen.Values[1],rVariables.Strain.Eigen.Values[2]) ){  
+	  option = 3;
+      }
+      else{
+	  option = 2;
+	  if( ConstitutiveModelUtilities::AreEqual(rVariables.Strain.Eigen.Values[0],rVariables.Strain.Eigen.Values[1]) ){	    
+	      Permuta[0] = 2;
+	      Permuta[1] = 0;
+	      Permuta[2] = 1;
+	  }
+	  else if( ConstitutiveModelUtilities::AreEqual(rVariables.Strain.Eigen.Values[2],rVariables.Strain.Eigen.Values[0]) ){
+	      Permuta[0] = 1;
+	      Permuta[1] = 2;
+	      Permuta[2] = 0;
+	  }
+	  else if( ConstitutiveModelUtilities::AreEqual(rVariables.Strain.Eigen.Values[1],rVariables.Strain.Eigen.Values[2]) ){
+	      Permuta[0] = 0;
+	      Permuta[1] = 1;
+	      Permuta[2] = 2;
+	  }
+	  else{
+	      option = 1;
+	  }
+      }
+
+      // std::cout<<" option "<<option<<" "<<rVariables.Strain.Eigen.Values<<std::endl;
+      //if(option==1)
+      // 	  option = 3;
+     
+      if( option == 1 ){
+	  
+	  array_1d<double,3> EigenVectorA;
+	  array_1d<double,3> EigenVectorB;    
+      
+	  if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
+	      for(unsigned int i=0; i<3; i++)
+	      {
+		  noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
+		  EigenVectorA /= rVariables.Strain.Eigen.Values[i];
+		  for(unsigned int j=0; j<3; j++)
+		  {
+		  
+		      noalias(EigenVectorB) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,j);
+		      EigenVectorB /= rVariables.Strain.Eigen.Values[j];
+								
+		      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorB,Dabcd,a,b,c,d);
+
+		      Cabcd += rStressDerivatives(i,j) * Dabcd;
+		  }
+
+		  Dabcd  = GetEigenProductRightCauchyGreenDerivative(rVariables,i,Dabcd,a,b,c,d);
+		  Cabcd += 2.0 * rStressEigenValues[i] * Dabcd;
+		  //std::cout<<" Cabcd "<<Cabcd<<" Dabcd "<<Dabcd<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<std::endl;
+	      }
+	  
+	  }
+	  else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.M
+
+	      for(unsigned int i=0; i<3; i++)
+	      {
+		  noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
+		  // for(unsigned int j=0; j<3; j++)
+		  // {
+		  
+		  //     noalias(EigenVectorB) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,j);
+								
+		  //     Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorB,EigenVectorA,Dabcd,a,b,c,d);
+
+		  //     Cabcd += rStressDerivatives(i,j) * Dabcd;
+		  // }
+
+		  Dabcd  = GetEigenProductLeftCauchyGreenDerivative(rVariables,i,Dabcd,a,b,c,d);
+		  Cabcd += 2.0 * rStressEigenValues[i] * Dabcd;
+		  //std::cout<<" Cabcd "<<Cabcd<<" Dabcd "<<Dabcd<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<std::endl;
 	      }
 
-	      Dabcd  = GetEigenProductRightCauchyGreenDerivative(rVariables,i,Dabcd,a,b,c,d);
-	      Cabcd += 2.0 * rStressEigenValues[i] * Dabcd;
-	      //std::cout<<" Cabcd "<<Cabcd<<" Dabcd "<<Dabcd<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<std::endl;
+	  }
+      }
+      else if( option == 2 ){
+
+	  std::cout<<" option 2 active "<<std::endl;
+	  
+	  array_1d<double,3> EigenVector;
+	  MatrixType EigenOperation;
+	  
+	  if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
+	      noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,rStressEigenValues[Permuta[0]]);
+	      EigenVector /= rVariables.Strain.Eigen.Values[Permuta[0]];
+
+	      noalias(EigenOperation) = this->msIdentityMatrix-outer_prod(EigenVector,EigenVector);
+
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Dabcd,a,b,c,d);
+	      Cabcd -= 2.0 * rStressEigenValues[Permuta[2]] * Dabcd;
+
+	      Dabcd  = GetEigenProductRightCauchyGreenDerivative(rVariables,Permuta[0],Dabcd,a,b,c,d);
+	      
+	      Cabcd += 2.0 * (rStressEigenValues[Permuta[0]]-rStressEigenValues[Permuta[2]])* Dabcd;
+	      
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenOperation,EigenOperation,Dabcd,a,b,c,d);	  
+	      Cabcd += rStressDerivatives(Permuta[2],Permuta[2]) * Dabcd;
+
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVector,EigenVector,Dabcd,a,b,c,d);	  
+	      Cabcd += rStressDerivatives(Permuta[0],Permuta[0]) * Dabcd;
+
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVector,EigenOperation,Dabcd,a,b,c,d);	  
+	      Cabcd += rStressDerivatives(Permuta[2],Permuta[0]) * Dabcd;
+
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenOperation,EigenVector,Dabcd,a,b,c,d);	  
+	      Cabcd += rStressDerivatives(Permuta[2],Permuta[0]) * Dabcd;
+	      
+	  }
+	  else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.M
+	      noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,Permuta[0]);
+	      noalias(EigenOperation) = this->msIdentityMatrix-outer_prod(EigenVector,EigenVector);
+
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Dabcd,a,b,c,d);
+	      Cabcd -= 2.0 * rStressEigenValues[Permuta[2]] * Dabcd;
+
+	      Dabcd  = GetEigenProductLeftCauchyGreenDerivative(rVariables,Permuta[0],Dabcd,a,b,c,d);
+	      
+	      Cabcd += 2.0 * (rStressEigenValues[Permuta[0]]-rStressEigenValues[Permuta[2]])* Dabcd;
+	      
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenOperation,EigenOperation,Dabcd,a,b,c,d);	  
+	      Cabcd += rStressDerivatives(Permuta[2],Permuta[2]) * Dabcd;
+
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVector,EigenVector,Dabcd,a,b,c,d);	  
+	      Cabcd += rStressDerivatives(Permuta[0],Permuta[0]) * Dabcd;
+
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVector,EigenOperation,Dabcd,a,b,c,d);	  
+	      Cabcd += rStressDerivatives(Permuta[2],Permuta[0]) * Dabcd;
+
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenOperation,EigenVector,Dabcd,a,b,c,d);	  
+	      Cabcd += rStressDerivatives(Permuta[2],Permuta[0]) * Dabcd;
 	  }
 	  
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.M
+      else if( option == 3 ){
+  
+	  if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
+	      
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensor(rVariables.Strain.InverseMatrix,Dabcd,a,b,c,d);
+	      rCabcd -= Dabcd;
 
-	  for(unsigned int i=0; i<3; i++)
-	  {
-	      noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
-	      for(unsigned int j=0; j<3; j++)
-	      {
-		  
-		  noalias(EigenVectorB) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,j);
-								
-		  Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorB,Dabcd,a,b,c,d);
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(rVariables.Strain.InverseMatrix,rVariables.Strain.InverseMatrix,Dabcd,a,b,c,d);	  
+	      rCabcd += (1.0/3.0) * Dabcd;
 
-		  Cabcd += rStressDerivatives(i,j) * Dabcd;
-	      }
-
-	      Dabcd  = GetEigenProductLeftCauchyGreenDerivative(rVariables,i,Dabcd,a,b,c,d);
-	      Cabcd += 4.0 * rStressEigenValues[i] * Dabcd;
-	      //std::cout<<" Cabcd "<<Cabcd<<" Dabcd "<<Dabcd<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<std::endl;
+	      Cabcd *= rStressDerivatives(0,0);
 	  }
+	  else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.M
 
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Dabcd,a,b,c,d);
+	      Cabcd +=  Dabcd;
+	      
+	      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(this->msIdentityMatrix,this->msIdentityMatrix,Dabcd,a,b,c,d);	  
+	      Cabcd -= (1.0/3.0) * Dabcd;
+
+	      Cabcd *= rStressDerivatives(0,0);
+	  }
       }
 
       rCabcd += Cabcd;
@@ -541,7 +690,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      const double& lambda = rVariables.Strain.Eigen.Values[i];	 
+      const double& lambda = rVariables.Strain.Eigen.Values[i];           
 
       double D = 2.0 * lambda*lambda*lambda*lambda - rVariables.Strain.Invariants.I1 * lambda*lambda + rVariables.Strain.Invariants.I3 / (lambda*lambda);
 
@@ -551,25 +700,26 @@ namespace Kratos
 
       array_1d<double,3> EigenVector;
       noalias(EigenVector) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
-
+      EigenVector /= rVariables.Strain.Eigen.Values[i];
+      
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderUnitTensor(this->msIdentityMatrix,Dabcd,a,b,c,d);
       rCabcd += Dabcd;
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(this->msIdentityMatrix,this->msIdentityMatrix,Dabcd,a,b,c,d);	  
-      rCabcd += Dabcd;
+      rCabcd -= Dabcd;
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(rVariables.Strain.InverseMatrix,rVariables.Strain.InverseMatrix,Dabcd,a,b,c,d);
       rCabcd += Dabcd * rVariables.Strain.Invariants.I3 / (lambda*lambda);
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensor(rVariables.Strain.InverseMatrix,Dabcd,a,b,c,d);
       rCabcd -= Dabcd * rVariables.Strain.Invariants.I3 / (lambda*lambda);
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(this->msIdentityMatrix,EigenVector,Dabcd,a,b,c,d);	  
-      rCabcd += Dabcd;
+      rCabcd += (lambda*lambda) * Dabcd;
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVector,this->msIdentityMatrix,Dabcd,a,b,c,d);	  
-      rCabcd += Dabcd;
+      rCabcd += (lambda*lambda) * Dabcd;
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVector,EigenVector,Dabcd,a,b,c,d);
-      rCabcd -= 0.5 * dD * Dabcd / (lambda*lambda*lambda);
+      rCabcd -= 0.5 * dD * lambda * Dabcd;
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(rVariables.Strain.InverseMatrix,EigenVector,Dabcd,a,b,c,d);
-      rCabcd -= rVariables.Strain.Invariants.I3 * Dabcd / (lambda*lambda*lambda*lambda);
+      rCabcd -= rVariables.Strain.Invariants.I3 * Dabcd / (lambda*lambda);
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVector,rVariables.Strain.InverseMatrix,Dabcd,a,b,c,d);
-      rCabcd -= rVariables.Strain.Invariants.I3 * Dabcd / (lambda*lambda*lambda*lambda);
+      rCabcd -= rVariables.Strain.Invariants.I3 * Dabcd / (lambda*lambda);
 
       if( D != 0)					       
 	  rCabcd /= D;

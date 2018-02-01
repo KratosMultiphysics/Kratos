@@ -12,7 +12,7 @@
                 "name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw.IsochoricOgdenModel"
             },
 	    "variables": {
-		"MATERIAL_PARAMETERS": [8.01938e10,2],
+		"MATERIAL_PARAMETERS": [2.004845e10,2],
 		"BULK_MODULUS": 164.206349206e9	
             },
 	    "tables": {
