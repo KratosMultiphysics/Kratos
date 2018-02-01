@@ -714,6 +714,20 @@ void FluidElement<TElementData>::AddMassLHS(
 }
 
 template <class TElementData>
+void FluidElement<TElementData>::AddBoundaryIntegral(TElementData& rData,
+    const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
+
+    KRATOS_TRY;
+
+    KRATOS_ERROR << "Calling base FluidElement::AddBoundaryIntegral "
+                    "implementation. This method is not supported by your "
+                    "element."
+                 << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template <class TElementData>
 void FluidElement<TElementData>::GetCurrentValuesVector(
     const TElementData& rData,
     array_1d<double,LocalSize>& rValues) const {
