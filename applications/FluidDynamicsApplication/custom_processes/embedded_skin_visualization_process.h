@@ -207,6 +207,10 @@ private:
         const Geometry<Node<3>>::Pointer pGeometry,
         const Vector &rNodalDistances);
 
+    Geometry< Node<3> >::Pointer SetNewConditionGeometry(
+        const GeometryData::KratosGeometryType &rOriginGeometryType,
+        const Condition::NodesArrayType &rNewNodesArray);
+
     ///@}
     ///@name Private  Access
     ///@{

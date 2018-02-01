@@ -254,6 +254,7 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
 
                 for (unsigned int i_int_geom = 0; i_int_geom < split_interface_geometries.size(); ++i_int_geom){
                     auto p_int_sub_geom = split_interface_geometries[i_int_geom];
+                    auto p_int_sub_geom_type = p_int_sub_geom->GetGeometryType();
                     const unsigned int sub_int_geom_n_nodes = p_int_sub_geom->PointsNumber();
 
                     // Fill the new condition nodes array
@@ -275,12 +276,16 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
                         sub_int_geom_nodes_array.push_back(mrVisualizationModelPart.pGetNode(global_id));
                     }
 
+                    // Set the new condition geometry
+                    Geometry< Node<3> >::Pointer p_new_geom = SetNewConditionGeometry(
+                        p_int_sub_geom_type, 
+                        sub_int_geom_nodes_array);
+
                     // Set the new condition properties
                     Properties::Pointer p_cond_prop = (i_int_geom < n_pos_interface_geom)? p_pos_prop : p_neg_prop;
 
                     // Create the new condition
-                    Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(new_cond_id, sub_int_geom_nodes_array);
-                    p_new_cond->SetProperties(p_cond_prop);
+                    Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(new_cond_id, p_new_geom, p_cond_prop);
                     mrVisualizationModelPart.AddCondition(p_new_cond);
 
                     // Update the new elements id. counter
@@ -309,7 +314,6 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
 }
 
 void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
-
 
     // For all the new elements, compute the interpolation with the proper shape functions
     const int n_new_elems = mNewElementsIds.size();
@@ -433,6 +437,20 @@ ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedSha
         }
     } else {
         KRATOS_ERROR << "Asking for a non-implemented modified shape functions type.";
+    }
+}
+
+Geometry< Node<3> >::Pointer EmbeddedSkinVisualizationProcess::SetNewConditionGeometry(
+    const GeometryData::KratosGeometryType &rOriginGeometryType,
+    const Condition::NodesArrayType &rNewNodesArray){
+
+    switch(rOriginGeometryType){
+        case GeometryData::KratosGeometryType::Kratos_Line2D2:
+            return Kratos::make_shared<Line2D2< Node<3> > >(rNewNodesArray);
+        case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
+            return Kratos::make_shared<Triangle3D3< Node<3> > >(rNewNodesArray);
+        default:
+            KRATOS_ERROR << "Implement the visualization for the intersection geometry type " << rOriginGeometryType;
     }
 }
 
