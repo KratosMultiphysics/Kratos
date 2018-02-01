@@ -20,9 +20,11 @@ class MeshSolverStructuralSimilarity(mesh_solver_base.MeshSolverBase):
         time_order = self.settings["time_order"].GetInt()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
+        echo_level = self.settings["echo_level"].GetInt()
         solver = ALEApplication.StructuralMeshMovingStrategy(self.mesh_model_part,
                                                              linear_solver,
                                                              time_order,
                                                              reform_dofs_each_step,
-                                                             compute_reactions)
+                                                             compute_reactions,
+                                                             echo_level)
         return solver

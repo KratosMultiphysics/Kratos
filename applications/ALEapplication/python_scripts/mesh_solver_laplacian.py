@@ -25,6 +25,7 @@ class MeshSolverLaplacian(mesh_solver_base.MeshSolverBase):
                                                             linear_solver,
                                                             time_order,
                                                             reform_dofs_each_step,
+                                                            compute_reactions,
                                                             echo_level)
         return solver
 

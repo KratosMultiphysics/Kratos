@@ -65,11 +65,6 @@ class MeshSolverBase(object):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.mesh_model_part = mesh_model_part
-
-            # neighbour search
-        #number_of_avg_elems = 10
-        #number_of_avg_nodes = 10
-        #self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.mesh_model_part, number_of_avg_elems, number_of_avg_nodes)
         print("::[MeshSolverBase]:: Construction finished")
 
     #### Public user interface functions ####

@@ -15,6 +15,7 @@
 
 // External includes
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include "spaces/ublas_space.h"
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -47,13 +48,15 @@ void  AddCustomStrategiesToPython()
     class_< LaplacianMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             bases< BaseSolvingStrategyType >,  boost::noncopyable >
             ("LaplacianMeshMovingStrategy",
-             init<ModelPart&, LinearSolverType::Pointer, int, bool, int >() )
+             init<ModelPart&, LinearSolverType::Pointer, int, bool,bool, int >() )
+            .def("UpdateReferenceMesh",&StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::UpdateReferenceMesh)
+            .def("CalculateMeshVelocities",&StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::CalculateMeshVelocities)
             ;
 
     class_< StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
             bases< BaseSolvingStrategyType >,  boost::noncopyable >
             ("StructuralMeshMovingStrategy",
-             init<ModelPart&, LinearSolverType::Pointer, int, bool, bool >() )
+             init<ModelPart&, LinearSolverType::Pointer, int, bool, bool, int >() )
             .def("UpdateReferenceMesh",&StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::UpdateReferenceMesh)
             .def("CalculateMeshVelocities",&StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::CalculateMeshVelocities)
             ;
