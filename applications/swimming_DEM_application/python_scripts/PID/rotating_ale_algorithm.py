@@ -77,3 +77,18 @@ class Algorithm(BaseAlgorithm):
         if self.pp.CFD_DEM["ALE_option"].GetBool():
             self.rotator.RotateMesh(self.fluid_model_part, time)
             self.projection_module.UpdateDatabase(self.h_min)
+
+    def AssessStationarity(self):
+        BaseAlgorithm.AssessStationarity(self)
+
+        if self.stationarity:
+            self.rotator.SetStationaryField(self.fluid_model_part, self.time)
+
+    def FluidSolve(self, time='None', solve_system=True):
+        Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
+
+        if solve_system:
+            self.fluid_solution.fluid_solver.Solve()
+        else:
+            Say("Skipping solving system and rotating stationary velocity field...\n")
+            self.rotator.RotateFluidVelocities(time)

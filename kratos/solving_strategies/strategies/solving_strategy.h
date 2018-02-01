@@ -48,24 +48,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** Solving strategy base class
-This is the base class from which we will derive all the strategies (line-search, NR, etc...)
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+/** @brief Solving strategy base class
+ * @details This is the base class from which we will derive all the strategies (line-search, NR, etc...)
  */
 
 template<class TSparseSpace,
@@ -126,8 +110,8 @@ public:
     ///@{
 
     /** Constructor.
-     * @param rModelPart: The model part to be computed
-     * @param MoveMeshFlag: The flag to set if the mesh is moved or not
+     * @param rModelPart The model part to be computed
+     * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
 
     SolvingStrategy(
@@ -139,22 +123,20 @@ public:
         SetMoveMeshFlag(MoveMeshFlag);
     }
 
-    ///@}
-
     /** Destructor.
      */
-
-    ///@{
     virtual ~SolvingStrategy(){}
+    
+    ///@}
+    ///@name Operators
+    ///@{
 
     ///@}
-
-    /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
-
+    ///@name Operations
     ///@{
 
     /**
-     * Operation to predict the solution ... if it is not called a trivial predictor is used in which the
+     * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
      * values of the solution step of interest are assumed equal to the old values
      */
     virtual void Predict()
@@ -162,16 +144,19 @@ public:
     }
 
     /**
-     * Initialization of member variables and prior operations
+     * @brief Initialization of member variables and prior operations
      */
     virtual void Initialize()
     {
     }
 
     /**
-     * The problem of interest is solved.
+     * @brief The problem of interest is solved.
+     * @details 
+     * {
      * This function calls sequentially: Initialize(), InitializeSolutionStep(), Predict(), SolveSolutionStep() and FinalizeSolutionStep().
      * All those functions can otherwise be called separately.
+     * }
      */
     virtual double Solve()
     {
@@ -186,15 +171,15 @@ public:
     }
 
     /**
-     * Clears the internal storage
+     * @brief Clears the internal storage
      */
     virtual void Clear()
     {
     }
 
     /**
-     * This should be considered as a "post solution" convergence check which is useful for coupled analysis
-     * - the convergence criteria used is the one used inside the "solve" step
+     * @brief This should be considered as a "post solution" convergence check which is useful for coupled analysis
+     * @details The convergence criteria used is the one used inside the "solve" step
      */
     virtual bool IsConverged()
     {
@@ -202,32 +187,32 @@ public:
     }
 
     /**
-     * This operations should be called before printing the results when non trivial results (e.g. stresses)
+     * @brief This operations should be called before printing the results when non trivial results (e.g. stresses)
      * need to be calculated given the solution of the step
-     * This operations should be called only when needed, before printing as it can involve a non negligible cost
+     * @details This operations should be called only when needed, before printing as it can involve a non negligible cost
      */
     virtual void CalculateOutputData()
     {
     }
 
     /**
-     * Performs all the required operations that should be done (for each step) before solving the solution step.
-     * A member variable should be used as a flag to make sure this function is called only once per step.
+     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
      */
     virtual void InitializeSolutionStep()
     {
     }
 
     /**
-     * Performs all the required operations that should be done (for each step) after solving the solution step.
-     * A member variable should be used as a flag to make sure this function is called only once per step.
+     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
      */
     virtual void FinalizeSolutionStep()
     {
     }
 
     /**
-     * Solves the current step. This function returns true if a solution has been found, false otherwise.
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
      */
     virtual bool SolveSolutionStep()
     {
@@ -235,25 +220,31 @@ public:
     }
 
     /**
-     * This sets the level of echo for the solving strategy
-     * @param Level of echo for the solving strategy:
+     * @brief This sets the level of echo for the solving strategy
+     * @param Level of echo for the solving strategy
+     * @details 
+     * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
      * 2 -> Printing linear solver data
      * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * }
      */
-    virtual void SetEchoLevel(int Level)
+    virtual void SetEchoLevel(const int Level)
     {
         mEchoLevel = Level;
     }
 
     /**
-     * This returns the level of echo for the solving strategy
-     * @return Level of echo for the solving strategy:
+     * @brief This returns the level of echo for the solving strategy
+     * @details
+     * {
      * 0 -> Mute... no echo at all
      * 1 -> Printing time and basic informations
      * 2 -> Printing linear solver data
      * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * }
+     * @return Level of echo for the solving strategy
      */
     virtual int GetEchoLevel()
     {
@@ -262,10 +253,13 @@ public:
 
     /**
      * This sets the build level
-     * @param Level: The build level:
+     * @param Level The build level
+     * @details
+     * {
      * 0 -> Build StiffnessMatrix just once
      * 1 -> Build StiffnessMatrix at the beginning of each solution step
      * 2 -> build StiffnessMatrix at each iteration
+     * }
      */
     virtual void SetRebuildLevel(int Level)
     {
@@ -274,11 +268,14 @@ public:
     }
 
     /**
-     * This returns the build level
-     * @return The build level:
+     * @brief This returns the build level
+     * @details
+     * {
      * 0 -> Build StiffnessMatrix just once
      * 1 -> Build StiffnessMatrix at the beginning of each solution step
      * 2 -> build StiffnessMatrix at each iteration
+     * }
+     * @return The build level
      */
     virtual int GetRebuildLevel()
     {
@@ -286,8 +283,8 @@ public:
     }
 
     /**
-     * This function sets the flag that says if the mesh is moved
-     * @param Flag: True if the mesh is moved, false otherwise
+     * @brief This function sets the flag that says if the mesh is moved
+     * @param Flag True if the mesh is moved, false otherwise
      */
     void SetMoveMeshFlag(bool Flag)
     {
@@ -295,7 +292,7 @@ public:
     }
 
     /**
-     * This function returns the flag that says if the mesh is moved
+     * @brief This function returns the flag that says if the mesh is moved
      * @return True if the mesh is moved, false otherwise
      */
     bool MoveMeshFlag()
@@ -304,8 +301,8 @@ public:
     }
 
     /**
-     * This function is designed to move the mesh
-     * NOTE: Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
+     * @brief This function is designed to move the mesh
+     * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
      */
     virtual void MoveMesh()
     {
@@ -322,10 +319,10 @@ public:
         #pragma omp parallel for
         for(int i = 0; i < numNodes; i++)
         {
-            auto itNode = NodesArray.begin() + i;
+            auto it_node = NodesArray.begin() + i;
 
-            noalias(itNode->Coordinates()) = itNode->GetInitialPosition().Coordinates();
-            noalias(itNode->Coordinates()) += itNode->FastGetSolutionStepValue(DISPLACEMENT);
+            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
         }
 
         if (this->GetEchoLevel() != 0 && GetModelPart().GetCommunicator().MyPID() == 0 )
@@ -337,7 +334,7 @@ public:
     }
 
     /**
-     * Operations to get the pointer to the model
+     * @brief Operations to get the pointer to the model
      * @return mrModelPart: The model part member variable
      */
     inline ModelPart& GetModelPart()
@@ -346,7 +343,7 @@ public:
     };
 
     /**
-     * Operations to get the residual norm
+     * @brief Operations to get the residual norm
      * @return The residual norm
      */
     virtual double GetResidualNorm()
@@ -356,8 +353,8 @@ public:
     }
 
     /**
-     * Function to perform expensive checks.
-     * It is designed to be called ONCE to verify that the input is correct.
+     * @brief Function to perform expensive checks.
+     * @details It is designed to be called ONCE to verify that the input is correct.
      */
     virtual int Check()
     {
@@ -371,22 +368,21 @@ public:
             {
                 if (itNode->SolutionStepsDataHas(DISPLACEMENT) == false)
                 {
-                    std::cout << "problem on node with Id " << itNode->Id() << std::endl;
-                    KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the rModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+                    KRATOS_ERROR << "ERROR:: Problem on node with Id " << itNode->Id() << "\nIt is impossible to move the mesh since the DISPLACEMENT var is not in the rModelPart. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
                 }
             }
         }
 
-        for (ModelPart::ElementsContainerType::iterator itElem = GetModelPart().ElementsBegin();
-             itElem != GetModelPart().ElementsEnd(); itElem++)
+        for (ModelPart::ElementsContainerType::iterator it_elem = GetModelPart().ElementsBegin();
+             it_elem != GetModelPart().ElementsEnd(); it_elem++)
         {
-            itElem->Check(GetModelPart().GetProcessInfo());
+            it_elem->Check(GetModelPart().GetProcessInfo());
         }
 
-        for (ModelPart::ConditionsContainerType::iterator itCond = GetModelPart().ConditionsBegin();
-             itCond != GetModelPart().ConditionsEnd(); itCond++)
+        for (ModelPart::ConditionsContainerType::iterator it_cond = GetModelPart().ConditionsBegin();
+             it_cond != GetModelPart().ConditionsEnd(); it_cond++)
         {
-            itCond->Check(GetModelPart().GetProcessInfo());
+            it_cond->Check(GetModelPart().GetProcessInfo());
         }
 
         return 0;
