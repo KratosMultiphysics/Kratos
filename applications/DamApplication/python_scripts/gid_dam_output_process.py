@@ -406,10 +406,9 @@ class GiDDamOutputProcess(Process):
         # Get a name for the GiD list file
         # if the model folder is model.gid, the list file should be called
         # model.post.lst
-
-# NOTE (PR): In the followin lines, two variables were removed (path and ext). See 'gid_output_process.py'
-        folder_name = os.path.split(os.getcwd())
-        model_name = os.path.splitext(folder_name)
+# NOTE (PR): In the followin lines, two variables were removed (path and ext). See 'gid_output_process.py'. They were put only because the functions have two output arguments. We can call just the one we need.
+        folder_name = os.path.split(os.getcwd())[1]
+        model_name = os.path.splitext(folder_name)[0]
         name_base = model_name
         name_ext = ".post.lst"
 
