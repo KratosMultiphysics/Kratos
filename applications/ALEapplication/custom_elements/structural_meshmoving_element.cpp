@@ -23,7 +23,6 @@ StructuralMeshMovingElement::StructuralMeshMovingElement(IndexType NewId,
                                                          GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
 StructuralMeshMovingElement::StructuralMeshMovingElement(IndexType NewId,
@@ -31,7 +30,6 @@ StructuralMeshMovingElement::StructuralMeshMovingElement(IndexType NewId,
                                                          PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
 Element::Pointer StructuralMeshMovingElement::Create(IndexType NewId,
@@ -56,9 +54,10 @@ void StructuralMeshMovingElement::GetDisplacementValues(VectorType& rValues, con
     GeometryType& r_geom = this->GetGeometry();
     const SizeType num_nodes = r_geom.PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int local_size = num_nodes * dimension;
 
-    if (rValues.size() != mLocalSize)
-        rValues.resize(mLocalSize, false);
+    if (rValues.size() != local_size)
+        rValues.resize(local_size, false);
 
     if (dimension == 2)
     {
@@ -86,68 +85,37 @@ void StructuralMeshMovingElement::GetDisplacementValues(VectorType& rValues, con
     }
 }
 
-void StructuralMeshMovingElement::Initialize()
-{
-    KRATOS_TRY;
-
-    const GeometryType::IntegrationPointsArrayType& integration_points =
-        GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-    GeometryType::JacobiansType J0;
-    J0 = GetGeometry().Jacobian(J0, mThisIntegrationMethod);
-    
-    mInvJ0.resize(integration_points.size());
-    mDetJ0.resize(integration_points.size(), false);
-    mTotalDomainInitialSize = 0.0;
-
-    const SizeType num_nodes = this->GetGeometry().PointsNumber();
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
-
-    mLocalSize = num_nodes * dimension;
-
-    for (unsigned int g = 0; g < integration_points.size(); ++g)
-    {
-        // getting informations for integration
-        double weight = integration_points[g].Weight();
-
-        // calculating and storing inverse of the jacobian and the parameters
-        // needed
-        MathUtils<double>::InvertMatrix(J0[g], mInvJ0[g], mDetJ0[g]);
-
-        // calculating the total area
-        mTotalDomainInitialSize += mDetJ0[g] * weight;
-    }
-
-    KRATOS_CATCH("");
-}
-
 StructuralMeshMovingElement::MatrixType StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
     const int& Dimension, const double& rPointNumber)
 {
     KRATOS_TRY;
 
-    /*
-    MatrixType J0(dimension, dimension);
-    MatrixType invJ0(dimension, dimension);
+//+++++++++++++++++++++++++++++++++++
+    GeometryType::JacobiansType J0;
+    GeometryType::JacobiansType invJ0;
+    VectorType detJ0;
+    
     GeometryType& r_geom = this->GetGeometry();
-    J0.clear();
-    double detJ0;
-
-    MoveMeshUtilities::CalculateInitialJacobian(J0, rPointNumber, r_geom);
-
+    const IntegrationMethod this_integration_method = r_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points =
-    GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    GetGeometry().IntegrationPoints(this_integration_method);
 
-    total_domain_size += 
-    */
+    invJ0.resize(integration_points.size());
+    detJ0.resize(integration_points.size(), false);
+
+    J0 = GetGeometry().Jacobian(J0, this_integration_method);
+    MathUtils<double>::InvertMatrix(J0[rPointNumber], invJ0[rPointNumber], detJ0[rPointNumber]);
+//+++++++++++++++++++++++++++++++++++
+
+
     // Stiffening of elements using Jacobian determinants and exponent between
     // 0.0 and 2.0
     const double factor = 100; // Factor influences how far the displacement spreads
                                // into the fluid mesh
     const double xi = 1.5;     // 1.5 Exponent influences stiffening of smaller
                                // elements; 0 = no stiffening
-    const double quotient = factor / mTotalDomainInitialSize;
-    const double weight = mTotalDomainInitialSize * pow(quotient, xi);
+    const double quotient = factor / detJ0[rPointNumber];
+    const double weight = detJ0[rPointNumber] * pow(quotient, xi);
     const double poisson_coefficient = 0.3;
 
     // The ratio between lamdbda and mu affects relative stiffening against
@@ -196,10 +164,27 @@ StructuralMeshMovingElement::MatrixType StructuralMeshMovingElement::CalculateBM
 {
     KRATOS_TRY;
 
+    GeometryType& r_geom = this->GetGeometry();
+    const IntegrationMethod this_integration_method = r_geom.GetDefaultIntegrationMethod();
     GeometryType::ShapeFunctionsGradientsType DN_De =
-        this->GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+        this->GetGeometry().ShapeFunctionsLocalGradients(this_integration_method);
 
-    Matrix DN_DX = prod(DN_De[rPointNumber], mInvJ0[rPointNumber]);
+//+++++++++++++++++++++++++++++++++++
+    GeometryType::JacobiansType J0;
+    GeometryType::JacobiansType invJ0;
+    VectorType detJ0;
+
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+    GetGeometry().IntegrationPoints(this_integration_method);
+
+    invJ0.resize(integration_points.size());
+    detJ0.resize(integration_points.size(), false);
+
+    J0 = GetGeometry().Jacobian(J0, this_integration_method);
+    MathUtils<double>::InvertMatrix(J0[rPointNumber], invJ0[rPointNumber], detJ0[rPointNumber]);
+//++++++++++++++++++++++++++++++++++++
+
+    Matrix DN_DX = prod(DN_De[rPointNumber], invJ0[rPointNumber]);
 
     const SizeType num_nodes = this->GetGeometry().PointsNumber();
 
@@ -250,13 +235,18 @@ StructuralMeshMovingElement::MatrixType StructuralMeshMovingElement::CalculateBM
 void StructuralMeshMovingElement::CheckElementMatrixDimension(MatrixType& rLeftHandSideMatrix,
                                                               VectorType& rRightHandSideVector)
 {
-    if (rLeftHandSideMatrix.size1() != mLocalSize)
-        rLeftHandSideMatrix.resize(mLocalSize, mLocalSize, false);
 
-    rLeftHandSideMatrix = ZeroMatrix(mLocalSize, mLocalSize);
+    const SizeType num_nodes = this->GetGeometry().PointsNumber();
+    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    const unsigned int local_size = num_nodes * dimension;
 
-    if (rRightHandSideVector.size() != mLocalSize)
-        rRightHandSideVector.resize(mLocalSize, false);
+    if (rLeftHandSideMatrix.size1() != local_size)
+        rLeftHandSideMatrix.resize(local_size, local_size, false);
+
+    rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
+
+    if (rRightHandSideVector.size() != local_size)
+        rRightHandSideVector.resize(local_size, false);
 }
 
 void StructuralMeshMovingElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -265,10 +255,12 @@ void StructuralMeshMovingElement::CalculateLocalSystem(MatrixType& rLeftHandSide
 {
     KRATOS_TRY;
 
+    GeometryType& r_geom = this->GetGeometry(); 
+    const IntegrationMethod this_integration_method = r_geom.GetDefaultIntegrationMethod();
     const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
     const GeometryType::IntegrationPointsArrayType& integration_points =
-        GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+        GetGeometry().IntegrationPoints(this_integration_method);
 
     CheckElementMatrixDimension(rLeftHandSideMatrix, rRightHandSideVector);
 
@@ -298,9 +290,10 @@ void StructuralMeshMovingElement::EquationIdVector(EquationIdVectorType& rResult
     GeometryType& r_geom = this->GetGeometry();
     const SizeType num_nodes = r_geom.size();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int local_size = num_nodes * dimension;
 
-    if (rResult.size() != mLocalSize)
-        rResult.resize(mLocalSize, false);
+    if (rResult.size() != local_size)
+        rResult.resize(local_size, false);
 
     unsigned int pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
     if (dimension == 2)
@@ -326,9 +319,10 @@ void StructuralMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
     GeometryType& r_geom = this->GetGeometry();
     const SizeType num_nodes = r_geom.size();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    unsigned int local_size = num_nodes * dimension;
 
-    if (rElementalDofList.size() != mLocalSize)
-        rElementalDofList.resize(mLocalSize);
+    if (rElementalDofList.size() != local_size)
+        rElementalDofList.resize(local_size);
 
     if (dimension == 2)
         for (SizeType i_node = 0; i_node < num_nodes; ++i_node)

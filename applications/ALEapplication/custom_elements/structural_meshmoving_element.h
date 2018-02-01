@@ -23,8 +23,6 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
-
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -130,7 +128,6 @@ public:
 
     /// Initialize initial values of the element (must be called before
     /// calculation is done)
-    void Initialize();
 
     MatrixType SetAndModifyConstitutiveLaw(const int& dimension, const double& rPointNumber);
 
@@ -195,12 +192,7 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    IntegrationMethod mThisIntegrationMethod;
-    GeometryType::JacobiansType mJ0;
-    GeometryType::JacobiansType mInvJ0;
-    VectorType mDetJ0;
-    double mTotalDomainInitialSize;
-    SizeType mLocalSize;
+    //IntegrationMethod mThisIntegrationMethod;
     ///@}
     ///@name Member Variables
     ///@{
@@ -208,7 +200,6 @@ private:
 
     StructuralMeshMovingElement()
     {
-        mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     }
 
     ///@}

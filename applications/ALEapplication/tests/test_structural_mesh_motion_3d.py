@@ -34,14 +34,23 @@ class TestCase(KratosUnittest.TestCase):
         test = self.createTest(parameter_file_name)
         test.Solve()
 
-    def test_Rectangle_3D4N(self):
+    def test_Rectangle_3D8N(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            test = self.createTest('test_laplacian_mesh_motion_3d/rectangle_3D4N_test')
+            test = self.createTest('test_structural_mesh_motion_3d/rectangle_3D8N_test')
             test.Solve()
             # remove files
-            self.removeFile("./test_laplacian_mesh_motion_3d/rectangle_3D4N_test.time")
-            self.removeFile("./test_laplacian_mesh_motion_3d/rectangle_3D4N_test_probe1.dat")
-            self.removeFile("./test_laplacian_mesh_motion_3d/rectangle_3D4N_test_probe2.dat")
+            self.removeFile("./test_structural_mesh_motion_3d/rectangle_3D8N_test.time")
+            self.removeFile("./test_structural_mesh_motion_3d/rectangle_3D8N_test_probe1.dat")
+            self.removeFile("./test_structural_mesh_motion_3d/rectangle_3D8N_test_probe2.dat")
+
+    def test_Rectangle_3D4N(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            test = self.createTest('test_structural_mesh_motion_3d/rectangle_3D4N_test')
+            test.Solve()
+            # remove files
+            self.removeFile("./test_structural_mesh_motion_3d/rectangle_3D4N_test.time")
+            self.removeFile("./test_structural_mesh_motion_3d/rectangle_3D4N_test_probe1.dat")
+            self.removeFile("./test_structural_mesh_motion_3d/rectangle_3D4N_test_probe2.dat")
 
     def tearDown(self):
         pass

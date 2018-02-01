@@ -81,9 +81,11 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideM
     const SizeType num_nodes = r_geom.PointsNumber();
     const unsigned int dimension = r_geom.WorkingSpaceDimension();
     const IntegrationMethod this_integration_method = r_geom.GetDefaultIntegrationMethod();
-    const GeometryType::IntegrationPointsArrayType &integration_points =
+    const GeometryType::IntegrationPointsArrayType& integration_points =
         GetGeometry().IntegrationPoints(this_integration_method);
     VectorType delta_displacement = ZeroVector(3);
+    const unsigned int local_size = num_nodes * dimension;
+    
 
     if (rLeftHandSideMatrix.size1() != num_nodes)
         rLeftHandSideMatrix.resize(num_nodes, num_nodes, false);
@@ -92,15 +94,38 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideM
         rRightHandSideVector.resize(num_nodes, false);
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(num_nodes, num_nodes);
-    noalias(rRightHandSideVector) = ZeroVector(num_nodes);
+   
+    //noalias(rRightHandSideVector) = ZeroVector(num_nodes);
+
+
 
     for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number)
     {
+        //++++++++++++++++++++++++++++++++++++
+        GeometryType::JacobiansType J0;
+        GeometryType::JacobiansType invJ0;
+        VectorType detJ0;
+
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+        GetGeometry().IntegrationPoints(this_integration_method);
+
+        invJ0.resize(integration_points.size());
+        detJ0.resize(integration_points.size(), false);
+
+        J0 = GetGeometry().Jacobian(J0, this_integration_method);
+        MathUtils<double>::InvertMatrix(J0[point_number], invJ0[point_number], detJ0[point_number]);
+
+        GeometryType::ShapeFunctionsGradientsType DN_De =
+        this->GetGeometry().ShapeFunctionsLocalGradients(this_integration_method);
+        //++++++++++++++++++++++++++++++++++++
+
+
         // We do not multiply by DetJ0, since this additionally stabilizes the simulation
         double integration_weight = integration_points[point_number].Weight();
 
         // Compute LHS
-        MatrixType DN_DX = MoveMeshUtilities::CalculateShapeFunctionDerivatives(dimension, point_number, r_geom);
+        //MatrixType DN_DX = MoveMeshUtilities::CalculateShapeFunctionDerivatives(dimension, point_number, r_geom);
+        Matrix DN_DX = prod(DN_De[point_number], invJ0[point_number]);
         noalias(rLeftHandSideMatrix) += integration_weight * prod(DN_DX, trans(DN_DX));
         
         // Compute RHS
