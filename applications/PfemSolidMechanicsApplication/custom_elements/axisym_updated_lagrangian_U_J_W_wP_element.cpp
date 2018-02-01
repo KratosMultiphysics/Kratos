@@ -533,7 +533,6 @@ namespace Kratos
 
       Matrix SmallMatrix = ZeroMatrix(number_of_nodes*dimension, number_of_nodes);
 
-      MatrixType Begg = rLeftHandSide;
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
