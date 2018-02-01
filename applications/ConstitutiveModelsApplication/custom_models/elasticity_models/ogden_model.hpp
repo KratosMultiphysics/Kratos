@@ -175,15 +175,27 @@ namespace Kratos
     /**
      * Calculate Constitutive Components
      */
-    virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
-					     const unsigned int& a, const unsigned int& b,
-					     const unsigned int& c, const unsigned int& d) override;
+    double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+				     const array_1d<double,3>& rVectorDerivative,
+				     const unsigned int& a, const unsigned int& b,
+				     const unsigned int& c, const unsigned int& d);
 
+    /**
+     * Checks eigen values coincidence
+     */
+    void GetEigenCoincidence(const array_1d<double,3>& rStrainEigenValues,
+			     array_1d<unsigned int,3>& Order,
+			     unsigned int& option);
+    
     /**
      * Calculate Derivative of a general isotropic tensor
      */
-    double& CalculateIsotropicTensorDerivative(HyperElasticDataType& rVariables,
-					       MatrixType& rStressDerivatives, double &rCabcd,
+    double& CalculateIsotropicTensorDerivative(HyperElasticDataType& rVariables,double &rCabcd,
+					       const MatrixType& rStressDerivatives, 
+					       const array_1d<double,3>& rStressEigenValues,
+					       const array_1d<double,3>& rStrainEigenValues,
+					       const unsigned int& rOption,
+					       const array_1d<double,6>& DerivativeFactors,
 					       const unsigned int& a, const unsigned int& b,
 					       const unsigned int& c, const unsigned int& d);
     
@@ -191,7 +203,7 @@ namespace Kratos
     /**
      * Calculate Tensor Derivative Factors
      */
-    void CalculateDerivativeFactors(array_1d<double,6>& rDerivativeFactors, MatrixType& rStressDerivatives, array_1d<double,3>& rStressEigenValues, array_1d<double,3>& rStrainEigenValues, array_1d<unsigned int,3>& rPermutation);
+    void CalculateDerivativeFactors(array_1d<double,6>& rDerivativeFactors, const MatrixType& rStressDerivatives, const array_1d<double,3>& rStressEigenValues, const array_1d<double,3>& rStrainEigenValues, const array_1d<unsigned int,3>& rPermutation);
 
     
     //************// Strain Data
