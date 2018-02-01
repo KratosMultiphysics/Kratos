@@ -115,7 +115,7 @@
                 "matrix_free_filtering"      : true
             },
             "mesh_motion" : {
-                "move_entire_optimization_model_part" : true,
+                "apply_ale_mesh_solver" : true,
                 "mesh_solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
                     "ale_linear_solver_settings"  : {
