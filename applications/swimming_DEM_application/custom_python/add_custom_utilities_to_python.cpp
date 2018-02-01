@@ -449,6 +449,8 @@ using namespace boost::python;
     class_<MeshRotationUtility >("MeshRotationUtility", init<Kratos::Parameters&>())
         .def("RotateMesh", &MeshRotationUtility::RotateMesh)
         .def("RotateDEMMesh", &MeshRotationUtility::RotateDEMMesh)
+        .def("SetStationaryField", &MeshRotationUtility::SetStationaryField)
+        .def("RotateFluidVelocities", &MeshRotationUtility::RotateFluidVelocities)
         ;
 
     }

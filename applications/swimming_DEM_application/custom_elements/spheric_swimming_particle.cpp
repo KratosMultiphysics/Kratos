@@ -1070,8 +1070,6 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
 
     else if (mDragForceType == 13){ // Re_p < 1000, Shah et al. (2006) (doi:10.1016/j.ijmultiphaseflow.2006.06.006)
         drag_coeff = ComputeShahDragCoefficient(r_current_process_info);
-        KRATOS_WATCH(drag_coeff)
-        KRATOS_WATCH(ComputeStokesDragCoefficient())
     }
 
     else {
