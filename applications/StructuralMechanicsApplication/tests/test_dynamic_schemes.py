@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -9,16 +9,15 @@ from math import sqrt, cos, sin
 class DynamicSchemesTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)        
-
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         
     def _create_solver(self,mp, scheme_name):
-        #define a minimal newton raphson dynamic solver
+        # Define a minimal newton raphson dynamic solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         if (scheme_name == "newmark"):
@@ -28,7 +27,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         else:
             damp_factor_m = 0.0
             scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        # convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
+        # Convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
         convergence_criterion.SetEchoLevel(0)
         
@@ -37,14 +36,13 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         reform_step_dofs = True
         move_mesh_flag = True
         strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                        scheme, 
-                                                                        linear_solver, 
-                                                                        convergence_criterion, 
-                                                                        builder_and_solver, 
-                                                                        max_iters, 
-                                                                        compute_reactions, 
-                                                                        reform_step_dofs, 
-                                                                        move_mesh_flag)
+                                                                         scheme, 
+                                                                         linear_solver, 
+                                                                         convergence_criterion, 
+                                                                         builder_and_solver, 
+                                                                         compute_reactions, 
+                                                                         reform_step_dofs,
+                                                                         move_mesh_flag)
         strategy.SetEchoLevel(0)
         
         strategy.Check()
@@ -80,7 +78,6 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
 
         #add bcs and initial values
         init_displacement = 0.1
-        init_velocity = 0.0
         node.Fix(KratosMultiphysics.DISPLACEMENT_X)
         node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,init_displacement)

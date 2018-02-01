@@ -42,7 +42,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Validate the remaining settings in the base class.
         
         # Setting minimum buffer
-        if(self.dynamic_settings["scheme_type"].GetString() == "bdf2"): 
+        if(self.dynamic_settings["scheme_type"].GetString() == "bdf2"):
             self.settings["buffer_size"].SetInt(3)
 
         # Construct the base solver.
@@ -71,8 +71,8 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         elif(scheme_type == "bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        elif(scheme_type == "bdf2"): 
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBDF2DisplacementScheme() 
+        elif(scheme_type == "bdf2"):
+            mechanical_scheme = KratosMultiphysics.ResidualBasedBDF2DisplacementScheme()
         elif(scheme_type == "relaxation"):
             damp_factor_f =-0.3
             dynamic_factor_m = 10.0

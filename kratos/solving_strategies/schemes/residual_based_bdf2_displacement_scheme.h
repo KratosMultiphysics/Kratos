@@ -371,8 +371,9 @@ public:
         // Verify buffer size
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 3) << "Insufficient buffer size. Buffer size should be greater than 3. Current size is" << rModelPart.GetBufferSize() << std::endl;
 
-        return 0;
         KRATOS_CATCH( "" );
+        
+        return 0;
     }
 
     ///@}
