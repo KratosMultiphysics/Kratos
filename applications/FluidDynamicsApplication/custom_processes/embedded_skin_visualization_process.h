@@ -106,7 +106,8 @@ public:
         const std::vector<Variable< double> > VisualizationScalarVariables,
         const std::vector<Variable< array_1d<double, 3> > > VisualizationVectorVariables,
         const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > > VisualizationComponentVariables,
-        const std::string ShapeFunctions = "standard");
+        const std::string ShapeFunctions = "standard",
+        const bool ReformModelPartAtEachTimeStep = false);
 
     /// Constructor with Kratos parameters.
     EmbeddedSkinVisualizationProcess(
@@ -134,6 +135,8 @@ public:
     void ExecuteInitializeSolutionStep() override;
 
     void ExecuteBeforeOutputStep() override;
+
+    void ExecuteFinalizeSolutionStep() override;
 
     ///@}
     ///@name Inquiry
@@ -177,7 +180,7 @@ private:
 
     CutNodesMapType                                                                     mCutNodesMap;
 
-    std::vector<unsigned int>                                                           mNewElementsIds;
+    std::vector<Element::Pointer>                                                       mNewElementsPointers;
 
     std::vector<Variable< double> >                                                     mVisualizationScalarVariables;
     std::vector<Variable< array_1d<double, 3> > >                                       mVisualizationVectorVariables;
@@ -185,6 +188,7 @@ private:
 
     std::string                                                                         mShapeFunctions;
 
+    bool                                                                                mReformModelPartAtEachTimeStep;
     bool                                                                                mMeshCreationWasPerformed = false;
 
     ///@}
