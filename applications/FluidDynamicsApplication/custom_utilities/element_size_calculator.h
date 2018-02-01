@@ -46,7 +46,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Auxiliary and specialized functions for elements derived from FluidElement.
+/// A collection of functions to compute element size, to be used as the h parameter in stabilized CFD formulations.
 template< std::size_t TDim, std::size_t TNumNodes >
 class ElementSizeCalculator {
 public:
@@ -82,6 +82,10 @@ public:
     ///@name Operations
     ///@{
     
+    /// Minimum element size based on the geometry.
+    /** @param rGeometry The geometry of calling element.
+     *  @return The computed size.
+     */
     static double MinimumElementSize(const Geometry<Node<3> >& rGeometry);
 
     ///@}
