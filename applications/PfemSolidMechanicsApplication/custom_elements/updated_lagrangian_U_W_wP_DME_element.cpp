@@ -13,7 +13,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_W_wP_Pastor_element.hpp"
+#include "custom_elements/updated_lagrangian_U_W_wP_DME_element.hpp"
 #include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application_variables.h"
 
@@ -22,7 +22,7 @@ namespace Kratos
 
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
-   UpdatedLagrangianUWwPPastorElement::UpdatedLagrangianUWwPPastorElement()
+   UpdatedLagrangianUWwPDMEElement::UpdatedLagrangianUWwPDMEElement()
       : UpdatedLagrangianUWwPElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
@@ -32,7 +32,7 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement::UpdatedLagrangianUWwPPastorElement( IndexType NewId, GeometryType::Pointer pGeometry )
+   UpdatedLagrangianUWwPDMEElement::UpdatedLagrangianUWwPDMEElement( IndexType NewId, GeometryType::Pointer pGeometry )
       : UpdatedLagrangianUWwPElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
@@ -42,7 +42,7 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement::UpdatedLagrangianUWwPPastorElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+   UpdatedLagrangianUWwPDMEElement::UpdatedLagrangianUWwPDMEElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
       : UpdatedLagrangianUWwPElement( NewId, pGeometry, pProperties )
    {
    }
@@ -51,7 +51,7 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement::UpdatedLagrangianUWwPPastorElement( UpdatedLagrangianUWwPPastorElement const& rOther)
+   UpdatedLagrangianUWwPDMEElement::UpdatedLagrangianUWwPDMEElement( UpdatedLagrangianUWwPDMEElement const& rOther)
       :UpdatedLagrangianUWwPElement(rOther)
    {
    }
@@ -60,7 +60,7 @@ namespace Kratos
    //*******************************ASSIGMENT OPERATOR***********************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement&  UpdatedLagrangianUWwPPastorElement::operator=(UpdatedLagrangianUWwPPastorElement const& rOther)
+   UpdatedLagrangianUWwPDMEElement&  UpdatedLagrangianUWwPDMEElement::operator=(UpdatedLagrangianUWwPDMEElement const& rOther)
    {
       UpdatedLagrangianUWwPElement::operator=(rOther);
 
@@ -71,19 +71,19 @@ namespace Kratos
    //*********************************OPERATIONS*****************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUWwPPastorElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   Element::Pointer UpdatedLagrangianUWwPDMEElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
    {
-      return Element::Pointer( new UpdatedLagrangianUWwPPastorElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+      return Element::Pointer( new UpdatedLagrangianUWwPDMEElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
    }
 
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUWwPPastorElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Element::Pointer UpdatedLagrangianUWwPDMEElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
    {
 
-      UpdatedLagrangianUWwPPastorElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+      UpdatedLagrangianUWwPDMEElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
       //-----------//
 
@@ -118,20 +118,20 @@ namespace Kratos
       NewElement.SetData(this->GetData());
       NewElement.SetFlags(this->GetFlags());
 
-      return Element::Pointer( new UpdatedLagrangianUWwPPastorElement(NewElement) );
+      return Element::Pointer( new UpdatedLagrangianUWwPDMEElement(NewElement) );
    }
 
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement::~UpdatedLagrangianUWwPPastorElement()
+   UpdatedLagrangianUWwPDMEElement::~UpdatedLagrangianUWwPDMEElement()
    {
    }
 
    // *********************************************************************************
    //         Calculate the Damping matrix part due to the stabilization
-   void UpdatedLagrangianUWwPPastorElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWwPDMEElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -161,8 +161,6 @@ namespace Kratos
          const double& nu    = GetProperties()[POISSON_RATIO];
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
-
-      const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -203,7 +201,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the MASS matrix part due to the stabilization   
-   void UpdatedLagrangianUWwPPastorElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWwPDMEElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -237,7 +235,6 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-      const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -285,11 +282,11 @@ namespace Kratos
    }
 
 
-   void UpdatedLagrangianUWwPPastorElement::save( Serializer& rSerializer ) const
+   void UpdatedLagrangianUWwPDMEElement::save( Serializer& rSerializer ) const
    {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianUWwPElement )
    }
-   void UpdatedLagrangianUWwPPastorElement::load( Serializer& rSerializer )
+   void UpdatedLagrangianUWwPDMEElement::load( Serializer& rSerializer )
 
    {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianUWwPElement )

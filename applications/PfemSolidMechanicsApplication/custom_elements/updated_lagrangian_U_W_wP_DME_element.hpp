@@ -2,20 +2,20 @@
 //   Project Name:        KratosPfemSolidMechanicsApplication $
 //   Created by:          $Author:                     PNavas $
 //   Last modified by:    $Co-Author:               LMonforte $
-//   Date:                $Date:                 October 2017 $
+//   Date:                $Date:                 January 2018 $
 //   Revision:            $Revision:                     -0.1 $
 //
 //
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_U_J_W_WP_PASTOR_ELEMENT_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_U_J_W_WP_PASTOR_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_U_W_WP_DME_ELEMENT_H_INCLUDED )
+#define  KRATOS_UPDATED_LAGRANGIAN_U_W_WP_DME_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_J_W_wP_element.hpp"
+#include "custom_elements/updated_lagrangian_U_W_wP_element.hpp"
 
 namespace Kratos
 {
@@ -37,8 +37,8 @@ namespace Kratos
 /// Updated Lagrangian Large Displacement Lagrangian U-W Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-class UpdatedLagrangianUJWwPPastorElement
-    : public UpdatedLagrangianUJWwPElement
+class UpdatedLagrangianUWwPDMEElement
+    : public UpdatedLagrangianUWwPElement
 {
 public:
 
@@ -54,33 +54,33 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUJWwPPastorElement );
+    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUWwPDMEElement );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangianUJWwPPastorElement();
+    UpdatedLagrangianUWwPDMEElement();
 
     /// Default constructors
-    UpdatedLagrangianUJWwPPastorElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangianUWwPDMEElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangianUJWwPPastorElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangianUWwPDMEElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    UpdatedLagrangianUJWwPPastorElement(UpdatedLagrangianUJWwPPastorElement const& rOther);
+    UpdatedLagrangianUWwPDMEElement(UpdatedLagrangianUWwPDMEElement const& rOther);
 
 
     /// Destructor.
-    virtual ~UpdatedLagrangianUJWwPPastorElement();
+    virtual ~UpdatedLagrangianUWwPDMEElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    UpdatedLagrangianUJWwPPastorElement& operator=(UpdatedLagrangianUJWwPPastorElement const& rOther);
+    UpdatedLagrangianUWwPDMEElement& operator=(UpdatedLagrangianUWwPDMEElement const& rOther);
 
 
     ///@}
@@ -209,10 +209,10 @@ private:
     ///@}
 
 
-}; // Class UpdatedLagrangianUJWwPPastorLo Element
+}; // Class UpdatedLagrangianUWwPDMELo Element
 
 
 
 } // namespace Kratos
-#endif // KRATOS_UPDATED_LAGRANGIAN_U_J_W_wP_PASTOR_ELEMENT_H_INCLUDED
+#endif // KRATOS_UPDATED_LAGRANGIAN_U_W_wP_DME_ELEMENT_H_INCLUDED
 

@@ -582,7 +582,6 @@ namespace Kratos
 
       Matrix SmallMatrix = ZeroMatrix(number_of_nodes*dimension, number_of_nodes);
 
-      MatrixType Begg = rLeftHandSide;
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
@@ -706,9 +705,9 @@ namespace Kratos
 
       Vector GradP = ZeroVector(dimension);
       for (unsigned int i = 0; i < number_of_nodes; i++) {
-         const double & WaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
+         const double & rWaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
-            GradP(iDim ) += rVariables.DN_DX(i,iDim) * WaterPressure;
+            GradP(iDim ) += rVariables.DN_DX(i,iDim) * rWaterPressure;
          }
       }
 
@@ -925,7 +924,7 @@ namespace Kratos
 
 
 
-      double CurrentPermeability = GetProperties()[PERMEABILITY]; 
+      const double CurrentPermeability = GetProperties()[PERMEABILITY]; 
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
@@ -1048,7 +1047,7 @@ namespace Kratos
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      const double & rPermeability = GetProperties()[PERMEABILITY];
+      //const double & rPermeability = GetProperties()[PERMEABILITY];
 
       double ElementSize = 0;
       for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -1073,20 +1072,8 @@ namespace Kratos
       }
 
 
-      double density_mixture0 = GetProperties()[DENSITY];
-      double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
-      double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
-
-      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
-      double density_solid = (density_mixture0 - porosity0*WaterDensity) / ( 1.0 - porosity0);
-      double DryDensity = ( 1.0 - porosity) * density_solid;
 
       double StabilizationFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
-
-
-      //rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
-      //rStabFactor = 2.0 / ConstrainedModulus*(1-rPermeability*DryDensity/mTimeStep/porosity) - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2)*(1-porosity)/porosity; 
-
 
 
       rStabFactor = 2.0 / ConstrainedModulus; // - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
@@ -1112,4 +1099,4 @@ namespace Kratos
 
 
 
-}  // END KRATOS NAMESPACE
+}  // END KATOS NAMESPACE
