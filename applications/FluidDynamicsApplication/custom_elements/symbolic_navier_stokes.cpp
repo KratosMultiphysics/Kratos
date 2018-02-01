@@ -142,19 +142,19 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     VectorType& rRHS) {
 
     // Set the current Gauss pt. Voigt notation normal projection matrix
-    bounded_matrix<double, Dim, (Dim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(Dim, (Dim-1)*3);
-    this->SetVoigtNormalProjectionMatrix(rUnitNormal, voigt_normal_projection_matrix);
+    bounded_matrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
+    FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal, voigt_normal_projection_matrix);
 
     // Set the current Gauss pt. strain matrix
-    bounded_matrix<double, (Dim-1)*3, LocalSize> B_matrix = ZeroMatrix((Dim-1)*3, LocalSize);
-    this->SetInterfaceStrainMatrix(rData.DN_DX, B_matrix);
+    bounded_matrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
+    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX, B_matrix);
     
     // Compute some Gauss pt. auxiliar matrices
-    const bounded_matrix<double, Dim, (Dim-1)*3> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
-    const bounded_matrix<double, (Dim-1)*3, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+    const bounded_matrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
+    const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
     // Fill the pressure to Voigt notation operator matrix
-    bounded_matrix<double, (Dim-1)*3, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix((Dim-1)*3, LocalSize);
+    bounded_matrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
     for (unsigned int i=0; i<NumNodes; ++i) {
         for (unsigned int comp=0; comp<Dim; ++comp) {
             pres_to_voigt_matrix_op(comp, i*BlockSize+Dim) = rData.N[i];
@@ -173,7 +173,7 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     noalias(rData.lhs) = prod(N_aux_trans, aux_matrix_ACB);
 
     // Contribution coming from the pressure terms
-    const bounded_matrix<double, LocalSize, (Dim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
+    const bounded_matrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
     noalias(rData.lhs) -= prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
 
     array_1d<double,LocalSize> values;
@@ -182,69 +182,6 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     rData.lhs *= rData.Weight;
     noalias(rLHS) -= rData.lhs;
     noalias(rRHS) += prod(rData.lhs,values);
-}
-
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::SetVoigtNormalProjectionMatrix(
-    const array_1d<double, 3>& rUnitNormal,
-    bounded_matrix<double, 2, 3>& rVoigtNormProjMatrix) const {
-
-    rVoigtNormProjMatrix.clear();
-    
-    rVoigtNormProjMatrix(0,0) = rUnitNormal(0);
-    rVoigtNormProjMatrix(0,2) = rUnitNormal(1);
-    rVoigtNormProjMatrix(1,1) = rUnitNormal(1);
-    rVoigtNormProjMatrix(1,2) = rUnitNormal(0);
-}
-
-
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::SetVoigtNormalProjectionMatrix(
-    const array_1d<double, 3>& rUnitNormal,
-    bounded_matrix<double, 3, 6>& rVoigtNormProjMatrix) const {
-
-    rVoigtNormProjMatrix.clear();
-    rVoigtNormProjMatrix(0,0) = rUnitNormal(0);
-    rVoigtNormProjMatrix(0,3) = rUnitNormal(1);
-    rVoigtNormProjMatrix(0,5) = rUnitNormal(2);
-    rVoigtNormProjMatrix(1,1) = rUnitNormal(1);
-    rVoigtNormProjMatrix(1,3) = rUnitNormal(0);
-    rVoigtNormProjMatrix(1,4) = rUnitNormal(2);
-    rVoigtNormProjMatrix(2,2) = rUnitNormal(2);
-    rVoigtNormProjMatrix(2,4) = rUnitNormal(1);
-    rVoigtNormProjMatrix(2,5) = rUnitNormal(0);
-}
-
-
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::SetInterfaceStrainMatrix(
-    const bounded_matrix<double, NumNodes, 2>& rDN_DX,
-    bounded_matrix<double, 3, NumNodes*3>& rB_matrix) const {
-    rB_matrix.clear();
-    for (unsigned int i=0; i<NumNodes; i++) {
-        rB_matrix(0,i*BlockSize)   = rDN_DX(i,0);
-        rB_matrix(1,i*BlockSize+1) = rDN_DX(i,1);
-        rB_matrix(2,i*BlockSize)   = rDN_DX(i,1);
-        rB_matrix(2,i*BlockSize+1) = rDN_DX(i,0);
-    }
-}
-
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::SetInterfaceStrainMatrix(
-    const bounded_matrix<double, NumNodes, 3>& rDN_DX,
-    bounded_matrix<double, 6, NumNodes*4>& rB_matrix) const {
-    rB_matrix.clear();
-    for (unsigned int i=0; i<NumNodes; i++) {
-        rB_matrix(0,i*BlockSize)   = rDN_DX(i,0);
-        rB_matrix(1,i*BlockSize+1) = rDN_DX(i,1);
-        rB_matrix(2,i*BlockSize+2) = rDN_DX(i,2);
-        rB_matrix(3,i*BlockSize)   = rDN_DX(i,1);
-        rB_matrix(3,i*BlockSize+1) = rDN_DX(i,0);
-        rB_matrix(4,i*BlockSize+1) = rDN_DX(i,2);
-        rB_matrix(4,i*BlockSize+2) = rDN_DX(i,1);
-        rB_matrix(5,i*BlockSize)   = rDN_DX(i,2);
-        rB_matrix(5,i*BlockSize+2) = rDN_DX(i,0);
-    }
 }
 
 template <>
