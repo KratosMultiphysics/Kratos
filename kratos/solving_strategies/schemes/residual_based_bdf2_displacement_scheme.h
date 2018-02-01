@@ -158,7 +158,8 @@ public:
 
     /**
      * @brief Performing the update of the solution
-     * @details Incremental update within newton iteration. It updates the state variables at the end of the time step u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
+     * @details Incremental update within newton iteration. It updates the state variables at the end of the time step 
+     * \f[ u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u\f]
      * @param rModelPart The model of the problem to solve
      * @param rDofSet Set of all primary variables
      * @param A LHS matrix
@@ -253,33 +254,39 @@ public:
             array_1d<double, 3>& an0 = it_node->FastGetSolutionStepValue(ACCELERATION);
             array_1d<double, 3>& vn0 = it_node->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-
-            if (it_node -> IsFixed(ACCELERATION_X)) {
-                vn0[0] = (an0[0] - mBDF2.c1 * vn1[0] - mBDF2.c2 * vn2[0])/mBDF2.c0;
-                un0[0] = (vn0[0] - mBDF2.c1 * un1[0] - mBDF2.c2 * un2[0])/mBDF2.c0;
-            } else if (it_node -> IsFixed(VELOCITY_X)) {
-                un0[0] = (vn1[0] - mBDF2.c1 * un1[0] - mBDF2.c2 * un2[0])/mBDF2.c0;
-            } else if (it_node -> IsFixed(DISPLACEMENT_X) == false) {
+            
+            if (it_node->HasDofFor(ACCELERATION_X)) {
+                if (it_node -> IsFixed(ACCELERATION_X)) {
+                    vn0[0] = (an0[0] - mBDF2.c1 * vn1[0] - mBDF2.c2 * vn2[0])/mBDF2.c0;
+                    un0[0] = (vn0[0] - mBDF2.c1 * un1[0] - mBDF2.c2 * un2[0])/mBDF2.c0;
+            } } else if (it_node->HasDofFor(VELOCITY_X)) {
+                if (it_node -> IsFixed(VELOCITY_X)) {
+                    un0[0] = (vn1[0] - mBDF2.c1 * un1[0] - mBDF2.c2 * un2[0])/mBDF2.c0;
+            } } else if (it_node -> IsFixed(DISPLACEMENT_X) == false) {
                 un0[0] = un1[0] + delta_time * vn1[0] + 0.5 * std::pow(delta_time, 2) * an1[0];
             }
 
-            if (it_node -> IsFixed(ACCELERATION_Y)) {
-                vn0[1] = (an0[1] - mBDF2.c1 * vn1[1] - mBDF2.c2 * vn2[1])/mBDF2.c0;
-                un0[1] = (vn0[1] - mBDF2.c1 * un1[1] - mBDF2.c2 * un2[1])/mBDF2.c0;
-            } else if (it_node -> IsFixed(VELOCITY_Y)) {
-                un0[1] = (vn1[1] - mBDF2.c1 * un1[1] - mBDF2.c2 * un2[1])/mBDF2.c0;
-            } else if (it_node -> IsFixed(DISPLACEMENT_Y) == false) {
+            if (it_node->HasDofFor(ACCELERATION_Y)) {
+                if (it_node -> IsFixed(ACCELERATION_Y)) {
+                    vn0[1] = (an0[1] - mBDF2.c1 * vn1[1] - mBDF2.c2 * vn2[1])/mBDF2.c0;
+                    un0[1] = (vn0[1] - mBDF2.c1 * un1[1] - mBDF2.c2 * un2[1])/mBDF2.c0;
+            } } else if (it_node->HasDofFor(VELOCITY_Y)) {
+                if (it_node -> IsFixed(VELOCITY_Y)) {
+                    un0[1] = (vn1[1] - mBDF2.c1 * un1[1] - mBDF2.c2 * un2[1])/mBDF2.c0;
+            } } else if (it_node -> IsFixed(DISPLACEMENT_Y) == false) {
                 un0[1] = un1[1] + delta_time * vn1[1] + 0.5 * std::pow(delta_time, 2) * an1[1];
             }
 
             // For 3D cases
             if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
-                if (it_node -> IsFixed(ACCELERATION_Z)) {
-                    vn0[2] = (an0[2] - mBDF2.c1 * vn1[2] - mBDF2.c2 * vn2[2])/mBDF2.c0;
-                    un0[2] = (vn0[2] - mBDF2.c1 * un1[2] - mBDF2.c2 * un2[2])/mBDF2.c0;
-                } else if (it_node -> IsFixed(VELOCITY_Z)) {
-                    un0[2] = (vn1[2] - mBDF2.c1 * un1[2] - mBDF2.c2 * un2[2])/mBDF2.c0;
-                } else if (it_node -> IsFixed(DISPLACEMENT_Z) == false) {
+                if (it_node->HasDofFor(ACCELERATION_Z)) {
+                    if (it_node -> IsFixed(ACCELERATION_Z)) {
+                        vn0[2] = (an0[2] - mBDF2.c1 * vn1[2] - mBDF2.c2 * vn2[2])/mBDF2.c0;
+                        un0[2] = (vn0[2] - mBDF2.c1 * un1[2] - mBDF2.c2 * un2[2])/mBDF2.c0;
+                } } else if (it_node->HasDofFor(VELOCITY_Y)) {
+                    if (it_node -> IsFixed(VELOCITY_Y)) {
+                        un0[2] = (vn1[2] - mBDF2.c1 * un1[2] - mBDF2.c2 * un2[2])/mBDF2.c0;
+                } } else if (it_node -> IsFixed(DISPLACEMENT_Z) == false) {
                     un0[2] = un1[2] + delta_time * vn1[2] + 0.5 * std::pow(delta_time, 2) * an1[2];
                 }
             }

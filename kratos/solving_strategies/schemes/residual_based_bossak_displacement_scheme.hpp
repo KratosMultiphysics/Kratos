@@ -240,29 +240,35 @@ public:
             array_1d<double, 3>& current_velocity     = it_node->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3>& current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
-            if (it_node->IsFixed(ACCELERATION_X)) {
-                current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[0] + mNewmark.beta * current_acceleration[0]);
-            } else if (it_node->IsFixed(VELOCITY_X)) {
-                current_displacement[0] = previous_displacement[0] + 0.5 * delta_time * (previous_velocity[0] + current_velocity[0]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
-            } else if (it_node->IsFixed(DISPLACEMENT_X) == false) {
+            if (it_node->HasDofFor(ACCELERATION_X)) {
+                if (it_node->IsFixed(ACCELERATION_X)) {
+                    current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[0] + mNewmark.beta * current_acceleration[0]);
+            } } else if (it_node->HasDofFor(VELOCITY_X)) {
+                if (it_node->IsFixed(VELOCITY_X)) {
+                    current_displacement[0] = previous_displacement[0] + 0.5 * delta_time * (previous_velocity[0] + current_velocity[0]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
+            } } else if (it_node->IsFixed(DISPLACEMENT_X) == false) {
                 current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
             }
 
-            if (it_node->IsFixed(ACCELERATION_Y)) {
-                current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
-            } else if (it_node->IsFixed(VELOCITY_Y)) {
-                current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
-            } else if (it_node->IsFixed(DISPLACEMENT_Y) == false) {
+            if (it_node->HasDofFor(ACCELERATION_Y)) {
+                if (it_node->IsFixed(ACCELERATION_Y)) {
+                    current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
+            } } else if (it_node->HasDofFor(ACCELERATION_Y)) {
+                if (it_node->IsFixed(VELOCITY_Y)) {
+                    current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
+            } } else if (it_node->IsFixed(DISPLACEMENT_Y) == false) {
                 current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1];
             }
 
             // For 3D cases
             if (it_node->HasDofFor(DISPLACEMENT_Z)) {
-                if (it_node->IsFixed(ACCELERATION_Z)) {
-                    current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
-                } else if (it_node->IsFixed(VELOCITY_Z)) {
-                    current_displacement[2] = previous_displacement[2] + 0.5 * delta_time * (previous_velocity[2] + current_velocity[2]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2] ;
-                } else if (it_node->IsFixed(DISPLACEMENT_Z) == false) {
+                if (it_node->HasDofFor(ACCELERATION_Z)) {
+                    if (it_node->IsFixed(ACCELERATION_Z)) {
+                        current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
+                } } else if (it_node->HasDofFor(VELOCITY_Z)) {
+                    if (it_node->IsFixed(VELOCITY_Z)) {
+                        current_displacement[2] = previous_displacement[2] + 0.5 * delta_time * (previous_velocity[2] + current_velocity[2]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2] ;
+                } } else if (it_node->IsFixed(DISPLACEMENT_Z) == false) {
                     current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2];
                 }
             }
