@@ -255,10 +255,12 @@ namespace Kratos
 	
 	rVariables.Strain.Invariants.I2 = rVariables.Strain.Eigen.Values[1] * rVariables.Strain.Eigen.Values[1] *
 	                                  rVariables.Strain.Eigen.Values[2] * rVariables.Strain.Eigen.Values[2] +
- 	                                  rVariables.Strain.Eigen.Values[2] * rVariables.Strain.Eigen.Values[0] *
-	                                  rVariables.Strain.Eigen.Values[2] * rVariables.Strain.Eigen.Values[0] +
-   	                                  rVariables.Strain.Eigen.Values[0] * rVariables.Strain.Eigen.Values[1] *
-	                                  rVariables.Strain.Eigen.Values[0] * rVariables.Strain.Eigen.Values[1];
+	    
+ 	                                  rVariables.Strain.Eigen.Values[2] * rVariables.Strain.Eigen.Values[2] *
+	                                  rVariables.Strain.Eigen.Values[0] * rVariables.Strain.Eigen.Values[0] +
+	    
+   	                                  rVariables.Strain.Eigen.Values[0] * rVariables.Strain.Eigen.Values[0] *
+	                                  rVariables.Strain.Eigen.Values[1] * rVariables.Strain.Eigen.Values[1];
 	
 	rVariables.Strain.Invariants.I3 = rVariables.Strain.Eigen.Values[0] * rVariables.Strain.Eigen.Values[0] *
 	                                  rVariables.Strain.Eigen.Values[1] * rVariables.Strain.Eigen.Values[1] *
@@ -267,7 +269,7 @@ namespace Kratos
     
 	//jacobian
 	rVariables.Strain.Invariants.J    = rVariables.GetModelData().GetTotalDeformationDet();
-	rVariables.Strain.Invariants.J_13 = pow(rVariables.Strain.Invariants.J,(-1.0/3.0));
+	rVariables.Strain.Invariants.J_13 = std::pow(rVariables.Strain.Invariants.J,(-1.0/3.0));
 
 
 	//rVariables.Strain.Invariants.I3 = rVariables.Strain.Invariants.J * rVariables.Strain.Invariants.J; //for volumetric consistency
@@ -444,14 +446,16 @@ namespace Kratos
 										       StressDerivatives,StressEigenValues,
 										       rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
 										       rIndexVoigtTensor[j][0],rIndexVoigtTensor[j][1]);
-		    //std::cout<<" Cij "<<rConstitutiveMatrix(i,j)<<" "<<i<<" "<<j<<std::endl;
+		    //std::cout<<" iso Cij "<<rConstitutiveMatrix(i,j)<<" "<<i<<" "<<j<<std::endl;
 		    rConstitutiveMatrix(i,j) = this->AddVolumetricConstitutiveComponent(rVariables,rConstitutiveMatrix(i,j),
 											rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
 											rIndexVoigtTensor[j][0],rIndexVoigtTensor[j][1]);
-		    //std::cout<<" Cij "<<rConstitutiveMatrix(i,j)<<" "<<i<<" "<<j<<std::endl;
+		    //std::cout<<" vol Cij "<<rConstitutiveMatrix(i,j)<<" "<<i<<" "<<j<<std::endl;
 		}
 	    
 	}
+
+	//std::cout<<" ConstitutiveMatrix "<<rConstitutiveMatrix<<std::endl;
 	
 	rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
         
@@ -567,10 +571,9 @@ namespace Kratos
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVector,rVariables.Strain.InverseMatrix,Dabcd,a,b,c,d);
       rCabcd -= rVariables.Strain.Invariants.I3 * Dabcd / (lambda*lambda*lambda*lambda);
 
-      rCabcd *= D;
+      if( D != 0)					       
+	  rCabcd /= D;
 
-      //std::cout<<" Cabcd "<<rCabcd<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<std::endl;
-      
       return rCabcd;
 	    
       KRATOS_CATCH(" ")
@@ -613,10 +616,9 @@ namespace Kratos
       Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVector,this->msIdentityMatrix,Dabcd,a,b,c,d);
       rCabcd -= rVariables.Strain.Invariants.I3 * Dabcd / (lambda*lambda);
 
-      rCabcd *= D;
+      if( D != 0)
+	  rCabcd /= D;
       
-      //std::cout<<" Cabcd "<<rCabcd<<" "<<a<<" "<<b<<" "<<c<<" "<<d<<std::endl;
-
       return rCabcd;
 	    
       KRATOS_CATCH(" ")
