@@ -1,8 +1,8 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "rectangle_2D3N_test",
+        "problem_name"    : "rectangle_3D8N_test",
         "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
+        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
@@ -38,7 +38,7 @@
         "solver_type" : "mesh_solver_structural_similarity",
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "test_structural_mesh_motion_2d/rectangle_2D3N_test"
+            "input_filename" : "test_laplacian_mesh_motion_3d/rectangle_3D8N_test"
         },
         "computing_model_part_name" : "Parts_Fluid",
         "skin_parts"             : ["FixedBoundary","MovingBoundary"],
@@ -74,9 +74,9 @@
         "help"            : "",
         "process_name"    : "PointOutputProcess",
         "Parameters" :{
-            "position"         : [0.2284, 0.1777, 0.0],
+            "position"         : [3.2896, 2.8387, 0.0],
             "model_part_name"  : "Domain",
-            "output_file_name" : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe1.dat",
+            "output_file_name" : "test_laplacian_mesh_motion_2d/rectangle_3D8N_test_probe1_ref.dat",
             "output_variables" : [
                 "MESH_DISPLACEMENT_X",
                 "MESH_DISPLACEMENT_Y",
@@ -89,9 +89,9 @@
         "help"            : "",
         "process_name"    : "PointOutputProcess",
         "Parameters" :{
-            "position"         : [0.6454, 0.3105, 0.0],
+            "position"         : [0.72196, 0.81688, 0.0],
             "model_part_name"  : "Domain",
-            "output_file_name" : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe2.dat",
+            "output_file_name" : "test_laplacian_mesh_motion_2d/rectangle_3D8N_test_probe2_ref.dat",
             "output_variables" : [
                 "MESH_DISPLACEMENT_X",
                 "MESH_DISPLACEMENT_Y",
@@ -104,8 +104,8 @@
         "help"            : "",
         "process_name"    : "CompareTwoPointOutputFilesProcess",
         "Parameters" :{
-            "file_name_1"         : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe1.dat",
-            "file_name_2"         : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe1_ref.dat",
+            "file_name_1"         : "test_laplacian_mesh_motion_2d/rectangle_3D8N_test_probe1.dat",
+            "file_name_2"         : "test_laplacian_mesh_motion_2d/rectangle_3D8N_test_probe1_ref.dat",
 	    "decimal_places" : 5
         }
     },{
@@ -114,8 +114,8 @@
         "help"            : "",
         "process_name"    : "CompareTwoPointOutputFilesProcess",
         "Parameters" :{
-            "file_name_1"         : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe2.dat",
-            "file_name_2"         : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe2_ref.dat",
+            "file_name_1"         : "test_laplacian_mesh_motion_2d/rectangle_3D8N_test_probe2.dat",
+            "file_name_2"         : "test_laplacian_mesh_motion_2d/rectangle_3D8N_test_probe2_ref.dat",
 	    "decimal_places" : 5
         }
     }]

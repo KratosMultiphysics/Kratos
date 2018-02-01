@@ -2,8 +2,8 @@
     "problem_data"                     : {
         "problem_name"    : "rectangle_2D3N_test",
         "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
-        "parallel_type"   : "OpenMP",
+        "domain_size"     : 3,
+        "parallel_type"   : "MPI",
         "echo_level"      : 0,
         "start_time"      : 0.0,
         "end_time"        : 1
@@ -35,13 +35,13 @@
         "Restart_Step"     : 0
     },
     "solver_settings" : {
-        "solver_type" : "mesh_solver_structural_similarity",
+        "solver_type" : "mesh_solver_laplacian",
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "test_structural_mesh_motion_2d/rectangle_2D3N_test"
+            "input_filename" : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test"
         },
         "computing_model_part_name" : "Parts_Fluid",
-        "skin_parts"             : ["FixedBoundary","MovingBoundary"],
+        "skin_parts"             : ["NoSlip2D_FixedBoundary","NoSlip2D_MovingBoundary"],
         "no_skin_parts"          : [],
         "time_stepping"          : {
             "automatic_time_step" : false,
@@ -55,7 +55,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "FixedBoundary",
+            "model_part_name" : "NoSlip2D_FixedBoundary",
 	        "variable_name"   : "MESH_DISPLACEMENT",
             "value"           : [0.0, 0.0, 0.0]
         }
@@ -65,7 +65,7 @@
         "process_name"  : "ImposeALERectangleTestMotionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "MovingBoundary"
+            "model_part_name" : "NoSlip2D_MovingBoundary"
         }
     }],
     "auxiliar_process_list" : [{
@@ -75,8 +75,8 @@
         "process_name"    : "PointOutputProcess",
         "Parameters" :{
             "position"         : [0.2284, 0.1777, 0.0],
-            "model_part_name"  : "Domain",
-            "output_file_name" : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe1.dat",
+            "model_part_name"  : "Parts_Fluid",
+            "output_file_name" : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test_probe1.dat",
             "output_variables" : [
                 "MESH_DISPLACEMENT_X",
                 "MESH_DISPLACEMENT_Y",
@@ -90,8 +90,8 @@
         "process_name"    : "PointOutputProcess",
         "Parameters" :{
             "position"         : [0.6454, 0.3105, 0.0],
-            "model_part_name"  : "Domain",
-            "output_file_name" : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe2.dat",
+            "model_part_name"  : "Parts_Fluid",
+            "output_file_name" : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test_probe2.dat",
             "output_variables" : [
                 "MESH_DISPLACEMENT_X",
                 "MESH_DISPLACEMENT_Y",
@@ -104,8 +104,8 @@
         "help"            : "",
         "process_name"    : "CompareTwoPointOutputFilesProcess",
         "Parameters" :{
-            "file_name_1"         : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe1.dat",
-            "file_name_2"         : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe1_ref.dat",
+            "file_name_1"         : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test_probe1.dat",
+            "file_name_2"         : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test_probe1_ref.dat",
 	    "decimal_places" : 5
         }
     },{
@@ -114,8 +114,8 @@
         "help"            : "",
         "process_name"    : "CompareTwoPointOutputFilesProcess",
         "Parameters" :{
-            "file_name_1"         : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe2.dat",
-            "file_name_2"         : "test_structural_mesh_motion_2d/rectangle_2D3N_test_probe2_ref.dat",
+            "file_name_1"         : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test_probe2.dat",
+            "file_name_2"         : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test_probe2_ref.dat",
 	    "decimal_places" : 5
         }
     }]

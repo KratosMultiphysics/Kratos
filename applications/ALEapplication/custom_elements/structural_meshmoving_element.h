@@ -23,14 +23,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
-/// This class implements a structural similarity mesh-updating scheme
-/**
- * This mesh-updating scheme treats the mesh as a solid and therefore
- * solves the equations of solid mechanics using a modified linear elastic
- * consitutive law. The implementation is based on:
- * K. Stein, et al. Mesh moving techniques for fluid-structure interactions
- * with large displacements, ASME J. Appl. Mech. 70 (2003) 58-63.
- */
+
 
 namespace Kratos
 {
@@ -48,6 +41,14 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+/// This class implements a structural similarity mesh-updating scheme
+/**
+ * This mesh-updating scheme treats the mesh as a solid and therefore
+ * solves the equations of solid mechanics using a modified linear elastic
+ * consitutive law. The implementation is based on:
+ * K. Stein, et al. Mesh moving techniques for fluid-structure interactions
+ * with large displacements, ASME J. Appl. Mech. 70 (2003) 58-63.
+ */
 
 // template<unsigned int TDim>
 class StructuralMeshMovingElement : public Element

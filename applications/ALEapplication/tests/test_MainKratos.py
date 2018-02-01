@@ -18,18 +18,10 @@ class MainKratos:
             import KratosMultiphysics.mpi as KratosMPI
             import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
-        #self.main_model_part = ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-        #self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-        #self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString() : self.main_model_part}
-
-
         self.main_model_part_name = ProjectParameters["problem_data"]["model_part_name"].GetString()
         self.main_model_part = ModelPart(self.main_model_part_name)
         self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
-        #self.solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-        #self.solver = self.solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
 
         import python_solvers_wrapper_mesh_motion
         self.solver = python_solvers_wrapper_mesh_motion.CreateSolver(self.main_model_part, self.ProjectParameters)
@@ -37,19 +29,20 @@ class MainKratos:
         self.solver.ImportModelPart()
         self.solver.AddDofs()
 
-        #if (self.parallel_type == "OpenMP"):
-        #    from gid_output_process import GiDOutputProcess
-        #    self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
-        #                                       self.ProjectParameters["problem_data"]["problem_name"].GetString(),
-        #                                       self.ProjectParameters["output_configuration"])
-        #elif (self.parallel_type == "MPI"):
-        #    from gid_output_process_mpi import GiDOutputProcessMPI
-        #    self.gid_output = GiDOutputProcessMPI(self.solver.GetComputingModelPart(),
-        #                                          self.ProjectParameters["problem_data"]["problem_name"].GetString(),
-        #                                          self.ProjectParameters["output_configuration"])
+##---------------------
+        if (self.parallel_type == "OpenMP"):
+            from gid_output_process import GiDOutputProcess
+            self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
+                                               self.ProjectParameters["problem_data"]["problem_name"].GetString(),
+                                               self.ProjectParameters["output_configuration"])
+        elif (self.parallel_type == "MPI"):
+            from gid_output_process_mpi import GiDOutputProcessMPI
+            self.gid_output = GiDOutputProcessMPI(self.solver.GetComputingModelPart(),
+                                                  self.ProjectParameters["problem_data"]["problem_name"].GetString(),
+                                                  self.ProjectParameters["output_configuration"])
 
-        #self.gid_output.ExecuteInitialize()
-
+        self.gid_output.ExecuteInitialize()
+##---------------------
 
         self.Model = Model()
         self.Model.AddModelPart(self.main_model_part)
@@ -89,9 +82,9 @@ class MainKratos:
         time = start_time
         step = 0
         out = 0.0
-
-        #self.gid_output.ExecuteBeforeSolutionLoop()
-
+##---------------------
+        self.gid_output.ExecuteBeforeSolutionLoop()
+##---------------------
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
@@ -102,11 +95,9 @@ class MainKratos:
         end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
         time = start_time
-        self.main_model_part.ProcessInfo[STEP] = 0
+        #self.main_model_part.ProcessInfo[STEP] = 0
 
         while(time <= end_time):
-
-            #delta_time = self.solver.ComputeDeltaTime()
             step += 1
             time = time + delta_time
             self.main_model_part.CloneTimeStep(time)
@@ -118,23 +109,23 @@ class MainKratos:
 
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
+##---------------------
+            self.gid_output.ExecuteInitializeSolutionStep()
+##---------------------
 
-            #self.gid_output.ExecuteInitializeSolutionStep()
-
-            if(step >= 3):
-                self.solver.Solve()
-
+            self.solver.Solve()
+            
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
-
-            #self.gid_output.ExecuteFinalizeSolutionStep()
-
+##---------------------
+            self.gid_output.ExecuteFinalizeSolutionStep()
+##---------------------
             for process in self.list_of_processes:
                 process.ExecuteBeforeOutputStep()
-
-            #if self.gid_output.IsOutputStep():
-            #    self.gid_output.PrintOutput()
-
+##---------------------
+            if self.gid_output.IsOutputStep():
+                self.gid_output.PrintOutput()
+##---------------------
             for process in self.list_of_processes:
                 process.ExecuteAfterOutputStep()
 
@@ -142,8 +133,8 @@ class MainKratos:
 
         for process in self.list_of_processes:
             process.ExecuteFinalize()
-
-        #self.gid_output.ExecuteFinalize()
-
+##---------------------
+        self.gid_output.ExecuteFinalize()
+##---------------------
 if __name__ == '__main__':
     raise RuntimeError("This script should only be called from a test file.")

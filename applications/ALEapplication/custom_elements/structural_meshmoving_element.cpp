@@ -13,7 +13,7 @@
 // System includes
 // External includes
 // Project includes
-#include "includes/define.h"
+//#include "includes/define.h"
 #include "custom_elements/structural_meshmoving_element.h"
 #include "ale_application.h"
 
@@ -95,7 +95,7 @@ void StructuralMeshMovingElement::Initialize()
 
     GeometryType::JacobiansType J0;
     J0 = GetGeometry().Jacobian(J0, mThisIntegrationMethod);
-
+    
     mInvJ0.resize(integration_points.size());
     mDetJ0.resize(integration_points.size(), false);
     mTotalDomainInitialSize = 0.0;
@@ -126,13 +126,27 @@ StructuralMeshMovingElement::MatrixType StructuralMeshMovingElement::SetAndModif
 {
     KRATOS_TRY;
 
+    /*
+    MatrixType J0(dimension, dimension);
+    MatrixType invJ0(dimension, dimension);
+    GeometryType& r_geom = this->GetGeometry();
+    J0.clear();
+    double detJ0;
+
+    MoveMeshUtilities::CalculateInitialJacobian(J0, rPointNumber, r_geom);
+
+    const GeometryType::IntegrationPointsArrayType& integration_points =
+    GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+    total_domain_size += 
+    */
     // Stiffening of elements using Jacobian determinants and exponent between
     // 0.0 and 2.0
-    const double J0 = 100; // Factor influences how far the displacement spreads
-                           // into the fluid mesh
-    const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
-                           // elements; 0 = no stiffening
-    const double quotient = J0 / mTotalDomainInitialSize;
+    const double factor = 100; // Factor influences how far the displacement spreads
+                               // into the fluid mesh
+    const double xi = 1.5;     // 1.5 Exponent influences stiffening of smaller
+                               // elements; 0 = no stiffening
+    const double quotient = factor / mTotalDomainInitialSize;
     const double weight = mTotalDomainInitialSize * pow(quotient, xi);
     const double poisson_coefficient = 0.3;
 
@@ -140,7 +154,7 @@ StructuralMeshMovingElement::MatrixType StructuralMeshMovingElement::SetAndModif
     // volume or shape change.
     double lambda = weight * poisson_coefficient /
                     ((1 + poisson_coefficient) * (1 - 2 * poisson_coefficient));
-    double mu = weight / (2 * (1 - poisson_coefficient));
+    double mu = weight / (2 * (1 + poisson_coefficient));
 
     MatrixType constitutive_matrix;
 

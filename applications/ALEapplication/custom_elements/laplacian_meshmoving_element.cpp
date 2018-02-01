@@ -80,9 +80,10 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideM
     GeometryType &r_geom = this->GetGeometry();
     const SizeType num_nodes = r_geom.PointsNumber();
     const unsigned int dimension = r_geom.WorkingSpaceDimension();
-    const IntegrationMethod ThisIntegrationMethod = r_geom.GetDefaultIntegrationMethod();
+    const IntegrationMethod this_integration_method = r_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType &integration_points =
-        GetGeometry().IntegrationPoints(ThisIntegrationMethod);
+        GetGeometry().IntegrationPoints(this_integration_method);
+    VectorType delta_displacement = ZeroVector(3);
 
     if (rLeftHandSideMatrix.size1() != num_nodes)
         rLeftHandSideMatrix.resize(num_nodes, num_nodes, false);
@@ -93,20 +94,19 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideM
     noalias(rLeftHandSideMatrix) = ZeroMatrix(num_nodes, num_nodes);
     noalias(rRightHandSideVector) = ZeroVector(num_nodes);
 
-    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
+    for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number)
     {
         // We do not multiply by DetJ0, since this additionally stabilizes the simulation
-        double IntegrationWeight = integration_points[PointNumber].Weight();
+        double integration_weight = integration_points[point_number].Weight();
 
         // Compute LHS
-        Matrix DN_DX = MoveMeshUtilities::CalculateShapeFunctionDerivatives(dimension, PointNumber, r_geom);
-        noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(DN_DX, trans(DN_DX));
+        MatrixType DN_DX = MoveMeshUtilities::CalculateShapeFunctionDerivatives(dimension, point_number, r_geom);
+        noalias(rLeftHandSideMatrix) += integration_weight * prod(DN_DX, trans(DN_DX));
+        
+        // Compute RHS
+        CalculateDeltaPosition(delta_displacement, rCurrentProcessInfo);
+        noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, delta_displacement);
     }
-
-    // Compute RHS
-    VectorType delta_displacement = ZeroVector(3);
-    CalculateDeltaPosition(delta_displacement, rCurrentProcessInfo);
-    noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, delta_displacement);
 
     KRATOS_CATCH("");
 }

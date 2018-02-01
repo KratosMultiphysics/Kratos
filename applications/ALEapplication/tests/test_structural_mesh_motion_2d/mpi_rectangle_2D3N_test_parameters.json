@@ -44,7 +44,7 @@
             "input_filename" : "test_structural_mesh_motion_2d/rectangle_2D3N_test"
         },
         "volume_model_part_name" : "Parts_Fluid",
-        "skin_parts"             : ["NoSlip2D_FixedBoundary","NoSlip2D_MovingBoundary"],
+        "skin_parts"             : ["FixedBoundary","MovingBoundary"],
         "no_skin_parts"          : [],
         "time_stepping"          : {
             "automatic_time_step" : false,
@@ -58,7 +58,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_FixedBoundary",
+            "model_part_name" : "FixedBoundary",
 	        "variable_name"   : "MESH_DISPLACEMENT",
             "value"           : [0.0, 0.0, 0.0]
         }
@@ -68,7 +68,7 @@
         "process_name"  : "ImposeALERectangleTestMotionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_MovingBoundary"
+            "model_part_name" : "MovingBoundary"
         }
     }],
     "gravity"                          : [{

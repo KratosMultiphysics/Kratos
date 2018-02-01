@@ -61,6 +61,7 @@ namespace Kratos
         MatrixType DN_DX(number_of_nodes, dimension);
         MatrixType J0(dimension, dimension);
         MatrixType invJ0(dimension, dimension);
+        
 
         J0.clear();
 
@@ -77,10 +78,6 @@ namespace Kratos
 
         KRATOS_CATCH("");
     }
-
-
-
-
 
     }  // namespace Move Mesh Utilities.
   

@@ -2144,7 +2144,7 @@ End Elements
 
 
 
-Begin SubModelPart Parts_Fluid // Group Fluid // Subtree Parts
+Begin SubModelPart Domain 
     Begin SubModelPartNodes
          1
          2
@@ -4279,7 +4279,7 @@ Begin SubModelPart Parts_Fluid // Group Fluid // Subtree Parts
     Begin SubModelPartConditions
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart NoSlip2D_FixedBoundary // Group FixedBoundary // Subtree NoSlip2D
+Begin SubModelPart FixedBoundary
     Begin SubModelPartNodes
          1
          2
@@ -4338,7 +4338,7 @@ Begin SubModelPart NoSlip2D_FixedBoundary // Group FixedBoundary // Subtree NoSl
  
     End SubModelPartConditions
 End SubModelPart
-Begin SubModelPart NoSlip2D_MovingBoundary // Group MovingBoundary // Subtree NoSlip2D
+Begin SubModelPart MovingBoundary 
     Begin SubModelPartNodes
        245
        249
@@ -4414,6 +4414,5 @@ Begin SubModelPart NoSlip2D_MovingBoundary // Group MovingBoundary // Subtree No
     Begin SubModelPartElements
     End SubModelPartElements
     Begin SubModelPartConditions
-
     End SubModelPartConditions
 End SubModelPart

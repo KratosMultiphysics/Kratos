@@ -35,8 +35,6 @@ namespace Kratos
 		typedef Element::GeometryType GeometryType;
         typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    	//typedef Properties PropertiesType;
-
         MatrixType CalculateShapeFunctionDerivatives(const int& rdimension, const double& rPointNumber, GeometryType& rGeometry);
 
         void CalculateInitialJacobian(MatrixType& rJ0, const double& rPointNumber, GeometryType& rGeometry);

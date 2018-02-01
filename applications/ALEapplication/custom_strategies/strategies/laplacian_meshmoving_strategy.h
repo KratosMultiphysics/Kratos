@@ -166,9 +166,6 @@ class LaplacianMeshMovingStrategy
     
     ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
 
-    //rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
-    //rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-
     // Setting mesh to initial configuration
     SetMeshToInitialConfiguration();
 
