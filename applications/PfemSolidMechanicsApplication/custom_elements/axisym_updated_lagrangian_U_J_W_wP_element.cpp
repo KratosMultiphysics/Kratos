@@ -657,9 +657,9 @@ namespace Kratos
 
       Vector GradP = ZeroVector(dimension);
       for (unsigned int i = 0; i < number_of_nodes; i++) {
-         const double & WaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
+         const double & rWaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
-            GradP(iDim ) += rVariables.DN_DX(i,iDim) * WaterPressure;
+            GradP(iDim ) += rVariables.DN_DX(i,iDim) * rWaterPressure;
          }
       }
 
