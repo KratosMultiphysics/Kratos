@@ -2,7 +2,7 @@
 //   Project Name:        KratosPfemSolidMechanicsApplication $
 //   Created by:          $Author:                     PNavas $
 //   Last modified by:    $Co-Author:               LMonforte $
-//   Date:                $Date:                 January 2018 $
+//   Date:                $Date:                 October 2017 $
 //   Revision:            $Revision:                     -0.1 $
 //
 //
@@ -13,7 +13,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_W_wP_Pastor_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_W_wP_DME_element.hpp"
 #include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application_variables.h"
 
@@ -22,8 +22,8 @@ namespace Kratos
 
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
-   UpdatedLagrangianUWwPPastorElement::UpdatedLagrangianUWwPPastorElement()
-      : UpdatedLagrangianUWwPElement()
+   UpdatedLagrangianUJWwPDMEElement::UpdatedLagrangianUJWwPDMEElement()
+      : UpdatedLagrangianUJWwPElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
    }
@@ -32,8 +32,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement::UpdatedLagrangianUWwPPastorElement( IndexType NewId, GeometryType::Pointer pGeometry )
-      : UpdatedLagrangianUWwPElement( NewId, pGeometry )
+   UpdatedLagrangianUJWwPDMEElement::UpdatedLagrangianUJWwPDMEElement( IndexType NewId, GeometryType::Pointer pGeometry )
+      : UpdatedLagrangianUJWwPElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
    }
@@ -42,8 +42,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement::UpdatedLagrangianUWwPPastorElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-      : UpdatedLagrangianUWwPElement( NewId, pGeometry, pProperties )
+   UpdatedLagrangianUJWwPDMEElement::UpdatedLagrangianUJWwPDMEElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+      : UpdatedLagrangianUJWwPElement( NewId, pGeometry, pProperties )
    {
    }
 
@@ -51,8 +51,8 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement::UpdatedLagrangianUWwPPastorElement( UpdatedLagrangianUWwPPastorElement const& rOther)
-      :UpdatedLagrangianUWwPElement(rOther)
+   UpdatedLagrangianUJWwPDMEElement::UpdatedLagrangianUJWwPDMEElement( UpdatedLagrangianUJWwPDMEElement const& rOther)
+      :UpdatedLagrangianUJWwPElement(rOther)
    {
    }
 
@@ -60,9 +60,9 @@ namespace Kratos
    //*******************************ASSIGMENT OPERATOR***********************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement&  UpdatedLagrangianUWwPPastorElement::operator=(UpdatedLagrangianUWwPPastorElement const& rOther)
+   UpdatedLagrangianUJWwPDMEElement&  UpdatedLagrangianUJWwPDMEElement::operator=(UpdatedLagrangianUJWwPDMEElement const& rOther)
    {
-      UpdatedLagrangianUWwPElement::operator=(rOther);
+      UpdatedLagrangianUJWwPElement::operator=(rOther);
 
       return *this;
    }
@@ -71,19 +71,19 @@ namespace Kratos
    //*********************************OPERATIONS*****************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUWwPPastorElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   Element::Pointer UpdatedLagrangianUJWwPDMEElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
    {
-      return Element::Pointer( new UpdatedLagrangianUWwPPastorElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+      return Element::Pointer( new UpdatedLagrangianUJWwPDMEElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
    }
 
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUWwPPastorElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Element::Pointer UpdatedLagrangianUJWwPDMEElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
    {
 
-      UpdatedLagrangianUWwPPastorElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+      UpdatedLagrangianUJWwPDMEElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
       //-----------//
 
@@ -118,27 +118,27 @@ namespace Kratos
       NewElement.SetData(this->GetData());
       NewElement.SetFlags(this->GetFlags());
 
-      return Element::Pointer( new UpdatedLagrangianUWwPPastorElement(NewElement) );
+      return Element::Pointer( new UpdatedLagrangianUJWwPDMEElement(NewElement) );
    }
 
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUWwPPastorElement::~UpdatedLagrangianUWwPPastorElement()
+   UpdatedLagrangianUJWwPDMEElement::~UpdatedLagrangianUJWwPDMEElement()
    {
    }
 
    // *********************************************************************************
    //         Calculate the Damping matrix part due to the stabilization
-   void UpdatedLagrangianUWwPPastorElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUJWwPDMEElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-      unsigned int dofs_per_node = 2*dimension + 1;
+      unsigned int dofs_per_node = 2*dimension + 2;
 
       double ElementSize = 0;
       for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -162,7 +162,7 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-      const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
+	const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -174,9 +174,12 @@ namespace Kratos
 
       double StabFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
 	//   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
-	double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
-	double alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
-	double tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
+	   double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
+	   double alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
+	   double tau_factor=0;
+      if (WaterDensity > 1e-3)
+         double tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
+      
 
       Matrix SmallMatrix = ZeroMatrix( number_of_nodes, number_of_nodes);
 
@@ -203,17 +206,15 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the MASS matrix part due to the stabilization   
-   void UpdatedLagrangianUWwPPastorElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUJWwPDMEElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
    {
 
       KRATOS_TRY
 
-
-
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-      unsigned int dofs_per_node = 2*dimension + 1;
+      unsigned int dofs_per_node = 2*dimension + 2;
 
       double ElementSize = 0;
       for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -249,9 +250,11 @@ namespace Kratos
 
       double StabFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
 	//   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
-	double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
+	   double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
 	   double alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
-	   double tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
+	   double tau_factor=0;
+      if (WaterDensity > 1e-3)
+         double tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
 
       const double & rPermeability = GetProperties()[PERMEABILITY];
 
@@ -273,7 +276,7 @@ namespace Kratos
          for (unsigned int i = 0; i < number_of_nodes; i++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
                for (unsigned int jDim = 0; jDim < dimension; jDim++) {
-                  rMassMatrix( (i+1)*dofs_per_node -1, j*dofs_per_node + jDim + (dimension) ) -= alpha_factor*tau_factor/rPermeability*Q(i, j*dimension+jDim);
+                  rMassMatrix( (i+1)*dofs_per_node -1, j*dofs_per_node + jDim + (dimension+1) ) -= alpha_factor*tau_factor/rPermeability*Q(i, j*dimension+jDim);
                }
             }
          }
@@ -285,14 +288,14 @@ namespace Kratos
    }
 
 
-   void UpdatedLagrangianUWwPPastorElement::save( Serializer& rSerializer ) const
+   void UpdatedLagrangianUJWwPDMEElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianUWwPElement )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianUJWwPElement )
    }
-   void UpdatedLagrangianUWwPPastorElement::load( Serializer& rSerializer )
+   void UpdatedLagrangianUJWwPDMEElement::load( Serializer& rSerializer )
 
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianUWwPElement )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianUJWwPElement )
    }
 
 }  // END KRATOS NAMESPACE
