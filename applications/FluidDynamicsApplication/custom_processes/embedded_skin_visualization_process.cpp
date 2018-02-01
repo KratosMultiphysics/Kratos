@@ -134,11 +134,11 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
         // Set the properties for the new elements depending if the 
         // element is in the positive or negative side of the cut.
         // In this way, two layers will appear in GiD.
-        const unsigned int last_prop = ((*(mrModelPart.pProperties())).end()-1)->Id();
+        const unsigned int last_prop = (mrModelPart.GetRootModelPart().NumberOfProperties() != 0) ? ((*(mrModelPart.GetRootModelPart().pProperties())).end()-1)->Id() : 0;
         Properties::Pointer p_pos_prop = Kratos::make_shared<Properties>(last_prop + 1);
         Properties::Pointer p_neg_prop = Kratos::make_shared<Properties>(last_prop + 2);
-        mrVisualizationModelPart.AddProperties(p_pos_prop);
-        mrVisualizationModelPart.AddProperties(p_neg_prop);
+        mrVisualizationModelPart.AddProperties(p_pos_prop, p_pos_prop->Id());
+        mrVisualizationModelPart.AddProperties(p_neg_prop, p_neg_prop->Id());
 
         // Add all the origin model part nodes to the visualization model part
         // Note that the original nodes will be reused when creating the splitting geometries
@@ -320,7 +320,6 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
                 }
             }
         }
-
 
         // Once all the entities have been created, renumber the ids.
         // Created entities local number partial reduction
