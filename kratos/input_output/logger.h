@@ -74,6 +74,8 @@ namespace Kratos
       
       Logger(std::string const& TheLabel);
 
+      Logger();
+
 	  /// Avoiding Logger to be copied
 	  Logger(Logger const& rOther) = delete;
 
@@ -102,7 +104,13 @@ namespace Kratos
 	  {
 		  static LoggerOutputContainerType instance;
 		  return instance;
-	  }
+      }
+          
+      static LoggerOutput& GetDefaultOutputInstance()
+      {
+          static LoggerOutput defaultOutputInstance(std::cout);
+          return defaultOutputInstance;
+      }
 
 	  static void AddOutput(LoggerOutput const& TheOutput);
 

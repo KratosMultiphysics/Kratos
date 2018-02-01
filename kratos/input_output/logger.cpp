@@ -35,6 +35,7 @@ namespace Kratos
 		auto outputs = GetOutputsInstance();
 		#pragma omp critical
 		{
+            GetDefaultOutputInstance().WriteMessage(mCurrentMessage);
 			for (auto i_output = outputs.begin(); i_output != outputs.end(); i_output++)
 				i_output->WriteMessage(mCurrentMessage);
 		}
