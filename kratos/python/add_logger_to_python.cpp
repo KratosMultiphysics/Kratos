@@ -20,12 +20,16 @@
 
 using namespace boost::python;
 
-namespace Kratos
-{
+namespace Kratos {
+namespace Python {
 
-namespace Python
-{
-
+/**
+ * Prints the arguments from the python script using the Kratos Logger class. Implementation
+ * @args tuple boost::python::object representing the arguments of the function The first argument is the label
+ * @kwargs dictionary of boost::python::objects resenting key-value pairs for
+ * @severity Logger::Severity The message level of severity @see Logger::Severity
+ * name arguments
+ **/
 object printImpl(tuple args, dict kwargs, Logger::Severity severity) {
     if(len(args) == 0)
         std::cout << "ERROR" << std::endl;
@@ -41,15 +45,15 @@ object printImpl(tuple args, dict kwargs, Logger::Severity severity) {
     }
 
     const char* label = extract<const char *>(boost::python::str(args[0]));
-    Logger(label) << KRATOS_CODE_LOCATION << "NEWLOG: " << buffer.str() << severity << std::endl;
+    Logger(label) << KRATOS_CODE_LOCATION << buffer.str() << severity << std::endl;
 
     return object();
 }
 
 /**
  * Prints the arguments from the python script using the Kratos Logger class
- * @args: tuple boost::python::object representing the arguments of the function The first argument is the label
- * @kwargs: dictionary of boost::python::objects resenting key-value pairs for
+ * @args tuple boost::python::object representing the arguments of the function The first argument is the label
+ * @kwargs dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
  **/
 object printInfo(tuple args, dict kwargs) {
@@ -58,8 +62,8 @@ object printInfo(tuple args, dict kwargs) {
 
 /**
  * Prints the arguments from the python script using the Kratos Logger class
- * @args: tuple boost::python::object representing the arguments of the function The first argument is the label
- * @kwargs: dictionary of boost::python::objects resenting key-value pairs for
+ * @args tuple boost::python::object representing the arguments of the function The first argument is the label
+ * @kwargs dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
  **/
 object printWarning(tuple args, dict kwargs) {
@@ -67,7 +71,6 @@ object printWarning(tuple args, dict kwargs) {
 }
 
 void  AddLoggerToPython() {
-	using namespace boost::python;
 
     class_<Logger, boost::shared_ptr<Logger>, boost::noncopyable>("Logger", init<std::string const &>())
     .def("PrintInfo", raw_function(printInfo,1))
@@ -76,7 +79,7 @@ void  AddLoggerToPython() {
     .staticmethod("PrintWarning")
     ;
 
-    // Enums
+    // Enums for severity
     enum_<Logger::Category>("Category")
     .value("STATUS", Logger::Category::STATUS)
     .value("CRITICAL", Logger::Category::CRITICAL)
@@ -86,5 +89,4 @@ void  AddLoggerToPython() {
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos
