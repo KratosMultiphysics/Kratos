@@ -238,7 +238,7 @@ public:
      * This function gives the Jacobi SVD of a given 2x2 matrix, returns U,S; where A=U*S*V
      * U and V are unitary, and S is a diagonal matrix. 
      * Where s_i >= 0, and s_i >= s_i+1
-     * @param InputMatrix: The matrix where perform the SVD 
+     * @param InputMatrix The matrix where perform the SVD 
      * @param UMatrix The unitary U matrix
      * @param SMatrix The diagonal S matrix
      * @param VMatrix The unitary V matrix

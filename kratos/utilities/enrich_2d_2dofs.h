@@ -30,24 +30,12 @@
 #include "includes/define.h"
 //#include "utilities/split_tetrahedra.h"
 
-
-
-
-
-
-
-
-
-
-
-
-
 namespace Kratos
 {
 
-/** This utility can be used to calculate the enriched shape function for tetrahedra element.
- *  The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
- *  cacluate the enrichment information using these partitions.
+/** @brief This utility can be used to calculate the enriched shape function for tetrahedra element.
+ *  @details The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
+ *  calculate the enrichment information using these partitions.
  */
 class EnrichmentUtilities_2D
 {
@@ -84,8 +72,8 @@ public:
      * @param face_gauss_N_enrich is the value of the enrichment shape functions in the integration point
      * 		  actually it's value is always the same so no need to use it: the shape functions were defined to make it 1 in the first shape function,
      * 		  And 1 and -1 the second shape function (it's discontinous, so it has these two values in the interfase)
-     * 		  WARNING: therefore the discontinuity in the shape function is equal to 2.
-     * @param type_of_cut: the partition that is 'alone': the one that is on one side of the shape function
+     * 		  @warning therefore the discontinuity in the shape function is equal to 2.
+     * @param type_of_cut the partition that is 'alone': the one that is on one side of the shape function
      * 		  the other two are the ones in the other side, meaning they have the same derivatives and , for example, densities.
      * 
      * @return number of partitions created which can be from 1 to 3.

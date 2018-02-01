@@ -90,7 +90,7 @@ public:
      * This method initializes a vector using a normal normal distribution
      * @param R The vector to fill with random values
      * @param MeanValue The mean value used in the normal distribution
-     * @param VarianceValue: The variance value used in the normal distribution
+     * @param VarianceValue The variance value used in the normal distribution
      */
     static inline void NormalDestributionRandom(
         DenseVectorType& R,
@@ -115,7 +115,7 @@ public:
      * This method initializes a vector using a normal distribution. The mean and the variance is taken from the norm of the matrix
      * @param K The stiffness matrix
      * @param R The vector to initialize
-     * @param Inverse: If consider the inverse pf the matrix norm or not
+     * @param Inverse If consider the inverse pf the matrix norm or not
      */
     static inline void RandomInitialize(
         const SparseMatrixType& K,
