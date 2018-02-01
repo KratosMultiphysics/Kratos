@@ -162,7 +162,6 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-	const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -173,13 +172,14 @@ namespace Kratos
       double CurrentDensity = ( 1.0 - porosity) * density_solid + porosity * WaterDensity;
 
       double StabFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
-	//   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
-	   double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
-	   double alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
-	   double tau_factor=0;
+      //   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
+      double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
+      double alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
+
+      double tau_factor=0;
       if (WaterDensity > 1e-3)
-         double tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
-      
+         tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
+
 
       Matrix SmallMatrix = ZeroMatrix( number_of_nodes, number_of_nodes);
 
@@ -238,7 +238,6 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-      const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -249,12 +248,13 @@ namespace Kratos
       double CurrentDensity = ( 1.0 - porosity) * density_solid + porosity * WaterDensity;
 
       double StabFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
-	//   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
-	   double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
-	   double alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
-	   double tau_factor=0;
+      //   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
+      double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
+      double alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
+
+      double tau_factor=0;
       if (WaterDensity > 1e-3)
-         double tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
+         tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
 
       const double & rPermeability = GetProperties()[PERMEABILITY];
 

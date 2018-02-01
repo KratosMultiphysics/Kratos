@@ -162,8 +162,6 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-      const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
-
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
       double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
@@ -237,7 +235,6 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-      const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);

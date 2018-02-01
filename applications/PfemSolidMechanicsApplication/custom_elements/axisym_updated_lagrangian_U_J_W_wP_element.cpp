@@ -991,7 +991,6 @@ namespace Kratos
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      const double & rPermeability = GetProperties()[PERMEABILITY];
 
       double ElementSize = 0;
       for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -1015,14 +1014,6 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-
-      double density_mixture0 = GetProperties()[DENSITY];
-      double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
-      double porosity0 = GetProperties().GetValue( INITIAL_POROSITY);
-
-      double porosity = 1.0 - (1.0-porosity0) / rVariables.detF0; 
-      double density_solid = (density_mixture0 - porosity0*WaterDensity) / ( 1.0 - porosity0);
-      double DryDensity = ( 1.0 - porosity) * density_solid;
 
       double StabilizationFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
 
