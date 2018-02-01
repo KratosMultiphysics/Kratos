@@ -1666,8 +1666,8 @@ void ConstitutiveLaw::CalculateCauchyStresses(Vector& Cauchy_StressVector,
 {
 }
 
-
-
+// Explicit instantiation of the component
+template class KratosComponents<ConstitutiveLaw>;
 
 } /* namespace Kratos.*/
 

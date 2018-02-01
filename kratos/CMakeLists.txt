@@ -3,6 +3,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/point.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/element.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/c2c_variables.cpp;
@@ -24,12 +27,10 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part_io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/reorder_consecutive_model_part_io.cpp;
-    # ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_signed_distance_to_3d_skin_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/simple_mortar_mapper_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/io.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/model_part.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/model.cpp;
-    #${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/containers/variable_data.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/mesh_local_smoothing_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/tetrahedra_mesh_worst_element_smoothing_process.cpp;

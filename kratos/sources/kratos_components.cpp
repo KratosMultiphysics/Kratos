@@ -109,6 +109,20 @@ void AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComp
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
 
+// Explicit instantiation definition
+template class KratosComponents<Variable<bool> >;
+template class KratosComponents<Variable<int> >;
+template class KratosComponents<Variable<unsigned int> >;
+template class KratosComponents<Variable<double> >;
+template class KratosComponents<Variable<array_1d<double, 3> > >;
+template class KratosComponents<Variable<Quaternion<double> > >;
+template class KratosComponents<Variable<Vector> >;
+template class KratosComponents<Variable<Matrix> >;
+template class KratosComponents<Variable<std::string> >;
+template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >;
+template class KratosComponents<Variable<Flags> >;
+template class KratosComponents<Flags>;
+
 }  // namespace Kratos.
 
 
