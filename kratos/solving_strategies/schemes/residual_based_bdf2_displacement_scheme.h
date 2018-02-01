@@ -125,6 +125,11 @@ public:
     ResidualBasedBDF2DisplacementScheme()
         :ImplicitBaseType()
     {
+        // Allocate auxiliary memory
+        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+        
+        mVector.vn0.resize(num_threads);
+        mVector.an0.resize(num_threads);
     }
 
     /** Copy Constructor.
@@ -132,6 +137,7 @@ public:
     ResidualBasedBDF2DisplacementScheme(ResidualBasedBDF2DisplacementScheme& rOther)
         :ImplicitBaseType(rOther)
         ,mBDF2(rOther.mBDF2)
+        ,mVector(rOther.mVector)
     {
     }
 
@@ -408,12 +414,19 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    struct GeneralVectors
+    {
+        std::vector< Vector > vn0; /// Velocity
+        std::vector< Vector > an0; /// Acceleration
+    };
+    
     struct BDF2Method
     {
         double c0, c1, c2;
     };
 
-    BDF2Method mBDF2; // The BDF2 coefficients
+    BDF2Method mBDF2; /// The BDF2 coefficients
+    GeneralVectors mVector; /// The structure containing the velocities and accelerations
 
     ///@}
     ///@name Protected Operators
@@ -464,14 +477,14 @@ protected:
      * @param LHS_Contribution The dynamic contribution for the LHS
      * @param D The damping matrix
      * @param M The mass matrix
-     * @param CurrentProcessInfo The current process info instance
+     * @param rCurrentProcessInfo The current process info instance
      */
 
     void AddDynamicsToLHS(
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo
+        ProcessInfo& rCurrentProcessInfo
         ) override
     {
         // Adding mass contribution to the dynamic stiffness
@@ -491,7 +504,7 @@ protected:
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
-     * @param CurrentProcessInfo The current process info instance
+     * @param rCurrentProcessInfo The current process info instance
      */
 
     void AddDynamicsToRHS(
@@ -499,21 +512,21 @@ protected:
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo
+        ProcessInfo& rCurrentProcessInfo
         ) override
     {
+        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        
         // Adding inertia contribution
         if (M.size1() != 0) {
-            Vector an0;
-            pElement->GetSecondDerivativesVector(an0, 0);
-            noalias(RHS_Contribution) -= prod(M, an0);
+            pElement->GetSecondDerivativesVector(mVector.an0[this_thread], 0);
+            noalias(RHS_Contribution) -= prod(M, mVector.an0[this_thread]);
         }
 
         // Adding damping contribution
         if (D.size1() != 0) {
-            Vector vn0;
-            pElement->GetFirstDerivativesVector(vn0, 0);
-            noalias(RHS_Contribution) -= prod(D, vn0);
+            pElement->GetFirstDerivativesVector(mVector.vn0[this_thread], 0);
+            noalias(RHS_Contribution) -= prod(D, mVector.vn0[this_thread]);
         }
     }
 
@@ -523,7 +536,7 @@ protected:
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
-     * @param CurrentProcessInfo The current process info instance
+     * @param rCurrentProcessInfo The current process info instance
      */
 
     void AddDynamicsToRHS(
@@ -531,22 +544,22 @@ protected:
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo
+        ProcessInfo& rCurrentProcessInfo
         ) override
     {
+        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        
         // Adding inertia contribution
         if (M.size1() != 0) {
-            Vector an0;
-            pCondition->GetSecondDerivativesVector(an0, 0);
-            noalias(RHS_Contribution) -= prod(M, an0);
+            pCondition->GetSecondDerivativesVector(mVector.an0[this_thread], 0);
+            noalias(RHS_Contribution) -= prod(M, mVector.an0[this_thread]);
         }
 
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0) {
-            Vector vn0;
-            pCondition->GetFirstDerivativesVector(vn0, 0);
-            noalias(RHS_Contribution) -= prod(D, vn0);
+            pCondition->GetFirstDerivativesVector(mVector.vn0[this_thread], 0);
+            noalias(RHS_Contribution) -= prod(D, mVector.vn0[this_thread]);
         }
     }
 

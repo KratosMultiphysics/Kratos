@@ -82,8 +82,9 @@ public:
     /**
      * Constructor.
      * The bossak method
+     * @rAlpham The Bossak parameter
      */
-    ResidualBasedBossakDisplacementScheme(double rAlpham = 0.0)
+    ResidualBasedBossakDisplacementScheme(const double rAlpham = 0.0)
         :ImplicitBaseType()
     {
         // For pure Newmark Scheme
@@ -96,6 +97,13 @@ public:
 
         CalculateNewmarkCoefficients(beta, gamma);
         
+        // Allocate auxiliary memory
+        const std::size_t num_threads = OpenMPUtils::GetNumThreads();
+        
+        mVector.v.resize(num_threads);
+        mVector.a.resize(num_threads);
+        mVector.ap.resize(num_threads);
+            
         // std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
     }
 
@@ -105,6 +113,7 @@ public:
         :ImplicitBaseType(rOther)
         ,mAlpha(rOther.mAlpha)
         ,mNewmark(rOther.mNewmark)
+        ,mVector(rOther.mVector)
     {
     }
 
@@ -401,8 +410,8 @@ protected:
 
     struct GeneralAlphaMethod
     {
-        double f;  // Alpha Hilbert
-        double m;  // Alpha Bosssak
+        double f; /// Alpha Hilbert
+        double m; /// Alpha Bosssak
     };
 
     struct NewmarkMethod
@@ -414,8 +423,16 @@ protected:
         double c0, c1, c2, c3, c4, c5;
     };
 
-    GeneralAlphaMethod  mAlpha;
-    NewmarkMethod       mNewmark;
+    struct GeneralVectors
+    {
+        std::vector< Vector > v;  /// Velocity
+        std::vector< Vector > a;  /// Acceleration
+        std::vector< Vector > ap; /// Previous acceleration
+    };
+    
+    GeneralAlphaMethod mAlpha; /// The structure containing the Generalized alpha components
+    NewmarkMethod mNewmark; /// The structure containing the Newmark parameters
+    GeneralVectors mVector; /// The structure containing the velocities and accelerations
 
     ///@}
     ///@name Protected Operators
@@ -468,14 +485,14 @@ protected:
      * @param LHS_Contribution The dynamic contribution for the LHS
      * @param D The damping matrix
      * @param M The mass matrix
-     * @param CurrentProcessInfo The current process info instance
+     * @param rCurrentProcessInfo The current process info instance
      */
 
     void AddDynamicsToLHS(
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo
+        ProcessInfo& rCurrentProcessInfo
         ) override
     {
         // Adding mass contribution to the dynamic stiffness
@@ -493,7 +510,7 @@ protected:
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
-     * @param CurrentProcessInfo The current process info instance
+     * @param rCurrentProcessInfo The current process info instance
      */
 
     void AddDynamicsToRHS(
@@ -501,27 +518,27 @@ protected:
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo
+        ProcessInfo& rCurrentProcessInfo
         ) override
     {
+        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        
         // Adding inertia contribution
         if (M.size1() != 0) {
-            Vector a, ap;
-            pElement->GetSecondDerivativesVector(a, 0);
-            a *= (1.00 - mAlpha.m);
+            pElement->GetSecondDerivativesVector(mVector.a[this_thread], 0);
+            mVector.a[this_thread] *= (1.00 - mAlpha.m);
 
-            pElement->GetSecondDerivativesVector(ap, 1);
-            noalias(a) += mAlpha.m * ap;
+            pElement->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            noalias(mVector.a[this_thread]) += mAlpha.m * mVector.ap[this_thread];
             
-            noalias(RHS_Contribution) -= prod(M, a);
+            noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
         }
 
         // Adding damping contribution
         if (D.size1() != 0) {
-            Vector v;
-            pElement->GetFirstDerivativesVector(v, 0);
+            pElement->GetFirstDerivativesVector(mVector.v[this_thread], 0);
 
-            noalias(RHS_Contribution) -= prod(D, v);
+            noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
     }
 
@@ -531,7 +548,7 @@ protected:
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
      * @param M The mass matrix
-     * @param CurrentProcessInfo The current process info instance
+     * @param rCurrentProcessInfo The current process info instance
      */
 
     void AddDynamicsToRHS(
@@ -539,28 +556,28 @@ protected:
         LocalSystemVectorType& RHS_Contribution,
         LocalSystemMatrixType& D,
         LocalSystemMatrixType& M,
-        ProcessInfo& CurrentProcessInfo
+        ProcessInfo& rCurrentProcessInfo
         ) override
     {
+        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        
         // Adding inertia contribution
         if (M.size1() != 0) {
-            Vector a, ap;
-            pCondition->GetSecondDerivativesVector(a, 0);
-            a *= (1.00 - mAlpha.m);
+            pCondition->GetSecondDerivativesVector(mVector.a[this_thread], 0);
+            mVector.a[this_thread] *= (1.00 - mAlpha.m);
 
-            pCondition->GetSecondDerivativesVector(ap, 1);
-            noalias(a) += mAlpha.m * ap;
+            pCondition->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
+            noalias(mVector.a[this_thread]) += mAlpha.m * mVector.ap[this_thread];
 
-            noalias(RHS_Contribution) -= prod(M, a);
+            noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
         }
 
         // Adding damping contribution
         // Damping contribution
         if (D.size1() != 0) {
-            Vector v;
-            pCondition->GetFirstDerivativesVector(v, 0);
+            pCondition->GetFirstDerivativesVector(mVector.v[this_thread], 0);
 
-            noalias(RHS_Contribution) -= prod(D, v);
+            noalias(RHS_Contribution) -= prod(D, mVector.v[this_thread]);
         }
     }
 
