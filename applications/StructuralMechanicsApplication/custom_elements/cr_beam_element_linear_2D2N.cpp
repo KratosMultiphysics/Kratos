@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_elements/cr_beam_element_linear_2D2N.hpp"
+#include "custom_utilities/static_condensation_utility.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 
@@ -59,7 +60,6 @@ namespace Kratos
 			rRightHandSideVector = ZeroVector(msElementSize);
 			rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
 	
-
 			rRightHandSideVector += this->CalculateBodyForces();
 
 			KRATOS_CATCH("")
@@ -83,6 +83,20 @@ namespace Kratos
 		{
 			KRATOS_TRY;
 			rLeftHandSideMatrix = this->CreateElementStiffnessMatrix_Total();
+
+
+			//// start static condensation
+			if (this->GetProperties().Has(CONDENSED_DOF_LIST))
+			{
+				Vector dof_list_input = this->GetProperties()[CONDENSED_DOF_LIST];
+				std::vector<int> dofList(0);
+				for (size_t i=0;i<dof_list_input.size();++i) dofList.push_back(dof_list_input[i]);
+				StaticCondensationUtility::CondenseLeftHandSide(*this,rLeftHandSideMatrix,dofList);
+			}
+			//// end static condensation
+
+
+
 			this->GlobalizeMatrix(rLeftHandSideMatrix);
 			this->K_master = rLeftHandSideMatrix;
 			KRATOS_CATCH("")

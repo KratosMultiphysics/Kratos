@@ -16,6 +16,7 @@
 
 // Project includes
 #include "custom_elements/cr_beam_element_linear_3D2N.hpp"
+#include "custom_utilities/static_condensation_utility.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 
@@ -95,10 +96,25 @@ namespace Kratos
 		rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
 		rLeftHandSideMatrix +=
 			this->CreateElementStiffnessMatrix_Material();
+
+
+		//// start static condensation
+		if (this->GetProperties().Has(CONDENSED_DOF_LIST))
+		{
+			Vector dof_list_input = this->GetProperties()[CONDENSED_DOF_LIST];
+			std::vector<int> dofList(0);
+			for (size_t i=0;i<dof_list_input.size();++i) dofList.push_back(dof_list_input[i]);
+			StaticCondensationUtility::CondenseLeftHandSide(*this,rLeftHandSideMatrix,dofList);
+		}
+		//// end static condensation
+
+
 		bounded_matrix<double,msElementSize,msElementSize> aux_matrix = ZeroMatrix(msElementSize);
 		aux_matrix = prod(TransformationMatrix, rLeftHandSideMatrix);
 		rLeftHandSideMatrix = prod(aux_matrix,
 			Matrix(trans(TransformationMatrix)));
+
+
 		KRATOS_CATCH("")
 	}
 
