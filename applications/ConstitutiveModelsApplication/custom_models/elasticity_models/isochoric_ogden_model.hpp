@@ -157,6 +157,7 @@ namespace Kratos
 
       //Calculate Constitutive Matrix
       this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
+      //this->CalculateAndAddPerturbedConstitutiveTensor(Variables,rConstitutiveMatrix);
       
       KRATOS_CATCH(" ")
     }
@@ -444,6 +445,75 @@ namespace Kratos
 	KRATOS_CATCH(" ")
     }
 
+    //************************************************************************************
+    //************************************************************************************
+  
+    virtual void CalculateAndAddPerturbedConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix)
+    {
+	KRATOS_TRY
+
+	ModelDataType Values = rVariables.GetModelData();
+	
+	double& TotalDeterminant           = Values.rConstitutiveLawData().TotalDeformationDet;
+	MatrixType& DeltaDeformationMatrix = Values.rConstitutiveLawData().DeltaDeformationMatrix;
+	MatrixType& TotalDeformationMatrix = Values.rConstitutiveLawData().TotalDeformationMatrix;
+
+	MatrixType StressMatrix;
+	noalias(StressMatrix) = ZeroMatrix(3,3);
+	
+	const SizeType&       rVoigtSize        = Values.GetVoigtSize();      
+	const VoigtIndexType& rIndexVoigtTensor = Values.GetVoigtIndexTensor();
+
+	Vector StressVectorI(rVoigtSize);
+	Vector StressVectorII(rVoigtSize);
+
+	double value = 0;		
+	for( unsigned int i=0; i<rVoigtSize; i++)
+	{
+	    value = rVariables.GetModelData().GetDeltaDeformationMatrix()(rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]);
+	    double  deltavalue = 1e-10;
+	    if( value !=0 )
+		deltavalue = value * 1e-8;
+
+
+	    //Calculate stress
+	    DeltaDeformationMatrix = rVariables.GetModelData().GetDeltaDeformationMatrix();
+	    TotalDeformationMatrix = rVariables.GetModelData().GetTotalDeformationMatrix();
+
+	    DeltaDeformationMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]) += deltavalue;
+	    //TotalDeformationMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]) += deltavalue;		    
+	    //TotalDeterminant = MathUtils<double>::Det(TotalDeformationMatrix);
+
+	    //std::cout<<" Det "<<TotalDeterminant<<" DeltaF "<<DeltaDeformationMatrix<<" TotalDet "<<TotalDeformationMatrix<<std::endl;
+
+	    this->CalculateStressTensor(Values, StressMatrix);
+	    StressVectorI = ConstitutiveModelUtilities::StressTensorToVector(StressMatrix, StressVectorI);
+	    
+	    //Calculate elemental system
+	    DeltaDeformationMatrix = rVariables.GetModelData().GetDeltaDeformationMatrix();
+	    TotalDeformationMatrix = rVariables.GetModelData().GetTotalDeformationMatrix();
+
+	    DeltaDeformationMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]) -= deltavalue;
+	    //TotalDeformationMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]) -= deltavalue;
+	    //TotalDeterminant = MathUtils<double>::Det(TotalDeformationMatrix);
+	    
+	    this->CalculateStressTensor(Values, StressMatrix);
+	    StressVectorII = ConstitutiveModelUtilities::StressTensorToVector(StressMatrix, StressVectorII);
+
+	    //std::cout<<" StressVector I "<<StressVectorI<<std::endl;
+	    //std::cout<<" StressVector II "<<StressVectorII<<std::endl;
+
+	    for( unsigned int j=0; j<rVoigtSize; j++)
+	    {
+		rConstitutiveMatrix(j,i) = (-1) * (StressVectorI[j] - StressVectorII[j]) / (2.0*deltavalue);
+	    }
+
+	}
+
+	//std::cout<<" PerturbedConstitutiveMatrix "<<rConstitutiveMatrix<<std::endl;
+	
+	KRATOS_CATCH(" ")
+    }
 	    
     //************************************************************************************
     //************************************************************************************
@@ -576,15 +646,15 @@ namespace Kratos
 	      for(unsigned int i=0; i<3; i++)
 	      {
 		  noalias(EigenVectorA) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,i);
-		  // for(unsigned int j=0; j<3; j++)
-		  // {
+		  for(unsigned int j=0; j<3; j++)
+		  {
 		  
-		  //     noalias(EigenVectorB) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,j);
+		      noalias(EigenVectorB) = matrix_row<const MatrixType>(rVariables.Strain.Eigen.Vectors,j);
 								
-		  //     Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorB,EigenVectorA,Dabcd,a,b,c,d);
+		      Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorB,EigenVectorA,Dabcd,a,b,c,d);
 
-		  //     Cabcd += rStressDerivatives(i,j) * Dabcd;
-		  // }
+		      Cabcd += rStressDerivatives(i,j) * Dabcd;
+		  }
 
 		  Dabcd  = GetEigenProductLeftCauchyGreenDerivative(rVariables,i,Dabcd,a,b,c,d);
 		  Cabcd += 2.0 * rStressEigenValues[i] * Dabcd;
@@ -595,7 +665,7 @@ namespace Kratos
       }
       else if( option == 2 ){
 
-	  std::cout<<" option 2 active "<<std::endl;
+	  //std::cout<<" option 2 active "<<std::endl;
 	  
 	  array_1d<double,3> EigenVector;
 	  MatrixType EigenOperation;
