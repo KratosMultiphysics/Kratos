@@ -334,25 +334,6 @@ namespace Kratos
         const unsigned int number_of_nodes = GetGeometry().PointsNumber();
         const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-        if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
-        {
-
-            for(unsigned int i=0; i< number_of_nodes; i++)
-            {
-                SizeType index = dimension * i;
-
-                GetGeometry()[i].SetLock();
-
-                array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-                for(unsigned int j=0; j<dimension; j++)
-                {
-                    ExternalForce[j] += rRHS[index + j];
-                }
-
-                GetGeometry()[i].UnSetLock();
-            }
-        }
-
         if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
         {
 

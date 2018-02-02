@@ -124,60 +124,34 @@ public:
         ElementsArrayType& r_elements       = rModelPart.Elements();
         ProcessInfo& r_current_process_info   = rModelPart.GetProcessInfo();
 
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
 
-        vector<unsigned int> node_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, r_nodes.size(), node_partition);
-
-        vector<unsigned int> element_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, r_elements.size(), element_partition);
-
-
-        #pragma omp parallel
+        typename NodesArrayType::iterator it_begin=r_nodes.ptr_begin();
+        #pragma omp parallel for 
+        for(size_t i=0;i<r_nodes.size();++i)
         {
+            double& r_nodal_mass    =  it_begin->GetValue(NODAL_MASS);
+            r_nodal_mass = 0.0;
 
-            #pragma omp for
-
-                for(int k=0; k<number_of_threads; k++)
-                {
-                    typename NodesArrayType::iterator i_begin=r_nodes.ptr_begin()+node_partition[k];
-                    typename NodesArrayType::iterator i_end=r_nodes.ptr_begin()+node_partition[k+1];
-
-                    for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
-                    {
-                        double& r_nodal_mass    =  i->GetValue(NODAL_MASS);
-                        r_nodal_mass = 0.0;
-
-                        if (i->HasDofFor(ROTATION_X))
-                        {
-                            array_1d<double,3>& r_nodal_inertia = i->GetValue(NODAL_INERTIA);
-                            noalias(r_nodal_inertia) = ZeroVector(3);
-                        }
-
-                    }
-                }
-        }
-    
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-            typename ElementsArrayType::iterator ElemBegin = r_elements.begin() + element_partition[k];
-            typename ElementsArrayType::iterator ElemEnd = r_elements.begin() + element_partition[k + 1];
-
-            for (typename ElementsArrayType::iterator itElem = ElemBegin; itElem != ElemEnd; itElem++)  
+            if (it_begin->HasDofFor(ROTATION_X))
             {
-                //Getting nodal mass and inertia from element
-                Vector dummy_vector;
-
-                // this function needs to be implemented in the respective 
-                // element to provide inertias and nodal masses 
-                itElem->AddExplicitContribution(dummy_vector,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
+                array_1d<double,3>& r_nodal_inertia = it_begin->GetValue(NODAL_INERTIA);
+                noalias(r_nodal_inertia) = ZeroVector(3);
             }
+            it_begin++;
         }
+
+        typename ElementsArrayType::iterator ElemBegin = r_elements.begin(); 
+        #pragma omp parallel
+        for (size_t i=0;i<r_elements.size();++i)  
+        {
+            //Getting nodal mass and inertia from element
+            Vector dummy_vector;
+            // this function needs to be implemented in the respective 
+            // element to provide inertias and nodal masses 
+            ElemBegin->AddExplicitContribution(dummy_vector,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
+            ElemBegin++;
+        }
+        
         
         KRATOS_CATCH( "" )
     }
@@ -217,32 +191,22 @@ public:
         ProcessInfo& rCurrentProcessInfo      = rModelPart.GetProcessInfo();
         ConditionsArrayType& pConditions      = rModelPart.Conditions();
 
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-
-        vector<unsigned int> condition_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, pConditions.size(), condition_partition);
-
-
-        #pragma omp parallel for 
-        for(int k=0; k<number_of_threads; k++)
+        typename ConditionsArrayType::ptr_iterator it_begin=pConditions.ptr_begin();
+        #pragma omp parallel for
+        for (size_t i =0;i<pConditions.size();++i)
         {
-        typename ConditionsArrayType::ptr_iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
-        typename ConditionsArrayType::ptr_iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
-
-        for (typename ConditionsArrayType::ptr_iterator it= it_begin; it!=it_end; ++it)
-        {
-
             LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
-
             Element::EquationIdVectorType equation_id_vector_dummy; //Dummy
 
-            pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Condition_Contribution, equation_id_vector_dummy, rCurrentProcessInfo);
+            pScheme->Condition_Calculate_RHS_Contribution(*it_begin, RHS_Condition_Contribution,
+             equation_id_vector_dummy, rCurrentProcessInfo);
+            it_begin++;
         }
-        }
+
+
+
+
+
 
         KRATOS_CATCH("")
     }
@@ -259,30 +223,17 @@ public:
         
         ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
         ElementsArrayType& pElements        = rModelPart.Elements();
-
-        #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-        #else
-            int number_of_threads = 1;
-        #endif
-
-        vector<unsigned int> element_partition;
-        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-
-        #pragma omp parallel for 
-        for(int k=0; k<number_of_threads; k++)
+        
+        typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin();
+        #pragma omp parallel for
+        for (size_t i =0;i<pElements.size();++i)
         {
-            typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin()+element_partition[k];
-            typename ElementsArrayType::ptr_iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-            for (typename ElementsArrayType::ptr_iterator it= it_begin; it!=it_end; ++it)
-            {
+            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+            Element::EquationIdVectorType equation_id_vector_dummy; //Dummy
 
-                LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-                Element::EquationIdVectorType equation_id_vector_dummy; //Dummy
-
-                pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, equation_id_vector_dummy, rCurrentProcessInfo);
-
-            }
+            pScheme->Calculate_RHS_Contribution(*it_begin, RHS_Contribution,
+             equation_id_vector_dummy, rCurrentProcessInfo);
+            it_begin++;
         }
 
         KRATOS_CATCH("")

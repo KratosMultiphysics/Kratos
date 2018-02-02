@@ -441,19 +441,15 @@ namespace Kratos
 
 
 
-          int DoF = 2;
+          size_t DoF = 3;
           bool fix_displacements[3] = {false, false, false};
 
           fix_displacements[0] = (i->pGetDof(DISPLACEMENT_X))->IsFixed();
           fix_displacements[1] = (i->pGetDof(DISPLACEMENT_Y))->IsFixed();
+          fix_displacements[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
 
-          if( i->HasDofFor(DISPLACEMENT_Z) )
-          {
-            DoF = 3;
-            fix_displacements[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
-          }
 
-          for (int j = 0; j < DoF; j++) 
+          for (size_t j = 0; j < DoF; j++) 
           {
               
               if (fix_displacements[j] == true) 
@@ -473,7 +469,7 @@ namespace Kratos
 
 
           ////// ROTATION DEGRESS OF FREEDOM
-          if (i->HasDofFor(ROTATION_X))
+          if (i->HasDofFor(ROTATION_Z))
           {
             array_1d<double,3> nodal_inertia     = i->GetValue(NODAL_INERTIA);  
             array_1d<double,3>& r_current_residual_moment          = i->FastGetSolutionStepValue(MOMENT_RESIDUAL);
@@ -488,20 +484,14 @@ namespace Kratos
               else r_current_angular_acceleration[kk] = 0.00;
             }
             
-
-            DoF = 2;
             bool fix_rotation[3] = {false, false, false};
             fix_rotation[0] = (i->pGetDof(ROTATION_X))->IsFixed();
             fix_rotation[1] = (i->pGetDof(ROTATION_Y))->IsFixed();   
+            fix_rotation[2] = (i->pGetDof(ROTATION_Z))->IsFixed();     
             
-            
-            if (i->HasDofFor(ROTATION_Z))
-            {
-              DoF = 3;
-              fix_rotation[1] = (i->pGetDof(ROTATION_Z))->IsFixed();  
-            }
 
-            for (int j = 0; j < DoF; j++)
+
+            for (size_t j = 0; j < DoF; j++)
             {
               if (fix_rotation[j])
               {
@@ -562,19 +552,15 @@ namespace Kratos
           if (nodal_mass > numerical_limit)  r_current_acceleration = r_current_residual/nodal_mass;
           else r_current_acceleration = ZeroVector(3);
 
-          int DoF = 2;
+          size_t DoF = 3;
           bool fix_displacements[3] = {false, false, false};
 
           fix_displacements[0] = (i->pGetDof(DISPLACEMENT_X))->IsFixed();
           fix_displacements[1] = (i->pGetDof(DISPLACEMENT_Y))->IsFixed();
+          fix_displacements[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
 
-          if( i->HasDofFor(DISPLACEMENT_Z) )
-          {
-            DoF = 3;
-            fix_displacements[2] = (i->pGetDof(DISPLACEMENT_Z))->IsFixed();
-          }
 
-          for (int j = 0; j < DoF; j++) 
+          for (size_t j = 0; j < DoF; j++) 
           {
               
               if (fix_displacements[j] == true) 
@@ -610,19 +596,15 @@ namespace Kratos
               else r_current_angular_acceleration[kk] = 0.00;
             }
 
-            DoF = 2;
+            DoF = 3;
             bool fix_rotation[3] = {false, false, false};
             fix_rotation[0] = (i->pGetDof(ROTATION_X))->IsFixed();
-            fix_rotation[1] = (i->pGetDof(ROTATION_Y))->IsFixed();   
+            fix_rotation[1] = (i->pGetDof(ROTATION_Y))->IsFixed(); 
+            fix_rotation[2] = (i->pGetDof(ROTATION_Z))->IsFixed();    
             
-            
-            if (i->HasDofFor(ROTATION_Z))
-            {
-              DoF = 3;
-              fix_rotation[1] = (i->pGetDof(ROTATION_Z))->IsFixed();  
-            }
+          
 
-            for (int j = 0; j < DoF; j++)
+            for (size_t j = 0; j < DoF; j++)
             {
               if (fix_rotation[j])
               {
@@ -672,83 +654,6 @@ namespace Kratos
     
     KRATOS_CATCH( "" )
   }
-
-  //Elements:
-  //****************************************************************************
-
-  void GetFirstDerivativesVector(Element::Pointer pCurrentElement, Vector& rValues ) //V at time n-1/2 old
-  {
-
-    const unsigned int number_of_nodes = pCurrentElement->GetGeometry().size();
-    const unsigned int dimension       = 3;
-    unsigned int       element_size    = number_of_nodes * dimension;
-    const bool check_has_rot_dof = pCurrentElement->GetGeometry()[0].HasDofFor(ROTATION_X);
-    
-    if (check_has_rot_dof) element_size *= 2;
-
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-        unsigned int index = i * dimension;
-        if (check_has_rot_dof) index *= 2;
-
-
-        pCurrentElement->GetGeometry()[i].GetValue(MIDDLE_VELOCITY);
-
-        rValues[index]     = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[0];
-        rValues[index + 1] = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[1];
-        rValues[index + 2] = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[2];
-
-
-        if (check_has_rot_dof)
-        {
-          pCurrentElement->GetGeometry()[i].GetValue(MIDDLE_VELOCITY);
-          
-          rValues[index+dimension]     = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[0];
-          rValues[index+dimension+1] = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[1];
-          rValues[index+dimension+2] = pCurrentElement->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[2];          
-        }
-
-      }
-  }
-
-
-  //Conditions:
-  //****************************************************************************
-
-
-  void GetFirstDerivativesVector(Condition::Pointer pCurrentCondition, Vector& rValues ) //V at time n-1/2 old
-  {
-
-    const unsigned int number_of_nodes = pCurrentCondition->GetGeometry().size();
-    const unsigned int dimension       = 3;
-    unsigned int       condition_size    = number_of_nodes * dimension;
-    const bool check_has_rot_dof = pCurrentCondition->GetGeometry()[0].HasDofFor(ROTATION_X);
-
-    if (check_has_rot_dof) condition_size *= 2;
-    
-
-    if ( rValues.size() != condition_size ) rValues.resize( condition_size, false );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-      unsigned int index = i * dimension;
-      if (check_has_rot_dof) index *= 2;
-
-      rValues[index]     = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[0];
-      rValues[index + 1] = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[1];
-      rValues[index + 2] = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_VELOCITY )[2];
-
-        if (check_has_rot_dof)
-        {          
-          rValues[index+dimension]     = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[0];
-          rValues[index+dimension+1] = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[1];
-          rValues[index+dimension+2] = pCurrentCondition->GetGeometry()[i].GetValue( MIDDLE_ANGULAR_VELOCITY )[2];          
-        }
-    }
-  }
-
 
 
   //***************************************************************************
