@@ -371,6 +371,12 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
+    virtual void AddBoundaryIntegral(
+        TElementData& rData,
+        const Vector& rUnitNormal,
+        MatrixType& rLHS,
+        VectorType& rRHS);
+
     void GetCurrentValuesVector(
         const TElementData& rData,
         array_1d<double,LocalSize>& rValues) const;

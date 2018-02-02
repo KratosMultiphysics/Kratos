@@ -287,10 +287,16 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
-
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
+
+    // This function integrates the traction over a cut. It is only required to implement embedded formulations
+    void AddBoundaryIntegral(
+        TElementData& rData,
+        const Vector& rUnitNormal,
+        MatrixType& rLHS,
+        VectorType& rRHS) override;
 
     /**
      * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
