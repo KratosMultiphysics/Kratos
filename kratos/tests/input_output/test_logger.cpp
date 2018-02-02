@@ -203,9 +203,11 @@ namespace Kratos {
 
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1");
 
-//			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output " ;
+			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output " ;
 
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1");
+
+            std::cout << buffer.str() << std::endl;
 
         }
 

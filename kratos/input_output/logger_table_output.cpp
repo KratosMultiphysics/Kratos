@@ -13,6 +13,7 @@
 
 // System includes
 #include <sstream>
+#include <iomanip>
 
 // External includes
 
@@ -24,10 +25,13 @@
 namespace Kratos
 {
 	LoggerTableOutput::LoggerTableOutput(std::ostream& rOutputStream, std::vector<std::string> const& ColumnsNames) : LoggerOutput(rOutputStream), mColumnsNames(ColumnsNames) {
-
+        for(auto& column_name : mColumnsNames){
+            mColumnsWidth.push_back(column_name.size());
+            column_name.erase(column_name.find_last_not_of(" ") + 1);
+        }
     }
 
-	LoggerTableOutput::LoggerTableOutput(LoggerTableOutput const& Other) : LoggerOutput(Other), mColumnsNames(Other.mColumnsNames), mColumnsPositions(Other.mColumnsPositions) {
+	LoggerTableOutput::LoggerTableOutput(LoggerTableOutput const& Other) : LoggerOutput(Other), mColumnsNames(Other.mColumnsNames), mColumnsWidth(Other.mColumnsWidth) {
 
     }
 
@@ -38,18 +42,33 @@ namespace Kratos
     
     void LoggerTableOutput::WriteHeader()
     {
-        for(auto& column_name : mColumnsNames)
-            *this << column_name << " ";
+        for(int i = 0 ; i <  mColumnsNames.size() ; i++)
+            std::cout << std::left << std::setw(mColumnsWidth[i]+1) << mColumnsNames[i];
         
-        *this << std::endl;
+        std::cout << std::endl;
+
+        for(int i = 0 ; i <  mColumnsNames.size() ; i++)
+            this->GetStream() << std::left << std::setw(mColumnsWidth[i]+1) << mColumnsNames[i];
+        
+        this->GetStream() << std::endl;
     }
 
     void LoggerTableOutput::WriteMessage(LoggerMessage const& TheMessage)
     {
-		auto message_severity = TheMessage.GetSeverity();
-        if (message_severity <= this->GetSeverity())
-        {
-            *this << TheMessage.GetMessage();
+      int column_index = -1;
+
+      auto message_severity = TheMessage.GetSeverity();
+      if (message_severity <= this->GetSeverity()) {
+        for (int i = 0; i < mColumnsNames.size(); i++) {
+          if (mColumnsNames[i] == TheMessage.GetLabel()) {
+            column_index = i;
+            break;
+          }
+        }
+      }
+      KRATOS_WATCH(column_index)
+      if (column_index >= 0) {
+        this->GetStream() << TheMessage.GetMessage();
         }
     }
 

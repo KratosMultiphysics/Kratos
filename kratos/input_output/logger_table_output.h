@@ -112,7 +112,7 @@ namespace Kratos
 			///@{
 
             std::vector<std::string> mColumnsNames;
-            std::vector<std::size_t> mColumnsPositions;
+            std::vector<std::size_t> mColumnsWidth;
 
 			///@}
 		}; // Class LoggerTableOutput
