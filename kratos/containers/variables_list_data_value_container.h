@@ -333,9 +333,7 @@ public:
     TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-    #ifdef KRATOS_DEBUG       
-        KRATOS_ERROR_IF((QueueIndex + 1) > mQueueSize) << "ERROR:: YOUR ARE TRYING TO ACCES A VALUE OUTSIDE THE BUFFER SIZE: " << mQueueSize << std::endl;
-    #endif   
+        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "ERROR:: YOUR ARE TRYING TO ACCES A VALUE OUTSIDE THE BUFFER SIZE: " << mQueueSize << std::endl;
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -349,10 +347,8 @@ public:
     template<class TDataType>
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
     {
-        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-    #ifdef KRATOS_DEBUG       
-        KRATOS_ERROR_IF((QueueIndex + 1) > mQueueSize) << "ERROR:: YOUR ARE TRYING TO ACCES A VALUE OUTSIDE THE BUFFER SIZE: " << mQueueSize << std::endl;
-    #endif   
+        KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;    
+        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "ERROR:: YOUR ARE TRYING TO ACCES A VALUE OUTSIDE THE BUFFER SIZE: " << mQueueSize << std::endl;
         return *(const TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -396,18 +392,14 @@ public:
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
-    #ifdef KRATOS_DEBUG       
-        KRATOS_ERROR_IF((QueueIndex + 1) > mQueueSize) << "ERROR:: YOUR ARE TRYING TO ACCES A VALUE OUTSIDE THE BUFFER SIZE: " << mQueueSize << std::endl;
-    #endif   
+        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "ERROR:: YOUR ARE TRYING TO ACCES A VALUE OUTSIDE THE BUFFER SIZE: " << mQueueSize << std::endl;
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
-    {
-    #ifdef KRATOS_DEBUG       
-        KRATOS_ERROR_IF((QueueIndex + 1) > mQueueSize) << "ERROR:: YOUR ARE TRYING TO ACCES A VALUE OUTSIDE THE BUFFER SIZE: " << mQueueSize << std::endl;
-    #endif   
+    {    
+        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "ERROR:: YOUR ARE TRYING TO ACCES A VALUE OUTSIDE THE BUFFER SIZE: " << mQueueSize << std::endl;   
         return *(TDataType*)(Position(QueueIndex) + ThisPosition);
     }
 
