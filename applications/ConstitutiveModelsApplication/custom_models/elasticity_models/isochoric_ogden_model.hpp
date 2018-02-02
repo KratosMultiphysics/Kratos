@@ -629,7 +629,7 @@ namespace Kratos
       }
       else if( option == 2 ){ //some eigen values are the same some are different 
 
-	  std::cout<<" option 2 active "<<std::endl;
+	  //std::cout<<" option 2 active "<<std::endl;
 	  
 	  array_1d<double,3> EigenVector;
 	  MatrixType EigenOperation;
