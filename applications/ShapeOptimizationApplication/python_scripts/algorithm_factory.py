@@ -21,16 +21,16 @@ CheckForPreviousImport()
 # Additional imports
 from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
+import mapper_factory
+import data_logger_factory
 
 # ==============================================================================
-def CreateAlgorithm( OptimizationModelPart, 
-                     Analyzer, 
-                     MeshController,
-                     Communicator, 
-                     Mapper,
-                     DataLogger,
-                     OptimizationSettings ):
+def CreateAlgorithm( OptimizationModelPart, Analyzer, MeshController, Communicator, OptimizationSettings ):
     AlgorithmName = OptimizationSettings["optimization_algorithm"]["name"].GetString()
+    
+    Mapper = mapper_factory.CreateMapper( OptimizationModelPart, OptimizationSettings ) 
+    DataLogger = data_logger_factory.CreateDataLogger( OptimizationModelPart, Communicator, OptimizationSettings )  
+
     if OptimizationSettings["optimization_algorithm"]["name"].GetString() == "steepest_descent":
         return AlgorithmSteepestDescent( OptimizationModelPart, 
                                          Analyzer, 
