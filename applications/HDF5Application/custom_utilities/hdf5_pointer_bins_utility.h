@@ -25,6 +25,7 @@
 
 // Application includes
 #include "hdf5_application_define.h"
+#include "custom_utilities/compare_element_and_condition_utility.h"
 
 namespace Kratos
 {
@@ -70,7 +71,7 @@ public:
         unsigned i;
         bool found = false;
         for (i = 0; i < mBinKeys.size(); ++i)
-            if (IsMatch(key, mBinKeys[i]))
+            if (CompareElementAndConditionUtility::IsSame(key, mBinKeys[i]))
             {
                 found = true;
                 break;
@@ -103,7 +104,6 @@ private:
     template <class TOtherContainerType>
     void CreateMultipleBins(TOtherContainerType& rData);
 
-    inline bool IsMatch(KeyType lhs, KeyType rhs);
     ///@}
 }; // class PointerBinsUtility
 ///@} // Kratos Classes
@@ -140,7 +140,7 @@ void PointerBinsUtility<DataType>::CreateSingleBin(TOtherContainerType& rData)
         for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
         {
             ConstPointerType p_item = &(*it);
-            if (IsMatch(p_item, mBinKeys[0]))
+            if (CompareElementAndConditionUtility::IsSame(p_item, mBinKeys[0]))
             mBins[0][i] = p_item;
             else
                 KRATOS_ERROR << "Did not find bin for element #" << p_item->Id() << std::endl;
@@ -178,7 +178,7 @@ void PointerBinsUtility<DataType>::CreateMultipleBins(TOtherContainerType& rData
             ConstPointerType p_item = &(*it);
             for (unsigned j = 0; j < mBinKeys.size(); ++j)
             {
-                if (IsMatch(p_item, mBinKeys[j]))
+                if (CompareElementAndConditionUtility::IsSame(p_item, mBinKeys[j]))
                 {
 #ifdef _OPENMP
                     omp_set_lock(&bin_locks[j]);
@@ -200,13 +200,6 @@ void PointerBinsUtility<DataType>::CreateMultipleBins(TOtherContainerType& rData
     KRATOS_CATCH("");
 }
 
-template <class DataType>
-bool PointerBinsUtility<DataType>::IsMatch(KeyType lhs, KeyType rhs)
-{
-    return (typeid(lhs) == typeid(rhs) &&
-            lhs->GetGeometry().size() == rhs->GetGeometry().size() &&
-            lhs->GetGeometry().WorkingSpaceDimension() == rhs->GetGeometry().WorkingSpaceDimension());
-}
 
 ///@} addtogroup
 } // namespace Internals.
