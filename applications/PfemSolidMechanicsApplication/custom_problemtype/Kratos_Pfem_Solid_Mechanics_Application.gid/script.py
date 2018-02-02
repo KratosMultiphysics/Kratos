@@ -3,7 +3,11 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #Activate it to import in the gdb path:
 #import sys
 #sys.path.append('/home/cpuigbo/kratos')
-#x = input("stopped to allow debug: set breakpoints and press enter to continue");
+#x = input("stopped to allow debug: set breakpoints and press enter to continue")
+
+# use pdb debugger
+#import pdb
+#pdb.set_trace()
 
 #### TIME MONITORING START ####
 
@@ -149,8 +153,12 @@ if(ProjectParameters.Has("output_process_list")):
             
 #print list of constructed processes
 if(echo_level>1):
-    for process in list_of_processes:
-        print(process)
+#    for process in list_of_processes:
+#        print(process)
+    print("")
+    print("---PROCESS-LIST---")
+    print(str(list_of_processes))
+    print("")
 
 for process in list_of_processes:
     process.ExecuteInitialize()

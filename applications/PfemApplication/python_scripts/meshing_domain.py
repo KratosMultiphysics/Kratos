@@ -115,6 +115,11 @@ class MeshingDomain(object):
 
         # Set MeshingParameters
         self.SetMeshingParameters()
+        # print MeshingParameters
+        print("")
+        print("::[Meshing Domain]:: -MESHING PARAMETERS-")
+        print(str(self.MeshingParameters))
+        print("")
         
         # Meshing Stratety
         self.MeshingStrategy.SetEchoLevel(self.echo_level)
@@ -215,6 +220,19 @@ class MeshingDomain(object):
         self.RefiningParameters.SetRefiningOptions(refining_options)
         self.RefiningParameters.SetRemovingOptions(removing_options)
 
+        #conditional meshing nodes
+        conditional_meshing = self.settings["refining_parameters"]["conditional_meshing"]
+        self.RefiningParameters.SetConditionalMeshingNodes(conditional_meshing)
+
+        #conditional meshing output variables
+        self.TransferParameters = KratosPfem.TransferParameters()
+        node_variables = self.settings["refining_parameters"]["conditional_meshing"]["conditional_meshing_nodal_variables"]
+        for i in range(0, node_variables.size() ):            
+            self.RefiningParameters.SetConditionalMeshingNodeVariable(KratosMultiphysics.KratosGlobals.GetVariable(node_variables[i].GetString()))
+        gauss_variables = self.settings["refining_parameters"]["conditional_meshing"]["conditional_meshing_gauss_variables"]
+        for i in range(0, gauss_variables.size() ):            
+            self.RefiningParameters.SetConditionalMeshingGaussVariable(KratosMultiphysics.KratosGlobals.GetVariable(gauss_variables[i].GetString()))
+
     #
     def SetMeshingParameters(self):
               
@@ -240,22 +258,28 @@ class MeshingDomain(object):
     #
     def ExecuteMeshing(self):
 
+        print("")
+        print("----REMESH_PROCESS->self.RemeshDomains()->domain.ExecuteMeshing()_START----")
+
         if( self.active_remeshing ):
             self.MeshingStrategy.GenerateMesh()
         
+        print("----REMESH_PROCESS->self.RemeshDomains()->domain.ExecuteMeshing()_END----")
+        print("")
+
     #        
     def SetMeshSizeValues(self):
 
         critical_mesh_size = self.settings["refining_parameters"]["critical_size"].GetDouble()
 
-        # set mesh refinement based on wall tip discretization size
-        # if(parameters["TipRadiusRefine"]):
-            # tip arch opening (in degrees = 5-7.5-10)
-            #tool_arch_opening = 12
-            # tip surface length
-            #tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
-            # critical mesh size based on wall tip
-            #critical_mesh_size = tool_arch_length * parameters["CriticalTipRadius"]
+#        # set mesh refinement based on wall tip discretization size
+#        if(1==1):#parameters["TipRadiusRefine"]):
+#            # tip arch opening (in degrees = 5-7.5-10)
+#            tool_arch_opening = 12
+#            # tip surface length
+#            tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
+#            # critical mesh size based on wall tip
+#            critical_mesh_size = tool_arch_length * self.settings["refining_parameters"]["critical_size"].GetDouble()
             
         critical_mesh_size = critical_mesh_size
         critical_mesh_side = critical_mesh_size * 3

@@ -37,7 +37,7 @@
         "solver_type"                        : "pfem_solid_mechanics_static_solver",
         "solution_type"                      : "Static",
 *if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
-        "scheme_type"                        : "Linear",
+        "scheme_type"                        : "Non-Linear",
 *elseif(strcmp(GenData(Solver_Type),"QuasiStaticSolver")==0)
         "scheme_type"                        : "Non-Linear",
 *endif
@@ -227,27 +227,27 @@
 		"add_nodes": true,
 		"insert_nodes": false,
 		"remove_nodes": {
-			"apply_removal": false,
+			"apply_removal": true,
 			"on_distance": true,
-			"on_threshold": false,
+			"on_threshold": true,
 			"on_error": true
 		},
 		"remove_boundary": {
-			"apply_removal": false,
+			"apply_removal": true,
 			"on_distance": true,
-			"on_threshold": false,
-			"on_error": false
+			"on_threshold": true,
+			"on_error": true
 		},
 		"refine_elements": {
-			"apply_refinement": false,
+			"apply_refinement": true,
 			"on_distance": true,
 			"on_threshold": true,
 			"on_error": false
 		},
 		"refine_boundary": {
-			"apply_refinement": false,
+			"apply_refinement": true,
 			"on_distance": false,
-			"on_threshold": false,
+			"on_threshold": true,
 			"on_error": false
 		},              
 		"refining_box":{
@@ -824,15 +824,15 @@
             "plane_output"        : [],
 	    "nodal_results"       : [
 *if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
-                                      "VELOCITY",
+                  "VELOCITY",
 				      "ACCELERATION",
 *if(strcmp(GenData(DOFS),"U-W")==0)
-                                      "WATER_DISPLACEMENT",
-                                      "WATER_VELOCITY",
+                  "WATER_DISPLACEMENT",
+                  "WATER_VELOCITY",
 				      "WATER_ACCELERATION",
 *elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
-                                      "WATER_DISPLACEMENT",
-                                      "WATER_VELOCITY",
+                  "WATER_DISPLACEMENT",
+                  "WATER_VELOCITY",
 				      "WATER_ACCELERATION",
 				      "WATER_PRESSURE",
 				      "WATER_PRESSURE_VELOCITY",
@@ -853,6 +853,10 @@
 *if(strcmp(GenData(DOFS),"U-J-wP")==0)
 				      "WATER_PRESSURE",
 				      "JACOBIAN",
+*if(strcmp(GenData(Write_Contact_Forces),"True")==0)
+				      "EFFECTIVE_CONTACT_FORCE",
+				      "EFFECTIVE_CONTACT_STRESS",
+*endif
 *endif
 *if(strcmp(GenData(DOFS),"U-wP")==0)
 				      "WATER_PRESSURE",
@@ -867,9 +871,21 @@
 *if(strcmp(GenData(Problem_Type),"mechanical")==0)
 				      "CAUCHY_STRESS_TENSOR",
 				      "GREEN_LAGRANGE_STRAIN_TENSOR",
+                  "INCR_SHEAR_PLASTIC",
+                  "PLASTIC_STRAIN",
+                  "PRECONSOLIDATION",
+                  "VOLUMETRIC_PLASTIC",
+                  "STRESS_INV_P",
+                  "STRESS_INV_J2",
+                  "STRESS_INV_THETA",
 *endif
 *if(strcmp(GenData(DOFS),"U-W")==0)
 				      "WATER_PRESSURE",
+*endif
+*if(strcmp(GenData(DOFS),"U-J-wP")==0)
+                  "TOTAL_CAUCHY_STRESS",
+                  "DARCY_FLOW",
+                  "PERMEABILITY_TENSOR",
 *endif
 				      "VON_MISES_STRESS"
 				    ],

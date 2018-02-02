@@ -201,7 +201,7 @@ namespace Kratos
 
     bool SearchConditionMasters()
     {
-
+      return true;
       KRATOS_TRY
 
       int composite_conditions = 0;

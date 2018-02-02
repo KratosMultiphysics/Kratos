@@ -22,7 +22,7 @@ class MeshModeler(object):
         if( self.main_model_part.Name != self.MeshingParameters.GetSubModelPartName() ):
             self.model_part = self.main_model_part.GetSubModelPart(self.MeshingParameters.GetSubModelPartName())
 
-        print("::[Mesh_Modeler]::")
+        print("::[Mesh_Modeler]::---echo level: ", self.echo_level)
         
     #
     def Initialize(self, dimension):
@@ -35,6 +35,8 @@ class MeshModeler(object):
         elif(self.dimension == 3):
             self.mesher = KratosPfem.TetrahedralMesh3DModeler()
 
+        #print("---echo level: ", self.echo_level)
+
         self.mesher.SetEchoLevel(self.echo_level)
         self.mesher.SetMeshingParameters(self.MeshingParameters)
 
@@ -42,6 +44,7 @@ class MeshModeler(object):
         self.SetPostMeshingProcesses()    
 
         self.mesher.Initialize()
+
 
 
     #

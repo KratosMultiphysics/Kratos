@@ -56,6 +56,42 @@ namespace Kratos
       return rRefiningParameters.GetThresholdVariable();
 
     }
+    
+    void SetConditionalMeshingNodeDoubleVariable (ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<double>& rVariable )
+    {
+	  rRefiningParameters.SetConditionalMeshingNodeVariable( rVariable );
+	}
+	void SetConditionalMeshingNodeArray1DVariable (ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<array_1d<double,3> >& rVariable )
+    {
+	  rRefiningParameters.SetConditionalMeshingNodeVariable( rVariable );
+	}
+	void SetConditionalMeshingNodeVectorVariable (ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<Vector>& rVariable )
+    {
+	  rRefiningParameters.SetConditionalMeshingNodeVariable( rVariable );
+	}
+	void SetConditionalMeshingNodeMatrixVariable (ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<Matrix>& rVariable )
+    {
+	  rRefiningParameters.SetConditionalMeshingNodeVariable( rVariable );
+	}
+	
+	void SetConditionalMeshingGaussDoubleVariable (ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<double>& rVariable )
+    {
+	  rRefiningParameters.SetConditionalMeshingGaussVariable( rVariable );
+	}
+	void SetConditionalMeshingGaussArray1DVariable (ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<array_1d<double,3> >& rVariable )
+    {
+	  rRefiningParameters.SetConditionalMeshingGaussVariable( rVariable );
+	}
+	void SetConditionalMeshingGaussVectorVariable (ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<Vector>& rVariable )
+    {
+	  rRefiningParameters.SetConditionalMeshingGaussVariable( rVariable );
+	}
+	void SetConditionalMeshingGaussMatrixVariable (ModelerUtilities::RefiningParameters& rRefiningParameters, const Variable<Matrix>& rVariable )
+    {
+	  rRefiningParameters.SetConditionalMeshingGaussVariable( rVariable );
+	}
+    
+    
     // remeshing methods
 
     void SetReferenceElement(ModelerUtilities::MeshingParameters& rMeshingParameters, char* ElementName)
@@ -235,6 +271,15 @@ namespace Kratos
 	.def("Initialize",&ModelerUtilities::RefiningParameters::Initialize)
 	.def("SetRefiningOptions",&ModelerUtilities::RefiningParameters::SetRefiningOptions)
 	.def("SetRemovingOptions",&ModelerUtilities::RefiningParameters::SetRemovingOptions)
+	.def("SetConditionalMeshingNodes",&ModelerUtilities::RefiningParameters::SetConditionalMeshingNodes)
+	.def("SetConditionalMeshingNodeVariable",SetConditionalMeshingNodeDoubleVariable)
+	.def("SetConditionalMeshingNodeVariable",SetConditionalMeshingNodeArray1DVariable)
+	.def("SetConditionalMeshingNodeVariable",SetConditionalMeshingNodeVectorVariable)
+	.def("SetConditionalMeshingNodeVariable",SetConditionalMeshingNodeMatrixVariable)
+	.def("SetConditionalMeshingGaussVariable",SetConditionalMeshingGaussDoubleVariable)
+	.def("SetConditionalMeshingGaussVariable",SetConditionalMeshingGaussArray1DVariable)
+	.def("SetConditionalMeshingGaussVariable",SetConditionalMeshingGaussVectorVariable)
+	.def("SetConditionalMeshingGaussVariable",SetConditionalMeshingGaussMatrixVariable)
 	.def("SetAlphaParameter",&ModelerUtilities::RefiningParameters::SetAlphaParameter)
 	.def("SetMeanVolume",&ModelerUtilities::RefiningParameters::SetMeanVolume)
 	.def("GetMeanVolume",&ModelerUtilities::RefiningParameters::GetMeanVolume)

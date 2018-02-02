@@ -599,7 +599,7 @@ VALUE: False
 DEPENDENCIES:(True,RESTORE,MeshingElement,#CURRENT#,RESTORE,Constrained,#CURRENT#,RESTORE,MeshSmoothing,#CURRENT#,RESTORE,JacobiSmoothing,#CURRENT#,RESTORE,Meshing_Frequency,#CURRENT#,RESTORE,Refine,#CURRENT#)
 DEPENDENCIES:(False,HIDE,MeshingElement,#CURRENT#,HIDE,Constrained,#CURRENT#,HIDE,MeshSmoothing,#CURRENT#,HIDE,JacobiSmoothing,#CURRENT#,HIDE,Meshing_Frequency,#CURRENT#,HIDE,Refine,False)
 QUESTION: MeshingElement#CB#(UpdatedLagrangianElement2D3N,UpdatedLagrangianUPElement2D3N,AxisymUpdatedLagrangianElement2D3N,AxisymUpdatedLagrangianUPElement2D3N,UpdatedLagrangianUwPElement2D3N,UpdatedLagrangianUwPStabElement2D3N,AxisymUpdatedLagrangianUwPElement2D3N,AxisymUpdatedLagrangianUJwPElement2D3N,UpdatedLagrangianElement3D4N,UpdatedLagrangianUPElement3D4N)
-VALUE: UpdatedLagrangianUPElement2D3N
+VALUE: AxisymUpdatedLagrangianUJwPElement2D3N
 QUESTION: Constrained#CB#(False,True)
 VALUE: True
 QUESTION: MeshSmoothing#CB#(False,True)
@@ -607,27 +607,27 @@ VALUE: True
 QUESTION: JacobiSmoothing#CB#(False,True)
 VALUE: True
 QUESTION: Meshing_Frequency
-VALUE: 0.01
+VALUE: 0.006
 QUESTION: Refine#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Dissipation_Variable,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Error_Variable,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#,RESTORE,Refine_on_box_only,#CURRENT#,RESTORE,LSInterpolation,#CURRENT#)
 DEPENDENCIES:(False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Dissipation_Variable,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Error_Variable,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False,HIDE,Refine_on_box_only,False,HIDE,LSInterpolation,0)
 QUESTION: Critical_Mesh_Size
-VALUE: 0.025
+VALUE: 0.0025
 QUESTION: Dissipation_Variable#CB#(PLASTIC_DISSIPATION,PLASTIC_STRAIN,NORM_ISOCHORIC_STRESS)
-VALUE: PLASTIC_DISSIPATION
+VALUE: PLASTIC_STRAIN
 QUESTION: Critical_Dissipation
-VALUE: 100
+VALUE: 0.0000001
 QUESTION: Error_Variable#CB#(PLASTIC_STRAIN,NORM_ISOCHORIC_STRESS,PLASTIC_DISSIPATION)
 VALUE: PLASTIC_STRAIN
 QUESTION: Critical_Error(%)
-VALUE: 2
+VALUE: 0
 QUESTION: Tip_Radius_Refine#CB#(False,True)
-VALUE: False
+VALUE: True
 DEPENDENCIES:(True,RESTORE,Critical_Tip_Radius,#CURRENT#)
 DEPENDENCIES:(False,HIDE,Critical_Tip_Radius,#CURRENT#)
 QUESTION: Critical_Tip_Radius
-VALUE: 0.0004
+VALUE: 0.012
 QUESTION: Refine_on_box_only#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Upper_Point_rbox,#CURRENT#,RESTORE,Lower_Point_rbox,#CURRENT#,RESTORE,Velocity_rbox,#CURRENT#)
@@ -677,7 +677,7 @@ VALUE: #N# 7 0 0 0 0 0 0 1
 QUESTION: Wall_Circle:(Cx,Cy,Cz,Radius,Convexity)
 VALUE: #N# 5 0 0 0 0.004 1 
 QUESTION: Wall_Noses:(TipCx,TipCy,TipCz,Tip_Radius,Rake_Angle,Clearance_Angle,Convexity)
-VALUE: #N# 7 0 0 0 0.0004 5 5 1
+VALUE: #N# 7 0.00892 0.0332 0 0.00891 -150 90 1
 QUESTION: Wall_Cylinder:(Cx,Cy,Cz,Radius,C1x,C1y,C1z,Convexity)
 VALUE: #N# 8 0 0 0 0.004 0 0 0 1 
 QUESTION: Wall_Sphere:(Cx,Cy,Cz,Radius,Convexity)

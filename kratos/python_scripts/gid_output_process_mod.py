@@ -407,7 +407,6 @@ class GiDOutputProcess(Process):
 
             if self.multifile_flag == MultiFileFlag.MultipleFiles:
                 list_file.write("Multiple\n")
-                list_file.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext)) #MOD
             elif self.multifile_flag == MultiFileFlag.SingleFile:
                 list_file.write("Single\n")
 
@@ -430,7 +429,6 @@ class GiDOutputProcess(Process):
 
             if self.multifile_flag == MultiFileFlag.MultipleFiles:
                 list_file.write("Multiple\n")
-                list_file.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext)) #MOD
             elif self.multifile_flag == MultiFileFlag.SingleFile:
                 list_file.write("Single\n")
 
@@ -441,7 +439,6 @@ class GiDOutputProcess(Process):
                     list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
                     list_file = open(list_file_name,"w")
                     list_file.write("Multiple\n")
-                    list_file.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext)) #MOD
 
                     self.cut_list_files.append( [freq,list_file] )
 

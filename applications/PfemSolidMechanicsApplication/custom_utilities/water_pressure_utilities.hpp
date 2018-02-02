@@ -123,6 +123,8 @@ namespace Kratos
 
          void GetPermeabilityTensor( const PropertiesType & rProperties, const Matrix & rTotalF, Matrix & rK,  const double & rInitial_porosity, const unsigned int & rDimension, const double & rVolume );
 
+         void GetPermeabilityTensor( const PropertiesType & rProperties, const Matrix & rTotalF, Matrix & rK , const double & rInitial_porosity, const double & rVolume);
+
       protected:
 
 
@@ -130,14 +132,13 @@ namespace Kratos
 
          void GetScalingConstant( double& rScalingConstant, const PropertiesType& pProperties);
 
-         void GetPermeabilityTensor( const PropertiesType & rProperties, const Matrix & rTotalF, Matrix & rK , const double & rInitial_porosity, const double & rVolume);
-
-
          virtual void GetVoigtSize( const unsigned int & dimension, unsigned int & voigtsize, unsigned int & principal_dimension); 
 
          double & CalculateStabilizationFactor( HydroMechanicalVariables & rVariables, double & rAlphaStabilization);
 
          virtual double CalculateVolumeChange( const GeometryType & rGeometry, const Vector & rN, const Matrix & rTotalF);
+
+         void ApplyKozenyCarman( double & rPermeability, const double & rInitialPorosity, const double & rVolumeChange);
 
          // CALCULATE RHS 
          VectorType & CalculateMassBalance_WaterPressurePart( HydroMechanicalVariables & rVariables, VectorType & rLocalRHS, const double & rIntegrationWeight);

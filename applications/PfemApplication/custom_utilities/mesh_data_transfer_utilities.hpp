@@ -78,70 +78,66 @@ namespace Kratos
     struct TransferParameters
     {
 
-      KRATOS_CLASS_POINTER_DEFINITION(TransferParameters);
+		KRATOS_CLASS_POINTER_DEFINITION(TransferParameters);
 
-      Flags    Options;
+		Flags    Options;
 
-      std::vector<const Variable<double>* >               DoubleVariables;
-      std::vector<const Variable<array_1d<double,3> >* > Array1DVariables;
-      std::vector<const Variable<Vector>* >               VectorVariables;
-      std::vector<const Variable<Matrix>* >               MatrixVariables;
+		std::vector<const Variable<double>* >               DoubleVariables;
+		std::vector<const Variable<array_1d<double,3> >* > Array1DVariables;
+		std::vector<const Variable<Vector>* >               VectorVariables;
+		std::vector<const Variable<Matrix>* >               MatrixVariables;
 
-      bool VariablesSetFlag;
+		bool VariablesSetFlag;
 
-      // setting refining variables (generally for python interface)
-      void Set(Flags ThisFlag)
-      {
-	Options.Set(ThisFlag);
-      };
+		// setting refining variables (generally for python interface)
+		void Set(Flags ThisFlag)
+		{
+			Options.Set(ThisFlag);
+		};
 
-      void Reset(Flags ThisFlag)
-      {
-	Options.Reset(ThisFlag);
-      };
+		void Reset(Flags ThisFlag)
+		{
+			Options.Reset(ThisFlag);
+		};
 
-      void SetOptions(const Flags&  rOptions)
-      {
-	Options=rOptions;
-      };
+		void SetOptions(const Flags&  rOptions)
+		{
+			Options=rOptions;
+		};
 
+		void SetVariable(const Variable<double>& pVariable)
+		{
+			VariablesSetFlag = true;
+			DoubleVariables.push_back(&pVariable);
+		}
 
-      void SetVariable(const Variable<double>& pVariable)
-      {
-	VariablesSetFlag = true;
-	DoubleVariables.push_back(&pVariable);
-      }
+		void SetVariable(const Variable<array_1d<double,3> >& pVariable)
+		{
+			VariablesSetFlag = true;
+			Array1DVariables.push_back(&pVariable);
+		}
 
-      void SetVariable(const Variable<array_1d<double,3> >& pVariable)
-      {
-	VariablesSetFlag = true;
-	Array1DVariables.push_back(&pVariable);
-      }
+		void SetVariable(const Variable<Vector>& pVariable)
+		{
+			VariablesSetFlag = true;
+			VectorVariables.push_back(&pVariable);
+		}
 
+		void SetVariable(const Variable<Matrix>& pVariable)
+		{
+			VariablesSetFlag = true;
+			MatrixVariables.push_back(&pVariable);
+		}
 
-      void SetVariable(const Variable<Vector>& pVariable)
-      {
-	VariablesSetFlag = true;
-	VectorVariables.push_back(&pVariable);
-      }
+		Flags GetOptions()
+		{
+			return Options;
+		};
 
-
-      void SetVariable(const Variable<Matrix>& pVariable)
-      {
-	VariablesSetFlag = true;
-	MatrixVariables.push_back(&pVariable);
-      }
-
-      Flags GetOptions()
-      {
-	return Options;
-      };
-
-      void Initialize ()
-      {
-	VariablesSetFlag = false;
-      };
-
+		void Initialize ()
+		{
+		VariablesSetFlag = false;
+		};
     };
 
 

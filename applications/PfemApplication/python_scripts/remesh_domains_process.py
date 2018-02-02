@@ -23,7 +23,7 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "echo_level"            : 0,
+            "echo_level"            : 1,
             "model_part_name"       : "Solid Domain",
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 1.0,
@@ -34,9 +34,10 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
  
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
 
+        self.settings.ValidateAndAssignDefaults(default_settings)
         self.echo_level        = self.settings["echo_level"].GetInt()
+
         self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.meshing_frequency = self.settings["meshing_frequency"].GetDouble()
         
@@ -111,21 +112,34 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
 
     #
     def ExecuteBeforeOutputStep(self):
+
+        print("")
+        print("----REMESH_PROCESS->EBOS-START----")
         
         if(self.remesh_domains_active):
             if( self.meshing_before_output ):
                 self.main_model_part.ProcessInfo[KratosPfem.MESHING_STEP_PERFORMED] = False
                 if(self.IsMeshingStep()):
                     self.RemeshDomains()
+
+        print("----REMESH_PROCESS->EBOS-END----")
+        print("")
         
     #
     def ExecuteAfterOutputStep(self):
+
+        print("")
+        print("----REMESH_PROCESS->EAOS_START----")
 
         if(self.remesh_domains_active):
             if( not self.meshing_before_output ):
                 self.main_model_part.ProcessInfo[KratosPfem.MESHING_STEP_PERFORMED] = False
                 if(self.IsMeshingStep()):
-                    self.RemeshDomains()                    
+                    self.RemeshDomains()
+
+        print("----REMESH_PROCESS->EAOS-END----")
+        print("")
+               
                     
     ###
 
@@ -136,8 +150,10 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
     #
     def RemeshDomains(self):
 
-        if( self.echo_level > 0 ):
-            print("::[Meshing_Process]:: MESHING DOMAIN...( call:", self.counter,")")
+        print("")
+        print("----REMESH_PROCESS->self.RemeshDomains()_START----")
+
+        print("::[Meshing_Process]:: MESHING DOMAIN...( call:", self.counter,")")
             
         meshing_options = KratosMultiphysics.Flags()
         self.model_meshing = KratosPfem.ModelMeshing(self.main_model_part, meshing_options, self.echo_level)
@@ -175,8 +191,10 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
             else:
                 while(self.next_meshing <= self.step_count):
                     self.next_meshing += self.meshing_frequency
-                        
-                   
+         
+        print("----REMESH_PROCESS->self.RemeshDomains()_END----")               
+        print("")
+          
     #
     def GetMeshingStep(self):
         return self.counter

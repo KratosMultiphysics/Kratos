@@ -193,12 +193,19 @@ class MeshingStrategy(object):
     #
     def GenerateMesh(self):
 
+        print("")
+        print("----REMESH_PROCESS->self.RemeshDomains()->domain.ExecuteMeshing()->MeshingStrategy.GenerateMesh()_START----")
+
         self.InitializeMeshGeneration()
 
         for mesher in self.mesh_modelers:
+            print(str(mesher))
             mesher.ExecuteMeshing()
         
         self.FinalizeMeshGeneration()
+
+        print("----REMESH_PROCESS->self.RemeshDomains()->domain.ExecuteMeshing()->MeshingStrategy.GenerateMesh()_END----")
+        print("")
 
 
     #

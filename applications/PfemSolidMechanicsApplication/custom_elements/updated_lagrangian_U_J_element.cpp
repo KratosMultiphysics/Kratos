@@ -17,7 +17,7 @@
 //#include "includes/define.h"
 //#include "utilities/math_utils.h"
 //#include "includes/constitutive_law.h"
-
+#include "custom_utilities/water_pressure_utilities.hpp"
 
 
 namespace Kratos
@@ -474,17 +474,16 @@ namespace Kratos
       }
       else if ( rVariable == DARCY_FLOW)
       {
-         Properties thisProperties = GetProperties();
+         PropertiesType rProperties = GetProperties();
          // CONSTITUTIVE PARAMETERS
-         double Permeability = 0;
-         if( GetProperties().Has(PERMEABILITY) ){
-            Permeability = GetProperties()[PERMEABILITY];
-         }
          double WaterDensity = 0; 
          if( GetProperties().Has(DENSITY_WATER) ){
             WaterDensity = GetProperties()[DENSITY_WATER];
          }
-
+         double rInitialPorosity = 0;
+         if( GetProperties().Has(INITIAL_POROSITY) ){
+			   rInitialPorosity = GetProperties()[INITIAL_POROSITY];
+         }
          // GEOMETRY PARAMETERS
          const unsigned int& integration_points_number = mConstitutiveLawVector.size();
          const unsigned int& dimension       = GetGeometry().WorkingSpaceDimension();
@@ -494,16 +493,15 @@ namespace Kratos
          ElementVariables Variables; 
          this->InitializeElementVariables( Variables, rCurrentProcessInfo);
 
-         Matrix K = ZeroMatrix( dimension, dimension);
-         for (unsigned int i = 0; i < dimension; i++)
-            K(i,i) = Permeability;  // this is only one of the two cases. 
 
+         // for each integration point
          for (unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++)
          {
             this->CalculateKinematics(Variables, PointNumber);
-
+            // vector for pressure gradient
             Vector GradP = ZeroVector( dimension );
 
+            // compute pressure gradient
             for (unsigned int i = 0; i < number_of_nodes; i++) {
                if ( GetGeometry()[i].HasDofFor( WATER_PRESSURE ) == false) {
                   return;
@@ -514,11 +512,18 @@ namespace Kratos
                }
             }
 
+            // compute permeability tensor at gauss point
+            Matrix rPermeabilityTensor = ZeroMatrix(dimension, dimension);
+			   Matrix rF = Variables.F;
+				double rVolumeChange = MathUtils<double>::Det(rF);
+            WaterPressureUtilities aux;
+				aux.GetPermeabilityTensor( rProperties, rF, rPermeabilityTensor, rInitialPorosity, rVolumeChange);
+
             // BTerm
             GradP(dimension-1) -= 10.0 * WaterDensity;
 
             // finally
-            GradP  = prod( K, GradP); 
+            GradP  = prod( rPermeabilityTensor, GradP); 
             // Manual resize
             Vector ResizedVector = ZeroVector(3);
             for (unsigned int i = 0; i < dimension; i++) {
@@ -677,6 +682,30 @@ namespace Kratos
          }
 
       }
+      else if ( rVariable == PERMEABILITY_TENSOR)
+      {
+			const unsigned int& dimension = GetGeometry().WorkingSpaceDimension();
+			PropertiesType rProperties = GetProperties();
+			double rInitialPorosity = rProperties.GetValue(INITIAL_POROSITY);
+
+         ElementVariables Variables;
+         this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+
+         //reading integration points
+            for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+            {
+               //compute element kinematics B, F, DN_DX ...
+                this->CalculateKinematics(Variables, PointNumber);
+
+               //build and save permeability tensor
+    			   Matrix rPermeabilityTensor = ZeroMatrix(dimension, dimension);
+			      Matrix rF = Variables.F;
+				   double rVolumeChange = MathUtils<double>::Det(rF);
+            	WaterPressureUtilities aux;
+				   aux.GetPermeabilityTensor( rProperties, rF, rPermeabilityTensor, rInitialPorosity, rVolumeChange);
+				   rOutput[PointNumber] = rPermeabilityTensor;
+            }
+      }
       else {
          LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
       }
@@ -794,6 +823,9 @@ namespace Kratos
          CalculateOnIntegrationPoints(rVariable, rValue, rCurrentProcessInfo);
       }
       else if ( rVariable == TOTAL_CAUCHY_STRESS) {
+         CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
+      }
+      else if ( rVariable == PERMEABILITY_TENSOR) {
          CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
       }
       else {

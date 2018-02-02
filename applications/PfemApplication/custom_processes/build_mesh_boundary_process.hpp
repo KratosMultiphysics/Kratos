@@ -101,29 +101,31 @@ namespace Kratos
 
     virtual void Execute()
     {
-      KRATOS_TRY
-      
-      bool success=false;
+		KRATOS_TRY
 
-      boost::timer auxiliary;
-	
-      if( mEchoLevel > 0 )
-	std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
+		std::cout<<"----BuildMeshBoundaryProcess::Execute()----"<<std::endl;
 
-      success=this->UniqueSkinSearch(mrModelPart);
-			    
-      if(!success)
-	{
-          std::cout<<"  ERROR:  BOUNDARY BUILD FAILED ModelPart : ["<<mrModelPart<<"] "<<std::endl;
+		bool success=false;
+
+		boost::timer auxiliary;
+
+		if( mEchoLevel > 0 )
+			std::cout<<" [ Build Boundary on ModelPart ["<<mrModelPart.Name()<<"] ]"<<std::endl;
+
+		success=this->UniqueSkinSearch(mrModelPart);
+
+		if(!success)
+		{
+			std::cout<<"  ERROR:  BOUNDARY BUILD FAILED ModelPart : ["<<mrModelPart<<"] "<<std::endl;
         }
-      else
-	{
-          if( mEchoLevel >= 1 )
-	    std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
+		else
+		{
+			if( mEchoLevel >= 1 )
+				std::cout<<" [ Search performed in Time = "<<auxiliary.elapsed()<<" ]"<<std::endl;
             //PrintSkin(mrModelPart);
         }
 
-      KRATOS_CATCH(" ")
+		KRATOS_CATCH(" ")
     }
 
 

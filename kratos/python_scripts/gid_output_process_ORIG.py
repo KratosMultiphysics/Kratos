@@ -389,25 +389,12 @@ class GiDOutputProcess(Process):
             if f not in used_frequencies:
                 used_frequencies.append(f)
                 extra_frequencies.append(f)
-#MOD START
-        if self.post_mode == GiDPostMode.GiD_PostBinary:
-            ext = ".post.bin"
-        elif self.post_mode == GiDPostMode.GiD_PostAscii:
-            ext = ".post.res"
-        elif self.post_mode == GiDPostMode.GiD_PostAsciiZipped:
-            ext = ".post.res"  # ??? CHECK!
-        else:
-            return # No support for list_files in this format
-
-        pretty_label = "_{0}".format(0)
-#MOD END
 
         if self.body_io is not None:
             list_file = open(name_base+name_ext,"w")
 
             if self.multifile_flag == MultiFileFlag.MultipleFiles:
                 list_file.write("Multiple\n")
-                list_file.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext)) #MOD
             elif self.multifile_flag == MultiFileFlag.SingleFile:
                 list_file.write("Single\n")
 
@@ -418,7 +405,6 @@ class GiDOutputProcess(Process):
                     list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
                     list_file = open(list_file_name,"w")
                     list_file.write("Multiple\n")
-                    list_file.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext)) #MOD
 
                     self.volume_list_files.append( [freq,list_file] )
 
@@ -430,7 +416,6 @@ class GiDOutputProcess(Process):
 
             if self.multifile_flag == MultiFileFlag.MultipleFiles:
                 list_file.write("Multiple\n")
-                list_file.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext)) #MOD
             elif self.multifile_flag == MultiFileFlag.SingleFile:
                 list_file.write("Single\n")
 
@@ -441,7 +426,6 @@ class GiDOutputProcess(Process):
                     list_file_name = "{0}_list_{1}{2}".format(name_base,freq,name_ext)
                     list_file = open(list_file_name,"w")
                     list_file.write("Multiple\n")
-                    list_file.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext)) #MOD
 
                     self.cut_list_files.append( [freq,list_file] )
 

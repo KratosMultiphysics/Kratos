@@ -32,6 +32,7 @@
 #include "custom_processes/model_start_end_meshing_process.hpp"
 
 //PreMeshing processes
+#include "custom_processes/add_nodes_of_interest_process.hpp"
 #include "custom_processes/refine_mesh_elements_on_threshold_process.hpp"
 #include "custom_processes/refine_mesh_elements_in_edges_process.hpp"
 #include "custom_processes/refine_mesh_boundary_process.hpp"
@@ -115,6 +116,11 @@ namespace Kratos
 	 )
 	;
 
+      class_<AddNodesOfInterestProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "AddNodesOfInterest", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+	 )
+	;
 
       class_<RefineMeshElementsOnThresholdProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(

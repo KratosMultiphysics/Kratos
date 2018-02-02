@@ -294,142 +294,141 @@ namespace Kratos
     const unsigned int size = rGeometry.size();
 
     for(unsigned int i = 0; i < size; i++)
-      {
-	if(rGeometry[i].Is(BOUNDARY))
-	  {
-	    BoundaryNodes += 1;
-	  }
-      }
-
+    {
+      if(rGeometry[i].Is(BOUNDARY))
+        {
+          BoundaryNodes += 1;
+        }
+    }
 
     if(BoundaryNodes == size)
-      {
+    {
 
-	//Baricenter
-	array_1d<double, 3>  Center;
-	Center.clear();
-	std::vector<array_1d<double, 3> > Vertices;
-	array_1d<double, 3>  Vertex;
-	array_1d<double, 3>  Normal;
-	double Shrink = 0;
+	    //Baricenter
+	    array_1d<double, 3>  Center;
+	    Center.clear();
+	    std::vector<array_1d<double, 3> > Vertices;
+	    array_1d<double, 3>  Vertex;
+	    array_1d<double, 3>  Normal;
+	    double Shrink = 0;
 	
-	for(unsigned int i = 0; i < size; i++)
-	  {
-	    Normal  = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+	    for(unsigned int i = 0; i < size; i++)
+	      {
+	        Normal  = rGeometry[i].FastGetSolutionStepValue(NORMAL);
 
-	    double NormNormal = norm_2(Normal);
-	    if( NormNormal != 0)
-	      Normal /= NormNormal;
+	        double NormNormal = norm_2(Normal);
+	        if( NormNormal != 0)
+	          Normal /= NormNormal;
 
-	    Shrink  = rGeometry[i].FastGetSolutionStepValue(SHRINK_FACTOR);
-	    
-	    Normal *= Shrink * rOffsetFactor;
-	    
-	    Vertex  = rGeometry[i].Coordinates() - Normal;
+	        Shrink  = rGeometry[i].FastGetSolutionStepValue(SHRINK_FACTOR);
+	        
+	        Normal *= Shrink * rOffsetFactor;
+	        
+	        Vertex  = rGeometry[i].Coordinates() - Normal;
 
-	    Vertices.push_back(Vertex);
+	        Vertices.push_back(Vertex);
 
-	    Center  += Vertex;
-	  }
+	        Center  += Vertex;
+	      }
 	
-	Center /= (double)size;
-	    
-	double ortho  = 0.15;
-	double slope  = 0.25;  //error assumed for some elements in the corners < 45 degrees
-	double extra  = 0.95;
+	    Center /= (double)size;
+	        
+	    double ortho  = 0.15;
+	    double slope  = 0.25;  //error assumed for some elements in the corners < 45 degrees
+	    double extra  = 0.95;
 
-	int numouter         =0;
-	int numextra         =0;
-	int numcoplanar      =0;
-	int numsamedirection =0;
-	int numorthogonal    =0;
+	    int numouter         =0;
+	    int numextra         =0;
+	    int numcoplanar      =0;
+	    int numsamedirection =0;
+	    int numorthogonal    =0;
 
-	array_1d<double, 3> Coplanar = rGeometry[0].FastGetSolutionStepValue(NORMAL); 
-	double NormCoplanar = norm_2(Coplanar);
-	if( NormCoplanar != 0)
-	  Coplanar /= NormCoplanar;
+	    array_1d<double, 3> Coplanar = rGeometry[0].FastGetSolutionStepValue(NORMAL); 
+	    double NormCoplanar = norm_2(Coplanar);
+	    if( NormCoplanar != 0)
+	      Coplanar /= NormCoplanar;
 
-	array_1d<double, 3> Corner;
+	    array_1d<double, 3> Corner;
 
-	for(unsigned int i = 0; i < size; i++)
-	  {
-	   
-	    //std::cout<<" V: ("<<rGeometry[i].Id()<<"): ["<<rGeometry[i].X()<<", "<<rGeometry[i].Y()<<", "<<rGeometry[i].Z()<<"]  Normal:"<<rGeometry[i].FastGetSolutionStepValue(NORMAL)<<std::endl;
+	    for(unsigned int i = 0; i < size; i++)
+	      {
+	       
+	        //std::cout<<" V: ("<<rGeometry[i].Id()<<"): ["<<rGeometry[i].X()<<", "<<rGeometry[i].Y()<<", "<<rGeometry[i].Z()<<"]  Normal:"<<rGeometry[i].FastGetSolutionStepValue(NORMAL)<<std::endl;
 
-	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL); 
+	        Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL); 
 
-	    double NormNormal = norm_2(Normal);
-	    if( NormNormal != 0)
-	      Normal /= NormNormal;
+	        double NormNormal = norm_2(Normal);
+	        if( NormNormal != 0)
+	          Normal /= NormNormal;
 				
 
-	    //change position to be the vector from the vertex to the geometry center
-	    Corner = Center-Vertices[i];
+	        //change position to be the vector from the vertex to the geometry center
+	        Corner = Center-Vertices[i];
 
-	    if(norm_2(Corner))
-	      Corner/= norm_2(Corner);
+	        if(norm_2(Corner))
+	          Corner/= norm_2(Corner);
 
-	    double projection = inner_prod(Corner,Normal);
+	        double projection = inner_prod(Corner,Normal);
 
-	    if( projection < slope)
-	      {
-		numouter++;
+	        if( projection < slope)
+	          {
+		    numouter++;
+	          }
+	        else
+	          {
+		    if( projection < extra)
+		      numextra++;
+	          }
+		
+	        double coplanar = inner_prod(Coplanar,Normal);
+
+	        //std::cout<<" V["<<i<<"]: "<<rGeometry[i]<<" Normal:"<<Normal<<" coplanar "<<fabs(coplanar)<<" < "<<ortho<<std::endl;
+
+	        if(coplanar>0){
+	          numsamedirection++;
+	        }
+		
+	        if(coplanar>extra){
+	          numcoplanar++;
+	        }
+		
+	        if(fabs(coplanar)<=ortho){
+	          numorthogonal++;
+	        }
+
 	      }
-	    else
-	      {
-		if( projection < extra)
-		  numextra++;
-	      }
-		
-	    double coplanar = inner_prod(Coplanar,Normal);
-
-	    //std::cout<<" V["<<i<<"]: "<<rGeometry[i]<<" Normal:"<<Normal<<" coplanar "<<fabs(coplanar)<<" < "<<ortho<<std::endl;
-
-	    if(coplanar>0){
-	      numsamedirection++;
-	    }
-		
-	    if(coplanar>extra){
-	      numcoplanar++;
-	    }
-		
-	    if(fabs(coplanar)<=ortho){
-	      numorthogonal++;
-	    }
-
-	  }
 
 	
-	int num = (int)size;
+	    int num = (int)size;
 
-	if(numouter==num)
-	  outer=true;
+	    if(numouter==num)
+	      outer=true;
 
-	if(numouter==(num-1) && numextra==1)
-	  outer=true;
+	    if(numouter==(num-1) && numextra==1)
+	      outer=true;
 	
-	if(numouter>0 && (numextra>0 && numorthogonal>0) && !rSelfContact){
-	  outer=true;
-	  std::cout<<"   Element with "<<num<<" corners accepted:case1 "<<std::endl;
-	}
+	    if(numouter>0 && (numextra>0 && numorthogonal>0) && !rSelfContact){
+	      outer=true;
+	      std::cout<<"   Element with "<<num<<" corners accepted:case1 "<<std::endl;
+	    }
 	
-	if(numouter==0 && (numextra>(num-2) && numorthogonal>0) && !rSelfContact){
-	  outer=true;
-	  std::cout<<"   Element with "<<num<<" corners accepted:case2 "<<std::endl;
-	}
+	    if(numouter==0 && (numextra>(num-2) && numorthogonal>0) && !rSelfContact){
+	      outer=true;
+	      std::cout<<"   Element with "<<num<<" corners accepted:case2 "<<std::endl;
+	    }
 
-	if(numcoplanar==num)
-	  outer=false;
-	    
-	if(numsamedirection==num && numorthogonal==0)
-	  outer=false;
-	    
-	// if(numorthogonal>=1)
-	//   outer=false;
-	    
-	std::cout<<std::endl;
-	std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"] ACCEPTED: "<<outer<<std::endl;
-      }
+	    if(numcoplanar==num)
+	      outer=false;
+	        
+	    if(numsamedirection==num && numorthogonal==0)
+	      outer=false;
+	        
+	    // if(numorthogonal>=1)
+	    //   outer=false;
+	        
+	    std::cout<<std::endl;
+	    std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"] ACCEPTED: "<<outer<<std::endl;
+    }
 
     return outer; //if is outside the body domain returns true
 
@@ -1124,23 +1123,23 @@ namespace Kratos
     double Shrink = 0;
 
     for(unsigned int i = 0; i < size; i++)
-      {
-	Normal    = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+    {
+	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
 
-	double NormNormal = norm_2(Normal);
-	if( NormNormal != 0)
-	  Normal /= NormNormal;
+	    double NormNormal = norm_2(Normal);
+	    if( NormNormal != 0)
+	      Normal /= NormNormal;
 
-	Shrink    = rGeometry[i].FastGetSolutionStepValue(SHRINK_FACTOR);
+	    Shrink    = rGeometry[i].FastGetSolutionStepValue(SHRINK_FACTOR);
 	
-	Normal *= Shrink * rOffsetFactor;
+	    Normal *= Shrink * rOffsetFactor;
 
-	Vertex[0] = rGeometry[i].X() - Normal[0];
-	Vertex[1] = rGeometry[i].Y() - Normal[1];
-	Vertex[2] = rGeometry[i].Z() - Normal[2];
+	    Vertex[0] = rGeometry[i].X() - Normal[0];
+	    Vertex[1] = rGeometry[i].Y() - Normal[1];
+	    Vertex[2] = rGeometry[i].Z() - Normal[2];
 
-	Vertices.push_back(Vertex);
-      }
+	    Vertices.push_back(Vertex);
+    }
     
     Radius = ComputeRadius(Radius, Volume, Vertices, dimension);
 
@@ -1150,10 +1149,10 @@ namespace Kratos
     double h_face = 0;
 
     for( unsigned int i = 0; i<size; i++ )
-      {
-	h += rGeometry[i].FastGetSolutionStepValue(NODAL_H);
-	h_face += FindBoundaryH(rGeometry[i]);
-      }
+    {
+	    h += rGeometry[i].FastGetSolutionStepValue(NODAL_H);
+	    h_face += FindBoundaryH(rGeometry[i]);
+    }
 
     h /= (double)size;
     h_face /= (double)size;
@@ -1169,22 +1168,21 @@ namespace Kratos
 
 
     if( Volume < CriticalVolume ) //sliver
-      {
-	return false;
-      }
-    else
-      {
-
-	if( Radius < AlphaRadius )
-	  {
-	    return true;
-	  }
-	else
-	  {
+    {
 	    return false;
-	  }
-      }
+    }
+      else
+    {
 
+	    if( Radius < AlphaRadius )
+      {
+        return true;
+      }
+	    else
+      {
+        return false;
+      }
+    }
 
     KRATOS_CATCH( "" )
   }
@@ -1228,15 +1226,15 @@ namespace Kratos
     Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
 
     for(unsigned int i=0; i<rGeometry.size(); i++)
-      {
-	Point[0] = rGeometry[i].X();
-	Point[1] = rGeometry[i].Y();
-	Point[2] = rGeometry[i].Z();
-	if( !rRefiningBox.IsInside(Point,rCurrentProcessInfo[TIME]) ){
-	  inside = false;
-	  break;
-	}
+    {
+      Point[0] = rGeometry[i].X();
+      Point[1] = rGeometry[i].Y();
+      Point[2] = rGeometry[i].Z();
+      if( !rRefiningBox.IsInside(Point,rCurrentProcessInfo[TIME]) ){
+        inside = false;
+        break;
       }
+    }
 
     return inside;
 

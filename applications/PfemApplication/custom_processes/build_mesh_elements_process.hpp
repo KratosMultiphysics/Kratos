@@ -110,6 +110,8 @@ namespace Kratos
     {
       KRATOS_TRY
 
+      std::cout<<"----BuildMeshElementsProcess::Execute()----"<<std::endl;
+
       if( mEchoLevel > 0 )
 	std::cout<<" [ GENERATE NEW ELEMENTS: "<<std::endl;
 

@@ -397,7 +397,7 @@ namespace Kratos
          double G = YoungModulus/ 2.0 / ( 1.0 + PoissonCoef);
          rValue = K + 4.0*G / 3.0;
       }
-   else if ( rThisVariable== YOUNG_MODULUS)
+   else if ( ( rThisVariable== YOUNG_MODULUS) || (rThisVariable==EQUIVALENT_YOUNG_MODULUS) )
       {
          rValue = mpYieldCriterion->GetHardeningLaw().GetProperties()[YOUNG_MODULUS];
       }

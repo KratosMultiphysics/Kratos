@@ -29,6 +29,8 @@ namespace Kratos
   {
 
     KRATOS_TRY
+
+    std::cout<<"-----TriangularMesh2DModeler::Generate()-----"<<std::endl;
  
     this->StartEcho(rModelPart,"PFEM Remesh");
     
@@ -141,7 +143,7 @@ namespace Kratos
     //switches: https://www.cs.cmu.edu/~quake/triangle.switch.html
 
     if( this->GetEchoLevel() > 0 )
-      std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<") "<<std::endl;
+      std::cout<<" [ REMESH: (in POINTS "<<in.numberofpoints<<", in ELEMENTS "<<in.numberoftriangles<<") "<<std::endl;
 
     //this->WritePoints(in);
 

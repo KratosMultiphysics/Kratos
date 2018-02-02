@@ -101,65 +101,69 @@ public:
     /// Execute method is used to execute the Process algorithms.
     virtual void Execute() 
     {
-      
-      KRATOS_TRY
+		KRATOS_TRY
 
-      if( this->mEchoLevel > 0 ){
-        std::cout<<" [ REFINE BOUNDARY : "<<std::endl;
-	//std::cout<<"   Nodes and Conditions : "<<mrModelPart.Nodes().size()<<", "<<mrModelPart.Conditions().size()<<std::endl;
-      }
+		std::cout<<"----RefineMeshBoundaryProcess::Execute()----echo: "<<mEchoLevel<<std::endl;
 
+		if( this->mEchoLevel > 0 ){
+			std::cout<<" [ REFINE BOUNDARY : "<<std::endl;
+			std::cout<<"  "<<mrModelPart.NumberOfNodes()<<" Nodes and "<<mrModelPart.NumberOfConditions()<<" Conditions "<<std::endl;
+		}
 
-      if( mrModelPart.Name() != mrRemesh.SubModelPartName )
-	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
+		if( mrModelPart.Name() != mrRemesh.SubModelPartName ){
+			std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
+		}
 
-      
-      mrRemesh.Info->InsertedBoundaryConditions = mrModelPart.NumberOfConditions();
-      mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes();
+		mrRemesh.Info->InsertedBoundaryConditions = mrModelPart.NumberOfConditions();
+		mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes();
 
+		//if (REFINE_INSERT_NODES or REFINE_ADD_NODES) & REFINE_BOUNDARY
+		if( (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) || mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES)) && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY) )
+		{
+			// initiate list of nodes and conditions
+			std::vector<NodeType::Pointer>  list_of_nodes;
+			std::vector<ConditionType::Pointer> list_of_conditions;
 
-     //if the insert switches are activated, we check if the boundaries got too coarse
-     if( (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) || mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES)) && mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY) )
-     {
-
-        std::vector<NodeType::Pointer>  list_of_nodes;
-        std::vector<ConditionType::Pointer> list_of_conditions;
-
-	unsigned int conditions_size = mrModelPart.NumberOfConditions();
+			unsigned int conditions_size = mrModelPart.NumberOfConditions();
 	
-	list_of_nodes.reserve(conditions_size);
-	list_of_conditions.reserve(conditions_size);
-	    
-	this->SelectBoundaryToRefine(mrModelPart); //conditions (TO_REFINE) 
+			list_of_nodes.reserve(conditions_size);
+			list_of_conditions.reserve(conditions_size);
+			
+			// set worthy refining candidates at boundary and contact TO_REFINE
+			this->SelectBoundaryToRefine(mrModelPart); //conditions (TO_REFINE) 
 
-	this->GenerateNewNodes(mrModelPart, list_of_nodes, list_of_conditions); //points (NEW_ENTITY) 
-	  
-	this->GenerateNewConditions(mrModelPart, list_of_nodes, list_of_conditions);// new conditions(NEW_ENTITY)  //old conditions (TO_ERASE)
+			//
+			this->GenerateNewNodes(mrModelPart, list_of_nodes, list_of_conditions); // new points (NEW_ENTITY)
+			
+	        //
+			this->GenerateNewConditions(mrModelPart, list_of_nodes, list_of_conditions);// new conditions(NEW_ENTITY)  //old conditions (TO_ERASE)
 
-	this->SetNodesToModelPart(mrModelPart, list_of_nodes);
+			//
+			this->SetNodesToModelPart(mrModelPart, list_of_nodes);
+
+			//
+			this->SetConditionsToModelPart(mrModelPart, list_of_conditions);
+
+			//new conditions are added to model part and later added to condition model parts via (NEW_ENTITY) and (MODEL_PART_NAME)
 	
-	this->SetConditionsToModelPart(mrModelPart, list_of_conditions);
+		} // REFINE END;
 
-	//new conditions are added to model part and later added to condition model parts via (NEW_ENTITY) and (MODEL_PART_NAME)
+		// inserted boundary nodes
+		mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes()-mrRemesh.Info->InsertedBoundaryNodes;
 
-	
-     } // REFINE END;
+		// echo output
+		if( this->mEchoLevel > 0 ){
+			std::cout<<"   [ CONDITIONS ( total : "<<mrModelPart.NumberOfConditions()<<" ) ]"<<std::endl;
+			std::cout<<"   [ NODES      ( inserted : "<<mrRemesh.Info->InsertedBoundaryNodes<<" total: "<<mrModelPart.NumberOfNodes()<<" ) ]"<<std::endl;
 
+			if( this->mEchoLevel >=1 ){
+				mrRemesh.Refine->Info.BoundaryConditionsRefined.EchoStats();
+			}
 
-     mrRemesh.Info->InsertedBoundaryNodes = mrModelPart.NumberOfNodes()-mrRemesh.Info->InsertedBoundaryNodes;
+			std::cout<<"   REFINE BOUNDARY ]; "<<std::endl;
+		}
 
-     if( this->mEchoLevel > 0 ){
-        std::cout<<"   [ CONDITIONS ( total : "<<mrModelPart.NumberOfConditions()<<" ) ]"<<std::endl;
-        std::cout<<"   [ NODES      ( inserted : "<<mrRemesh.Info->InsertedBoundaryNodes<<" total: "<<mrModelPart.NumberOfNodes()<<" ) ]"<<std::endl;
-
-	if( this->mEchoLevel >=1 ){
-	  mrRemesh.Refine->Info.BoundaryConditionsRefined.EchoStats();
-	}
-	
-        std::cout<<"   REFINE BOUNDARY ]; "<<std::endl;
-     }
-
-     KRATOS_CATCH(" ")
+		KRATOS_CATCH(" ")
     
     }
     
@@ -265,54 +269,59 @@ public:
 
     bool RefineOnThreshold(ConditionType::Pointer& pCondition, ProcessInfo& rCurrentProcessInfo, double& critical_size)
     {
-      KRATOS_TRY
-	           	      
-      if( pCondition->GetValue(MASTER_ELEMENTS).size() > 0 ){
-	
-	Element::ElementType& MasterElement = pCondition->GetValue(MASTER_ELEMENTS).back();
-	
-	std::vector<double> Value;
-	
-	MasterElement.GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,rCurrentProcessInfo);
+		KRATOS_TRY
 		
-	//calculate threshold value (plastic power)
-	double threshold_value = 0;
+		if( pCondition->GetValue(MASTER_ELEMENTS).size() > 0 )
+		{
+			Element::ElementType& MasterElement = pCondition->GetValue(MASTER_ELEMENTS).back();
 	
-	for(std::vector<double>::iterator v = Value.begin(); v!=Value.end(); v++)
-	  threshold_value += *v;
+			std::vector<double> Value;
+	
+			MasterElement.GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,rCurrentProcessInfo);
+		
+			//calculate threshold value (plastic power)
+			double threshold_value = 0;
+	
+			for(std::vector<double>::iterator v = Value.begin(); v!=Value.end(); v++)
+				threshold_value += *v;
 
-	threshold_value /= double(Value.size());
-	threshold_value *= MasterElement.GetGeometry().DomainSize();
+			threshold_value /= double(Value.size());
+			threshold_value *= MasterElement.GetGeometry().DomainSize();
 	
-	//calculate condition length
-	double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
+			//calculate condition length
+			double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
 	
-	if( threshold_value > mrRemesh.Refine->ReferenceThreshold && face_size > critical_size )
-	  return true;
-      }
+			// set refine if both threshold value & minimal face size are reached
+			if( threshold_value > mrRemesh.Refine->ReferenceThreshold && face_size > critical_size )
+			{
+				return true;
+			}
+		}
 
-      return false;
+		return false;
       
-      KRATOS_CATCH( "" )
+		KRATOS_CATCH( "" )
     }
 
     //*******************************************************************************************
     //*******************************************************************************************
 
-
     bool RefineOnDistance(ConditionType::Pointer& pCondition, double& critical_size)
     {
-      KRATOS_TRY
+		KRATOS_TRY
       	      
-      //calculate condition length
-      double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
+		//calculate condition length
+		double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
 	
-      if( face_size > critical_size )
-	return true;
+		// set refine if minimal face size is reached
+		if( face_size > critical_size )
+		{
+			return true;
+		}
+		
+		return false;
       
-      return false;
-      
-      KRATOS_CATCH( "" )
+		KRATOS_CATCH( "" )
     }
 
     //*******************************************************************************************
@@ -320,45 +329,51 @@ public:
 
     bool RefineBoundaryCondition(ConditionType::Pointer& pCondition, ProcessInfo& rCurrentProcessInfo)
     {
-      KRATOS_TRY
+		KRATOS_TRY
 
-      bool refine_condition = false;
+		bool refine_condition = false;
       
-      //THRESHOLD VALUE INSERT
-      double size_for_threshold_face  = 2.50 * mrRemesh.Refine->CriticalSide; 
+		// THRESHOLD VALUE INSERT: 2.5 * 3.0 * critical_mesh_size
+		double size_for_threshold_face  = 2.5 * mrRemesh.Refine->CriticalSide; 
 
-      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) )
-	refine_condition = this->RefineOnThreshold(pCondition, rCurrentProcessInfo, size_for_threshold_face);
+		if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) )
+		{
+			// set refine if both threshold value & minimal face size are reached
+			refine_condition = this->RefineOnThreshold(pCondition, rCurrentProcessInfo, size_for_threshold_face);
+		}
 
-      if( refine_condition ){
+		if( refine_condition )
+		{
+			//check a the critical distance to not refine without limits
+			double size_for_boundary_threshold = mrRemesh.Refine->CriticalSide;
+			refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_threshold);
 
-	//check a the critical distance to not refine without limits
-	double size_for_boundary_threshold = mrRemesh.Refine->CriticalSide;
-	refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_threshold);
+			if( refine_condition ){
+				mrRemesh.Refine->Info.BoundaryConditionsRefined.on_threshold++;
+				return true;
+			}
+		}
 
-	if( refine_condition ){
-	  mrRemesh.Refine->Info.BoundaryConditionsRefined.on_threshold++;
-	  return true;
-	}
-	
-      }
-
-      refine_condition = false;
+		refine_condition = false;
       
-      //DISTANCE VALUE INSERT
-      double size_for_boundary_face   = 3.50 * mrRemesh.Refine->CriticalSide;
+		// DISTANCE VALUE INSERT: 3.5 * 3.0 * critical_mesh_size
+		double size_for_boundary_face   = 3.50 * mrRemesh.Refine->CriticalSide;
 
-      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) )
-	refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_face);
+		if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) )
+		{
+			// set refine if minimal face size is reached
+			refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_face);
+		}
 
-      if( refine_condition ){
-	mrRemesh.Refine->Info.BoundaryConditionsRefined.on_distance++;
-	return true;
-      }
+		if( refine_condition )
+		{
+			mrRemesh.Refine->Info.BoundaryConditionsRefined.on_distance++;
+			return true;
+		}
       
-      return false;
+		return false;
       
-      KRATOS_CATCH( "" )
+		KRATOS_CATCH( "" )
     }   
 
 
@@ -367,71 +382,69 @@ public:
 
     bool RefineContactCondition(ConditionType::Pointer& pCondition, ProcessInfo& rCurrentProcessInfo)
     {
-      KRATOS_TRY
+		KRATOS_TRY
 
-      if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE)
-	   || ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) ) ){
+		if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) || ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_THRESHOLD) ) )
+		{
+			bool refine_condition = false;
+			bool curved_contact      = false;	
+			bool contact_active      = false;
+			bool contact_semi_active = false;
+			std::vector<bool> semi_active_nodes;
+	
+			contact_active = mModelerUtilities.CheckContactActive(pCondition->GetGeometry(), contact_semi_active, semi_active_nodes);
+	
+			double factor = 3.50;
+	
+			if( contact_semi_active )
+			{
+	
+				std::vector<array_1d<double,3> > contact_normals;
+	
+				curved_contact = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), contact_normals);
 
-	bool refine_condition = false;
-	bool curved_contact      = false;	
-	bool contact_active      = false;
-	bool contact_semi_active = false;
-	std::vector<bool> semi_active_nodes;
-	
-	contact_active = mModelerUtilities.CheckContactActive(pCondition->GetGeometry(), contact_semi_active, semi_active_nodes);
-	
-	double factor = 3.50;
-	
-	if( contact_semi_active ){
-	
-	  std::vector<array_1d<double,3> > contact_normals;
-	
-	  curved_contact = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), contact_normals);
+				//FACTOR VALUE INSERT plane contact transition
+				factor = 2.0;
 
-	  //FACTOR VALUE INSERT plane contact transition
-	  factor = 2.0;
+				//FACTOR VALUE INSERT curved contact transition
+				if( curved_contact ){
+					factor = 0.75;
+				}
+	        
+				if( contact_active ){
 
-	  //FACTOR VALUE INSERT curved contact transition
-	  if( curved_contact )
-	    factor = 0.75;
-	  
-	  
-	  if( contact_active ){
+					//FACTOR VALUE INSERT plane contact
+					factor = 1.5;
+				  
+					//FACTOR VALUE INSERT curved contact
+					if( curved_contact ){
+						factor = 0.5;
+					}
+				}
+			}
 
-	    //FACTOR VALUE INSERT plane contact
-	    factor = 1.5;
-	    
-	    //FACTOR VALUE INSERT curved contact
-	    if( curved_contact )
-	      factor = 0.5;
-	  
-	  }
+			if( contact_active || contact_semi_active )
+			{ 
+				double size_for_boundary_contact_face  = factor * mrRemesh.Refine->CriticalSide;
+				refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_contact_face);
 	
-	}
-
-	if( contact_active || contact_semi_active ){ 
-	
-	  double size_for_boundary_contact_face  = factor * mrRemesh.Refine->CriticalSide;
-	  refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_contact_face);
-	
-	  if( refine_condition ){
-	  
-	    mrRemesh.Refine->Info.BoundaryConditionsRefined.on_distance++;
-	    if(contact_active || contact_semi_active){
-	      mrRemesh.Refine->Info.BoundaryConditionsRefined.in_contact++;
-	      if(curved_contact)
-		mrRemesh.Refine->Info.BoundaryConditionsRefined.in_concave_boundary++;
-	    }
-	    return true;
-	  }
-
-	}
-	
-      }
+				if( refine_condition )
+				{
+					mrRemesh.Refine->Info.BoundaryConditionsRefined.on_distance++;
+					if(contact_active || contact_semi_active){
+						mrRemesh.Refine->Info.BoundaryConditionsRefined.in_contact++;
+						if(curved_contact){
+							mrRemesh.Refine->Info.BoundaryConditionsRefined.in_concave_boundary++;
+						}
+					}
+				return true;
+				}
+			}
+		}
       
-      return false;
+		return false;
       
-      KRATOS_CATCH( "" )
+		KRATOS_CATCH( "" )
     }
   
 
@@ -483,7 +496,6 @@ public:
       KRATOS_CATCH( "" )
     } 
    
-
     //*******************************************************************************************
     //*******************************************************************************************
 
@@ -542,7 +554,6 @@ public:
       KRATOS_CATCH( "" )
     }
 
-
     //*******************************************************************************************
     //*******************************************************************************************
 
@@ -564,8 +575,6 @@ public:
 	
       KRATOS_CATCH( "" )
     }
-
-
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -589,8 +598,8 @@ public:
       array_1d<double, 3> Curve;
       Curve.clear();
       
-      if( is_curved ){
-
+		if( is_curved )
+		{
 	//first curve (node to face midpoint)
 	MidPoint = 0.5 * (pCondition->GetGeometry()[2] - pCondition->GetGeometry()[1]);
 	Normal   = 0.5 * (normals[2] + normals[1]);
@@ -617,13 +626,12 @@ public:
 	rVector += Curve;
 
 	rVector *= 1.0/3.0;
-      }
+		}
       
 	
-      KRATOS_CATCH( "" )
+		KRATOS_CATCH( "" )
     }
 
-   
     //*******************************************************************************************
     //*******************************************************************************************
 
@@ -696,11 +704,11 @@ public:
        double d1 = inner_prod( rN1, T1);
        double d2 = inner_prod( rN2, -T1);
        if( d1 * d2 > 0 ){
-	 if( d1 > 0 )
-	   rD *= (-1.0);
+	       if( d1 > 0 )
+	         rD *= (-1.0);
        }
        else{
-	 rD *= 0.0;
+	       rD *= 0.0;
        }
       
        KRATOS_CATCH( "" )
@@ -713,69 +721,75 @@ public:
     void SelectBoundaryToRefine(ModelPart& rModelPart)
     {
 
-      KRATOS_TRY
-	     
-      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-      bool refine_condition = false;
+		KRATOS_TRY
 
+		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+		bool refine_condition = false;
+
+		mrRemesh.Refine->Info.BoundaryConditionsRefined.Initialize();
       
-      mrRemesh.Refine->Info.BoundaryConditionsRefined.Initialize();
-      
-      //LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
-      
-      bool refine_candidate = false;
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
-	{
+		bool refine_candidate = false;
+		
+		// loop over conditions of the model part
+		for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
+	    {
+			// reset refining flags fo false
+			refine_candidate = false;
+			i_cond->Set(TO_REFINE, false);
+			
+			// keep refine flag false for non-boundary condition of CONSTRAINED system, otherwise true
+			if( mrRemesh.Options.Is(ModelerUtilities::CONSTRAINED) ){
+				if( i_cond->Is(BOUNDARY) ){ //ONLY SET TO THE BOUNDARY SKIN CONDITIONS (CompositeCondition)
+					refine_candidate = true;
+				}
+				else{
+					refine_candidate = false;
+				}
+			}
+			else{
+				refine_candidate = true; 
+			}
 
-	  refine_candidate = false;
-	  i_cond->Set(TO_REFINE, false);	
-	  
-	  if( mrRemesh.Options.Is(ModelerUtilities::CONSTRAINED) ){
-	    if( i_cond->Is(BOUNDARY) ) //ONLY SET TO THE BOUNDARY SKIN CONDITIONS (CompositeCondition)
-	      refine_candidate = true;
-	    else
-	      refine_candidate = false;
-	  }
-	  else{
-	    refine_candidate = true; 
-	  }
+			// check condition in box for refining candidate
+			if( refine_candidate )
+			{
+				if (mrRemesh.Refine->RefiningBoxSetFlag == true ){
+					refine_candidate = mModelerUtilities.CheckConditionInBox(*(i_cond.base()), *(mrRemesh.Refine->RefiningBox), rCurrentProcessInfo);
+				}
+			}
 
+			// 
+			if( refine_candidate )
+			{
+				//double condition_radius = 0;
+				
+				// if condition is not set TO_ERASE
+				if( i_cond->IsNot(TO_ERASE) )
+				{
+					// check if refining cadidate should in fact be refined
+					refine_condition = this->RefineBoundaryCondition(*(i_cond.base()), rCurrentProcessInfo);
+					// set condition TO_REFINE
+					if( refine_condition ){
+						i_cond->Set(TO_REFINE);		
+					}
+					else{
+						// check if refining contact candidate should in fact be refined
+						refine_condition = this->RefineContactCondition(*(i_cond.base()), rCurrentProcessInfo);
+						// set condition TO_REFINE
+						if( refine_condition ){
+							i_cond->Set(TO_REFINE);
+						}
+					}
+				}
+				else{
+					if( this->mEchoLevel > 0 ){
+						std::cout<<" Condition "<<i_cond->Id()<<" TO_ERASE "<<std::endl;
+					}
+				}
+			}
+		}
 
-	  if( refine_candidate ){
-	    if (mrRemesh.Refine->RefiningBoxSetFlag == true ){
-	      refine_candidate = mModelerUtilities.CheckConditionInBox(*(i_cond.base()), *(mrRemesh.Refine->RefiningBox), rCurrentProcessInfo);
-	    }
-	  }
-
-
-	  if( refine_candidate ){
-
-	    //double condition_radius = 0;
-	    if( i_cond->IsNot(TO_ERASE) ){
-
-	      refine_condition = this->RefineBoundaryCondition(*(i_cond.base()), rCurrentProcessInfo);
-
-	      if( refine_condition ){
-		i_cond->Set(TO_REFINE);		
-	      }
-	      else{		
-		refine_condition = this->RefineContactCondition(*(i_cond.base()), rCurrentProcessInfo);
-	      
-		if( refine_condition )
-		  i_cond->Set(TO_REFINE);
-	      }
-	      
-	    }
-	    else{
-	      if( this->mEchoLevel > 0 )
-		std::cout<<" Condition "<<i_cond->Id()<<" TO_ERASE "<<std::endl;
-	    }
-
-	  }
-        }
-
-
-      KRATOS_CATCH( "" )
+		KRATOS_CATCH( "" )
     }
 
     //*******************************************************************************************
@@ -783,110 +797,104 @@ public:
 
     void GenerateNewNodes(ModelPart& rModelPart, std::vector<NodeType::Pointer>& list_of_nodes, std::vector<ConditionType::Pointer>& list_of_conditions)
     {
-      KRATOS_TRY
+		KRATOS_TRY
 
-      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+		ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-      MeshDataTransferUtilities DataTransferUtilities;
+		MeshDataTransferUtilities DataTransferUtilities;
       
-      NodeType::Pointer pNode;
+		NodeType::Pointer pNode;
 
-      //center
-      double xc = 0;
-      double yc = 0;
-      double zc = 0;
+		//center
+		double xc = 0;
+		double yc = 0;
+		double zc = 0;
       
-      //radius
-      double radius = 0;
+		//radius
+		double radius = 0;
 
-      //assign data to dofs
-      NodeType::DofsContainerType& ReferenceDofs = rModelPart.Nodes().front().GetDofs();
+		//assign data to dofs
+		NodeType::DofsContainerType& ReferenceDofs = rModelPart.Nodes().front().GetDofs();
 
-      VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
+		VariablesList& VariablesList = rModelPart.GetNodalSolutionStepVariablesList();
 
+		std::vector<double> ShapeFunctionsN;
       
-      std::vector<double> ShapeFunctionsN;
-      
-      unsigned int id = ModelerUtilities::GetMaxNodeId(rModelPart) + 1;
+		unsigned int id = ModelerUtilities::GetMaxNodeId(rModelPart) + 1;
 
-      unsigned int size  = 0;
-      unsigned int count = 0;
-      
-      for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
-	{
-	  if( i_cond->Is(TO_REFINE) )
-	    {	            
+		unsigned int size  = 0;
+		unsigned int count = 0;
 
-	      Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
+		// loop over conditions of the model part
+		for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
+	    {
+			if( i_cond->Is(TO_REFINE) )
+			{	            
 
-	      size = rGeometry.size();	           
+				Geometry< Node<3> >& rGeometry = i_cond->GetGeometry();
 
-	      ShapeFunctionsN.resize(size);
-	      
-		
-	      if( size == 2 )	      	
-		DataTransferUtilities.CalculateCenterAndSearchRadius( rGeometry[0].X(), rGeometry[0].Y(), 
-								      rGeometry[1].X(), rGeometry[1].Y(),
-								      xc,yc,radius);
-		
-	     	      
-	      if( size == 3 )
-		DataTransferUtilities.CalculateCenterAndSearchRadius( rGeometry[0].X(), rGeometry[0].Y(), rGeometry[0].Z(),
-								      rGeometry[1].X(), rGeometry[1].Y(), rGeometry[1].Z(),
-								      rGeometry[2].X(), rGeometry[2].Y(), rGeometry[2].Z(),
-								      xc,yc,zc,radius);
+				size = rGeometry.size();	           
 
+				ShapeFunctionsN.resize(size);
 
-	      this->SetNodalPosition(*(i_cond.base()), rCurrentProcessInfo, xc, yc, zc);
-	      
-	      //create a new node
-	      pNode = boost::make_shared< NodeType >( id, xc, yc, zc );
+				if( size == 2 )	      	
+					DataTransferUtilities.CalculateCenterAndSearchRadius( rGeometry[0].X(), rGeometry[0].Y(), rGeometry[1].X(), rGeometry[1].Y(),xc,yc,radius);
+	
+				if( size == 3 )
+					DataTransferUtilities.CalculateCenterAndSearchRadius( rGeometry[0].X(), rGeometry[0].Y(), rGeometry[0].Z(),
+							                rGeometry[1].X(), rGeometry[1].Y(), rGeometry[1].Z(),
+							                rGeometry[2].X(), rGeometry[2].Y(), rGeometry[2].Z(),
+							                xc,yc,zc,radius);
 
-	      //giving model part variables list to the node
-	      pNode->SetSolutionStepVariablesList(&VariablesList);
-	      
-	      //set buffer size
-	      pNode->SetBufferSize(rModelPart.GetBufferSize());
+				this->SetNodalPosition(*(i_cond.base()), rCurrentProcessInfo, xc, yc, zc);
+          
+				//create a new node
+				pNode = boost::make_shared< NodeType >( id, xc, yc, zc );
 
-	      //generating the dofs
-	      for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); i_dof++)
-		{
-		  NodeType::DofType& rDof = *i_dof;
-		  NodeType::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
+				//giving model part variables list to the node
+				pNode->SetSolutionStepVariablesList(&VariablesList);
+          
+				//set buffer size
+				pNode->SetBufferSize(rModelPart.GetBufferSize());
 
-		  count = 0;
-		  for( unsigned int i = 0; i<size; i++ )
-		    {
-		      if(rGeometry[i].IsFixed(rDof.GetVariable()))
-			count++;
-		    }
+				//generating the dofs
+				for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); i_dof++)
+				{
+					NodeType::DofType& rDof = *i_dof;
+					NodeType::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
 
-		  if( count == size )
-		    (pNewDof)->FixDof();
-		  else
-		    (pNewDof)->FreeDof();
-		}
-	      
-	      std::fill(ShapeFunctionsN.begin(), ShapeFunctionsN.end(), 1.0/double(size));            
+					count = 0;
+					for( unsigned int i = 0; i<size; i++ )
+					{
+						if(rGeometry[i].IsFixed(rDof.GetVariable()))
+						count++;
+					}
 
-	      double alpha = 1;
-	      DataTransferUtilities.Interpolate( rGeometry, ShapeFunctionsN, VariablesList, pNode, alpha );
+					if( count == size )
+						(pNewDof)->FixDof();
+					else
+						(pNewDof)->FreeDof();
+				}
+          
+				std::fill(ShapeFunctionsN.begin(), ShapeFunctionsN.end(), 1.0/double(size));            
 
-	      //set flags
-	      pNode->Set(NEW_ENTITY);
-	      pNode->Set(BOUNDARY);
+				double alpha = 1;
+				DataTransferUtilities.Interpolate( rGeometry, ShapeFunctionsN, VariablesList, pNode, alpha );
 
-	      //set variables
-	      this->SetNewNodeVariables(rModelPart, *(i_cond.base()), pNode);
-	      	          
-	      list_of_nodes.push_back(pNode);
-	      list_of_conditions.push_back(*(i_cond.base()));
-	      
-	      id++;     
-	      
+				//set flags
+				pNode->Set(NEW_ENTITY);
+				pNode->Set(BOUNDARY);
+
+				//set variables
+				this->SetNewNodeVariables(rModelPart, *(i_cond.base()), pNode);
+          	          
+				list_of_nodes.push_back(pNode);
+				list_of_conditions.push_back(*(i_cond.base()));
+          
+				id++;     
+          
+			}
 	    }
-			
-	}
       
       KRATOS_CATCH( "" )
     }
@@ -897,41 +905,39 @@ public:
 
     virtual void SetNewNodeVariables(ModelPart& rModelPart, ConditionType::Pointer& pCondition, NodeType::Pointer& pNode)
     {
-      KRATOS_TRY
-	           	      
-      //set variables:
-      Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
-      
+		KRATOS_TRY
+		
+		//set variables:
+		Geometry< Node<3> >& rGeometry = pCondition->GetGeometry();
 	
-      //set model part
-      pNode->SetValue(MODEL_PART_NAME,rModelPart.Name());
+		//set model part
+		pNode->SetValue(MODEL_PART_NAME,rModelPart.Name());
 
-      //set nodal_h
-      //pNode->FastGetSolutionStepValue(NODAL_H) = mrRemesh.Refine->CriticalSide; //too small problems     
-      pNode->FastGetSolutionStepValue(NODAL_H) = rGeometry.DomainSize();
-      
-      //set normal
-      noalias(pNode->FastGetSolutionStepValue(NORMAL)) = pCondition->GetValue(NORMAL);
-	    
-      //set original position
-      const array_1d<double,3>& Displacement = pNode->FastGetSolutionStepValue(DISPLACEMENT);
-      pNode->X0() = pNode->X() - Displacement[0];
-      pNode->Y0() = pNode->Y() - Displacement[1];
-      pNode->Z0() = pNode->Z() - Displacement[2];
-      
-      //set contact force
-      unsigned int count = 0;
-      for( unsigned int i = 0; i<rGeometry.size(); i++ )
-	{
-	  if( norm_2(rGeometry[i].FastGetSolutionStepValue(CONTACT_FORCE)) == 0 )
-	    count++;
-	}
-      
-      if( count )
-	pNode->FastGetSolutionStepValue(CONTACT_FORCE).clear();
+		//set nodal_h
+		//pNode->FastGetSolutionStepValue(NODAL_H) = mrRemesh.Refine->CriticalSide; //too small problems     
+		pNode->FastGetSolutionStepValue(NODAL_H) = rGeometry.DomainSize();
 
-      
-      KRATOS_CATCH( "" )
+		//set normal
+		noalias(pNode->FastGetSolutionStepValue(NORMAL)) = pCondition->GetValue(NORMAL);
+		
+		//set original position
+		const array_1d<double,3>& Displacement = pNode->FastGetSolutionStepValue(DISPLACEMENT);
+		pNode->X0() = pNode->X() - Displacement[0];
+		pNode->Y0() = pNode->Y() - Displacement[1];
+		pNode->Z0() = pNode->Z() - Displacement[2];
+
+		//set contact force
+		unsigned int count = 0;
+		for( unsigned int i = 0; i<rGeometry.size(); i++ )
+	    {
+			if( norm_2(rGeometry[i].FastGetSolutionStepValue(CONTACT_FORCE)) == 0 )
+				count++;
+	    }
+
+		if( count )
+			pNode->FastGetSolutionStepValue(CONTACT_FORCE).clear();
+
+		KRATOS_CATCH( "" )
     }
 
   
@@ -1098,19 +1104,18 @@ public:
  
     void SetNodesToModelPart(ModelPart& rModelPart, std::vector<NodeType::Pointer>& list_of_nodes)
     {
-      KRATOS_TRY
+		KRATOS_TRY
 
-      if(list_of_nodes.size()){
+		if(list_of_nodes.size())
+		{
+			//add new conditions: ( SOLID body model part )
+			for(std::vector<NodeType::Pointer>::iterator i_node = list_of_nodes.begin(); i_node!= list_of_nodes.end(); i_node++)
+			{
+				rModelPart.Nodes().push_back(*(i_node));
+			}
+		}
 
-	//add new conditions: ( SOLID body model part )
-	for(std::vector<NodeType::Pointer>::iterator i_node = list_of_nodes.begin(); i_node!= list_of_nodes.end(); i_node++)
-	  {
-	    rModelPart.Nodes().push_back(*(i_node));
-	  }
-	
-      }
-
-      KRATOS_CATCH( "" )
+		KRATOS_CATCH( "" )
     }
     //*******************************************************************************************
     //*******************************************************************************************
@@ -1121,21 +1126,21 @@ public:
 
       if(list_of_conditions.size()){
 
-	//clear erased conditions: ( SOLID body model part )
-	this->CleanModelPartConditions(rModelPart);
-  
-	//add new conditions: ( SOLID body model part )
-	for(std::vector<ConditionType::Pointer>::iterator i_cond = list_of_conditions.begin(); i_cond!= list_of_conditions.end(); i_cond++)
-	  {
-	    rModelPart.Conditions().push_back(*(i_cond));
-	  }
+	      //clear erased conditions: ( SOLID body model part )
+	      this->CleanModelPartConditions(rModelPart);
+    
+	      //add new conditions: ( SOLID body model part )
+	      for(std::vector<ConditionType::Pointer>::iterator i_cond = list_of_conditions.begin(); i_cond!= list_of_conditions.end(); i_cond++)
+	      {
+	        rModelPart.Conditions().push_back(*(i_cond));
+	      }
 	
       }
 
-       if( this->mEchoLevel > 0 )
-	std::cout<<"   [ CONDITIONS ( inserted : "<<list_of_conditions.size()<<" ) ]"<<std::endl;
+      if( this->mEchoLevel > 0 )
+	      std::cout<<"   [ CONDITIONS ( inserted : "<<list_of_conditions.size()<<" ) ]"<<std::endl;
 
-       mrRemesh.Info->InsertedBoundaryConditions = list_of_conditions.size();
+      mrRemesh.Info->InsertedBoundaryConditions = list_of_conditions.size();
        
       //renumerate conditions
       // unsigned int id=1;
@@ -1170,7 +1175,7 @@ public:
     	}
 
       if( this->mEchoLevel > 0 )
-	std::cout<<"   [ CONDITIONS ( erased : "<<PreservedConditions.size()-rModelPart.Conditions().size()<<" ) ]"<<std::endl;
+	      std::cout<<"   [ CONDITIONS ( erased : "<<PreservedConditions.size()-rModelPart.Conditions().size()<<" ) ]"<<std::endl;
 
 	  	
       KRATOS_CATCH( "" )

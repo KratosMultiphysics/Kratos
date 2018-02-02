@@ -268,17 +268,17 @@ public:
     struct MeshingInfoParameters
     {
 
-     KRATOS_CLASS_POINTER_DEFINITION(MeshingInfoParameters);
+		KRATOS_CLASS_POINTER_DEFINITION(MeshingInfoParameters);
 
     public:
 
-      //initial and total
-      unsigned int   NumberOfElements;
-      unsigned int   NumberOfNodes;
-      unsigned int   NumberOfConditions;
+		//initial and total
+		unsigned int   NumberOfElements;
+		unsigned int   NumberOfNodes;
+		unsigned int   NumberOfConditions;
 
-      //added
-      unsigned int   NumberOfNewElements;
+		//added
+		unsigned int   NumberOfNewElements;
       unsigned int   NumberOfNewNodes;
       unsigned int   NumberOfNewConditions;     
 
@@ -470,160 +470,218 @@ public:
     struct RefiningParameters
     {
 
-    KRATOS_CLASS_POINTER_DEFINITION(RefiningParameters);
+		KRATOS_CLASS_POINTER_DEFINITION(RefiningParameters);
 
     private:
 
-      //Pointer variables
-      const Variable< double >* mpThresholdVariable;
-      const Variable< double >* mpErrorVariable;
+		//Pointer variables
+		const Variable< double >* mpThresholdVariable;
+		const Variable< double >* mpErrorVariable;
 
     public:
 
-      //reference sizes
-      Flags    RefiningOptions;     //configuration refining options        
-      Flags    RemovingOptions;     //configuration removing options    
-      
-      double   Alpha;               //critical alpha parameter
+		//reference sizes
+		Flags    RefiningOptions;     //configuration refining options        
+		Flags    RemovingOptions;     //configuration removing options    
 
-      double   CriticalRadius;      //critical area   size
-      double   CriticalSide;        //critical length size
-      
-      double   ReferenceThreshold;  //critical variable threshold value
-      double   ReferenceError;      //critical error percentage
+		double   Alpha;               //critical alpha parameter
 
-      //computed sizes
-      double   InitialRadius;       //initial mesh radius/nodal-h
-      double   MeanVolume;          //mean element area/volume
+		double   CriticalRadius;      //critical area   size
+		double   CriticalSide;        //critical length size
 
-      //info parameters
-      RefiningInfoParameters Info;
-      
-      //applied in the spatial box
-      bool     RefiningBoxSetFlag;     
-      SpatialBoundingBox::Pointer  RefiningBox;
+		double   ReferenceThreshold;  //critical variable threshold value
+		double   ReferenceError;      //critical error percentage
 
-      
-      // setting refining variables (generally for python interface)
+		//computed sizes
+		double   InitialRadius;       //initial mesh radius/nodal-h
+		double   MeanVolume;          //mean element area/volume
 
-      void SetRefiningOptions(const Flags&  rOptions)
-      {
-	RefiningOptions=rOptions;
-      };
+		//info parameters
+		RefiningInfoParameters Info;
 
-      void SetRemovingOptions(const Flags&  rOptions)
-      {
-	RemovingOptions=rOptions;
-      };
+		//applied in the spatial box
+		bool     RefiningBoxSetFlag;     
+		SpatialBoundingBox::Pointer  RefiningBox;
 
-      void SetAlphaParameter( const double rAlpha)
-      {
-	Alpha = rAlpha;
-      };
+		//conditional meshing: [x0, y0, z0, vx, vy, vz]
+		std::vector< std::array<double, 6> > ConditionalMeshingNodes;
+		MeshDataTransferUtilities::TransferParameters ConditionalMeshingNodeVariables;
+		MeshDataTransferUtilities::TransferParameters ConditionalMeshingGaussVariables;
+		
 
-      double GetMeanVolume()
-      {
-	return MeanVolume;
-      };
+		// setting refining variables (generally for python interface)
+		void SetConditionalMeshingNodeVariable(const Variable<double>& pVariable)
+		{
+			ConditionalMeshingNodeVariables.SetVariable(pVariable);
+		};
+		
+		void SetConditionalMeshingNodeVariable(const Variable<array_1d<double,3> >& pVariable)
+		{
+			ConditionalMeshingNodeVariables.SetVariable(pVariable);
+		};
+		
+		void SetConditionalMeshingNodeVariable(const Variable<Vector>& pVariable)
+		{
+			ConditionalMeshingNodeVariables.SetVariable(pVariable);
+		};
+		
+		void SetConditionalMeshingNodeVariable(const Variable<Matrix>& pVariable)
+		{
+			ConditionalMeshingNodeVariables.SetVariable(pVariable);
+		};
 
-      void SetMeanVolume( const double rMeanVolume )
-      {
-	MeanVolume = rMeanVolume;
-      };
+		void SetConditionalMeshingGaussVariable(const Variable<double>& pVariable)
+		{
+			ConditionalMeshingGaussVariables.SetVariable(pVariable);
+		};
+		
+		void SetConditionalMeshingGaussVariable(const Variable<array_1d<double,3> >& pVariable)
+		{
+			ConditionalMeshingGaussVariables.SetVariable(pVariable);
+		};
+		
+		void SetConditionalMeshingGaussVariable(const Variable<Vector>& pVariable)
+		{
+			ConditionalMeshingGaussVariables.SetVariable(pVariable);
+		};
+		
+		void SetConditionalMeshingGaussVariable(const Variable<Matrix>& pVariable)
+		{
+			ConditionalMeshingGaussVariables.SetVariable(pVariable);
+		};
 
-      void SetCriticalRadius( const double rCriticalRadius )
-      {
-	CriticalRadius = rCriticalRadius;
-      };
+		void SetConditionalMeshingNodes(Parameters CostumParameters)
+		{
+			//get nodes and constant velocity 
+			ConditionalMeshingNodes.reserve(20);
+			unsigned int size = CostumParameters["conditional_meshing_nodes"].size();
 
-      void SetInitialRadius(const double rInitialRadius)
-      {
-      	KRATOS_TRY
-	  InitialRadius=rInitialRadius;
-      	KRATOS_CATCH(" ")
+			for( unsigned int i=0; i<size; i++ )
+			{
+				Parameters ConstrainedNodeRow = CostumParameters["conditional_meshing_nodes"][i];
 
-      	  }
+				std::array<double, 6> nodalValues;
 
-      void SetCriticalSide( const double rCriticalSide )
-      {
-	CriticalSide = rCriticalSide;
-      };
+				for(unsigned int j=0; j<6; j++)
+					nodalValues[j] = ConstrainedNodeRow[j].GetDouble();
 
-      void SetParameters (const double rAlpha, const double rCriticalRadius, const double rCriticalSide)
-      {
-	Alpha   = rAlpha;
-	CriticalRadius = rCriticalRadius;
-	CriticalSide = rCriticalSide;
-      }
+				ConditionalMeshingNodes.push_back(nodalValues);
+			}
+		};
 
-      void SetRefiningBox ( SpatialBoundingBox::Pointer pRefiningBox )
-      {
-	RefiningBoxSetFlag =true;
-	RefiningBox = pRefiningBox;
-      }
+		void SetRefiningOptions(const Flags&  rOptions)
+		{
+			RefiningOptions=rOptions;
+		};
 
-      void SetReferenceThreshold( const double rReferenceThreshold )
-      {
-	ReferenceThreshold = rReferenceThreshold;
-      };
+		void SetRemovingOptions(const Flags&  rOptions)
+		{
+			RemovingOptions=rOptions;
+		};
 
-      void SetReferenceError( const double rReferenceError )
-      {
-	ReferenceError = rReferenceError;
-      };
+		void SetAlphaParameter( const double rAlpha)
+		{
+			Alpha = rAlpha;
+		};
 
+		double GetMeanVolume()
+		{
+			return MeanVolume;
+		};
 
-      void SetThresholdVariable (const Variable<double>& rVariable)
-      {
-	mpThresholdVariable = &rVariable;
-      };
+		void SetMeanVolume( const double rMeanVolume )
+		{
+			MeanVolume = rMeanVolume;
+		};
 
-      void SetErrorVariable       (const Variable<double>& rVariable)
-      {
-	mpErrorVariable = &rVariable;
-      };
+		void SetCriticalRadius( const double rCriticalRadius )
+		{
+			CriticalRadius = rCriticalRadius;
+		};
 
-      Flags GetRefiningOptions()
-      {
-	return RefiningOptions;
-      };
+		void SetInitialRadius(const double rInitialRadius)
+		{
+			KRATOS_TRY
+			InitialRadius=rInitialRadius;
+			KRATOS_CATCH(" ")
+		}
 
-      Flags GetRemovingOptions()
-      {
-	return RemovingOptions;
-      };
+		void SetCriticalSide( const double rCriticalSide )
+		{
+			CriticalSide = rCriticalSide;
+		};
 
+		void SetParameters (const double rAlpha, const double rCriticalRadius, const double rCriticalSide)
+		{
+			Alpha   = rAlpha;
+			CriticalRadius = rCriticalRadius;
+			CriticalSide = rCriticalSide;
+		}
 
-      double GetReferenceThreshold()
-      {
-	return ReferenceThreshold;
-      };
+		void SetRefiningBox ( SpatialBoundingBox::Pointer pRefiningBox )
+		{
+			RefiningBoxSetFlag =true;
+			RefiningBox = pRefiningBox;
+		}
 
-      const Variable<double>& GetThresholdVariable()
-      {
-	return *mpThresholdVariable;
-      };
+		void SetReferenceThreshold( const double rReferenceThreshold )
+		{
+			ReferenceThreshold = rReferenceThreshold;
+		};
 
-      const Variable<double>& GetErrorVariable()
-      {
-	return *mpErrorVariable;
-      };
+		void SetReferenceError( const double rReferenceError )
+		{
+			ReferenceError = rReferenceError;
+		};
 
-      void Initialize (){
+		void SetThresholdVariable (const Variable<double>& rVariable)
+		{
+			mpThresholdVariable = &rVariable;
+		};
 
-	Alpha               = 0;
+		void SetErrorVariable       (const Variable<double>& rVariable)
+		{
+			mpErrorVariable = &rVariable;
+		};
 
-	CriticalRadius      = 0;	
-	CriticalSide        = 0;
+		Flags GetRefiningOptions()
+		{
+			return RefiningOptions;
+		};
+
+		Flags GetRemovingOptions()
+		{
+			return RemovingOptions;
+		};
+
+		double GetReferenceThreshold()
+		{
+			return ReferenceThreshold;
+		};
+
+		const Variable<double>& GetThresholdVariable()
+		{
+			return *mpThresholdVariable;
+		};
+
+		const Variable<double>& GetErrorVariable()
+		{
+			return *mpErrorVariable;
+		};
+
+		void Initialize (){
+
+			Alpha               = 0;
+
+			CriticalRadius      = 0;	
+			CriticalSide        = 0;
 	
-	ReferenceThreshold  = 0;
-	ReferenceError      = 0;
+			ReferenceThreshold  = 0;
+			ReferenceError      = 0;
 
-	InitialRadius       = 0;
-	MeanVolume          = 0;
-	
-      };
-
+			InitialRadius       = 0;
+			MeanVolume          = 0;
+		};
     };
 
 

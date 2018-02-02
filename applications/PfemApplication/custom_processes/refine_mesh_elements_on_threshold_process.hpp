@@ -95,15 +95,16 @@ public:
     /// Execute method is used to execute the Process algorithms.
     virtual void Execute()
     {
-      KRATOS_TRY
+		KRATOS_TRY
 
-	if( ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) ||  mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) ) && (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ELEMENTS_ON_THRESHOLD) ) ){
-	  
-	  SetNodesToRefine();
+		std::cout<<"----RefineMeshElementsOnThresholdProcess::Execute()----echo: "<<mEchoLevel<<std::endl;
 
-	}
+		if( ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ADD_NODES) ||  mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_INSERT_NODES) ) && (mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_ELEMENTS_ON_THRESHOLD) ) )
+		{
+			SetNodesToRefine();
+		}
 
-      KRATOS_CATCH(" ")
+		KRATOS_CATCH(" ")
     }
 
 
@@ -209,62 +210,62 @@ private:
 
     void SetNodesToRefine()
     {
-      KRATOS_TRY
+		KRATOS_TRY
     
-      ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
+		ProcessInfo& CurrentProcessInfo = mrModelPart.GetProcessInfo();
       
-      double max_value = 0;
-      double critical_value = mrRemesh.Refine->ReferenceThreshold; 
+		double max_value = 0;
+		double critical_value = mrRemesh.Refine->ReferenceThreshold; 
 
-      int counter = 0;
-      //set label refine in elements that must be refined due to dissipation
-      for(ModelPart::ElementsContainerType::const_iterator iii = mrModelPart.ElementsBegin();
-	  iii != mrModelPart.ElementsEnd(); iii++)
-	{
-	  double variable_value=0;
-	  std::vector<double> Value(1);
-
-	  (iii)->GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
-	    
-	  //the expected returned value is an "specific" value (per unit of Area) (usually PlasticPower)
-	  //variable_value = Value[0] * iii->GetGeometry().Area();
-	  variable_value = Value[0] * iii->GetGeometry().DomainSize(); //Area() or Volume()
-
-
-	
-	  if( variable_value > max_value )
-	    max_value = variable_value;
- 
-	  // if(variable_value>0)
-	  //   std::cout<<" Element ["<<iii->Id()<<"] "<<mrRemesh.Refine->GetThresholdVariable()<<": "<<variable_value<<" CriticalValue "<<critical_value<<" Area "<<iii->GetGeometry().DomainSize()<<std::endl;
-	 
-	  if( variable_value > critical_value )
-	    {
-	      //std::cout<<" Refine element "<<std::endl;
-	      Geometry< Node<3> >& rGeometry = iii->GetGeometry();
-	      for(unsigned int i = 0; i<rGeometry.size(); i++)
+		int counter = 0;
+		//set label refine in elements that must be refined due to dissipation
+		for(ModelPart::ElementsContainerType::const_iterator iii = mrModelPart.ElementsBegin(); iii != mrModelPart.ElementsEnd(); iii++)
 		{
-		  if(rGeometry[i].IsNot(BOUNDARY))
-		    rGeometry[i].Set(TO_REFINE);
+			double variable_value=0;
+			std::vector<double> Value(1);
+
+			(iii)->GetValueOnIntegrationPoints(mrRemesh.Refine->GetThresholdVariable(),Value,CurrentProcessInfo);
+	    
+			//the expected returned value is an "specific" value (per unit of Area) (usually PlasticPower)
+			//variable_value = Value[0] * iii->GetGeometry().Area();
+			variable_value = Value[0] * iii->GetGeometry().DomainSize(); //Area() or Volume()
+
+			if( variable_value > max_value )
+				max_value = variable_value;
+ 
+			// if(variable_value>0)
+			//   std::cout<<" Element ["<<iii->Id()<<"] "<<mrRemesh.Refine->GetThresholdVariable()<<": "<<variable_value<<" CriticalValue "<<critical_value<<" Area "<<iii->GetGeometry().DomainSize()<<std::endl;
+	 
+			if( variable_value > critical_value )
+			{
+				//std::cout<<" Refine element "<<std::endl;
+				Geometry< Node<3> >& rGeometry = iii->GetGeometry();
+				for(unsigned int i = 0; i<rGeometry.size(); i++)
+				{
+					if(rGeometry[i].IsNot(BOUNDARY))
+						rGeometry[i].Set(TO_REFINE);
+				}
+				
+				counter ++;
+			}
 		}
-	      counter ++;
-	    }
-		    
-	}
     
-      if( mEchoLevel >= 1 ){	
-	if( max_value < critical_value )
-	  std::cout<<" Threshold Value not REACHED ::  max_value  "<< max_value<<std::endl;
+		if( mEchoLevel >= 1 )
+		{	
+			if( max_value < critical_value ){
+				std::cout<<" Threshold Value of "<<critical_value<<" not REACHED ::  max_value  "<< max_value<<std::endl;
+			}
+			
+			if( counter > 0 ){
+				std::cout<<" Threshold of "<<critical_value<<" reached "<<counter<<" times "<<std::endl;
+			}
+		}
 
-	if( counter > 0 )
-	  std::cout<<" Threshold reached "<<counter<<" times "<<std::endl;
-      }
-      
+		if( mEchoLevel >= 1 ){
+			std::cout<<" Refine Elements On Threshold [number:"<<counter<<"]"<<std::endl;
+		}
 
-      if( mEchoLevel >= 1 )
-	std::cout<<"   Refine Elements On Threshold [number:"<<counter<<"]"<<std::endl;
-
-      KRATOS_CATCH( "" )
+		KRATOS_CATCH( "" )
  
     }
 

@@ -109,22 +109,39 @@ namespace Kratos
       ElementSize *= sqrt( double(dimension) );
       ElementSize = 4.0/ ElementSize; 
 
-
-      double Permeability = rVariables.GetProperties().GetValue(PERMEABILITY); 
+      // anisotropic permeability option
+      bool AnisotropicPermeability = rVariables.GetProperties().GetValue(ANISOTROPIC_PERMEABILITY);
       double StabilizationFactor = rVariables.GetProperties().GetValue( STABILIZATION_FACTOR_WP);
 
-      mPPP = true;
-      if ( mPPP) {
-         rAlphaStabilization = 2.0 / rVariables.ConstrainedModulus - 12.0 * Permeability * rVariables.DeltaTime / pow(ElementSize, 2); 
+      if (AnisotropicPermeability == false)
+      {
+         double Permeability = rVariables.GetProperties().GetValue(PERMEABILITY); 
+
+         mPPP = true;
+         if ( mPPP) {
+            rAlphaStabilization = 2.0 / rVariables.ConstrainedModulus - 12.0 * Permeability * rVariables.DeltaTime / pow(ElementSize, 2);
+         }
+         else {
+            rAlphaStabilization = pow(ElementSize, 2.0) / ( 6.0 * rVariables.ConstrainedModulus) - rVariables.DeltaTime * Permeability/2.0;
+         }
       }
-      else {
-         rAlphaStabilization = pow(ElementSize, 2.0) / ( 6.0 * rVariables.ConstrainedModulus) - rVariables.DeltaTime * Permeability/2.0;
+      else
+      {
+         double VerticalPermeability = rVariables.GetProperties().GetValue(VERTICAL_PERMEABILITY);
+         double HorizontalPermeability = rVariables.GetProperties().GetValue(HORIZONTAL_PERMEABILITY);
+
+         mPPP = true;
+         if (mPPP) {
+            rAlphaStabilization = 2.0 / rVariables.ConstrainedModulus - 12.0 * MathUtils<double>::Min(VerticalPermeability, HorizontalPermeability) * rVariables.DeltaTime / pow(ElementSize, 2);
+         }
+         else {
+            rAlphaStabilization = pow(ElementSize, 2.0) / ( 6.0 * rVariables.ConstrainedModulus) - rVariables.DeltaTime * MathUtils<double>::Min(VerticalPermeability, HorizontalPermeability)/2.0;
+         }
       }
 
       if ( rAlphaStabilization < 0)
          rAlphaStabilization = 0.0; 
       rAlphaStabilization *=  StabilizationFactor;
-
       return rAlphaStabilization; 
 
       KRATOS_CATCH("")
@@ -1010,43 +1027,53 @@ namespace Kratos
 
    void WaterPressureUtilities::GetPermeabilityTensor( const PropertiesType & rProperties, const Matrix& rF, Matrix& rPermeabilityTensor , const double & rInitialPorosity, const double & rVolumeChange)
    {
-      // BASE CASE //
+      // initiate tensor and boolean variables
       unsigned int thisSize = rF.size1();
       (rPermeabilityTensor) = ZeroMatrix( thisSize, thisSize);
-
-      double scalarPermeability = rProperties.GetValue(PERMEABILITY);
-
+      bool AnisotropicPermeability = rProperties.GetValue(ANISOTROPIC_PERMEABILITY);
       bool KozenyCarman = rProperties.GetValue(KOZENY_CARMAN);
-      if ( KozenyCarman == true)
+      bool TransformPermeabilityTensor = rProperties.GetValue(TRANSFORM_PERMEABILITY_TENSOR);
+
+      if (AnisotropicPermeability == false)
       {
-         double Permeability = rProperties.GetValue( PERMEABILITY );
-         // vale, això no serveix pels elements mixtes -.
-         //double Jacobian = MathUtils<double>::Det( rF);
-         double Porosity = 1.0 - (1.0 - rInitialPorosity) / rVolumeChange;
-         double voidRatio = Porosity / ( 1.0 - Porosity);
-         double initialVoidRatio = rInitialPorosity / ( 1.0 - rInitialPorosity);
-
-         double Constant = Permeability * ( 1.0 + initialVoidRatio) / pow( initialVoidRatio, 3.0);
-
-         scalarPermeability = Constant * pow( voidRatio, 3.0) / ( 1.0 + voidRatio);
-         if ( scalarPermeability < Permeability / 1000.0) {
-            scalarPermeability = Permeability /1000.0;
+         double scalarPermeability = rProperties.GetValue(PERMEABILITY);
+         if (KozenyCarman == true)
+         {
+            ApplyKozenyCarman(scalarPermeability, rInitialPorosity, rVolumeChange);
+         }
+         // build tensor in initial config
+         for (unsigned int i = 0; i < thisSize; ++i)
+         {
+            rPermeabilityTensor(i,i) = scalarPermeability;
+         }
+      }
+      else
+      {
+         double scalarVerticalPermeability = rProperties.GetValue(VERTICAL_PERMEABILITY);
+         double scalarHorizontalPermeability = rProperties.GetValue(HORIZONTAL_PERMEABILITY);
+         double scalarPermeabilityRatio = scalarHorizontalPermeability / scalarVerticalPermeability;
+         if (KozenyCarman == true)
+         {
+            ApplyKozenyCarman(scalarVerticalPermeability, rInitialPorosity, rVolumeChange);
+            scalarHorizontalPermeability = scalarVerticalPermeability * scalarPermeabilityRatio;
          }
 
+         for (unsigned int i = 0; i < thisSize; ++i)
+         {
+            // assign the horizontal permeability to diagonal
+            rPermeabilityTensor(i,i) = scalarHorizontalPermeability;
+         }
+         // assign the vertical permeability in y-direction
+         rPermeabilityTensor(1,1) = scalarVerticalPermeability;
       }
 
-      for (unsigned int i = 0; i < thisSize; ++i)
+      if (TransformPermeabilityTensor == true)
       {
-         rPermeabilityTensor(i,i) = scalarPermeability;
+         // after I have the part of the Lagrangian constant
+         rPermeabilityTensor = prod(rPermeabilityTensor, trans( rF) );
+         rPermeabilityTensor = prod( rF, rPermeabilityTensor);
+         rPermeabilityTensor /= MathUtils<double>::Det(rF);
       }
-
-      return;
-
-      // after I have the part of the Lagrangian constant
-      rPermeabilityTensor = prod(rPermeabilityTensor, trans( rF) );
-      rPermeabilityTensor = prod( rF, rPermeabilityTensor);
-      rPermeabilityTensor /= MathUtils<double>::Det(rF);
-
    }
 
    void WaterPressureUtilities::GetPermeabilityTensor( const PropertiesType & rProperties, const Matrix & rF, Matrix & rPermeabilityTensor, const double & rInitialPorosity, const unsigned int & rDimension, const double & rVolumeChange)
@@ -1077,7 +1104,20 @@ namespace Kratos
       principal_dimension = dimension;
       if ( dimension == 3)
          voigtsize = 6;
+   }
+   void WaterPressureUtilities::ApplyKozenyCarman(double & rPermeability, const double & rInitialPorosity, const double & rVolumeChange)
+   {
+      double origPermeability = rPermeability;
+      double Porosity = 1.0 - (1.0 - rInitialPorosity) / rVolumeChange;
+      double voidRatio = Porosity / ( 1.0 - Porosity);
+      double initialVoidRatio = rInitialPorosity / ( 1.0 - rInitialPorosity);
 
+      double Constant = rPermeability * ( 1.0 + initialVoidRatio) / pow( initialVoidRatio, 3.0);
+
+      rPermeability = Constant * pow( voidRatio, 3.0) / ( 1.0 + voidRatio);
+      if ( rPermeability < origPermeability / 1000.0) {
+         rPermeability = origPermeability /1000.0;
+      }
    }
 
 }

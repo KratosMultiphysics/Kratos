@@ -13,31 +13,31 @@ DEPENDENCIES: (Implicit,HIDE,Explicit_Scheme_Type,#CURRENT#)(Explicit,RESTORE,Ex
 QUESTION: Explicit_Scheme_Type#CB#(CentralDifferences,Hamilton)
 VALUE: CentralDifferences
 QUESTION: Time_Step
-VALUE: 0.01
+VALUE: 0.002
 QUESTION: Start_time
 VALUE: 0.0
 QUESTION: End_time
-VALUE: 0.0
+VALUE: 0.5
 QUESTION: LineSearch#CB#(True,False)
-VALUE: False
+VALUE: True
 QUESTION: Implex#CB#(True,False)
 VALUE: False
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
 VALUE: 0
 STATE:HIDDEN
 QUESTION: Set_Domain_Size#CB#(1,0)
-VALUE: 0
+VALUE: 1
 DEPENDENCIES: (0,HIDE,DIMENSION,#CURRENT#)(1,RESTORE,DIMENSION,#CURRENT#)
 QUESTION: DIMENSION#CB#(2,3)
 VALUE: 2
 DEPENDENCIES: (3,HIDE,Axisymmetric,#CURRENT#)(2,RESTORE,Axisymmetric,#CURRENT#)
 QUESTION: Axisymmetric#CB#(True,False)
-VALUE: False
+VALUE: True
 QUESTION: Set_Element_Technology#CB#(1,0)
-VALUE: 0
+VALUE: 1
 DEPENDENCIES: (0,HIDE,DOFS,#CURRENT#,HIDE,Stabilization_Factor,#CURRENT#)(1,RESTORE,DOFS,#CURRENT#,RESTORE,Stabilization_Factor,#CURRENT#)
 QUESTION: DOFS#CB#(DISPLACEMENTS,U-P,ROTATIONS,U-wP,U-J,U-J-wP,U-W)
-VALUE: DISPLACEMENTS
+VALUE: U-J-wP
 DEPENDENCIES: (DISPLACEMENTS,HIDE,Stabilization_Factor,#CURRENT#)
 DEPENDENCIES: (ROTATIONS,HIDE,Stabilization_Factor,#CURRENT#)
 DEPENDENCIES: (U-P,RESTORE,Stabilization_Factor,#CURRENT#)
@@ -62,17 +62,17 @@ QUESTION: Python_file
 VALUE: script.py
 TKWIDGET: TkwidgetFilePath
 QUESTION: Set_initial_state#CB#(False,True)
-VALUE: False
-DEPENDENCIES: (False,HIDE,Constant_weight,#CURRENT#,HIDE,SY,#CURRENT#,HIDE,SX,#CURRENT#,HIDE,WP,#CURRENT#)(True,RESTORE,Constant_weight,#CURRENT#,RESTORE,SX,#CURRENT#,RESTORE,SY,#CURRENT#,RESTORE,WP,#CURRENT#)
+VALUE: True
+DEPENDENCIES: (False,HIDE,Constant_weight,#CURRENT#,HIDE,SY,#CURRENT#,HIDE,SX,#CURRENT#,HIDE,WP,#CURRENT#)     (True,RESTORE,Constant_weight,#CURRENT#,RESTORE,SX,#CURRENT#,RESTORE,SY,#CURRENT#,RESTORE,WP,#CURRENT#)
 QUESTION: Constant_weight#CB#(True,False)
 VALUE: True
 DEPENDENCIES: (True,RESTORE,SY,#CURRENT#,RESTORE,SX,#CURRENT#,RESTORE,WP,#CURRENT#)(False,HIDE,SY,#CURRENT#,HIDE,SX,#CURRENT#,HIDE,WP,#CURRENT#)
 QUESTION: SY
-VALUE: -57.7
+VALUE: -130
 QUESTION: SX
-VALUE: -28.9
+VALUE: -97
 QUESTION: WP
-VALUE: -10.0
+VALUE: -100
 TITLE:Solver
 QUESTION: Linear_Solver#CB#(CGSolver,BICGSTABSolver,TFQMRSolver,DeflatedCGSolver,SkylineLUFactorizationSolver,GMRESSolver,SuperLUSolver,SuperLUIterativeSolver,PastixSolver,AMGCL,AMGCL_NS_Solver)
 VALUE: SuperLUSolver
@@ -81,17 +81,17 @@ VALUE: 1E-9
 QUESTION: Linear_Solver_Max_Iteration
 VALUE: 5000
 QUESTION: Convergence_Criteria#CB#(Displacement_criterion,Residual_criterion,And_criterion,Or_criterion,Mixed_criterion)
-VALUE: Displacement_criterion
+VALUE: Residual_criterion
 QUESTION: Component_Wise_Criterion#CB#(False,True)
 VALUE: False
 QUESTION: Convergence_Tolerance
 VALUE: 1E-6
 QUESTION: Absolute_Tolerance
-VALUE: 1E-9
+VALUE: 4E-7
 QUESTION: Max_Iter
 VALUE: 30
 QUESTION: Number_of_threads
-VALUE: 4
+VALUE: 8
 TITLE:Contact
 QUESTION: FindContacts#CB#(False,True)
 VALUE: False
@@ -117,7 +117,7 @@ QUESTION: Friction_Active#CB#(False,True)
 VALUE: False
 TITLE:PostProcess
 QUESTION: Echo_Level
-VALUE: 0
+VALUE: 1
 QUESTION: File_Format#CB#(Binary,Ascii)
 VALUE: Binary
 QUESTION: Write_Mesh#CB#(Deformed,Undeformed)
@@ -127,13 +127,13 @@ VALUE: PreMeshing
 QUESTION: Write_Reactions#CB#(False,True)
 VALUE: False
 QUESTION: Write_Contact_Forces#CB#(False,True)
-VALUE: False
+VALUE: True
 QUESTION: Write_Conditions#CB#(False,True)
 VALUE: True
 QUESTION: Write_Particles#CB#(False,True)
 VALUE: False
 QUESTION: Write_Frequency
-VALUE: 0
+VALUE: 0.0892
 QUESTION: Plot_Graphs#CB#(False,True)
 VALUE: True
 DEPENDENCIES:(False,HIDE,Plot_Frequency,#CURRENT#)
@@ -141,13 +141,13 @@ DEPENDENCIES:(True,RESTORE,Plot_Frequency,#CURRENT#)
 QUESTION: Plot_Frequency
 VALUE: 0
 QUESTION: Print_List_Files#CB#(False,True)
-VALUE: False
+VALUE: True
 DEPENDENCIES:(False,HIDE,List_Files,#CURRENT#)
 DEPENDENCIES:(True,RESTORE,List_Files,#CURRENT#)
 QUESTION: List_Files:(File_Intervals)
-VALUE: #N# 1 2
+VALUE: #N# 4 1 2 5 10
 QUESTION: Print_Restart#CB#(False,True)
-VALUE: False
+VALUE: True
 DEPENDENCIES:(False,HIDE,Restart_Frequency,#CURRENT#)
 DEPENDENCIES:(True,RESTORE,Restart_Frequency,#CURRENT#)
 QUESTION: Restart_Frequency:
