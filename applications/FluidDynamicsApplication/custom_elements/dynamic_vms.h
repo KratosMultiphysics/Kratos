@@ -214,9 +214,9 @@ public:
     /**
      * Returns a pointer to a new DynamicVMS element, created using given input.
      * The new element will use the same number of integration points as the original.
-     * @param NewId: the ID of the new element.
-     * @param ThisNodes: the nodes of the new element.
-     * @param pProperties: the properties assigned to the new element.
+     * @param NewId the ID of the new element.
+     * @param ThisNodes the nodes of the new element.
+     * @param pProperties the properties assigned to the new element.
      * @return a Pointer to the new element.
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
