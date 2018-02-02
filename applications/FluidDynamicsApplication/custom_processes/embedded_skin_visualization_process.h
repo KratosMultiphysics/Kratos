@@ -25,6 +25,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/key_hash.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "utilities/divide_geometry.h"
@@ -53,21 +54,21 @@ namespace Kratos
 ///@name  Functions
 ///@{
 
-struct NodeKeyComparor {
-    bool operator()(const Node<3>::Pointer& p_lhs, const Node<3>::Pointer& p_rhs) const {
-        if (p_lhs->Id() != p_rhs->Id()){
-            return false;
-        }
+// struct NodeKeyComparor {
+//     bool operator()(const Node<3>::Pointer& p_lhs, const Node<3>::Pointer& p_rhs) const {
+//         if (p_lhs->Id() != p_rhs->Id()){
+//             return false;
+//         }
 
-        return true;
-    }
-};
+//         return true;
+//     }
+// };
 
-struct NodeKeyHasher {
-    std::size_t operator()(const Node<3>::Pointer& k) const {
-        return k->Id();
-    }
-};
+// struct NodeKeyHasher {
+//     std::size_t operator()(const Node<3>::Pointer& k) const {
+//         return k->Id();
+//     }
+// };
 
 ///@}
 ///@name Kratos Classes
@@ -93,7 +94,11 @@ public:
     /// Pointer definition of EmbeddedSkinVisualizationProcess
     KRATOS_CLASS_POINTER_DEFINITION(EmbeddedSkinVisualizationProcess);
 
-    typedef std::unordered_map< Node<3>::Pointer, std::tuple< const Node<3>::Pointer, const Node<3>::Pointer, const double, const double >, NodeKeyHasher, NodeKeyComparor > CutNodesMapType;
+    typedef std::unordered_map< 
+        Node<3>::Pointer, 
+        std::tuple< const Node<3>::Pointer, const Node<3>::Pointer, const double, const double >, 
+        SharedPointerHasher<Node<3>::Pointer>, 
+        SharedPointerComparator<Node<3>::Pointer> > CutNodesMapType;
 
     ///@}
     ///@name Life Cycle
@@ -180,7 +185,7 @@ private:
 
     CutNodesMapType                                                                     mCutNodesMap;
 
-    std::vector<Element::Pointer>                                                       mNewElementsPointers;
+    ModelPart::ElementsContainerType                                                    mNewElementsPointers;
 
     std::vector<Variable< double> >                                                     mVisualizationScalarVariables;
     std::vector<Variable< array_1d<double, 3> > >                                       mVisualizationVectorVariables;
@@ -188,8 +193,8 @@ private:
 
     std::string                                                                         mShapeFunctions;
 
-    bool                                                                                mReformModelPartAtEachTimeStep;
-    bool                                                                                mMeshCreationWasPerformed = false;
+    bool                                                                                mReformModelPartAtEachTimeStep = false;
+    bool                                                                                mSetVisualizationMesh = true;
 
     ///@}
     ///@name Protected Operators
