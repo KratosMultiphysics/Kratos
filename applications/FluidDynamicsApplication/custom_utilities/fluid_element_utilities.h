@@ -74,7 +74,7 @@ public:
     FluidElementUtilities(FluidElementUtilities const& rOther) = delete;
 
     /// Destructor.
-    virtual ~FluidElementUtilities();
+    ~FluidElementUtilities();
 
     ///@}
     ///@name Operators

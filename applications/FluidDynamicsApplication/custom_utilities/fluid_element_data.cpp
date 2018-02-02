@@ -109,9 +109,18 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProper
     rData = rElement.GetProperties().GetValue(rVariable);
 }
 
+// Triangles
 template class FluidElementData<2,3,false>;
 template class FluidElementData<2,3,true>;
+
+// Quadrilaterals
+template class FluidElementData<2,4,false>;
+
+// Tetrahedra
 template class FluidElementData<3,4,false>;
 template class FluidElementData<3,4,true>;
+
+// Hexahedra
+template class FluidElementData<3,8,false>;
 
 }
