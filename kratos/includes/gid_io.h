@@ -711,9 +711,9 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), static_cast<double>(i_node->GetSolutionStepValue(rVariable,
+        for ( NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
+            GiD_fWriteScalar( mResultFile, it_node->Id(), static_cast<double>(it_node->GetSolutionStepValue(rVariable,
                              SolutionStepNumber)) );
         GiD_fEndResult(mResultFile);
 
@@ -735,9 +735,9 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+        for ( NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
+            GiD_fWriteScalar( mResultFile, it_node->Id(), it_node->GetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
         GiD_fEndResult(mResultFile);
 
@@ -756,9 +756,9 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+        for ( NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
+            GiD_fWriteScalar( mResultFile, it_node->Id(), it_node->GetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
         GiD_fEndResult(mResultFile);
 
@@ -781,12 +781,12 @@ public:
         GiD_fBeginResult(mResultFile,(char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Vector,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for (NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
         {
-            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+            const array_1d<double, 3>& temp = it_node->GetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
-            GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+            GiD_fWriteVector( mResultFile, it_node->Id(), temp[0], temp[1], temp[2] );
         }
         GiD_fEndResult(mResultFile);
 
@@ -809,16 +809,16 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Matrix,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for (NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
         {
-            Vector& tempVector = i_node->FastGetSolutionStepValue(rVariable,
+            const Vector& temp_vector = it_node->FastGetSolutionStepValue(rVariable,
                                  SolutionStepNumber);
-            if (tempVector.size() ==3 )
-                GiD_fWriteVector(mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2) );
-            else if (tempVector.size() == 6 )
-                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2),
-                                    tempVector(3), tempVector(4), tempVector(5) );
+            if (temp_vector.size() ==3 )
+                GiD_fWriteVector(mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2] );
+            else if (temp_vector.size() == 6 )
+                GiD_fWrite3DMatrix( mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2],
+                                    temp_vector[3], temp_vector[4], temp_vector[5] );
         }
         GiD_fEndResult(mResultFile);
 
@@ -839,35 +839,34 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Matrix,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for (NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
         {
-            Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable,
+            const Matrix& temp_matrix = it_node->GetSolutionStepValue(rVariable,
                     SolutionStepNumber);
-            //Matrix& tempMatrix = i_node->GetValue(rVariable);
-            if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
+            if (temp_matrix.size1() ==3 && temp_matrix.size2() ==3)
             {
-                GiD_fWrite3DMatrix( mResultFile,  i_node->Id(), tempMatrix(0,0), tempMatrix(1,1),
-                                    tempMatrix(2,2), tempMatrix(0,1), tempMatrix(1,2),
-                                    tempMatrix(0,2) );
+                GiD_fWrite3DMatrix( mResultFile,  it_node->Id(), temp_matrix(0,0), temp_matrix(1,1),
+                                    temp_matrix(2,2), temp_matrix(0,1), temp_matrix(1,2),
+                                    temp_matrix(0,2) );
             }
-            else if (tempMatrix.size1() ==2 && tempMatrix.size2() ==2)
+            else if (temp_matrix.size1() ==2 && temp_matrix.size2() ==2)
             {
-                GiD_fWrite2DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(1,1), tempMatrix(0,1));
+                GiD_fWrite2DMatrix( mResultFile, it_node->Id(), temp_matrix(0,0), temp_matrix(1,1), temp_matrix(0,1));
             }
 
-            else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==3)
+            else if (temp_matrix.size1() ==1 && temp_matrix.size2() ==3)
             {
 
-                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), 0.00,
-                                   tempMatrix(0,2), 0.00, 0.00);
+                GiD_fWrite3DMatrix( mResultFile, it_node->Id(), temp_matrix(0,0), temp_matrix(0,1), 0.00,
+                                   temp_matrix(0,2), 0.00, 0.00);
             }
-            else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==6)
+            else if (temp_matrix.size1() ==1 && temp_matrix.size2() ==6)
             {
-                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), tempMatrix(0,2),
-                                   tempMatrix(0,3), tempMatrix(0,4), tempMatrix(0,5) );
+                GiD_fWrite3DMatrix( mResultFile, it_node->Id(), temp_matrix(0,0), temp_matrix(0,1), temp_matrix(0,2),
+                                   temp_matrix(0,3), temp_matrix(0,4), temp_matrix(0,5) );
             }
-            //i_node->GetValue(rVariable) = tempMatrix;
+            //it_node->GetValue(rVariable) = temp_matrix;
 
         }
         GiD_fEndResult(mResultFile);
@@ -887,12 +886,12 @@ public:
                          SolutionTag, GiD_LocalAxes,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
 
-        for (NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for (NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
         {
-            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+            const array_1d<double, 3>& temp = it_node->GetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
-            GiD_fWriteLocalAxes( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+            GiD_fWriteLocalAxes( mResultFile, it_node->Id(), temp[0], temp[1], temp[2] );
         }
         GiD_fEndResult(mResultFile);
 
@@ -912,10 +911,10 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rFlagName.c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for ( NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
         {
-            GiD_fWriteScalar( mResultFile, i_node->Id(),  static_cast<double>(i_node->Is(rFlag)));
+            GiD_fWriteScalar( mResultFile, it_node->Id(),  static_cast<double>(it_node->Is(rFlag)));
         }
         GiD_fEndResult(mResultFile);
 
@@ -932,9 +931,9 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                           SolutionTag, GiD_Scalar,
                           GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( NodesContainerType::iterator i_node = rNodes.begin();
-              i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), static_cast<double>(i_node->GetValue(rVariable)) );
+        for ( NodesContainerType::iterator it_node = rNodes.begin();
+              it_node != rNodes.end() ; ++it_node)
+            GiD_fWriteScalar( mResultFile, it_node->Id(), static_cast<double>(it_node->GetValue(rVariable)) );
         GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
@@ -953,9 +952,9 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for ( NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
-            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetValue(rVariable) );
+        for ( NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
+            GiD_fWriteScalar( mResultFile, it_node->Id(), it_node->GetValue(rVariable) );
         GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
@@ -973,11 +972,11 @@ public:
         GiD_fBeginResult(mResultFile,(char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Vector,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for (NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
         {
-            array_1d<double, 3>& temp = i_node->GetValue( rVariable);
-            GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+            const array_1d<double, 3>& temp = it_node->GetValue( rVariable);
+            GiD_fWriteVector( mResultFile, it_node->Id(), temp[0], temp[1], temp[2] );
         }
         GiD_fEndResult(mResultFile);
 
@@ -998,15 +997,15 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Matrix,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for (NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
         {
-            Vector& tempVector = i_node->GetSolutionStepValue(rVariable);
-            if (tempVector.size() ==3 )
-                GiD_fWriteVector(mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2) );
-            else if (tempVector.size() == 6 )
-                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2),
-                                    tempVector(3), tempVector(4), tempVector(5) );
+            const Vector& temp_vector = it_node->GetValue(rVariable);
+            if (temp_vector.size() ==3 )
+                GiD_fWriteVector(mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2] );
+            else if (temp_vector.size() == 6 )
+                GiD_fWrite3DMatrix( mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2],
+                                    temp_vector[3], temp_vector[4], temp_vector[5] );
         }
         GiD_fEndResult(mResultFile);
 
@@ -1025,34 +1024,32 @@ public:
         GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Matrix,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
-        for (NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for (NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
         {
-            Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable);
-            //Matrix& tempMatrix = i_node->GetValue(rVariable);
-            if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
+            const Matrix& temp_matrix = it_node->GetValue(rVariable);
+            if (temp_matrix.size1() ==3 && temp_matrix.size2() ==3)
             {
-                GiD_fWrite3DMatrix( mResultFile,  i_node->Id(), tempMatrix(0,0), tempMatrix(1,1),
-                                    tempMatrix(2,2), tempMatrix(0,1), tempMatrix(1,2),
-                                    tempMatrix(0,2) );
+                GiD_fWrite3DMatrix( mResultFile,  it_node->Id(), temp_matrix(0,0), temp_matrix(1,1),
+                                    temp_matrix(2,2), temp_matrix(0,1), temp_matrix(1,2),
+                                    temp_matrix(0,2) );
             }
-            else if (tempMatrix.size1() ==2 && tempMatrix.size2() ==2)
+            else if (temp_matrix.size1() ==2 && temp_matrix.size2() ==2)
             {
-                GiD_fWrite2DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(1,1), tempMatrix(0,1));
+                GiD_fWrite2DMatrix( mResultFile, it_node->Id(), temp_matrix(0,0), temp_matrix(1,1), temp_matrix(0,1));
             }
 
-            else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==3)
+            else if (temp_matrix.size1() ==1 && temp_matrix.size2() ==3)
             {
 
-                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), 0.00,
-                                   tempMatrix(0,2), 0.00, 0.00);
+                GiD_fWrite3DMatrix( mResultFile, it_node->Id(), temp_matrix(0,0), temp_matrix(0,1), 0.00,
+                                   temp_matrix(0,2), 0.00, 0.00);
             }
-            else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==6)
+            else if (temp_matrix.size1() ==1 && temp_matrix.size2() ==6)
             {
-                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), tempMatrix(0,2),
-                                   tempMatrix(0,3), tempMatrix(0,4), tempMatrix(0,5) );
+                GiD_fWrite3DMatrix( mResultFile, it_node->Id(), temp_matrix(0,0), temp_matrix(0,1), temp_matrix(0,2),
+                                   temp_matrix(0,3), temp_matrix(0,4), temp_matrix(0,5) );
             }
-            //i_node->GetValue(rVariable) = tempMatrix;
 
         }
         GiD_fEndResult(mResultFile);
@@ -1069,11 +1066,11 @@ public:
                          SolutionTag, GiD_LocalAxes,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
 
-        for (NodesContainerType::iterator i_node = rNodes.begin();
-                i_node != rNodes.end() ; ++i_node)
+        for (NodesContainerType::iterator it_node = rNodes.begin();
+                it_node != rNodes.end() ; ++it_node)
         {
-            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable);
-            GiD_fWriteLocalAxes( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
+            const array_1d<double, 3>& temp = it_node->GetSolutionStepValue( rVariable);
+            GiD_fWriteLocalAxes( mResultFile, it_node->Id(), temp[0], temp[1], temp[2] );
         }
         GiD_fEndResult(mResultFile);
 

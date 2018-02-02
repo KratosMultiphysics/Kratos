@@ -53,7 +53,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties 
         ) const
     {
-        return Element::Pointer( new AxisymSmallDisplacement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+        return Kratos::make_shared<AxisymSmallDisplacement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************

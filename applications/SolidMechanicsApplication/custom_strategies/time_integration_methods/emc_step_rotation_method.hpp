@@ -84,7 +84,7 @@ namespace Kratos
     EmcStepRotationMethod(EmcStepRotationMethod& rOther) : DerivedType(rOther) {}
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new EmcStepRotationMethod(*this) );
     }
@@ -102,9 +102,7 @@ namespace Kratos
 
     // update
     virtual void Update(NodeType& rNode) override;
-
-    virtual void UpdateVariable(NodeType& rNode) override;
- 
+     
     virtual void UpdateFirstDerivative(NodeType& rNode) override;
 
     virtual void UpdateSecondDerivative(NodeType& rNode) override;
@@ -248,8 +246,12 @@ namespace Kratos
   ///@}
 
   ///@name Type Definitions
-  ///@{
+  ///@{  
 
+  template<>
+  void EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::Update(NodeType& rNode);
+ 
+  
   template<class TVariableType, class TValueType>
   void EmcStepRotationMethod<TVariableType,TValueType>::Update(NodeType& rNode)
   {
@@ -260,17 +262,10 @@ namespace Kratos
       KRATOS_CATCH( "" )
   }
 
-  template<class TVariableType, class TValueType>
-  void EmcStepRotationMethod<TVariableType,TValueType>::UpdateVariable(NodeType& rNode)
-  {
-      KRATOS_TRY
 
-      KRATOS_ERROR << " Calling a non compatible type update for ROTATIONS " <<std::endl;
-	
-      KRATOS_CATCH( "" )
-  }
-
-
+  template<>
+  void EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::UpdateFirstDerivative(NodeType& rNode);
+  
   template<class TVariableType, class TValueType>
   void EmcStepRotationMethod<TVariableType,TValueType>::UpdateFirstDerivative(NodeType& rNode)
   {
@@ -286,7 +281,9 @@ namespace Kratos
       KRATOS_CATCH( "" )
   }
 
-
+  template<>
+  void EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::UpdateSecondDerivative(NodeType& rNode);
+  
   template<class TVariableType, class TValueType>
   void EmcStepRotationMethod<TVariableType,TValueType>::UpdateSecondDerivative(NodeType& rNode)
   {
@@ -309,6 +306,7 @@ namespace Kratos
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, EmcStepRotationMethod<TVariableType,TValueType>& rThis)
   {
+    return rIStream;
   }
 
   template<class TVariableType, class TValueType>
@@ -316,6 +314,10 @@ namespace Kratos
   {
     return rOStream << rThis.Info();
   }
+
+
+  // template<>
+  // class EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > : public EmcStepMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > {};
   
   ///@}
 

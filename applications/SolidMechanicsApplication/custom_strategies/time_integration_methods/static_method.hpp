@@ -80,7 +80,7 @@ namespace Kratos
     StaticMethod(StaticMethod& rOther) : BaseType(rOther) {}
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new StaticMethod(*this) );
     }
@@ -241,6 +241,7 @@ namespace Kratos
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, StaticMethod<TVariableType,TValueType>& rThis)
   {
+    return rIStream;
   }
 
   template<class TVariableType, class TValueType>

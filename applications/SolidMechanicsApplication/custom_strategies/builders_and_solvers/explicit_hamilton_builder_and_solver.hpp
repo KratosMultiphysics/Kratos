@@ -57,7 +57,7 @@ class ExplicitHamiltonBuilderAndSolver
 public:
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ExplicitHamiltonBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+
     KRATOS_CLASS_POINTER_DEFINITION( ExplicitHamiltonBuilderAndSolver );
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;

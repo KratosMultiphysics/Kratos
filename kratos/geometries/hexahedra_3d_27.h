@@ -369,7 +369,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //         NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
+    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -1192,9 +1192,9 @@ private:
     CalculateShapeFunctionsIntegrationPointsLocalGradients(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
+        const IntegrationPointsContainerType all_integration_points =
             AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
+        const IntegrationPointsArrayType integration_points =
             all_integration_points[ThisMethod];
         //number of integration points
         const int integration_points_number = integration_points.size();

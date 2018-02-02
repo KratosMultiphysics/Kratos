@@ -935,7 +935,7 @@ public:
     /**
      * ShapeFunctionsValues: Will compute all shape functions values at all Gauss Points
      * @param ThisMethod: Specifies which Gauss Scheme is used
-     * @return  The Shape Functions Values will be stored in a Matrix \f$ F_i_j \f$ where
+     * @return  The Shape Functions Values will be stored in a Matrix \f$ F_{ij} \f$ where
      *          i is the given integration point index of the integration method and j defines
      *          the shape function index.
      */
@@ -1899,11 +1899,11 @@ private:
      * F_1_0 = dy/dXi
      * F_1_1 = dy/dEta
      *
-     * @param Xi: Local Xi- Coordinate where the derivatives shall be evaluated
-     * @param Eta: Local Eta- Coordinate where the derivatives shall be evaluated
-     * @param NurbsBasisFunctionDerivativesXi: will contain the NURBS-Basis Functions Xi-Derivatives
-     * @param NurbsBasisFunctionDerivativesEta: will contain the NURBS-Basis Functions Eta-Derivatives
-     * @param NurbsFunctionsValues: will contain the NURBS-Basis Functions Values
+     * @param Xi Local Xi- Coordinate where the derivatives shall be evaluated
+     * @param Eta Local Eta- Coordinate where the derivatives shall be evaluated
+     * @param NurbsBasisFunctionDerivativesXi will contain the NURBS-Basis Functions Xi-Derivatives
+     * @param NurbsBasisFunctionDerivativesEta will contain the NURBS-Basis Functions Eta-Derivatives
+     * @param NurbsFunctionsValues will contain the NURBS-Basis Functions Values
      * @return: Local derivatives of x and y.
      *
      * @note: The NurbsBasisFunctionDerivativesXi/Eta R_i_j are the NURBS local derivatives.
@@ -2144,10 +2144,10 @@ private:
      * F_1_0 = dy/dXi
      * F_1_1 = dy/dEta
      *
-     * @param Xi: Local Xi- Coordinate where the derivatives shall be evaluated
-     * @param Eta: Local Eta- Coordinate where the derivatives shall be evaluated
-     * @param NurbsBasisFunctionDerivativesXi: will contain the NURBS-Basis Functions Xi-Derivatives
-     * @param NurbsBasisFunctionDerivativesEta: will contain the NURBS-Basis Functions Eta-Derivatives
+     * @param Xi Local Xi- Coordinate where the derivatives shall be evaluated
+     * @param Eta Local Eta- Coordinate where the derivatives shall be evaluated
+     * @param NurbsBasisFunctionDerivativesXi will contain the NURBS-Basis Functions Xi-Derivatives
+     * @param NurbsBasisFunctionDerivativesEta will contain the NURBS-Basis Functions Eta-Derivatives
      * @return: Local derivatives of x and y.
      *
      * @note: The NurbsBasisFunctionDerivativesXi/Eta R_i_j are the NURBS local derivatives.
@@ -2185,8 +2185,8 @@ private:
      * F_1_0 = dy/dXi
      * F_1_1 = dy/dEta
      *
-     * @param Xi: Local Xi- Coordinate where the derivatives shall be evaluated
-     * @param Eta: Local Eta- Coordinate where the derivatives shall be evaluated
+     * @param Xi Local Xi- Coordinate where the derivatives shall be evaluated
+     * @param Eta Local Eta- Coordinate where the derivatives shall be evaluated
      * @return: Local derivatives of x and y.
      */
 
@@ -2202,7 +2202,7 @@ private:
 
 
 
-	     /**
+    /**
      * BSplinesToNurbs function takes as input the
      * evaluated B-Spline Shape Functions and modifies them to NURBS-
      * Basis Functions taking into account the weights

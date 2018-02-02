@@ -477,7 +477,7 @@ void LinearSolidElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
 	noalias(DN_DX) = prod( DN_De[PointNumber] , InvJ );
 	
 	//set shape functions for this integration point
-        Vector N=row( Ncontainer, PointNumber);
+        Vector N = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 
  	//b.-compute infinitessimal strain
@@ -1054,7 +1054,7 @@ void LinearSolidElement::CalculateOnIntegrationPoints( const Variable<Matrix>& r
 	  noalias(DN_DX) = prod( DN_De[PointNumber], InvJ );
 	
 	  //set shape functions for this integration point
-	  Vector N=row( Ncontainer, PointNumber);
+	  Vector N = matrix_row<const Matrix>( Ncontainer, PointNumber);
 
 
 	  //b.-compute infinitessimal strain
