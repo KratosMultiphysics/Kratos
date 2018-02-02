@@ -540,7 +540,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
         //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output_uncut[counter][j], 1e-6);
+            KRATOS_CHECK_NEAR(RHS[j], output[counter][j], 1e-6);
         }
 
         counter++;
