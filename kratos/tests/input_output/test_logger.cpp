@@ -15,7 +15,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "input_output/logger.h"
-#include "input_output/logger_output.h"
+#include "input_output/logger_table_output.h"
 
 
 namespace Kratos {
@@ -186,6 +186,27 @@ namespace Kratos {
             }
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "....");
+        }
+
+
+		KRATOS_TEST_CASE_IN_SUITE(LoggerTableOutput, KratosCoreFastSuite)
+		{
+			static std::stringstream buffer;
+			LoggerTableOutput output(buffer, {"Time Step    ", "Iteration Number", "Convergence"});
+			Logger::AddOutput(output);
+            output.WriteHeader();
+
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n");
+
+            std::size_t time_step = 1;
+			Logger("Time Step") << time_step;
+
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1");
+
+			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output " ;
+
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1");
+
         }
 
 	}   // namespace Testing
