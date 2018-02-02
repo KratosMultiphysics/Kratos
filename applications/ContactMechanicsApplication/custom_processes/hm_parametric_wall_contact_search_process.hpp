@@ -29,7 +29,6 @@
 #include "custom_conditions/water_point_contact_penalty_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"
-#include "includes/mat_variables.h"
 
 namespace Kratos
 {

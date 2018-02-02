@@ -71,6 +71,7 @@ namespace Kratos {
       //Register Variables
       KRATOS_REGISTER_VARIABLE( FRICTION_LAW_NAME )
       KRATOS_REGISTER_VARIABLE( FRICTION_LAW )
+      KRATOS_REGISTER_VARIABLE( HYDRAULIC )
       
       //contact properties
       KRATOS_REGISTER_VARIABLE( FRICTION_ACTIVE )
