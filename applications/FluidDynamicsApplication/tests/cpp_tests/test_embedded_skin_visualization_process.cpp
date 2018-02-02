@@ -17,6 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "includes/gid_io.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -46,7 +47,7 @@ namespace Kratos {
 
             Parameters mesher_parameters(R"(
             {
-                "number_of_divisions" :  9,
+                "number_of_divisions" :  5,
                 "element_name"        : "Element2D3N"
             })");
 
@@ -57,7 +58,7 @@ namespace Kratos {
             StructuredMeshGeneratorProcess(square_domain, main_model_part, mesher_parameters).Execute();
 
             // Set the nodal values
-            const double level_set_height = 5.0;
+            const double level_set_height = 4.5;
             for (unsigned int i_node = 0; i_node < main_model_part.NumberOfNodes(); ++i_node){
                 auto it_node = main_model_part.NodesBegin() + i_node;
 
@@ -69,13 +70,13 @@ namespace Kratos {
                 double p_node;
                 array_1d<double, 3> v_node = ZeroVector(3);
                 if (node_distance > 0.0){
-                    v_node[0] = it_node->X();
-                    v_node[1] = std::pow(it_node->X(), 2);
-                    p_node = std::pow(it_node->X(), 3);
+                    v_node[0] = it_node->Y();
+                    v_node[1] = std::pow(it_node->Y(), 2);
+                    p_node = (it_node->X())*(it_node->Y());
                 } else {
-                    v_node[0] = -(it_node->X());
-                    v_node[1] = -(std::pow(it_node->X(), 1.5));
-                    p_node = -(std::pow(it_node->X(), 2.5));
+                    v_node[0] = -(it_node->Y());
+                    v_node[1] = -(std::pow(it_node->Y(), 2));
+                    p_node = -(it_node->X())*(it_node->Y());
                 }
 
                 it_node->FastGetSolutionStepValue(VELOCITY) = v_node;
@@ -90,9 +91,31 @@ namespace Kratos {
             visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
 
             // Set the embedded skin visualization process
-            EmbeddedSkinVisualizationProcess skin_visualization_process(main_model_part, visualization_model_part);
+            Parameters visualization_settings(R"(
+            {
+                "shape_functions"         : "standard",
+                "visualization_variables" : ["VELOCITY","PRESSURE"]
+            })");
+
+            EmbeddedSkinVisualizationProcess skin_visualization_process(
+                main_model_part, 
+                visualization_model_part, 
+                visualization_settings);
+
             skin_visualization_process.ExecuteInitialize();
-            skin_visualization_process.ExecuteAfterOutputStep();
+            skin_visualization_process.ExecuteInitializeSolutionStep();
+            skin_visualization_process.ExecuteBeforeOutputStep();
+            skin_visualization_process.ExecuteFinalizeSolutionStep();
+
+            // GidIO<> gid_io_fluid("/home/rzorrilla/Kratos/tests/visualizaton_model_part_2d", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+            // gid_io_fluid.InitializeMesh(0);
+            // gid_io_fluid.WriteMesh(visualization_model_part.GetMesh());
+            // gid_io_fluid.FinalizeMesh();
+            // gid_io_fluid.InitializeResults(0, visualization_model_part.GetMesh());
+            // gid_io_fluid.WriteNodalResults(DISTANCE, visualization_model_part.Nodes(), 0, 0);
+            // gid_io_fluid.WriteNodalResults(VELOCITY, visualization_model_part.Nodes(), 0, 0);
+            // gid_io_fluid.WriteNodalResults(PRESSURE, visualization_model_part.Nodes(), 0, 0);
+            // gid_io_fluid.FinalizeResults();
         }
 
 	    /** 
@@ -115,7 +138,7 @@ namespace Kratos {
 
             Parameters mesher_parameters(R"(
             {
-                "number_of_divisions" :  10,
+                "number_of_divisions" :  5,
                 "element_name"        : "Element3D4N"
             })");
 
@@ -124,6 +147,66 @@ namespace Kratos {
             main_model_part.AddNodalSolutionStepVariable(VELOCITY);
             main_model_part.AddNodalSolutionStepVariable(PRESSURE);
             StructuredMeshGeneratorProcess(cube_domain, main_model_part, mesher_parameters).Execute();
+
+            // Set the nodal values
+            const double level_set_height = 4.5;
+            for (unsigned int i_node = 0; i_node < main_model_part.NumberOfNodes(); ++i_node){
+                auto it_node = main_model_part.NodesBegin() + i_node;
+
+                // Set DISTANCE values
+                const double node_distance = (it_node->Z()) - level_set_height;
+                it_node->FastGetSolutionStepValue(DISTANCE) = node_distance;
+
+                // Set the VELOCITY and PRESSURE values
+                double p_node;
+                array_1d<double, 3> v_node = ZeroVector(3);
+                if (node_distance > 0.0){
+                    v_node[0] = it_node->X()*it_node->Z();
+                    v_node[1] = it_node->X()*it_node->Z();
+                    p_node = (std::pow(it_node->X(), 3))*it_node->Z();
+                } else {
+                    v_node[0] = -(it_node->X()*it_node->Z());
+                    v_node[1] = -(it_node->X()*it_node->Z());
+                    p_node = -(std::pow(it_node->X(), 2.5))*it_node->Z();
+                }
+
+                it_node->FastGetSolutionStepValue(VELOCITY) = v_node;
+                it_node->FastGetSolutionStepValue(PRESSURE) = p_node;
+
+            }
+
+            // Create the visualization model part
+            ModelPart visualization_model_part("VisualizationModelPart");
+            visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
+            visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
+            visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
+
+            // Set the embedded skin visualization process
+            Parameters visualization_settings(R"(
+            {
+                "shape_functions"         : "standard",
+                "visualization_variables" : ["VELOCITY","PRESSURE"]
+            })");
+
+            EmbeddedSkinVisualizationProcess skin_visualization_process(
+                main_model_part, 
+                visualization_model_part, 
+                visualization_settings);
+
+            skin_visualization_process.ExecuteInitialize();
+            skin_visualization_process.ExecuteInitializeSolutionStep();
+            skin_visualization_process.ExecuteBeforeOutputStep();
+            skin_visualization_process.ExecuteFinalizeSolutionStep();
+
+            // GidIO<> gid_io_fluid("/home/rzorrilla/Kratos/tests/visualizaton_model_part_3d", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+            // gid_io_fluid.InitializeMesh(0.0);
+            // gid_io_fluid.WriteMesh(visualization_model_part.GetMesh());
+            // gid_io_fluid.FinalizeMesh();
+            // gid_io_fluid.InitializeResults(0, visualization_model_part.GetMesh());
+            // gid_io_fluid.WriteNodalResults(DISTANCE, visualization_model_part.Nodes(), 0, 0);
+            // gid_io_fluid.WriteNodalResults(VELOCITY, visualization_model_part.Nodes(), 0, 0);
+            // gid_io_fluid.WriteNodalResults(PRESSURE, visualization_model_part.Nodes(), 0, 0);
+            // gid_io_fluid.FinalizeResults();
 
 	    }
     } // namespace Testing
