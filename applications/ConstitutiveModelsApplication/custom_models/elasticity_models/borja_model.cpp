@@ -109,7 +109,8 @@ namespace Kratos
 
       // 2.a Separate Volumetric and deviatoric part
       double VolumetricHencky;
-      MatrixType DeviatoricHencky = ZeroMatrix(3);
+      MatrixType DeviatoricHencky(3,3);
+      noalias(DeviatoricHencky) = ZeroMatrix(3,3);
       double deviatoricNorm;
 
       SeparateVolumetricAndDeviatoricPart( HenckyStrain, VolumetricHencky, DeviatoricHencky, deviatoricNorm);
@@ -168,7 +169,8 @@ namespace Kratos
 
       // 2.a Separate Volumetric and deviatoric part
       double VolumetricHencky;
-      MatrixType DeviatoricHencky = ZeroMatrix(3);
+      MatrixType DeviatoricHencky(3,3);
+      noalias(DeviatoricHencky) = ZeroMatrix(3,3);
       double deviatoricNorm;
 
       SeparateVolumetricAndDeviatoricPart( HenckyStrain, VolumetricHencky, DeviatoricHencky, deviatoricNorm);

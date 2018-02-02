@@ -130,6 +130,9 @@ public:
         ShapeFunctionsGradientsType DN_DX_neg_face;     // Positive interface Gauss pts. shape functions gradients values
         VectorType w_gauss_neg_face;                    // Positive interface Gauss pts. weights
         std::vector<VectorType> neg_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
+
+        unsigned int n_pos = 0;     // Number of positive distance nodes
+        unsigned int n_neg = 0;     // Number of negative distance nodes
     };
 
     ///@}
@@ -196,7 +199,7 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override {
-        return Condition::Pointer(new EmbeddedAusasNavierStokesWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_shared<EmbeddedAusasNavierStokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     /// Create a new EmbeddedAusasNavierStokesWallCondition object.
@@ -206,13 +209,13 @@ public:
       @param pProperties Pointer to the element's properties
       */
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
-        return boost::make_shared< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
     }
 
     /**
      * Clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
      * @return a Pointer to the new element
      */
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override {
@@ -225,8 +228,7 @@ public:
     }
 
     /**
-     * If the condition is split, sets the flag TO_SPLIT and finds 
-     *  the condition parent element.
+     * If the condition is split, finds the condition parent element.
      * Note that this needs to be done at each time step for that cases 
      * in where the distance function varies.
      */
@@ -247,14 +249,8 @@ public:
             }
         }
 
-        if (n_pos != 0 && n_neg != 0) {
-            this->Set(TO_SPLIT, true);
-        } else {
-            this->Set(TO_SPLIT, false);
-        }
-
         // If the condition is split, save a pointer to its parent element
-        if (this->Is(TO_SPLIT)) {
+        if (n_pos != 0 && n_neg != 0){
 
             // Get all the possible element candidates
             WeakPointerVector<Element> element_candidates;
@@ -323,9 +319,9 @@ public:
     /// Calculates the LHS and RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -359,7 +355,7 @@ public:
         // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Loop on gauss points
-        if (this->Is(TO_SPLIT)) {
+        if (data.n_pos != 0 && data.n_neg != 0){
 
             // Positive side Gauss pts. loop
             const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
@@ -421,8 +417,8 @@ public:
     /// Calculates the RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                ProcessInfo& rCurrentProcessInfo) override
@@ -445,7 +441,7 @@ public:
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
 
         // Loop on gauss points
-        if (this->Is(TO_SPLIT)) {
+        if (data.n_pos != 0 && data.n_neg != 0){
 
             // Positive side Gauss pts. loop
             const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
@@ -501,8 +497,8 @@ public:
     /// Calculates the RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rRightHandSideVector: reference to the RHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rRightHandSideVector reference to the RHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo) override
@@ -530,7 +526,7 @@ public:
         // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Loop on gauss points
-        if (this->Is(TO_SPLIT)) {
+        if (data.n_pos != 0 && data.n_neg != 0){
 
             // Positive side Gauss pts. loop
             const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
@@ -586,7 +582,7 @@ public:
 
     /// Condition check
     /**
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -728,9 +724,19 @@ protected:
     {
         const GeometryType& r_geometry = this->GetGeometry();
 
+        // Check if the condition is split
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            const double aux_dist = r_geometry[i_node].FastGetSolutionStepValue(DISTANCE);
+            if (aux_dist < 0) {
+                rData.n_neg++;
+            } else {
+                rData.n_pos++;
+            }
+        }
+
         // If the element is split, take the values from the parent element modified shape functions utility
         // Otherwise, take the values from the current condition geometry
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
             // Get the parent element nodal distances
             Element::Pointer p_parent_element = this->pGetElement();
             GeometryPointerType p_parent_geometry = p_parent_element->pGetGeometry();
@@ -740,10 +746,10 @@ protected:
             // Construct the modified shape functions utility with the parent element pointer
             ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
             if (n_parent_nodes == 4) {
-                p_ausas_modified_sh_func = boost::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_parent_geometry, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_parent_geometry, distances);
             }
             else if (n_parent_nodes == 3) {
-                p_ausas_modified_sh_func = boost::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_parent_geometry, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_parent_geometry, distances);
             } else {
                 KRATOS_ERROR << "Asking for a non-implemented geometry modified shape functions utility.";
             }

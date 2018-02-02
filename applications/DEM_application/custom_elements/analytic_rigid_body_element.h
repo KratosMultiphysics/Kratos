@@ -15,7 +15,7 @@
 
 namespace Kratos {
     
-    class AnalyticRigidBodyElement : public RigidBodyElement {
+    class AnalyticRigidBodyElement : public RigidBodyElement3D {
         
     public:
         /// Pointer definition of AnalyticRigidBodyElement
@@ -58,12 +58,12 @@ namespace Kratos {
 
         virtual void save(Serializer& rSerializer) const override
         {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RigidBodyElement );
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RigidBodyElement3D);
         }
 
         virtual void load(Serializer& rSerializer) override
         {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RigidBodyElement );
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RigidBodyElement3D);
         }
 
     }; // Class AnalyticRigidBodyElement

@@ -1,11 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Eduardo Soudah & Jordi Cotela $
-//   Date:                $Date: 2014-08-04 17:06:00 $
-//   Revision:            $Revision: 0.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Eduardo Soudah
+//                   Jordi Cotela
 //
-
 
 #if !defined(KRATOS_WINDKESSEL_H_INCLUDED )
 #define  KRATOS_WINDKESSEL_H_INCLUDED
