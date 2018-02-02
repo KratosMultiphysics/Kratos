@@ -2,10 +2,11 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license:
+//kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -23,9 +24,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
-
-namespace Kratos
-{
+namespace Kratos {
 ///@name Kratos Globals
 ///@{
 ///@}
@@ -50,160 +49,158 @@ namespace Kratos
  * working best for b) and c),
 */
 // template< unsigned int TDim >
-class LaplacianMeshMovingElement : public Element
-{
+class LaplacianMeshMovingElement : public Element {
 public:
-    ///@name Type Definitions
-    ///@{
-    /// Counted pointer of LaplacianMeshMovingElement
-    KRATOS_CLASS_POINTER_DEFINITION(LaplacianMeshMovingElement);
+  ///@name Type Definitions
+  ///@{
+  /// Counted pointer of LaplacianMeshMovingElement
+  KRATOS_CLASS_POINTER_DEFINITION(LaplacianMeshMovingElement);
 
-    typedef Element BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::NodesArrayType NodesArrayType;
-    typedef BaseType::PropertiesType PropertiesType;
-    typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;
-    typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;
-    typedef BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef BaseType::DofsVectorType DofsVectorType;
+  typedef Element BaseType;
+  typedef BaseType::GeometryType GeometryType;
+  typedef BaseType::NodesArrayType NodesArrayType;
+  typedef BaseType::PropertiesType PropertiesType;
+  typedef BaseType::IndexType IndexType;
+  typedef BaseType::SizeType SizeType;
+  typedef BaseType::MatrixType MatrixType;
+  typedef BaseType::VectorType VectorType;
+  typedef BaseType::EquationIdVectorType EquationIdVectorType;
+  typedef BaseType::DofsVectorType DofsVectorType;
 
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-    ///@}
+  typedef GeometryData::IntegrationMethod IntegrationMethod;
+  ///@}
 
-    ///@name Life Cycle
-    /// Default constructor.
-    LaplacianMeshMovingElement(IndexType NewId, GeometryType::Pointer pGeometry);
+  ///@name Life Cycle
+  /// Default constructor.
+  LaplacianMeshMovingElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Default constructor.
-    LaplacianMeshMovingElement(IndexType NewId,
-                               GeometryType::Pointer pGeometry,
-                               PropertiesType::Pointer pProperties);
+  /// Default constructor.
+  LaplacianMeshMovingElement(IndexType NewId, GeometryType::Pointer pGeometry,
+                             PropertiesType::Pointer pProperties);
 
-    /// Destructor.
-    virtual ~LaplacianMeshMovingElement()
-    {
-    }
-    ///@{
+  /// Destructor.
+  virtual ~LaplacianMeshMovingElement() {}
+  ///@{
 
-    ///@}
-    ///@name Operators
-    ///@{
+  ///@}
+  ///@name Operators
+  ///@{
 
-    ///@}
-    ///@name Operations
+  ///@}
+  ///@name Operations
 
-    BaseType::Pointer Create(IndexType NewId,
-                             NodesArrayType const& rThisNodes,
-                             PropertiesType::Pointer pProperties) const;
+  BaseType::Pointer Create(IndexType NewId, NodesArrayType const &rThisNodes,
+                           PropertiesType::Pointer pProperties) const;
 
-    BaseType::Pointer Create(IndexType NewId,
-                             GeometryType::Pointer pGeom,
-                             PropertiesType::Pointer pProperties) const;
+  BaseType::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
+                           PropertiesType::Pointer pProperties) const;
 
-    MatrixType CalculateDerivatives(const int& rdimension, const double& rPointNumber);
+  MatrixType CalculateDerivatives(const int &rdimension,
+                                  const double &rPointNumber);
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+  void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+                            VectorType &rRightHandSideVector,
+                            ProcessInfo &rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+  void EquationIdVector(EquationIdVectorType &rResult,
+                        ProcessInfo &rCurrentProcessInfo);
 
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+  void GetDofList(DofsVectorType &rElementalDofList,
+                  ProcessInfo &rCurrentProcessInfo);
 
-    void CalculateDeltaPosition(VectorType& IntermediateDisplacements,
-                                ProcessInfo& rCurrentProcessInfo);
+  void CalculateDeltaPosition(VectorType &IntermediateDisplacements,
+                              ProcessInfo &rCurrentProcessInfo);
 
-    void CalculateInitialJacobianValues(MatrixType& rJ0, MatrixType& rInvJ0, double& rDetJ0, const double& rPointNumber);
+  void CalculateInitialJacobianValues(MatrixType &rJ0, MatrixType &rInvJ0,
+                                      double &rDetJ0,
+                                      const double &rPointNumber);
 
-    void CheckElementMatrixDimension(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector);
+  void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
+                                   VectorType &rRightHandSideVector);
 
-    ///@{
+  ///@{
 
-    ///@}
-    ///@name Access
-    ///@{
+  ///@}
+  ///@name Access
+  ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+  ///@}
+  ///@name Inquiry
+  ///@{
 
-    ///@}
-    ///@name Input and output
-    ///@{
-    ///@}
+  ///@}
+  ///@name Input and output
+  ///@{
+  ///@}
 
-    ///@name Friends
-    ///@{
-    ///@}
+  ///@name Friends
+  ///@{
+  ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
+  ///@name Protected static Member Variables
+  ///@{
+  ///@}
 
-    ///@name Protected member Variables
-    ///@{
-    ///@}
+  ///@name Protected member Variables
+  ///@{
+  ///@}
 
-    ///@name Protected Operators
-    ///@{
-    ///@}
-    ///@name Protected Operations
-    ///@{
-    
-    ///@}
+  ///@name Protected Operators
+  ///@{
+  ///@}
+  ///@name Protected Operations
+  ///@{
 
-    ///@name Protected  Access
-    ///@{
-    ///@}
+  ///@}
 
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
+  ///@name Protected  Access
+  ///@{
+  ///@}
 
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
+  ///@name Protected Inquiry
+  ///@{
+  ///@}
+
+  ///@name Protected LifeCycle
+  ///@{
+  ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
+  ///@name Static Member Variables
+  ///@{
+  ///@}
 
-    ///@name Member Variables
-    ///@{
-    SizeType mLocalSize;
-    ///@}
+  ///@name Member Variables
+  ///@{
+  SizeType mLocalSize;
+  ///@}
 
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
-    LaplacianMeshMovingElement()
-    {
-    }
-    ///@}
+  ///@name Serialization
+  ///@{
+  friend class Serializer;
+  LaplacianMeshMovingElement() {}
+  ///@}
 
-    ///@name Private Operators
-    ///@{
-    ///@}
+  ///@name Private Operators
+  ///@{
+  ///@}
 
-    ///@name Private Operations
-    ///@{
-    ///@}
+  ///@name Private Operations
+  ///@{
+  ///@}
 
-    ///@name Private  Access
-    ///@{
-    ///@}
+  ///@name Private  Access
+  ///@{
+  ///@}
 
-    ///@name Private Inquiry
-    ///@{
-    ///@}
+  ///@name Private Inquiry
+  ///@{
+  ///@}
 
-    ///@name Un accessible methods
-    ///@{
-    ///@}
+  ///@name Un accessible methods
+  ///@{
+  ///@}
 
 }; // Class LaplacianMeshMovingElement
 

@@ -2,45 +2,39 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license:
+//kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
 
-
-#if !defined(KRATOS_MESHMOVING_UTILITIES_H_INCLUDED )
-#define  KRATOS_MESHMOVING_UTILITIES_H_INCLUDED
-
-
+#if !defined(KRATOS_MESHMOVING_UTILITIES_H_INCLUDED)
+#define KRATOS_MESHMOVING_UTILITIES_H_INCLUDED
 
 // System includes
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "ale_application.h"
+#include "includes/define.h"
 
-namespace Kratos
-{
-	namespace MoveMeshUtilities
-	{
+namespace Kratos {
+namespace MoveMeshUtilities {
 
-        typedef Element BaseType;
-		typedef Element::GeometryType GeometryType;
-        typedef GeometryData::IntegrationMethod IntegrationMethod;
-        typedef BaseType::VectorType VectorType;
+typedef Element BaseType;
+typedef Element::GeometryType GeometryType;
+typedef GeometryData::IntegrationMethod IntegrationMethod;
+typedef BaseType::VectorType VectorType;
 
+void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
+                            VectorType &rDetJ0, GeometryType &rGeometry);
 
-        void CheckJacobianDimension(GeometryType::JacobiansType& rInvJ0, VectorType& rDetJ0, GeometryType& rGeometry);
+} // namespace Move Mesh Utilities.
 
-
-	}  // namespace Move Mesh Utilities.
-  
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_MESHMOVING_UTILITIES_H_INCLUDED  defined

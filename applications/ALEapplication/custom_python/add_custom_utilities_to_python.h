@@ -2,40 +2,33 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license:
+//kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
 
-
-#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
-
-
+#if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 
+namespace Kratos {
 
-namespace Kratos
-{
+namespace Python {
 
-namespace Python
-{
+void AddCustomUtilitiesToPython();
 
-void  AddCustomUtilitiesToPython();
+} // namespace Python.
 
-}  // namespace Python.
-
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined

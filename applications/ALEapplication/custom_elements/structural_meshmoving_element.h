@@ -2,10 +2,11 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:		 BSD License
+//					 Kratos default license:
+//kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -23,8 +24,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
-namespace Kratos
-{
+namespace Kratos {
 ///@name Kratos Globals
 ///@{
 ///@}
@@ -49,187 +49,182 @@ namespace Kratos
  */
 
 // template<unsigned int TDim>
-class StructuralMeshMovingElement : public Element
-{
+class StructuralMeshMovingElement : public Element {
 public:
-    ///@name Type Definitions
-    ///@{
-    /// Pointer definition of StructuralMeshMovingElement
-    KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElement);
+  ///@name Type Definitions
+  ///@{
+  /// Pointer definition of StructuralMeshMovingElement
+  KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElement);
 
-    typedef Element BaseType;
-    typedef BaseType::GeometryType GeometryType;
-    typedef BaseType::NodesArrayType NodesArrayType;
-    typedef BaseType::PropertiesType PropertiesType;
-    typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;
-    typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;
-    typedef BaseType::EquationIdVectorType EquationIdVectorType;
-    typedef BaseType::DofsVectorType DofsVectorType;
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+  typedef Element BaseType;
+  typedef BaseType::GeometryType GeometryType;
+  typedef BaseType::NodesArrayType NodesArrayType;
+  typedef BaseType::PropertiesType PropertiesType;
+  typedef BaseType::IndexType IndexType;
+  typedef BaseType::SizeType SizeType;
+  typedef BaseType::MatrixType MatrixType;
+  typedef BaseType::VectorType VectorType;
+  typedef BaseType::EquationIdVectorType EquationIdVectorType;
+  typedef BaseType::DofsVectorType DofsVectorType;
+  typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+  ///@}
+  ///@name Life Cycle
+  ///@{
 
-    StructuralMeshMovingElement(IndexType NewId, GeometryType::Pointer pGeometry);
+  StructuralMeshMovingElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    StructuralMeshMovingElement(IndexType NewId,
-                                GeometryType::Pointer pGeometry,
-                                PropertiesType::Pointer pProperties);
+  StructuralMeshMovingElement(IndexType NewId, GeometryType::Pointer pGeometry,
+                              PropertiesType::Pointer pProperties);
 
-    virtual ~StructuralMeshMovingElement()
-    {
-    }
+  virtual ~StructuralMeshMovingElement() {}
 
-    ///@}
-    ///@name Operators
-    ///@{
-    /// Assignment operator.
-    ///@}
+  ///@}
+  ///@name Operators
+  ///@{
+  /// Assignment operator.
+  ///@}
 
-    ///@name Operations
-    ///@{
-    /**
-    * Returns the currently selected integration method
-    * @return current integration method selected
-    */
-    /**
-     * creates a new total lagrangian updated element pointer
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
-    BaseType::Pointer Create(IndexType NewId,
-                             NodesArrayType const& rThisNodes,
-                             PropertiesType::Pointer pProperties) const;
+  ///@name Operations
+  ///@{
+  /**
+  * Returns the currently selected integration method
+  * @return current integration method selected
+  */
+  /**
+   * creates a new total lagrangian updated element pointer
+   * @param NewId: the ID of the new element
+   * @param ThisNodes: the nodes of the new element
+   * @param pProperties: the properties assigned to the new element
+   * @return a Pointer to the new element
+   */
+  BaseType::Pointer Create(IndexType NewId, NodesArrayType const &rThisNodes,
+                           PropertiesType::Pointer pProperties) const;
 
-    BaseType::Pointer Create(IndexType NewId,
-                             GeometryType::Pointer pGeom,
-                             PropertiesType::Pointer pProperties) const;
+  BaseType::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
+                           PropertiesType::Pointer pProperties) const;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              ProcessInfo& rCurrentProcessInfo);
+  void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+                            VectorType &rRightHandSideVector,
+                            ProcessInfo &rCurrentProcessInfo);
 
-    /**
-    * Sets on rResult the ID's of the element degrees of freedom
-    */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+  /**
+  * Sets on rResult the ID's of the element degrees of freedom
+  */
+  void EquationIdVector(EquationIdVectorType &rResult,
+                        ProcessInfo &rCurrentProcessInfo);
 
-    /**
-    * Sets on rElementalDofList the degrees of freedom of the considered element
-    * geometry
-    */
+  /**
+  * Sets on rElementalDofList the degrees of freedom of the considered element
+  * geometry
+  */
 
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+  void GetDofList(DofsVectorType &rElementalDofList,
+                  ProcessInfo &rCurrentProcessInfo);
 
-    /// Initialize initial values of the element (must be called before
-    /// calculation is done)
+  /// Initialize initial values of the element (must be called before
+  /// calculation is done)
 
-    MatrixType SetAndModifyConstitutiveLaw(const int& dimension, const double& rPointNumber);
+  MatrixType SetAndModifyConstitutiveLaw(const int &dimension,
+                                         const double &rPointNumber);
 
-    MatrixType CalculateBMatrix(const int& dimension, const double& rPointNumber);
+  MatrixType CalculateBMatrix(const int &dimension, const double &rPointNumber);
 
-    void CheckElementMatrixDimension(MatrixType& rLeftHandSideMatrix,
-                                     VectorType& rRightHandSideVector);
+  void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
+                                   VectorType &rRightHandSideVector);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                ProcessInfo& rCurrentProcessInfo);
+  void CalculateRightHandSide(VectorType &rRightHandSideVector,
+                              ProcessInfo &rCurrentProcessInfo);
 
-    ///@}
-    ///@name Access
-    ///@{
-    ///@}
+  ///@}
+  ///@name Access
+  ///@{
+  ///@}
 
-    ///@name Inquiry
-    ///@{
-    ///@}
+  ///@name Inquiry
+  ///@{
+  ///@}
 
-    ///@name Input and output
-    ///@{
-    ///@}
-    ///@name Friends
-    ///@{
-    ///@}
+  ///@name Input and output
+  ///@{
+  ///@}
+  ///@name Friends
+  ///@{
+  ///@}
 
 protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
+  ///@name Protected static Member Variables
+  ///@{
+  ///@}
 
-    ///@name Protected member Variables
-    ///@{
-    ///@}
+  ///@name Protected member Variables
+  ///@{
+  ///@}
 
-    ///@name Protected Operators
-    ///@{
-    ///@}
+  ///@name Protected Operators
+  ///@{
+  ///@}
 
-    ///@name Protected Operations
-    ///@{
+  ///@name Protected Operations
+  ///@{
 
-    /**
-     * Gets displacement values at nodes
-     * @param rValues: reference to vector of nodal displacements
-     */
-    void GetDisplacementValues(VectorType& rValues, const int Step = 0);
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
+  /**
+   * Gets displacement values at nodes
+   * @param rValues: reference to vector of nodal displacements
+   */
+  void GetDisplacementValues(VectorType &rValues, const int Step = 0);
+  ///@}
+  ///@name Protected  Access
+  ///@{
+  ///@}
 
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
+  ///@name Protected Inquiry
+  ///@{
+  ///@}
 
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
+  ///@name Protected LifeCycle
+  ///@{
+  ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-    //IntegrationMethod mThisIntegrationMethod;
-    ///@}
-    ///@name Member Variables
-    ///@{
-    ///@}
+  ///@name Static Member Variables
+  ///@{
+  // IntegrationMethod mThisIntegrationMethod;
+  ///@}
+  ///@name Member Variables
+  ///@{
+  ///@}
 
-    StructuralMeshMovingElement()
-    {
-    }
+  StructuralMeshMovingElement() {}
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-    ///@}
+  ///@}
+  ///@name Private Operators
+  ///@{
+  ///@}
 
-    ///@name Private Operations
-    ///@{
-    ///@}
+  ///@name Private Operations
+  ///@{
+  ///@}
 
-    ///@name Private  Access
-    ///@{
-    ///@}
+  ///@name Private  Access
+  ///@{
+  ///@}
 
-    ///@name Private Inquiry
-    ///@{
-    ///@}
+  ///@name Private Inquiry
+  ///@{
+  ///@}
 
-    ///@name Un accessible methods
-    ///@{
-    ///@}
+  ///@name Un accessible methods
+  ///@{
+  ///@}
 
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
+  ///@name Serialization
+  ///@{
+  friend class Serializer;
 
-    // A private default constructor necessary for serialization
+  // A private default constructor necessary for serialization
 
-    ///@}
+  ///@}
 
 }; // Class StructuralMeshMovingElement
 
