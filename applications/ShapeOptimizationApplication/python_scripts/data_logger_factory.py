@@ -32,18 +32,19 @@ from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
 
 # ==============================================================================
-def CreateDataLogger( OptimizationModelPart, DesignSurface, Communicator, OptimizationSettings ):
-    return OptimizationDataLogger( OptimizationModelPart, DesignSurface, Communicator, OptimizationSettings )
+def CreateDataLogger( OptimizationModelPart, Communicator, OptimizationSettings ):
+    return DataLogger( OptimizationModelPart, Communicator, OptimizationSettings )
 
 # ==============================================================================
-class OptimizationDataLogger():
+class DataLogger():
 
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, DesignSurface, Communicator, OptimizationSettings ):
+    def __init__( self, OptimizationModelPart, Communicator, OptimizationSettings ):
         self.OptimizationModelPart = OptimizationModelPart
-        self.DesignSurface = DesignSurface
         self.Communicator = Communicator
         self.OptimizationSettings = OptimizationSettings
+
+        self.DesignSurface = __import__("helper_functions").GetDesignSurfaceFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
 
         self.Timer = timer_factory.CreateTimer()
         self.ResponseLogger = self.__CreateResponseLogger()
