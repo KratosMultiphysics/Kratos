@@ -62,8 +62,8 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(LoggerStream, KratosCoreFastSuite)
 		{
 			static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
+			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+			Logger::AddOutput(p_output);
 
 			Logger("TestLabel") << "Test message with number " << 12 << 'e' << "00";
 
@@ -93,8 +93,8 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfo, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
+			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+			Logger::AddOutput(p_output);
 
 			KRATOS_INFO("TestInfo") << "Test info message";
 
@@ -104,8 +104,8 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoIf, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
+			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+			Logger::AddOutput(p_output);
 
             KRATOS_INFO_IF("TestInfo", true) << "Test info message";
             KRATOS_INFO_IF("TestInfo", false) << "This should not appear";
@@ -116,8 +116,8 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoOnce, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
+			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+			Logger::AddOutput(p_output);
 
 			for(std::size_t i = 0; i < 10; i++) {
                 KRATOS_INFO_ONCE("TestInfo") << "Test info message - " << i;
@@ -129,8 +129,8 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoFirst, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
+			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+			Logger::AddOutput(p_output);
 
             for(std::size_t i = 0; i < 10; i++) {
                 KRATOS_INFO_FIRST_N("TestInfo", 4) << ".";
@@ -142,8 +142,8 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarning, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
+			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+			Logger::AddOutput(p_output);
 
 			KRATOS_INFO("TestWarning") << "Test info message";
 
@@ -153,8 +153,8 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningIf, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
+			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+			Logger::AddOutput(p_output);
 
             KRATOS_INFO_IF("TestWarning", true) << "Test warning message";
             KRATOS_INFO_IF("TestWarning", false) << "This should not appear";
@@ -165,8 +165,8 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningOnce, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
+			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+			Logger::AddOutput(p_output);
 
 			for(std::size_t i = 0; i < 10; i++) {
                 KRATOS_INFO_ONCE("TestWarning") << "Test warning message - " << i;
@@ -178,8 +178,8 @@ namespace Kratos {
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningFirst, KratosCoreFastSuite)
         {
             static std::stringstream buffer;
-			LoggerOutput output(buffer);
-			Logger::AddOutput(output);
+			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+			Logger::AddOutput(p_output);
 
             for(std::size_t i = 0; i < 10; i++) {
                 KRATOS_INFO_FIRST_N("TestWarning", 4) << ".";
@@ -192,9 +192,9 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(LoggerTableOutput, KratosCoreFastSuite)
 		{
 			static std::stringstream buffer;
-			LoggerTableOutput output(buffer, {"Time Step    ", "Iteration Number", "Convergence"});
-			Logger::AddOutput(output);
-            output.WriteHeader();
+			LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, {"Time Step    ", "Iteration Number", "Convergence"}));
+			Logger::AddOutput(p_output);
+            p_output->WriteHeader();
 
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n");
 
@@ -203,7 +203,7 @@ namespace Kratos {
 
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1");
 
-			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output " ;
+//			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output " ;
 
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1");
 

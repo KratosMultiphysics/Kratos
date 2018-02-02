@@ -27,6 +27,7 @@
 
 
 // Project includes
+#include "includes/define.h"
 #include "input_output/logger_message.h"
 
 namespace Kratos
@@ -48,6 +49,9 @@ namespace Kratos
 			///@name Type Definitions
 			///@{
 
+
+            /// Pointer definition of LoggerOutput
+            KRATOS_CLASS_POINTER_DEFINITION(LoggerOutput);
 
 			///@}
 			///@name Enums

@@ -59,7 +59,7 @@ namespace Kratos
       ///@name Type Definitions
       ///@{
       
-		using LoggerOutputContainerType = std::vector<LoggerOutput>;
+		using LoggerOutputContainerType = std::vector<LoggerOutput::Pointer>;
 	  ///@}
 	  ///@name Enums
 	  ///@{
@@ -112,7 +112,7 @@ namespace Kratos
           return defaultOutputInstance;
       }
 
-	  static void AddOutput(LoggerOutput const& TheOutput);
+	  static void AddOutput(LoggerOutput::Pointer pTheOutput);
 
     
       ///@}

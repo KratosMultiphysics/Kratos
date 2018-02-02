@@ -37,15 +37,15 @@ namespace Kratos
 		{
             GetDefaultOutputInstance().WriteMessage(mCurrentMessage);
 			for (auto i_output = outputs.begin(); i_output != outputs.end(); i_output++)
-				i_output->WriteMessage(mCurrentMessage);
+				(*i_output)->WriteMessage(mCurrentMessage);
 		}
 	}
 
-	void Logger::AddOutput(LoggerOutput const& TheOutput)
+	void Logger::AddOutput(LoggerOutput::Pointer pTheOutput)
 	{
 		#pragma omp critical
 		{
-		  GetOutputsInstance().push_back(TheOutput);
+		  GetOutputsInstance().push_back(pTheOutput);
 		}
 	}
 
