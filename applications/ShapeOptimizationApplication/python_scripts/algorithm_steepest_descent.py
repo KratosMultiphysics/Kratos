@@ -62,7 +62,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
-        self.MeshController.Initialize()
+        self.MeshController.InitializeSolution()
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
 
@@ -73,6 +73,9 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             print("\n>===================================================================")
             print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",optimizationIteration)
             print(">===================================================================\n")
+
+            self.MeshController.InitializeSolutionStep( optimizationIteration )
+
 
             self.__updateMeshAccordingCurrentShapeUpdate()    
 
@@ -102,7 +105,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
-        self.MeshController.Finalize()
+        self.MeshController.FinalizeSolution()
 
     # --------------------------------------------------------------------------
     def __updateMeshAccordingCurrentShapeUpdate( self ):

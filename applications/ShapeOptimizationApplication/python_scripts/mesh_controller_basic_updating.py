@@ -24,14 +24,10 @@ import time as timer
 from mesh_controller_base import MeshController
 
 # ==============================================================================
-class MeshControllerBasic:
+class MeshControllerBasicUpdating( MeshController ):
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, OptimizationSettings ):
-        self.OptimizationModelPart = OptimizationModelPart
-        self.MeshMotionSettings = OptimizationSettings["design_variables"]["mesh_motion"]
-        self.MeshControllerUtilities = MeshControllerUtilities( self.OptimizationModelPart )
-        # if self.__IsInternalMeshSolverSpecified():
-        #     self.MeshMotionSolver.AddVariables() 
+    def __init__( self, OptimizationModelPart ):
+        self.MeshControllerUtilities = MeshControllerUtilities( OptimizationModelPart )
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
@@ -43,14 +39,5 @@ class MeshControllerBasic:
     # --------------------------------------------------------------------------    
     def ResetMeshDisplacement( self ):
         self.MeshControllerUtilities.ResetMeshDisplacement()        
-
-
-    # # --------------------------------------------------------------------------
-    # def __IsInternalMeshSolverSpecified( self ):
-    #     return self.OptimizationSettings["design_variables"]["mesh_motion"]["move_mesh_according_to_shape_update"].GetBool()
-
-
-    #         mesh_solver_module = __import__( MeshMotionSettings["solver_type"].GetString() )
-    # return mesh_solver_module.CreateSolver( OptimizationModelPart, MeshMotionSettings )
 
 # ==============================================================================

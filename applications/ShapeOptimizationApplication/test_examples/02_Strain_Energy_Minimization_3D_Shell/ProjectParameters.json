@@ -140,7 +140,7 @@
                 }]
             },
             "mesh_motion" : {
-                "move_entire_optimization_model_part" : false
+                "apply_ale_mesh_solver" : false
             }            
         },
         "optimization_algorithm" : {

@@ -17,11 +17,12 @@ from KratosMultiphysics import *
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
-# Additional imports
-import time as timer
-
 # ==============================================================================
 class MeshController:
+    # --------------------------------------------------------------------------
+    def InitializeSolution( self ):
+        pass    
+
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
         raise RuntimeError("Mesh controller base class is called. Please check your implementation of the function >> UpdateMeshAccordingInputVariable << .")     
@@ -29,5 +30,9 @@ class MeshController:
     # --------------------------------------------------------------------------    
     def ResetMeshDisplacement( self ):
         raise RuntimeError("Mesh controller base class is called. Please check your implementation of the function >> ResetMeshDisplacement << .")     
+
+    # --------------------------------------------------------------------------
+    def FinalizeSolution( self ):
+        pass    
 
 # ==============================================================================
