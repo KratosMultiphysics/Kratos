@@ -528,8 +528,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     Matrix LHS = ZeroMatrix(12,12);
 
     std::vector< std::vector<double> > output(1);
-    output[0] = {-2.862147056,-1.707621905,0.02977881865,-7.703277072,-6.260649109,-0.02264084539,-12.65363298,-31.7996871,-0.05398482725,-5.280942892,-13.64870855,-0.0031531460
-14}; // QSVMS2D4N
+    output[0] = {-2.862147056,-1.707621905,0.02977881865,-7.703277072,-6.260649109,-0.02264084539,-12.65363298,-31.7996871,-0.05398482725,-5.280942892,-13.64870855,-0.003153146014}; // QSVMS2D4N
     int counter = 0;
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
