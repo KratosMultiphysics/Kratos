@@ -26,7 +26,7 @@
 
 #include "custom_processes/parametric_wall_contact_search_process.hpp"
 
-#include "custom_conditions/water_point_contact_penalty_condition.hpp"
+#include "custom_conditions/hydraulic_rigid_contact_penalty_3D_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"
 
@@ -331,7 +331,7 @@ namespace Kratos
                LastConditionId = mrMainModelPart.Conditions().back().Id() + 1;
 
 
-            return  ConditionType::Pointer (new WaterPointRigidContactPenalty3DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+            return  ConditionType::Pointer (new HydraulicRigidContactPenalty3DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
 
 
             KRATOS_CATCH( "" )

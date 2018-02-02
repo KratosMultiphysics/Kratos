@@ -42,7 +42,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KRATOS_API(CONTACT_MECHANICS_APPLICATION) WaterPointRigidContactPenalty3DCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) HydraulicRigidContactPenalty3DCondition
     : public PointRigidContactCondition
 {
 public:
@@ -54,29 +54,29 @@ public:
 
     ///@{
     // Counted pointer of WaterPointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( WaterPointRigidContactPenalty3DCondition );
+    KRATOS_CLASS_POINTER_DEFINITION( HydraulicRigidContactPenalty3DCondition );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Serialization constructor
-    WaterPointRigidContactPenalty3DCondition(){};
+    HydraulicRigidContactPenalty3DCondition(){};
 
     /// Default constructor.
-    WaterPointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    HydraulicRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    WaterPointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    HydraulicRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    WaterPointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
+    HydraulicRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
 
 
     /// Copy constructor
-    WaterPointRigidContactPenalty3DCondition( WaterPointRigidContactPenalty3DCondition const& rOther);
+    HydraulicRigidContactPenalty3DCondition( HydraulicRigidContactPenalty3DCondition const& rOther);
 
 
     /// Destructor.
-    virtual ~WaterPointRigidContactPenalty3DCondition();
+    virtual ~HydraulicRigidContactPenalty3DCondition();
 
 
     ///@}
@@ -275,7 +275,7 @@ private:
     }
 
 
-}; // Class WaterPointRigidContactPenalty3DCondition
+}; // Class HydraulicRigidContactPenalty3DCondition
 
 ///@}
 
@@ -290,11 +290,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    WaterPointRigidContactPenalty3DCondition& rThis);
+				    HydraulicRigidContactPenalty3DCondition& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const WaterPointRigidContactPenalty3DCondition& rThis)
+				    const HydraulicRigidContactPenalty3DCondition& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

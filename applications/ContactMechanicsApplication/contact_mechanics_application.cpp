@@ -62,6 +62,8 @@ namespace Kratos {
       Serializer::Register( "PointRigidContactPenalty3DCondition", mPointRigidContactPenalty3DCondition);
       Serializer::Register( "AxisymPointRigidContactPenalty2DCondition", mAxisymPointRigidContactPenalty2DCondition);
 
+      Serializer::Register( "HydraulicRigidContactPenalty3DCondition", mHydraulicRigidContactPenalty3DCondition);
+
       //Register friction laws 
       Serializer::Register( "FrictionLaw", mFrictionLaw );
       Serializer::Register( "CoulombAdhesionFrictionLaw", mCoulombAdhesionFrictionLaw );

@@ -12,7 +12,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/water_point_contact_penalty_condition.hpp"
+#include "custom_conditions/hydraulic_rigid_contact_penalty_3D_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"
 
@@ -27,7 +27,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   WaterPointRigidContactPenalty3DCondition::WaterPointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+   HydraulicRigidContactPenalty3DCondition::HydraulicRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry)
       : PointRigidContactCondition(NewId, pGeometry)
    {
       //DO NOT ADD DOFS HERE!!!
@@ -36,7 +36,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   WaterPointRigidContactPenalty3DCondition::WaterPointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+   HydraulicRigidContactPenalty3DCondition::HydraulicRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
       : PointRigidContactCondition(NewId, pGeometry, pProperties)
    {
       //DO NOT ADD DOFS HERE!!!    
@@ -46,7 +46,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   WaterPointRigidContactPenalty3DCondition::WaterPointRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall)
+   HydraulicRigidContactPenalty3DCondition::HydraulicRigidContactPenalty3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall)
       : PointRigidContactCondition(NewId, pGeometry, pProperties, pRigidWall)
    {
       //DO NOT ADD DOFS HERE!!!
@@ -55,7 +55,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   WaterPointRigidContactPenalty3DCondition::WaterPointRigidContactPenalty3DCondition( WaterPointRigidContactPenalty3DCondition const& rOther )
+   HydraulicRigidContactPenalty3DCondition::HydraulicRigidContactPenalty3DCondition( HydraulicRigidContactPenalty3DCondition const& rOther )
       : PointRigidContactCondition(rOther)
    {
       //DO NOT ADD DOFS HERE!!! 
@@ -64,29 +64,29 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   Condition::Pointer WaterPointRigidContactPenalty3DCondition::Create(IndexType NewId, const NodesArrayType& ThisNodes, PropertiesType::Pointer pProperties) const
+   Condition::Pointer HydraulicRigidContactPenalty3DCondition::Create(IndexType NewId, const NodesArrayType& ThisNodes, PropertiesType::Pointer pProperties) const
    {
-      return Condition::Pointer(new WaterPointRigidContactPenalty3DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+      return Condition::Pointer(new HydraulicRigidContactPenalty3DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
    }
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Condition::Pointer WaterPointRigidContactPenalty3DCondition::Clone(IndexType NewId, const NodesArrayType& ThisNodes) const
+   Condition::Pointer HydraulicRigidContactPenalty3DCondition::Clone(IndexType NewId, const NodesArrayType& ThisNodes) const
    {
-      return Condition::Pointer(new WaterPointRigidContactPenalty3DCondition(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
+      return Condition::Pointer(new HydraulicRigidContactPenalty3DCondition(NewId,GetGeometry().Create(ThisNodes), pGetProperties(), mpRigidWall));
    }
 
 
    //************************************************************************************
    //************************************************************************************
 
-   WaterPointRigidContactPenalty3DCondition::~WaterPointRigidContactPenalty3DCondition()
+   HydraulicRigidContactPenalty3DCondition::~HydraulicRigidContactPenalty3DCondition()
    {
 
    }
 
-   void WaterPointRigidContactPenalty3DCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+   void HydraulicRigidContactPenalty3DCondition::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -106,7 +106,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void WaterPointRigidContactPenalty3DCondition::GetDofList(DofsVectorType& rConditionDofList,
+   void HydraulicRigidContactPenalty3DCondition::GetDofList(DofsVectorType& rConditionDofList,
          ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
@@ -130,7 +130,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void WaterPointRigidContactPenalty3DCondition::EquationIdVector(EquationIdVectorType& rResult,
+   void HydraulicRigidContactPenalty3DCondition::EquationIdVector(EquationIdVectorType& rResult,
          ProcessInfo& rCurrentProcessInfo)
    {
       KRATOS_TRY
@@ -158,7 +158,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void WaterPointRigidContactPenalty3DCondition::GetValuesVector(Vector& rValues, int Step)
+   void HydraulicRigidContactPenalty3DCondition::GetValuesVector(Vector& rValues, int Step)
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -181,7 +181,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void WaterPointRigidContactPenalty3DCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void HydraulicRigidContactPenalty3DCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -204,7 +204,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void WaterPointRigidContactPenalty3DCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void HydraulicRigidContactPenalty3DCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -227,7 +227,7 @@ namespace Kratos
    //*********************************COMPUTE KINEMATICS*********************************
    //************************************************************************************
 
-   void WaterPointRigidContactPenalty3DCondition::CalculateKinematics(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
+   void HydraulicRigidContactPenalty3DCondition::CalculateKinematics(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo, const double& rPointNumber)
    {
       KRATOS_TRY
 
@@ -258,7 +258,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void WaterPointRigidContactPenalty3DCondition::CalculateContactFactors(ConditionVariables &rVariables)
+   void HydraulicRigidContactPenalty3DCondition::CalculateContactFactors(ConditionVariables &rVariables)
    {
 
       KRATOS_TRY
@@ -337,7 +337,7 @@ namespace Kratos
    //***********************************************************************************
    //***********************************************************************************
 
-   void WaterPointRigidContactPenalty3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+   void HydraulicRigidContactPenalty3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
          ConditionVariables& rVariables,
          double& rIntegrationWeight)
 
@@ -375,7 +375,7 @@ namespace Kratos
    }
 
 
-   void WaterPointRigidContactPenalty3DCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
+   void HydraulicRigidContactPenalty3DCondition::CalculateAndAddContactForces(VectorType& rRightHandSideVector,
          ConditionVariables& rVariables,
          double& rIntegrationWeight)
    {
@@ -406,7 +406,7 @@ namespace Kratos
    //**************************** Calculate Normal Contact Force ***********************
    //***********************************************************************************
 
-   void WaterPointRigidContactPenalty3DCondition::CalculateAndAddNormalContactForce(VectorType& rRightHandSideVector,
+   void HydraulicRigidContactPenalty3DCondition::CalculateAndAddNormalContactForce(VectorType& rRightHandSideVector,
          ConditionVariables& rVariables,
          double& rIntegrationWeight)
    {
@@ -438,7 +438,7 @@ namespace Kratos
    //**************************** Calculate Normal Force Modulus ***********************
    //***********************************************************************************
 
-   double& WaterPointRigidContactPenalty3DCondition::CalculateNormalForceModulus ( double& rNormalForceModulus, ConditionVariables& rVariables )
+   double& HydraulicRigidContactPenalty3DCondition::CalculateNormalForceModulus ( double& rNormalForceModulus, ConditionVariables& rVariables )
    {
       KRATOS_TRY
 
