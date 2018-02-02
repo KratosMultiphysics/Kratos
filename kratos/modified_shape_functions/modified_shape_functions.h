@@ -280,7 +280,7 @@ protected:
     * @return rShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
     * @return rWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
     * @param rPmatrix Reference to the condensation matrix.
-    * @param rSubdivisionGeom stdvector of subdivisions point based geometries where the values are to be computed.
+    * @param rSubdivisionGeom std::vector of subdivisions point based geometries where the values are to be computed.
     * @param IntegrationMethod Desired integration quadrature.
     */
     virtual void ComputeValuesOnOneSide(
@@ -296,9 +296,9 @@ protected:
     * @return rInterfaceShapeFunctionValues: Matrix containing the computed shape function values.
     * @return rInterfaceShapeFunctionsGradientsValues: std::vector containing the shape functions gradients values.
     * @return rInterfaceWeightsValues: Vector containing the Gauss pts. weights (already multiplied by the Jacobian).
-    * @param rInterfacesVector stdvector of intersection point based geometries where the values are to be computed.
-    * @param rParentGeometriesVector stdvector of subdivisions point based parent geometries.
-    * @param rInterfacesParentIdsVector stdvector containing the parent ids of each interface geometry.
+    * @param rInterfacesVector std::vector of intersection point based geometries where the values are to be computed.
+    * @param rParentGeometriesVector std::vector of subdivisions point based parent geometries.
+    * @param rInterfacesParentIdsVector std::vector containing the parent ids of each interface geometry.
     * @param rPmatrix reference to the interface interpolation matrix
     * @param IntegrationMethod Desired integration quadrature.
     */
@@ -315,7 +315,7 @@ protected:
     /**
     * Returns the outwards area normal vector values in either the positive or negative element interfaces for a given quadrature.
     * @return rInterfaceAreaNormalValues: std::vector containing the area normal values for the selected quadrature Gauss pts.
-    * @param rInterfacesVector stdvector of intersection point based geometries where the values are to be computed.
+    * @param rInterfacesVector std::vector of intersection point based geometries where the values are to be computed.
     * @param IntegrationMethod Desired integration quadrature.
     */
     virtual void ComputeFaceNormalOnOneSide(
