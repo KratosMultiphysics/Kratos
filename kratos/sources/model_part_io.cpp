@@ -250,7 +250,7 @@ namespace Kratos
         if (rThisElements.size() > 0) {
             std::string element_name;
 
-            auto element_obj = *(rThisElements.begin());
+            auto& element_obj = *(rThisElements.begin());
             auto elements_components = KratosComponents<Element>::GetComponents();
 
             const auto& element_type = typeid(element_obj);
@@ -277,8 +277,8 @@ namespace Kratos
             
             // Now we iterate over all the elements
             for(std::size_t i = 1; i < rThisElements.size(); i++) {
-                auto elem_previous = *(rThisElements.begin() + i - 1);
-                auto elem_current = *(rThisElements.begin() + i);
+                auto& elem_previous = *(rThisElements.begin() + i - 1);
+                auto& elem_current = *(rThisElements.begin() + i);
 
                 auto& previous_element_type = typeid(elem_previous);
                 auto& current_element_type = typeid(elem_current);
@@ -287,14 +287,14 @@ namespace Kratos
                 auto current_element_geometry_type = elem_current.GetGeometry().GetGeometryType();
                 
                 if(previous_element_type ==  current_element_type && previous_element_geometry_type == current_element_geometry_type) {
-                    (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
-                    for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
-                        (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
+                    (*mpStream) << "\t" << elem_current.Id() << "\t" << (elem_current.pGetProperties())->Id() << "\t";
+                    for (std::size_t i_node = 0; i_node < elem_current.GetGeometry().size(); i_node++)
+                        (*mpStream) << elem_current.GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
                 } else {
                     (*mpStream) << "End Elements" << std::endl << std::endl;;
                     
-                    current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
+                    current_element_geometry_type = elem_current.GetGeometry().GetGeometryType();
                         
                     for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
                         auto component_obj = *(it_comp->second);
@@ -309,9 +309,9 @@ namespace Kratos
                     }
                     
                     (*mpStream) << "Begin Elements\t" << element_name << std::endl;
-                    (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
-                    for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
-                        (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
+                    (*mpStream) << "\t" << elem_current.Id() << "\t" << (elem_current.pGetProperties())->Id() << "\t";
+                    for (std::size_t i_node = 0; i_node < elem_current.GetGeometry().size(); i_node++)
+                        (*mpStream) << elem_current.GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
                 }
             }
@@ -370,7 +370,7 @@ namespace Kratos
         if (rThisConditions.size() > 0) {
             std::string condition_name;
 
-            auto condition_obj = *(rThisConditions.begin());
+            auto& condition_obj = *(rThisConditions.begin());
             auto conditions_components = KratosComponents<Condition>::GetComponents();
             
             const auto& condition_type = typeid(condition_obj);
@@ -397,8 +397,8 @@ namespace Kratos
             
             // Now we iterate over all the conditions
             for(std::size_t i = 1; i < rThisConditions.size(); i++) {
-                auto cond_previous = *(rThisConditions.begin() + i - 1);
-                auto cond_current = *(rThisConditions.begin() + i);
+                auto& cond_previous = *(rThisConditions.begin() + i - 1);
+                auto& cond_current = *(rThisConditions.begin() + i);
 
                 auto& previous_condition_type = typeid(cond_previous);
                 auto& current_condition_type = typeid(cond_current);
@@ -407,14 +407,14 @@ namespace Kratos
                 auto current_condition_geometry_type = cond_current.GetGeometry().GetGeometryType();
                 
                 if(previous_condition_type ==  current_condition_type && previous_condition_geometry_type == current_condition_geometry_type) {
-                    (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
-                    for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
-                        (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
+                    (*mpStream) << "\t" << cond_current.Id() << "\t" << (cond_current.pGetProperties())->Id() << "\t";
+                    for (std::size_t i_node = 0; i_node < cond_current.GetGeometry().size(); i_node++)
+                        (*mpStream) << cond_current.GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
                 } else {
                     (*mpStream) << "End Conditions" << std::endl << std::endl;;
                     
-                    current_condition_geometry_type = it_cond_current->GetGeometry().GetGeometryType();
+                    current_condition_geometry_type = cond_current.GetGeometry().GetGeometryType();
                         
                     for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
                         auto component_obj = *(it_comp->second);
@@ -429,9 +429,9 @@ namespace Kratos
                     }
                     
                     (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
-                    (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
-                    for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
-                        (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
+                    (*mpStream) << "\t" << cond_current.Id() << "\t" << (cond_current.pGetProperties())->Id() << "\t";
+                    for (std::size_t i_node = 0; i_node < cond_current.GetGeometry().size(); i_node++)
+                        (*mpStream) << cond_current.GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
                 }
             }
