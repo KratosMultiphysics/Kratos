@@ -195,11 +195,8 @@ namespace Kratos
         array_1d<double,3>& r_node_rhs  = i_begin->FastGetSolutionStepValue(FORCE_RESIDUAL);  
         noalias(r_node_rhs)             = ZeroVector(3);
 
-        if (i_begin->HasDofFor(ROTATION_X))
-        {
-          array_1d<double,3>& r_node_rhs_moment  = i_begin->FastGetSolutionStepValue(MOMENT_RESIDUAL);  
-          noalias(r_node_rhs_moment)             = ZeroVector(3);
-        }
+        array_1d<double,3>& r_node_rhs_moment  = i_begin->FastGetSolutionStepValue(MOMENT_RESIDUAL);  
+        noalias(r_node_rhs_moment)             = ZeroVector(3);
         i_begin++;
       }
       
@@ -322,7 +319,7 @@ namespace Kratos
           //r_current_displacement[j] = 0.0; // this might be wrong for presribed displacement
         }
 
-        if (i_begin->HasDofFor(ROTATION_X))
+        if (i_begin->HasDofFor(ROTATION_Z))
         {
           array_1d<double,3>& r_middle_angular_velocity       = i_begin->GetValue(MIDDLE_ANGULAR_VELOCITY);
           array_1d<double,3>& r_current_angular_velocity      = i_begin->FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -495,13 +492,10 @@ namespace Kratos
 
         for (size_t j = 0; j < DoF; j++) 
         {
-            
-            if (fix_displacements[j] == true) 
+            if (fix_displacements[j]) 
             {
-          
               r_current_acceleration[j]  = 0.0;
-              r_middle_velocity[j]       = 0.0;
-          
+              r_middle_velocity[j]       = 0.0; 
             }
             
           r_middle_velocity[j]       = 0.0 + (mTime.Middle - mTime.Previous) * r_current_acceleration[j] ;
@@ -512,7 +506,7 @@ namespace Kratos
             
         }//for DoF
         ////// ROTATION DEGRESS OF FREEDOM
-        if (i_begin->HasDofFor(ROTATION_X))
+        if (i_begin->HasDofFor(ROTATION_Z))
         {
           
           array_1d<double,3> nodal_inertia                       = i_begin->GetValue(NODAL_INERTIA);  
@@ -576,10 +570,8 @@ namespace Kratos
 
     //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
     (pCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-    if (pCurrentElement->GetGeometry()[0].HasDofFor(ROTATION_X))
-    {
-      (pCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
-    }
+    (pCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+
     
     KRATOS_CATCH( "" )
   }
@@ -599,10 +591,8 @@ namespace Kratos
     (pCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
 
     (pCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-    if (pCurrentCondition->GetGeometry()[0].HasDofFor(ROTATION_X))
-    {
     (pCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
-    }
+
     KRATOS_CATCH( "" )
   }
 
