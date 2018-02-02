@@ -449,5 +449,104 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
+{
+    ModelPart model_part("Main");
+    unsigned int buffer_size = 2;
+    model_part.SetBufferSize(buffer_size);
+
+    // Variables addition
+    model_part.AddNodalSolutionStepVariable(BODY_FORCE);
+    model_part.AddNodalSolutionStepVariable(DENSITY);
+    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+    model_part.AddNodalSolutionStepVariable(PRESSURE);
+    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
+    model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA);
+    model_part.AddNodalSolutionStepVariable(ADVPROJ);
+    model_part.AddNodalSolutionStepVariable(DIVPROJ);
+
+    // Process info creation
+    double delta_time = 0.1;
+    model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+    model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+
+    // Set the element properties
+    Properties::Pointer p_properties = model_part.pGetProperties(0);
+
+    // Geometry creation
+    model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    model_part.CreateNewNode(2, 1.0, 0.1, 0.0);
+    model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+    model_part.CreateNewNode(4, 1.0, 0.9, 0.0);
+
+    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
+        it_node->AddDof(VELOCITY_X,REACTION_X);
+        it_node->AddDof(VELOCITY_Y,REACTION_Y);
+        it_node->AddDof(VELOCITY_Z,REACTION_Z);
+        it_node->AddDof(PRESSURE,REACTION_WATER_PRESSURE);
+    }
+
+    std::vector<ModelPart::IndexType> element_nodes {1, 2, 4, 3};
+    model_part.CreateNewElement("QSVMS2D4N", 1, element_nodes, p_properties);
+
+    // Loop starts at 1 because you need one less clone than time steps (JC)
+    for (unsigned int i = 1; i < buffer_size; i++) {
+        model_part.CloneTimeStep(i * delta_time);
+    }
+
+    // Define the nodal values
+    Matrix reference_velocity(4,2);
+    reference_velocity(0,0) = 0.0; reference_velocity(0,1) = 0.1;
+    reference_velocity(1,0) = 0.1; reference_velocity(1,1) = 0.2;
+    reference_velocity(2,0) = 0.2; reference_velocity(2,1) = 0.3;
+    reference_velocity(3,0) = 0.3; reference_velocity(2,1) = 0.4;
+
+
+    Element::Pointer p_element = model_part.pGetElement(1);
+
+    // Set the nodal DENSITY and DYNAMIC_VISCOSITY values
+    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
+        it_node->FastGetSolutionStepValue(DENSITY) = 1000.0;
+        it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = 1e-5;
+    }
+
+    for(unsigned int i=0; i<4; i++){
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
+        p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+        for(unsigned int k=0; k<2; k++){
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k]    = reference_velocity(i,k);
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9*reference_velocity(i,k);
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
+            p_element->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
+        }
+    }
+
+    // RHS and LHS
+    Vector RHS = ZeroVector(12);
+    Matrix LHS = ZeroMatrix(12,12);
+
+    std::vector< std::vector<double> > output(1);
+    output[0] = {-2.862147056,-1.707621905,0.02977881865,-7.703277072,-6.260649109,-0.02264084539,-12.65363298,-31.7996871,-0.05398482725,-5.280942892,-13.64870855,-0.0031531460
+14}; // QSVMS2D4N
+    int counter = 0;
+
+    for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
+        //i->Initialize(); // The element does nothing here
+        i->Check(model_part.GetProcessInfo());
+        i->CalculateLocalVelocityContribution(LHS, RHS, model_part.GetProcessInfo());
+
+        //std::cout << i->Info() << std::setprecision(10) << std::endl;
+        //KRATOS_WATCH(RHS);
+
+        for (unsigned int j = 0; j < RHS.size(); j++) {
+            KRATOS_CHECK_NEAR(RHS[j], output_uncut[counter][j], 1e-6);
+        }
+
+        counter++;
+    }
+}
+
 }  // namespace Testing
 }  // namespace Kratos
