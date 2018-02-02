@@ -82,6 +82,8 @@ namespace Kratos
 			///@name Access
 			///@{
 
+			virtual void WriteHeader();
+
 			virtual void WriteMessage(LoggerMessage const& TheMessage);
 
 			void SetMaxLevel(std::size_t TheLevel) {
