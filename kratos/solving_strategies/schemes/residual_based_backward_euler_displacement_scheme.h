@@ -11,8 +11,8 @@
 //
 
 
-#if !defined(KRATOS_RESIDUAL_BASED_BDF2_DISPLACEMENT_SCHEME )
-#define  KRATOS_RESIDUAL_BASED_BDF2_DISPLACEMENT_SCHEME
+#if !defined(KRATOS_RESIDUAL_BASED_BACKWARD_EULER_DISPLACEMENT_SCHEME )
+#define  KRATOS_RESIDUAL_BASED_BACKWARD_EULER_DISPLACEMENT_SCHEME
 
 /* System includes */
 
@@ -40,8 +40,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief BDF2 integration scheme (for dynamic problems, displacement based)
- * @details The second order Backward Differentiation Formula (BDF2) method is a two step second order accurate method. 
+/** @brief the backward Euler method (or implicit Euler method) is one of the most basic numerical methods for the solution of ordinary differential equations (for dynamic problems, displacement based)
+ * @details  It is similar to the (standard) Euler method, but differs in that it is an implicit method. The backward Euler method has order one in time
  * This scheme is designed to solve a system of the type:
  *\f[
  *   \mathbf{M} \frac{d^2(u_{n0})}{dt^2} + \mathbf{D} \frac{d(un0)}{dt} + \mathbf{K} u_{n0} = \mathbf{f}_{ext}
@@ -52,23 +52,19 @@ namespace Kratos
  * - Acelerations: 
  *      -# \f$ a_{n0} \f$ the acceleration at the current step
  *      -# \f$ a_{n1} \f$ the acceleration one step in the past
- *      -# \f$ a_{n2} \f$ the acceleration two steps in the past
  * - Velocities:
  *     -# \f$ v_{n0} \f$ the velocity at the current step
  *     -# \f$ v_{n1} \f$ the velocity one step in the past
- *     -# \f$ v_{n2} \f$ the velocity two steps in the past
  * - Displacements:
  *     -# \f$ u_{n0} \f$ the displacement at the current step
  *     -# \f$ u_{n1} \f$ the displacement one step in the past
- *     -# \f$ u_{n2} \f$ the displacement two steps in the past
  * 
  * Then we assume:
- *  \f[ \frac{d(vn0)}{dt} \|t_{n0} = c_0 v_{n0} + c_1 v_{n1} + c_2 v_{n2} \f]
- *  \f[ \frac{d(un0)}{dt} \|t_{n0} = c_0 u_{n0} + c_1 u_{n1} + c_2 u_{n2} \f]
+ *  \f[ \frac{d(vn0)}{dt} \|t_{n0} = c_0 v_{n0} + c_1 v_{n1} \f]
+ *  \f[ \frac{d(un0)}{dt} \|t_{n0} = c_0 u_{n0} + c_1 u_{n1} \f]
  * with:
- *  -# \f$ c_0 = \frac{1.5}{dt} \f$ 
- *  -# \f$ c_1 = \frac{-2.0}{dt} \f$ 
- *  -# \f$ c_2 = \frac{0.5}{dt} \f$  
+ *  -# \f$ c_0 = \frac{1.0}{dt} \f$ 
+ *  -# \f$ c_1 = \frac{-1.0}{dt} \f$ 
  * 
  * The LHS and RHS can be defined as:
  *      \f[ RHS = \mathbf{f}_{ext} - \mathbf{M} \frac{d(v_{n0})}{dt} - \mathbf{D} \frac{d(u_{n0})}{dt} - \mathbf{K} u_{n0} \f]
@@ -76,17 +72,15 @@ namespace Kratos
  *      \f[ LHS = \frac{d(-RHS)}{d(u_{n0})} = c_0^2 \mathbf{M} + c_0 \mathbf{D} + K \f]
  * @note This implies that elements are expected to be written in terms 
  * of unknown DISPLACEMENTS
- * <a href="https://mediatum.ub.tum.de/doc/1223319/80942.pdf">Main reference</a> 
- * @todo Create a BibTeX file https://www.stack.nl/~dimitri/doxygen/manual/commands.html#cmdcite
  */
 template<class TSparseSpace,  class TDenseSpace >
-class ResidualBasedBDF2DisplacementScheme
+class ResidualBasedBackwardEulerDisplacementScheme
     : public ResidualBasedImplicitTimeScheme<TSparseSpace, TDenseSpace>
 {
 public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBDF2DisplacementScheme );
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBackwardEulerDisplacementScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                                  BaseType;
     
@@ -120,9 +114,9 @@ public:
 
     /**
      * Constructor.
-     * The DBF2 method
+     * The Backward Euler method
      */
-    ResidualBasedBDF2DisplacementScheme()
+    ResidualBasedBackwardEulerDisplacementScheme()
         :ImplicitBaseType()
     {
         // Allocate auxiliary memory
@@ -134,9 +128,9 @@ public:
 
     /** Copy Constructor.
      */
-    ResidualBasedBDF2DisplacementScheme(ResidualBasedBDF2DisplacementScheme& rOther)
+    ResidualBasedBackwardEulerDisplacementScheme(ResidualBasedBackwardEulerDisplacementScheme& rOther)
         :ImplicitBaseType(rOther)
-        ,mBDF2(rOther.mBDF2)
+        ,mBDF1(rOther.mBDF1)
         ,mVector(rOther.mVector)
     {
     }
@@ -146,12 +140,12 @@ public:
      */
     BaseTypePointer Clone() override
     {
-        return BaseTypePointer( new ResidualBasedBDF2DisplacementScheme(*this) );
+        return BaseTypePointer( new ResidualBasedBackwardEulerDisplacementScheme(*this) );
     }
 
     /** Destructor.
      */
-    ~ResidualBasedBDF2DisplacementScheme
+    ~ResidualBasedBackwardEulerDisplacementScheme
     () override {}
 
     ///@}
@@ -203,16 +197,14 @@ public:
                         
             const array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(DISPLACEMENT);
             const array_1d<double, 3>& un1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            const array_1d<double, 3>& un2 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
             
             array_1d<double, 3>& vn0 = it_node->FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3>& vn1 = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-            const array_1d<double, 3>& vn2 = it_node->FastGetSolutionStepValue(VELOCITY, 2);
 
             array_1d<double, 3>& an0 = it_node->FastGetSolutionStepValue(ACCELERATION);
 
-            UpdateVelocity(vn0, un0, un1, un2);
-            UpdateAcceleration(an0, vn0, vn1, vn2);
+            UpdateVelocity(vn0, un0, un1);
+            UpdateAcceleration(an0, vn0, vn1);
         }
 
         KRATOS_CATCH( "" );
@@ -252,8 +244,6 @@ public:
             //Predicting: NewDisplacement = previous_displacement + previous_velocity * delta_time;
             //ATTENTION::: the prediction is performed only on free nodes
 
-            const array_1d<double, 3>& vn2 = it_node->FastGetSolutionStepValue(VELOCITY,     2);
-            const array_1d<double, 3>& un2 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 2);
             const array_1d<double, 3>& an1 = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
             const array_1d<double, 3>& vn1 = it_node->FastGetSolutionStepValue(VELOCITY,     1);
             const array_1d<double, 3>& un1 = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
@@ -263,22 +253,22 @@ public:
             
             if (it_node->HasDofFor(ACCELERATION_X)) {
                 if (it_node -> IsFixed(ACCELERATION_X)) {
-                    vn0[0] = (an0[0] - mBDF2.c1 * vn1[0] - mBDF2.c2 * vn2[0])/mBDF2.c0;
-                    un0[0] = (vn0[0] - mBDF2.c1 * un1[0] - mBDF2.c2 * un2[0])/mBDF2.c0;
+                    vn0[0] = (an0[0] - mBDF1.c1 * vn1[0])/mBDF1.c0;
+                    un0[0] = (vn0[0] - mBDF1.c1 * un1[0])/mBDF1.c0;
             } } else if (it_node->HasDofFor(VELOCITY_X)) {
                 if (it_node -> IsFixed(VELOCITY_X)) {
-                    un0[0] = (vn1[0] - mBDF2.c1 * un1[0] - mBDF2.c2 * un2[0])/mBDF2.c0;
+                    un0[0] = (vn1[0] - mBDF1.c1 * un1[0])/mBDF1.c0;
             } } else if (it_node -> IsFixed(DISPLACEMENT_X) == false) {
                 un0[0] = un1[0] + delta_time * vn1[0] + 0.5 * std::pow(delta_time, 2) * an1[0];
             }
 
             if (it_node->HasDofFor(ACCELERATION_Y)) {
                 if (it_node -> IsFixed(ACCELERATION_Y)) {
-                    vn0[1] = (an0[1] - mBDF2.c1 * vn1[1] - mBDF2.c2 * vn2[1])/mBDF2.c0;
-                    un0[1] = (vn0[1] - mBDF2.c1 * un1[1] - mBDF2.c2 * un2[1])/mBDF2.c0;
+                    vn0[1] = (an0[1] - mBDF1.c1 * vn1[1])/mBDF1.c0;
+                    un0[1] = (vn0[1] - mBDF1.c1 * un1[1])/mBDF1.c0;
             } } else if (it_node->HasDofFor(VELOCITY_Y)) {
                 if (it_node -> IsFixed(VELOCITY_Y)) {
-                    un0[1] = (vn1[1] - mBDF2.c1 * un1[1] - mBDF2.c2 * un2[1])/mBDF2.c0;
+                    un0[1] = (vn1[1] - mBDF1.c1 * un1[1])/mBDF1.c0;
             } } else if (it_node -> IsFixed(DISPLACEMENT_Y) == false) {
                 un0[1] = un1[1] + delta_time * vn1[1] + 0.5 * std::pow(delta_time, 2) * an1[1];
             }
@@ -287,19 +277,19 @@ public:
             if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
                 if (it_node->HasDofFor(ACCELERATION_Z)) {
                     if (it_node -> IsFixed(ACCELERATION_Z)) {
-                        vn0[2] = (an0[2] - mBDF2.c1 * vn1[2] - mBDF2.c2 * vn2[2])/mBDF2.c0;
-                        un0[2] = (vn0[2] - mBDF2.c1 * un1[2] - mBDF2.c2 * un2[2])/mBDF2.c0;
+                        vn0[2] = (an0[2] - mBDF1.c1 * vn1[2])/mBDF1.c0;
+                        un0[2] = (vn0[2] - mBDF1.c1 * un1[2])/mBDF1.c0;
                 } } else if (it_node->HasDofFor(VELOCITY_Y)) {
                     if (it_node -> IsFixed(VELOCITY_Y)) {
-                        un0[2] = (vn1[2] - mBDF2.c1 * un1[2] - mBDF2.c2 * un2[2])/mBDF2.c0;
+                        un0[2] = (vn1[2] - mBDF1.c1 * un1[2])/mBDF1.c0;
                 } } else if (it_node -> IsFixed(DISPLACEMENT_Z) == false) {
                     un0[2] = un1[2] + delta_time * vn1[2] + 0.5 * std::pow(delta_time, 2) * an1[2];
                 }
             }
 
             // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
-            UpdateVelocity(vn0, un0, un1, un2);
-            UpdateAcceleration(an0, vn0, vn1, vn2);
+            UpdateVelocity(vn0, un0, un1);
+            UpdateAcceleration(an0, vn0, vn1);
         }
 
         KRATOS_CATCH( "" );
@@ -333,15 +323,13 @@ public:
         const double rho = previous_delta_time / delta_time;
         const double time_coeff = 1.0 / (delta_time * std::pow(rho, 2) + delta_time * rho);
         
-        mBDF2.c0 =  time_coeff * (std::pow(rho, 2) + 2.0 * rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
-        mBDF2.c1 = -time_coeff * (std::pow(rho, 2) + 2.0 * rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-        mBDF2.c2 =  time_coeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
+        mBDF1.c0 =  time_coeff * (std::pow(rho, 2) + rho); //coefficient for step n+1 (1 Dt if Dt is constant)
+        mBDF1.c1 = -time_coeff * (std::pow(rho, 2) + rho); //coefficient for step n (- 1 Dt if Dt is constant)
         
         // Adding to the process info
-        Vector bdf_vector(3);
-        bdf_vector[0] = mBDF2.c0;
-        bdf_vector[1] = mBDF2.c1;
-        bdf_vector[2] = mBDF2.c2;
+        Vector bdf_vector(2);
+        bdf_vector[0] = mBDF1.c0;
+        bdf_vector[1] = mBDF1.c1;
         current_process_info(BDF_COEFFICIENTS) = bdf_vector;
         
         KRATOS_CATCH( "" );
@@ -382,7 +370,7 @@ public:
 
         // Check for minimum value of the buffer index
         // Verify buffer size
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 3) << "Insufficient buffer size. Buffer size should be greater than 3. Current size is" << rModelPart.GetBufferSize() << std::endl;
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
 
         KRATOS_CATCH( "" );
         
@@ -420,12 +408,12 @@ protected:
         std::vector< Vector > an0; /// Acceleration
     };
     
-    struct BDF2Method
+    struct BDF1Method
     {
-        double c0, c1, c2;
+        double c0, c1;
     };
 
-    BDF2Method mBDF2; /// The BDF2 coefficients
+    BDF1Method mBDF1; /// The BDF1 coefficients
     GeneralVectors mVector; /// The structure containing the velocities and accelerations
 
     ///@}
@@ -441,17 +429,15 @@ protected:
      * @param vn0 the velocity at the current step
      * @param un0 the displacement at the current step
      * @param un1 the displacement one step in the past
-     * @param un2 the displacement two steps in the past
      */
     
     inline void UpdateVelocity(
         array_1d<double, 3> & vn0,
         const array_1d<double, 3>& un0,
-        const array_1d<double, 3>& un1,
-        const array_1d<double, 3>& un2
+        const array_1d<double, 3>& un1
         )
     {
-        noalias(vn0) = (mBDF2.c0 * un0 + mBDF2.c1 * un1  + mBDF2.c2 * un2);
+        noalias(vn0) = (mBDF1.c0 * un0 + mBDF1.c1 * un1);
     }
 
     /**
@@ -459,17 +445,15 @@ protected:
      * @param an0 the acceleration at the current step
      * @param vn0 the velocity at the current step
      * @param vn1 the velocity one step in the past
-     * @param vn2 the velocity two steps in the past
      */
 
     inline void UpdateAcceleration(
         array_1d<double, 3> & an0,
         const array_1d<double, 3>& vn0,
-        const array_1d<double, 3>& vn1,
-        const array_1d<double, 3>& vn2
+        const array_1d<double, 3>& vn1
     )
     {
-        noalias(an0) = (mBDF2.c0 * vn0 + mBDF2.c1 * vn1  + mBDF2.c2 * vn2);
+        noalias(an0) = (mBDF1.c0 * vn0 + mBDF1.c1 * vn1);
     }
 
     /**
@@ -490,12 +474,12 @@ protected:
     {
         // Adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) { // if M matrix declared
-            noalias(LHS_Contribution) += M * std::pow(mBDF2.c0, 2);
+            noalias(LHS_Contribution) += M * std::pow(mBDF1.c0, 2);
         }
 
         // Adding  damping contribution
         if (D.size1() != 0) { // if D matrix declared
-            noalias(LHS_Contribution) += D * mBDF2.c0;
+            noalias(LHS_Contribution) += D * mBDF1.c0;
         }
     }
 
@@ -610,7 +594,7 @@ private:
     ///@name Un accessible methods
     ///@{
     ///@}
-}; /* Class ResidualBasedBDF2DisplacementScheme */
+}; /* Class ResidualBasedBackwardEulerDisplacementScheme */
 ///@}
 ///@name Type Definitions
 ///@{
@@ -620,4 +604,4 @@ private:
 ///@}
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_RESIDUAL_BASED_BDF2_DISPLACEMENT_SCHEME defined */
+#endif /* KRATOS_RESIDUAL_BASED_BACKWARD_EULER_DISPLACEMENT_SCHEME defined */

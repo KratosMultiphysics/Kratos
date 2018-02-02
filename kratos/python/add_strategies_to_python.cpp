@@ -40,6 +40,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_backward_euler_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf2_displacement_scheme.h"
 
 // Convergence criterias
@@ -302,6 +303,7 @@ namespace Kratos
 
         typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
         typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+        typedef ResidualBasedBackwardEulerDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBackwardEulerDisplacementSchemeType;
         typedef ResidualBasedBDF2DisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDF2DisplacementSchemeType;
 
         class_< BaseSchemeType, boost::noncopyable >
@@ -348,6 +350,13 @@ namespace Kratos
             bases< BaseSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedNewmarkDisplacementScheme", init< >() )
+            ;
+            
+        // Residual Based Backward Euler  displacement Scheme Type
+        class_< ResidualBasedBackwardEulerDisplacementSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ResidualBasedBackwardEulerDisplacementScheme", init< >() )
             ;
             
         // Residual Based BDF2 displacement Scheme Type

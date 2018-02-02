@@ -22,6 +22,8 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         if (scheme_name == "newmark"):
             scheme = KratosMultiphysics.ResidualBasedNewmarkDisplacementScheme()
+        elif (scheme_name == "backward_euler"):
+            scheme = KratosMultiphysics.ResidualBasedBackwardEulerDisplacementScheme()
         elif (scheme_name == "bdf2"):
             scheme = KratosMultiphysics.ResidualBasedBDF2DisplacementScheme()
         else:
@@ -31,7 +33,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
         convergence_criterion.SetEchoLevel(0)
         
-        max_iters = 1
+        max_iters = 10
         compute_reactions = False
         reform_step_dofs = True
         move_mesh_flag = True
@@ -40,6 +42,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
                                                                          linear_solver, 
                                                                          convergence_criterion, 
                                                                          builder_and_solver, 
+                                                                         max_iters,
                                                                          compute_reactions, 
                                                                          reform_step_dofs,
                                                                          move_mesh_flag)
@@ -66,7 +69,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
 
         mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
    
-    def _base_spring_test_dynamic_schemes(self, scheme_name = "bossak", buffer_size = 2):
+    def _base_spring_test_dynamic_schemes(self, scheme_name = "bossak", buffer_size = 2, dt = 5.0e-3):
         mp = KratosMultiphysics.ModelPart("sdof")
         self._add_variables(mp)
         
@@ -90,7 +93,6 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, [0, stiffness,0])
 
         #time integration parameters
-        dt = 5.0e-3
         time = 0.0
         end_time = 0.05
         step = 0
@@ -134,7 +136,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), current_analytical_velocity_y, delta=1e-3)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), current_analytical_acceleration_y, delta=1e-3)
             
-    def _base_fall_test_dynamic_schemes(self, scheme_name = "bossak", buffer_size = 2):
+    def _base_fall_test_dynamic_schemes(self, scheme_name = "bossak", buffer_size = 2, dt = 1.0e-2):
         mp = KratosMultiphysics.ModelPart("sdof")
         self._add_variables(mp)
 
@@ -159,7 +161,6 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)
 
         #time integration parameters
-        dt = 1.0e-2
         time = 0.0
         end_time = 1.0e-1
         step = 0
@@ -204,24 +205,30 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             #print("VELOCITY_Y:\t",node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), "\t", current_analytical_velocity_y)
             #print("ACCELERATION_Y:\t",node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), "\t", current_analytical_acceleration_y )
             # ASSERT
-            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), current_analytical_acceleration_y, delta=1e-6)
-            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), current_analytical_velocity_y, delta=1e-6)
-            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), current_analytical_displacement_y, delta=1e-6)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), current_analytical_acceleration_y, delta=1e-3)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), current_analytical_velocity_y, delta=1e-3)
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), current_analytical_displacement_y, delta=1e-3)
             
     def test_spring_bossak_scheme(self):
-        self._base_spring_test_dynamic_schemes("bossak")
+        self._base_spring_test_dynamic_schemes("bossak", 2)
         
     def test_spring_newmark_scheme(self):
-        self._base_spring_test_dynamic_schemes("newmark")
+        self._base_spring_test_dynamic_schemes("newmark", 2)
+        
+    def test_spring_backward_euler_scheme(self):
+        self._base_spring_test_dynamic_schemes("backward_euler", 2, 4.0e-3)
         
     def test_spring_bdf2_scheme(self):
         self._base_spring_test_dynamic_schemes("bdf2", 3)
         
     def test_fall_bossak_scheme(self):
-        self._base_fall_test_dynamic_schemes("bossak")
+        self._base_fall_test_dynamic_schemes("bossak", 2)
         
     def test_fall_newmark_scheme(self):
-        self._base_fall_test_dynamic_schemes("newmark")
+        self._base_fall_test_dynamic_schemes("newmark", 2)
+        
+    def test_fall_backward_euler_scheme(self):
+        self._base_fall_test_dynamic_schemes("backward_euler", 2, 2.0e-3)
         
     def test_fall_bdf2_scheme(self):
         self._base_fall_test_dynamic_schemes("bdf2", 3)
