@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_APPLY_RIGID_BODY_ROTATION_FIELD_TO_NODES_PROCESS_H_INCLUDED )
-#define  KRATOS_APPLY_RIGID_BODY_ROTATION_FIELD_TO_NODES_PROCESS_H_INCLUDED
+#if !defined(KRATOS_ASSIGN_ROTATION_ABOUT_AN_AXIS_TO_NODES_PROCESS_H_INCLUDED )
+#define  KRATOS_ASSIGN_ROTATION_ABOUT_AN_AXIS_TO_NODES_PROCESS_H_INCLUDED
 
 
 
@@ -17,7 +17,10 @@
 // External includes
 
 // Project includes
-#include "custom_processes/apply_rigid_body_rotation_to_nodes_process.h"
+#include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
+#include "processes/process.h"
+#include "utilities/beam_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -28,31 +31,35 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class ApplyRigidBodyRotationFieldToNodesProcess : public ApplyRigidBodyRotationToNodesProcess
+class AssignRotationAboutAnAxisToNodesProcess : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ApplyRigidBodyRotationFieldToNodesProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyRigidBodyRotationFieldToNodesProcess);
+    /// Pointer definition of AssignRotationAboutAnAxisToNodesProcess
+    KRATOS_CLASS_POINTER_DEFINITION(AssignRotationAboutAnAxisToNodesProcess);
 
     ///@}
     ///@name Life Cycle
     ///@{
-    ApplyRigidBodyRotationFieldToNodesProcess(ModelPart& model_part,
-					 PyObject* pPyObject,
-					 const char* pPyMethodName,
-					 const bool SpatialFieldFunction,
-					 Parameters rParameters
-				       ) : ApplyRigidBodyRotationToNodesProcess(model_part)
+
+ 
+    AssignRotationAboutAnAxisToNodesProcess(ModelPart& model_part) : Process(Flags()) , mr_model_part(model_part) {}
+
+
+    
+    AssignRotationAboutAnAxisToNodesProcess(ModelPart& model_part,
+				       Parameters rParameters
+				       ) : Process(Flags()) , mr_model_part(model_part)
     {
         KRATOS_TRY
-	
+			 
         Parameters default_parameters( R"(
             {
                 "model_part_name":"MODEL_PART_NAME",
                 "variable_name": "VARIABLE_NAME",
+                "modulus" : 1.0,
                 "direction" : [],
                 "center" : []
             }  )" );
@@ -61,26 +68,37 @@ public:
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mvariable_name  = rParameters["variable_name"].GetString();
+        mvariable_name = rParameters["variable_name"].GetString();
 
-	mpPyObject      =  pPyObject;	
-	mpPyMethodName  =  pPyMethodName;
 
-	mIsSpatialField = SpatialFieldFunction;
-	
-	for( unsigned int i=0; i<3; i++)
-	  {
-	    mdirection[i] = rParameters["direction"][i].GetDouble();
-	    mcenter[i] = rParameters["center"][i].GetDouble();
-	  }
+	if( KratosComponents< Variable<array_1d<double, 3> > >::Has( mvariable_name ) ) //case of array_1d variable
+        {
+
+	    mvalue = rParameters["modulus"].GetDouble();
+
+	    for( unsigned int i=0; i<3; i++)
+	      {
+		mdirection[i] = rParameters["direction"][i].GetDouble();
+		mcenter[i] = rParameters["center"][i].GetDouble();
+	      }
+
+	    double norm = norm_2(mdirection);
+	    if(norm!=0)
+		mdirection/=norm;
+
+	}
+	else //case of bool variable
+        {
+	  KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name <<std::endl;
+	  
+	}
 
         KRATOS_CATCH("");
     }
 
 
-
     /// Destructor.
-    virtual ~ApplyRigidBodyRotationFieldToNodesProcess() {}
+    virtual ~AssignRotationAboutAnAxisToNodesProcess() {}
 
 
     ///@}
@@ -99,34 +117,18 @@ public:
     ///@{
 
 
-    /// Execute method is used to execute the ApplyRigidBodyRotationFieldToNodesProcess algorithms.
+    /// Execute method is used to execute the AssignRotationAboutAnAxisToNodesProcess algorithms.
     virtual void Execute() 
     {
 
         KRATOS_TRY;
-	
-	if( ! mIsSpatialField ){
-
-	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
-	  const double& rCurrentTime  = rCurrentProcessInfo[TIME];
-	  const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();
-	  const double& rPreviousTime = rPreviousProcessInfo[TIME];
-	  
-	  this->CallTimeFunction(rPreviousTime, mprevious_value);
-	  this->CallTimeFunction(rCurrentTime, mvalue);
-	  
-	  ApplyRigidBodyRotationToNodesProcess::Execute();
-
-	}
-	else{
-	  
-	  ApplyRigidBodyRotation();
-	}
+		
+	this->AssignRotationAboutAnAxis();
 
         KRATOS_CATCH("");
 
     }
-    
+
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
     virtual void ExecuteInitialize()
@@ -148,6 +150,7 @@ public:
     /// this function will be executed at every time step AFTER performing the solve phase
     virtual void ExecuteFinalizeSolutionStep()
     {
+	mprevious_value = mvalue;
     }
 
 
@@ -187,13 +190,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "ApplyRigidBodyRotationFieldToNodesProcess";
+        return "AssignRotationAboutAnAxisToNodesProcess";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "ApplyRigidBodyRotationFieldToNodesProcess";
+        rOStream << "AssignRotationAboutAnAxisToNodesProcess";
     }
 
     /// Print object's data.
@@ -214,12 +217,20 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    ModelPart& mr_model_part;
+    std::string mvariable_name;
+    double mvalue;
+    double mprevious_value;
+    array_1d<double,3> mdirection;
+    array_1d<double,3> mcenter;
+    
     ///@}
     ///@name Protected Operators
     ///@{
 
     /// Copy constructor.
-    ApplyRigidBodyRotationFieldToNodesProcess(ApplyRigidBodyRotationFieldToNodesProcess const& rOther);
+    AssignRotationAboutAnAxisToNodesProcess(AssignRotationAboutAnAxisToNodesProcess const& rOther);
 
     ///@}
     ///@name Protected Operations
@@ -243,86 +254,40 @@ private:
     ///@name Member Variables
     ///@{
 
-    PyObject* mpPyObject;  
-    const char* mpPyMethodName;
-   
-    bool mIsSpatialField;
 
     ///@}
     ///@name Private Operators
     ///@{
 
-    void CallFunction(const Node<3>::Pointer& pNode, const double& time, double& rValue)
-    {      
-      KRATOS_TRY
-	
-      if( mIsSpatialField ){
 
-	double x = pNode->X(), y = pNode->Y(), z = pNode->Z();
-	   
-	rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, x, y, z, time);
-	
-      }
-      else{
-	
-	rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
-	
-      }
-      
-     KRATOS_CATCH( "" )
-      
-    }
-
-    void CallTimeFunction(const double& time, double& rValue)
-    {
-      
-      KRATOS_TRY
-	
-      rValue = boost::python::call_method<double>(mpPyObject, mpPyMethodName, 0.0, 0.0, 0.0, time);
-	      
-      KRATOS_CATCH( "" )
-      
-    }
-
-    
-    void ApplyRigidBodyRotation()
+    void AssignRotationAboutAnAxis()
     {
       KRATOS_TRY
    
       const int nnodes = mr_model_part.GetMesh().Nodes().size();
+
+      //std::cout<<" Apply rigid body rotation "<<std::endl;
 
       if(nnodes != 0)
         {
 	  ModelPart::NodesContainerType::iterator it_begin = mr_model_part.GetMesh().NodesBegin();
 
 	  Matrix rotation_matrix;
-	  Quaternion<double> total_quaternion;
 	  array_1d<double,3> radius;
 	  array_1d<double,3> distance;
-	  array_1d<double,3> rotation;
-	  array_1d<double,3> delta_rotation;
-
-	  double norm = norm_2(mdirection);
-	  if(norm!=0)
-	    mdirection/=norm;
-
-
+	  
 	  //Possible prescribed variables: ROTATION / ANGULAR_VELOCITY / ANGULAR_ACCELERATION
-	  double value = 0.0;
 	  bool dynamic_angular_velocity = false;
 	  bool dynamic_angular_acceleration = false;
 
 	  const ProcessInfo& rCurrentProcessInfo = mr_model_part.GetProcessInfo();
 	  const double& rDeltaTime = rCurrentProcessInfo[DELTA_TIME];
-	  const double& rCurrentTime = rCurrentProcessInfo[TIME];
-	  const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousTimeStepInfo();
-	  const double& rPreviousTime = rPreviousProcessInfo[TIME];
-	  
+
 	  array_1d<double,3> angular_velocity;
 	  angular_velocity.clear();
 	  array_1d<double,3> angular_acceleration;
 	  angular_acceleration.clear();
-
+	  
 	  double time_factor = 0.0;
 	  if(mvariable_name == "ROTATION"){
 
@@ -340,35 +305,31 @@ private:
 	    dynamic_angular_velocity = true;
 	    dynamic_angular_acceleration = true;
 	    time_factor = rDeltaTime * rDeltaTime;
-	  }
 
-	  //#pragma omp parallel for  //it does not work in parallel
+	  }
+	   
+	  array_1d<double,3> delta_rotation = time_factor * (mvalue - mprevious_value) * mdirection;
+ 
+	  array_1d<double,3> rotation = time_factor * mvalue * mdirection;
+	  
+	  if( dynamic_angular_velocity ){
+	    angular_velocity = delta_rotation / rDeltaTime;
+	    if( dynamic_angular_acceleration ){
+	      angular_acceleration = angular_velocity / rDeltaTime;
+	    }
+	  }
+	  
+	  //Get rotation matrix
+	  Quaternion<double> total_quaternion = Quaternion<double>::FromRotationVector<array_1d<double,3> >(rotation);
+
+          #pragma omp parallel for private(distance,radius,rotation_matrix)
 	  for(int i = 0; i<nnodes; i++)
             {
+
 	      ModelPart::NodesContainerType::iterator it = it_begin + i;
-	      
-	      this->CallFunction(*(it.base()), rCurrentTime, value);
-      
-	      rotation = value * mdirection;
-	      
-	      rotation *= time_factor;
-	      
-	      if( dynamic_angular_velocity ){
-
-		this->CallFunction(*(it.base()), rPreviousTime, value);
-		delta_rotation  = rotation - time_factor * value * mdirection;	
 		
-		angular_velocity = delta_rotation / rDeltaTime;
-		if( dynamic_angular_acceleration ){
-		  angular_acceleration = angular_velocity / rDeltaTime;
-		}
-	      }
-	      
-	      //Get rotation matrix
-	      total_quaternion = Quaternion<double>::FromRotationVector<array_1d<double,3> >(rotation);
-
 	      distance = it->GetInitialPosition() - mcenter;
-	      
+	      	      
 	      total_quaternion.ToRotationMatrix(rotation_matrix);
 
 	      noalias(radius) = prod(rotation_matrix, distance);
@@ -377,7 +338,7 @@ private:
 	      displacement =  radius - distance; //(mcenter + radius) - it->GetInitialPosition();
 	      
 	      if( dynamic_angular_velocity ){
-
+		
 		//compute the skewsymmmetric tensor of the angular velocity
 		BeamMathUtils<double>::VectorToSkewSymmetricTensor(angular_velocity, rotation_matrix);
 
@@ -385,15 +346,18 @@ private:
 		array_1d<double,3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
 		velocity = prod(rotation_matrix,radius);
 
+
 		if( dynamic_angular_acceleration ){ 
 		  //compute the contribution of the centripetal acceleration ac = Wx(Wxr)
 		  array_1d<double,3>& acceleration = it->FastGetSolutionStepValue(ACCELERATION);
 		  acceleration = prod(rotation_matrix,velocity);
-		  
+
 		  //compute the contribution of the angular acceleration to the acceleration a = Axr
 		  BeamMathUtils<double>::VectorToSkewSymmetricTensor(angular_acceleration, rotation_matrix);
-		  acceleration += prod(rotation_matrix,radius);	
+		  acceleration += prod(rotation_matrix,radius);
+
 		}
+
 	      }
 	    }
  
@@ -411,7 +375,7 @@ private:
     ///@{
 
     /// Assignment operator.
-    ApplyRigidBodyRotationFieldToNodesProcess& operator=(ApplyRigidBodyRotationFieldToNodesProcess const& rOther);
+    AssignRotationAboutAnAxisToNodesProcess& operator=(AssignRotationAboutAnAxisToNodesProcess const& rOther);
 
 
     ///@}
@@ -424,7 +388,7 @@ private:
     ///@{
     ///@}
 
-}; // Class ApplyRigidBodyRotationFieldToNodesProcess
+}; // Class AssignRotationAboutAnAxisToNodesProcess
 
 
 ///@}
@@ -440,11 +404,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyRigidBodyRotationFieldToNodesProcess& rThis);
+                                  AssignRotationAboutAnAxisToNodesProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyRigidBodyRotationFieldToNodesProcess& rThis)
+                                  const AssignRotationAboutAnAxisToNodesProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -457,4 +421,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_APPLY_RIGID_BODY_ROTATION_FIELD_TO_NODES_PROCESS_H_INCLUDED  defined
+#endif // KRATOS_ASSIGN_ROTATION_ABOUT_AN_AXIS_TO_NODES_PROCESS_H_INCLUDED  defined

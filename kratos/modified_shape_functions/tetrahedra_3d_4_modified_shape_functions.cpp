@@ -24,7 +24,7 @@ namespace Kratos
 /// Default constructor
 Tetrahedra3D4ModifiedShapeFunctions::Tetrahedra3D4ModifiedShapeFunctions(const GeometryPointerType pInputGeometry, const Vector& rNodalDistances) :
     ModifiedShapeFunctions(pInputGeometry, rNodalDistances),
-    mpTetrahedraSplitter(boost::make_shared<DivideTetrahedra3D4>(*pInputGeometry, rNodalDistances)) {
+    mpTetrahedraSplitter(Kratos::make_shared<DivideTetrahedra3D4>(*pInputGeometry, rNodalDistances)) {
 
     // Perform the element splitting
     mpTetrahedraSplitter->GenerateDivision();

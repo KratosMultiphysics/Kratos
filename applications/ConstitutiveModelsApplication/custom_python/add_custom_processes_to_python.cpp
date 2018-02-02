@@ -32,7 +32,7 @@ namespace Kratos
     {
 
       using namespace boost::python;
-      typedef Process                                         ProcessBaseType;
+      //typedef Process                                         ProcessBaseType;
 
      
     }
