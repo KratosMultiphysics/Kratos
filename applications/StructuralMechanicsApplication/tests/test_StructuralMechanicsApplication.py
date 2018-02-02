@@ -43,17 +43,14 @@ from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 # Harmonic analysis tests
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
-
+# Dynamic basic tests 
+from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 
 ##### SMALL TESTS #####
-# Dynamic basic tests (leave these in the smallSuite to have the Exection script tested)
-from SmallTests import DynamicBossakTests as TDynamicBossakTests
-from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
-
+# Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
+from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 
 ##### NIGHTLY TESTS #####
-# Basic moving mesh test
-from NightlyTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 # Patch test Small Displacements
 from NightlyTests import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from NightlyTests import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -201,15 +198,19 @@ def AssambleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Multipoint Constraint
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
+    # Dynamic basic tests
+    smallSuite.addTest(TDynamicSchemesTests('test_spring_bossak_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_spring_newmark_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_spring_bdf2_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_fall_bossak_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_fall_newmark_scheme'))
+    smallSuite.addTest(TDynamicSchemesTests('test_fall_bdf2_scheme'))
     
     ### Adding Small Tests
-    # Dynamic basic tests (leave these in the smallSuite to have the Exection script tested)
-    smallSuite.addTest(TDynamicBossakTests('test_execution')) 
-    smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
+    # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
+    smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
 
     ### Adding Nightly Tests
-    # Basic moving mesh test
-    nightSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Patch test Small Displacements
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
