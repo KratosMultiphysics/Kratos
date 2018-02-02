@@ -251,7 +251,7 @@ namespace Kratos
         if (rThisElements.size() > 0) {
             std::string element_name;
 
-            auto it_element = rThisElements.begin();
+            auto& it_element = rThisElements.begin();
             auto elements_components = KratosComponents<Element>::GetComponents();
             
             // Fisrt we do the first element
@@ -350,7 +350,7 @@ namespace Kratos
         if (rThisConditions.size() > 0) {
             std::string condition_name;
 
-            auto it_condition = rThisConditions.begin();
+            auto& it_condition = rThisConditions.begin();
             auto conditions_components = KratosComponents<Condition>::GetComponents();
             
             // Fisrt we do the first condition
