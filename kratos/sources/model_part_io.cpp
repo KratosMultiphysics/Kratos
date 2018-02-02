@@ -240,17 +240,6 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    template<typename FirstElementType, typename SecondElementType>
-    struct IsSameElement
-    { 
-        static const bool value = 
-            std::is_same<typename std::remove_reference<FirstElementType>::type,typename std::remove_cv<typename std::remove_reference<SecondElementType>::type>::type>::value ||
-            std::is_same<typename std::remove_cv<typename std::remove_reference<FirstElementType>::type>::type,typename std::remove_reference<SecondElementType>::type>::value; 
-    };
     
     /***********************************************************************************/
     /***********************************************************************************/
@@ -260,14 +249,21 @@ namespace Kratos
         // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
         if (rThisElements.size() > 0) {
             std::string element_name;
+
+            auto element_it = rThisElements.begin();
             auto elements_components = KratosComponents<Element>::GetComponents();
-            
-            auto element_type = rThisElements.begin()->GetGeometry().GetGeometryType();
+
+            const auto& element_type = typeid(*element_it);
+            auto element_geometry_type = element_it->GetGeometry().GetGeometryType();
             
             // Fisrt we do the first element
             for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                if (IsSameElement<decltype(*(rThisElements.begin())), decltype(*(it_comp->second))>::value &&
-                    (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                auto component_ptr = it_comp->second;
+
+                const auto& component_type = typeid(*component_ptr);
+                auto component_geometry_type = component_ptr->GetGeometry().GetGeometryType();
+
+                if(element_type == component_type && element_geometry_type == component_geometry_type) {
                     element_name = it_comp->first;
                     break;
                 }
@@ -283,11 +279,14 @@ namespace Kratos
             for(std::size_t i = 1; i < rThisElements.size(); i++) {
                 auto it_elem_previous = rThisElements.begin() + i - 1;
                 auto it_elem_current = rThisElements.begin() + i;
+
+                auto& previous_element_type = typeid(*it_elem_previous);
+                auto& current_element_type = typeid(*it_elem_current);
                 
-                const auto previous_element_geometry_type = it_elem_previous->GetGeometry().GetGeometryType();
-                const auto current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
+                auto previous_element_geometry_type = it_elem_previous->GetGeometry().GetGeometryType();
+                auto current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
                 
-                if (IsSameElement<decltype(*it_elem_previous), decltype(*it_elem_current)>::value && (previous_element_geometry_type == current_element_geometry_type)) {
+                if(previous_element_type ==  current_element_type && previous_element_geometry_type == current_element_geometry_type) {
                     (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
                         (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
@@ -295,11 +294,15 @@ namespace Kratos
                 } else {
                     (*mpStream) << "End Elements" << std::endl << std::endl;;
                     
-                    element_type = it_elem_current->GetGeometry().GetGeometryType();
+                    current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
                         
                     for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                        if (IsSameElement<decltype(*it_elem_current), decltype(*(it_comp->second))>::value &&
-                            (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                        auto component_ptr = it_comp->second;
+
+                        const auto& component_type = typeid(*component_ptr);
+                        auto component_geometry_type = component_ptr->GetGeometry().GetGeometryType();
+
+                        if(current_element_type == component_type && current_element_geometry_type == component_geometry_type) {
                             element_name = it_comp->first;
                             break;
                         }
@@ -366,14 +369,21 @@ namespace Kratos
         
         if (rThisConditions.size() > 0) {
             std::string condition_name;
+
+            auto condition_it = rThisConditions.begin();
             auto conditions_components = KratosComponents<Condition>::GetComponents();
             
-            auto condition_type = rThisConditions.begin()->GetGeometry().GetGeometryType();
+            const auto& condition_type = typeid(*condition_it);
+            auto condition_geometry_type = condition_it->GetGeometry().GetGeometryType();
             
             // Fisrt we do the first condition
             for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                if (IsSameElement<decltype(*(rThisConditions.begin())), decltype(*(it_comp->second))>::value &&
-                    (condition_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                auto component_ptr = it_comp->second;
+
+                const auto& component_type = typeid(component_ptr);
+                auto component_geometry_type = component_ptr->GetGeometry().GetGeometryType();
+
+                if(condition_type == component_type && condition_geometry_type == component_geometry_type) {
                     condition_name = it_comp->first;
                     break;
                 }
@@ -389,11 +399,14 @@ namespace Kratos
             for(std::size_t i = 1; i < rThisConditions.size(); i++) {
                 auto it_cond_previous = rThisConditions.begin() + i - 1;
                 auto it_cond_current = rThisConditions.begin() + i;
+
+                auto& previous_condition_type = typeid(*it_cond_previous);
+                auto& current_condition_type = typeid(*it_cond_current);
                 
-                const auto previous_condition_geometry_type = it_cond_previous->GetGeometry().GetGeometryType();
-                const auto current_condition_geometry_type = it_cond_current->GetGeometry().GetGeometryType();
+                auto previous_condition_geometry_type = it_cond_previous->GetGeometry().GetGeometryType();
+                auto current_condition_geometry_type = it_cond_current->GetGeometry().GetGeometryType();
                 
-                if (IsSameElement<decltype(*it_cond_previous), decltype(*it_cond_current)>::value && (previous_condition_geometry_type == current_condition_geometry_type)) {
+                if(previous_condition_type ==  current_condition_type && previous_condition_geometry_type == current_condition_geometry_type) {
                     (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
                         (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
@@ -401,11 +414,15 @@ namespace Kratos
                 } else {
                     (*mpStream) << "End Conditions" << std::endl << std::endl;;
                     
-                    condition_type = it_cond_current->GetGeometry().GetGeometryType();
+                    current_condition_geometry_type = it_cond_current->GetGeometry().GetGeometryType();
                         
                     for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                        if (IsSameElement<decltype(*it_cond_current), decltype(*(it_comp->second))>::value &&
-                            (condition_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
+                        auto component_ptr = it_comp->second;
+
+                        const auto& component_type = typeid(*component_ptr);
+                        auto component_geometry_type = component_ptr->GetGeometry().GetGeometryType();
+
+                        if(current_condition_type == component_type && current_condition_geometry_type == component_geometry_type) {
                             condition_name = it_comp->first;
                             break;
                         }
