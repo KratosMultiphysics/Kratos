@@ -23,7 +23,7 @@ import timer_factory
 import algorithm_factory
 # import analyzer_factory
 import communicator_factory
-import mesh_controller_factory
+import model_part_controller_factory
 
 # ==============================================================================
 def CreateOptimizer( OptimizationModelPart, OptimizationSettings ):
@@ -40,13 +40,10 @@ class VertexMorphingMethod:
         self.OptimizationModelPart = OptimizationModelPart
         self.OptimizationSettings = OptimizationSettings
 
-        self.__addNodalVariablesNeededForOptimization()
-        self.__createObjectsWithFurtherNodalVariables()    
+        self.ModelPartController = model_part_controller_factory.CreateController( OptimizationModelPart, OptimizationSettings )        
+        self.Communicator = communicator_factory.CreateCommunicator( OptimizationSettings )
 
-    # --------------------------------------------------------------------------
-    def __createObjectsWithFurtherNodalVariables( self ):
-        self.MeshController = mesh_controller_factory.CreateMeshController( self.OptimizationModelPart, self.OptimizationSettings )        
-        self.Communicator = communicator_factory.CreateCommunicator( self.OptimizationSettings )
+        self.__addNodalVariablesNeededForOptimization()
 
     # --------------------------------------------------------------------------
     def __addNodalVariablesNeededForOptimization( self ):
@@ -85,9 +82,8 @@ class VertexMorphingMethod:
         print("> ",timer.GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithmName)
         print("> ==============================================================================================================\n")
 
-        algorithm = algorithm_factory.CreateAlgorithm( self.OptimizationModelPart, 
+        algorithm = algorithm_factory.CreateAlgorithm( self.ModelPartController,
                                                        self.Analyzer, 
-                                                       self.MeshController,
                                                        self.Communicator,
                                                        self.OptimizationSettings )
 

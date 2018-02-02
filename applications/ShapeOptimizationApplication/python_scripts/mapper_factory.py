@@ -19,7 +19,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-def CreateMapper( OptimizationModelPart, OptimizationSettings ):
+def CreateMapper( ModelPartController, OptimizationSettings ):
     default_settings = Parameters("""
     {
         "filter_function_type"       : "linear",
@@ -37,7 +37,7 @@ def CreateMapper( OptimizationModelPart, OptimizationSettings ):
     mapper_settings = OptimizationSettings["design_variables"]["filter"]
     mapper_settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
-    design_surface = __import__("helper_functions").GetDesignSurfaceFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
+    design_surface = ModelPartController.GetDesignSurface()
 
     if mapper_settings["matrix_free_filtering"].GetBool():
         if mapper_settings["consistent_mapping_to_geometry_space"].GetBool():

@@ -27,24 +27,22 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __init__( self, 
-                  OptimizationModelPart, 
+                  ModelPartController, 
                   Analyzer, 
-                  MeshController, 
                   Communicator, 
                   Mapper, 
                   DataLogger, 
                   OptimizationSettings ):
-
-        self.OptimizationModelPart = OptimizationModelPart
+                  
+        self.ModelPartController = ModelPartController
         self.Analyzer = Analyzer
         self.Communicator = Communicator
-        self.MeshController = MeshController
         self.Mapper = Mapper
         self.DataLogger = DataLogger
         self.OptimizationSettings = OptimizationSettings
 
-        self.DesignSurface = __import__("helper_functions").GetDesignSurfaceFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
-        
+        self.DesignSurface = ModelPartController.GetDesignSurface()
+
         self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
         self.onlyObjective = OptimizationSettings["objectives"][0]["identifier"].GetString()
         self.initialStepSize = OptimizationSettings["line_search"]["step_size"].GetDouble()
@@ -53,7 +51,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
         if self.performDamping:
-            damping_regions = __import__("helper_functions").GetDampingRegionsFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
+            damping_regions = self.ModelPartController.GetDampingRegions()
             self.dampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
             
     # --------------------------------------------------------------------------
@@ -64,7 +62,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
-        self.MeshController.InitializeSolution()
+        self.ModelPartController.InitializeMeshController()
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
 
@@ -76,7 +74,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",self.optimizationIteration)
             print(">===================================================================\n")
 
-            self.__prepareModelPartForNewOptimizationStep()
+            self.__initializeModelPartForNewSolutionStep()
 
             self.__updateMeshAccordingCurrentShapeUpdate()
 
@@ -108,13 +106,12 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.DataLogger.FinalizeDataLogging()
 
     # --------------------------------------------------------------------------
-    def __prepareModelPartForNewOptimizationStep( self ):
-        # self.ModelPartController.InitializeNewSolutionStep( self.optimizationIteration )
-        self.OptimizationModelPart.CloneTimeStep( self.optimizationIteration )
+    def __initializeModelPartForNewSolutionStep( self ):
+        self.ModelPartController.CloneTimeStep( self.optimizationIteration )
 
     # --------------------------------------------------------------------------
     def __updateMeshAccordingCurrentShapeUpdate( self ):
-        self.MeshController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE ) 
+        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE ) 
 
     # --------------------------------------------------------------------------
     def __callCommunicatorToRequestNewAnalyses( self ):
@@ -129,7 +126,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __ResetPossibleMeshDisplacementDuringAnalysis( self ):
-        self.MeshController.ResetMeshDisplacement()
+        self.ModelPartController.ResetMeshDisplacement()
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):

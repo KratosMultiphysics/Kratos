@@ -32,19 +32,17 @@ from response_logger_steepest_descent import ResponseLoggerSteepestDescent
 from response_logger_penalized_projection import ResponseLoggerPenalizedProjection
 
 # ==============================================================================
-def CreateDataLogger( OptimizationModelPart, Communicator, OptimizationSettings ):
-    return DataLogger( OptimizationModelPart, Communicator, OptimizationSettings )
+def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
+    return DataLogger( ModelPartController, Communicator, OptimizationSettings )
 
 # ==============================================================================
 class DataLogger():
 
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, Communicator, OptimizationSettings ):
-        self.OptimizationModelPart = OptimizationModelPart
+    def __init__( self, ModelPartController, Communicator, OptimizationSettings ):
+        self.ModelPartController = ModelPartController
         self.Communicator = Communicator
         self.OptimizationSettings = OptimizationSettings
-
-        self.DesignSurface = __import__("helper_functions").GetDesignSurfaceFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
 
         self.Timer = timer_factory.CreateTimer()
         self.ResponseLogger = self.__CreateResponseLogger()
@@ -67,11 +65,11 @@ class DataLogger():
     def __CreateDesignLogger( self ):
         outputFormatName = self.OptimizationSettings["output"]["output_format"]["name"].GetString()
         if outputFormatName == "gid":
-            return DesignLoggerGID( self.OptimizationModelPart, self.DesignSurface, self.OptimizationSettings )
+            return DesignLoggerGID( self.ModelPartController, self.OptimizationSettings )
         if outputFormatName == "unv":
-            return DesignLoggerUNV( self.OptimizationModelPart, self.DesignSurface, self.OptimizationSettings )  
+            return DesignLoggerUNV( self.ModelPartController, self.OptimizationSettings )  
         if outputFormatName == "vtk":
-            return DesignLoggerVTK( self.OptimizationModelPart, self.DesignSurface, self.OptimizationSettings )                
+            return DesignLoggerVTK( self.ModelPartController, self.OptimizationSettings )                
         else:
             raise NameError("The following output format is not supported by the design logger (name may be misspelled): " + outputFormatName)
 

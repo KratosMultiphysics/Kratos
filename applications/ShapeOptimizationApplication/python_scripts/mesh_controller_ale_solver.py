@@ -37,7 +37,7 @@ class MeshControllerUsingALESolver( MeshController) :
         self.mesh_solver.AddVariables()
 
     # --------------------------------------------------------------------------    
-    def InitializeSolution( self ):
+    def Initialize( self ):
         self.mesh_solver.AddDofs()
         self.mesh_solver.Initialize()
         self.mesh_solver.SetEchoLevel(0)    

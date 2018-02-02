@@ -25,24 +25,22 @@ import mapper_factory
 import data_logger_factory
 
 # ==============================================================================
-def CreateAlgorithm( OptimizationModelPart, Analyzer, MeshController, Communicator, OptimizationSettings ):
+def CreateAlgorithm( ModelPartController, Analyzer, Communicator, OptimizationSettings ):
     AlgorithmName = OptimizationSettings["optimization_algorithm"]["name"].GetString()
     
-    Mapper = mapper_factory.CreateMapper( OptimizationModelPart, OptimizationSettings ) 
-    DataLogger = data_logger_factory.CreateDataLogger( OptimizationModelPart, Communicator, OptimizationSettings )  
+    Mapper = mapper_factory.CreateMapper( ModelPartController, OptimizationSettings ) 
+    DataLogger = data_logger_factory.CreateDataLogger( ModelPartController, Communicator, OptimizationSettings )  
 
     if OptimizationSettings["optimization_algorithm"]["name"].GetString() == "steepest_descent":
-        return AlgorithmSteepestDescent( OptimizationModelPart, 
+        return AlgorithmSteepestDescent( ModelPartController, 
                                          Analyzer, 
-                                         MeshController, 
                                          Communicator, 
                                          Mapper, 
                                          DataLogger, 
                                          OptimizationSettings )
     elif AlgorithmName == "penalized_projection":
-        return AlgorithmPenalizedProjection( OptimizationModelPart, 
+        return AlgorithmPenalizedProjection( ModelPartController, 
                                              Analyzer, 
-                                             MeshController, 
                                              Communicator, 
                                              Mapper, 
                                              DataLogger, 
