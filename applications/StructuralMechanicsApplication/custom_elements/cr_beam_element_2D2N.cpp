@@ -156,7 +156,7 @@ namespace Kratos
 		}
 		rMassMatrix = ZeroMatrix(msElementSize, msElementSize);
 
-		const double L = this->CalculateCurrentLength();
+		const double L = this->CalculateLength();
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double rho = this->GetProperties()[DENSITY];
 
@@ -301,7 +301,7 @@ namespace Kratos
 		bounded_vector<double,msElementSize> BodyForcesGlobal = ZeroVector(msElementSize);
 
 		const double A = this->GetProperties()[CROSS_AREA];
-		const double l = this->CalculateCurrentLength();
+		const double l = this->CalculateLength();
 		const double rho = this->GetProperties()[DENSITY];
 
 		//calculating equivalent line load
@@ -420,7 +420,7 @@ namespace Kratos
 
 		KRATOS_TRY;
 		const double E = this->GetProperties()[YOUNG_MODULUS];
-		const double L =this->CalculateCurrentLength();
+		const double L =this->CalculateLength();
 		const double G = this->CalculateShearModulus();
 
 		const double phi = (12.0 * E * I) / (L*L * G*A_eff);
@@ -496,7 +496,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	double CrBeamElement2D2N::CalculateCurrentLength() 
+	double CrBeamElement2D2N::CalculateLength() 
 	{
 		KRATOS_TRY;
 		const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -531,7 +531,7 @@ namespace Kratos
 	CrBeamElement2D2N::msLocalSize> CrBeamElement2D2N::CalculateTransformationS() 
 	{
 		KRATOS_TRY;
-		const double L = this->CalculateCurrentLength();
+		const double L = this->CalculateLength();
 		bounded_matrix<double,msElementSize,msLocalSize> S = ZeroMatrix(msElementSize, msLocalSize);
 		S(0, 0) = -1.00;
 		S(1, 2) = 2.00 / L;
@@ -553,7 +553,7 @@ namespace Kratos
 		// element properties
 		const double E = this->GetProperties()[YOUNG_MODULUS];
 		const double A = this->GetProperties()[CROSS_AREA];
-		const double L = this->CalculateCurrentLength();
+		const double L = this->CalculateLength();
 
 		const double Iz = this->GetProperties()[I33];
 
@@ -579,7 +579,7 @@ namespace Kratos
 	{
 		KRATOS_TRY	
 		// element properties
-		const double L = this->CalculateCurrentLength();
+		const double L = this->CalculateLength();
 		const double N = this->DeformationForces[0];
 
 		// element material stiffness matrix
@@ -597,7 +597,7 @@ namespace Kratos
 	 {
 		KRATOS_TRY	
 		// element properties
-		const double L = this->CalculateCurrentLength();
+		const double L = this->CalculateLength();
 		const double N = this->DeformationForces[0];
 		const double Q = (-2.00 / L) * this->DeformationForces[2];
 
@@ -658,7 +658,7 @@ namespace Kratos
 		this->GetValuesVector(CurrentDisplacement,0);
 
 		bounded_vector<double,msLocalSize> DeformationParameters = ZeroVector(msLocalSize);
-		DeformationParameters[0] = this->CalculateCurrentLength() - this->CalculateReferenceLength();
+		DeformationParameters[0] = this->CalculateLength() - this->CalculateReferenceLength();
 		DeformationParameters[1] = CurrentDisplacement[5] - CurrentDisplacement[2];
 		DeformationParameters[2] = CurrentDisplacement[5] + CurrentDisplacement[2];
 		DeformationParameters[2] -= 2.00 * (this->CalculateDeformedElementAngle()
@@ -741,6 +741,37 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 	
+
+
+	void CrBeamElement2D2N::CalculateOnIntegrationPoints(
+		const Variable<array_1d<double, 3 > >& rVariable,
+		std::vector< array_1d<double, 3 > >& rOutput,
+		const ProcessInfo& rCurrentProcessInfo) {
+
+		KRATOS_TRY
+		//TODO!
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElement2D2N::GetValueOnIntegrationPoints(
+		const Variable<array_1d<double, 3 > >& rVariable,
+		std::vector< array_1d<double, 3 > >& rOutput,
+		const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+		KRATOS_CATCH("")
+	}
+
+	CrBeamElement2D2N::IntegrationMethod
+		CrBeamElement2D2N::GetIntegrationMethod() const
+	{
+		//do this to have 3GP as an output in GID
+		return Kratos::GeometryData::GI_GAUSS_3;
+	}
+
+
+
 	bounded_vector<double,CrBeamElement2D2N::msElementSize>
 	 CrBeamElement2D2N::ReturnElementForces_Local()
 	 {

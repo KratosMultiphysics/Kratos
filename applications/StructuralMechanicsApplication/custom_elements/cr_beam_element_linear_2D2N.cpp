@@ -74,6 +74,8 @@ namespace Kratos
 			rRightHandSideVector = ZeroVector(msElementSize);
 			rRightHandSideVector -= prod(this->K_master, NodalDeformation);
 
+
+
 			rRightHandSideVector += this->CalculateBodyForces();
 			KRATOS_CATCH("")
 		}
@@ -133,6 +135,91 @@ namespace Kratos
 		return RotationMatrix;
 		KRATOS_CATCH("")
 	}
+
+
+	void CrBeamElementLinear2D2N::CalculateOnIntegrationPoints(
+		const Variable<array_1d<double, 3 > >& rVariable,
+		std::vector< array_1d<double, 3 > >& rOutput,
+		const ProcessInfo& rCurrentProcessInfo) {
+
+		KRATOS_TRY
+		//element with two nodes can only represent results at one node 
+		const unsigned int&  write_points_number = GetGeometry()
+			.IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+		if (rOutput.size() != write_points_number) {
+			rOutput.resize(write_points_number);
+		}
+
+		Matrix LeftHandSideMatrix = this->CreateElementStiffnessMatrix_Total();
+
+		Vector NodalDeformation = ZeroVector(msElementSize);
+		this->GetValuesVector(NodalDeformation);
+
+		// here ::: static condensation displacement back calculation !!!!!!
+
+		bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = this->CreateRotationMatrix();
+		// calculate local displacements
+		NodalDeformation = prod(Matrix(trans(TransformationMatrix)),NodalDeformation);
+
+		Vector Stress = prod(LeftHandSideMatrix, NodalDeformation); 
+
+
+
+		//rOutput[GP 1,2,3][x,y,z]
+
+		if (rVariable == MOMENT)
+		{
+			rOutput[0][0] = 0.00;
+			rOutput[1][0] = 0.00;
+			rOutput[2][0] = 0.00;
+
+			rOutput[0][1] = 0.00;
+			rOutput[1][1] = 0.00;
+			rOutput[2][1] = 0.00;
+
+			rOutput[0][2] = 1.0 *Stress[2] * 0.75 - Stress[5] * 0.25;
+			rOutput[1][2] = 1.0 *Stress[2] * 0.50 - Stress[5] * 0.50;
+			rOutput[2][2] = 1.0 *Stress[2] * 0.25 - Stress[5] * 0.75;
+
+		}
+		if (rVariable == FORCE)
+		{
+			rOutput[0][0] = -1.0 * Stress[0] * 0.75 + Stress[3] * 0.25;
+			rOutput[1][0] = -1.0 * Stress[0] * 0.50 + Stress[3] * 0.50;
+			rOutput[2][0] = -1.0 * Stress[0] * 0.25 + Stress[3] * 0.75;
+
+			rOutput[0][1] = -1.0 * Stress[1] * 0.75 + Stress[4] * 0.25;
+			rOutput[1][1] = -1.0 *Stress[1] * 0.50 + Stress[4] * 0.50;
+			rOutput[2][1] = -1.0 *Stress[1] * 0.25 + Stress[4] * 0.75;
+
+			rOutput[0][2] = 0.00;
+			rOutput[1][2] = 0.00;
+			rOutput[2][2] = 0.00;
+
+		}
+
+		KRATOS_CATCH("")
+	}
+
+	void CrBeamElementLinear2D2N::GetValueOnIntegrationPoints(
+		const Variable<array_1d<double, 3 > >& rVariable,
+		std::vector< array_1d<double, 3 > >& rOutput,
+		const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+		KRATOS_CATCH("")
+	}
+
+
+	double CrBeamElementLinear2D2N::CalculateLength() 
+	{
+		KRATOS_TRY;
+		return this->CalculateReferenceLength();
+		KRATOS_CATCH("")
+	}
+
+
 
 
 	void CrBeamElementLinear2D2N::save(Serializer& rSerializer) const

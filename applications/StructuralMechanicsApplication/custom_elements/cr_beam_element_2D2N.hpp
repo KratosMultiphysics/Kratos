@@ -124,9 +124,11 @@ namespace Kratos
 			bounded_vector<double,msElementSize>& rRightHandSideVector,
 			const double GeometryLength);
 
+		IntegrationMethod GetIntegrationMethod() const override;
+
 
 		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
-		double CalculateCurrentLength();
+		virtual double CalculateLength();
 		double CalculateReferenceLength();
 
 		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_mat();
@@ -144,6 +146,17 @@ namespace Kratos
 		bounded_vector<double,msLocalSize> CalculateDeformationParameters();
 		bounded_vector<double,msLocalSize> CalculateInternalStresses_DeformationModes();
 		bounded_vector<double,msElementSize> ReturnElementForces_Local();
+
+
+		void GetValueOnIntegrationPoints(
+			const Variable<array_1d<double, 3 > >& rVariable,
+			std::vector< array_1d<double, 3 > >& rOutput,
+			const ProcessInfo& rCurrentProcessInfo) override;
+
+		void CalculateOnIntegrationPoints(
+			const Variable<array_1d<double, 3 > >& rVariable,
+			std::vector< array_1d<double, 3 > >& rOutput,
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 	private:
 		bounded_vector<double,msLocalSize> DeformationForces = ZeroVector(msLocalSize);
