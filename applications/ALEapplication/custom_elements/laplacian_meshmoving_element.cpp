@@ -50,7 +50,7 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(
     VectorType &rIntermediateDisplacements, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
-  const unsigned int ComponentIndex =
+  const unsigned int component_index =
       rCurrentProcessInfo[LAPLACIAN_DIRECTION] - 1;
   const SizeType num_nodes = this->GetGeometry().PointsNumber();
 
@@ -58,7 +58,7 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(
     const VectorType &displacement =
         GetGeometry()[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT, 0) -
         GetGeometry()[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-    rIntermediateDisplacements[iNode] = displacement[ComponentIndex];
+    rIntermediateDisplacements[iNode] = displacement[component_index];
   }
 
   KRATOS_CATCH("");
