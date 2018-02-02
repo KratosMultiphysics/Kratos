@@ -40,12 +40,12 @@ object printImpl(tuple args, dict kwargs, Logger::Severity severity) {
     for(int i = 1; i < len(args); ++i) {
         object curArg = args[i];
         if(curArg) {
-            buffer << extract<const char *>(boost::python::str(args[i]));
+            buffer << extract<const char *>(boost::python::str(args[i])) << ((i != len(args)) ? " " : "");
         }
     }
 
     const char* label = extract<const char *>(boost::python::str(args[0]));
-    Logger(label) << KRATOS_CODE_LOCATION << buffer.str() << severity << std::endl;
+    Logger(label) << buffer.str() << severity << std::endl;
 
     return object();
 }
@@ -72,15 +72,26 @@ object printWarning(tuple args, dict kwargs) {
 
 void  AddLoggerToPython() {
 
+    class_<LoggerOutput, boost::shared_ptr<LoggerOutput>, boost::noncopyable>("LoggerOutput", no_init)
+    .def("SetMaxLevel", &LoggerOutput::SetMaxLevel)
+    .def("GetMaxLevel", &LoggerOutput::GetMaxLevel)
+    .def("SetSeverity", &LoggerOutput::SetSeverity)
+    .def("GetSeverity", &LoggerOutput::GetSeverity)
+    .def("SetCategory", &LoggerOutput::SetCategory)
+    .def("GetCategory", &LoggerOutput::GetCategory)
+    ;
+
     scope logger_scope = class_<Logger, boost::shared_ptr<Logger>, boost::noncopyable>("Logger", init<std::string const &>())
     .def("PrintInfo", raw_function(printInfo,1))
     .def("PrintWarning", raw_function(printWarning,1))
+    .def("GetDefaultOutput", &Logger::GetDefaultOutputInstance, return_value_policy<reference_existing_object>())
     .staticmethod("PrintInfo")
     .staticmethod("PrintWarning")
+    .staticmethod("GetDefaultOutput")
     ;
 
     // Enums for Severity
-    enum_<Logger::Category>("Severity")
+    enum_<Logger::Severity>("Severity")
     .value("ERROR", Logger::Severity::ERROR)
     .value("WARNING", Logger::Severity::WARNING)
     .value("INFO", Logger::Severity::INFO)
