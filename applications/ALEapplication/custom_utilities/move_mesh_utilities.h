@@ -31,15 +31,13 @@ namespace Kratos
 	{
 
         typedef Element BaseType;
-        typedef BaseType::MatrixType MatrixType;
 		typedef Element::GeometryType GeometryType;
         typedef GeometryData::IntegrationMethod IntegrationMethod;
+        typedef BaseType::VectorType VectorType;
 
-        MatrixType CalculateShapeFunctionDerivatives(const int& rdimension, const double& rPointNumber, GeometryType& rGeometry);
 
-        void CalculateInitialJacobian(MatrixType& rJ0, const double& rPointNumber, GeometryType& rGeometry);
+        void CheckJacobianDimension(GeometryType::JacobiansType& rInvJ0, VectorType& rDetJ0, GeometryType& rGeometry);
 
-        void CalculateJacobianValues(GeometryType::JacobiansType rJ0, GeometryType& rGeometry);
 
 	}  // namespace Move Mesh Utilities.
   

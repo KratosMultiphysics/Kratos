@@ -25,68 +25,17 @@ namespace Kratos
 {
     namespace MoveMeshUtilities
 	{
-
-    
-    void CalculateInitialJacobian(MatrixType &rJ0, const double &rPointNumber, GeometryType& rGeometry)
-    {
-        KRATOS_TRY;
-
-        const IntegrationMethod ThisIntegrationMethod = rGeometry.GetDefaultIntegrationMethod();
-        const MatrixType &DN_De = rGeometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[rPointNumber];
-
-        for (unsigned int i = 0; i < rGeometry.size(); i++)
+        void CheckJacobianDimension(GeometryType::JacobiansType& rInvJ0, VectorType& rDetJ0, GeometryType& rGeometry)
         {
-            const array_1d<double, 3> &coords = rGeometry[i].GetInitialPosition(); //NOTE: here we refer to the original, undeformed position!!
-            for (unsigned int k = 0; k < rGeometry.WorkingSpaceDimension(); k++)
-            {
-                for (unsigned int m = 0; m < rGeometry.LocalSpaceDimension(); m++)
-                {
-                    rJ0(k, m) += coords[k] * DN_De(i, m);
-                }
-            }
+            const IntegrationMethod this_integration_method = rGeometry.GetDefaultIntegrationMethod();
+            const GeometryType::IntegrationPointsArrayType& integration_points =
+            rGeometry.IntegrationPoints(this_integration_method);
+
+            if (rInvJ0.size() != integration_points.size())
+                rInvJ0.resize(integration_points.size());
+            if (rDetJ0.size() != integration_points.size())
+                rDetJ0.resize(integration_points.size());
         }
-
-        KRATOS_CATCH("");
-    }
-    
-
-    MatrixType CalculateShapeFunctionDerivatives(
-    const int &rdimension, const double &rPointNumber, GeometryType& rGeometry)
-    {
-        KRATOS_TRY;
-
-        const IntegrationMethod ThisIntegrationMethod = rGeometry.GetDefaultIntegrationMethod();
-        uint dimension = rGeometry.WorkingSpaceDimension();
-        uint number_of_nodes = rGeometry.size();
-        MatrixType DN_DX(number_of_nodes, dimension);
-        MatrixType J0(dimension, dimension);
-        MatrixType invJ0(dimension, dimension);
-        
-        J0.clear();
-
-        double detJ0;
-        const MatrixType &DN_De = rGeometry.ShapeFunctionsLocalGradients(ThisIntegrationMethod)[rPointNumber];
-
-        CalculateInitialJacobian(J0, rPointNumber, rGeometry);
-
-        MathUtils<double>::InvertMatrix(J0, invJ0, detJ0);
-
-        noalias(DN_DX) = prod(DN_De, invJ0);
-
-        return DN_DX;
-
-        KRATOS_CATCH("");
-    }
-
-    void CalculateJacobianValues(GeometryType::JacobiansType rJ0, GeometryType& rGeometry)
-    {
-
-        const IntegrationMethod this_integration_method = rGeometry.GetDefaultIntegrationMethod();
-        const GeometryType::IntegrationPointsArrayType& integration_points =
-        rGeometry.IntegrationPoints(this_integration_method);
-
-        rJ0 = rGeometry.Jacobian(rJ0, this_integration_method);
-    }
 
     }  // namespace Move Mesh Utilities.
   

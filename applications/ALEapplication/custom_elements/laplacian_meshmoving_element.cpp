@@ -71,6 +71,25 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(VectorType &rIntermediat
     KRATOS_CATCH("");
 }
 
+
+void LaplacianMeshMovingElement::CheckElementMatrixDimension(MatrixType& rLeftHandSideMatrix,
+                                                             VectorType& rRightHandSideVector)
+{
+    const SizeType num_nodes = this->GetGeometry().PointsNumber();
+
+    if (rLeftHandSideMatrix.size1() != num_nodes)
+        rLeftHandSideMatrix.resize(num_nodes, num_nodes, false);
+
+    rLeftHandSideMatrix = ZeroMatrix(num_nodes, num_nodes);
+
+    if (rRightHandSideVector.size() != num_nodes)
+        rRightHandSideVector.resize(num_nodes, false);
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(num_nodes, num_nodes);
+    noalias(rRightHandSideVector) = ZeroVector(num_nodes);
+}
+
+
 void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                                       VectorType &rRightHandSideVector,
                                                       ProcessInfo &rCurrentProcessInfo)
@@ -79,44 +98,26 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideM
 
     GeometryType &r_geom = this->GetGeometry();
     const SizeType num_nodes = r_geom.PointsNumber();
-    const unsigned int dimension = r_geom.WorkingSpaceDimension();
     const IntegrationMethod this_integration_method = r_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points =
         GetGeometry().IntegrationPoints(this_integration_method);
     VectorType delta_displacement = ZeroVector(num_nodes);
-    
 
-    if (rLeftHandSideMatrix.size1() != num_nodes)
-        rLeftHandSideMatrix.resize(num_nodes, num_nodes, false);
+    GeometryType::JacobiansType J0;
+    GeometryType::JacobiansType invJ0;
+    VectorType detJ0;
 
-    if (rRightHandSideVector.size() != num_nodes)
-        rRightHandSideVector.resize(num_nodes, false);
+    MoveMeshUtilities::CheckJacobianDimension(invJ0, detJ0, r_geom);
 
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(num_nodes, num_nodes);
-    noalias(rRightHandSideVector) = ZeroVector(num_nodes);
-
-
+    CheckElementMatrixDimension(rLeftHandSideMatrix, rRightHandSideVector);
 
     for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number)
     {
-        //++++++++++++++++++++++++++++++++++++
-        GeometryType::JacobiansType J0;
-        GeometryType::JacobiansType invJ0;
-        VectorType detJ0;
-
-        const GeometryType::IntegrationPointsArrayType& integration_points =
-        GetGeometry().IntegrationPoints(this_integration_method);
-
-        invJ0.resize(integration_points.size());
-        detJ0.resize(integration_points.size(), false);
-
         J0 = GetGeometry().Jacobian(J0, this_integration_method);
         MathUtils<double>::InvertMatrix(J0[point_number], invJ0[point_number], detJ0[point_number]);
 
         GeometryType::ShapeFunctionsGradientsType DN_De =
         this->GetGeometry().ShapeFunctionsLocalGradients(this_integration_method);
-        //++++++++++++++++++++++++++++++++++++
-
 
         // We do not multiply by DetJ0, since this additionally stabilizes the simulation
         double integration_weight = integration_points[point_number].Weight();

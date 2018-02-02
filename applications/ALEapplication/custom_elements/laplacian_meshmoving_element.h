@@ -117,6 +117,8 @@ public:
 
     void CalculateInitialJacobianValues(MatrixType& rJ0, MatrixType& rInvJ0, double& rDetJ0, const double& rPointNumber);
 
+    void CheckElementMatrixDimension(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector);
+
     ///@{
 
     ///@}
