@@ -38,7 +38,7 @@
         "solver_type" : "mesh_solver_structural_similarity",
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "test_structural_mesh_motion_3d/rectangle_3D8N_test"
+            "input_filename" : "test_mdpa_files/rectangle_3D8N_test"
         },
         "computing_model_part_name" : "Parts_Fluid",
         "skin_parts"             : ["FixedBoundary","MovingBoundary"],

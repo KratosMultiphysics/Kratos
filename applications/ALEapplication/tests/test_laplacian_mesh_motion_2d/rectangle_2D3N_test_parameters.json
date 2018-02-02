@@ -38,7 +38,7 @@
         "solver_type" : "mesh_solver_laplacian",
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test"
+            "input_filename" : "test_mdpa_files/rectangle_2D3N_test"
         },
         "computing_model_part_name" : "Parts_Fluid",
         "skin_parts"             : ["FixedBoundary","MovingBoundary"],
