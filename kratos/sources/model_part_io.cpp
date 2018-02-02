@@ -250,13 +250,11 @@ namespace Kratos
         // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
         if (rThisElements.size() > 0) {
             std::string element_name;
-
-            auto& it_element = rThisElements.begin();
             auto elements_components = KratosComponents<Element>::GetComponents();
             
             // Fisrt we do the first element
             for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                if(CompareElementsAndConditionsUtility::IsSame(*it_element, *it_comp->second)) {
+                if(CompareElementsAndConditionsUtility::IsSame(*(rThisElements.begin()), *it_comp->second)) {
                     element_name = it_comp->first;
                     break;
                 }
@@ -349,13 +347,11 @@ namespace Kratos
         
         if (rThisConditions.size() > 0) {
             std::string condition_name;
-
-            auto& it_condition = rThisConditions.begin();
             auto conditions_components = KratosComponents<Condition>::GetComponents();
             
             // Fisrt we do the first condition
             for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                if(CompareElementsAndConditionsUtility::IsSame(*it_condition, *it_comp->second)) {
+                if(CompareElementsAndConditionsUtility::IsSame(*(rThisConditions.begin()), *it_comp->second)) {
                     condition_name = it_comp->first;
                     break;
                 }
