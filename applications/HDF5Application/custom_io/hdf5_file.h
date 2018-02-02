@@ -130,6 +130,8 @@ public:
     template<class TScalar>
     void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<TScalar>& rValue);
 
+    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::string& rValue);
+
     /// Write a data set to the HDF5 file.
     /**
      *  Performs collective write in MPI. The data is written blockwise according to
@@ -191,6 +193,8 @@ public:
 
     template<class TScalar>
     void ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<TScalar>& rValue);
+
+    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::string& rValue);
 
     /// Read a data set from the HDF5 file.
     /**

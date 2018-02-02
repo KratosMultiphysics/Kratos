@@ -866,5 +866,52 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute9, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
+KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute10, KratosHDF5TestSuite)
+{
+    KRATOS_TRY;
+    Parameters test_params(R"(
+        {
+            "file_name" : "test.h5",
+            "file_access_mode": "exclusive",
+            "file_driver": "core"
+        })");
+
+    HDF5::File test_file(test_params);
+
+    std::string property_in;
+    std::string property_out(101, 'a');
+    
+    test_file.CreateGroup("/foo");
+    test_file.WriteAttribute("/foo", "PROPERTY_STR", property_out);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    test_file.ReadAttribute("/foo", "PROPERTY_STR", property_in);
+        , "Error: String size is greater than 100.")
+    H5close(); // Clean HDF5 for next unit test.
+    KRATOS_CATCH_WITH_BLOCK("", H5close(););
+}
+
+KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute11, KratosHDF5TestSuite)
+{
+    KRATOS_TRY;
+    Parameters test_params(R"(
+        {
+            "file_name" : "test.h5",
+            "file_access_mode": "exclusive",
+            "file_driver": "core"
+        })");
+
+    HDF5::File test_file(test_params);
+
+    std::string property_in;
+    std::string property_out("bar");
+    
+    test_file.CreateGroup("/foo");
+    test_file.WriteAttribute("/foo", "PROPERTY_STR", property_out);
+    test_file.ReadAttribute("/foo", "PROPERTY_STR", property_in);
+    KRATOS_CHECK(property_in == property_out);
+    H5close(); // Clean HDF5 for next unit test.
+    KRATOS_CATCH_WITH_BLOCK("", H5close(););
+}
+
 } // namespace Testing
 } // namespace Kratos.

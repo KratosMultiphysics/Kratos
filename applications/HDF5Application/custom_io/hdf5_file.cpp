@@ -216,6 +216,29 @@ void File::AddPath(const std::string& rPath)
     }
 }
 
+void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::string& rValue)
+{
+    KRATOS_TRY;
+    boost::timer timer;
+    hid_t type_id, space_id, attr_id;
+
+    type_id = H5T_NATIVE_CHAR;
+    const unsigned ndims = 1;
+    hsize_t dims[ndims];
+    dims[0] = rValue.size();
+    space_id = H5Screate_simple(ndims, dims, nullptr);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
+    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
+                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
+    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, rValue.c_str()) < 0) << "H5Awrite failed." << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    if (GetEchoLevel() == 1 && GetPID() == 0)
+        std::cout << "Write time \"" << rObjectPath << '/' << rName << "\": " << timer.elapsed() << std::endl;
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
 void File::WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
@@ -382,6 +405,48 @@ unsigned File::GetPID() const
 unsigned File::GetTotalProcesses() const
 {
     return 1;
+}
+
+void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::string& rValue)
+{
+    KRATOS_TRY;
+    boost::timer timer;
+    hid_t mem_type_id, attr_type_id, space_id, attr_id;
+    int ndims;
+    hsize_t dims[2];
+    const unsigned max_ssize = 100;
+    char buffer[max_ssize];
+
+    mem_type_id = H5T_NATIVE_CHAR;
+    attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
+                                    H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
+
+    // Check data type.
+    attr_type_id = H5Aget_type(attr_id);
+    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
+    htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
+    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
+
+    // Check dimensions.
+    space_id = H5Aget_space(attr_id);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
+    KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
+        << "H5Sget_simple_extent_ndims failed." << std::endl;
+    KRATOS_ERROR_IF(ndims != 1) << "Attribute \"" << rName << "\" is not string." << std::endl;
+    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, dims, nullptr) < 0)
+        << "H5Sget_simple_extent_dims failed" << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(max_ssize < dims[0]) << "String size is greater than " << max_ssize << '.' << std::endl;
+    // Read attribute.
+    KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, buffer) < 0) << "H5Aread failed." << std::endl; 
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+    rValue = std::string(buffer, dims[0]);
+    if (GetEchoLevel() == 1 && GetPID() == 0)
+        std::cout << "Read time \"" << rObjectPath << '/' << rName << "\": " << timer.elapsed() << std::endl;
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 
 void File::ReadDataSet(const std::string& rPath, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
