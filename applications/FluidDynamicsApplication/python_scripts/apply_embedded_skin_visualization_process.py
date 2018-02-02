@@ -24,7 +24,7 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters);
 
         self.origin_model_part = Model[settings["model_part_name"].GetString()]
-        self.visualization_model_part = ModelPart(settings["visualization_model_part_name"].GetString())
+        self.visualization_model_part = Model[settings["visualization_model_part_name"].GetString()]
 
         aux_params = settings
         aux_params.RemoveValue("model_part_name")
