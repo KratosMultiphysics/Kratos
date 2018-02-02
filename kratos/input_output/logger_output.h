@@ -153,6 +153,9 @@ namespace Kratos
 
 
 			///@}
+        protected:
+
+            std::ostream& GetStream() {return mrStream;}
 
 		private:
 			///@name Life Cycle
