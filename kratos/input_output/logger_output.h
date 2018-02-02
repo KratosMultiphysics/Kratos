@@ -82,13 +82,7 @@ namespace Kratos
 			///@name Access
 			///@{
 
-			virtual void WriteMessage(LoggerMessage const& TheMessage) {
-				auto message_severity = TheMessage.GetSeverity();
-				if (message_severity <= mSeverity)
-				{
-					mrStream << /*TheMessage.GetTime() << " :: " << */TheMessage.GetMessage();
-				}
-			}
+			virtual void WriteMessage(LoggerMessage const& TheMessage);
 
 			void SetMaxLevel(std::size_t TheLevel) {
 				mMaxLevel = TheLevel;

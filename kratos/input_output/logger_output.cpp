@@ -26,7 +26,16 @@ namespace Kratos
 	std::string LoggerOutput::Info() const
 	{
 		return "LoggerOutput";
-	}
+    }
+    
+    void LoggerOutput::WriteMessage(LoggerMessage const& TheMessage)
+    {
+		auto message_severity = TheMessage.GetSeverity();
+        if (message_severity <= mSeverity)
+        {
+            mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
+        }
+    }
 
 	/// Print information about this object.
 	void LoggerOutput::PrintInfo(std::ostream& rOStream) const
