@@ -51,6 +51,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    inline std::string const& Name() const
+    {
+        return mName;
+    }
+
     inline Vector<int> const& GetIds() const
     {
         return mIds;
@@ -75,13 +80,11 @@ public:
 
     void WriteData(File& rFile, const std::string& rPath, WriteInfo& rInfo);
 
-    void CreateEntities(ElementType const& rElementType,
-                        NodesContainerType& rNodes,
+    void CreateEntities(NodesContainerType& rNodes,
                         PropertiesContainerType& rProperties,
                         ElementsContainerType& rElements);
 
-    void CreateEntities(ConditionType const& rConditionType,
-                        NodesContainerType& rNodes,
+    void CreateEntities(NodesContainerType& rNodes,
                         PropertiesContainerType& rProperties,
                         ConditionsContainerType& rConditions);
 
@@ -96,6 +99,7 @@ public:
 private:
     ///@name Member Variables
     ///@{
+    std::string mName;
     Vector<int> mIds;
     Vector<int> mPropertiesIds;
     Matrix<int> mConnectivities;

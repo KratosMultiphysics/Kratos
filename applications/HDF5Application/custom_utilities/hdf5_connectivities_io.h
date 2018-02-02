@@ -59,11 +59,9 @@ class ConnectivitiesInput
                                 unsigned BlockSize,
                                 PointerVectorSet<TConnectivitiesType, IndexedObject>& rConnectivities)
         {
-            const TConnectivitiesType& r_creator =
-                KratosComponents<TConnectivitiesType>::Get(Name);
             Internals::ConnectivitiesData connectivities;
             connectivities.ReadData(rFile, Path, StartIndex, BlockSize);
-            connectivities.CreateEntities(r_creator, rNodes, rProperties, rConnectivities);
+            connectivities.CreateEntities(rNodes, rProperties, rConnectivities);
         }
     };
 
@@ -116,17 +114,11 @@ class ConnectivitiesOutput
     {
         const std::string& Name;
         const std::string& Path;
-        const int WorkingSpaceDimension;
-        const int Dimension;
-        const int NumberOfNodes;
         Internals::ConnectivitiesData Connectivities;
 
         void WriteConnectivities(File& rFile, WriteInfo& rInfo)
         {
             Connectivities.WriteData(rFile, Path, rInfo);
-            rFile.WriteAttribute(Path, "WorkingSpaceDimension", WorkingSpaceDimension);
-            rFile.WriteAttribute(Path, "Dimension", Dimension);
-            rFile.WriteAttribute(Path, "NumberOfNodes", NumberOfNodes);
         }
     };
 
@@ -146,10 +138,7 @@ public:
         for (const auto& r_item : rOutputItems)
         {
             bin_keys.push_back(&KratosComponents<TConnectivitiesType>::Get(r_item.Name));
-            const int ws_dim = bin_keys.back()->WorkingSpaceDimension();
-            const int dim = bin_keys.back()->GetGeometry().Dimension();
-            const int nnodes = bin_keys.back()->GetGeometry().size();
-            mOutputs.push_back({r_item.Name, r_item.Path, ws_dim, dim, nnodes});
+            mOutputs.push_back({r_item.Name, r_item.Path});
         }
 
         Internals::PointerBinsUtility<TConnectivitiesType> bins(bin_keys);
