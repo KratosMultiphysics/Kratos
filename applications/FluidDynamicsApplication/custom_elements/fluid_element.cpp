@@ -17,6 +17,7 @@
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/element_size_calculator.h"
 
 namespace Kratos
 {
@@ -465,170 +466,7 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
 template< class TElementData >
 double FluidElement<TElementData>::ElementSize() const
 {
-    KRATOS_TRY;
-    const GeometryType& rGeom = this->GetGeometry();
-    GeometryData::KratosGeometryFamily GeoFamily = rGeom.GetGeometryFamily();
-
-    switch (GeoFamily)
-    {
-    case GeometryData::Kratos_Triangle:
-    {
-        /* Calculate node-edge distances */
-        double x10 = rGeom[1].X() - rGeom[0].X();
-        double y10 = rGeom[1].Y() - rGeom[0].Y();
-
-        double x20 = rGeom[2].X() - rGeom[0].X();
-        double y20 = rGeom[2].Y() - rGeom[0].Y();
-
-        // node 0, edge 12
-        double nx = -(y20-y10);
-        double ny = x20-x10;
-        double Hsq = x10*nx + y10*ny;
-        Hsq *= Hsq / (nx*nx + ny*ny);
-
-        // node 1, edge 20
-        nx = -y20;
-        ny = x20;
-        double hsq = x10*nx + y10*ny;
-        hsq *= hsq / (nx*nx + ny*ny);
-        Hsq = ( hsq < Hsq ) ? hsq : Hsq;
-
-        // node 2, edge 10
-        nx = -y10;
-        ny = x10;
-        hsq = x20*nx + y20*ny;
-        hsq *= hsq / (nx*nx + ny*ny);
-        Hsq = ( hsq < Hsq ) ? hsq : Hsq;
-        return std::sqrt(Hsq);
-    }
-    case GeometryData::Kratos_Quadrilateral:
-    {
-        /* Calculate node-edge distances, assuming parallel faces */
-        double x10 = rGeom[1].X() - rGeom[0].X();
-        double y10 = rGeom[1].Y() - rGeom[0].Y();
-
-        double x20 = rGeom[2].X() - rGeom[0].X();
-        double y20 = rGeom[2].Y() - rGeom[0].Y();
-
-        double x30 = rGeom[3].X() - rGeom[0].X();
-        double y30 = rGeom[3].Y() - rGeom[0].Y();
-
-        // node 0, edge 12
-        double nx = -(y20-y10);
-        double ny = x20-y10;
-        double Hsq = x10*nx + y10*ny;
-        Hsq *= Hsq / std::sqrt(nx*nx + ny*ny);
-
-        // node 0, edge 23
-        nx = -(y30-y20);
-        ny = x30-y20;
-        double hsq = x20*nx + y20*ny;
-        hsq *= hsq / (nx*nx + ny*ny);
-        Hsq = ( hsq < Hsq ) ? hsq : Hsq;
-        return std::sqrt(Hsq);
-    }
-    case GeometryData::Kratos_Tetrahedra:
-    {
-        /* Calculate distances between each node and the opposite face */
-        double x10 = rGeom[1].X() - rGeom[0].X();
-        double y10 = rGeom[1].Y() - rGeom[0].Y();
-        double z10 = rGeom[1].Z() - rGeom[0].Z();
-
-        double x20 = rGeom[2].X() - rGeom[0].X();
-        double y20 = rGeom[2].Y() - rGeom[0].Y();
-        double z20 = rGeom[2].Z() - rGeom[0].Z();
-
-        double x30 = rGeom[3].X() - rGeom[0].X();
-        double y30 = rGeom[3].Y() - rGeom[0].Y();
-        double z30 = rGeom[3].Z() - rGeom[0].Z();
-
-        // face 123
-        double nx = (y30-y10)*(z20-z10) - (z30-z10)*(y20-y10);
-        double ny = (z30-z10)*(x20-x10) - (x30-x10)*(z20-z10);
-        double nz = (x30-x10)*(y20-y10) - (y30-y10)*(x20-x10);
-        double Hsq = x10*nx + y10*ny + z10*nz; // scalar product x10*n
-        Hsq *= Hsq / (nx*nx + ny*ny + nz*nz); // H^2 = (x10*n)^2 / ||n||^2
-
-        // face 230
-        nx = y30*z20 - z30*y20;
-        ny = z30*x20 - x30*z20;
-        nz = x30*y20 - y30*x20;
-        double hsq = x10*nx + y10*ny + z10*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-
-        // face 301
-        nx = y10*z30 - z10*y30;
-        ny = z10*x30 - x10*z30;
-        nz = x10*y30 - y10*x30;
-        hsq = x20*nx + y20*ny + z20*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-
-        // face 012
-        nx = y10*z20 - z10*y20;
-        ny = z10*x20 - x10*z20;
-        nz = x10*y20 - y10*x20;
-        hsq = x30*nx + y30*ny + z30*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-        return std::sqrt(Hsq);
-    }
-    case GeometryData::Kratos_Hexahedra:
-    {
-        /* Numbering assumes bottom face nodes 0123, top nodes 4567
-         * considering the distance between a few face--node pairs:
-         * face node
-         *  034  1
-         *  014  3
-         *  013  4
-         * This assumes parallel faces!
-         * (otherwise all nodes should be checked against opposite faces)
-         */
-        double x10 = rGeom[1].X() - rGeom[0].X();
-        double y10 = rGeom[1].Y() - rGeom[0].Y();
-        double z10 = rGeom[1].Z() - rGeom[0].Z();
-
-        double x30 = rGeom[3].X() - rGeom[0].X();
-        double y30 = rGeom[3].Y() - rGeom[0].Y();
-        double z30 = rGeom[3].Z() - rGeom[0].Z();
-
-        double x40 = rGeom[4].X() - rGeom[0].X();
-        double y40 = rGeom[4].Y() - rGeom[0].Y();
-        double z40 = rGeom[4].Z() - rGeom[0].Z();
-
-
-        // Face 034
-        double nx = y30*z40 - z30*y40;
-        double ny = z30*x40 - x30*z40;
-        double nz = x30*y40 - y30*x40;
-        double Hsq = x10*nx + y10*ny + z10*nz; // scalar product x10*n
-        Hsq *= Hsq / (nx*nx + ny*ny + nz*nz); // H^2 = (x10*n)^2 / ||n||^2
-
-        // face 014
-        nx = y10*z40 - z10*y40;
-        ny = z10*x40 - x10*z40;
-        nz = x10*y40 - y10*x40;
-        double hsq = x30*nx + y30*ny + z30*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-
-        // face 013
-        nx = y10*z30 - z10*y30;
-        ny = z10*x30 - x10*z30;
-        nz = x10*y30 - y10*x30;
-        hsq = x40*nx + y40*ny + z40*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-        return std::sqrt(Hsq);
-    }
-    default:
-    {
-        KRATOS_ERROR << "FluidElement::ElementSize not implemented for this geometry type" << std::endl;
-        return 0;
-    }
-    }
-    KRATOS_CATCH("");
+    return ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -714,6 +552,20 @@ void FluidElement<TElementData>::AddMassLHS(
 }
 
 template <class TElementData>
+void FluidElement<TElementData>::AddBoundaryIntegral(TElementData& rData,
+    const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
+
+    KRATOS_TRY;
+
+    KRATOS_ERROR << "Calling base FluidElement::AddBoundaryIntegral "
+                    "implementation. This method is not supported by your "
+                    "element."
+                 << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template <class TElementData>
 void FluidElement<TElementData>::GetCurrentValuesVector(
     const TElementData& rData,
     array_1d<double,LocalSize>& rValues) const {
@@ -785,6 +637,9 @@ template class FluidElement< SymbolicNavierStokesData<3,4> >;
 
 template class FluidElement< QSVMSData<2,3> >;
 template class FluidElement< QSVMSData<3,4> >;
+
+template class FluidElement< QSVMSData<2,4> >;
+template class FluidElement< QSVMSData<3,8> >;
 
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
