@@ -27,16 +27,15 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __init__( self, 
-                  DesignSurface, 
-                  DampingRegions, 
+                  OptimizationModelPart, 
                   Analyzer, 
-                  Communicator, 
                   MeshController, 
+                  Communicator, 
                   Mapper, 
                   DataLogger, 
                   OptimizationSettings ):
 
-        self.DesignSurface = DesignSurface
+        self.OptimizationModelPart = OptimizationModelPart
         self.Analyzer = Analyzer
         self.Communicator = Communicator
         self.MeshController = MeshController
@@ -44,15 +43,18 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.DataLogger = DataLogger
         self.OptimizationSettings = OptimizationSettings
 
+        self.DesignSurface = __import__("helper_functions").GetDesignSurfaceFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
+        
         self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
         self.onlyObjective = OptimizationSettings["objectives"][0]["identifier"].GetString()
         self.initialStepSize = OptimizationSettings["line_search"]["step_size"].GetDouble()
         self.performDamping = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
-        self.GeometryUtilities = GeometryUtilities( DesignSurface )
-        self.OptimizationUtilities = OptimizationUtilities( DesignSurface, OptimizationSettings )
+        self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
+        self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
         if self.performDamping:
-            self.dampingUtilities = DampingUtilities( DesignSurface, DampingRegions, self.OptimizationSettings )
+            damping_regions = __import__("helper_functions").GetDampingRegionsFromOptimizationModelPart( OptimizationModelPart, OptimizationSettings )
+            self.dampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
             
     # --------------------------------------------------------------------------
     def execute( self ):
@@ -69,19 +71,18 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __runOptimizationLoop( self ):
 
-        for optimizationIteration in range(1,self.maxIterations):
+        for self.optimizationIteration in range(1,self.maxIterations):
             print("\n>===================================================================")
-            print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",optimizationIteration)
+            print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",self.optimizationIteration)
             print(">===================================================================\n")
 
-            self.MeshController.InitializeSolutionStep( optimizationIteration )
+            self.__prepareModelPartForNewOptimizationStep()
 
-
-            self.__updateMeshAccordingCurrentShapeUpdate()    
+            self.__updateMeshAccordingCurrentShapeUpdate()
 
             self.__callCommunicatorToRequestNewAnalyses()
 
-            self.__callAnalyzerToPerformRequestedAnalyses( optimizationIteration )
+            self.__callAnalyzerToPerformRequestedAnalyses()
 
             self.__storeResultOfSensitivityAnalysisOnNodes()
 
@@ -95,21 +96,25 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             if self.performDamping:
                 self.__dampShapeUpdate()
 
-            self.__logCurrentOptimizationStep( optimizationIteration )
+            self.__logCurrentOptimizationStep()
 
             self.__timeOptimizationStep()
 
-            if self.__isAlgorithmConverged( optimizationIteration ):
+            if self.__isAlgorithmConverged():
                 break
 
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
-        self.MeshController.FinalizeSolution()
+
+    # --------------------------------------------------------------------------
+    def __prepareModelPartForNewOptimizationStep( self ):
+        # self.ModelPartController.InitializeNewSolutionStep( self.optimizationIteration )
+        self.OptimizationModelPart.CloneTimeStep( self.optimizationIteration )
 
     # --------------------------------------------------------------------------
     def __updateMeshAccordingCurrentShapeUpdate( self ):
-        self.MeshController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )  
+        self.MeshController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE ) 
 
     # --------------------------------------------------------------------------
     def __callCommunicatorToRequestNewAnalyses( self ):
@@ -118,8 +123,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.Communicator.requestGradientOf( self.onlyObjective )
 
     # --------------------------------------------------------------------------
-    def __callAnalyzerToPerformRequestedAnalyses( self, optimizationIteration ):
-        self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, optimizationIteration, self.Communicator )
+    def __callAnalyzerToPerformRequestedAnalyses( self ):
+        self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
         self.__ResetPossibleMeshDisplacementDuringAnalysis()
 
     # --------------------------------------------------------------------------
@@ -175,8 +180,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.dampingUtilities.DampNodalVariable( SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
-    def __logCurrentOptimizationStep( self, optimizationIteration ):
-        self.DataLogger.LogCurrentData( optimizationIteration )
+    def __logCurrentOptimizationStep( self ):
+        self.DataLogger.LogCurrentData( self.optimizationIteration )
 
     # --------------------------------------------------------------------------
     def __timeOptimizationStep( self ):
@@ -184,12 +189,12 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         print("> Time needed for total optimization so far = ", self.DataLogger.GetTotalTime(), "s")
 
     # --------------------------------------------------------------------------
-    def __isAlgorithmConverged( self, optimizationIteration ):
+    def __isAlgorithmConverged( self ):
 
-        if optimizationIteration > 1 :
+        if self.optimizationIteration > 1 :
 
             # Check if maximum iterations were reached
-            if optimizationIteration == self.maxIterations:
+            if self.optimizationIteration == self.maxIterations:
                 print("\n> Maximal iterations of optimization problem reached!")
                 return True
 

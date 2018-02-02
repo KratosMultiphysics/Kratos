@@ -78,11 +78,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
         if(ProjectParameters.Has("output_process_list")):
             self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
-                    
-        #print list of constructed processes
-        if(echo_level>1):
-            for process in self.list_of_processes:
-                print(process)
 
         for process in self.list_of_processes:
             process.ExecuteInitialize()
@@ -153,10 +148,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             # self.computeAndAddMeshDerivativesToGradient(gradientOnDesignSurface, gradientForCompleteModelPart)                 
 
             communicator.reportGradient("strain_energy", gradientOnDesignSurface) 
-
-    # # --------------------------------------------------------------------------
-    # def initializeNewSolutionStep( self, optimizationIteration ):
-    #     main_model_part.CloneTimeStep( optimizationIteration )
 
     # # --------------------------------------------------------------------------
     # def updateMeshForAnalysis( self ):

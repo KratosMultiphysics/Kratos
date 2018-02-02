@@ -24,7 +24,6 @@ from algorithm_base import OptimizationAlgorithm
 
 # Additional imports
 import timer_factory as timer_factory
-import optimization_data_logger_factory as optimization_data_logger_factory
 
 # ==============================================================================
 class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :

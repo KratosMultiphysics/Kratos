@@ -31,8 +31,4 @@ class MeshController:
     def ResetMeshDisplacement( self ):
         raise RuntimeError("Mesh controller base class is called. Please check your implementation of the function >> ResetMeshDisplacement << .")     
 
-    # --------------------------------------------------------------------------
-    def FinalizeSolution( self ):
-        pass    
-
 # ==============================================================================
