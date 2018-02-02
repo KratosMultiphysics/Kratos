@@ -541,10 +541,15 @@ namespace Kratos
 	{
 	    for(SizeType j=0; j<rVoigtSize; j++)
 		{
+		    // rConstitutiveMatrix(i,j) = this->AddIsochoricConstitutiveComponent(rVariables,rConstitutiveMatrix(i,j),
+		    // 								       StressDerivatives,StressEigenValues,
+		    // 								       rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
+		    // 								       rIndexVoigtTensor[j][0],rIndexVoigtTensor[j][1]);
 		    rConstitutiveMatrix(i,j) = this->AddIsochoricConstitutiveComponent(rVariables,rConstitutiveMatrix(i,j),
-										       StressDerivatives,StressEigenValues,
+										       StressEigenValues,
 										       rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
 										       rIndexVoigtTensor[j][0],rIndexVoigtTensor[j][1]);
+
 		    //std::cout<<" iso Cij "<<rConstitutiveMatrix(i,j)<<" "<<i<<" "<<j<<std::endl;
 		    rConstitutiveMatrix(i,j) = this->AddVolumetricConstitutiveComponent(rVariables,rConstitutiveMatrix(i,j),
 											rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
@@ -562,7 +567,106 @@ namespace Kratos
 	KRATOS_CATCH(" ")
     }
 
+  //************************************************************************************
+  //************************************************************************************
+
+  virtual double& CalculateStressDerivativesI(HyperElasticDataType& rVariables, double& rValue,
+					      const unsigned int& i, const unsigned int& j) override
+  {
+    KRATOS_TRY
+
+    //Calculate Ogden main stress derivatives
+    const ModelDataType&  rModelData        = rVariables.GetModelData();
+    const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
+
+    const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+
+    const double& rBulkModulus = rMaterial.GetBulkModulus();
+    const std::vector<double>& rModelParameters = rMaterial.GetModelParameters(); //nu values, lambda values
+
+    unsigned int size = (rModelParameters.size()/2.0);
+    double athird = 1.0/3.0;
+
+    rValue = 0;
+    for(unsigned int p=0; p<size; p++)
+    {
+	const double& mu_p = rModelParameters[p];
+	const double& alpha_p = rModelParameters[p+size];
+	double f = athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) );
+
+	rValue += athird * (mu_p * alpha_p * ( f - std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) - std::pow(rVariables.Strain.Eigen.Values[j],alpha_p) + 3.0 * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * this->msIdentityMatrix(i,j) ) );
+
+    }
+
+    return rValue;
     
+    KRATOS_CATCH(" ")
+  }
+    
+  //************************************************************************************
+  //************************************************************************************
+    
+  virtual double& CalculateStressDerivativesII(HyperElasticDataType& rVariables, double& rValue,
+					       const unsigned int& i, const unsigned int& j) override
+  {
+    KRATOS_TRY
+
+    //Calculate Ogden main stress derivatives
+    const ModelDataType&  rModelData        = rVariables.GetModelData();
+    const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
+
+    const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
+    const std::vector<double>& rModelParameters = rMaterial.GetModelParameters(); //nu values, lambda values
+
+    unsigned int size = (rModelParameters.size()/2.0);
+    double athird = 1.0/3.0;
+
+    rValue = 0;
+    for(unsigned int p=0; p<size; p++)
+    {
+	const double& mu_p = rModelParameters[p];
+	const double& alpha_p = rModelParameters[p+size];
+	double f = athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) );
+
+	rValue += 0.5 * mu_p * alpha_p * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * ( 1.0 - this->msIdentityMatrix(i,j) );
+
+    }
+
+    return rValue;
+    
+    KRATOS_CATCH(" ")
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+    
+  virtual double& AddIsochoricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+						    const array_1d<double,3>& rStressEigenValues,
+						    const unsigned int& a, const unsigned int& b,
+						    const unsigned int& c, const unsigned int& d) //do not override      
+  {
+    KRATOS_TRY
+
+    //Calculate Ogden ConstitutiveMatrix
+    double Cabcd = 0;
+    if( a == b && c == d ){
+
+	Cabcd = CalculateStressDerivativesI(rVariables,Cabcd,a,c);
+	rCabcd += Cabcd - 2.0 * rStressEigenValues[a] * this->msIdentityMatrix(a,c);
+    }
+    else if( a == c && b == d ){
+	
+	Cabcd = CalculateStressDerivativesII(rVariables,Cabcd,a,b);
+	rCabcd = Cabcd - rStressEigenValues[a] * this->msIdentityMatrix(a,c);
+	
+    }
+
+    return rCabcd;
+    
+    KRATOS_CATCH(" ")
+  }
+
+  
     virtual double& AddIsochoricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 						      const MatrixType& rStressDerivatives, const array_1d<double,3>& rStressEigenValues,
 						      const unsigned int& a, const unsigned int& b,

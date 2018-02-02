@@ -170,7 +170,8 @@ namespace Kratos
      * Calculate Constitutive Tensor
      */
     virtual void CalculateAndAddConstitutiveTensor(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix) override;
-
+    
+    virtual void CalculateAndAddConstitutiveTensorB(HyperElasticDataType& rVariables, Matrix& rConstitutiveMatrix);
 
     /**
      * Calculate Constitutive Components
@@ -190,12 +191,14 @@ namespace Kratos
     /**
      * Calculate Derivative of a general isotropic tensor
      */
-    double& CalculateIsotropicTensorDerivative(HyperElasticDataType& rVariables,double &rCabcd,
-					       const MatrixType& rStressDerivatives, 
-					       const array_1d<double,3>& rStressEigenValues,
+    double& CalculateIsotropicTensorDerivative(const MatrixType& rStrainMatrix,
+					       const MatrixType& rStrainEigenVectors,
 					       const array_1d<double,3>& rStrainEigenValues,
+					       const MatrixType& rStressDerivatives,
+					       const array_1d<double,3>& rStressEigenValues,
+					       const array_1d<double,6>& rOptionFactors,
 					       const unsigned int& rOption,
-					       const array_1d<double,6>& DerivativeFactors,
+					       double &rCabcd,
 					       const unsigned int& a, const unsigned int& b,
 					       const unsigned int& c, const unsigned int& d);
     
@@ -203,7 +206,7 @@ namespace Kratos
     /**
      * Calculate Tensor Derivative Factors
      */
-    void CalculateDerivativeFactors(array_1d<double,6>& rDerivativeFactors, const MatrixType& rStressDerivatives, const array_1d<double,3>& rStressEigenValues, const array_1d<double,3>& rStrainEigenValues, const array_1d<unsigned int,3>& rPermutation);
+    void CalculateDerivativeFactors(array_1d<double,6>& rDerivativeFactors, const MatrixType& rStressDerivatives, const array_1d<double,3>& rStressEigenValues, const array_1d<double,3>& rStrainEigenValues, const array_1d<unsigned int,3>& rOrder);
 
     
     //************// Strain Data
@@ -214,6 +217,9 @@ namespace Kratos
     virtual void CalculateMainStresses(HyperElasticDataType& rVariables, array_1d<double,3>& rMainStresses);
 
     virtual void CalculateMainStressDerivatives(HyperElasticDataType& rVariables, MatrixType& rStressDerivatives);
+
+    virtual double& CalculateStressDerivativesI(HyperElasticDataType& rVariables, double& rValue, const unsigned int& i, const unsigned int& j);
+    virtual double& CalculateStressDerivativesII(HyperElasticDataType& rVariables, double& rValue, const unsigned int& i, const unsigned int& j);
 
     //************//W
 

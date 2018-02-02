@@ -12,8 +12,8 @@
                 "name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw.OgdenModel"
             },
 	    "variables": {
-		"MATERIAL_PARAMETERS": [2.004845e10,2],
-		"BULK_MODULUS": 164.206349206e9	
+		"MATERIAL_PARAMETERS": [0.746e6,-0.306e6,66.09,1.748,-1.656,7.671],
+		"BULK_MODULUS" : 1410000000.0
             },
 	    "tables": {
 	    },
