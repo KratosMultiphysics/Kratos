@@ -250,18 +250,18 @@ namespace Kratos
         if (rThisElements.size() > 0) {
             std::string element_name;
 
-            auto element_it = rThisElements.begin();
+            auto element_obj = *(rThisElements.begin());
             auto elements_components = KratosComponents<Element>::GetComponents();
 
-            const auto& element_type = typeid(*element_it);
-            auto element_geometry_type = element_it->GetGeometry().GetGeometryType();
+            const auto& element_type = typeid(element_obj);
+            auto element_geometry_type = element_obj.GetGeometry().GetGeometryType();
             
             // Fisrt we do the first element
             for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                auto component_ptr = it_comp->second;
+                auto component_obj = *it_comp->second;
 
-                const auto& component_type = typeid(*component_ptr);
-                auto component_geometry_type = component_ptr->GetGeometry().GetGeometryType();
+                const auto& component_type = typeid(component_obj);
+                auto component_geometry_type = component_obj.GetGeometry().GetGeometryType();
 
                 if(element_type == component_type && element_geometry_type == component_geometry_type) {
                     element_name = it_comp->first;
@@ -277,14 +277,14 @@ namespace Kratos
             
             // Now we iterate over all the elements
             for(std::size_t i = 1; i < rThisElements.size(); i++) {
-                auto it_elem_previous = rThisElements.begin() + i - 1;
-                auto it_elem_current = rThisElements.begin() + i;
+                auto elem_previous = *(rThisElements.begin() + i - 1);
+                auto elem_current = *(rThisElements.begin() + i);
 
-                auto& previous_element_type = typeid(*it_elem_previous);
-                auto& current_element_type = typeid(*it_elem_current);
+                auto& previous_element_type = typeid(elem_previous);
+                auto& current_element_type = typeid(elem_current);
                 
-                auto previous_element_geometry_type = it_elem_previous->GetGeometry().GetGeometryType();
-                auto current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
+                auto previous_element_geometry_type = elem_previous.GetGeometry().GetGeometryType();
+                auto current_element_geometry_type = elem_current.GetGeometry().GetGeometryType();
                 
                 if(previous_element_type ==  current_element_type && previous_element_geometry_type == current_element_geometry_type) {
                     (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
@@ -297,10 +297,10 @@ namespace Kratos
                     current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
                         
                     for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                        auto component_ptr = it_comp->second;
+                        auto component_obj = *(it_comp->second);
 
-                        const auto& component_type = typeid(*component_ptr);
-                        auto component_geometry_type = component_ptr->GetGeometry().GetGeometryType();
+                        const auto& component_type = typeid(component_obj);
+                        auto component_geometry_type = component_obj.GetGeometry().GetGeometryType();
 
                         if(current_element_type == component_type && current_element_geometry_type == component_geometry_type) {
                             element_name = it_comp->first;
@@ -370,18 +370,18 @@ namespace Kratos
         if (rThisConditions.size() > 0) {
             std::string condition_name;
 
-            auto condition_it = rThisConditions.begin();
+            auto condition_obj = *(rThisConditions.begin());
             auto conditions_components = KratosComponents<Condition>::GetComponents();
             
-            const auto& condition_type = typeid(*condition_it);
-            auto condition_geometry_type = condition_it->GetGeometry().GetGeometryType();
+            const auto& condition_type = typeid(condition_obj);
+            auto condition_geometry_type = condition_obj.GetGeometry().GetGeometryType();
             
             // Fisrt we do the first condition
             for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                auto component_ptr = it_comp->second;
+                auto component_obj = *(it_comp->second);
 
-                const auto& component_type = typeid(component_ptr);
-                auto component_geometry_type = component_ptr->GetGeometry().GetGeometryType();
+                const auto& component_type = typeid(component_obj);
+                auto component_geometry_type = component_obj.GetGeometry().GetGeometryType();
 
                 if(condition_type == component_type && condition_geometry_type == component_geometry_type) {
                     condition_name = it_comp->first;
@@ -397,14 +397,14 @@ namespace Kratos
             
             // Now we iterate over all the conditions
             for(std::size_t i = 1; i < rThisConditions.size(); i++) {
-                auto it_cond_previous = rThisConditions.begin() + i - 1;
-                auto it_cond_current = rThisConditions.begin() + i;
+                auto cond_previous = *(rThisConditions.begin() + i - 1);
+                auto cond_current = *(rThisConditions.begin() + i);
 
-                auto& previous_condition_type = typeid(*it_cond_previous);
-                auto& current_condition_type = typeid(*it_cond_current);
+                auto& previous_condition_type = typeid(cond_previous);
+                auto& current_condition_type = typeid(cond_current);
                 
-                auto previous_condition_geometry_type = it_cond_previous->GetGeometry().GetGeometryType();
-                auto current_condition_geometry_type = it_cond_current->GetGeometry().GetGeometryType();
+                auto previous_condition_geometry_type = cond_previous.GetGeometry().GetGeometryType();
+                auto current_condition_geometry_type = cond_current.GetGeometry().GetGeometryType();
                 
                 if(previous_condition_type ==  current_condition_type && previous_condition_geometry_type == current_condition_geometry_type) {
                     (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
@@ -417,10 +417,10 @@ namespace Kratos
                     current_condition_geometry_type = it_cond_current->GetGeometry().GetGeometryType();
                         
                     for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                        auto component_ptr = it_comp->second;
+                        auto component_obj = *(it_comp->second);
 
-                        const auto& component_type = typeid(*component_ptr);
-                        auto component_geometry_type = component_ptr->GetGeometry().GetGeometryType();
+                        const auto& component_type = typeid(component_obj);
+                        auto component_geometry_type = component_obj.GetGeometry().GetGeometryType();
 
                         if(current_condition_type == component_type && current_condition_geometry_type == component_geometry_type) {
                             condition_name = it_comp->first;
