@@ -168,18 +168,29 @@ class LaplacianMeshMovingStrategy
     // Setting mesh to initial configuration
     SetMeshToInitialConfiguration();
 
-    //X DIRECTION
-    rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 1;
-    m_strategy_x->Solve();
+    unsigned int dimension = BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE];
 
-    //Y DIRECTION
-    rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 2;
-    m_strategy_y->Solve();
-
-    //Z DIRECTION
-    rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 3;
-    m_strategy_z->Solve();
-
+    if (dimension == 2)
+    {
+      //X DIRECTION
+      rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 1;
+      m_strategy_x->Solve();
+      //Y DIRECTION
+      rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 2;
+      m_strategy_y->Solve();
+    }
+    else
+    {
+      //X DIRECTION
+      rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 1;
+      m_strategy_x->Solve();
+      //Y DIRECTION
+      rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 2;
+      m_strategy_y->Solve();
+      //Z DIRECTION
+      rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 3;
+      m_strategy_z->Solve();
+    }
     // Update FEM-base
     CalculateMeshVelocities();
     MoveMesh();

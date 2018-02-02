@@ -30,18 +30,17 @@ class MainKratos:
         self.solver.AddDofs()
 
 ##---------------------
-        if (self.parallel_type == "OpenMP"):
-            from gid_output_process import GiDOutputProcess
-            self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
-                                               self.ProjectParameters["problem_data"]["problem_name"].GetString(),
-                                               self.ProjectParameters["output_configuration"])
-        elif (self.parallel_type == "MPI"):
-            from gid_output_process_mpi import GiDOutputProcessMPI
-            self.gid_output = GiDOutputProcessMPI(self.solver.GetComputingModelPart(),
-                                                  self.ProjectParameters["problem_data"]["problem_name"].GetString(),
-                                                  self.ProjectParameters["output_configuration"])
-
-        self.gid_output.ExecuteInitialize()
+        #if (self.parallel_type == "OpenMP"):
+        #    from gid_output_process import GiDOutputProcess
+        #    self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
+        #                                       self.ProjectParameters["problem_data"]["problem_name"].GetString(),
+        #                                       self.ProjectParameters["output_configuration"])
+        #elif (self.parallel_type == "MPI"):
+        #    from gid_output_process_mpi import GiDOutputProcessMPI
+        #    self.gid_output = GiDOutputProcessMPI(self.solver.GetComputingModelPart(),
+        #                                          self.ProjectParameters["problem_data"]["problem_name"].GetString(),
+        #                                          self.ProjectParameters["output_configuration"])
+        #self.gid_output.ExecuteInitialize()
 ##---------------------
 
         self.Model = Model()
@@ -83,7 +82,7 @@ class MainKratos:
         step = 0
         out = 0.0
 ##---------------------
-        self.gid_output.ExecuteBeforeSolutionLoop()
+        #self.gid_output.ExecuteBeforeSolutionLoop()
 ##---------------------
         for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
@@ -110,7 +109,7 @@ class MainKratos:
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
 ##---------------------
-            self.gid_output.ExecuteInitializeSolutionStep()
+            #self.gid_output.ExecuteInitializeSolutionStep()
 ##---------------------
 
             self.solver.Solve()
@@ -118,13 +117,13 @@ class MainKratos:
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
 ##---------------------
-            self.gid_output.ExecuteFinalizeSolutionStep()
+            #self.gid_output.ExecuteFinalizeSolutionStep()
 ##---------------------
             for process in self.list_of_processes:
                 process.ExecuteBeforeOutputStep()
 ##---------------------
-            if self.gid_output.IsOutputStep():
-                self.gid_output.PrintOutput()
+            #if self.gid_output.IsOutputStep():
+            #    self.gid_output.PrintOutput()
 ##---------------------
             for process in self.list_of_processes:
                 process.ExecuteAfterOutputStep()
@@ -134,7 +133,7 @@ class MainKratos:
         for process in self.list_of_processes:
             process.ExecuteFinalize()
 ##---------------------
-        self.gid_output.ExecuteFinalize()
+        #self.gid_output.ExecuteFinalize()
 ##---------------------
 if __name__ == '__main__':
     raise RuntimeError("This script should only be called from a test file.")

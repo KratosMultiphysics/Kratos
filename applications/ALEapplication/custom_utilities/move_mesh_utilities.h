@@ -39,6 +39,8 @@ namespace Kratos
 
         void CalculateInitialJacobian(MatrixType& rJ0, const double& rPointNumber, GeometryType& rGeometry);
 
+        void CalculateJacobianValues(GeometryType::JacobiansType rJ0, GeometryType& rGeometry);
+
 	}  // namespace Move Mesh Utilities.
   
 }  // namespace Kratos.

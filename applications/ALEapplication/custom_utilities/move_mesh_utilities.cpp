@@ -62,7 +62,6 @@ namespace Kratos
         MatrixType J0(dimension, dimension);
         MatrixType invJ0(dimension, dimension);
         
-
         J0.clear();
 
         double detJ0;
@@ -77,6 +76,16 @@ namespace Kratos
         return DN_DX;
 
         KRATOS_CATCH("");
+    }
+
+    void CalculateJacobianValues(GeometryType::JacobiansType rJ0, GeometryType& rGeometry)
+    {
+
+        const IntegrationMethod this_integration_method = rGeometry.GetDefaultIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points =
+        rGeometry.IntegrationPoints(this_integration_method);
+
+        rJ0 = rGeometry.Jacobian(rJ0, this_integration_method);
     }
 
     }  // namespace Move Mesh Utilities.

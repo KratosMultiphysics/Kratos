@@ -83,8 +83,7 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideM
     const IntegrationMethod this_integration_method = r_geom.GetDefaultIntegrationMethod();
     const GeometryType::IntegrationPointsArrayType& integration_points =
         GetGeometry().IntegrationPoints(this_integration_method);
-    VectorType delta_displacement = ZeroVector(3);
-    const unsigned int local_size = num_nodes * dimension;
+    VectorType delta_displacement = ZeroVector(num_nodes);
     
 
     if (rLeftHandSideMatrix.size1() != num_nodes)
@@ -94,8 +93,7 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType &rLeftHandSideM
         rRightHandSideVector.resize(num_nodes, false);
 
     noalias(rLeftHandSideMatrix) = ZeroMatrix(num_nodes, num_nodes);
-   
-    //noalias(rRightHandSideVector) = ZeroVector(num_nodes);
+    noalias(rRightHandSideVector) = ZeroVector(num_nodes);
 
 
 

@@ -74,7 +74,7 @@
         "help"            : "",
         "process_name"    : "PointOutputProcess",
         "Parameters" :{
-            "position"         : [0.72064, 0.24684, 0.082325],
+            "position"         : [0.096862, 0.23224, 0.1],
             "model_part_name"  : "Domain",
             "output_file_name" : "test_structural_mesh_motion_3d/rectangle_3D4N_test_probe1.dat",
             "output_variables" : [
@@ -89,7 +89,7 @@
         "help"            : "",
         "process_name"    : "PointOutputProcess",
         "Parameters" :{
-            "position"         : [0.10583, 0.2494, 0.2],
+            "position"         : [0.67621, 0.20462, 0.0],
             "model_part_name"  : "Domain",
             "output_file_name" : "test_structural_mesh_motion_3d/rectangle_3D4N_test_probe2.dat",
             "output_variables" : [

@@ -16,6 +16,7 @@
 //#include "includes/define.h"
 #include "custom_elements/structural_meshmoving_element.h"
 #include "ale_application.h"
+#include "custom_utilities/move_mesh_utilities.h"
 
 namespace Kratos
 {
@@ -104,6 +105,7 @@ StructuralMeshMovingElement::MatrixType StructuralMeshMovingElement::SetAndModif
     detJ0.resize(integration_points.size(), false);
 
     J0 = GetGeometry().Jacobian(J0, this_integration_method);
+
     MathUtils<double>::InvertMatrix(J0[rPointNumber], invJ0[rPointNumber], detJ0[rPointNumber]);
 //+++++++++++++++++++++++++++++++++++
 
