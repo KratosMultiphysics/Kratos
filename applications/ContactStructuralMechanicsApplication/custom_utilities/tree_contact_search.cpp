@@ -110,7 +110,7 @@ void TreeContactSearch<TDim, TNumNodes>::InitializeMortarConditions()
     for(int i = 0; i < num_conditions; ++i) {
         auto it_cond = conditions_array.begin() + i;
 
-        if (it_cond->Has(INDEX_SET) == false) it_cond->SetValue(INDEX_SET, boost::make_shared<IndexSet>()); 
+        if (it_cond->Has(INDEX_SET) == false) it_cond->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>()); 
 //             it_cond->GetValue(INDEX_SET)->reserve(mThisParameters["allocation_size"].GetInt()); 
     }
 }
