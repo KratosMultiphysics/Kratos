@@ -199,6 +199,21 @@ void File::GetLinkNames(const std::string& rGroupPath, std::vector<std::string>&
     KRATOS_CATCH("");
 }
 
+void File::GetGroupNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const
+{
+    KRATOS_TRY;
+
+    rNames.resize(0);
+    std::vector<std::string> link_names;
+    GetLinkNames(rGroupPath, link_names);
+    rNames.reserve(link_names.size());
+    for (const auto& r_name : link_names)
+        if (IsGroup(rGroupPath + '/' + r_name))
+            rNames.push_back(r_name);
+
+    KRATOS_CATCH("");
+}
+
 void File::AddPath(const std::string& rPath)
 {
     KRATOS_ERROR_IF(Internals::IsPath(rPath) == false) << "Invalid path: " <<rPath << std::endl;

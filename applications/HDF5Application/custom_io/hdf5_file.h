@@ -119,6 +119,8 @@ public:
 
     void GetLinkNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const;
 
+    void GetGroupNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const;
+
     void AddPath(const std::string& rPath);
 
     template<class TScalar>
