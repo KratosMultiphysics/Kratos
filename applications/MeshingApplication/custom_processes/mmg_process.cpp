@@ -376,16 +376,12 @@ void MmgProcess<TDim>::InitializeSolData()
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
         
-    #ifdef KRATOS_DEBUG 
-        KRATOS_ERROR_IF(it_node->Has(MMG_METRIC) == false) <<  " MMG_METRIC not defined for node " << it_node->Id();
-    #endif     
+        KRATOS_DEBUG_ERROR_IF(it_node->Has(MMG_METRIC) == false) <<  " MMG_METRIC not defined for node " << it_node->Id(); 
         
         // We get the metric
         const Vector& metric = it_node->GetValue(MMG_METRIC);
         
-    #ifdef KRATOS_DEBUG 
-        KRATOS_ERROR_IF((metric.size() != TDim * 3 - 3) ) << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
-    #endif
+        KRATOS_DEBUG_ERROR_IF((metric.size() != TDim * 3 - 3) ) << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
         
         // We set the metric
         SetMetricTensor(metric, i + 1);
