@@ -445,7 +445,7 @@ private:
     
     /** 
      * Here the verbosity is set using the API
-     * @param verbosityMMG The equivalent verbosity level in the MMG API
+     * @param VerbosityMMG The equivalent verbosity level in the MMG API
      */
         
     void InitVerbosityParameter(const int& VerbosityMMG);
@@ -453,13 +453,13 @@ private:
     /**
      * This sets the size of the mesh
      * @param NumNodes Number of nodes
-     * @param NumElements Number of Elements
-     * @param NumConditions Number of Conditions
+     * @param NumArrayElements Number of Elements
+     * @param NumArrayConditions Number of Conditions
      */
     
     void SetMeshSize(
         const SizeType NumNodes,
-        const array_1d<SizeType, TDim - 1> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+        const array_1d<SizeType, TDim - 1> NumArrayElements, // NOTE: We do this tricky thing to take into account the prisms
         const array_1d<SizeType, TDim - 1> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
         );
     
@@ -472,7 +472,7 @@ private:
     
     /**
      * This sets the size of the solution for the vector case
-     * @param NumNodes: Number of nodes
+     * @param NumNodes Number of nodes
      */
     
     void SetSolSizeVector(const int NumNodes);
@@ -493,7 +493,7 @@ private:
     /**
      * This sets the output mesh
      * @param PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param step The step to postprocess
+     * @param Step The step to postprocess
      */
     
     void OutputMesh(
@@ -509,7 +509,7 @@ private:
     /**
      * This sets the output sol
      * @param PostOutput If the ouput file is the solution after take into account the metric or not
-     * @param step The step to postprocess
+     * @param Step The step to postprocess
      */
     
     void OutputSol(
