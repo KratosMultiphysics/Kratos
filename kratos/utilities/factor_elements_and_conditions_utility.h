@@ -61,13 +61,13 @@ public:
         rFactoredElements[pos].push_back(*rMixedElements.ptr_begin());
         for(auto it = rMixedElements.ptr_begin() + 1; it != rMixedElements.ptr_end(); ++it)
         {
-            if (CompareElementAndConditionUtility::IsSame(**it, rFactoredElements[pos].front()) == false)
+            if (CompareElementsAndConditionsUtility::IsSame(**it, rFactoredElements[pos].front()) == false)
             {
                 // Check if the new type already has a container allocated.
                 bool found = false;
                 for (unsigned k=0; k < rFactoredElements.size(); ++k)
                 {
-                    if (CompareElementAndConditionUtility::IsSame(**it, rFactoredElements[k].front()))
+                    if (CompareElementsAndConditionsUtility::IsSame(**it, rFactoredElements[k].front()))
                     {
                         pos = k;
                         found = true;
@@ -105,13 +105,13 @@ public:
         rFactoredConditions[pos].push_back(*rMixedConditions.ptr_begin());
         for(auto it = rMixedConditions.ptr_begin() + 1; it != rMixedConditions.ptr_end(); ++it)
         {
-            if (CompareElementAndConditionUtility::IsSame(**it, rFactoredConditions[pos].front()) == false)
+            if (CompareElementsAndConditionsUtility::IsSame(**it, rFactoredConditions[pos].front()) == false)
             {
                 // Check if the new type already has a container allocated.
                 bool found = false;
                 for (unsigned k=0; k < rFactoredConditions.size(); ++k)
                 {
-                    if (CompareElementAndConditionUtility::IsSame(**it, rFactoredConditions[k].front()))
+                    if (CompareElementsAndConditionsUtility::IsSame(**it, rFactoredConditions[k].front()))
                     {
                         pos = k;
                         found = true;
