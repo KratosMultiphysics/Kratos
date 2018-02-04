@@ -311,8 +311,7 @@ private:
                             const Kratos::Flags& rOptions,
                             const std::vector<double>& rShapeFunctionValues)
     {
-        Node<3>* p_base_node = static_cast<InterfaceNode*>(pInterfaceObject)->pGetBase();
-        KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+        Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
 
         return p_base_node->FastGetSolutionStepValue(rVariable);
     }
@@ -325,8 +324,7 @@ private:
                                const Kratos::Flags& rOptions,
                                const double Factor)
     {
-        Node<3>* p_base_node = static_cast<InterfaceNode*>(pInterfaceObject)->pGetBase();
-        KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+        Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
 
         if (rOptions.Is(MapperFlags::ADD_VALUES))
         {
