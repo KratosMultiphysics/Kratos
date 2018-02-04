@@ -114,7 +114,6 @@ public:
     template <typename T>
     void MapInsertElement(std::unordered_map<int, T>& rMap, int Key, T& rValue)
     {
-        // done per partition, so not used too often, therefore always checked and not only in debug
         KRATOS_DEBUG_ERROR_IF(rMap.count(Key) > 0) << "Key already present in Map!" << std::endl;
 
         rMap.emplace(Key, rValue);
