@@ -306,7 +306,7 @@ private:
     ///@{
 
     template <typename T>
-    static T GetValueOfNode(InterfaceObject* pInterfaceObject, //TODO const
+    static T GetValueOfNode(InterfaceObject::Pointer pInterfaceObject, //TODO const
                             const Variable< T >& rVariable,
                             const Kratos::Flags& rOptions,
                             const std::vector<double>& rShapeFunctionValues)
@@ -318,7 +318,7 @@ private:
 
 
     template <typename T>
-    static void SetValueOfNode(InterfaceObject* pInterfaceObject,
+    static void SetValueOfNode(InterfaceObject::Pointer pInterfaceObject,
                                const T& rValue,
                                const Variable< T >& rVariable,
                                const Kratos::Flags& rOptions,

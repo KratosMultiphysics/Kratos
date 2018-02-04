@@ -375,7 +375,7 @@ public:
     }
 
     void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                              std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointer) override
+                              std::function<double(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointer) override
     {
         int i = 0;
         std::vector<InterfaceObject::Pointer> interface_objects;
@@ -386,7 +386,7 @@ public:
 
         for (auto interface_obj : interface_objects)
         {
-            pBuffer[i] = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(CommPartner)[i]);
+            pBuffer[i] = FunctionPointer(interface_obj, mShapeFunctionValues.at(CommPartner)[i]);
             ++i;
         }
 
@@ -400,7 +400,7 @@ public:
     }
 
     void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                              std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointer) override
+                              std::function<array_1d<double, 3>(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointer) override
     {
         int i = 0;
         std::vector<InterfaceObject::Pointer> interface_objects;
@@ -413,7 +413,7 @@ public:
 
         for (auto interface_obj : interface_objects)
         {
-            value = FunctionPointer(boost::get_pointer(interface_obj), mShapeFunctionValues.at(CommPartner)[i]);
+            value = FunctionPointer(interface_obj, mShapeFunctionValues.at(CommPartner)[i]);
 
             pBuffer[(i * 3) + 0] = value[0];
             pBuffer[(i * 3) + 1] = value[1];
@@ -432,7 +432,7 @@ public:
     }
 
     void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                       std::function<void(InterfaceObject*, double)> FunctionPointer) override
+                       std::function<void(InterfaceObject::Pointer, double)> FunctionPointer) override
     {
         std::vector<InterfaceObject::Pointer> interface_objects;
         if (mSendObjects.count(CommPartner) > 0)
@@ -450,12 +450,12 @@ public:
 
         for (int i = 0; i < BufferSize; ++i)
         {
-            FunctionPointer(boost::get_pointer(interface_objects[i]), pBuffer[i]);
+            FunctionPointer(interface_objects[i], pBuffer[i]);
         }
     }
 
     void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                       std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointer) override
+                       std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)> FunctionPointer) override
     {
         // Debug Check
         if (BufferSize % 3 != 0)
@@ -490,7 +490,7 @@ public:
             value[1] = pBuffer[(i * 3) + 1];
             value[2] = pBuffer[(i * 3) + 2];
 
-            FunctionPointer(boost::get_pointer(interface_objects[i]), value);
+            FunctionPointer(interface_objects[i], value);
         }
     }
 

@@ -319,7 +319,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    static double GetInterpolatedValueFromGeometryScalar(InterfaceObject* pInterfaceObject, //TODO const
+    static double GetInterpolatedValueFromGeometryScalar(InterfaceObject::Pointer pInterfaceObject, //TODO const
             const Variable<double>& rVariable,
             const Kratos::Flags& rOptions,
             const std::vector<double>& rShapeFunctionValues)
@@ -335,7 +335,7 @@ private:
         return interpolated_value;
     }
 
-    static array_1d<double, 3> GetInterpolatedValueFromGeometryVector(InterfaceObject* pInterfaceObject, //TODO const
+    static array_1d<double, 3> GetInterpolatedValueFromGeometryVector(InterfaceObject::Pointer pInterfaceObject, //TODO const
             const Variable< array_1d<double, 3> >& rVariable,
             const Kratos::Flags& rOptions,
             const std::vector<double>& rShapeFunctionValues)
@@ -357,7 +357,7 @@ private:
 
 
     template <typename T>
-    static void SetValueOfNode(InterfaceObject* pInterfaceObject,
+    static void SetValueOfNode(InterfaceObject::Pointer pInterfaceObject,
                                const T& rValue,
                                const Variable< T >& rVariable,
                                const Kratos::Flags& rOptions,
