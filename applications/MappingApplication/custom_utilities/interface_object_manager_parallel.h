@@ -326,12 +326,9 @@ public:
         {
             if (pBuffer[i] == 1)   // Match
             {
-                // Debug Check
-                if (!rCandidateManager.mCandidateReceiveObjects.at(CommPartner)[i])
-                {
-                    KRATOS_ERROR << "interface_obj pointer mismatch"
-                                 << std::endl;
-                }
+                KRATOS_DEBUG_ERROR_IF_NOT(rCandidateManager.mCandidateReceiveObjects.at(CommPartner)[i]) 
+                    << "interface_obj pointer mismatch"
+                    << std::endl;
 
                 mReceiveObjects[CommPartner].push_back(rCandidateManager.mCandidateReceiveObjects.at(CommPartner)[i]);
                 mShapeFunctionValues[CommPartner].push_back(rCandidateManager.mCandidateShapeFunctionValues.at(CommPartner)[i]);
@@ -392,11 +389,7 @@ public:
 
         rBufferSize = static_cast<int>(interface_objects.size());
 
-        // Debug Check
-        if (rBufferSize != i)
-        {
-            KRATOS_ERROR << "size mismatch" << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF_NOT(rBufferSize == i) << "size mismatch" << std::endl;
     }
 
     void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
@@ -424,11 +417,7 @@ public:
 
         rBufferSize = static_cast<int>(interface_objects.size()) * 3;
 
-        // Debug Check
-        if (rBufferSize != i * 3)
-        {
-            KRATOS_ERROR << "size mismatch" << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF_NOT(rBufferSize == i * 3) << "size mismatch" << std::endl;
     }
 
     void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
@@ -440,13 +429,10 @@ public:
             interface_objects = mSendObjects.at(CommPartner);
         }
 
-        // Debug Check
-        if (static_cast<int>(interface_objects.size()) != BufferSize)
-        {
-            KRATOS_ERROR << "Wrong number of results received!; "
-                         << "interface_objects.size() = " << interface_objects.size()
-                         << ", BufferSize = " << BufferSize << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF_NOT(static_cast<int>(interface_objects.size()) == BufferSize)
+            << "Wrong number of results received!; "
+            << "interface_objects.size() = " << interface_objects.size()
+            << ", BufferSize = " << BufferSize << std::endl;
 
         for (int i = 0; i < BufferSize; ++i)
         {
@@ -457,13 +443,10 @@ public:
     void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
                        std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)> FunctionPointer) override
     {
-        // Debug Check
-        if (BufferSize % 3 != 0)
-        {
-            KRATOS_ERROR << "Uneven number of results "
-                         << "received!; BufferSize modulo 3 = "
-                         << BufferSize % 3 << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF_NOT(BufferSize % 3 == 0)
+            << "Uneven number of results "
+            << "received!; BufferSize modulo 3 = "
+            << BufferSize % 3 << std::endl;
 
         const int num_values = BufferSize / 3;
 
@@ -473,14 +456,11 @@ public:
             interface_objects = mSendObjects.at(CommPartner);
         }
 
-        // Debug Check
-        if (static_cast<int>(interface_objects.size()) != num_values)
-        {
-            KRATOS_ERROR << "Wrong number of results received!; "
-                         << "interface_objects.size() = "
-                         << interface_objects.size() << ", num_values = "
-                         << num_values << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF_NOT(static_cast<int>(interface_objects.size()) == num_values)
+            << "Wrong number of results received!; "
+            << "interface_objects.size() = "
+            << interface_objects.size() << ", num_values = "
+            << num_values << std::endl;
 
         array_1d<double, 3> value;
 

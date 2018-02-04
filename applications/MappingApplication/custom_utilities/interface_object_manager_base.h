@@ -114,11 +114,9 @@ public:
     template <typename T>
     void MapInsertElement(std::unordered_map<int, T>& rMap, int Key, T& rValue)
     {
-        // Debug Check
-        if (rMap.count(Key) > 0)
-        {
-            KRATOS_ERROR << "Key already present in Map!" << std::endl;
-        }
+        // done per partition, so not used too often, therefore always checked and not only in debug
+        KRATOS_DEBUG_ERROR_IF(rMap.count(Key) > 0) << "Key already present in Map!" << std::endl;
+
         rMap.emplace(Key, rValue);
     }
 
@@ -330,14 +328,11 @@ public:
             interface_objects = mSendObjects.at(mCommRank);
         }
 
-        // Debug Check
-        if (interface_objects.size() != rBuffer.size())
-        {
-            KRATOS_ERROR << "Wrong number of results received!;"
-                         << " \"interface_objects.size() = "
-                         << interface_objects.size() << ", rBuffer.size() = "
-                         << rBuffer.size() << std::endl;
-        }
+        KRATOS_DEBUG_ERROR_IF_NOT(interface_objects.size() == rBuffer.size())
+            << "Wrong number of results received!;"
+            << " \"interface_objects.size() = "
+            << interface_objects.size() << ", rBuffer.size() = "
+            << rBuffer.size() << std::endl;
 
         for (std::size_t i = 0; i < interface_objects.size(); ++i)
         {
