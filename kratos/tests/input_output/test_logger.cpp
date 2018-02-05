@@ -201,12 +201,22 @@ namespace Kratos {
             std::size_t time_step = 1;
 			Logger("Time Step") << time_step;
 
-			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1");
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1             ");
 
 			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output " ;
 
-			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1");
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1             ");
 
+            for(time_step = 2;time_step < 4; time_step++){
+                Logger("Time Step") << time_step;
+                for(int iteration_number = 1 ; iteration_number < 3; iteration_number++){
+                    	Logger("Iteration Number") << iteration_number;
+                        Logger("Convergence") << 0.1 / (iteration_number * time_step);
+
+                }
+            }
+
+            std::cout << std::endl;
             std::cout << buffer.str() << std::endl;
 
         }
