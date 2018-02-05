@@ -201,22 +201,22 @@ public:
         InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
     }
 
-    virtual void TransferVariableData(std::function<double(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                                      std::function<void(InterfaceObject*, double)> FunctionPointerDestination,
+    virtual void TransferVariableData(const std::function<double(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                                      const std::function<void(InterfaceObject::Pointer, double)>& FunctionPointerDestination,
                                       const Variable<double>& rOriginVariable)
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
 
-    virtual void TransferVariableData(std::function<array_1d<double, 3>(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                                      std::function<void(InterfaceObject*, array_1d<double, 3>)> FunctionPointerDestination,
+    virtual void TransferVariableData(const std::function<array_1d<double, 3>(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                                      const std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)>& FunctionPointerDestination,
                                       const Variable< array_1d<double, 3> >& rOriginVariable)
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
 
-    virtual void TransferVariableData(std::function<void*(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                                      std::function<void(InterfaceObject*, void*)> FunctionPointerDestination )
+    virtual void TransferVariableData(const std::function<void*(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                                      const std::function<void(InterfaceObject::Pointer, void*)>& FunctionPointerDestination )
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
@@ -319,8 +319,8 @@ protected:
     ///@{
 
     template <typename T>
-    void ExchangeDataLocal(std::function<T(InterfaceObject*, const std::vector<double>&)> FunctionPointerOrigin,
-                           std::function<void(InterfaceObject*, T)> FunctionPointerDestination)
+    void ExchangeDataLocal(const std::function<T(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                           const std::function<void(InterfaceObject::Pointer, T)>& FunctionPointerDestination)
     {
         std::vector< T > values;
 
@@ -491,33 +491,25 @@ private:
         const int num_elements_destination = MapperUtilities::ComputeNumberOfElements(mrModelPartDestination);
 
         // Check if the ModelPart contains entities
-        if (num_nodes_origin + num_conditions_origin + num_elements_origin < 1)
-        {
-            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
-                         << "in the Origin ModelPart" << std::endl;
-        }
+        KRATOS_ERROR_IF(num_nodes_origin + num_conditions_origin + num_elements_origin < 1) 
+            << "Neither Nodes nor Conditions nor Elements found "
+            << "in the Origin ModelPart" << std::endl;
 
-        if (num_nodes_destination + num_conditions_destination + num_elements_destination < 1)
-        {
-            KRATOS_ERROR << "Neither Nodes nor Conditions nor Elements found "
-                         << "in the Destination ModelPart" << std::endl;
-        }
+        KRATOS_ERROR_IF(num_nodes_destination + num_conditions_destination + num_elements_destination < 1) 
+            << "Neither Nodes nor Conditions nor Elements found "
+            << "in the Destination ModelPart" << std::endl;
 
         // Check if the inpt ModelParts contain both Elements and Conditions
         // This is NOT possible, bcs the InterfaceObjects are constructed
         // with whatever exists in the Modelpart (see the InterfaceObjectManagerBase, 
         // function "InitializeInterfaceGeometryObjectManager")
-        if (num_conditions_origin > 0 && num_elements_origin > 0)
-        {
-            KRATOS_ERROR << "Origin ModelPart contains both Conditions and Elements "
-                         << "which is not permitted" << std::endl;
-        }
+        KRATOS_ERROR_IF(num_conditions_origin > 0 && num_elements_origin > 0) 
+            << "Origin ModelPart contains both Conditions and Elements "
+            << "which is not permitted" << std::endl;
 
-        if (num_conditions_destination > 0 && num_elements_destination > 0)
-        {
-            KRATOS_ERROR << "Destination ModelPart contains both Conditions and Elements "
-                         << "which is not permitted" << std::endl;
-        }
+        KRATOS_ERROR_IF(num_conditions_destination > 0 && num_elements_destination > 0) 
+            << "Destination ModelPart contains both Conditions and Elements "
+            << "which is not permitted" << std::endl;
 
         if (mEchoLevel >= 2) {
             std::vector<double> model_part_origin_bbox = MapperUtilities::ComputeModelPartBoundingBox(mrModelPartOrigin);

@@ -584,7 +584,7 @@ void ModelPart::AddProperties(ModelPart::PropertiesType::Pointer pNewProperties,
 {
     if (IsSubModelPart())
     {
-        mpParentModelPart->AddProperties(pNewProperties);
+        mpParentModelPart->AddProperties(pNewProperties, ThisIndex);
     }
 
     auto pprop_it = GetMesh(0).Properties().find(ThisIndex);
