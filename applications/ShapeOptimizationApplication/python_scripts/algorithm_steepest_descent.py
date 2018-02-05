@@ -53,7 +53,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
         if self.performDamping:
             damping_regions = self.ModelPartController.GetDampingRegions()
-            self.dampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
+            self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
             
     # --------------------------------------------------------------------------
     def execute( self ):
@@ -148,7 +148,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
-        self.dampingUtilities.DampNodalVariable( OBJECTIVE_SENSITIVITY )
+        self.DampingUtilities.DampNodalVariable( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate( self ):
@@ -167,7 +167,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __dampShapeUpdate( self ):
-        self.dampingUtilities.DampNodalVariable( SHAPE_UPDATE )
+        self.DampingUtilities.DampNodalVariable( SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep( self ):
