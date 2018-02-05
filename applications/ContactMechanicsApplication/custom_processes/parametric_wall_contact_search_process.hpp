@@ -108,6 +108,7 @@ namespace Kratos
       Parameters DefaultParameters( R"(
             {
                    "contact_condition_type": "PointContactCondition2D1N",
+                   "hydraulic_condition_type": "HydraulicPointContactCondition2D1N",
                    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
                    "friction_law_type": "FrictionLaw",
                    "variables_of_properties":{

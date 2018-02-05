@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_WATER_POINT_RIGID_CONTACT_PENALTY_CONDITION_H_INCLUDED )
-#define  KRATOS_WATER_POINT_RIGID_CONTACT_PENALTY_CONDITION_H_INCLUDED
+#if !defined(KRATOS_HYDRAULIC_RIGID_CONTACT_PENALTY_CONDITION_H_INCLUDED )
+#define  KRATOS_HYDRAULIC_RIGID_CONTACT_PENALTY_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -96,7 +96,7 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const&
-                              ThisNodes,  PropertiesType::Pointer pProperties) const;
+                              ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected condition variables, creating a new one
@@ -106,14 +106,14 @@ public:
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone(IndexType NewId,
-			     NodesArrayType const& ThisNodes) const;
+			     NodesArrayType const& ThisNodes) const override;
 
 
 
     /**
      * Called at the beginning of each iteration
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     //************* GETTING METHODS
 
@@ -121,31 +121,31 @@ public:
      * Sets on rConditionDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(DofsVectorType& rConditionDofList,
-		    ProcessInfo& rCurrentProcessInfo );
+		    ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(EquationIdVectorType& rResult,
-			  ProcessInfo& rCurrentProcessInfo );
+			  ProcessInfo& rCurrentProcessInfo ) override;
 
     /**
      * Sets on rValues the nodal displacements
      */
     void GetValuesVector(Vector& rValues,
-			 int Step = 0 );
+			 int Step = 0 ) override;
 
     /**
      * Sets on rValues the nodal velocities
      */
     void GetFirstDerivativesVector(Vector& rValues,
-				   int Step = 0 );
+				   int Step = 0 ) override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
     void GetSecondDerivativesVector(Vector& rValues,
-				    int Step = 0 );
+				    int Step = 0 ) override;
 
 
 
@@ -183,7 +183,7 @@ protected:
      */
     virtual void CalculateKinematics(ConditionVariables& rVariables,
 				     const ProcessInfo& rCurrentProcessInfo,
-				     const double& rPointNumber);
+				     const double& rPointNumber) override;
 
 
 
@@ -192,27 +192,19 @@ protected:
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
-				     double& rIntegrationWeight);
+				     double& rIntegrationWeight) override;
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector
      */
     virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
 					      ConditionVariables& rVariables,
-					      double& rIntegrationWeight );
+					      double& rIntegrationWeight ) override;
 
 
-    virtual void CalculateAndAddNormalContactForce(Vector& rRightHandSideVector, ConditionVariables& rVariables, double& rIntegrationWeight);
+    void CalculateAndAddNormalContactForce(Vector& rRightHandSideVector, ConditionVariables& rVariables, double& rIntegrationWeight);
 
     double& CalculateNormalForceModulus( double& rNormalForceModulus, ConditionVariables& rVariables );
-
-    double& CalculateEffectiveNormalForceModulus( double&  rNormalForceModulus, ConditionVariables& rVariables );
-
-
-
-    double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, ConditionVariables& rVariables );
-
-    double CalculateFrictionCoefficient(const double& rTangentRelativeMovement, const double& rDeltaTime);
 
 
     /**
@@ -264,12 +256,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointRigidContactCondition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointRigidContactCondition )
     }
@@ -306,4 +298,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_WATER_POINT_RIGID_CONTACT_PENALTY_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_HYDRAULIC_RIGID_CONTACT_PENALTY_CONDITION_H_INCLUDED  defined

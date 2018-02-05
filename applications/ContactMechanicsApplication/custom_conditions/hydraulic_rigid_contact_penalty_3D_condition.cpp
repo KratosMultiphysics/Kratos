@@ -91,11 +91,13 @@ namespace Kratos
       KRATOS_TRY
 
       // virtual because I don't want to delete "mechanical" contact forces
-      array_1d<double, 3 > & rWaterContactForce = GetGeometry()[0].FastGetSolutionStepValue( WATER_CONTACT_FORCE );
+      if ( GetGeometry()[0].SolutionStepsDataHas( WATER_CONTACT_FORCE )) {
+         array_1d<double, 3 > & rWaterContactForce = GetGeometry()[0].FastGetSolutionStepValue( WATER_CONTACT_FORCE );
 
-      for(unsigned int j = 0; j < 3; j++)
-      {
-         rWaterContactForce[j] = 0;
+         for(unsigned int j = 0; j < 3; j++)
+         {
+            rWaterContactForce[j] = 0;
+         }
       }
 
       KRATOS_CATCH("")
@@ -453,6 +455,8 @@ namespace Kratos
       for (unsigned int i = 0; i < 3; i++) {
          rNormalForceModulus += DeltaWaterPressure[i] * rVariables.Surface.Normal(i);
       }
+
+      rNormalForceModulus *= rVariables.Penalty.Normal; 
 
       return rNormalForceModulus;
 
