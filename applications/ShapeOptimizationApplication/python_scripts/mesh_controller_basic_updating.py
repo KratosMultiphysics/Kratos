@@ -27,17 +27,13 @@ from mesh_controller_base import MeshController
 class MeshControllerBasicUpdating( MeshController ):
     # --------------------------------------------------------------------------
     def __init__( self, OptimizationModelPart ):
-        self.MeshControllerUtilities = MeshControllerUtilities( OptimizationModelPart )
+        self.OptimizationModelPart = OptimizationModelPart
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
         print("\n> Starting to update the mesh")
         startTime = timer.time()
-        self.MeshControllerUtilities.UpdateMeshAccordingInputVariable( InputVariable )  
+        MeshControllerUtilities( self.OptimizationModelPart ).UpdateMeshAccordingInputVariable( InputVariable )  
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
-
-    # --------------------------------------------------------------------------    
-    def ResetMeshDisplacement( self ):
-        self.MeshControllerUtilities.ResetMeshDisplacement()        
 
 # ==============================================================================

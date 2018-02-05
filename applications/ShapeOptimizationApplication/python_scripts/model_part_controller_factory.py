@@ -48,8 +48,8 @@ class ModelPartController:
         self.MeshController.Initialize()
 
     # --------------------------------------------------------------------------
-    def CloneTimeStep( self, step ):
-        self.OptimizationModelPart.CloneTimeStep( step )
+    def CloneTimeStep( self, new_step ):
+        self.OptimizationModelPart.CloneTimeStep( new_step )
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
@@ -57,7 +57,7 @@ class ModelPartController:
 
     # --------------------------------------------------------------------------    
     def ResetMeshDisplacement( self ):
-        self.MeshController.ResetMeshDisplacement()
+        MeshControllerUtilities( self.OptimizationModelPart ).ResetMeshDisplacement()    
 
     # --------------------------------------------------------------------------
     def GetOptimizationModelPart( self ):

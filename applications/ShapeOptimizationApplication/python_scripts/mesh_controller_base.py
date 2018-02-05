@@ -27,8 +27,4 @@ class MeshController:
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
         raise RuntimeError("Mesh controller base class is called. Please check your implementation of the function >> UpdateMeshAccordingInputVariable << .")     
 
-    # --------------------------------------------------------------------------    
-    def ResetMeshDisplacement( self ):
-        raise RuntimeError("Mesh controller base class is called. Please check your implementation of the function >> ResetMeshDisplacement << .")     
-
 # ==============================================================================
