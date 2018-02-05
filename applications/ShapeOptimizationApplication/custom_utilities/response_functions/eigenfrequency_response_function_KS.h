@@ -4,7 +4,7 @@
 //  License:         BSD License
 //                   license: ShapeOptimizationApplication/license.txt
 //
-//  Main authors:    Fusseder Martin   
+//  Main authors:    Fusseder Martin
 //                   martin.fusseder@tum.de
 //
 // ==============================================================================
@@ -73,7 +73,7 @@ public:
 	///@name Type Definitions
 	///@{
 
-	// TODO solve this via template or how to get this from Eigensolverstrategy 
+	// TODO solve this via template or how to get this from Eigensolverstrategy
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
 	typedef array_1d<double, 3> array_3d;
@@ -81,7 +81,7 @@ public:
 	typedef typename LocalSpaceType::MatrixType DenseMatrixType;
 	typedef Variable<DenseVectorType> VariableDenseVectorType;
 	typedef Variable<DenseMatrixType> VariableDenseMatrixType;
-	
+
 
 	/// Pointer definition of EigenfrequencyResponseFunctionKS
 	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunctionKS);
@@ -111,13 +111,13 @@ public:
         // Get array of numbers of eigenfrequencies which have to be traced by this response function
 		m_num_eigenvalues =  responseSettings["traced_eigenfrequency"].size();
 		m_vector_ev.resize(m_num_eigenvalues,false);
-		
+
 		for(int i = 0; i < m_num_eigenvalues; i++)
 			m_vector_ev[i] = responseSettings["traced_eigenfrequency"][i].GetInt();
-		
+
 		// Set KS-Parameter
 		m_KS_parameter= responseSettings["KS_parameter"].GetDouble();
-	
+
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
 		m_initial_value_defined = false;
@@ -152,13 +152,13 @@ public:
 	///@{
 
 	// ==============================================================================
-	void initialize()
+	void Initialize()
 	{
 		//not needed because only semi-analytical sensitivity analysis is implemented yet
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_value()
+	void CalculateValue()
 	{
 		KRATOS_TRY;
 
@@ -168,7 +168,7 @@ public:
 		for(int i = 0; i < m_num_eigenvalues; i++)
 			m_resp_function_value += compute_single_ks_value(i);
 
-		m_resp_function_value  = log( m_resp_function_value );	
+		m_resp_function_value  = log( m_resp_function_value );
 		m_resp_function_value /= m_KS_parameter;
 
 		// Set initial value if not done yet
@@ -197,10 +197,10 @@ public:
 		if(num_of_computed_eigenvalues < id_eigenvalue)
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
-		current_eigenvalue = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1]; 
+		current_eigenvalue = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1];
 
 		return current_eigenvalue;
-		
+
 		KRATOS_CATCH("");
 
 	}
@@ -238,7 +238,7 @@ public:
 					m_scaling_factors_eigenvalues[i] = lambda_scaled / current_eigenvalue;
           		}
 			}
-        
+
         	// Change boolean
         	m_scal_fac_computed = true;
    		}
@@ -266,7 +266,7 @@ public:
 
 		const VariableDenseMatrixType& rEIGENVECTOR_MATRIX =
            	  KratosComponents<VariableDenseMatrixType>::Get("EIGENVECTOR_MATRIX");
-		
+
 		int k = 0;
 		for (ModelPart::NodeIterator node_i = traced_element->GetGeometry().begin(); node_i != traced_element->GetGeometry().end(); ++node_i)
 		{
@@ -290,7 +290,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void calculate_gradient()
+	void CalculateGradient()
 	{
 		KRATOS_TRY;
 
@@ -316,12 +316,12 @@ public:
 		KRATOS_CATCH("");
 	}
 	// --------------------------------------------------------------------------
-	double get_initial_value()
+	double GetInitialValue()
 	{
 		KRATOS_TRY;
 
 		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"calculate_value()\"", m_initial_value_defined);
+			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"CalculateValue()\"", m_initial_value_defined);
 
 		return m_initial_value;
 
@@ -329,7 +329,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double get_value()
+	double GetValue()
 	{
 		KRATOS_TRY;
 
@@ -339,7 +339,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	boost::python::dict get_gradient()
+	boost::python::dict GetGradient()
 	{
 		KRATOS_TRY;
 
@@ -427,7 +427,7 @@ protected:
 			elem_i->CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
 			elem_i->CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
 			double traced_eigenvalue = 0.0;
-		
+
 			// Get size of element eigenvector and initialize eigenvector
 			int num_dofs_element = mass_matrix_org.size1();
 			eigenvector_of_element.resize(num_dofs_element,false);
@@ -439,7 +439,7 @@ protected:
 			for(int i = 0; i < m_num_eigenvalues; i++)
 			{
 				ks_values[i] = compute_single_ks_value(i);
-				ks_values_sum += ks_values[i]; 
+				ks_values_sum += ks_values[i];
 			}
 
 			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
@@ -448,13 +448,13 @@ protected:
 				array_3d gradient_contribution(3, 0.0);
 				Matrix perturbed_LHS = Matrix(0,0);
 				Matrix perturbed_mass_matrix = Matrix(0,0);
-				
+
 				// Derivative of response w.r.t. x-coord ------------------------
 				node_i->X0() += mDelta;
 
 				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				
+
 				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
@@ -467,20 +467,20 @@ protected:
 					aux_matrix = perturbed_LHS;
 					aux_matrix -= (perturbed_mass_matrix * traced_eigenvalue);
 					aux_vector = prod(aux_matrix , eigenvector_of_element);
-					
+
 					gradient_contribution[0] += (inner_prod(eigenvector_of_element , aux_vector) *
-												ks_values[i] * m_scaling_factors_eigenvalues[i] / 
-												(2.0 * std::sqrt(m_scaling_factors_eigenvalues[i] * traced_eigenvalue)));							
+												ks_values[i] * m_scaling_factors_eigenvalues[i] /
+												(2.0 * std::sqrt(m_scaling_factors_eigenvalues[i] * traced_eigenvalue)));
 
 					eigenvector_of_element = Vector(0);
 					aux_matrix = Matrix(0,0);
 					aux_vector = Vector(0);
 
 				}
-								
+
 				gradient_contribution[0] /= ks_values_sum;
 				gradient_contribution[0] *= -1.0;
-			
+
 				node_i->X0() -= mDelta;
 
 				// End derivative of response w.r.t. x-coord --------------------
@@ -488,7 +488,7 @@ protected:
 				// Reset pertubed RHS and mass matrix
 				perturbed_LHS = Matrix(0,0);
 				perturbed_mass_matrix = Matrix(0,0);
-		
+
 
 				// Derivative of response w.r.t. y-coord ------------------------
 				node_i->Y0() += mDelta;
@@ -509,9 +509,9 @@ protected:
 					aux_matrix -= (perturbed_mass_matrix * traced_eigenvalue);
 					aux_vector = prod(aux_matrix , eigenvector_of_element);
 					gradient_contribution[1] += (inner_prod(eigenvector_of_element , aux_vector) *
-												ks_values[i] * m_scaling_factors_eigenvalues[i] / 
+												ks_values[i] * m_scaling_factors_eigenvalues[i] /
 												(2.0 * std::sqrt(m_scaling_factors_eigenvalues[i] * traced_eigenvalue)));
-					
+
 					eigenvector_of_element = Vector(0);
 				    aux_matrix = Matrix(0,0);
 					aux_vector = Vector(0);
@@ -519,7 +519,7 @@ protected:
 
 				gradient_contribution[1] /= ks_values_sum;
 				gradient_contribution[1] *= -1.0;
-		
+
 				node_i->Y0() -= mDelta;
 				// End derivative of response w.r.t. y-coord --------------------
 
@@ -547,7 +547,7 @@ protected:
 					aux_matrix -= (perturbed_mass_matrix * traced_eigenvalue);
 					aux_vector = prod(aux_matrix , eigenvector_of_element);
 					gradient_contribution[2] += (inner_prod(eigenvector_of_element , aux_vector) *
-												ks_values[i] * m_scaling_factors_eigenvalues[i] / 
+												ks_values[i] * m_scaling_factors_eigenvalues[i] /
 												(2.0 * std::sqrt(m_scaling_factors_eigenvalues[i] * traced_eigenvalue)));
 
 					eigenvector_of_element = Vector(0);
@@ -557,7 +557,7 @@ protected:
 
 				gradient_contribution[2] /= ks_values_sum;
 				gradient_contribution[2] *= -1.0;
-	
+
 				node_i->Z0() -= mDelta;
 				// End derivative of response w.r.t. z-coord --------------------
 
@@ -565,12 +565,12 @@ protected:
 				noalias(node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT)) += gradient_contribution;
 
 			}// End loop over nodes of element
-	
+
 		}// End loop over elements
 		KRATOS_CATCH("");
 	}
 
-	virtual void consider_discretization(){
+	virtual void ConsiderDiscretization(){
 	}
 
 	// ==============================================================================

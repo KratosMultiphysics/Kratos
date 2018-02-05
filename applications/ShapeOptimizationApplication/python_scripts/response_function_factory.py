@@ -86,8 +86,19 @@ class ResponseFunctionCreator:
             self.OptimizationModelPart.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
             self.listOfResponseFunctions["mass"] = MassResponseFunction( self.OptimizationModelPart, solverSettings )
         elif responseId == "eigenfrequency":
+                # "traced_eigenfrequency": 1,
+                # "weighting_method": "none",
+                # "KS_parameter": 1,
+                # "weighting_factors": [1.0,1.0,1.0]
             self.OptimizationModelPart.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
-            self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunction( self.OptimizationModelPart, solverSettings )
+            if not solverSettings.Has("weighting_method") or solverSettings["weighting_method"].GetString() == "none":
+                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunction( self.OptimizationModelPart, solverSettings )
+            elif solverSettings["weighting_method"].GetString() == "KS":
+                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunctionKS( self.OptimizationModelPart, solverSettings )
+            elif solverSettings["weighting_method"].GetString() == "linear_scaling":
+                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunctionLinScal( self.OptimizationModelPart, solverSettings )
+            else:
+                raise NameError("The following weighting_method is not valid for eigenfrequency response: " + solverSettings["weighting_method"].GetString())
         else:
             raise NameError("The following response function is not specified: " + responseId)
 
