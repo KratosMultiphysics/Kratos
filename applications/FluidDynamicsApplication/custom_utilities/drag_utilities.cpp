@@ -90,14 +90,24 @@ namespace Kratos
 
         // Iterate the model part elements to compute the drag
         array_1d<double, 3> elem_drag;
-        #pragma omp parallel for reduction(+:drag_x) reduction(+:drag_y) reduction(+:drag_z) private(elem_drag) schedule(dynamic)
+
+        // Auxiliary var to make the reduction
+        double drag_x_red = 0.0;
+        double drag_y_red = 0.0;
+        double drag_z_red = 0.0;
+
+        #pragma omp parallel for reduction(+:drag_x_red) reduction(+:drag_y_red) reduction(+:drag_z_red) private(elem_drag) schedule(dynamic)
         for(int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i){
             auto it_elem = rModelPart.ElementsBegin() + i;
             it_elem->Calculate(DRAG_FORCE, elem_drag, rModelPart.GetProcessInfo());
-            drag_x += elem_drag[0];
-            drag_y += elem_drag[1];
-            drag_z += elem_drag[2];
+            drag_x_red += elem_drag[0];
+            drag_y_red += elem_drag[1];
+            drag_z_red += elem_drag[2];
         }
+        
+        drag_x += drag_x_red;
+        drag_y += drag_y_red;
+        drag_z += drag_z_red;
 
         // Perform MPI synchronization
         rModelPart.GetCommunicator().SumAll(drag_force);

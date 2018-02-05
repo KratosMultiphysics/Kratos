@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_parameters.h"
 #include "interface_object_manager_serial.h"
 #include "interface_search_structure.h"
 #include "mapper_utilities.h"
@@ -60,7 +61,7 @@ namespace Kratos
 *
 * Available Echo Levels:
 * 0 : Mute every output
-* == 1 : Print Timing Information (Mapper Construction and the three basic functions)
+* == 1 : Print Timing Information (Mapper Construction and the three basic functions) // TODO at the moment this is not available!
 * >= 2 : Warnings are printed
 * >= 3 : Basic Information, recommended for standard debugging
 * >= 4 : Very detailed output for every object on the interface!

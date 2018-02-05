@@ -292,7 +292,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -561,7 +561,7 @@ public:
      *  1 -> Optimal value
      *  0 -> Worst value
      *
-     * \f$ \frac{r}{\ro} \f$
+     * \f$ \frac{r}{\rho} \f$
      *
      * @return The inradius to circumradius quality metric.
      */

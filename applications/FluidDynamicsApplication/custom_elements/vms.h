@@ -206,9 +206,9 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new VMS element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
@@ -230,9 +230,9 @@ public:
      * system that are either constant or computed explicitly (from the 'old'
      * iteration variables). In this case this means the body force terms and the
      * OSS projections, that are treated explicitly.
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix. Not used here, required for compatibility purposes only.
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info
+     * @param rLeftHandSideMatrix the elemental left hand side matrix. Not used here, required for compatibility purposes only.
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
@@ -1070,8 +1070,8 @@ protected:
     /**
      * Adds the lumped mass matrix to an elemental LHS matrix. Note that the time factor
      * (typically 1/(k*Dt) ) is added by the scheme outside the element.
-     * @param rLHSMatrix: The local matrix where the result will be added
-     * @param Mass: The weight assigned to each node (typically Density * Area / NumNodes or Density*Volume / NumNodes)
+     * @param rLHSMatrix The local matrix where the result will be added
+     * @param Mass The weight assigned to each node (typically Density * Area / NumNodes or Density*Volume / NumNodes)
      */
     void CalculateLumpedMassMatrix(MatrixType& rLHSMatrix,
                                    const double Mass)
@@ -1443,8 +1443,8 @@ protected:
     /**
      * Writes the value of the advective velocity evaluated at a point inside
      * the element to an array_1d
-     * @param rAdvVel: Output array
-     * @param rShapeFunc: Shape functions evaluated at the point of interest
+     * @param rAdvVel Output array
+     * @param rShapeFunc Shape functions evaluated at the point of interest
      */
     virtual void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
                                  const array_1d< double, TNumNodes >& rShapeFunc)
@@ -1460,9 +1460,9 @@ protected:
     /**
      * Writes the value of the advective velocity evaluated at a point inside
      * the element to an array_1d
-     * @param rAdvVel: Output array
-     * @param rShapeFunc: Shape functions evaluated at the point of interest
-     * @param Step: The time Step
+     * @param rAdvVel Output array
+     * @param rShapeFunc Shape functions evaluated at the point of interest
+     * @param Step The time Step
      */
     virtual void GetAdvectiveVel(array_1d< double, 3 > & rAdvVel,
                                  const array_1d< double, TNumNodes >& rShapeFunc,
@@ -1478,9 +1478,9 @@ protected:
     /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
     /**
      * Evaluate the convective operator for each node's shape function at an arbitrary point
-     * @param rResult: Output vector
-     * @param rVelocity: Velocity evaluated at the integration point
-     * @param rShapeDeriv: Derivatives of shape functions evaluated at the integration point
+     * @param rResult Output vector
+     * @param rVelocity Velocity evaluated at the integration point
+     * @param rShapeDeriv Derivatives of shape functions evaluated at the integration point
      * @see GetAdvectiveVel provides rVelocity
      */
     void GetConvectionOperator(array_1d< double, TNumNodes >& rResult,
@@ -1502,10 +1502,10 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Step: The time Step (Defaults to 0 = Current)
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Step The time Step (Defaults to 0 = Current)
      */
     virtual void EvaluateInPoint(double& rResult,
                                  const Variable< double >& rVariable,
@@ -1524,9 +1524,9 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
      */
     virtual void EvaluateInPoint(array_1d< double, 3 > & rResult,
                                  const Variable< array_1d< double, 3 > >& rVariable,

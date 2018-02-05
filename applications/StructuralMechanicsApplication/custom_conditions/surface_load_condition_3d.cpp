@@ -63,7 +63,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const
     {
-        return boost::make_shared<SurfaceLoadCondition3D>(NewId, pGeom, pProperties);
+        return Kratos::make_shared<SurfaceLoadCondition3D>(NewId, pGeom, pProperties);
     }
 
     //***********************************************************************************
@@ -75,7 +75,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const
     {
-        return boost::make_shared<SurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared<SurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     //******************************* DESTRUCTOR *****************************************
