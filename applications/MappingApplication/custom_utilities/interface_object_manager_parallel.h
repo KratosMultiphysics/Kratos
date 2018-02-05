@@ -372,7 +372,7 @@ public:
     }
 
     void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                              std::function<double(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointer) override
+                              const std::function<double(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointer) override
     {
         int i = 0;
         std::vector<InterfaceObject::Pointer> interface_objects;
@@ -393,7 +393,7 @@ public:
     }
 
     void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                              std::function<array_1d<double, 3>(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointer) override
+                              const std::function<array_1d<double, 3>(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointer) override
     {
         int i = 0;
         std::vector<InterfaceObject::Pointer> interface_objects;
@@ -421,7 +421,7 @@ public:
     }
 
     void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                       std::function<void(InterfaceObject::Pointer, double)> FunctionPointer) override
+                       const std::function<void(InterfaceObject::Pointer, double)>& FunctionPointer) override
     {
         std::vector<InterfaceObject::Pointer> interface_objects;
         if (mSendObjects.count(CommPartner) > 0)
@@ -441,7 +441,7 @@ public:
     }
 
     void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                       std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)> FunctionPointer) override
+                       const std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)>& FunctionPointer) override
     {
         KRATOS_DEBUG_ERROR_IF_NOT(BufferSize % 3 == 0)
             << "Uneven number of results "

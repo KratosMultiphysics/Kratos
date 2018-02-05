@@ -201,22 +201,22 @@ public:
         InvokeSearch(mInitialSearchRadius, mMaxSearchIterations);
     }
 
-    virtual void TransferVariableData(std::function<double(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointerOrigin,
-                                      std::function<void(InterfaceObject::Pointer, double)> FunctionPointerDestination,
+    virtual void TransferVariableData(const std::function<double(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                                      const std::function<void(InterfaceObject::Pointer, double)>& FunctionPointerDestination,
                                       const Variable<double>& rOriginVariable)
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
 
-    virtual void TransferVariableData(std::function<array_1d<double, 3>(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointerOrigin,
-                                      std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)> FunctionPointerDestination,
+    virtual void TransferVariableData(const std::function<array_1d<double, 3>(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                                      const std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)>& FunctionPointerDestination,
                                       const Variable< array_1d<double, 3> >& rOriginVariable)
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
 
-    virtual void TransferVariableData(std::function<void*(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointerOrigin,
-                                      std::function<void(InterfaceObject::Pointer, void*)> FunctionPointerDestination )
+    virtual void TransferVariableData(const std::function<void*(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                                      const std::function<void(InterfaceObject::Pointer, void*)>& FunctionPointerDestination )
     {
         ExchangeDataLocal(FunctionPointerOrigin, FunctionPointerDestination);
     }
@@ -319,8 +319,8 @@ protected:
     ///@{
 
     template <typename T>
-    void ExchangeDataLocal(std::function<T(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointerOrigin,
-                           std::function<void(InterfaceObject::Pointer, T)> FunctionPointerDestination)
+    void ExchangeDataLocal(const std::function<T(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointerOrigin,
+                           const std::function<void(InterfaceObject::Pointer, T)>& FunctionPointerDestination)
     {
         std::vector< T > values;
 

@@ -297,7 +297,7 @@ public:
     // **********************************************************************
     // ** InterfaceObjectManagerSerial and InterfaceObjectManagerParallel **
     template <typename T>
-    void FillBufferWithValues(std::function<T(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointer,
+    void FillBufferWithValues(const std::function<T(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointer,
                               std::vector< T >& rBuffer)
     {
         int i = 0;
@@ -318,7 +318,7 @@ public:
     }
 
     template <typename T>
-    void ProcessValues(std::function<void(InterfaceObject::Pointer, T)> FunctionPointer,
+    void ProcessValues(const std::function<void(InterfaceObject::Pointer, T)>& FunctionPointer,
                        const std::vector< T >& rBuffer)
     {
         std::vector<InterfaceObject::Pointer> interface_objects;
@@ -349,25 +349,25 @@ public:
     }
 
     virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                                      std::function<double(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointer)
+                                      const std::function<double(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointer)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
     virtual void FillBufferWithValues(double* pBuffer, int& rBufferSize, const int CommPartner,
-                                      std::function<array_1d<double, 3>(InterfaceObject::Pointer, const std::vector<double>&)> FunctionPointer)
+                                      const std::function<array_1d<double, 3>(InterfaceObject::Pointer, const std::vector<double>&)>& FunctionPointer)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
     virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                               std::function<void(InterfaceObject::Pointer, double)> FunctionPointer)
+                               const std::function<void(InterfaceObject::Pointer, double)>& FunctionPointer)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
 
     virtual void ProcessValues(const double* pBuffer, const int BufferSize, const int CommPartner,
-                               std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)> FunctionPointer)
+                               const std::function<void(InterfaceObject::Pointer, array_1d<double, 3>)>& FunctionPointer)
     {
         KRATOS_ERROR << "Base class function called!" << std::endl;
     }
