@@ -37,11 +37,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-    /**
-     * @brief This enums allows to differentiate the working framework
-     */
-    enum class FrameworkEulerLagrange {Eulerian = 0, Lagrangian = 1, ALE = 2};
-    
 ///@}
 ///@name  Functions
 ///@{

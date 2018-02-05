@@ -60,11 +60,11 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
 
 void InternalVariablesInterpolationProcess::Execute()
 {
-    if (mThisInterpolationType == InterpolationTypesCPT && mInternalVariableList.size() > 0)
+    if (mThisInterpolationType == InterpolationTypes::CPT && mInternalVariableList.size() > 0)
         InterpolateGaussPointsCPT();
-    else if (mThisInterpolationType == InterpolationTypesLST && mInternalVariableList.size() > 0)
+    else if (mThisInterpolationType == InterpolationTypes::LST && mInternalVariableList.size() > 0)
         InterpolateGaussPointsLST();
-    else if (mThisInterpolationType == InterpolationTypesSFT && mInternalVariableList.size() > 0)
+    else if (mThisInterpolationType == InterpolationTypes::SFT && mInternalVariableList.size() > 0)
         InterpolateGaussPointsSFT();
     else
         std::cout << "WARNING:: INTERPOLATION TYPE NOT AVALAIBLE OR EMPTY LIST" << std::endl;

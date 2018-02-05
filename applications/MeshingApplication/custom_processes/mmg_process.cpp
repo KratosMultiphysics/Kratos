@@ -24,6 +24,7 @@
 // Project includes
 #include "custom_processes/mmg_process.h"
 // We indlude the internal variable interpolation process
+#include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
