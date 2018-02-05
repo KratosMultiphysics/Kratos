@@ -62,66 +62,15 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     # --------------------------------------------------------------------------    
     def __init__( self ):
 
-        self.initializeGIDOutput()
-        self.initializeProcesses()
-        self.initializeSolutionLoop()
-        
-    # --------------------------------------------------------------------------
-    def initializeProcesses( self ):
-
-        import process_factory
-        #the process order of execution is important
-        self.list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
-        if(ProjectParameters.Has("problem_process_list")):
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
-        if(ProjectParameters.Has("output_process_list")):
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
-                    
-        #print list of constructed processes
-        if(echo_level>1):
-            for process in self.list_of_processes:
-                print(process)
-
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
-
-    # --------------------------------------------------------------------------
-    def initializeGIDOutput( self ):
-
-        computing_model_part = CSM_solver.GetComputingModelPart()
-        problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
-
-        from gid_output_process import GiDOutputProcess
-        output_settings = ProjectParameters["output_configuration"]
-        self.gid_output = GiDOutputProcess(computing_model_part, problem_name, output_settings)
-
-        self.gid_output.ExecuteInitialize()
-
-    # --------------------------------------------------------------------------
-    def initializeSolutionLoop( self ):
-
-        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-        CSM_solver.Initialize()
-        CSM_solver.SetEchoLevel(echo_level)
-
-        for responseFunctionId in listOfResponseFunctions:
-            listOfResponseFunctions[responseFunctionId].Initialize()
-
-        # Start process
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        ## Set results when are written in a single file
-        self.gid_output.ExecuteBeforeSolutionLoop()
+        self.__initializeGIDOutput()
+        self.__initializeProcesses()
+        self.__initializeSolutionLoop()
 
     # --------------------------------------------------------------------------
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
         # Calculation of value of objective function
         if communicator.isRequestingFunctionValueOf("strain_energy"):
-
-            self.initializeNewSolutionStep( optimizationIteration )
 
             print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
@@ -151,11 +100,56 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             communicator.reportGradient("strain_energy", gradientOnDesignSurface)
 
     # --------------------------------------------------------------------------
-    def initializeNewSolutionStep( self, optimizationIteration ):
-        main_model_part.CloneTimeStep( optimizationIteration )
+    def __initializeProcesses( self ):
+
+        import process_factory
+        #the process order of execution is important
+        self.list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+        self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+        if(ProjectParameters.Has("problem_process_list")):
+            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
+        if(ProjectParameters.Has("output_process_list")):
+            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
+                    
+        #print list of constructed processes
+        if(echo_level>1):
+            for process in self.list_of_processes:
+                print(process)
+
+        for process in self.list_of_processes:
+            process.ExecuteInitialize()
 
     # --------------------------------------------------------------------------
-    def solveStructure( self, optimizationIteration ): 
+    def __initializeGIDOutput( self ):
+
+        computing_model_part = CSM_solver.GetComputingModelPart()
+        problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
+
+        from gid_output_process import GiDOutputProcess
+        output_settings = ProjectParameters["output_configuration"]
+        self.gid_output = GiDOutputProcess(computing_model_part, problem_name, output_settings)
+
+        self.gid_output.ExecuteInitialize()
+
+    # --------------------------------------------------------------------------
+    def __initializeSolutionLoop( self ):
+
+        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+        CSM_solver.Initialize()
+        CSM_solver.SetEchoLevel(echo_level)
+
+        for responseFunctionId in listOfResponseFunctions:
+            listOfResponseFunctions[responseFunctionId].Initialize()
+
+        # Start process
+        for process in self.list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
+
+        ## Set results when are written in a single file
+        self.gid_output.ExecuteBeforeSolutionLoop()
+
+    # --------------------------------------------------------------------------
+    def __solveStructure( self, optimizationIteration ): 
 
         # processes to be executed at the begining of the solution step
         for process in self.list_of_processes:
@@ -185,12 +179,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             process.ExecuteAfterOutputStep()            
 
     # --------------------------------------------------------------------------
-    def finalizeSolutionLoop( self ):
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
-        self.gid_output.ExecuteFinalize()
-
-    # --------------------------------------------------------------------------
 
 structureAnalyzer = kratosCSMAnalyzer()
 
@@ -200,6 +188,5 @@ structureAnalyzer = kratosCSMAnalyzer()
 
 optimizer.importAnalyzer( structureAnalyzer )
 optimizer.optimize()
-structureAnalyzer.finalizeSolutionLoop()
 
 # ======================================================================================================================================
