@@ -60,17 +60,11 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
 
 void InternalVariablesInterpolationProcess::Execute()
 {
-    /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
-    * CPT: Closest point transfer. It transfer the values from the closest GP
-    * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
-    * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN"T WORK, AND REQUIRES EXTRA STORE)
-    */
-
-    if (mThisInterpolationType == CPT && mInternalVariableList.size() > 0)
+    if (mThisInterpolationType == InterpolationTypesCPT && mInternalVariableList.size() > 0)
         InterpolateGaussPointsCPT();
-    else if (mThisInterpolationType == LST && mInternalVariableList.size() > 0)
+    else if (mThisInterpolationType == InterpolationTypesLST && mInternalVariableList.size() > 0)
         InterpolateGaussPointsLST();
-    else if (mThisInterpolationType == SFT && mInternalVariableList.size() > 0)
+    else if (mThisInterpolationType == InterpolationTypesSFT && mInternalVariableList.size() > 0)
         InterpolateGaussPointsSFT();
     else
         std::cout << "WARNING:: INTERPOLATION TYPE NOT AVALAIBLE OR EMPTY LIST" << std::endl;
@@ -520,13 +514,13 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
 InterpolationTypes InternalVariablesInterpolationProcess::ConvertInter(const std::string& Str)
 {
     if(Str == "CPT")
-        return CPT;
+        return InterpolationTypes::CPT;
     else if(Str == "LST")
-        return LST;
+        return InterpolationTypes::LST;
     else if(Str == "SFT")
-        return SFT;
+        return InterpolationTypes::SFT;
     else
-        return LST;
+        return InterpolationTypes::LST;
 }
 
 }  // namespace Kratos.
