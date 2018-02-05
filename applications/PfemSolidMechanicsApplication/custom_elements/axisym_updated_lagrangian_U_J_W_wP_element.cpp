@@ -537,6 +537,8 @@ namespace Kratos
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
                SmallMatrix( i*dimension+iDim, j ) = rVariables.N[i] * rVariables.DN_DX(j,iDim) * rIntegrationWeight;
+               //if (iDim==0)
+               //   SmallMatrix( i*dimension+iDim, j ) += rVariables.N[i] * rVariables.N(j)/rVariables.CurrentRadius * rIntegrationWeight;
             }
          }
       }

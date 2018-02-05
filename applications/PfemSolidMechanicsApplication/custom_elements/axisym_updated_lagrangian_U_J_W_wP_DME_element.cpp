@@ -189,7 +189,9 @@ namespace Kratos
          for (unsigned int i = 0; i < number_of_nodes; i++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
                for (unsigned p = 0; p < dimension; p++) {
-                  SmallMatrix(i,j) += rVariables.DN_DX(i,p) * rVariables.DN_DX(j,p) * alpha_factor*tau_factor * rIntegrationWeight;
+                  SmallMatrix(i,j) += rVariables.DN_DX(i,p) * rVariables.DN_DX(j,p) * alpha_factor*(tau_factor-1) * rIntegrationWeight;
+               	  //if (p==0)
+                  //	SmallMatrix( i, j ) += rVariables.N[i] * rVariables.N[j] / rVariables.CurrentRadius /rVariables.CurrentRadius * alpha_factor*tau_factor*rIntegrationWeight;
                }
             }
          } 
@@ -198,7 +200,7 @@ namespace Kratos
                rDampingMatrix( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) -=SmallMatrix(i,j);
             }
          }
-      }
+      } 
 
 
       KRATOS_CATCH("")
@@ -261,10 +263,9 @@ namespace Kratos
       if ( ( fabs(StabFactor) > 1.0e-9) && dimension==2)  {
 
          Matrix Q = ZeroMatrix( number_of_nodes, dimension*number_of_nodes);
-         unsigned int voigtSize = 3;
-         if ( dimension == 3) voigtSize = 6;
+         unsigned int voigtSize = 4;
          Matrix m = ZeroMatrix( 1, voigtSize);
-         for ( unsigned int i = 0; i < dimension; i++)
+         for ( unsigned int i = 0; i < 3; i++)
             m(0,i) = 1.0;
          Matrix partial =  prod( m, rVariables.B );
          for (unsigned int i = 0; i < number_of_nodes; i++) {
