@@ -26,7 +26,7 @@ namespace Kratos
 {
 	LoggerTableOutput::LoggerTableOutput(std::ostream& rOutputStream, std::vector<std::string> const& ColumnsNames) : LoggerOutput(rOutputStream), mCurrentColumnIndex(0), mColumnsNames(ColumnsNames) {
         for(auto& column_name : mColumnsNames){
-            mColumnsWidth.push_back(column_name.size());
+            mColumnsWidth.push_back(column_name.size() + 1);
             column_name.erase(column_name.find_last_not_of(" ") + 1);
         }
     }
@@ -43,12 +43,12 @@ namespace Kratos
     void LoggerTableOutput::WriteHeader()
     {
         for(std::size_t i = 0 ; i <  mColumnsNames.size() ; i++)
-            std::cout << std::left << std::setw(mColumnsWidth[i]+1) << mColumnsNames[i];
+            std::cout << std::left << std::setw(mColumnsWidth[i]) << mColumnsNames[i];
         
         std::cout << std::endl;
 
         for(std::size_t i = 0 ; i <  mColumnsNames.size() ; i++)
-            this->GetStream() << std::left << std::setw(mColumnsWidth[i]+1) << mColumnsNames[i];
+            this->GetStream() << std::left << std::setw(mColumnsWidth[i]) << mColumnsNames[i];
         
         this->GetStream() << std::endl;
     }
@@ -59,9 +59,9 @@ namespace Kratos
 
       auto message_severity = TheMessage.GetSeverity();
       if (message_severity <= this->GetSeverity()) {
-        for (int i = 0; i < mColumnsNames.size(); i++) {
+        for (std::size_t i = 0; i < mColumnsNames.size(); i++) {
           if (mColumnsNames[i] == TheMessage.GetLabel()) {
-            column_index = i;
+            column_index = static_cast<int>(i);
             break;
           }
         }
@@ -69,7 +69,9 @@ namespace Kratos
 
       if (column_index >= 0) { // The label found in columns
         MoveCursorToColumn(column_index);
-        this->GetStream()  << std::left << std::setw(mColumnsWidth[column_index]+1) << TheMessage.GetMessage();
+        auto message = TheMessage.GetMessage();
+        message.erase(message.find_last_not_of(" \n\t") + 1);
+        this->GetStream()  << std::left << std::setw(mColumnsWidth[column_index]) << message;
         }
     }
 
@@ -92,7 +94,7 @@ namespace Kratos
             mCurrentColumnIndex = 0;
         }
         for(std::size_t i = mCurrentColumnIndex ; i < ColumnIndex ; i++){
-            this->GetStream() << std::setw(mColumnsWidth[i]+1) << " ";
+            this->GetStream() << std::setw(mColumnsWidth[i]) << " ";
         }
         mCurrentColumnIndex = ColumnIndex + 1;
 	}

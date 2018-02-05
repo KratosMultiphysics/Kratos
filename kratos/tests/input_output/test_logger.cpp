@@ -201,28 +201,28 @@ namespace Kratos {
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
             std::size_t time_step = 1;
-			Logger("Time Step") << time_step;
+			Logger("Time Step") << time_step << std::endl;
             reference_output << "1             ";
 
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
-			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output ";
+			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output " << std::endl;
 
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
             double convergence = 0.00;
             for(time_step = 2;time_step < 4; time_step++){
-                Logger("Time Step") << time_step;
+                Logger("Time Step") << time_step << std::endl;
                 for(int iteration_number = 1 ; iteration_number < 3; iteration_number++){
                         convergence = 0.3 / (iteration_number * time_step);
-                    	Logger("Iteration Number") << iteration_number;
-                        Logger("Convergence") << convergence;
+                    	Logger("Iteration Number") << iteration_number << std::endl;
+                        Logger("Convergence") << convergence << std::endl;
                 }
                 if(convergence < 0.06) {
-                    Logger("Is converged") << "Yes";
+                    Logger("Is converged") << "Yes" << std::endl;
                 }
                 else {
-                    Logger("Is converged") << "No";
+                    Logger("Is converged") << "No" << std::endl;
                 }
 
             }
