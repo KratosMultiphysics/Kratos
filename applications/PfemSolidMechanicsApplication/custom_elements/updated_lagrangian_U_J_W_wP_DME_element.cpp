@@ -183,7 +183,7 @@ namespace Kratos
 
       Matrix SmallMatrix = ZeroMatrix( number_of_nodes, number_of_nodes);
 
-      if ( ( fabs(StabFactor) > 1.0e-9) && dimension==2)  {
+      if ( fabs(StabFactor) > 1.0e-9)  {
 
          // assume that K is a unit tensor by k
          for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -258,7 +258,7 @@ namespace Kratos
 
       const double & rPermeability = GetProperties()[PERMEABILITY];
 
-      if ( ( fabs(StabFactor) > 1.0e-9) && dimension==2)  {
+      if ( fabs(StabFactor) > 1.0e-9)  {
 
          Matrix Q = ZeroMatrix( number_of_nodes, dimension*number_of_nodes);
          unsigned int voigtSize = 3;
