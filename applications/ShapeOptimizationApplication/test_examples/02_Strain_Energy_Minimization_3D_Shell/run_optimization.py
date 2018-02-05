@@ -74,7 +74,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
-            self.solveStructure( optimizationIteration )
+            self.__solveStructure( optimizationIteration )
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
 
             print("\n> Starting calculation of response value")
