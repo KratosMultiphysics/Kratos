@@ -1012,7 +1012,7 @@ namespace Kratos
       
       
       const double & rStabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
-      if ( ( fabs(rStabilizationFactor) > 1.0e-6) && dimension==2)  {
+      if  ( fabs(rStabilizationFactor) > 1.0e-6)  {
 
          double StabFactor = CalculateStabilizationFactor( rVariables, StabFactor);
 
@@ -1020,11 +1020,20 @@ namespace Kratos
          Matrix SmallMatrix = ZeroMatrix(number_of_nodes, number_of_nodes);
 
          double consistent;
+
          for (unsigned int i = 0; i < number_of_nodes; i++) {
             for (unsigned int j = 0; j < number_of_nodes; j++) {
-               consistent = -1.0 * StabFactor / 18.0;
-               if ( i == j)
-                  consistent = 2.0 * StabFactor / 18.0;
+               if ( dimension == 2) {
+                  consistent = -1.0 * StabFactor / 18.0;
+                  if ( i == j)
+                     consistent = 2.0 * StabFactor / 18.0;
+               } else if (dimension == 3) {
+                  consistent = -1.0 * StabFactor / 80.0;
+                  if ( i == j)
+                     consistent = 3.0 * StabFactor / 80.0;
+               } else {
+                  consistent = 0;
+               }
                SmallMatrix(i,j) += consistent * rIntegrationWeight ;
             }
          }
