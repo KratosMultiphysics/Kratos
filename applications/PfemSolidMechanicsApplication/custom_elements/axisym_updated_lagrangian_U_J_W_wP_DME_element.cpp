@@ -162,7 +162,6 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-	const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -176,9 +175,9 @@ namespace Kratos
       double tau_factor=0;
       double alpha_factor=0;
       if (WaterDensity > 1e-3 && CurrentDensity > 1e-3){
-	//   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
-	   double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
-	 alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
+         //   double WaveVelocity = sqrt((ConstrainedModulus+rWaterBulk)/CurrentDensity);
+         double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
+         alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
          tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
       }
 
@@ -241,7 +240,6 @@ namespace Kratos
          ConstrainedModulus =  YoungModulus * ( 1.0-nu)/(1.0+nu) / (1.0-2.0*nu);
       }
 
-      const double  rWaterBulk = GetProperties()[WATER_BULK_MODULUS];	
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -255,8 +253,8 @@ namespace Kratos
       double alpha_factor=0;
       double tau_factor=0;
       if (WaterDensity > 1e-3 && CurrentDensity > 1e-3){
-	   double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
-	 alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
+         double WaveVelocity = sqrt((ConstrainedModulus)/CurrentDensity);
+         alpha_factor = StabFactor/CurrentDensity*pow(ElementSize/WaveVelocity,2);
          tau_factor = (CurrentDensity-WaterDensity)*porosity/WaterDensity/(porosity-1);
       }
 
