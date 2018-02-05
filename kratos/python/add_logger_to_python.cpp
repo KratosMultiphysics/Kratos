@@ -35,6 +35,8 @@ object printImpl(tuple args, dict kwargs, Logger::Severity severity) {
         std::cout << "ERROR" << std::endl;
     
     std::stringstream buffer;
+    Logger::Severity severityOption = severity;
+    Logger::Category categoryOption = Logger::Category::STATUS;
 
     // Extract the tuple part
     for(int i = 1; i < len(args); ++i) {
@@ -45,13 +47,34 @@ object printImpl(tuple args, dict kwargs, Logger::Severity severity) {
     }
 
     const char* label = extract<const char *>(boost::python::str(args[0]));
-    Logger(label) << buffer.str() << severity << std::endl;
+
+    // Extract the options
+    if(kwargs.contains("severity")) {
+        severityOption = extract<Logger::Severity>(kwargs["severity"]);
+    }
+
+    if(kwargs.contains("category")) {
+        categoryOption = extract<Logger::Category>(kwargs["category"]);
+    }
+
+    // Send the message and options to the logger
+    Logger(label) << buffer.str() << severityOption << categoryOption << std::endl;
 
     return object();
 }
 
 /**
- * Prints the arguments from the python script using the Kratos Logger class
+ * Prints the arguments from the python script using the Kratos Logger class. Default function uses INFO severity.
+ * @args tuple boost::python::object representing the arguments of the function The first argument is the label
+ * @kwargs dictionary of boost::python::objects resenting key-value pairs for
+ * name arguments
+ **/
+object printDefault(tuple args, dict kwargs) {
+    return printImpl(args, kwargs, Logger::Severity::INFO);
+}
+
+/**
+ * Prints the arguments from the python script using the Kratos Logger class using INFO severity.
  * @args tuple boost::python::object representing the arguments of the function The first argument is the label
  * @kwargs dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
@@ -61,7 +84,7 @@ object printInfo(tuple args, dict kwargs) {
 }
 
 /**
- * Prints the arguments from the python script using the Kratos Logger class
+ * Prints the arguments from the python script using the Kratos Logger class using WARNING severity.
  * @args tuple boost::python::object representing the arguments of the function The first argument is the label
  * @kwargs dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
@@ -82,6 +105,7 @@ void  AddLoggerToPython() {
     ;
 
     scope logger_scope = class_<Logger, boost::shared_ptr<Logger>, boost::noncopyable>("Logger", init<std::string const &>())
+    .def("Print", raw_function(printDefault,1))
     .def("PrintInfo", raw_function(printInfo,1))
     .def("PrintWarning", raw_function(printWarning,1))
     .def("GetDefaultOutput", &Logger::GetDefaultOutputInstance, return_value_policy<reference_existing_object>())
