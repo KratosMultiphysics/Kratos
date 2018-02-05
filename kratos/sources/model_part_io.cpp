@@ -2003,6 +2003,10 @@ namespace Kratos
         {
             ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
         }
+        else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+        {
+            ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
+        }
         else
         {
             std::stringstream buffer;
@@ -2118,6 +2122,10 @@ namespace Kratos
         else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
         {
             ReadConditionalVectorialVariableData(rThisConditions, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
+        }
+        else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+        {
+            ReadConditionalVectorialVariableData(rThisConditions, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
         }
         else
         {

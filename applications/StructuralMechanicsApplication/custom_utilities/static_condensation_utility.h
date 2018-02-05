@@ -58,6 +58,7 @@ namespace Kratos
 
 		void ConvertingCondensation(
             ElementType& rTheElement,
+			Vector& rLocalizedDofVector,
 			Vector& rValues,
 			const std::vector<int>& rDofList,
 			const MatrixType& rLeftHandSideMatrix);

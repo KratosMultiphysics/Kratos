@@ -88,11 +88,11 @@ namespace Kratos
 
 
 			//// start static condensation
-			if (this->GetProperties().Has(CONDENSED_DOF_LIST))
+			if (this->Has(CONDENSED_DOF_LIST))
 			{
-				Vector dof_list_input = this->GetProperties()[CONDENSED_DOF_LIST];
-				std::vector<int> dofList(0);
-				for (size_t i=0;i<dof_list_input.size();++i) dofList.push_back(dof_list_input[i]);
+				Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
+				std::vector<int> dofList(dof_list_input.size());
+				for (size_t i=0;i<dof_list_input.size();++i) dofList[i]=dof_list_input[i];
 				StaticCondensationUtility::CondenseLeftHandSide(*this,rLeftHandSideMatrix,dofList);
 			}
 			//// end static condensation
@@ -155,14 +155,29 @@ namespace Kratos
 		Vector NodalDeformation = ZeroVector(msElementSize);
 		this->GetValuesVector(NodalDeformation);
 
-		// here ::: static condensation displacement back calculation !!!!!!
-
 		bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = this->CreateRotationMatrix();
 		// calculate local displacements
 		NodalDeformation = prod(Matrix(trans(TransformationMatrix)),NodalDeformation);
+		
+
+		//// start static back condensation
+		if (this->Has(CONDENSED_DOF_LIST))
+		{
+			Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
+			std::vector<int> dofList(dof_list_input.size());
+			for (size_t i=0;i<dof_list_input.size();++i) dofList[i]=dof_list_input[i];
+			Vector nodal_deformation_temp = NodalDeformation;
+			StaticCondensationUtility::ConvertingCondensation(
+				*this,nodal_deformation_temp,NodalDeformation,dofList,LeftHandSideMatrix);
+		}
+		//// end static back condensation
 
 		Vector Stress = prod(LeftHandSideMatrix, NodalDeformation); 
 
+		KRATOS_WATCH(this->Id());
+		KRATOS_WATCH(NodalDeformation);
+		KRATOS_WATCH(Stress);
+		std::cout << "-------------------------------------------" << std::endl;
 
 
 		//rOutput[GP 1,2,3][x,y,z]
