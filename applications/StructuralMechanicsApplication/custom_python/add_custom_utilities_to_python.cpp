@@ -26,11 +26,6 @@
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
 
-//Processes
-#include "custom_processes/apply_multi_point_constraints_process.h"
-#include "custom_processes/postprocess_eigenvalues_process.h"
-
-
 namespace Kratos
 {
 namespace Python
@@ -48,19 +43,6 @@ void  AddCustomUtilitiesToPython()
     .def("Execute",&SprismNeighbours::Execute)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
-
-    /// Processes
-    class_<ApplyMultipointConstraintsProcess, boost::noncopyable, bases<Process>>("ApplyMultipointConstraintsProcess", init<ModelPart&>())
-    .def(init< ModelPart&, Parameters& >())
-	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents)
-    .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
-	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariable)
-    .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
-    .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
-    .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
-
-    class_<PostprocessEigenvaluesProcess, boost::noncopyable, bases<Process>>(
-        "PostprocessEigenvaluesProcess", init<ModelPart&, Parameters>());
 
 }
 
