@@ -29,6 +29,18 @@
 #include "includes/shared_pointers.h"
 #include "includes/exception.h"
 
+
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    #define KRATOS_COMPILED_IN_LINUX
+
+#elif defined(__APPLE__) && defined(__MACH__)
+    #define KRATOS_COMPILED_IN_OSX
+
+#elif defined(_WIN32)
+    #define KRATOS_COMPILED_IN_WINDOWS
+#endif
+
+
 //-----------------------------------------------------------------
 //
 // Warnings

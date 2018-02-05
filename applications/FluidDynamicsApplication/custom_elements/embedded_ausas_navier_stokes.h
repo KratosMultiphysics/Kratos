@@ -744,9 +744,9 @@ protected:
     /**
     * This function adds the local system contribution of the interface pressure boundary terms,
     * coming from the integration by parts.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSystemBoundaryTermsContribution(
         MatrixType &rLeftHandSideMatrix,
@@ -873,8 +873,8 @@ protected:
     /**
     * This function adds the RHS contribution of the interface boundary terms,
     * coming from the integration by parts.
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddRHSBoundaryTermsContribution(
         VectorType &rRightHandSideVector,
@@ -996,9 +996,9 @@ protected:
 
     /**
     * This function adds the local system contribution of the penalty no penetration imposition.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSystemNormalVelocityPenaltyContribution(
         MatrixType &rLeftHandSideMatrix,
@@ -1097,8 +1097,8 @@ protected:
 
     /**
     * This function adds the RHS contribution of the penalty no penetration imposition.
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddRHSNormalVelocityPenaltyContribution(
         VectorType &rRightHandSideVector,
@@ -1190,9 +1190,9 @@ protected:
     /**
     * This function adds the local system contribution of the no penetration imposition,
     * by means of the pressure acting as a Lagrange multiplier.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSystemNormalVelocityLagrangeMultiplierContribution(
         MatrixType &rLeftHandSideMatrix,
@@ -1297,7 +1297,7 @@ protected:
 
     /**
     * Auxiliar function to compute the element size
-    * @return h: characteristic element size computed using the gradients
+    * @return Characteristic element size computed using the gradients
     */
     double ComputeH() {
 
@@ -1323,7 +1323,7 @@ protected:
 
     /**
     * This function computes the penalty coefficient for the level set normal velocity imposition
-    * @param rData: reference to element data structure
+    * @param rData reference to element data structure
     */
     double ComputePenaltyCoefficient(const EmbeddedAusasElementDataStruct &rData) {
 
@@ -1364,8 +1364,8 @@ protected:
 
     /**
     * This functions sets a vector containing the element previous solution
-    * @param rData: reference to the element data structure
-    * @param rPrevSolVector: reference to the previous solution vector
+    * @param rData reference to the element data structure
+    * @param rPrevSolVector reference to the previous solution vector
     */
     void GetPreviousSolutionVector(
         const EmbeddedAusasElementDataStruct& rData,
@@ -1383,8 +1383,8 @@ protected:
 
     /**
     * This functions computes the strain rate in Voigt notation
-    * @param rData: reference to the element data structure
-    * @param StrainSize: strain size (3 in 2D and 6 in 3D)
+    * @param rData reference to the element data structure
+    * @param StrainSize strain size (3 in 2D and 6 in 3D)
     */
     void ComputeStrain(
         EmbeddedAusasElementDataStruct& rData,
@@ -1412,8 +1412,8 @@ protected:
 
     /**
     * This function calls the constitutive law to get the stress value
-    * @param rData: reference to the element data structure
-    * @param rCurrentProcessInfo: reference to the ProcessInfo
+    * @param rData reference to the element data structure
+    * @param rCurrentProcessInfo reference to the ProcessInfo
     */
     void ComputeConstitutiveResponse(
         EmbeddedAusasElementDataStruct &rData,
@@ -1459,8 +1459,8 @@ protected:
 
     /**
     * This function computes the effective viscosity as the average of the lower diagonal constitutive tensor
-    * @param rData: reference to the element data structure
-    * @return mu_eff: computed effective viscosity value
+    * @param rData reference to the element data structure
+    * @return Computed effective viscosity value
     */
     double ComputeEffectiveViscosity(const EmbeddedAusasElementDataStruct& rData) {
         double mu_eff = 0.0;
@@ -1473,8 +1473,8 @@ protected:
 
     /**
     * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @return rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param[out] rVoigtNormProjMatrix reference to the computed normal projection auxiliar matrix
     */
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
@@ -1502,8 +1502,8 @@ protected:
 
     /**
     * This functions sets the B strain matrix (pressure columns are set to zero)
-    * @param rData: reference to element data structure (it contains the shape functions derivatives)
-    * @return rBmatrix: reference to the computed B strain matrix
+    * @param rData reference to element data structure (it contains the shape functions derivatives)
+    * @param[out] rBmatrix reference to the computed B strain matrix
     */
     void SetExpandedStrainMatrix(
         const bounded_matrix<double, TNumNodes, TDim> &rDN_DX,
@@ -1537,8 +1537,8 @@ protected:
 
     /**
     * This functions sets the test function matrix given the Gauss pt. shape function values
-    * @param rN: shape function values on a Gauss pt.
-    * @return rTestMatrix: computed test function matrix
+    * @param rN shape function values on a Gauss pt.
+    * @return Computed test function matrix
     */
     void SetTestMatrix(
         const array_1d<double, TNumNodes> &rN,
