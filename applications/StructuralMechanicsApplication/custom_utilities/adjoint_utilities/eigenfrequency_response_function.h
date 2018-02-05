@@ -4,9 +4,9 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Fusseder Martin   
+//  Main authors:    Fusseder Martin
 //                   martin.fusseder@tum.de
-//	
+//
 // ==============================================================================
 
 #ifndef EIGENFREQUENCY_RESPONSE_FUNCTION_H
@@ -81,7 +81,7 @@ public:
 	typedef StructuralResponseFunction BaseType;
 	typedef array_1d<double, 3> array_3d;
 
-	// TODO solve this via template or how to get this from Eigensolverstrategy 
+	// TODO solve this via template or how to get this from Eigensolverstrategy
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
 	typedef typename LocalSpaceType::VectorType DenseVectorType;
@@ -89,7 +89,7 @@ public:
 	typedef Variable<DenseVectorType> VariableDenseVectorType;
 	typedef Variable<DenseMatrixType> VariableDenseMatrixType;
 
-	
+
 
 	/// Pointer definition of EigenfrequencyResponseFunction
 	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunction);
@@ -102,7 +102,7 @@ public:
 	EigenfrequencyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: StructuralResponseFunction(model_part, responseSettings)
 	{
-	
+
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
 		m_initial_value_defined = false;
@@ -163,9 +163,9 @@ public:
 		if(num_of_computed_eigenvalues < m_traced_eigenvalue)
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
-		m_current_response_value = 	(r_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1]; 
+		m_current_response_value = 	(r_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1];
 
-		// Change sign of response: only maximization makes sense in case of eigenfrequency optimization		
+		// Change sign of response: only maximization makes sense in case of eigenfrequency optimization
 		m_current_response_value *= (-1.0); // TODO: do this also in SA?
 
 		// Set initial value if not done yet
@@ -312,7 +312,7 @@ protected:
 	///@{
 
 	template <typename TDataType>
-    void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable) override
+    void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable)
 	{
 		KRATOS_TRY;
 
@@ -399,9 +399,9 @@ protected:
 
                 this->AssembleNodalSensitivityContribution(
                     rSensitivityVariable, sensitivity_vector[k], r_geom);	//----> check for correct output
-            }        
+            }
         }
-    
+
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
 		KRATOS_CATCH("");
@@ -410,7 +410,7 @@ protected:
 	// ==============================================================================
 	template <typename TDataType>
 	void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable,
-	Variable<TDataType> const& rOutputVariable)  override
+	Variable<TDataType> const& rOutputVariable)
 	{
 		KRATOS_TRY;
 
@@ -423,7 +423,7 @@ protected:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-  
+
         //std::cout << ("I compute now element sensitivities") << std::endl;
 	#pragma omp parallel
         {
@@ -439,16 +439,16 @@ protected:
             {
                 if (it->GetValue(UPDATE_SENSITIVITIES) == true)
                 {
-         
+
 					// --> calculate here sensitivities
-			    
+
                     this->AssembleElementSensitivityContribution(
                   	        rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
-              
+
                 }
             }
         }
-       
+
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
 		KRATOS_CATCH("");
@@ -456,8 +456,8 @@ protected:
 
 	// ==============================================================================
 	template <typename TDataType>
-    void UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, 
-	Variable<TDataType> const& rOutputVariable) override
+    void UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable,
+	Variable<TDataType> const& rOutputVariable)
 	{
 		KRATOS_TRY;
 
@@ -481,9 +481,9 @@ protected:
 
             for (auto it = conditions_begin; it != conditions_end; ++it)
             {
-            
+
                 if (it->GetValue(UPDATE_SENSITIVITIES) == true)
-                {   
+                {
 					// --> calculate here sensitivities
 
 		            Condition::GeometryType& r_geom = it->GetGeometry();
@@ -493,11 +493,11 @@ protected:
                 }
             }
         }
-    
+
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
 		KRATOS_CATCH("");
-	}	
+	}
 
 	// ==============================================================================
 	void CalculateSensitivityGradient(Element& rAdjointElem,
@@ -508,7 +508,7 @@ protected:
     {
       	KRATOS_TRY;
 
-      	KRATOS_ERROR << "I am wrong here. There is no partial derivative to compute." << std::endl;  
+      	KRATOS_ERROR << "I am wrong here. There is no partial derivative to compute." << std::endl;
 
      	 KRATOS_CATCH("");
 	}
@@ -522,7 +522,7 @@ protected:
     {
       	KRATOS_TRY;
 
-		KRATOS_ERROR << "I am wrong here. There is no partial derivative to compute." << std::endl;  
+		KRATOS_ERROR << "I am wrong here. There is no partial derivative to compute." << std::endl;
 
         KRATOS_CATCH("");
 	}
@@ -536,7 +536,7 @@ protected:
     {
 		KRATOS_TRY;
 
-		KRATOS_ERROR << "I am wrong here. There is no partial derivative to compute." << std::endl;  
+		KRATOS_ERROR << "I am wrong here. There is no partial derivative to compute." << std::endl;
 
 		KRATOS_CATCH("");
 	}
@@ -550,7 +550,7 @@ protected:
     {
 		KRATOS_TRY;
 
-		KRATOS_ERROR << "I am wrong here. There is no partial derivative to compute." << std::endl;  
+		KRATOS_ERROR << "I am wrong here. There is no partial derivative to compute." << std::endl;
 
 		KRATOS_CATCH("");
 	}
@@ -579,7 +579,7 @@ private:
 	///@name Member Variables
 	///@{
 
-	double m_current_response_value; 
+	double m_current_response_value;
 	double m_initial_value;
 	bool m_initial_value_defined;
 	int m_traced_eigenvalue;
@@ -609,10 +609,10 @@ private:
 		if(num_of_computed_eigenvalues < id_eigenvalue)
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
-		current_eigenvalue = (r_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1]; 
+		current_eigenvalue = (r_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1];
 
 		return current_eigenvalue;
-		
+
 		KRATOS_CATCH("");
 
 	}
@@ -628,7 +628,7 @@ private:
 
 		const VariableDenseMatrixType& rEIGENVECTOR_MATRIX =
            	  KratosComponents<VariableDenseMatrixType>::Get("EIGENVECTOR_MATRIX");
-		
+
 		int k = 0;
 		for (ModelPart::NodeIterator node_i = traced_element->GetGeometry().begin(); node_i != traced_element->GetGeometry().end(); ++node_i)
 		{
