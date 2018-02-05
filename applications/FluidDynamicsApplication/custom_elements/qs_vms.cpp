@@ -16,6 +16,7 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
 {
@@ -56,14 +57,14 @@ QSVMS<TElementData>::~QSVMS()
 template< class TElementData >
 Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new QSVMS(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<QSVMS>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TElementData >
 Element::Pointer QSVMS<TElementData>::Create(IndexType NewId,GeometryType::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new QSVMS(NewId, pGeom, pProperties));
+    return Kratos::make_shared<QSVMS>(NewId, pGeom, pProperties);
 }
 
 template <class TElementData>
@@ -79,6 +80,14 @@ void QSVMS<TElementData>::Calculate(
         this->CalculateProjections(rCurrentProcessInfo);
     }
 }
+
+template <class TElementData>
+void QSVMS<TElementData>::Calculate(const Variable<Vector>& rVariable,
+    Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+
+template <class TElementData>
+void QSVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
+    Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
@@ -443,7 +452,7 @@ void QSVMS<TElementData>::AddVelocitySystem(
     AGradN *= density; // Convective term is always multiplied by density
 
     // Temporary containers
-    double K,G,PDivV,qF;
+    double K,G,PDivV;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -494,15 +503,15 @@ void QSVMS<TElementData>::AddVelocitySystem(
         }
 
         // RHS terms
-        qF = 0.0;
+        double forcing = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
             rRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
             rRHS[row+d] += rData.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
             rRHS[row+d] -= rData.Weight * TauTwo * rData.DN_DX(i,d) * mass_projection;
-            qF += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
+            forcing += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
         }
-        rRHS[row + Dim] += rData.Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
+        rRHS[row + Dim] += rData.Weight * TauOne * forcing; // Grad(q) * TauOne * (Density * BodyForce)
     }
 
     // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
@@ -586,6 +595,53 @@ void QSVMS<TElementData>::AddMassStabilization(
                 rMassMatrix(row+d,col+d) += K;
                 rMassMatrix(row+Dim,col+d) += weight*rData.DN_DX(i,d)*rData.N[j];
             }
+        }
+    }
+}
+
+template <class TElementData>
+void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
+    const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
+
+    constexpr std::size_t StrainSize = (Dim-1)*3;
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
+
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,StrainSize> constitutive_matrix = ZeroMatrix(StrainSize,StrainSize);
+    const double dynamic_viscosity = this->Interpolate(rData.DynamicViscosity,rData.N);
+    FluidElementUtilities<NumNodes>::GetNewtonianConstitutiveMatrix(dynamic_viscosity,constitutive_matrix);
+    
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+
+    boost::numeric::ublas::bounded_matrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
+    FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
+    
+    // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
+    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,stress_matrix);
+
+    // Contribution to boundary stress from p*n
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        const double ni = rData.N[i];
+        for (unsigned int d = 0; d < Dim; d++) {
+            const std::size_t pressure_column = i*BlockSize + Dim;
+            normal_stress_operator(d,pressure_column) = -rUnitNormal[d]*ni;
+        }
+    }
+
+    // RHS: stress computed using current solution
+    array_1d<double,LocalSize> nodal_values(LocalSize,0.0);
+    this->GetCurrentValuesVector(rData,nodal_values);
+    array_1d<double,Dim> current_stress = boost::numeric::ublas::prod(normal_stress_operator,nodal_values);
+
+    // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        const double wni = rData.Weight*rData.N[i];
+        for (unsigned int d = 0; d < Dim; d++) {
+            const unsigned int row = i*BlockSize + d;
+            for (unsigned int col = 0; col < LocalSize; col++) {
+                rLHS(row,col) -= wni*normal_stress_operator(d,col);
+            }
+            rRHS[row] += wni*current_stress[d];
         }
     }
 }
@@ -810,14 +866,12 @@ void AddViscousTerm<2>(double DynamicViscosity,
     const unsigned int num_nodes = rDN_DX.size1();
     const unsigned int block_size = 3;
 
-    unsigned int row(0),col(0);
-
     for (unsigned int a = 0; a < num_nodes; ++a)
     {
-        row = a*block_size;
+        unsigned int row = a*block_size;
         for (unsigned int b = 0; b < num_nodes; ++b)
         {
-            col = b*block_size;
+            unsigned int col = b*block_size;
 
             // First row
             rLHS(row,col) += weight * ( four_thirds * rDN_DX(a,0) * rDN_DX(b,0) + rDN_DX(a,1) * rDN_DX(b,1) );
@@ -942,6 +996,9 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
 
 template class QSVMS< QSVMSData<2,3> >;
 template class QSVMS< QSVMSData<3,4> >;
+
+template class QSVMS< QSVMSData<2,4> >;
+template class QSVMS< QSVMSData<3,8> >;
 
 template class QSVMS< TimeIntegratedQSVMSData<2,3> >;
 template class QSVMS< TimeIntegratedQSVMSData<3,4> >;

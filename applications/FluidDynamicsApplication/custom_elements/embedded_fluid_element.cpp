@@ -1,5 +1,5 @@
 #include "custom_elements/embedded_fluid_element.h"
-//#include "custom_elements/qs_vms.h"
+#include "custom_elements/qs_vms.h"
 #include "custom_elements/symbolic_navier_stokes.h"
 
 #include "custom_utilities/embedded_data.h"
@@ -46,14 +46,14 @@ EmbeddedFluidElement<TBaseElement>::~EmbeddedFluidElement()
 template< class TBaseElement >
 Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,NodesArrayType const& ThisNodes,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new EmbeddedFluidElement(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<EmbeddedFluidElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
 template< class TBaseElement >
 Element::Pointer EmbeddedFluidElement<TBaseElement>::Create(IndexType NewId,Geometry<NodeType>::Pointer pGeom,Properties::Pointer pProperties) const
 {
-    return Element::Pointer(new EmbeddedFluidElement(NewId, pGeom, pProperties));
+    return Kratos::make_shared<EmbeddedFluidElement>(NewId, pGeom, pProperties);
 }
 
 template <class TBaseElement>
@@ -494,8 +494,12 @@ ModifiedShapeFunctions::Pointer GetShapeFunctionCalculator<3, 4>(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Class template instantiation
 
-//template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
+template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<2,3> > >;
+template class EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > >;
+
 template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > >;
 template class EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > >;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

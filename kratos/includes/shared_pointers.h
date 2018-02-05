@@ -1,0 +1,67 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//                   Pooyan Dadvand
+//
+
+#if !defined(KRATOS_MEMORY_H_INCLUDED )
+#define  KRATOS_MEMORY_H_INCLUDED
+
+/* System includes */
+#include <utility>
+
+/* External includes */
+#include "boost/smart_ptr.hpp"
+
+namespace Kratos {
+
+template<class T>
+using shared_ptr = boost::shared_ptr<T>; //std::shared_ptr<T>;
+
+template<class T>
+using weak_ptr = boost::weak_ptr<T>; //std::weak_ptr<T>;
+    
+template<typename C, typename...Args>
+shared_ptr<C> make_shared(Args &&...args) {
+    return boost::make_shared<C>(std::forward<Args>(args)...);
+    // return std::make_shared<C>(std::forward<Args>(args)...);
+}
+
+template<typename C, typename...Args>
+shared_ptr<C> static_pointer_cast(Args &&...args) {
+    return boost::static_pointer_cast<C>(std::forward<Args>(args)...);
+    // return std::static_pointer_cast<C>(std::forward<Args>(args)...);
+}
+
+template<typename C, typename...Args>
+shared_ptr<C> dynamic_pointer_cast(Args &&...args) {
+    return boost::dynamic_pointer_cast<C>(std::forward<Args>(args)...);
+    // return std::dynamic_pointer_cast<C>(std::forward<Args>(args)...);
+}
+
+template<typename C, typename...Args>
+shared_ptr<C> const_pointer_cast(Args &&...args) {
+    return boost::const_pointer_cast<C>(std::forward<Args>(args)...);
+    // return std::const_pointer_cast<C>(std::forward<Args>(args)...);
+}
+
+template<typename C, typename...Args>
+shared_ptr<C> reinterpret_pointer_cast(Args &&...args) {
+    return boost::reinterpret_pointer_cast<C>(std::forward<Args>(args)...);
+    // return std::reinterpret_pointer_cast<C>(std::forward<Args>(args)...);
+}
+} // namespace Kratos
+    
+
+#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef Kratos::shared_ptr<a > Pointer; \
+typedef Kratos::shared_ptr<a > SharedPointer; \
+typedef Kratos::weak_ptr<a > WeakPointer
+
+#endif /* KRATOS_MEMORY_H_INCLUDED  defined */

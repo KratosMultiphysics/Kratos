@@ -604,11 +604,8 @@ class Algorithm(object):
                     )
 
             # assessing stationarity
-
                 if self.stationarity_counter.Tick():
-                    Say("Assessing Stationarity...\n")
-                    self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
-                    self.stationarity_counter.Deactivate(self.stationarity)
+                    self.AssessStationarity()
 
             # printing if required
 
@@ -783,6 +780,11 @@ class Algorithm(object):
         if self.embedded_counter.Tick():
             embedded.ApplyEmbeddedBCsToFluid(self.fluid_model_part)
             embedded.ApplyEmbeddedBCsToBalls(self.spheres_model_part, self.pp.CFD_DEM)
+
+    def AssessStationarity(self):
+        Say("Assessing Stationarity...\n")
+        self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
+        self.stationarity_counter.Deactivate(self.stationarity)
 
     def SetInlet(self):
         if self.pp.CFD_DEM["dem_inlet_option"].GetBool():

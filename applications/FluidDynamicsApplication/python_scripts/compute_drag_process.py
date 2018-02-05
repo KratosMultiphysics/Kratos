@@ -39,17 +39,6 @@ class ComputeDragProcess(python_process.PythonProcess):
         self.print_drag_to_screen = settings["print_drag_to_screen"].GetBool()
         self.write_drag_output_file = settings["write_drag_output_file"].GetBool()
 
-        # Check if the model part conditions are wether slip or no slip
-        for condition in self.model_part.Conditions:
-            if (condition.Is(KratosMultiphysics.SLIP)):
-                self.is_slip = True
-                break
-
-        # If the submodelpart is slip, check that it has conditions
-        if (self.is_slip):
-            if (len(self.model_part.Conditions) == 0):
-                raise Exception("the drag submodelpart " + settings["model_part_name"].GetString() + " has no conditions.")
-
         if (self.model_part.GetCommunicator().MyPID() == 0):
             if (self.write_drag_output_file):
                 # Set drag output file name
@@ -69,17 +58,9 @@ class ComputeDragProcess(python_process.PythonProcess):
 
         if((current_time >= self.interval[0]) and  (current_time < self.interval[1])):
             # Compute the drag force
-            if (self.is_slip):
-                # Integrate the drag over the model part elements
-                drag_force = KratosFluid.DragUtilities().CalculateSlipDrag(self.model_part)
-            else:
-                # Note that MPI communication is done within VariableUtils().SumHistoricalNodeVectorVariable()
-                reaction_vector = KratosMultiphysics.VariableUtils().SumHistoricalNodeVectorVariable(KratosMultiphysics.REACTION, self.model_part, 0)
-                drag_force = KratosMultiphysics.Vector(3)
-                drag_force[0] = -reaction_vector[0]
-                drag_force[1] = -reaction_vector[1]
-                drag_force[2] = -reaction_vector[2]
+            drag_force = KratosFluid.DragUtilities().CalculateBodyFittedDrag(self.model_part)
 
+            # Write the drag force values
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 if (self.print_drag_to_screen):
                     print("DRAG RESULTS:")
