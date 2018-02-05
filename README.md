@@ -48,7 +48,7 @@ Organizations contributing to Kratos:
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/TUM_Logo.png" width="128">
 </br><p>Chair of Structural Analysis</br>Technical University of Munich </p>
 
-# Known Users
+# Our Users
 Some users of the technologies developed in Kratos are:
 
 <span>
