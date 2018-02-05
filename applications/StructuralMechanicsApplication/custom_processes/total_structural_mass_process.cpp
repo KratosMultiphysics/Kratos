@@ -51,8 +51,9 @@ void TotalStructuralMassProcess::Execute()
             const double thickness = this_properties[THICKNESS];
             total_mass += density * thickness * r_this_geometry.Area();
         } else { // SOLID
-            const double thickness = (dimension == 2) ? this_properties[THICKNESS] : 1.0;
-            total_mass += density * thickness * r_this_geometry.Volume();
+            const double thickness = (dimension == 2) ? (this_properties.Has(THICKNESS)) ? this_properties[THICKNESS] : 1.0 : 1.0;
+            const double volume = (dimension == 2) ? r_this_geometry.Area() : r_this_geometry.Volume();
+            total_mass += density * thickness * volume;
         }
     }
     
