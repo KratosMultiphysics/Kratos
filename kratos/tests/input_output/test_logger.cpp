@@ -192,30 +192,48 @@ namespace Kratos {
 		KRATOS_TEST_CASE_IN_SUITE(LoggerTableOutput, KratosCoreFastSuite)
 		{
 			static std::stringstream buffer;
-			LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, {"Time Step    ", "Iteration Number", "Convergence"}));
+			LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, {"Time Step    ", "Iteration Number        ", "Convergence        ", "Is converged"}));
 			Logger::AddOutput(p_output);
             p_output->WriteHeader();
+            std::stringstream reference_output;
+            reference_output << "Time Step     Iteration Number         Convergence         Is converged " << std::endl;
 
-			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n");
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
             std::size_t time_step = 1;
 			Logger("Time Step") << time_step;
+            reference_output << "1             ";
 
-			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1             ");
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
-			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output " ;
+			Logger("Label") << "This log has a lable which is not in the output columns and will not be printed in output ";
 
-			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Time Step     Iteration Number Convergence \n1             ");
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
 
+            double convergence = 0.00;
             for(time_step = 2;time_step < 4; time_step++){
                 Logger("Time Step") << time_step;
                 for(int iteration_number = 1 ; iteration_number < 3; iteration_number++){
+                        convergence = 0.3 / (iteration_number * time_step);
                     	Logger("Iteration Number") << iteration_number;
-                        Logger("Convergence") << 0.1 / (iteration_number * time_step);
-
+                        Logger("Convergence") << convergence;
                 }
+                if(convergence < 0.06) {
+                    Logger("Is converged") << "Yes";
+                }
+                else {
+                    Logger("Is converged") << "No";
+                }
+
             }
 
+            reference_output << std::endl << "2             1                        0.15                ";
+            reference_output << std::endl << "              2                        0.075               No           ";
+            reference_output << std::endl << "3             1                        0.1                 ";
+            reference_output << std::endl << "              2                        0.05                Yes          ";
+            
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
+            
             std::cout << std::endl;
             std::cout << buffer.str() << std::endl;
 
