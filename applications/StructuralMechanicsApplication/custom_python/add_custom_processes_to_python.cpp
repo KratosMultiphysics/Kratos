@@ -16,19 +16,21 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
+#include "custom_python/add_custom_processes_to_python.h"
+#include "structural_mechanics_application_variables.h"
 
 //Processes
 #include "custom_processes/apply_multi_point_constraints_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 
-
 namespace Kratos
 {
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython()
+void  AddCustomProcessesToPython()
 {
     using namespace boost::python;
 
