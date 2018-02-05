@@ -111,8 +111,15 @@ namespace Kratos
 			///@name Member Variables
 			///@{
 
+            std::size_t mCurrentColumnIndex;
             std::vector<std::string> mColumnsNames;
             std::vector<std::size_t> mColumnsWidth;
+
+			///@}
+			///@name Private Operations
+			///@{
+
+            void MoveCursorToColumn(std::size_t ColumnIndex);
 
 			///@}
 		}; // Class LoggerTableOutput

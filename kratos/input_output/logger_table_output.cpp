@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-	LoggerTableOutput::LoggerTableOutput(std::ostream& rOutputStream, std::vector<std::string> const& ColumnsNames) : LoggerOutput(rOutputStream), mColumnsNames(ColumnsNames) {
+	LoggerTableOutput::LoggerTableOutput(std::ostream& rOutputStream, std::vector<std::string> const& ColumnsNames) : LoggerOutput(rOutputStream), mCurrentColumnIndex(0), mColumnsNames(ColumnsNames) {
         for(auto& column_name : mColumnsNames){
             mColumnsWidth.push_back(column_name.size());
             column_name.erase(column_name.find_last_not_of(" ") + 1);
@@ -42,12 +42,12 @@ namespace Kratos
     
     void LoggerTableOutput::WriteHeader()
     {
-        for(int i = 0 ; i <  mColumnsNames.size() ; i++)
+        for(std::size_t i = 0 ; i <  mColumnsNames.size() ; i++)
             std::cout << std::left << std::setw(mColumnsWidth[i]+1) << mColumnsNames[i];
         
         std::cout << std::endl;
 
-        for(int i = 0 ; i <  mColumnsNames.size() ; i++)
+        for(std::size_t i = 0 ; i <  mColumnsNames.size() ; i++)
             this->GetStream() << std::left << std::setw(mColumnsWidth[i]+1) << mColumnsNames[i];
         
         this->GetStream() << std::endl;
@@ -66,9 +66,10 @@ namespace Kratos
           }
         }
       }
-      KRATOS_WATCH(column_index)
-      if (column_index >= 0) {
-        this->GetStream() << TheMessage.GetMessage();
+
+      if (column_index >= 0) { // The label found in columns
+        MoveCursorToColumn(column_index);
+        this->GetStream()  << std::left << std::setw(mColumnsWidth[column_index]+1) << TheMessage.GetMessage();
         }
     }
 
@@ -81,6 +82,19 @@ namespace Kratos
 	/// Print object's data.
 	void LoggerTableOutput::PrintData(std::ostream& rOStream) const
 	{
+	}
+
+	/// Print object's data.
+	void LoggerTableOutput::MoveCursorToColumn(std::size_t ColumnIndex) 
+	{
+        if(ColumnIndex < mCurrentColumnIndex){
+            this->GetStream() << std::endl;
+            mCurrentColumnIndex = 0;
+        }
+        for(std::size_t i = mCurrentColumnIndex ; i < ColumnIndex ; i++){
+            this->GetStream() << std::setw(mColumnsWidth[i]+1) << " ";
+        }
+        mCurrentColumnIndex = ColumnIndex + 1;
 	}
 
 }  // namespace Kratos.
