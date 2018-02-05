@@ -176,35 +176,21 @@ namespace Kratos {
             const std::string tag_string("TestString");
             const std::string tag_string_2("TestString2");
 
-            Node<3>::Pointer p_node = Kratos::make_shared<Node<3>>();
-            Point::Pointer p_point = p_node;
+            Point::Pointer p_point = Kratos::make_shared<Point>(-0.25, 3.5, 8.55);
+            Kratos::shared_ptr<array_1d<double,3>> p_array = p_point;
 
-            Node<3>::Pointer p_loaded_node;
             Point::Pointer p_loaded_point;
+            Kratos::shared_ptr<array_1d<double,3>> p_loaded_array;
 
-            serializer.save(tag_string, p_point);
-            serializer.save(tag_string_2, p_node);
+            serializer.save(tag_string, p_array);
+            serializer.save(tag_string_2, p_point);
 
-            serializer.load(tag_string, p_loaded_point);
-            serializer.load(tag_string_2, p_loaded_node);
+            serializer.load(tag_string, p_loaded_array);
+            serializer.load(tag_string_2, p_loaded_point);
 
-            KRATOS_CHECK_EQUAL(p_loaded_node, p_loaded_point);
-            KRATOS_CHECK_EQUAL(*p_node, *p_loaded_node);
-        }
-
-        KRATOS_TEST_CASE_IN_SUITE(SerializerVariable, KratosCoreFastSuite)
-        {
-            Serializer serializer;
-
-            const std::string tag_string("TestString");
-
-            Variable<double> object_to_be_saved();
-            Variable<double> object_to_be_loaded();
-
-            // serializer.save(tag_string, object_to_be_saved);
-            // serializer.load(tag_string, object_to_be_loaded);
-            
-            // KRATOS_CHECK_EQUAL(object_to_be_loaded, object_to_be_saved);
+            KRATOS_CHECK_EQUAL(*p_point, *p_loaded_point);
+            for (std::size_t i=0; i<(*p_array).size(); ++i)
+                KRATOS_CHECK_EQUAL((*p_loaded_array)[i], (*p_array)[i]);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerStdVector, KratosCoreFastSuite)
