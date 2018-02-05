@@ -296,13 +296,13 @@ template<unsigned int TDim, class TVarType>
 Interpolation ComputeHessianSolMetricProcess<TDim, TVarType>::ConvertInter(const std::string& str)
 {
     if(str == "Constant") 
-        return Constant;
+        return Interpolation::Constant;
     else if(str == "Linear") 
-        return Linear;
+        return Interpolation::Linear;
     else if(str == "Exponential") 
-        return Exponential;
+        return Interpolation::Exponential;
     else
-        return Linear;
+        return Interpolation::Linear;
 }
 
 /***********************************************************************************/
@@ -320,11 +320,11 @@ double ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAnisotropicRatio
     double ratio = 1.0; // NOTE: Isotropic mesh
     if (AnisotropicRatio < 1.0) {                           
         if (std::abs(Distance) <= BoundLayer) {
-            if (rInterpolation == Constant)
+            if (rInterpolation == Interpolation::Constant)
                 ratio = AnisotropicRatio;
-            else if (rInterpolation == Linear)
+            else if (rInterpolation == Interpolation::Linear)
                 ratio = AnisotropicRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisotropicRatio);
-            else if (rInterpolation == Exponential) {
+            else if (rInterpolation == Interpolation::Exponential) {
                 ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisotropicRatio + tolerance;
                 if (ratio > 1.0) ratio = 1.0;
             }
