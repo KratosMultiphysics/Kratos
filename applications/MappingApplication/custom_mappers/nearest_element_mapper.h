@@ -319,13 +319,12 @@ private:
     ///@name Private Operations
     ///@{
 
-    static double GetInterpolatedValueFromGeometryScalar(InterfaceObject* pInterfaceObject, //TODO const
+    static double GetInterpolatedValueFromGeometryScalar(InterfaceObject::Pointer pInterfaceObject, //TODO const
             const Variable<double>& rVariable,
             const Kratos::Flags& rOptions,
             const std::vector<double>& rShapeFunctionValues)
     {
-        Geometry<Node<3>>* p_base_geometry = static_cast<InterfaceGeometryObject*>(pInterfaceObject)->pGetBase();
-        KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
+        Geometry<Node<3>>* p_base_geometry = pInterfaceObject->pGetBaseGeometry();
 
         double interpolated_value = 0.0f;
 
@@ -336,13 +335,12 @@ private:
         return interpolated_value;
     }
 
-    static array_1d<double, 3> GetInterpolatedValueFromGeometryVector(InterfaceObject* pInterfaceObject, //TODO const
+    static array_1d<double, 3> GetInterpolatedValueFromGeometryVector(InterfaceObject::Pointer pInterfaceObject, //TODO const
             const Variable< array_1d<double, 3> >& rVariable,
             const Kratos::Flags& rOptions,
             const std::vector<double>& rShapeFunctionValues)
     {
-        Geometry<Node<3>>* p_base_geometry = static_cast<InterfaceGeometryObject*>(pInterfaceObject)->pGetBase();
-        KRATOS_ERROR_IF_NOT(p_base_geometry) << "Base Pointer is nullptr!!!" << std::endl;
+        Geometry<Node<3>>* p_base_geometry = pInterfaceObject->pGetBaseGeometry();
 
         array_1d<double, 3> interpolated_value;
         interpolated_value[0] = 0.0f;
@@ -359,14 +357,13 @@ private:
 
 
     template <typename T>
-    static void SetValueOfNode(InterfaceObject* pInterfaceObject,
+    static void SetValueOfNode(InterfaceObject::Pointer pInterfaceObject,
                                const T& rValue,
                                const Variable< T >& rVariable,
                                const Kratos::Flags& rOptions,
                                const double Factor)
     {
-        Node<3>* p_base_node = static_cast<InterfaceNode*>(pInterfaceObject)->pGetBase();
-        KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+        Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
 
         if (rOptions.Is(MapperFlags::ADD_VALUES))
         {
