@@ -147,7 +147,7 @@ FSI=problem_settings.FSI
 
 eul_model_part = 0
 gamma = 0.072 		#surface tension coefficient [N m-1]
-contact_angle = 65 	#contact angle [deg]
+contact_angle = 65.0 	#contact angle [deg]
 lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle)
 reform_dofs_at_each_step = False
 pDiagPrecond = DiagonalPreconditioner()
@@ -171,11 +171,9 @@ for node in lagrangian_model_part.Nodes:
     node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
     node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
   if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
     node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-    #node.Fix(VELOCITY_X)
     node.Fix(VELOCITY_Y)
-    node.Fix(IS_STRUCTURE)
+    node.Free(VELOCITY_X)
 
 ##########################################################################################################
 Multifile = True
@@ -212,7 +210,6 @@ while(time <= final_time):
         if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
             node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
             node.Fix(VELOCITY_Y)
-            node.Fix(IS_STRUCTURE)
             if (node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
                 node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
                 node.Fix(VELOCITY_X)
@@ -241,7 +238,7 @@ while(time <= final_time):
     
         gid_io.WriteNodalResults(CONTACT_ANGLE,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(CURVATURE,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(IS_BOUNDARY,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(IS_FREE_SURFACE,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(IS_INTERFACE,lagrangian_model_part.Nodes,time,0)

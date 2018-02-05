@@ -219,13 +219,15 @@ class STMonolithicSolver:
         self.model_part.ProcessInfo.SetValue(M, self.regularization_coef)
 
         
-        #self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
+        self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
         self.model_part.ProcessInfo.SetValue(SURFTENS_COEFF, self.gamma)
         
         if(self.eul_model_part == 0):
 	    #marking the fluid
             (self.fluid_neigh_finder).Execute();
-            (self.ulf_apply_bc_process).Execute();  
+            (self.ulf_apply_bc_process).Execute();
+            if (self.domain_size == 2):
+                FindTriplePoint().FindTriplePoint2D(self.model_part)
             self.Remesh()
 
 # print "Initialization monolithic solver finished"
@@ -248,6 +250,7 @@ class STMonolithicSolver:
 
 
         if (self.domain_size == 2):
+            FindTriplePoint().FindTriplePoint2D(self.model_part)
             CalculateCurvature().CalculateCurvature2D(self.model_part)
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
@@ -264,7 +267,6 @@ class STMonolithicSolver:
         if(self.eul_model_part == 0):
             (self.fluid_neigh_finder).Execute();
             #(self.fluid_neigh_finder).Execute();
-            FindTriplePoint().FindTriplePoint2D(self.model_part)
             self.Remesh();
 
     #
@@ -329,7 +331,7 @@ class STMonolithicSolver:
                     node.SetSolutionStepValue(NORMAL_X,0,0.0)
                     node.SetSolutionStepValue(NORMAL_Y,0,0.0)
                     node.SetSolutionStepValue(NORMAL_Z,0,0.0)	      
-	  
+            FindTriplePoint().FindTriplePoint2D(self.model_part)
             CalculateCurvature().CalculateCurvature2D(self.model_part)
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
@@ -343,15 +345,9 @@ class STMonolithicSolver:
         (self.neigh_finder).Execute();
         
     def cont_angle_cond(self):
-        theta_adv = 105
-        theta_rec = 70
-	#theta_adv = self.contact_angle + 0.5
-	#theta_rec = self.contact_angle - 0.5
-        time = self.model_part.ProcessInfo.GetValue(TIME)
-        dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
-	#x_mean = 0.0
-	##found_tp = 0
-	################### For sessile drop examples
+        theta_adv = self.contact_angle + 1.0
+        theta_rec = self.contact_angle - 1.0
+        ################### For sessile drop examples
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
                 if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
@@ -359,11 +355,11 @@ class STMonolithicSolver:
                 else:
                     node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
                     node.Fix(VELOCITY_X)
-            if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
+            if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
                     node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
                     node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
                     node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)    
+                    node.Fix(VELOCITY_Y)
 
 
 def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR 3D!!!!!!!!!!

@@ -60,7 +60,7 @@ laplacian_form = 2
 
 AutomaticDeltaTime = "Fixed"
 divergence_cleareance_step = 10
-Dt = 0.001
+Dt = 0.01
 Start_time = 0.0
 max_time = 1.00
 nsteps = 100
