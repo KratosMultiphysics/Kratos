@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -203,7 +203,8 @@ void MmgProcess<TDim>::InitializeMeshData()
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
     
     /* Manually set of the mesh */
-    array_1d<SizeType, TDim - 1> num_array_elements, num_array_conditions;
+    array_1d<SizeType, ConditionsArraySize> num_array_conditions;
+    array_1d<SizeType, ElementsArraySize> num_array_elements;
     if (TDim == 2) {
         num_array_conditions[0] = conditions_array.size();
         num_array_elements[0]   = elements_array.size();
@@ -1446,8 +1447,8 @@ void MmgProcess<3>::InitVerbosityParameter(const int& VerbosityMMG)
 template<>  
 void MmgProcess<2>::SetMeshSize(
     const SizeType NumNodes,
-    const array_1d<SizeType, 1> NumArrayElements, 
-    const array_1d<SizeType, 1> NumArrayConditions
+    const array_1d<SizeType, ElementsArraySize> NumArrayElements, 
+    const array_1d<SizeType, ConditionsArraySize> NumArrayConditions
     )
 {
     //Give the size of the mesh: NumNodes vertices, num_elements triangles, num_conditions edges (2D) 
@@ -1461,8 +1462,8 @@ void MmgProcess<2>::SetMeshSize(
 template<>  
 void MmgProcess<3>::SetMeshSize(
     const SizeType NumNodes,
-    const array_1d<SizeType, 2> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
-    const array_1d<SizeType, 2> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
+    const array_1d<SizeType, ElementsArraySize> NumArrayElements,  // NOTE: We do this tricky thing to take into account the prisms
+    const array_1d<SizeType, ConditionsArraySize> NumArrayConditions // NOTE: We do this tricky thing to take into account the quadrilaterals
     )
 {
     //Give the size of the mesh: NumNodes Vertex, num_elements tetra and prism, NumArrayConditions triangles and quadrilaterals, 0 edges (3D) 
