@@ -34,9 +34,9 @@
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/input_output/vtk_file_io.h"
-//#include "custom_utilities/response_functions/eigenfrequency_response_function.h"
-//#include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
-//#include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
+#include "custom_utilities/response_functions/eigenfrequency_response_function.h"
+// #include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
+// #include "custom_utilities/response_functions/eigenfrequency_response_function_KS.h"
 // ==============================================================================
 
 namespace Kratos
@@ -44,7 +44,7 @@ namespace Kratos
 
 namespace Python
 {
-   
+
 void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
@@ -92,7 +92,7 @@ void  AddCustomUtilitiesToPython()
         // General optimization operations
         // ----------------------------------------------------------------
         .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
-        .def("UpdateControlPointChangeByInputVariable", &OptimizationUtilities::UpdateControlPointChangeByInputVariable)        
+        .def("UpdateControlPointChangeByInputVariable", &OptimizationUtilities::UpdateControlPointChangeByInputVariable)
         ;
 
     // ========================================================================
@@ -124,35 +124,34 @@ void  AddCustomUtilitiesToPython()
         .def("GetValue", &MassResponseFunction::GetValue)
         .def("GetInitialValue", &MassResponseFunction::GetInitialValue)
         .def("GetGradient", &MassResponseFunction::GetGradient)
-        
         ;
-  
-   /* class_<EigenfrequencyResponseFunction, bases<Process> >("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>())
-        .def("initialize", &EigenfrequencyResponseFunction::initialize)
-        .def("calculate_value", &EigenfrequencyResponseFunction::calculate_value)
-        .def("calculate_gradient", &EigenfrequencyResponseFunction::calculate_gradient) 
-        .def("get_value", &EigenfrequencyResponseFunction::get_value)
-        .def("get_initial_value", &EigenfrequencyResponseFunction::get_initial_value)  
-        .def("get_gradient", &EigenfrequencyResponseFunction::get_gradient)   
-        ;   
 
-    class_<EigenfrequencyResponseFunctionLinScal, bases<Process> >("EigenfrequencyResponseFunctionLinScal", init<ModelPart&, Parameters&>())
-        .def("initialize", &EigenfrequencyResponseFunctionLinScal::initialize)
-        .def("calculate_value", &EigenfrequencyResponseFunctionLinScal::calculate_value)
-        .def("calculate_gradient", &EigenfrequencyResponseFunctionLinScal::calculate_gradient) 
-        .def("get_value", &EigenfrequencyResponseFunctionLinScal::get_value)
-        .def("get_initial_value", &EigenfrequencyResponseFunctionLinScal::get_initial_value)  
-        .def("get_gradient", &EigenfrequencyResponseFunctionLinScal::get_gradient)   
-        ;  
+   class_<EigenfrequencyResponseFunction, bases<Process> >("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>())
+        .def("Initialize", &EigenfrequencyResponseFunction::Initialize)
+        .def("CalculateValue", &EigenfrequencyResponseFunction::CalculateValue)
+        .def("CalculateGradient", &EigenfrequencyResponseFunction::CalculateGradient)
+        .def("GetValue", &EigenfrequencyResponseFunction::GetValue)
+        .def("GetInitialValue", &EigenfrequencyResponseFunction::GetInitialValue)
+        .def("GetGradient", &EigenfrequencyResponseFunction::GetGradient)
+        ;
 
-    class_<EigenfrequencyResponseFunctionKS, bases<Process> >("EigenfrequencyResponseFunctionKS", init<ModelPart&, Parameters&>())
-        .def("initialize", &EigenfrequencyResponseFunctionKS::initialize)
-        .def("calculate_value", &EigenfrequencyResponseFunctionKS::calculate_value)
-        .def("calculate_gradient", &EigenfrequencyResponseFunctionKS::calculate_gradient) 
-        .def("get_value", &EigenfrequencyResponseFunctionKS::get_value)
-        .def("get_initial_value", &EigenfrequencyResponseFunctionKS::get_initial_value)  
-        .def("get_gradient", &EigenfrequencyResponseFunctionKS::get_gradient)   
-        ;*/
+    // class_<EigenfrequencyResponseFunctionLinScal, bases<Process> >("EigenfrequencyResponseFunctionLinScal", init<ModelPart&, Parameters&>())
+    //     .def("initialize", &EigenfrequencyResponseFunctionLinScal::initialize)
+    //     .def("calculate_value", &EigenfrequencyResponseFunctionLinScal::calculate_value)
+    //     .def("calculate_gradient", &EigenfrequencyResponseFunctionLinScal::calculate_gradient)
+    //     .def("get_value", &EigenfrequencyResponseFunctionLinScal::get_value)
+    //     .def("get_initial_value", &EigenfrequencyResponseFunctionLinScal::get_initial_value)
+    //     .def("get_gradient", &EigenfrequencyResponseFunctionLinScal::get_gradient)
+    //     ;
+
+    // class_<EigenfrequencyResponseFunctionKS, bases<Process> >("EigenfrequencyResponseFunctionKS", init<ModelPart&, Parameters&>())
+    //     .def("initialize", &EigenfrequencyResponseFunctionKS::initialize)
+    //     .def("calculate_value", &EigenfrequencyResponseFunctionKS::calculate_value)
+    //     .def("calculate_gradient", &EigenfrequencyResponseFunctionKS::calculate_gradient)
+    //     .def("get_value", &EigenfrequencyResponseFunctionKS::get_value)
+    //     .def("get_initial_value", &EigenfrequencyResponseFunctionKS::get_initial_value)
+    //     .def("get_gradient", &EigenfrequencyResponseFunctionKS::get_gradient)
+    //     ;
 
     // ========================================================================
     // For input / output
