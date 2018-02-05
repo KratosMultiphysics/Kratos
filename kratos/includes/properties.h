@@ -21,6 +21,7 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
+#include <unordered_map>
 
 
 // External includes
@@ -30,8 +31,6 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "containers/data_value_container.h"
-#include "containers/pointer_vector_map.h"
-//#include "containers/all_variables_data_value_container.h"
 #include "includes/process_info.h"
 #include "includes/table.h"
 
@@ -90,7 +89,7 @@ public:
 
     typedef Table<double> TableType;
 
-	typedef PointerVectorMap<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
+	typedef std::unordered_map<std::size_t, TableType> TablesContainerType; // This is a provisional implmentation and should be changed to hash. Pooyan.
 
 
     ///@}
