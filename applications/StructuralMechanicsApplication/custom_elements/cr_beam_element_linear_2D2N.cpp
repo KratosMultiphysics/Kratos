@@ -174,11 +174,6 @@ namespace Kratos
 
 		Vector Stress = prod(LeftHandSideMatrix, NodalDeformation); 
 
-		KRATOS_WATCH(this->Id());
-		KRATOS_WATCH(NodalDeformation);
-		KRATOS_WATCH(Stress);
-		std::cout << "-------------------------------------------" << std::endl;
-
 
 		//rOutput[GP 1,2,3][x,y,z]
 
