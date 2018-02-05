@@ -99,20 +99,20 @@ public:
    * @return a Pointer to the new element
    */
   BaseType::Pointer Create(IndexType NewId, NodesArrayType const &rThisNodes,
-                           PropertiesType::Pointer pProperties) const;
+                           PropertiesType::Pointer pProperties) const override;
 
   BaseType::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const;
+                           PropertiesType::Pointer pProperties) const override;
 
   void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                             VectorType &rRightHandSideVector,
-                            ProcessInfo &rCurrentProcessInfo);
+                            ProcessInfo &rCurrentProcessInfo) override;
 
   /**
   * Sets on rResult the ID's of the element degrees of freedom
   */
   void EquationIdVector(EquationIdVectorType &rResult,
-                        ProcessInfo &rCurrentProcessInfo);
+                        ProcessInfo &rCurrentProcessInfo) override;
 
   /**
   * Sets on rElementalDofList the degrees of freedom of the considered element
@@ -120,21 +120,13 @@ public:
   */
 
   void GetDofList(DofsVectorType &rElementalDofList,
-                  ProcessInfo &rCurrentProcessInfo);
+                  ProcessInfo &rCurrentProcessInfo) override;
 
-  /// Initialize initial values of the element (must be called before
-  /// calculation is done)
-
-  MatrixType SetAndModifyConstitutiveLaw(const int &dimension,
-                                         const double &rPointNumber);
-
-  MatrixType CalculateBMatrix(const int &dimension, const double &rPointNumber);
-
-  void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
-                                   VectorType &rRightHandSideVector);
 
   void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                              ProcessInfo &rCurrentProcessInfo);
+                              ProcessInfo &rCurrentProcessInfo) override;
+
+  void GetValuesVector(VectorType &rValues, int Step = 0) override;
 
   ///@}
   ///@name Access
@@ -172,7 +164,7 @@ protected:
    * Gets displacement values at nodes
    * @param rValues: reference to vector of nodal displacements
    */
-  void GetDisplacementValues(VectorType &rValues, const int Step = 0);
+  
   ///@}
   ///@name Protected  Access
   ///@{
@@ -204,6 +196,14 @@ private:
 
   ///@name Private Operations
   ///@{
+
+  MatrixType SetAndModifyConstitutiveLaw(const int &dimension,
+                                         const double &rPointNumber);
+
+  MatrixType CalculateBMatrix(const int &dimension, const double &rPointNumber);
+
+  void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
+                                   VectorType &rRightHandSideVector);
   ///@}
 
   ///@name Private  Access

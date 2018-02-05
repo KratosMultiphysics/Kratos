@@ -35,20 +35,19 @@ StructuralMeshMovingElement::Create(IndexType NewId,
                                     PropertiesType::Pointer pProperties) const {
   const GeometryType &r_geom = this->GetGeometry();
 
-  return BaseType::Pointer(new StructuralMeshMovingElement(
-      NewId, r_geom.Create(rThisNodes), pProperties));
+  return Kratos::make_shared<StructuralMeshMovingElement>(
+      NewId, r_geom.Create(rThisNodes), pProperties);
 }
 
 Element::Pointer
 StructuralMeshMovingElement::Create(IndexType NewId,
                                     GeometryType::Pointer pGeom,
                                     PropertiesType::Pointer pProperties) const {
-  return BaseType::Pointer(
-      new StructuralMeshMovingElement(NewId, pGeom, pProperties));
+  return Kratos::make_shared<StructuralMeshMovingElement>(NewId, pGeom, pProperties);
 }
 
-void StructuralMeshMovingElement::GetDisplacementValues(VectorType &rValues,
-                                                        const int Step) {
+void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
+                                                        int Step) {
   GeometryType &r_geom = this->GetGeometry();
   const SizeType num_nodes = r_geom.PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -105,7 +104,7 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
   const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
                          // elements; 0 = no stiffening
   const double quotient = factor / detJ0[rPointNumber];
-  const double weight = detJ0[rPointNumber] * pow(quotient, xi);
+  const double weight = detJ0[rPointNumber] * std::pow(quotient, xi);
   const double poisson_coefficient = 0.3;
 
   // The ratio between lamdbda and mu affects relative stiffening against
@@ -254,7 +253,7 @@ void StructuralMeshMovingElement::CalculateLocalSystem(
 
     // Compute RHS
     VectorType last_values;
-    this->GetDisplacementValues(last_values, 0);
+    this->GetValuesVector(last_values, 0);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, last_values);
   }
 

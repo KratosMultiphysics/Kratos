@@ -1,7 +1,7 @@
 import KratosMultiphysics 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import test_structural_mesh_motion_2d
+from test_structural_mesh_motion_2d import TestCase as TTestCase
 import test_structural_mesh_motion_3d
 import test_laplacian_mesh_motion_2d
 import test_laplacian_mesh_motion_3d
@@ -27,7 +27,9 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
-    smallSuite.addTest(test_structural_mesh_motion_2d.TestCase('test_Rectangle_2D3N'))
+    #smallSuite.addTest(test_structural_mesh_motion_2d.TestCase('test_Rectangle_2D3N'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCase]))
+    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_structural_mesh_motion_3d]))
     smallSuite.addTest(test_structural_mesh_motion_3d.TestCase('test_Rectangle_3D8N'))
     smallSuite.addTest(test_structural_mesh_motion_3d.TestCase('test_Rectangle_3D4N'))
     smallSuite.addTest(test_laplacian_mesh_motion_2d.TestCase('test_Rectangle_2D3N'))
@@ -43,7 +45,8 @@ def AssembleTestSuites():
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests([smallSuite])
+    allSuite.addTests([nightSuite]) # already contains the smallSuite
+    allSuite.addTests([validationSuite])
     
     return suites
 

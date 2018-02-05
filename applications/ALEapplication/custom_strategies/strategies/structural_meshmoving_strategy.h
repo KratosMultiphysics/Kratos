@@ -148,8 +148,7 @@ public:
 
     double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
-    if (delta_time <= 0.0)
-      KRATOS_ERROR << "Invalid DELTA_TIME." << std::endl;
+    KRATOS_ERROR_IF(delta_time <= 0.0)<< "Invalid DELTA_TIME." << std::endl;
 
     double coeff = 1 / delta_time;
     if (m_time_order == 1) // mesh velocity calculated as (x(n+1)-x(n))/Dt

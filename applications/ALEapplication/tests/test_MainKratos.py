@@ -71,8 +71,6 @@ class MainKratos:
 
         self.solver.Initialize()
 
-        self.fluid_model_part = self.solver.GetComputingModelPart()
-
 
     def Solve(self):
         start_time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()

@@ -35,15 +35,14 @@ Element::Pointer
 LaplacianMeshMovingElement::Create(IndexType NewId,
                                    NodesArrayType const &rThisNodes,
                                    PropertiesType::Pointer pProperties) const {
-  return Element::Pointer(new LaplacianMeshMovingElement(
-      NewId, GetGeometry().Create(rThisNodes), pProperties));
+  return Kratos::make_shared<LaplacianMeshMovingElement>(
+      NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
 Element::Pointer
 LaplacianMeshMovingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
                                    PropertiesType::Pointer pProperties) const {
-  return BaseType::Pointer(
-      new LaplacianMeshMovingElement(NewId, pGeom, pProperties));
+  return Kratos::make_shared<LaplacianMeshMovingElement>(NewId, pGeom, pProperties);
 }
 
 void LaplacianMeshMovingElement::CalculateDeltaPosition(
@@ -193,6 +192,13 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
       if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 3)
         rElementalDofList[i_node] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
     }
+}
+
+// Called in function "CalculateReactions" within the block builder and solver
+void LaplacianMeshMovingElement::CalculateRightHandSide(
+    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+  MatrixType LHS;
+  CalculateLocalSystem(LHS, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 } // Namespace Kratos

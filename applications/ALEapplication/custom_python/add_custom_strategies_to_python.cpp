@@ -23,8 +23,6 @@
 // strategies
 #include "custom_strategies/strategies/laplacian_meshmoving_strategy.h"
 #include "custom_strategies/strategies/structural_meshmoving_strategy.h"
-#include "solving_strategies/strategies/solving_strategy.h"
-
 // linear solvers
 #include "linear_solvers/linear_solver.h"
 

@@ -73,12 +73,16 @@ class MeshSolverBase(object):
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
+        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_RHS)
         print("::[MeshSolverBase]:: Variables ADDED.")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, self.mesh_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, self.mesh_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, self.mesh_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, KratosMultiphysics.MESH_REACTION_X, self.mesh_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, KratosMultiphysics.MESH_REACTION_Y, self.mesh_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, KratosMultiphysics.MESH_REACTION_Z, self.mesh_model_part)
         print("::[MeshSolverBase]:: DOFs ADDED.")
 
 
@@ -125,7 +129,7 @@ class MeshSolverBase(object):
             # Check and prepare computing model part and import constitutive laws.
             #self._execute_after_reading()
             self._set_and_fill_buffer()
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
+        else:
             raise Exception("::[MeshSolverBase]:: ImportModelPart() only implemnted for mdpa format.")
             
 

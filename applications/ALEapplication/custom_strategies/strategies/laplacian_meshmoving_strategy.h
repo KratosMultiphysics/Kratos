@@ -89,6 +89,7 @@ public:
     m_time_order = TimeOrder;
     bool calculate_norm_dx_flag = false;
 
+    
     typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
         new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,
                                                        TDenseSpace>());
@@ -192,11 +193,8 @@ public:
 
     if (m_reform_dof_set_at_each_step == true)
       m_strategy_x->Clear();
-    m_strategy_y->Clear();
-    m_strategy_z->Clear();
-
-    if (m_compute_reactions == true)
-      KRATOS_ERROR << "Method not implemented yet." << std::endl;
+      m_strategy_y->Clear();
+      m_strategy_z->Clear();
 
     return 0.0;
 
@@ -206,16 +204,15 @@ public:
   void CalculateMeshVelocities() {
     KRATOS_TRY;
 
-    double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+    const double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
-    if (delta_time <= 0.0)
-      KRATOS_ERROR << "Invalid DELTA_TIME." << std::endl;
+    KRATOS_ERROR_IF(delta_time <= 0.0)<< "Invalid DELTA_TIME." << std::endl;
 
-    double coeff = 1 / delta_time;
+    const double coeff = 1 / delta_time;
 
     if (m_time_order == 1) {
-      for (ModelPart::NodeIterator i = (*mp_mesh_model_part).NodesBegin();
-           i != (*mp_mesh_model_part).NodesEnd(); ++i) {
+      for (ModelPart::NodeIterator i = (*mp_mesh_model_part).GetCommunicator().LocalMesh().NodesBegin();
+           i != (*mp_mesh_model_part).GetCommunicator().LocalMesh().NodesEnd(); ++i) {
 
         array_1d<double, 3> &mesh_v =
             (i)->FastGetSolutionStepValue(MESH_VELOCITY);
@@ -227,12 +224,12 @@ public:
         mesh_v *= coeff;
       }
     } else if (m_time_order == 2) {
-      double c1 = 1.50 * coeff;
-      double c2 = -2.0 * coeff;
-      double c3 = 0.50 * coeff;
+      const double c1 = 1.50 * coeff;
+      const double c2 = -2.0 * coeff;
+      const double c3 = 0.50 * coeff;
 
-      for (ModelPart::NodeIterator i = (*mp_mesh_model_part).NodesBegin();
-           i != (*mp_mesh_model_part).NodesEnd(); ++i) {
+      for (ModelPart::NodeIterator i = (*mp_mesh_model_part).GetCommunicator().LocalMesh().NodesBegin();
+           i != (*mp_mesh_model_part).GetCommunicator().LocalMesh().NodesEnd(); ++i) {
 
         array_1d<double, 3> &mesh_v =
             (i)->FastGetSolutionStepValue(MESH_VELOCITY);

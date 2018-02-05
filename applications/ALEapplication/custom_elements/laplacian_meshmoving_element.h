@@ -90,33 +90,26 @@ public:
   ///@name Operations
 
   BaseType::Pointer Create(IndexType NewId, NodesArrayType const &rThisNodes,
-                           PropertiesType::Pointer pProperties) const;
+                           PropertiesType::Pointer pProperties) const override;
 
   BaseType::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
-                           PropertiesType::Pointer pProperties) const;
-
-  MatrixType CalculateDerivatives(const int &rdimension,
-                                  const double &rPointNumber);
+                           PropertiesType::Pointer pProperties) const override;
 
   void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                             VectorType &rRightHandSideVector,
-                            ProcessInfo &rCurrentProcessInfo);
+                            ProcessInfo &rCurrentProcessInfo) override;
 
   void EquationIdVector(EquationIdVectorType &rResult,
-                        ProcessInfo &rCurrentProcessInfo);
+                        ProcessInfo &rCurrentProcessInfo) override;
 
   void GetDofList(DofsVectorType &rElementalDofList,
-                  ProcessInfo &rCurrentProcessInfo);
+                  ProcessInfo &rCurrentProcessInfo) override;
 
-  void CalculateDeltaPosition(VectorType &IntermediateDisplacements,
-                              ProcessInfo &rCurrentProcessInfo);
 
-  void CalculateInitialJacobianValues(MatrixType &rJ0, MatrixType &rInvJ0,
-                                      double &rDetJ0,
-                                      const double &rPointNumber);
 
-  void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
-                                   VectorType &rRightHandSideVector);
+  void CalculateRightHandSide(VectorType &rRightHandSideVector,
+                              ProcessInfo &rCurrentProcessInfo) override;
+
 
   ///@{
 
@@ -173,7 +166,6 @@ private:
 
   ///@name Member Variables
   ///@{
-  SizeType mLocalSize;
   ///@}
 
   ///@name Serialization
@@ -188,6 +180,15 @@ private:
 
   ///@name Private Operations
   ///@{
+
+  void CalculateDeltaPosition(VectorType &IntermediateDisplacements,
+                              ProcessInfo &rCurrentProcessInfo);
+
+  void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
+                                   VectorType &rRightHandSideVector);
+
+  MatrixType CalculateDerivatives(const int &rdimension,
+                                  const double &rPointNumber);
   ///@}
 
   ///@name Private  Access
