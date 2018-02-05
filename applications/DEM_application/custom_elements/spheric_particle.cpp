@@ -1001,14 +1001,14 @@ void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,   
 
     for (unsigned int inode = 0; inode < FE_size; inode++) {
 
-        if (Weight[inode] > 1.0e-12) {           
+        if (Weight[inode] > 1.0e-15) {           
             total_weight = total_weight + Weight[inode];
             points++;
             if (points == 1) {inode1 = inode;}
             if (points == 2) {inode2 = inode;}
         }
 
-        if (fabs(total_weight - 1.0) < 1.0e-12) {
+        if (fabs(total_weight - 1.0) < 1.0e-15) {
             break;
         }
     }
