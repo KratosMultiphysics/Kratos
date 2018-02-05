@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/variables_list.h"
+#include "custom_processes/nodal_values_interpolation_process.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
@@ -96,25 +97,6 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
-    /**
-     * This enums are used to simplify the computation of the std::vector containing the conditions and elements
-     */
-#if !defined(MMG_GEOMETRY)
-#define MMG_GEOMETRY
-    enum CondGeometries2D {Line = 0};
-    
-    enum ElemGeometries2D {Triangle2D = 0};
-    
-    enum CondGeometries3D {Triangle3D = 0, Quadrilateral3D = 1};
-    
-    enum ElemGeometries3D {Tetrahedra = 0, Prism = 1};
-#endif
-    
-#if !defined(FRAMEWORK_EULER_LAGRANGE)
-#define FRAMEWORK_EULER_LAGRANGE
-    enum FrameworkEulerLagrange {Eulerian = 0, Lagrangian = 1, ALE = 2};
-#endif
     
 ///@}
 ///@name  Functions
@@ -127,7 +109,7 @@ namespace Kratos
 /**
  * @class MmgProcess
  *
- * \ingroup MeshingApplication
+ * @ingroup MeshingApplication
  *
  * @brief This class is a remesher which uses the MMG library 
  *
@@ -640,14 +622,6 @@ private:
         const Vector& Metric,
         const int NodeId 
         );
-    
-    /**
-     * @brief This converts the framework string to an enum
-     * @param Str The string
-     * @return FrameworkEulerLagrange: The equivalent enum
-     */
-        
-    FrameworkEulerLagrange ConvertFramework(const std::string& Str);
 
     ///@}
     ///@name Private  Access

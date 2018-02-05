@@ -24,7 +24,6 @@
 // Project includes
 #include "custom_processes/mmg_process.h"
 // We indlude the internal variable interpolation process
-#include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
 // Include the point locator
 #include "utilities/binbased_fast_point_locator.h"
@@ -118,7 +117,7 @@ MmgProcess<TDim>::MmgProcess(
     mFilename = new char [mStdStringFilename.length() + 1];
     std::strcpy (mFilename, mStdStringFilename.c_str());
     
-    mFramework = ConvertFramework(mThisParameters["framework"].GetString());
+    mFramework = NodalValuesInterpolationProcess<TDim>::ConvertFramework(mThisParameters["framework"].GetString());
     
     mpRefElement.clear();
     mpRefCondition.clear();
@@ -261,7 +260,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     for (typename Node<3>::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
     
-    if (mFramework == Lagrangian){ // NOTE: The code is repeated due to performance reasons
+    if (mFramework == FrameworkEulerLagrange::Lagrangian){ // NOTE: The code is repeated due to performance reasons
         #pragma omp parallel for firstprivate(nodes_colors)
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
@@ -658,7 +657,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     ReorderAllIds();
     
     /* Unmoving the original mesh to be able to interpolate */
-    if (mFramework == Lagrangian) {
+    if (mFramework == FrameworkEulerLagrange::Lagrangian) {
         NodesArrayType& old_nodes_array = r_old_model_part.Nodes();
         
         #pragma omp parallel for
@@ -682,7 +681,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     InitializeElementsAndConditions();
     
     /* We do some operations related with the Lagrangian framework */
-    if (mFramework == Lagrangian) {
+    if (mFramework == FrameworkEulerLagrange::Lagrangian) {
         // If we remesh during non linear iteration we just move to the previous displacement, to the last displacement otherwise
         const int step = mThisParameters["remesh_at_non_linear_iteration"].GetBool() ? 1 : 0;
         
@@ -2192,22 +2191,6 @@ void MmgProcess<3>::SetMetricTensor(
 {
     if ( MMG3D_Set_tensorSol(mmgSol, Metric[0], Metric[1], Metric[2], Metric[3], Metric[4], Metric[5], NodeId) != 1 )
         exit(EXIT_FAILURE);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-    
-template<unsigned int TDim>
-FrameworkEulerLagrange MmgProcess<TDim>::ConvertFramework(const std::string& str)
-{
-    if(str == "Lagrangian") 
-        return Lagrangian;
-    else if(str == "Eulerian") 
-        return Eulerian;
-    else if(str == "ALE") 
-        return ALE;
-    else
-        return Eulerian;
 }
 
 /***********************************************************************************/
