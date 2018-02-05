@@ -241,7 +241,7 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
 array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
     const Variable<array_1d<double, 3> >& rVar,
     ModelPart& rModelPart,
-    const unsigned int& rBuffStep
+    const unsigned int rBuffStep
     )
 {
     KRATOS_TRY
@@ -372,7 +372,7 @@ bool VariableUtils::CheckDofs(ModelPart& rModelPart)
     for(auto& node : rModelPart.Nodes()) {
         for (auto& dof : node.GetDofs()) {
 //                 KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(dof.GetVariable())) << "Node : " << node << " does not have allocated space for the variable " << dof << std::endl;
-            KRATOS_ERROR_IF(dof.GetVariable().Key() == 0) << "Found a zero key on a dof of node " << node << std::endl;
+            KRATOS_CHECK_VARIABLE_KEY(dof.GetVariable());
 
         }
     }
