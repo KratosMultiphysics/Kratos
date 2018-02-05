@@ -37,8 +37,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
     
-    class enum Interpolation {Constant = 0, Linear = 1, Exponential = 2};
-    
 ///@}
 ///@name  Functions
 ///@{

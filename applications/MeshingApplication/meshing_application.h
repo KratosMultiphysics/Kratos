@@ -16,15 +16,11 @@
 #if !defined(KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED )
 #define  KRATOS_KRATOS_MESHING_APPLICATION_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -58,6 +54,8 @@ KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);           // The condensed metric u
 ///@}
 ///@name  Enum's
 ///@{
+
+    enum class Interpolation {Constant = 0, Linear = 1, Exponential = 2};
 
 ///@}
 ///@name  Functions
