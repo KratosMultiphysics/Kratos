@@ -166,24 +166,30 @@ namespace Kratos
 	{
 		//double G13 = G12;	// currently handled through "shell_cross_section.cpp"
 		//double G23 = G12;	// currently handled through "shell_cross_section.cpp"
-		const double v12 = rMaterialProperties[POISSON_RATIO_XY];
 
-		const double v21 = v12*rMaterialProperties[YOUNG_MODULUS_Y] / rMaterialProperties[YOUNG_MODULUS_X];
+        const double youngs_modulus_x  = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,1);
+        const double youngs_modulus_y  = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,2);
+        const double poisson_ration_xy = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,3);
+        const double shear_modulus_xy  = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,4);
+
+		const double v12 = poisson_ration_xy;
+
+		const double v21 = v12*youngs_modulus_y / youngs_modulus_x;
 		
-		const double Q11 = rMaterialProperties[YOUNG_MODULUS_X] / (1.0 - v12*v21);
-		const double Q12 = v12*rMaterialProperties[YOUNG_MODULUS_Y] / (1.0 - v12*v21);
-		const double Q22 = rMaterialProperties[YOUNG_MODULUS_Y] / (1.0 - v12*v21);
-		const double Q66 = rMaterialProperties[SHEAR_MODULUS_XY];
+		const double Q11 = youngs_modulus_x / (1.0 - v12*v21);
+		const double Q12 = v12*youngs_modulus_y / (1.0 - v12*v21);
+		const double Q22 = youngs_modulus_y / (1.0 - v12*v21);
+		const double Q66 = shear_modulus_xy;
 		//double Q44 = G23;
 		//double Q55 = G13;
 
 		const double theta = 0.0;	// rotation currently handled through 
 		// "shell_cross_section.cpp" variable iPlyAngle. Left in for clarity.
 
-		const double c = cos(theta);
+		const double c = std::cos(theta);
 		const double c2 = c*c;
 		const double c4 = c2 * c2;
-		const double s = sin(theta);
+		const double s = std::sin(theta);
 		const double s2 = s*s;
 		const double s4 = s2*s2;
 
