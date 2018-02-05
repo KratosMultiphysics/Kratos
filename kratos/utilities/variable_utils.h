@@ -168,7 +168,7 @@ public:
      * @param rNodes reference to the objective node set
      */
     template< class TVarType >
-    void SetScalarVarNonHistorical(
+    void SetNonHistoricalScalarVar(
         TVarType& rVariable,
         const double Value,
         NodesContainerType& rNodes
@@ -191,7 +191,7 @@ public:
      * @param Value array containing the Value to be set
      * @param rNodes reference to the objective node set
      */
-    void SetVectorVarNonHistorical(
+    void SetNonHistoricalVectorVar(
         const ArrayVarType& rVariable,
         const array_1d<double, 3 >& Value,
         NodesContainerType& rNodes
@@ -204,7 +204,7 @@ public:
      * @param rContainer reference 
      */
     template< class TType, class TContainerType >
-    void SetVariableNonHistorical(
+    void SetNonHistoricalVariable(
         Variable< TType >& rVariable,
         const TType& Value,
         TContainerType& rContainer

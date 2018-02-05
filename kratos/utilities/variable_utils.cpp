@@ -43,7 +43,7 @@ void VariableUtils::SetVectorVar(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void VariableUtils::SetVectorVarNonHistorical(
+void VariableUtils::SetNonHistoricalVectorVar(
     const ArrayVarType& rVariable,
     const array_1d<double, 3 >& Value,
     NodesContainerType& rNodes
