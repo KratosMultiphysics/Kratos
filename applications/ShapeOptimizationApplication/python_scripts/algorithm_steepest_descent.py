@@ -41,6 +41,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.DataLogger = DataLogger
         self.OptimizationSettings = OptimizationSettings
 
+        self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
 
         self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
@@ -100,6 +101,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
             if self.__isAlgorithmConverged():
                 break
+            else:
+                self.__determineAbsoluteChanges()
 
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
@@ -131,16 +134,12 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
         gradientOfObjectiveFunction = self.Communicator.getReportedGradientOf ( self.onlyObjective )
-        self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, OBJECTIVE_SENSITIVITY )
-
-    # --------------------------------------------------------------------------
-    def __storeGradientOnNodalVariable( self , givenGradient, variable_name ):
-        for nodeId in givenGradient:
+        for nodeId in gradientOfObjectiveFunction:
             gradient = Vector(3)
-            gradient[0] = givenGradient[nodeId][0]
-            gradient[1] = givenGradient[nodeId][1]
-            gradient[2] = givenGradient[nodeId][2]
-            self.DesignSurface.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
+            gradient[0] = gradientOfObjectiveFunction[nodeId][0]
+            gradient[1] = gradientOfObjectiveFunction[nodeId][1]
+            gradient[2] = gradientOfObjectiveFunction[nodeId][2]
+            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,gradient)
 
     # --------------------------------------------------------------------------
     def __alignSensitivitiesToLocalSurfaceNormal( self ):
@@ -157,7 +156,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
-        self.__determineAbsoluteChanges()
 
     # --------------------------------------------------------------------------
     def __mapSensitivitiesToDesignSpace( self ):
@@ -166,11 +164,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __mapDesignUpdateToGeometrySpace( self ):
         self.Mapper.MapToGeometrySpace( CONTROL_POINT_UPDATE, SHAPE_UPDATE )
-
-    # --------------------------------------------------------------------------
-    def __determineAbsoluteChanges( self ):
-        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )        
-        self.OptimizationUtilities.AddFirstVariableToSecondVariable( SHAPE_UPDATE, SHAPE_CHANGE )
 
     # --------------------------------------------------------------------------
     def __dampShapeUpdate( self ):
@@ -207,5 +200,11 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             if relativeChangeOfObjectiveValue > 0:
                 print("\n> Value of objective function increased!")
                 return False          
+
+    # --------------------------------------------------------------------------
+    def __determineAbsoluteChanges( self ):
+        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )        
+        self.OptimizationUtilities.AddFirstVariableToSecondVariable( SHAPE_UPDATE, SHAPE_CHANGE )
+
 
 # ==============================================================================

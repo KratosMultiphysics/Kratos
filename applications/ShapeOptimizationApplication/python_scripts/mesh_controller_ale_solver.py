@@ -44,7 +44,7 @@ class MeshControllerUsingALESolver( MeshController) :
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
-        print("\n> Starting to update the mesh")
+        print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
         # Extract surface nodes
@@ -79,38 +79,51 @@ class MeshControllerUsingALESolver( MeshController) :
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")    
 
     # # --------------------------------------------------------------------------
-    # def computeAndAddMeshDerivativesToGradient( self, gradientOnDesignSurface, gradientForCompleteModelPart):
+    # def AddMeshDerivativeToSurfaceGradient( self, DesignSurface, GradientVariable ):
     
+    #     print("\n> Starting to compute contribution of mesh-motion to gradient...")
+    #     startTime = timer.time()
+
     #     # Here we solve the pseudo-elastic mesh-motion system again using modified BCs
     #     # The contributions from the mesh derivatives appear as reaction forces
-    #     for node in main_model_part.Nodes:
 
-    #         # Apply dirichlet conditions
-    #         if node.Id in gradientOnDesignSurface.keys():
-    #             node.Fix(MESH_DISPLACEMENT_X)
-    #             node.Fix(MESH_DISPLACEMENT_Y)
-    #             node.Fix(MESH_DISPLACEMENT_Z)              
-    #             xs = Vector(3)
-    #             xs[0] = 0.0
-    #             xs[1] = 0.0
-    #             xs[2] = 0.0
-    #             node.SetSolutionStepValue(MESH_DISPLACEMENT,0,xs)
-    #         # Apply RHS conditions       
-    #         else:
-    #             rhs = Vector(3)
-    #             rhs[0] = gradientForCompleteModelPart[node.Id][0]
-    #             rhs[1] = gradientForCompleteModelPart[node.Id][1]
-    #             rhs[2] = gradientForCompleteModelPart[node.Id][2]
-    #             node.SetSolutionStepValue(MESH_RHS,0,rhs)
+    #     # Apply rhs (not that setting rhs for nodes on the design surface is actually not necessary but still done for performance reasons)
+    #     for node in self.OptimizationModelPart.Nodes:
+    #         rhs = node.GetSolutionStepValue(GradientVariable)
+    #         print(rhs)
+    #         node.SetSolutionStepValue(MESH_RHS,0,rhs)
+
+    #     # Apply dirichlet conditions
+    #     for node in DesignSurface.Nodes:
+    #         node.Fix(MESH_DISPLACEMENT_X)
+    #         node.Fix(MESH_DISPLACEMENT_Y)
+    #         node.Fix(MESH_DISPLACEMENT_Z)              
+    #         xs = Vector(3)
+    #         xs[0] = 0.0
+    #         xs[1] = 0.0
+    #         xs[2] = 0.0
+    #         node.SetSolutionStepValue(MESH_DISPLACEMENT,0,xs)            
 
     #     # Solve mesh-motion problem with previously modified BCs
-    #     mesh_solver.Solve()
+    #     self.mesh_solver.Solve()
 
     #     # Compute and add gradient contribution from mesh motion
-    #     for node_id in gradientOnDesignSurface.keys():
-    #         node = main_model_part.Nodes[node_id]
-    #         sens_contribution = Vector(3)
-    #         sens_contribution = node.GetSolutionStepValue(MESH_REACTION)
-    #         gradientOnDesignSurface[node.Id] = gradientOnDesignSurface[node_id] + sens_contribution    
+    #     for node in DesignSurface.Nodes:
+    #         gradient = node.GetSolutionStepValue(GradientVariable)
+    #         gradient_contribution = node.GetSolutionStepValue(MESH_REACTION)
+    #         print(gradient)
+    #         print(gradient_contribution)
+    #         modified_gradient = gradient + gradient_contribution 
+    #         node.SetSolutionStepValue(GradientVariable,modified_gradient)            
+
+    #     # Reset mesh displacement to zero
+    #     for node in self.OptimizationModelPart.Nodes:            
+    #         zero_vector = Vector(3)
+    #         zero_vector[0] = 0.0
+    #         zero_vector[1] = 0.0
+    #         zero_vector[2] = 0.0
+    #         node.SetSolutionStepValue(MESH_DISPLACEMENT,zero_vector)    
+
+    #     print("> Time needed for computing mesh-motion contribution to gradient = ",round(timer.time() - startTime,2),"s")
 
 # ==============================================================================
