@@ -291,9 +291,9 @@ namespace Kratos
     const UpdatedLagrangianUJWwPHOElement              mUpdatedLagrangianUJWwPHOElement2D3N;
     const UpdatedLagrangianUJWwPStabElement          mUpdatedLagrangianUJWwPStabElement2D3N;
     const UpdatedLagrangianUJWwPFICElement            mUpdatedLagrangianUJWwPFICElement2D3N;
-    const UpdatedLagrangianUJWwPPastorElement      mUpdatedLagrangianUJWwPPastorElement2D3N;
+    const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement2D3N;
     const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement3D4N;
-    const UpdatedLagrangianUJWwPPastorElement      mUpdatedLagrangianUJWwPPastorElement3D4N;
+    const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement3D4N;
     const SmallDisplacementUWwPElement                    mSmallDisplacementUWwPElement2D3N;
 
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
