@@ -21,6 +21,8 @@ except ImportError as e:
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
+# Processes test
+from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
@@ -180,6 +182,7 @@ def AssambleTestSuites():
     ### Adding the self-contained tests
     # Constitutive Law tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
