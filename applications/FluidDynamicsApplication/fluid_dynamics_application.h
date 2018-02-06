@@ -33,14 +33,11 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-#include "includes/deprecated_variables.h"
-
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
 #include "custom_elements/vms.h"
-#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
 #include "custom_elements/stationary_stokes.h"
 #include "custom_elements/fractional_step.h"

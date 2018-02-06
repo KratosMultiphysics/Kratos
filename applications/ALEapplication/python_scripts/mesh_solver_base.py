@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.ALEApplication as KratosALE
 KratosMultiphysics.CheckForPreviousImport()
-import mesh_solver_base
-#import mesh_solver_laplacian
-
 
 
 def CreateSolver(model_part, custom_settings):

@@ -116,7 +116,7 @@ else:
     multifile = MultiFileFlag.SingleFile
 
 
-input_file_name = "sessile_droplet_test"
+input_file_name = "lagrangian-droplet_test" 
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
@@ -146,37 +146,37 @@ density=problem_settings.density
 FSI=problem_settings.FSI
 
 eul_model_part = 0
-gamma = 0.072 		#surface tension coefficient [N m-1]
-contact_angle = 65.0 	#contact angle [deg]
+gamma = 1.0 		#surface tension coefficient [N m-1]
+contact_angle = 130 	#contact angle [deg]
 lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle)
+
 reform_dofs_at_each_step = False
 pDiagPrecond = DiagonalPreconditioner()
 
 lag_solver.alpha_shape = problem_settings.alpha_shape;
-lag_solver.echo_level = 2;
+lag_solver.echo_level = 0;
 lag_solver.Initialize()
 print("lagrangian solver created")
 
 lagrangian_model_part.SetBufferSize(3)
 
 for node in lagrangian_model_part.Nodes:
-  node.SetSolutionStepValue(DENSITY,0, 1000.0)
-  node.SetSolutionStepValue(VISCOSITY,0, 0.0001)
+  node.SetSolutionStepValue(DENSITY,0, 1.0)
+  node.SetSolutionStepValue(VISCOSITY,0, 1.0)
   node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
-  node.SetSolutionStepValue(BODY_FORCE_Y, 0, -9.81)
+  node.SetSolutionStepValue(BODY_FORCE_Y, 0, 0.0)
   node.SetSolutionStepValue(PRESSURE,0, 0.0)
   node.SetSolutionStepValue(IS_FLUID,0, 1.0)
-  if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) == 0.0):
+  if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0):
     node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
     node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
     node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
-  if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-    node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-    node.Fix(VELOCITY_Y)
-    node.Free(VELOCITY_X)
 
 ##########################################################################################################
 Multifile = True
+# Initialize .post.list file (GiD postprocess list)
+#f = open(ProjectParameters.problem_name+'.post.lst','w')
+#f.write('Multiple\n')   
 
 ################################################################
 
@@ -201,23 +201,9 @@ while(time <= final_time):
     print("TIME = ", time)
 
     if(step >= 3):
-      
-      for node in lagrangian_model_part.Nodes:
-        if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) == 0.0):
-            node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
-            node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
-            node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
-        if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-            node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-            node.Fix(VELOCITY_Y)
-            if (node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
-                node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                node.Fix(VELOCITY_X)
-            else:
-                node.Free(VELOCITY_X)
-	    
-      
-      lag_solver.Solve()	
+	  
+        lag_solver.Solve()
+
 
 ##################################################
 ##################################################
@@ -227,6 +213,7 @@ while(time <= final_time):
         out = 0
 	
         gid_io.FinalizeResults()
+        #f.write(ProjectParameters.problem_name+'_'+str(time)+'.post.bin\n')
   
         res_name1 = str("water")
         gid_io.ChangeOutputName(res_name1)
@@ -236,24 +223,22 @@ while(time <= final_time):
         gid_io.FinalizeMesh();
         gid_io.InitializeResults(time, (lagrangian_model_part).GetMesh());
     
-        gid_io.WriteNodalResults(CONTACT_ANGLE,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(CURVATURE,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(CURVATURE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(IS_BOUNDARY,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(IS_FREE_SURFACE,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(IS_INTERFACE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(IS_STRUCTURE,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(FLAG_VARIABLE,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(IS_BOUNDARY,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(IS_FREE_SURFACE,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(IS_INTERFACE,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(FLAG_VARIABLE,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(NORMAL,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESSURE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(TRIPLE_POINT,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
         
         gid_io.Flush()
         gid_io.FinalizeResults();
 
     out = out + Dt
 
-
+else:
     gid_io.FinalizeResults()
