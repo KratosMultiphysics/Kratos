@@ -328,7 +328,6 @@ namespace Kratos
 
       rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
 
-
       //std::cout<<" ContactPoint["<<this->Id()<<"]: penalty_n"<<rVariables.Penalty.Normal<<", ElasticModulus: "<<ElasticModulus<<", distance: "<<distance<<std::endl;
 
       KRATOS_CATCH( "" )
@@ -359,7 +358,7 @@ namespace Kratos
          {
             for(unsigned int j=0; j<dimension; j++)
             {
-               rLeftHandSideMatrix(i,j) += Kuug(i,j);
+               rLeftHandSideMatrix(i,j) = Kuug(i,j);
             }
          }
 
@@ -422,15 +421,19 @@ namespace Kratos
 
       NormalForceModulus *= rIntegrationWeight;
 
-      array_1d<double, 3 > & rWaterContactForce = GetGeometry()[0].FastGetSolutionStepValue( WATER_CONTACT_FORCE );
 
       for(unsigned int j = 0; j < dimension; j++)
       {
-         rRightHandSideVector[j] = NormalForceModulus * rVariables.Surface.Normal[j];
-         rWaterContactForce[j] = NormalForceModulus * rVariables.Surface.Normal[j];
+         rRightHandSideVector[j] = -NormalForceModulus * rVariables.Surface.Normal[j];
       }
 
-      GetGeometry()[0].UnSetLock();
+      if ( GetGeometry()[0].SolutionStepsDataHas( WATER_CONTACT_FORCE )) {
+         array_1d<double, 3 > & rWaterContactForce = GetGeometry()[0].FastGetSolutionStepValue( WATER_CONTACT_FORCE );
+         for(unsigned int j = 0; j < dimension; j++)
+         {
+            rWaterContactForce[j] = NormalForceModulus * rVariables.Surface.Normal[j];
+         }
+      }
 
       KRATOS_CATCH("")
 
@@ -444,7 +447,6 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      rNormalForceModulus = 0;
 
       const array_1d< double, 3> & CurrentWaterDisplacement = GetGeometry()[0].FastGetSolutionStepValue( WATER_DISPLACEMENT);
       const array_1d< double, 3> & PreviousWaterDisplacement = GetGeometry()[0].FastGetSolutionStepValue( WATER_DISPLACEMENT, 1);
@@ -452,6 +454,7 @@ namespace Kratos
       array_1d<double, 3> DeltaWaterPressure;
       DeltaWaterPressure = CurrentWaterDisplacement - PreviousWaterDisplacement; 
 
+      rNormalForceModulus = 0;
       for (unsigned int i = 0; i < 3; i++) {
          rNormalForceModulus += DeltaWaterPressure[i] * rVariables.Surface.Normal(i);
       }

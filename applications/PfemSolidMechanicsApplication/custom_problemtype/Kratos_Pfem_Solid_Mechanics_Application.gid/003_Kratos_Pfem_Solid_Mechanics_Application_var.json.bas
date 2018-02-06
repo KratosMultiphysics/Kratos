@@ -466,9 +466,16 @@
 		    },		    
 		    "contact_search_settings":{
 			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			"contact_search_type": "HMParametricWallContactSearch",
+*else
 			"contact_search_type": "ParametricWallContactSearch",
+*endif
 			"contact_parameters":{
 			    "contact_condition_type": "*cond(Contact_Condition)",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			    "hydraulic_condition_type": "*cond(Hydraulic_Contact_Condition)",
+*endif
 			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",			    
 			    "friction_law_type": "HardeningCoulombFrictionLaw",
 			    "variables_of_properties":{
