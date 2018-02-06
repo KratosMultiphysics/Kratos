@@ -677,9 +677,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     bool IsInside( 
@@ -710,8 +710,8 @@ public:
      * given by the linear transformation:
      * x = (1-xi-eta)*x1 + xi*x2 + eta*x3
      * y = (1-xi-eta)*y1 + xi*y2 + eta*y3
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates(
@@ -1979,11 +1979,11 @@ private:
     /** AxisTestZ
      * This method returns true if there is a separating axis
      * 
-     * @param rEdgeX, rEdgeY: i-edge corrdinates
-     * @param rAbsEdgeX, rAbsEdgeY: i-edge abs coordinates
-     * @param rVertA: i   vertex
-     * @param rVertB: i+1 vertex (omitted, proj_a = proj_b)
-     * @param rVertC: i+2 vertex
+     * @param rEdgeX, rEdgeY i-edge corrdinates
+     * @param rAbsEdgeX, rAbsEdgeY i-edge abs coordinates
+     * @param rVertA i   vertex
+     * @param rVertB i+1 vertex (omitted, proj_a = proj_b)
+     * @param rVertC i+2 vertex
      * @param rBoxHalfSize
      */
     bool AxisTestZ(double& rEdgeX, double& rEdgeY, 
