@@ -114,7 +114,7 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize() {
     KRATOS_CATCH("");
 }
 
-void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
+void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
 
     if (mSetVisualizationMesh){
 
@@ -382,6 +382,12 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
     }
 }
 
+void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
+    if (mReformModelPartAtEachTimeStep){
+        this->ExecuteBeforeSolutionLoop();
+    }
+}
+
 void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
 
     // First of all, get the original model part nodal values for the non-intersection nodes
@@ -389,6 +395,7 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
     ModelPart::NodeConstantIterator old_nodes_begin = mrModelPart.NodesBegin();
     ModelPart::NodeIterator new_nodes_begin = mrVisualizationModelPart.NodesBegin();
 
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(n_old_nodes); ++i_node){
         auto it_new_node = new_nodes_begin + i_node;
         const auto it_old_node = old_nodes_begin + i_node;
@@ -410,10 +417,11 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
     }
 
     // For all the new elements, compute the interpolation with the proper shape functions
+    // Note that this can be done in parallel since the intersection nodes are duplicated
     const int n_new_elems = mNewElementsPointers.size();
     ModelPart::ElementIterator new_elems_begin = mNewElementsPointers.begin();
 
-    //#pragma omp parallel for firstprivate(n_new_elems, new_elems_begin)
+    #pragma omp parallel for
     for (int i_elem = 0; i_elem < n_new_elems; ++i_elem){
         // Get element geometry
         auto it_elem = new_elems_begin + i_elem;

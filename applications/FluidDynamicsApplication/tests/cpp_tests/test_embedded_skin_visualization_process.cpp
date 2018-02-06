@@ -103,6 +103,7 @@ namespace Kratos {
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();
+            skin_visualization_process.ExecuteBeforeSolutionLoop();
             skin_visualization_process.ExecuteInitializeSolutionStep();
             skin_visualization_process.ExecuteBeforeOutputStep();
             skin_visualization_process.ExecuteFinalizeSolutionStep();
@@ -194,6 +195,7 @@ namespace Kratos {
                 visualization_settings);
 
             skin_visualization_process.ExecuteInitialize();
+            skin_visualization_process.ExecuteBeforeSolutionLoop();
             skin_visualization_process.ExecuteInitializeSolutionStep();
             skin_visualization_process.ExecuteBeforeOutputStep();
             skin_visualization_process.ExecuteFinalizeSolutionStep();

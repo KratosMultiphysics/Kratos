@@ -137,6 +137,8 @@ public:
 
     void ExecuteInitialize() override;
 
+    void ExecuteBeforeSolutionLoop() override;
+
     void ExecuteInitializeSolutionStep() override;
 
     void ExecuteBeforeOutputStep() override;
