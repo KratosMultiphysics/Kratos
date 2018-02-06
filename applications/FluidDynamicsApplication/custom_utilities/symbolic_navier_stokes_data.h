@@ -66,13 +66,6 @@ double bdf2;
 boost::numeric::ublas::bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
 array_1d<double,TNumNodes*(TDim+1)> rhs;
 
-// Auxiliary containers for the constitutive law
-Matrix C;
-Vector Stress;
-Vector Strain;
-
-ConstitutiveLaw::Parameters ConstitutiveLawValues;
-
 ///@}
 ///@name Public Operations
 ///@{
@@ -102,7 +95,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
 
-    ConstitutiveLawValues = ConstitutiveLaw::Parameters(rElement.GetGeometry(),rElement.GetProperties(),rProcessInfo);
+    this->ConstitutiveLawValues = ConstitutiveLaw::Parameters(rElement.GetGeometry(),rElement.GetProperties(),rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

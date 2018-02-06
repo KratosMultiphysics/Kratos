@@ -460,6 +460,38 @@ array_1d<double, 3> FluidElement<TElementData>::Interpolate(
     return result;
 }
 
+template <class TElementData>
+void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
+
+    constexpr std::size_t StrainSize = (Dim-1)*3;
+    
+    if(rData.C.size1() != StrainSize)
+        rData.C.resize(StrainSize,StrainSize,false);
+    if(rData.Stress.size() != StrainSize)
+        rData.Stress.resize(StrainSize,false);
+
+    Vector StrainRate;
+    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(StrainRate,rData.Velocity,rData.DN_DX);
+
+    auto& Values = rData.ConstitutiveLawValues;
+
+    const Vector Nvec(rData.N);
+    Values.SetShapeFunctionsValues(Nvec);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    Values.SetStrainVector(StrainRate);         //this is the input parameter
+    Values.SetStressVector(rData.Stress);       //this is an ouput parameter
+    Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
+
+    //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
+    //this is ok under the hypothesis that no history dependent behaviour is employed
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+}
+
 template< class TElementData >
 void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
                                       Matrix &rNContainer,
@@ -637,6 +669,11 @@ void FluidElement<TElementData>::IntegrationPointVorticity(
     }
 }
 
+template< class TElementData >
+ConstitutiveLaw::Pointer FluidElement<TElementData>::GetConstitutiveLaw() {
+    return this->mpConstitutiveLaw;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -657,6 +694,55 @@ void FluidElement<TElementData>::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     rSerializer.load("mpConstitutiveLaw",this->mpConstitutiveLaw);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace Internals {
+
+template< class TElementData >
+void StrainRateSpecialization<TElementData,2>::Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX) {
+    
+    constexpr std::size_t StrainSize = 3;
+    if (rStrainRate.size() != StrainSize) {
+        rStrainRate.resize(StrainSize);
+    }
+
+    noalias(rStrainRate) = ZeroVector(StrainSize);
+
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
+        rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
+        rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
+        rStrainRate[2] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
+    }
+}
+
+template< class TElementData >
+void StrainRateSpecialization<TElementData,3>::Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX) {
+
+    constexpr std::size_t StrainSize = 6;
+    if (rStrainRate.size() != StrainSize) {
+        rStrainRate.resize(StrainSize);
+    }
+
+    noalias(rStrainRate) = ZeroVector(StrainSize);
+
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
+        rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
+        rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
+        rStrainRate[2] += rDNDX(i,2)*rVelocities(i,2);
+        rStrainRate[4] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
+        rStrainRate[5] += rDNDX(i,1)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,1);
+        rStrainRate[6] += rDNDX(i,0)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,0);
+    }
+}
+
+} // namespace Internals
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation

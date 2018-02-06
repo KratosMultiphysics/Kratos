@@ -328,11 +328,13 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual double Interpolate(const typename TElementData::NodalScalarData& rHandler,
+    virtual double Interpolate(const typename TElementData::NodalScalarData& rValues,
                                const typename TElementData::ShapeFunctionsType& rN) const;
 
-    virtual array_1d<double, 3> Interpolate(const typename TElementData::NodalVectorData& rHandler,
+    virtual array_1d<double, 3> Interpolate(const typename TElementData::NodalVectorData& rValues,
                                             const typename TElementData::ShapeFunctionsType& rN) const;
+
+    virtual void CalculateMaterialResponse(TElementData& rData) const;
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,
@@ -395,6 +397,7 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    ConstitutiveLaw::Pointer GetConstitutiveLaw();
 
     ///@}
     ///@name Protected Inquiry
@@ -464,6 +467,40 @@ private:
 
 
 }; // Class FluidElement
+
+namespace Internals {
+
+template< class TElementData, std::size_t TDim >
+struct StrainRateSpecialization {
+/// Compute the strain rate vector in Voigt notation, to use as input for the fluid constitutive law.
+/*  @param[out] rStrainRate The strain rate tensor (symmetric gradient of velocity) in Voigt notation.
+ *  @param[in] rVelocities Matrix of nodal velocities, as provided by TElementData.
+ *  @param[in] rDNDX Matrix of shape function gradients on the integration point, as provided by TElementData.
+ *  @see ConstitutiveLaw.
+ */
+static void Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX);
+};
+
+template< class TElementData >
+struct StrainRateSpecialization<TElementData,2> {
+static void Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX);
+};
+
+template< class TElementData >
+struct StrainRateSpecialization<TElementData,3> {
+static void Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX);
+};
+
+}
 
 ///@}
 

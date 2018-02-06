@@ -21,6 +21,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/process_info.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -89,6 +90,21 @@ public:
     ShapeFunctionsType N;
 
     ShapeDerivativesType DN_DX;
+
+    /// StrainRate vector in Voigt notation.
+    /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
+    Vector StrainRate;
+
+    /// Stress vector in Voigt notation.
+    /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
+    Vector Stress;
+
+    /// Constitutive tensor C (expressed as a Matrix).
+    /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
+    Matrix C;
+
+    /// Constitutive law configuration (stored here to avoid re-initialization within the element).
+    ConstitutiveLaw::Parameters ConstitutiveLawValues;
     
     ///@}
 protected:
