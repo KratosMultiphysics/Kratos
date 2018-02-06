@@ -14,7 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/serializer.h"
-#include "includes/node.h"
+#include "geometries/point.h"
 
 namespace Kratos {
     namespace Testing {
@@ -64,6 +64,23 @@ namespace Kratos {
             for (std::size_t i=0; i<rObjectToBeSaved.size1(); ++i) {
                 for (std::size_t j=0; j<rObjectToBeSaved.size2(); ++j) {
                     KRATOS_CHECK_EQUAL(rObjectToBeLoaded(i,j), rObjectToBeSaved(i,j));
+                }
+            }
+        }
+
+        template<typename TObjectType>
+        void FillVectorWithValues(TObjectType& rObject)
+        {
+            for (std::size_t i = 0; i < rObject.size(); ++i)
+                 rObject[i] = i*i*0.2 + 5.333;
+        }
+
+        template<typename TObjectType>
+        void FillMatrixWithValues(TObjectType& rObject)
+        {
+            for (std::size_t i=0; i<rObject.size1(); ++i) {
+                for (std::size_t j=0; j<rObject.size2(); ++j) {
+                    rObject(i,j) = i*j - 51.21;
                 }
             }
         }
@@ -133,11 +150,7 @@ namespace Kratos {
             Matrix object_to_be_saved(5,3);
             Matrix object_to_be_loaded;
 
-            for (std::size_t i=0; i<object_to_be_saved.size1(); ++i) {
-                for (std::size_t j=0; j<object_to_be_saved.size2(); ++j) {
-                    object_to_be_saved(i,j) = i*j - 51.21;
-                }
-            }
+            FillMatrixWithValues(object_to_be_saved);
             
             TestObjectSerializationComponentwise2D(object_to_be_saved, object_to_be_loaded);
         }
@@ -148,11 +161,7 @@ namespace Kratos {
             Matrix3 object_to_be_saved;
             Matrix3 object_to_be_loaded;
 
-            for (std::size_t i=0; i<object_to_be_saved.size1(); ++i) {
-                for (std::size_t j=0; j<object_to_be_saved.size2(); ++j) {
-                    object_to_be_saved(i,j) = i*j - 51.21;
-                }
-            }
+            FillMatrixWithValues(object_to_be_saved);
             
             TestObjectSerializationComponentwise2D(object_to_be_saved, object_to_be_loaded);
         }
@@ -195,21 +204,20 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerStdVector, KratosCoreFastSuite)
         {
-            std::vector<double> object_to_be_saved{1.235, 4.66, 1.23, -88.2, -66.1};
+            std::vector<double> object_to_be_saved(5);
             std::vector<double> object_to_be_loaded(3); // initialized smaller to check if resizing works
+
+            FillVectorWithValues(object_to_be_saved);
 
             TestObjectSerializationComponentwise1D(object_to_be_saved, object_to_be_loaded);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerUblasVector, KratosCoreFastSuite)
         {
-            constexpr std::size_t size_vector = 5;
-            Vector object_to_be_saved(size_vector);
+            Vector object_to_be_saved(5);
             Vector object_to_be_loaded(3); // initialized smaller to check if resizing works
 
-            // initializer list initialization is not available for "Vector", therefore doing it manually
-            for (std::size_t i = 0; i < size_vector; ++i)
-                 object_to_be_saved[i] = i*i*0.2;
+            FillVectorWithValues(object_to_be_saved);
 
             TestObjectSerializationComponentwise1D(object_to_be_saved, object_to_be_loaded);
         }
@@ -242,8 +250,7 @@ namespace Kratos {
             array_1d<double, size_object> object_to_be_saved;
             array_1d<double, size_object> object_to_be_loaded;
 
-            for (std::size_t i = 0; i < size_object; ++i)
-                 object_to_be_saved[i] = i*i*0.2;
+            FillVectorWithValues(object_to_be_saved);
 
             TestObjectSerializationComponentwise1D(object_to_be_saved, object_to_be_loaded);
         }
@@ -255,6 +262,40 @@ namespace Kratos {
 
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
+
+        /*KRATOS_TEST_CASE_IN_SUITE(SerializerBoundedVector, KratosCoreFastSuite)
+        {
+            using Vector5Double = bounded_vector<double,5>;
+            using Vector6Int = bounded_vector<int,6>;
+
+            Vector5Double object_to_be_saved_1;
+            Vector5Double object_to_be_loaded_1;
+            Vector6Int object_to_be_saved_2;
+            Vector6Int object_to_be_loaded_2;
+
+            FillVectorWithValues(object_to_be_saved_1);
+            FillVectorWithValues(object_to_be_saved_2);
+
+            TestObjectSerializationComponentwise1D(object_to_be_saved_1, object_to_be_loaded_1);
+            TestObjectSerializationComponentwise1D(object_to_be_saved_2, object_to_be_loaded_2);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(SerializerBoundedMatrix, KratosCoreFastSuite)
+        {
+            using Matrix53Double = bounded_matrix<double,5,3>;
+            using Matrix26Int = bounded_matrix<int,2,6>;
+            
+            Matrix53Double object_to_be_saved_1;
+            Matrix53Double object_to_be_loaded_1;
+            Matrix53Double object_to_be_saved_2;
+            Matrix53Double object_to_be_loaded_2;
+
+            FillMatrixWithValues(object_to_be_saved_1);
+            FillMatrixWithValues(object_to_be_saved_2);
+            
+            TestObjectSerializationComponentwise2D(object_to_be_saved_1, object_to_be_loaded_1);
+            TestObjectSerializationComponentwise2D(object_to_be_saved_2, object_to_be_loaded_2);
+        }*/
 
     } // namespace Testing
 }  // namespace Kratos.
