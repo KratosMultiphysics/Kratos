@@ -72,7 +72,7 @@ private:
                                                const char *const TheString) {
     return (TheString[0] == '\0')
                ? Value
-               : CalculateHash((Value ^ TheString[0]) * mFNV32Prime,
+               : CalculateHash((Value ^ static_cast<std::uint32_t>(TheString[0])) * mFNV32Prime,
                                TheString + 1);
   }
 
