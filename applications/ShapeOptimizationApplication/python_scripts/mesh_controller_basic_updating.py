@@ -30,6 +30,10 @@ class MeshControllerBasicUpdating( MeshController ):
         self.OptimizationModelPart = OptimizationModelPart
 
     # --------------------------------------------------------------------------
+    def Initialize( self ):
+        pass
+
+    # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
         print("\n> Starting to update the mesh")
         startTime = timer.time()

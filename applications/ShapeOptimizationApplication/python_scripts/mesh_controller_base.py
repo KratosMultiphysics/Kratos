@@ -21,7 +21,7 @@ CheckForPreviousImport()
 class MeshController:
     # --------------------------------------------------------------------------
     def Initialize( self ):
-        pass    
+        raise RuntimeError("Mesh controller base class is called. Please check your implementation of the function >> Initializec << .")     
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):

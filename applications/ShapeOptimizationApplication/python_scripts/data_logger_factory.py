@@ -37,7 +37,6 @@ def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
 
 # ==============================================================================
 class DataLogger():
-
     # --------------------------------------------------------------------------
     def __init__( self, ModelPartController, Communicator, OptimizationSettings ):
         self.ModelPartController = ModelPartController
