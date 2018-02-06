@@ -376,9 +376,11 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     // Extra variables used in computing projections
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
 
+    const GeometryType& r_geometry = this->GetGeometry();
+
     for(unsigned int i=0; i<NumNodes; ++i)
     {
-        Node<3>& rNode = this->GetGeometry()[i];
+        Node<3>& rNode = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
 
         // Check that required dofs exist
@@ -392,10 +394,16 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     if ( Dim == 2)
     {
         for (unsigned int i=0; i<NumNodes; ++i) {
-            if (this->GetGeometry()[i].Z() != 0.0)
-                KRATOS_ERROR << "Node " << this->GetGeometry()[i].Id() << "has non-zero Z coordinate." << std::endl;
+            if (r_geometry[i].Z() != 0.0)
+                KRATOS_ERROR << "Node " << r_geometry[i].Id() << "has non-zero Z coordinate." << std::endl;
         }
     }
+
+    // Check the constitutive law
+    KRATOS_ERROR_IF(mpConstitutiveLaw == nullptr) << "Constitutive Law not initialized for Element " << this->Info() << std::endl;
+
+    out = mpConstitutiveLaw->Check(this->GetProperties(),r_geometry,rCurrentProcessInfo);
+    KRATOS_ERROR_IF_NOT( out == 0) << "The Constitutive Law provided for Element " << this->Info() << " is not correct." << std::endl;
 
     return out;
 }
