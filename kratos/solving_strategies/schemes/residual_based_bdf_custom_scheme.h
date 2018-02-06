@@ -259,18 +259,18 @@ public:
                 array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(i_var);
                 
                 // Components
-                std::string variable_name = (i_var).Name();
-                VariableComponent<ComponentType> var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_X"));
-                VariableComponent<ComponentType> var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_Y"));
-                VariableComponent<ComponentType> var_z = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_Z"));
-                std::string dvariable_name = (mFirtsArrayDerivatives[counter]).Name();
-                VariableComponent<ComponentType> dvar_x = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name.append("_X"));
-                VariableComponent<ComponentType> dvar_y = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name.append("_Y"));
-                VariableComponent<ComponentType> dvar_z = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name.append("_Z"));
-                std::string d2variable_name = (mSecondArrayDerivatives[counter]).Name();
-                VariableComponent<ComponentType> d2var_x = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name.append("_X"));
-                VariableComponent<ComponentType> d2var_y = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name.append("_Y"));
-                VariableComponent<ComponentType> d2var_z = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name.append("_Z"));
+                const std::string& variable_name = (i_var).Name();
+                VariableComponent<ComponentType> var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X");
+                VariableComponent<ComponentType> var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Y");
+                VariableComponent<ComponentType> var_z = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Z");
+                const std::string& dvariable_name = (mFirtsArrayDerivatives[counter]).Name();
+                VariableComponent<ComponentType> dvar_x = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_X");
+                VariableComponent<ComponentType> dvar_y = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_Y");
+                VariableComponent<ComponentType> dvar_z = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_Z");
+                const std::string& d2variable_name = (mSecondArrayDerivatives[counter]).Name();
+                VariableComponent<ComponentType> d2var_x = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_X");
+                VariableComponent<ComponentType> d2var_y = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_Y");
+                VariableComponent<ComponentType> d2var_z = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_Z");
                 
                 if (it_node->HasDofFor(d2var_x)) {
                     if (it_node -> IsFixed(d2var_x)) {
@@ -403,10 +403,10 @@ public:
                 KRATOS_CHECK_DOF_IN_NODE(i_var, rnode)
                 
             for ( auto& i_var : mArrayVariable) {
-                std::string variable_name = (i_var).Name();
-                VariableComponent<ComponentType> var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_X"));
-                VariableComponent<ComponentType> var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_Y"));
-                VariableComponent<ComponentType> var_z = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_Z"));
+                const std::string& variable_name = (i_var).Name();
+                VariableComponent<ComponentType> var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X");
+                VariableComponent<ComponentType> var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Y");
+                VariableComponent<ComponentType> var_z = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_Z");
                 KRATOS_CHECK_DOF_IN_NODE(var_x, rnode)
                 KRATOS_CHECK_DOF_IN_NODE(var_y, rnode)
                 KRATOS_CHECK_DOF_IN_NODE(var_z, rnode)
