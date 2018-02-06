@@ -117,7 +117,6 @@ void  AddLoggerToPython() {
 
     // Enums for Severity
     enum_<Logger::Severity>("Severity")
-    .value("ERROR", Logger::Severity::ERROR)
     .value("WARNING", Logger::Severity::WARNING)
     .value("INFO", Logger::Severity::INFO)
     .value("DETAIL", Logger::Severity::DETAIL)

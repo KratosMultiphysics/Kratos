@@ -58,7 +58,6 @@ namespace Kratos
 			///@{
 
 			enum class Severity {
-				ERROR,
 				WARNING,
 				INFO,
 				DETAIL,
