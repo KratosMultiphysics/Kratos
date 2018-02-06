@@ -81,4 +81,21 @@ class KratosGlobals:
         else:
             return False
 
+    def GetConstitutiveLaw(self, ConstitutiveLawName):
+
+        kernel = self.Kernel
+
+        if kernel.HasConstitutiveLaw(ConstitutiveLawName):
+            return kernel.GetConstitutiveLaw(ConstitutiveLawName)
+        else:
+            raise ValueError("\nKernel.GetConstitutiveLaw() ERROR: ConstitutiveLaw {0} is unknown. Maybe you need to import the application where it is defined?\n".format(ConstitutiveLawName))
+
+    def HasConstitutiveLaw(self, ConstitutiveLawName):
+
+        kernel = self.Kernel
+
+        if kernel.HasConstitutiveLaw(ConstitutiveLawName):
+            return True
+        else:
+            return False
 

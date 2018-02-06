@@ -42,6 +42,19 @@ const TVariableType& GetVariable(
     return TVariableType::StaticObject();
 }
 
+bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_name) {
+    return KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name);
+}
+
+const ConstitutiveLaw& GetConstitutiveLaw(
+    Kernel& rKernel, const std::string& constitutive_law_name) {
+    if (KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) {
+        return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
+    }
+
+    // return ConstitutiveLaw::StaticObject(); // //@technical-committee this does not work , I need help
+}
+
 template <class TVariableType>
 void PrintVariablesName(Kernel& rKernel) {
     KratosComponents<TVariableType> kratos_components;
@@ -128,6 +141,9 @@ void AddKernelToPython() {
         .def("GetVariableComponentVariableNames",
             GetVariableNames<VariableComponent<
                 VectorComponentAdaptor<array_1d<double, 3> > > >)
+        .def("HasConstitutiveLaw", HasConstitutiveLaw)
+        .def("GetConstitutiveLaw", GetConstitutiveLaw,
+            return_internal_reference<>())
         .def(self_ns::str(self));
 }
 
