@@ -24,6 +24,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 
+
 namespace Kratos {
 ///@name Kratos Globals
 ///@{

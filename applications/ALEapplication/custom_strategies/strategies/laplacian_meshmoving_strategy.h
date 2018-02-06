@@ -21,12 +21,12 @@
 /* Project includes */
 #include "ale_application.h"
 #include "custom_elements/laplacian_meshmoving_element.h"
-#include "includes/model_part.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_utilities/move_mesh_utilities.h"
 
 namespace Kratos {
 
@@ -52,7 +52,6 @@ namespace Kratos {
 
 /// Short class definition.
 /**   Detail class definition.
-
  */
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class LaplacianMeshMovingStrategy
@@ -188,7 +187,8 @@ public:
       m_strategy_z->Solve();
     }
     // Update FEM-base
-    CalculateMeshVelocities();
+    const double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+    MoveMeshUtilities::CalculateMeshVelocities(mp_mesh_model_part, m_time_order, delta_time);
     MoveMesh();
 
     if (m_reform_dof_set_at_each_step == true)
@@ -201,6 +201,7 @@ public:
     KRATOS_CATCH("");
   }
 
+/*
   void CalculateMeshVelocities() {
     KRATOS_TRY;
 
@@ -246,7 +247,7 @@ public:
 
     KRATOS_CATCH("");
   }
-
+*/
   void MoveMesh() override {
     for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
          i != BaseType::GetModelPart().NodesEnd(); ++i) {

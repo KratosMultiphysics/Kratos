@@ -21,6 +21,7 @@
 // Project includes
 #include "ale_application.h"
 #include "includes/define.h"
+#include "includes/model_part.h"
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -32,6 +33,11 @@ typedef BaseType::VectorType VectorType;
 
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
                             VectorType &rDetJ0, GeometryType &rGeometry);
+
+
+void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart, const int TimeOrder, const double DeltaTime);
+
+//void MoveMesh(const ModelPart::NodesContainerType& rNodes);
 
 } // namespace Move Mesh Utilities.
 

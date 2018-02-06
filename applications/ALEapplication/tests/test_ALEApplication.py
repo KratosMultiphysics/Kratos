@@ -1,10 +1,10 @@
 import KratosMultiphysics 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-from test_structural_mesh_motion_2d import TestCase as TTestCase
-import test_structural_mesh_motion_3d
-import test_laplacian_mesh_motion_2d
-import test_laplacian_mesh_motion_3d
+from test_structural_mesh_motion_2d import TestCase as TTestCaseStructural2D
+from test_structural_mesh_motion_3d import TestCase as TTestCaseStructural3D
+from test_laplacian_mesh_motion_2d import TestCase as TTestCaseLaplacian2D
+from test_laplacian_mesh_motion_3d import TestCase as TTestCaseLaplacian3D
 
 
 ## NIGTHLY TESTS
@@ -27,14 +27,10 @@ def AssembleTestSuites():
 
     # Create a test suite with the selected tests (Small tests):
     smallSuite = suites['small']
-    #smallSuite.addTest(test_structural_mesh_motion_2d.TestCase('test_Rectangle_2D3N'))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCase]))
-    #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_structural_mesh_motion_3d]))
-    smallSuite.addTest(test_structural_mesh_motion_3d.TestCase('test_Rectangle_3D8N'))
-    smallSuite.addTest(test_structural_mesh_motion_3d.TestCase('test_Rectangle_3D4N'))
-    smallSuite.addTest(test_laplacian_mesh_motion_2d.TestCase('test_Rectangle_2D3N'))
-    smallSuite.addTest(test_laplacian_mesh_motion_3d.TestCase('test_Rectangle_3D8N'))
-    smallSuite.addTest(test_laplacian_mesh_motion_3d.TestCase('test_Rectangle_3D4N'))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseStructural2D]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseStructural3D])) 
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseLaplacian2D]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseLaplacian3D]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
