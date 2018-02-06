@@ -136,8 +136,6 @@ public:
 
     typedef std::size_t SizeType;
 
-    typedef bounded_matrix<double,3,3>  Matrix3;
-
     typedef void* (*ObjectFactoryType)();
 
     typedef std::map<void*, void*> LoadedPointersContainerType;
@@ -424,7 +422,6 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::string)
     KRATOS_SERIALIZATION_DIRECT_LOAD(Matrix)
-    KRATOS_SERIALIZATION_DIRECT_LOAD(Matrix3)
     KRATOS_SERIALIZATION_DIRECT_LOAD(long long)
 //#ifdef  _WIN32 // work around for windows int64_t error
 //    KRATOS_SERIALIZATION_DIRECT_LOAD(__int64)
@@ -637,9 +634,7 @@ public:
     KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned long)
     KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::string)
-    //KRATOS_SERIALIZATION_DIRECT_SAVE(Vector)
     KRATOS_SERIALIZATION_DIRECT_SAVE(Matrix)
-    KRATOS_SERIALIZATION_DIRECT_SAVE(Matrix3)
     KRATOS_SERIALIZATION_DIRECT_SAVE(long long)
 //#ifdef  _WIN32 // work around for windows int64_t error
 //    KRATOS_SERIALIZATION_DIRECT_SAVE(__int64)

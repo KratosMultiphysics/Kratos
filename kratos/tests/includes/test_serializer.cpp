@@ -155,17 +155,6 @@ namespace Kratos {
             TestObjectSerializationComponentwise2D(object_to_be_saved, object_to_be_loaded);
         }
 
-        KRATOS_TEST_CASE_IN_SUITE(SerializerMatrix3, KratosCoreFastSuite)
-        {
-            using Matrix3 = bounded_matrix<double,3,3>; // see serializer.h
-            Matrix3 object_to_be_saved;
-            Matrix3 object_to_be_loaded;
-
-            FillMatrixWithValues(object_to_be_saved);
-            
-            TestObjectSerializationComponentwise2D(object_to_be_saved, object_to_be_loaded);
-        }
-
         KRATOS_TEST_CASE_IN_SUITE(SerializerLongLong, KratosCoreFastSuite)
         {
             long long object_to_be_saved = -1598456546843565605;
