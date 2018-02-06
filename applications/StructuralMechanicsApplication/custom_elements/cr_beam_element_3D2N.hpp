@@ -26,6 +26,13 @@
 
 namespace Kratos
 {
+	/** 
+     * @class CrBeamElement3D2N
+     * 
+     * @brief This is a 3D-2node beam element with 3 translational dofs and 3 rotational dof per node
+     * 
+     * @author Klaus B Sautter
+     */
 
 	class CrBeamElement3D2N : public Element
 	{
@@ -75,19 +82,54 @@ namespace Kratos
 
 		void Initialize() override;
 
+		/**
+         * @brief This function calculates the elastic part of the total stiffness matrix
+         */
 		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Material();
+
+		/**
+         * @brief This function calculates the geometric part of the total stiffness matrix
+         */
 		bounded_matrix<double,msElementSize,msElementSize>  CreateElementStiffnessMatrix_Geometry();
+
+		/**
+         * @brief This function calculates the element stiffness w.r.t. deformation modes
+         */
 		virtual bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness();
+
+		/**
+         * @brief This function calculates a transformation matrix from deformation modes to real deformations
+         */
 		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
+
+		/**
+         * @brief This function calculates the current nodal position
+         */
 		bounded_vector<double,msLocalSize> GetCurrentNodalPosition();
 
+		/**
+         * @brief This function calculates the internal element forces
+         */
 		bounded_vector<double,msLocalSize> CalculateElementForces();
 
+
+		/**
+         * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
+		 * @param rRotationMatrix The current transformation matrix
+         */
 		void CalculateTransformationMatrix(
 			bounded_matrix<double,msElementSize,msElementSize>& rRotationMatrix);
 
+
+		/**
+         * @brief This function calculates the initial transformation matrix to globalize/localize vectors and/or matrices
+         */
 		void CalculateInitialLocalCS();
 
+
+		/**
+         * @brief This function updates constantly the transformation matrix
+         */
 		bounded_matrix<double,msDimension,msDimension> UpdateRotationMatrixLocal();
 
 		void CalculateLocalSystem(
@@ -107,14 +149,36 @@ namespace Kratos
 			MatrixType& rMassMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
 
+
+		/**
+         * @brief This function calculates the lumped mass matrix
+		 * @param rMassMatrix The current mass matrix
+		 * @param rCurrentProcessInfo The current Process information
+         */
 		void CalculateLumpedMassMatrix(
 			MatrixType& rMassMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
+
+		/**
+         * @brief This function calculates the consistent mass matrix
+		 * @param rMassMatrix The current mass matrix
+		 * @param rCurrentProcessInfo The current Process information
+         */
 		void CalculateConsistentMassMatrix(
 			MatrixType& rMassMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
+
+		/**
+         * @brief This function calculates parts of the total consistent mass matrix to simplify the code
+		 * @param rMassMatrix The current mass matrix
+		 * @param Phi The reduction value in case of shear-deformable structures
+		 * @param CT A scaling factor
+		 * @param CR A scaling factor
+		 * @param L The element length
+		 * @param dir The direction of the current cs
+         */
 		void BuildSingleMassMatrix(
 			MatrixType& rMassMatrix,
 			const double Phi, const double CT, const double CR, const double L, const double dir);
@@ -140,17 +204,48 @@ namespace Kratos
 			Vector& rValues,
 			int Step = 0) override;
 
+		/**
+         * @brief This function is used to assemble single transformation matrix in the big global rotation matrix
+		 * @param SmallMatrix The local transformation matrix
+		 * @param BigMatrix The total global rotation matrix
+         */
 		void AssembleSmallInBigMatrix(Matrix SmallMatrix, bounded_matrix<double,
 			msElementSize,msElementSize>& BigMatrix);
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
+
+		/**
+         * @brief This function calculates reduction values in case of shear-deformable structures
+         * @param I The second moment of area
+		 * @param A_eff The shear-effective area
+         */
 		double CalculatePsi(const double I, const double A_eff);
+
+		/**
+         * @brief This function calculates shear modulus from user input values
+         */
 		double CalculateShearModulus();
+
+		/**
+         * @brief This function calculates the reference length
+         */
 		double CalculateReferenceLength();
+
+		/**
+         * @brief This function calculates the current length
+         */
 		double CalculateCurrentLength();
+
+		/**
+         * @brief This function updates incremental deformation w.r.t. to current and previous deformations
+         */
 		void UpdateIncrementDeformation();
 
+
+		/**
+         * @brief This function calculates self-weight forces
+         */
 		bounded_vector<double,msElementSize> CalculateBodyForces();  
 
 		void CalculateOnIntegrationPoints(
@@ -176,15 +271,28 @@ namespace Kratos
 
 		IntegrationMethod GetIntegrationMethod() const override;
 
+
+		/**
+         * @brief This function calculates nodal moments due to self-weight
+		 * @param ForceInput The self-weight line load vector
+		 * @param rRightHandSideVector The right hand side of the problem
+		 * @param GeometryLength The element length
+         */		
 		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
 			const bounded_vector<double,msDimension> ForceInput,
 			bounded_vector<double,msElementSize>& rRightHandSideVector,
 			const double GeometryLength);
 
-
+		/**
+         * @brief This function calculates the geometric part of the total stiffness matrix
+         */
 		void CalculateGeometricStiffnessMatrix(MatrixType& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
+
+		/**
+         * @brief This function calculates the elastic part of the total stiffness matrix
+         */
 		void CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 

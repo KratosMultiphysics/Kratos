@@ -28,6 +28,13 @@
 
 namespace Kratos
 {
+	/** 
+     * @class CrBeamElementLinear2D2N
+     * 
+     * @brief This is a linear 2D-2node beam element with 2 translational dofs and 1 rotational dof per node inheriting from CrBeamElement2D2N
+     * 
+     * @author Klaus B Sautter
+     */
 
 	class CrBeamElementLinear2D2N : public CrBeamElement2D2N
 	{
@@ -64,8 +71,15 @@ namespace Kratos
 	/////////////////////////////////////////////////
 	///////////// CUSTOM FUNCTIONS --->>
 	/////////////////////////////////////////////////
+
+		/**
+         * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
+         */
 		bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix() override;
 
+		/**
+         * @brief This function calculates the reference length
+         */
 		double CalculateLength() override;
 
 
@@ -81,6 +95,8 @@ namespace Kratos
 
 	private:
 		CrBeamElementLinear2D2N() {};
+
+		// stores the globalized master stiffness matrix for reaction forces
 		Matrix K_master = ZeroMatrix(msElementSize,msElementSize);
 
 		

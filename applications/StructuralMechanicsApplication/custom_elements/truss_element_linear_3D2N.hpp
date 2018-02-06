@@ -26,6 +26,14 @@
 
 namespace Kratos
 {
+	/** 
+     * @class TrussElementLinear3D2N
+     * 
+     * @brief This is a linear 3D-2node truss element with 3 translational dofs per node inheriting from TrussElement3D2N
+     * 
+     * @author Klaus B Sautter
+     */
+
 	class TrussElementLinear3D2N : public TrussElement3D2N
 	{
 	public:
@@ -60,6 +68,10 @@ namespace Kratos
 			MatrixType& rLeftHandSideMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
 
+		/**
+		 * @brief This function adds forces from prestressing to the force vector
+		 * @param rRightHandSideVector The right hand side of the problem
+		 */
 		void AddPrestressLinear(VectorType& rRightHandSideVector);
 
 		void CalculateOnIntegrationPoints(
@@ -67,10 +79,17 @@ namespace Kratos
 			std::vector< array_1d<double, 3 > >& rOutput,
 			const ProcessInfo& rCurrentProcessInfo) override; 
 
+
+		/**
+         * @brief This function calculates the total stiffness matrix for the element
+         */
 		bounded_matrix<double,msLocalSize,msLocalSize>
 		 CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
 
-
+		/**
+         * @brief This function calculates the original nodal postion for the transformation matrix
+         * @param rReferenceCoordinates The original coordinates
+         */
 		void WriteTransformationCoordinates(
 			bounded_vector<double,msLocalSize>& rReferenceCoordinates) override;
 

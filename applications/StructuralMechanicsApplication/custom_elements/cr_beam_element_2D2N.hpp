@@ -26,6 +26,13 @@
 
 namespace Kratos
 {
+	/** 
+     * @class CrBeamElement2D2N
+     * 
+     * @brief This is a 2D-2node beam element with 2 translational dofs and 1 rotational dof per node
+     * 
+     * @author Klaus B Sautter
+     */
 
 	class CrBeamElement2D2N : public Element
 	{
@@ -113,12 +120,41 @@ namespace Kratos
 	/////////////////////////////////////////////////
 	///////////// CUSTOM FUNCTIONS --->>
 	/////////////////////////////////////////////////
+	
+		/**
+         * @brief This function calculates shear modulus from user input values
+         */
 		double CalculateShearModulus();
+
+		
+		/**
+         * @brief This function calculates reduction values in case of shear-deformable structures
+         * @param I The second moment of area
+		 * @param A_eff The shear-effective area
+         */
 		double CalculatePsi(const double I, const double A_eff);
+
+		/**
+         * @brief This function calculates the initial angle
+         */
 		double CalculateInitialElementAngle();
+
+		/**
+         * @brief This function calculates the current angle
+         */
 		double CalculateDeformedElementAngle();
 		
+		/**
+         * @brief This function calculates self-weight forces
+         */
 		bounded_vector<double,msElementSize> CalculateBodyForces();  
+
+		/**
+         * @brief This function calculates nodal moments due to self-weight
+		 * @param ForceInput The self-weight line load vector
+		 * @param rRightHandSideVector The right hand side of the problem
+		 * @param GeometryLength The element length
+         */		
 		void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
 			const bounded_vector<double,3> ForceInput,
 			bounded_vector<double,msElementSize>& rRightHandSideVector,
@@ -126,25 +162,80 @@ namespace Kratos
 
 		IntegrationMethod GetIntegrationMethod() const override;
 
-
+		/**
+         * @brief This function calculates a transformation matrix from deformation modes to real deformations
+         */
 		bounded_matrix<double,msElementSize,msLocalSize> CalculateTransformationS();
+
+		/**
+         * @brief This function calculates the current length
+         */
 		virtual double CalculateLength();
+
+		/**
+         * @brief This function calculates the reference length
+         */
 		double CalculateReferenceLength();
 
+
+		/**
+         * @brief This function calculates the elastic part of the total stiffness matrix
+         */
 		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_mat();
+
+		/**
+         * @brief This function calculates the geometric part of the total stiffness matrix
+         */
 		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_geo();
+
+		/**
+         * @brief This function calculates the co-rotating part of the total stiffness matrix
+         */
 		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Kr();
+
+		/**
+         * @brief This function assembles the total stiffness matrix
+         */
 		bounded_matrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Total();
 
 
+		/**
+         * @brief This function globalizes matrices
+         * @param A The matrix to be globalized
+         */
 		void GlobalizeMatrix(Matrix &A);
+
+		/**
+         * @brief This function globalizes vectors
+         * @param A The vector to be globalized
+         */
 		void GlobalizeVector(Vector &A);
+
+		/**
+         * @brief This function calculates the modulus to 2 PI to keep the rotation angle between 0 and 2PI
+         * @param A The current angle
+         */
 		double Modulus2Pi(double A);
 
+		/**
+         * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices
+         */
 		virtual bounded_matrix<double,msElementSize,msElementSize> CreateRotationMatrix();
 
+
+		/**
+         * @brief This function calculates the deformation parameters
+         */
 		bounded_vector<double,msLocalSize> CalculateDeformationParameters();
+
+		/**
+         * @brief This function calculates the internal forces w.r.t. the deformation parameters
+         */
 		bounded_vector<double,msLocalSize> CalculateInternalStresses_DeformationModes();
+
+		/**
+         * @brief This function calculates the "real" internal forces in a local reference frame
+         */
 		bounded_vector<double,msElementSize> ReturnElementForces_Local();
 
 
@@ -159,7 +250,11 @@ namespace Kratos
 			const ProcessInfo& rCurrentProcessInfo) override;
 
 	private:
+
+		// stores the deformation modes
 		bounded_vector<double,msLocalSize> DeformationForces = ZeroVector(msLocalSize);
+
+		// stores the globalized internal forces for calculation of the residual
 		Vector F_int_global = ZeroVector(msElementSize);
 		
 

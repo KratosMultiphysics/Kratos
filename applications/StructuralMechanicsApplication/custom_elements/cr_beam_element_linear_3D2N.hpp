@@ -27,6 +27,13 @@
 
 namespace Kratos
 {
+	/** 
+     * @class CrBeamElementLinear3D2N
+     * 
+     * @brief This is a linear 3D-2node beam element with 3 translational dofs and 3 rotational dof per node inheriting from CrBeamElement3D2N
+     * 
+     * @author Klaus B Sautter
+     */
 
 	class CrBeamElementLinear3D2N : public CrBeamElement3D2N
 	{
@@ -61,6 +68,9 @@ namespace Kratos
 				MatrixType& rLeftHandSideMatrix,
 				ProcessInfo& rCurrentProcessInfo) override;
 
+			/**
+			 * @brief This function calculates the element stiffness w.r.t. deformation modes
+			 */
 			bounded_matrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() override;
 
 			void CalculateOnIntegrationPoints(

@@ -25,7 +25,14 @@
 #include "includes/variables.h"
 
 namespace Kratos
-{
+{	
+	/** 
+     * @class CableElement3D2N
+     * 
+     * @brief This is a 3D-2node cable element with 3 translational dofs per node inheriting from the TrussElement3D2N
+     * 
+     * @author Klaus B Sautter
+     */
 	class CableElement3D2N : public TrussElement3D2N
 	{
 
@@ -62,9 +69,14 @@ namespace Kratos
 			VectorType& rRightHandSideVector,
 			ProcessInfo& rCurrentProcessInfo) override;
 
+        /**
+         * @brief This function updates the internal normal force w.r.t. the current deformations
+         * @param rinternalForces The current updated internal forces
+         */
 		void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces) override;
 
 	private:
+		// boolean for the cable --> does not resist to compression 
 		bool mIsCompressed;
 
 		friend class Serializer;
