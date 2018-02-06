@@ -373,7 +373,7 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    virtual void save(Serializer& rSerializer) const
     {
         std::size_t  local_size = mData.size();
 
@@ -386,7 +386,7 @@ private:
         }
     }
 
-    void load(Serializer& rSerializer) override
+    virtual void load(Serializer& rSerializer)
     {
         std::size_t local_size;
 
