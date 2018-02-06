@@ -41,25 +41,6 @@
         "processes_sub_model_part_list"      : ["support","SurfacePressure3D_load"],
         "rotation_dofs"                      : false
     },
-    "mesh_solver_settings"                  : {
-            "solver_type": "mesh_solver_structural_similarity",
-                "model_import_settings"           : {
-                "input_type"     : "mdpa",
-                "input_filename" : "3D_Hook"
-            },
-            "ale_linear_solver_settings"             : {
-                "solver_type"         : "AMGCL",
-                "max_iteration"       : 500,
-                "tolerance"           : 1e-7,
-                "provide_coordinates" : false,
-                "smoother_type"       : "ilu0",
-                "krylov_type"         : "bicgstab",
-                "coarsening_type"     : "aggregation",
-                "scaling"             : false,
-                "verbosity"           : 1
-            },            
-            "compute_reactions"     : true
-    },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -99,7 +80,7 @@
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","MESH_DISPLACEMENT"],
+            "nodal_results"       : ["DISPLACEMENT","REACTION"],
             "gauss_point_results" : ["VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
@@ -119,7 +100,7 @@
                 "identifier"    : "strain_energy",
                 "use_kratos"    : true,
                 "gradient_mode" : "semi_analytic",
-                "step_size"     : 1e-8,
+                "step_size"     : 1e-5,
                 "discretization_weighting": false
         }],
         "constraints" : [],
@@ -127,12 +108,29 @@
             "design_variables_type"              : "vertex_morphing",
             "optimization_model_part_name"       : "3D_Hook",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 30.0,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : true
+            },
+            "mesh_motion" : {
+                "apply_ale_mesh_solver" : true,
+                "mesh_solver_settings" : {
+                    "solver_type": "mesh_solver_structural_similarity",
+                    "ale_linear_solver_settings"  : {
+                        "solver_type"         : "AMGCL",
+                        "max_iteration"       : 500,
+                        "tolerance"           : 1e-7,
+                        "provide_coordinates" : false,
+                        "smoother_type"       : "ilu0",
+                        "krylov_type"         : "bicgstab",
+                        "coarsening_type"     : "aggregation",
+                        "scaling"             : false,
+                        "verbosity"           : 1
+                    },            
+                    "compute_reactions"     : true
+                }
             },
             "damping" : {
                 "perform_damping" : true,
@@ -159,7 +157,7 @@
                         "damping_radius"        : 20.0
                 }]
             }
-        },
+        },       
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
             "max_iterations"     : 50,

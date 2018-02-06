@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # For time measures
@@ -38,11 +37,6 @@ optimizer = optimizerFactory.CreateOptimizer( main_model_part, ProjectParameters
 responseFunctionFactory = __import__("response_function_factory")
 listOfResponseFunctions = responseFunctionFactory.CreateListOfResponseFunctions( main_model_part, ProjectParameters["optimization_settings"] )
 
-# Create solver for handling mesh-motion
-mesh_solver_module = __import__(ProjectParameters["mesh_solver_settings"]["solver_type"].GetString())
-mesh_solver = mesh_solver_module.CreateSolver(main_model_part, ProjectParameters["mesh_solver_settings"])
-mesh_solver.AddVariables()
-
 # Create solver to perform structural analysis
 solver_module = __import__(ProjectParameters["structure_solver_settings"]["solver_type"].GetString())
 CSM_solver = solver_module.CreateSolver(main_model_part, ProjectParameters["structure_solver_settings"])
@@ -51,7 +45,6 @@ CSM_solver.ImportModelPart()
 
 # Add degrees of freedom
 CSM_solver.AddDofs()
-mesh_solver.AddDofs()
 
 # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ## Get the list of the submodel part in the object Model
@@ -69,78 +62,19 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     # --------------------------------------------------------------------------   
     def __init__( self ):
 
-        self.initializeGIDOutput()
-        self.initializeProcesses()
-        self.initializeSolutionLoop()
+        self.__initializeGIDOutput()
+        self.__initializeProcesses()
+        self.__initializeSolutionLoop()
         
-    # --------------------------------------------------------------------------
-    def initializeProcesses( self ):
-
-        import process_factory
-        #the process order of execution is important
-        self.list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
-        if(ProjectParameters.Has("problem_process_list")):
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
-        if(ProjectParameters.Has("output_process_list")):
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
-                    
-        #print list of constructed processes
-        if(echo_level>1):
-            for process in self.list_of_processes:
-                print(process)
-
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
-
-    # --------------------------------------------------------------------------
-    def initializeGIDOutput( self ):
-
-        computing_model_part = CSM_solver.GetComputingModelPart()
-        problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
-
-        from gid_output_process import GiDOutputProcess
-        output_settings = ProjectParameters["output_configuration"]
-        self.gid_output = GiDOutputProcess(computing_model_part, problem_name, output_settings)
-
-        self.gid_output.ExecuteInitialize()
-
-    # --------------------------------------------------------------------------
-    def initializeSolutionLoop( self ):
-
-        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-        CSM_solver.Initialize()
-        CSM_solver.SetEchoLevel(echo_level)
-
-        mesh_solver.Initialize()
-        mesh_solver.SetEchoLevel(echo_level)
-
-        for responseFunctionId in listOfResponseFunctions:
-            listOfResponseFunctions[responseFunctionId].Initialize()
-
-        # Start process
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        ## Set results when are written in a single file
-        self.gid_output.ExecuteBeforeSolutionLoop()
-
     # --------------------------------------------------------------------------
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
          # Calculation of objective function
         if communicator.isRequestingFunctionValueOf("strain_energy"):
             
-            self.initializeNewSolutionStep( optimizationIteration )
-
-            print("\n> Starting ALEApplication to update the mesh")
-            startTime = timer.time()
-            self.updateMeshForAnalysis()
-            print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
-
             print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
-            self.solveStructure( optimizationIteration )
+            self.__solveStructure( optimizationIteration )
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
 
             print("\n> Starting calculation of response value")
@@ -159,53 +93,54 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
             
             gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].GetGradient()
-            gradientOnDesignSurface = {}
-            for node in currentDesign.Nodes:
-                gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
-
-            # If contribution from mesh-motion to gradient shall be considered
-            # self.computeAndAddMeshDerivativesToGradient(gradientOnDesignSurface, gradientForCompleteModelPart)                 
-
-            communicator.reportGradient("strain_energy", gradientOnDesignSurface) 
+            communicator.reportGradient("strain_energy", gradientForCompleteModelPart) 
 
     # --------------------------------------------------------------------------
-    def initializeNewSolutionStep( self, optimizationIteration ):
-        main_model_part.CloneTimeStep( optimizationIteration )
+    def __initializeProcesses( self ):
+
+        import process_factory
+        #the process order of execution is important
+        self.list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+        self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+        if(ProjectParameters.Has("problem_process_list")):
+            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
+        if(ProjectParameters.Has("output_process_list")):
+            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
+
+        for process in self.list_of_processes:
+            process.ExecuteInitialize()
 
     # --------------------------------------------------------------------------
-    def updateMeshForAnalysis( self ):
+    def __initializeGIDOutput( self ):
 
-        # Extract surface nodes
-        sub_model_part_name = "surface_nodes"     
-        GeometryUtilities(main_model_part).ExtractSurfaceNodes(sub_model_part_name)
+        computing_model_part = CSM_solver.GetComputingModelPart()
+        problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
 
-        # Apply shape update as boundary condition for computation of mesh displacement 
-        for node in main_model_part.GetSubModelPart(sub_model_part_name).Nodes:
-            node.Fix(MESH_DISPLACEMENT_X)
-            node.Fix(MESH_DISPLACEMENT_Y)
-            node.Fix(MESH_DISPLACEMENT_Z)              
-            disp = Vector(3)
-            disp[0] = node.GetSolutionStepValue(SHAPE_UPDATE_X)
-            disp[1] = node.GetSolutionStepValue(SHAPE_UPDATE_Y)
-            disp[2] = node.GetSolutionStepValue(SHAPE_UPDATE_Z)
-            node.SetSolutionStepValue(MESH_DISPLACEMENT,0,disp)
+        from gid_output_process import GiDOutputProcess
+        output_settings = ProjectParameters["output_configuration"]
+        self.gid_output = GiDOutputProcess(computing_model_part, problem_name, output_settings)
 
-        # Solve for mesh-update
-        mesh_solver.Solve()
-
-        # Update reference mesh (Since shape updates are imposed as incremental quantities)
-        mesh_solver.get_mesh_motion_solver().UpdateReferenceMesh()
-
-        # Log absolute mesh displacement
-        for node in main_model_part.Nodes:
-            mesh_change = Vector(3)
-            mesh_change[0] = node.GetSolutionStepValue(MESH_CHANGE_X) + node.GetSolutionStepValue(MESH_DISPLACEMENT_X)
-            mesh_change[1] = node.GetSolutionStepValue(MESH_CHANGE_Y) + node.GetSolutionStepValue(MESH_DISPLACEMENT_Y)
-            mesh_change[2] = node.GetSolutionStepValue(MESH_CHANGE_Z) + node.GetSolutionStepValue(MESH_DISPLACEMENT_Z)
-            node.SetSolutionStepValue(MESH_CHANGE,0,mesh_change)     
+        self.gid_output.ExecuteInitialize()
 
     # --------------------------------------------------------------------------
-    def solveStructure( self, optimizationIteration ): 
+    def __initializeSolutionLoop( self ):
+
+        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
+        CSM_solver.Initialize()
+        CSM_solver.SetEchoLevel(echo_level)
+
+        for responseFunctionId in listOfResponseFunctions:
+            listOfResponseFunctions[responseFunctionId].Initialize()
+
+        # Start process
+        for process in self.list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
+
+        ## Set results when are written in a single file
+        self.gid_output.ExecuteBeforeSolutionLoop()
+
+    # --------------------------------------------------------------------------
+    def __solveStructure( self, optimizationIteration ): 
 
         # processes to be executed at the begining of the solution step
         for process in self.list_of_processes:
@@ -235,47 +170,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             process.ExecuteAfterOutputStep()            
 
     # --------------------------------------------------------------------------
-    def computeAndAddMeshDerivativesToGradient( self, gradientOnDesignSurface, gradientForCompleteModelPart):
-    
-        # Here we solve the pseudo-elastic mesh-motion system again using modified BCs
-        # The contributions from the mesh derivatives appear as reaction forces
-        for node in main_model_part.Nodes:
-
-            # Apply dirichlet conditions
-            if node.Id in gradientOnDesignSurface.keys():
-                node.Fix(MESH_DISPLACEMENT_X)
-                node.Fix(MESH_DISPLACEMENT_Y)
-                node.Fix(MESH_DISPLACEMENT_Z)              
-                xs = Vector(3)
-                xs[0] = 0.0
-                xs[1] = 0.0
-                xs[2] = 0.0
-                node.SetSolutionStepValue(MESH_DISPLACEMENT,0,xs)
-            # Apply RHS conditions       
-            else:
-                rhs = Vector(3)
-                rhs[0] = gradientForCompleteModelPart[node.Id][0]
-                rhs[1] = gradientForCompleteModelPart[node.Id][1]
-                rhs[2] = gradientForCompleteModelPart[node.Id][2]
-                node.SetSolutionStepValue(MESH_RHS,0,rhs)
-
-        # Solve mesh-motion problem with previously modified BCs
-        mesh_solver.Solve()
-
-        # Compute and add gradient contribution from mesh motion
-        for node_id in gradientOnDesignSurface.keys():
-            node = main_model_part.Nodes[node_id]
-            sens_contribution = Vector(3)
-            sens_contribution = node.GetSolutionStepValue(MESH_REACTION)
-            gradientOnDesignSurface[node.Id] = gradientOnDesignSurface[node_id] + sens_contribution    
-    
-    # --------------------------------------------------------------------------
-    def finalizeSolutionLoop( self ):
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
-        self.gid_output.ExecuteFinalize()
-
-    # --------------------------------------------------------------------------
 
 structureAnalyzer = kratosCSMAnalyzer()
 
@@ -285,6 +179,5 @@ structureAnalyzer = kratosCSMAnalyzer()
 
 optimizer.importAnalyzer( structureAnalyzer )
 optimizer.optimize()
-structureAnalyzer.finalizeSolutionLoop()
 
 # ======================================================================================================================================
