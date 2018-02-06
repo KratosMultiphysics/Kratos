@@ -1,15 +1,32 @@
-#include "custom_elements/stokes_3D_twofluid.h"
+#include "custom_elements/stokes_3D_weakly_compressible.h"
 
 namespace Kratos {
 
 
-void Stokes3DTwoFluid::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data<4,3>& data)
+void Stokes3DWeaklyCompressible::ComputeGaussPointLHSContribution(bounded_matrix<double,16,16>& lhs, const element_data<4,3>& data)
     {
         const int nnodes = 4;
         const int dim = 3;
         
-        const double rho = inner_prod(data.N, data.rho);
         const double& bdf0 = data.bdf0;
+//         const double& bdf1 = data.bdf1;
+//         const double& bdf2 = data.bdf2;
+        
+        const auto& v = data.v;
+//         const auto& vn = data.vn;
+//         const auto& vnn = data.vnn;
+        
+//         const auto& p = data.p;
+//         const auto& pn = data.pn;
+//         const auto& pnn = data.pnn;
+        
+         const auto& r = data.r;
+//         const auto& rn = data.rn;
+//         const auto& rnn = data.rnn;   
+        
+        const double rho_gauss = inner_prod(data.N, data.r);
+         
+        const double k = data.k;
         
         //get constitutive matrix 
         const Matrix& C = data.C;
@@ -20,20 +37,20 @@ void Stokes3DTwoFluid::ComputeGaussPointLHSContribution(bounded_matrix<double,16
         
         
         //compute an equivalent tau by Bitrans*c*Bi
-        const double tau_denom = replace_tau_denom
-        const double tau1 = 1.0/(tau_denom*rho);
-        const double tau2 = (C(3,3) + C(4,4) + C(5,5))/(6.0*rho);
+        const double tau_denom = //replace_tau_denom
+        const double tau1 = 1.0/(tau_denom*rho_gauss);
+//         const double tau2 = (C(3,3) + C(4,4) + C(5,5))/(6.0*rho_gauss);
         
         //substitute_lhs
 
     }
 
-void Stokes3DTwoFluid::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const element_data<4,3>& data)
+void Stokes3DWeaklyCompressible::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const element_data<4,3>& data)
     {
         const int nnodes = 4;
         const int dim = 3;
         
-        const double rho = inner_prod(data.N, data.rho);
+        
         const double& bdf0 = data.bdf0;
         const double& bdf1 = data.bdf1;
         const double& bdf2 = data.bdf2;
@@ -42,7 +59,16 @@ void Stokes3DTwoFluid::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs
         const bounded_matrix<double,nnodes,dim>& vn = data.vn;
         const bounded_matrix<double,nnodes,dim>& vnn = data.vnn;
         const bounded_matrix<double,nnodes,dim>& f = data.f;
-        const array_1d<double,nnodes>& p = data.p;
+        const auto& p = data.p;
+        const auto& pn = data.pn;
+        const auto& pnn = data.pnn;
+        const auto& r = data.r;
+        const auto& rn = data.rn;
+        const auto& rnn = data.rnn; 
+        
+        const double rho_gauss = inner_prod(data.N, data.r);
+        
+        const double k = data.k;
         
         //get constitutive matrix 
         const Matrix& C = data.C;
@@ -53,20 +79,14 @@ void Stokes3DTwoFluid::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs
         const array_1d<double,nnodes>& N = data.N;
         
         //compute an equivalent tau by Bitrans*c*Bi
-        const double tau_denom = replace_tau_denom
-        const double tau1 = 1.0/(tau_denom*rho);
-        const double tau2 = (C(3,3) + C(4,4) + C(5,5))/(6.0*rho);
+        const double tau_denom = //replace_tau_denom
+        const double tau1 = 1.0/(tau_denom*rho_gauss);
+//         const double tau2 = (C(3,3) + C(4,4) + C(5,5))/(6.0*rho_gauss);
         
-        //auxiliary variables used in the calculation of the RHS
-        const array_1d<double,dim> fgauss = prod(trans(f), N);
-        const array_1d<double,dim> vgauss = prod(trans(v), N);
-        const array_1d<double,dim> grad_p = prod(trans(DN), p);
-        const double pgauss = inner_prod(N,p);
         
-        array_1d<double,dim> acch = bdf0*vgauss;
-        noalias(acch) += bdf1*prod(trans(vn), N);
-        noalias(acch) += bdf2*prod(trans(vnn), N);
 
         //substitute_rhs
+        
     }
-    
+   
+}
