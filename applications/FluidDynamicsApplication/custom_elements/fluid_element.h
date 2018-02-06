@@ -17,6 +17,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
@@ -173,6 +174,10 @@ public:
     Element::Pointer Create(IndexType NewId,
                             GeometryType::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
+
+    /// Set up the element for solution.
+    //* For FluidElement, this initializes the constitutive law using the data in the element's properties.
+    void Initialize() override;
 
     /**
      * @brief CalculateLocalSystem Return empty matrices and vectors of appropriate size.
@@ -411,6 +416,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    //// Constitutive relation for the element
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     ///@}
     ///@name Serialization

@@ -71,6 +71,25 @@ Element::Pointer FluidElement<TElementData>::Create(IndexType NewId, GeometryTyp
     KRATOS_CATCH("");
 }
 
+template< class TElementData >
+void FluidElement<TElementData>::Initialize() {
+    KRATOS_TRY;
+
+    const Properties& r_properties = this->GetProperties();
+    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+        << "In initialization of Element " << this->Info()
+        << ": No CONSTITUTIVE_LAW defined for property " << r_properties.Id()
+        << "." << std::endl;
+
+    mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+
+    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+    mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
+
+    KRATOS_CATCH("");
+}
+
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                       VectorType& rRightHandSideVector,
@@ -620,6 +639,7 @@ template< class TElementData >
 void FluidElement<TElementData>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+    rSerializer.save("mpConstitutiveLaw",this->mpConstitutiveLaw);
 }
 
 
@@ -627,6 +647,7 @@ template< class TElementData >
 void FluidElement<TElementData>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    rSerializer.load("mpConstitutiveLaw",this->mpConstitutiveLaw);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
