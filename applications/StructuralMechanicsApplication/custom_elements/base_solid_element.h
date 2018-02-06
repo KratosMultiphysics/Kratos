@@ -499,7 +499,6 @@ protected:
      * @param PointNumber The integration point considered
      * @param IntegrationPoints The list of integration points
      * @param ThisStressMeasure The stress measure considered
-     * @param Displacements The displacements vector
      */ 
     virtual void CalculateConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables, 
@@ -507,8 +506,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
-        const Vector Displacements
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure
         );
     
     /**
