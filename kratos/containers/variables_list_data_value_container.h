@@ -333,7 +333,7 @@ public:
     TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
-        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueuesize << " steps are stored." << std::endl;
+        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -348,7 +348,7 @@ public:
     const TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
     {
         KRATOS_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;    
-        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueuesize << " steps are stored." << std::endl;
+        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(const TDataType*)Position(rThisVariable, QueueIndex);
     }
 
@@ -392,14 +392,14 @@ public:
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
-        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueuesize << " steps are stored." << std::endl;
+        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
     {    
-        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueuesize << " steps are stored." << std::endl;
+        KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)(Position(QueueIndex) + ThisPosition);
     }
 
