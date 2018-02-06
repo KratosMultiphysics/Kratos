@@ -95,7 +95,7 @@ namespace Kratos
                     const double aux_node_rel_location = std::abs (nodal_distances(edge_node_i)/(nodal_distances(edge_node_j)-nodal_distances(edge_node_i)));
                     array_1d<double, 3> aux_point_coords;
                     for (unsigned int comp = 0; comp < 3; ++comp) {
-                        aux_point_coords(comp) = i_node_coords(comp)*aux_node_rel_location + j_node_coords(comp)*(1.0-aux_node_rel_location);
+                        aux_point_coords(comp) = j_node_coords(comp)*aux_node_rel_location + i_node_coords(comp)*(1.0-aux_node_rel_location);
                     }
 
                     // Add the intersection point to the auxiliar points array
@@ -126,18 +126,19 @@ namespace Kratos
                                                                                                                  mAuxPointsContainer(i1), 
                                                                                                                  mAuxPointsContainer(i2),
                                                                                                                  mAuxPointsContainer(i3));
+                
+                // Determine if the subdivision is wether in the negative or the positive side                                                                                                 
+                unsigned int neg = 0, pos = 0;
+                if(i0 <= 3) {nodal_distances(i0) < 0.0 ? neg++ : pos++;}
+                if(i1 <= 3) {nodal_distances(i1) < 0.0 ? neg++ : pos++;}
+                if(i2 <= 3) {nodal_distances(i2) < 0.0 ? neg++ : pos++;}
+                if(i3 <= 3) {nodal_distances(i3) < 0.0 ? neg++ : pos++;}
 
-                // Determine if the subdivision is wether in the negative or the positive side
-                bool is_positive;
-                if ((i0 == 0) || (i0 == 1) || (i0 == 2) || (i0 == 3)) {
-                    is_positive = nodal_distances(i0) < 0.0 ? false : true;
-                } else if ((i1 == 0) || (i1 == 1) || (i1 == 2) || (i1 == 3)) {
-                    is_positive = nodal_distances(i1) < 0.0 ? false : true;
-                } else if ((i2 == 0) || (i2 == 1) || (i2 == 2) || (i2 == 3)) {
-                    is_positive = nodal_distances(i2) < 0.0 ? false : true;
-                } else {
-                    is_positive = nodal_distances(i3) < 0.0 ? false : true;
-                }
+                if(neg > 0 && pos > 0)
+                    KRATOS_ERROR << "The subgeometry " << i0 << " " << i1 << " " << i2 << " " << i3 << " in tetrahedra has nodes in both positive and negative sides." << std::endl;
+
+                bool is_positive = false;
+                if(pos > 0) {is_positive = true;}
 
                 // Add the generated tetrahedra to its corresponding partition arrays
                 if (is_positive) {
