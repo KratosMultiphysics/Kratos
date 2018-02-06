@@ -382,6 +382,40 @@ public:
         load("Second", rObject.second);
     }
 
+    template<class TDataType, std::size_t TDimension>
+    void load(std::string const & rTag, bounded_vector<TDataType, TDimension>& rObject)
+    {
+        load_trace_point(rTag);
+        SizeType size;
+
+        load("size", size);
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rObject.size() == size) << "Object has wrong size!" << std::endl;
+
+        for(SizeType i = 0 ; i < size ; ++i)
+            load("E", rObject[i]);
+//    read(rObject);
+    }
+
+    template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
+    void load(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2>& rObject)
+    {
+        load_trace_point(rTag);
+        SizeType size1;
+        SizeType size2;
+
+        load("size1", size1);
+        load("size2", size2);
+
+        KRATOS_DEBUG_ERROR_IF_NOT(rObject.size1() == size1 && 
+                                  rObject.size2() == size2) << "Object has wrong size!" << std::endl;
+        
+        for(SizeType i = 0 ; i < size1 ; ++i)
+            for(SizeType j = 0 ; j < size2 ; ++j)
+                load("E", rObject(i,j));
+//    read(rObject);
+    }
+
     KRATOS_SERIALIZATION_DIRECT_LOAD(bool)
     KRATOS_SERIALIZATION_DIRECT_LOAD(int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(long)
@@ -567,6 +601,34 @@ public:
         save("Second", rObject.second);
     }
 
+    template<class TDataType, std::size_t TDimension>
+    void save(std::string const & rTag, bounded_vector<TDataType, TDimension> const& rObject)
+    {
+        save_trace_point(rTag);
+        SizeType size = rObject.size();
+
+        save("size", size);
+
+        for(SizeType i = 0 ; i < size ; ++i)
+            save("E", rObject[i]);
+//    write(rObject);
+    }
+
+    template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
+    void save(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2> const& rObject)
+    {
+        save_trace_point(rTag);
+        SizeType size1 = rObject.size1();
+        SizeType size2 = rObject.size2();
+
+        save("size1", size1);
+        save("size2", size2);
+
+        for(SizeType i = 0 ; i < size1 ; ++i)
+            for(SizeType j = 0 ; j < size2 ; ++j)
+                save("E", rObject(i,j));
+//    write(rObject);
+    }
 
     KRATOS_SERIALIZATION_DIRECT_SAVE(bool)
     KRATOS_SERIALIZATION_DIRECT_SAVE(int)

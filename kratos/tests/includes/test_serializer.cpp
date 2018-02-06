@@ -263,7 +263,7 @@ namespace Kratos {
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
-        /*KRATOS_TEST_CASE_IN_SUITE(SerializerBoundedVector, KratosCoreFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SerializerBoundedVector, KratosCoreFastSuite)
         {
             using Vector5Double = bounded_vector<double,5>;
             using Vector6Int = bounded_vector<int,6>;
@@ -295,7 +295,7 @@ namespace Kratos {
             
             TestObjectSerializationComponentwise2D(object_to_be_saved_1, object_to_be_loaded_1);
             TestObjectSerializationComponentwise2D(object_to_be_saved_2, object_to_be_loaded_2);
-        }*/
+        }
 
     } // namespace Testing
 }  // namespace Kratos.
