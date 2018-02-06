@@ -337,19 +337,16 @@ namespace Kratos
         if( rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL )
         {
 
-            for(unsigned int i=0; i< number_of_nodes; i++)
+            for(size_t i=0; i< number_of_nodes; i++)
             {
                 SizeType index = dimension * i;
 
-                GetGeometry()[i].SetLock();
-
                 array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-                for(unsigned int j=0; j<dimension; j++)
+                for(size_t j=0; j<dimension; j++)
                 {
+                    #pragma omp atomic
                     ForceResidual[j] += rRHS[index + j];
                 }
-
-                GetGeometry()[i].UnSetLock();
             }
         }
 

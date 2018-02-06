@@ -125,31 +125,32 @@ public:
         ProcessInfo& r_current_process_info   = rModelPart.GetProcessInfo();
 
 
-        typename NodesArrayType::iterator it_begin=r_nodes.ptr_begin();
-        #pragma omp parallel for 
-        for(size_t i=0;i<r_nodes.size();++i)
+        auto it_node = rModelPart.NodesBegin();
+        #pragma omp parallel for firstprivate(it_node)
+        for(int i=0;i<static_cast<int>(r_nodes.size());++i)
         {
-            double& r_nodal_mass    =  it_begin->GetValue(NODAL_MASS);
-            r_nodal_mass = 0.0;
-
-            if (it_begin->HasDofFor(ROTATION_X))
-            {
-                array_1d<double,3>& r_nodal_inertia = it_begin->GetValue(NODAL_INERTIA);
-                noalias(r_nodal_inertia) = ZeroVector(3);
-            }
-            it_begin++;
+            (it_node+i)->SetValue(NODAL_MASS,0.00);
         }
 
-        typename ElementsArrayType::iterator ElemBegin = r_elements.begin(); 
-        #pragma omp parallel
-        for (size_t i=0;i<r_elements.size();++i)  
+        if (rModelPart.NodesBegin()->HasDofFor(ROTATION_Z))
+        {
+            #pragma omp parallel for firstprivate(it_node)
+            for(int i=0;i<static_cast<int>(r_nodes.size());++i)
+                {
+                    array_1d<double,3>& r_nodal_inertia = (it_node+i)->GetValue(NODAL_INERTIA);
+                    noalias(r_nodal_inertia) = ZeroVector(3);
+                }
+        }
+
+        auto it_elem = rModelPart.ElementsBegin();
+        #pragma omp parallel for firstprivate(it_elem)
+        for (int i=0;i<static_cast<int>(r_elements.size());++i)  
         {
             //Getting nodal mass and inertia from element
             Vector dummy_vector;
             // this function needs to be implemented in the respective 
             // element to provide inertias and nodal masses 
-            ElemBegin->AddExplicitContribution(dummy_vector,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
-            ElemBegin++;
+            (it_elem+i)->AddExplicitContribution(dummy_vector,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
         }
         
         
@@ -191,17 +192,17 @@ public:
         ProcessInfo& rCurrentProcessInfo      = rModelPart.GetProcessInfo();
         ConditionsArrayType& pConditions      = rModelPart.Conditions();
 
-        typename ConditionsArrayType::ptr_iterator it_begin=pConditions.ptr_begin();
-        #pragma omp parallel for
-        for (size_t i =0;i<pConditions.size();++i)
+        typename ConditionsArrayType::ptr_iterator it_begin=pConditions.ptr_begin();    
+        #pragma omp parallel for firstprivate(it_begin)
+        for (int i =0;i<static_cast<int>(pConditions.size());++i)
         {
             LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
             Element::EquationIdVectorType equation_id_vector_dummy; //Dummy
 
-            pScheme->Condition_Calculate_RHS_Contribution(*it_begin, RHS_Condition_Contribution,
-             equation_id_vector_dummy, rCurrentProcessInfo);
-            it_begin++;
+            pScheme->Condition_Calculate_RHS_Contribution(*(it_begin+i), RHS_Condition_Contribution,
+            equation_id_vector_dummy, rCurrentProcessInfo);
         }
+
 
 
 
@@ -224,17 +225,17 @@ public:
         ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
         ElementsArrayType& pElements        = rModelPart.Elements();
         
-        typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin();
-        #pragma omp parallel for
-        for (size_t i =0;i<pElements.size();++i)
+        typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin();  
+        #pragma omp parallel for firstprivate(it_begin)
+        for (int i =0;i<static_cast<int>(pElements.size());++i)
         {
             LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
             Element::EquationIdVectorType equation_id_vector_dummy; //Dummy
 
-            pScheme->Calculate_RHS_Contribution(*it_begin, RHS_Contribution,
-             equation_id_vector_dummy, rCurrentProcessInfo);
-            it_begin++;
+            pScheme->Calculate_RHS_Contribution(*(it_begin+i), RHS_Contribution,
+                equation_id_vector_dummy, rCurrentProcessInfo);
         }
+
 
         KRATOS_CATCH("")
     }

@@ -732,21 +732,16 @@ namespace Kratos
 		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
 		{
 
-			for (int i = 0; i< msNumberOfNodes; ++i)
+			for (size_t i = 0; i< msNumberOfNodes; ++i)
 			{
-				int index = msDimension * i;
-
-				GetGeometry()[i].SetLock();
-
+				size_t index = msDimension * i;
 				array_1d<double, 3 > &r_force_residual = 
 					GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-				for (int j = 0; j<msDimension; ++j)
+				for (size_t j=0;j<msDimension;++j)
 				{
+					#pragma omp atomic
 					r_force_residual[j] += rRHSVector[index + j];
 				}
-				
-				GetGeometry()[i].UnSetLock();
 			}
 		}
 		
@@ -759,7 +754,6 @@ namespace Kratos
 
 			for (int i = 0; i< msNumberOfNodes; ++i)
 			{
-				GetGeometry()[i].SetLock();
 				double& r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
 				array_1d<double,msDimension>& r_nodal_inertia = 
 					GetGeometry()[i].GetValue(NODAL_INERTIA); 
@@ -767,11 +761,15 @@ namespace Kratos
 
 				for (SizeType j = 0; j<msLocalSize; ++j)
 				{
+					#pragma omp atomic
 					r_nodal_mass += element_mass_matrix(index, j);
 				}
-				for (int k = 0;k<msDimension; ++k) r_nodal_inertia[k] += 0.00;
-						
-				GetGeometry()[i].UnSetLock();
+				for (int k = 0;k<msDimension; ++k)
+				{
+					#pragma omp atomic
+					 r_nodal_inertia[k] += 0.00;
+				}
+
 			}
 		}
 		KRATOS_CATCH("")

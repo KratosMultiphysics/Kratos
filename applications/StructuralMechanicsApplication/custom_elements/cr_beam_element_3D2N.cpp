@@ -1570,16 +1570,15 @@ namespace Kratos
 			{
 				SizeType index = msLocalSize * i;
 
-				GetGeometry()[i].SetLock();
-
 				array_1d<double, 3> &r_force_residual =
 					GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
 				for (SizeType j = 0; j<msDimension; ++j)
 				{
+					#pragma omp atomic
 					r_force_residual[j] += rRHSVector[index + j];
 				}
-				GetGeometry()[i].UnSetLock();
+
 			}
 		}
 
@@ -1591,16 +1590,14 @@ namespace Kratos
 			{
 				SizeType index = (msLocalSize * i) + msDimension;
 
-				GetGeometry()[i].SetLock();
-
 				array_1d<double, 3> &r_moment_residual =
 					GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
 				for (SizeType j = 0; j<msDimension; ++j)
 				{
+					#pragma omp atomic
 					r_moment_residual[j] += rRHSVector[index + j];
 				}			
-				GetGeometry()[i].UnSetLock();
 			}
 		}
 

@@ -188,16 +188,15 @@ namespace Kratos
        
       NodesArrayType& r_nodes   = rModelPart.Nodes();
 
-      typename NodesArrayType::iterator i_begin=r_nodes.ptr_begin();
-      #pragma omp parallel for
-      for(size_t i=0;i<r_nodes.size();++i)
+      auto i_begin = rModelPart.NodesBegin();
+      #pragma omp parallel for firstprivate(i_begin)
+      for(int i=0;i<static_cast<int>(r_nodes.size());++i)
       {
-        array_1d<double,3>& r_node_rhs  = i_begin->FastGetSolutionStepValue(FORCE_RESIDUAL);  
+        array_1d<double,3>& r_node_rhs  = (i_begin+i)->FastGetSolutionStepValue(FORCE_RESIDUAL);  
         noalias(r_node_rhs)             = ZeroVector(3);
 
-        array_1d<double,3>& r_node_rhs_moment  = i_begin->FastGetSolutionStepValue(MOMENT_RESIDUAL);  
+        array_1d<double,3>& r_node_rhs_moment  = (i_begin+i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);  
         noalias(r_node_rhs_moment)             = ZeroVector(3);
-        i_begin++;
       }
       
 
@@ -222,58 +221,60 @@ namespace Kratos
       double stable_delta_time = 1000.00;
 
 
-      typename ElementsArrayType::iterator it_begin=r_elements.ptr_begin();
-      #pragma omp parallel for private(stable_delta_time)       
-      for(size_t i=0;i<r_elements.size();++i)
+      auto it_begin = rModelPart.ElementsBegin();
+      #pragma omp parallel firstprivate(it_begin) 
       {
-        bool check_has_all_variables = true;
-        double E(0.00), nu(0.00), roh(0.00), alpha(0.00), beta(0.00);
-        //get geometric and material properties
-        if (it_begin->GetProperties().Has(RAYLEIGH_ALPHA))
+        #pragma omp parallel for private(stable_delta_time)       
+        for(int i=0;i<static_cast<int>(r_elements.size());++i)
         {
-          alpha    = it_begin->GetProperties()[RAYLEIGH_ALPHA];
-        }
-        if (it_begin->GetProperties().Has(RAYLEIGH_BETA))
-        {
-          beta     = it_begin->GetProperties()[RAYLEIGH_BETA];
-        }
-        if (it_begin->GetProperties().Has(YOUNG_MODULUS))
-        {
-          E        = it_begin->GetProperties()[YOUNG_MODULUS];
-        }
-        else check_has_all_variables = false;
-        if (it_begin->GetProperties().Has(POISSON_RATIO))
-        {
-          nu        = it_begin->GetProperties()[POISSON_RATIO];
-        }
-        if (it_begin->GetProperties().Has(DENSITY))
-        {
-          roh       = it_begin->GetProperties()[DENSITY];
-        }
-        else check_has_all_variables = false;
-
-        if (check_has_all_variables)
-        {
-          const double length   = it_begin->GetGeometry().Length();
-
-          //compute courant criterion
-          const double bulk_modulus       = E/(3.0*(1.0-2.0*nu));               
-          const double wavespeed  = sqrt(bulk_modulus/roh);
-          const double w          = 2.0*wavespeed/length;   //frequency
-
-          const double psi        = 0.5*(alpha/w + beta*w); //critical ratio;
-          stable_delta_time = (2.0/w)*(sqrt(1.0 + psi*psi)-psi);
-
-          if(stable_delta_time > 0.00)
+          bool check_has_all_variables = true;
+          double E(0.00), nu(0.00), roh(0.00), alpha(0.00), beta(0.00);
+          //get geometric and material properties
+          if ((it_begin+i)->GetProperties().Has(RAYLEIGH_ALPHA))
           {
-            if(stable_delta_time < delta_time)
+            alpha    = (it_begin+i)->GetProperties()[RAYLEIGH_ALPHA];
+          }
+          if ((it_begin+i)->GetProperties().Has(RAYLEIGH_BETA))
+          {
+            beta     = (it_begin+i)->GetProperties()[RAYLEIGH_BETA];
+          }
+          if ((it_begin+i)->GetProperties().Has(YOUNG_MODULUS))
+          {
+            E        = (it_begin+i)->GetProperties()[YOUNG_MODULUS];
+          }
+          else check_has_all_variables = false;
+          if ((it_begin+i)->GetProperties().Has(POISSON_RATIO))
+          {
+            nu        = (it_begin+i)->GetProperties()[POISSON_RATIO];
+          }
+          if ((it_begin+i)->GetProperties().Has(DENSITY))
+          {
+            roh       = (it_begin+i)->GetProperties()[DENSITY];
+          }
+          else check_has_all_variables = false;
+
+          if (check_has_all_variables)
+          {
+            const double length   = (it_begin+i)->GetGeometry().Length();
+
+            //compute courant criterion
+            const double bulk_modulus       = E/(3.0*(1.0-2.0*nu));               
+            const double wavespeed  = sqrt(bulk_modulus/roh);
+            const double w          = 2.0*wavespeed/length;   //frequency
+
+            const double psi        = 0.5*(alpha/w + beta*w); //critical ratio;
+            stable_delta_time = (2.0/w)*(sqrt(1.0 + psi*psi)-psi);
+
+            if(stable_delta_time > 0.00)
             {
-              delta_time = stable_delta_time;
+              if(stable_delta_time < delta_time)
+              {
+                delta_time = stable_delta_time;
+              }
             }
           }
+          else KRATOS_ERROR << "not enough parameters for prediction level " << mDeltaTime.PredictionLevel << std::endl;
         }
-        else KRATOS_ERROR << "not enough parameters for prediction level " << mDeltaTime.PredictionLevel << std::endl;
-        it_begin++;
       }
       
 
@@ -300,15 +301,18 @@ namespace Kratos
       KRATOS_TRY
 
       NodesArrayType& r_nodes        = rModelPart.Nodes();
+      
 
       size_t dim(3);
-      typename NodesArrayType::iterator i_begin = r_nodes.ptr_begin();
-      #pragma omp parallel for
-      for(size_t i=0;i<r_nodes.size();++i)
+
+      auto i_begin = rModelPart.NodesBegin();
+      const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
+      #pragma omp parallel for firstprivate(i_begin)
+      for(int i=0;i<static_cast<int>(r_nodes.size());++i)
       {
-        array_1d<double,3>& r_middle_velocity       = i_begin->GetValue(MIDDLE_VELOCITY);
-        array_1d<double,3>& r_current_velocity      = i_begin->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double,3>& r_current_residual      = i_begin->FastGetSolutionStepValue(FORCE_RESIDUAL);
+        array_1d<double,3>& r_middle_velocity       = (i_begin+i)->GetValue(MIDDLE_VELOCITY);
+        array_1d<double,3>& r_current_velocity      = (i_begin+i)->FastGetSolutionStepValue(VELOCITY);
+        array_1d<double,3>& r_current_residual      = (i_begin+i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
         //array_1d<double,3>& r_current_displacement  = i_begin->FastGetSolutionStepValue(DISPLACEMENT);
         
         for (size_t j =0; j<dim; j++)
@@ -319,11 +323,11 @@ namespace Kratos
           //r_current_displacement[j] = 0.0; // this might be wrong for presribed displacement
         }
 
-        if (i_begin->HasDofFor(ROTATION_Z))
+        if (has_dof_for_rot_z)
         {
-          array_1d<double,3>& r_middle_angular_velocity       = i_begin->GetValue(MIDDLE_ANGULAR_VELOCITY);
-          array_1d<double,3>& r_current_angular_velocity      = i_begin->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          array_1d<double,3>& r_current_residual_moment       = i_begin->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+          array_1d<double,3>& r_middle_angular_velocity       = (i_begin+i)->GetValue(MIDDLE_ANGULAR_VELOCITY);
+          array_1d<double,3>& r_current_angular_velocity      = (i_begin+i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          array_1d<double,3>& r_current_residual_moment       = (i_begin+i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
           //array_1d<double,3>& current_rotation              = i->FastGetSolutionStepValue(ROTATION);    
           
           for (size_t j =0; j<dim; j++)
@@ -334,7 +338,6 @@ namespace Kratos
             //current_rotation[j] = 0.0; // this might be wrong for presribed rotations
           }
         }
-        i_begin++;
       }
 
     KRATOS_CATCH("")
@@ -362,21 +365,21 @@ namespace Kratos
       mTime.Middle    = 0.5*(mTime.Previous + mTime.Current);
 
 
- 
-      typename NodesArrayType::iterator i_begin=r_nodes.ptr_begin();
-      #pragma omp parallel for
-      for(size_t i=0;i<r_nodes.size();++i)
+      auto i_begin = rModelPart.NodesBegin();
+      const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
+      #pragma omp parallel for firstprivate(i_begin)
+      for(int i=0;i<static_cast<int>(r_nodes.size());++i)
       {
         //Current step information "N+1" (before step update).
 
-        const double nodal_mass                       = i_begin->GetValue(NODAL_MASS);
-        array_1d<double,3>& r_current_residual        = i_begin->FastGetSolutionStepValue(FORCE_RESIDUAL);
+        const double nodal_mass                       = (i_begin+i)->GetValue(NODAL_MASS);
+        array_1d<double,3>& r_current_residual        = (i_begin+i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-        array_1d<double,3>& r_current_velocity        = i_begin->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double,3>& r_current_displacement    = i_begin->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double,3>& r_middle_velocity         = i_begin->GetValue(MIDDLE_VELOCITY);
+        array_1d<double,3>& r_current_velocity        = (i_begin+i)->FastGetSolutionStepValue(VELOCITY);
+        array_1d<double,3>& r_current_displacement    = (i_begin+i)->FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double,3>& r_middle_velocity         = (i_begin+i)->GetValue(MIDDLE_VELOCITY);
 
-        array_1d<double,3>& r_current_acceleration    = i_begin->FastGetSolutionStepValue(ACCELERATION);
+        array_1d<double,3>& r_current_acceleration    = (i_begin+i)->FastGetSolutionStepValue(ACCELERATION);
 
         //Solution of the explicit equation:
         if (nodal_mass > numerical_limit)  r_current_acceleration = r_current_residual/nodal_mass;
@@ -387,17 +390,16 @@ namespace Kratos
         size_t DoF = 3;
         bool fix_displacements[3] = {false, false, false};
 
-        fix_displacements[0] = (i_begin->pGetDof(DISPLACEMENT_X))->IsFixed();
-        fix_displacements[1] = (i_begin->pGetDof(DISPLACEMENT_Y))->IsFixed();
-        fix_displacements[2] = (i_begin->pGetDof(DISPLACEMENT_Z))->IsFixed();
+        fix_displacements[0] = ((i_begin+i)->pGetDof(DISPLACEMENT_X))->IsFixed();
+        fix_displacements[1] = ((i_begin+i)->pGetDof(DISPLACEMENT_Y))->IsFixed();
+        fix_displacements[2] = ((i_begin+i)->pGetDof(DISPLACEMENT_Z))->IsFixed();
 
 
         for (size_t j = 0; j < DoF; j++) 
         {
             
-            if (fix_displacements[j] == true) 
-            {
-                
+            if (fix_displacements[j]) 
+            {          
               r_current_acceleration[j]  = 0.0;
               r_middle_velocity[j]       = 0.0; 
               
@@ -412,14 +414,14 @@ namespace Kratos
 
 
         ////// ROTATION DEGRESS OF FREEDOM
-        if (i_begin->HasDofFor(ROTATION_Z))
+        if (has_dof_for_rot_z)
         {
-          array_1d<double,3> nodal_inertia     = i_begin->GetValue(NODAL_INERTIA);  
-          array_1d<double,3>& r_current_residual_moment          = i_begin->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-          array_1d<double,3>& r_current_angular_velocity         = i_begin->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          array_1d<double,3>& r_current_rotation                 = i_begin->FastGetSolutionStepValue(ROTATION);
-          array_1d<double,3>& r_middle_angular_velocity          = i_begin->GetValue(MIDDLE_ANGULAR_VELOCITY);
-          array_1d<double,3>& r_current_angular_acceleration     = i_begin->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+          array_1d<double,3> nodal_inertia     = (i_begin+i)->GetValue(NODAL_INERTIA);  
+          array_1d<double,3>& r_current_residual_moment          = (i_begin+i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+          array_1d<double,3>& r_current_angular_velocity         = (i_begin+i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          array_1d<double,3>& r_current_rotation                 = (i_begin+i)->FastGetSolutionStepValue(ROTATION);
+          array_1d<double,3>& r_middle_angular_velocity          = (i_begin+i)->GetValue(MIDDLE_ANGULAR_VELOCITY);
+          array_1d<double,3>& r_current_angular_acceleration     = (i_begin+i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
           for (size_t kk = 0; kk<DoF; ++kk)
           {         
@@ -428,9 +430,9 @@ namespace Kratos
           }
           
           bool fix_rotation[3] = {false, false, false};
-          fix_rotation[0] = (i_begin->pGetDof(ROTATION_X))->IsFixed();
-          fix_rotation[1] = (i_begin->pGetDof(ROTATION_Y))->IsFixed();   
-          fix_rotation[2] = (i_begin->pGetDof(ROTATION_Z))->IsFixed();     
+          fix_rotation[0] = ((i_begin+i)->pGetDof(ROTATION_X))->IsFixed();
+          fix_rotation[1] = ((i_begin+i)->pGetDof(ROTATION_Y))->IsFixed();   
+          fix_rotation[2] = ((i_begin+i)->pGetDof(ROTATION_Z))->IsFixed();     
           
 
 
@@ -446,8 +448,6 @@ namespace Kratos
             r_current_rotation[j]          = r_current_rotation[j] + mTime.Delta * r_middle_angular_velocity[j];
           }//Trans DoF
         }// Rot DoF
-
-      i_begin++;
       }//for Node parallel
 
       mTime.Previous = mTime.Current;
@@ -462,20 +462,21 @@ namespace Kratos
       NodesArrayType& r_nodes            = rModelPart.Nodes();
       const double numerical_limit = std::numeric_limits<double>::epsilon();
 
-      typename NodesArrayType::iterator i_begin=r_nodes.ptr_begin();
-      #pragma omp parallel for
-      for(size_t i=0;i<r_nodes.size();++i)
+      auto i_begin = rModelPart.NodesBegin();
+      const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
+      #pragma omp parallel for firstprivate(i_begin)
+      for(int i=0;i<static_cast<int>(r_nodes.size());++i)
       {
         //Current step information "N+1" (before step update).
 
-        const double& nodal_mass                        = i_begin->GetValue(NODAL_MASS);
-        array_1d<double,3>& r_current_residual          = i_begin->FastGetSolutionStepValue(FORCE_RESIDUAL);
+        const double& nodal_mass                        = (i_begin+1)->GetValue(NODAL_MASS);
+        array_1d<double,3>& r_current_residual          = (i_begin+1)->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-        array_1d<double,3>& r_current_velocity          = i_begin->FastGetSolutionStepValue(VELOCITY);
+        array_1d<double,3>& r_current_velocity          = (i_begin+1)->FastGetSolutionStepValue(VELOCITY);
         //array_1d<double,3>& r_current_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double,3>& r_middle_velocity           = i_begin->GetValue(MIDDLE_VELOCITY);
+        array_1d<double,3>& r_middle_velocity           = (i_begin+1)->GetValue(MIDDLE_VELOCITY);
 
-        array_1d<double,3>& r_current_acceleration      = i_begin->FastGetSolutionStepValue(ACCELERATION);
+        array_1d<double,3>& r_current_acceleration      = (i_begin+1)->FastGetSolutionStepValue(ACCELERATION);
 
 
         //Solution of the explicit equation:
@@ -485,9 +486,9 @@ namespace Kratos
         size_t DoF = 3;
         bool fix_displacements[3] = {false, false, false};
 
-        fix_displacements[0] = (i_begin->pGetDof(DISPLACEMENT_X))->IsFixed();
-        fix_displacements[1] = (i_begin->pGetDof(DISPLACEMENT_Y))->IsFixed();
-        fix_displacements[2] = (i_begin->pGetDof(DISPLACEMENT_Z))->IsFixed();
+        fix_displacements[0] = ((i_begin+1)->pGetDof(DISPLACEMENT_X))->IsFixed();
+        fix_displacements[1] = ((i_begin+1)->pGetDof(DISPLACEMENT_Y))->IsFixed();
+        fix_displacements[2] = ((i_begin+1)->pGetDof(DISPLACEMENT_Z))->IsFixed();
 
 
         for (size_t j = 0; j < DoF; j++) 
@@ -506,15 +507,15 @@ namespace Kratos
             
         }//for DoF
         ////// ROTATION DEGRESS OF FREEDOM
-        if (i_begin->HasDofFor(ROTATION_Z))
+        if (has_dof_for_rot_z)
         {
           
-          array_1d<double,3> nodal_inertia                       = i_begin->GetValue(NODAL_INERTIA);  
-          array_1d<double,3>& r_current_residual_moment          = i_begin->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-          array_1d<double,3>& r_current_angular_velocity         = i_begin->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          array_1d<double,3> nodal_inertia                       = (i_begin+1)->GetValue(NODAL_INERTIA);  
+          array_1d<double,3>& r_current_residual_moment          = (i_begin+1)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+          array_1d<double,3>& r_current_angular_velocity         = (i_begin+1)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
           //array_1d<double,3>& current_rotation                 = i_begin->FastGetSolutionStepValue(ROTATION);
-          array_1d<double,3>& r_middle_angular_velocity          = i_begin->GetValue(MIDDLE_ANGULAR_VELOCITY);
-          array_1d<double,3>& r_current_angular_acceleration     = i_begin->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+          array_1d<double,3>& r_middle_angular_velocity          = (i_begin+1)->GetValue(MIDDLE_ANGULAR_VELOCITY);
+          array_1d<double,3>& r_current_angular_acceleration     = (i_begin+1)->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
           
           for (size_t kk = 0; kk<DoF; ++kk)
@@ -525,9 +526,9 @@ namespace Kratos
 
           DoF = 3;
           bool fix_rotation[3] = {false, false, false};
-          fix_rotation[0] = (i_begin->pGetDof(ROTATION_X))->IsFixed();
-          fix_rotation[1] = (i_begin->pGetDof(ROTATION_Y))->IsFixed(); 
-          fix_rotation[2] = (i_begin->pGetDof(ROTATION_Z))->IsFixed();    
+          fix_rotation[0] = ((i_begin+1)->pGetDof(ROTATION_X))->IsFixed();
+          fix_rotation[1] = ((i_begin+1)->pGetDof(ROTATION_Y))->IsFixed(); 
+          fix_rotation[2] = ((i_begin+1)->pGetDof(ROTATION_Z))->IsFixed();    
           
         
 
@@ -544,7 +545,6 @@ namespace Kratos
             //current_rotation[j]          = 0.00;
           }//trans DoF
         }// Rot DoF
-      i_begin++;
       }//for node parallel
 
 
