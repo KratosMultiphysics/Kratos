@@ -15,7 +15,6 @@
 #define  KRATOS_RESIDUAL_BASED_BDF_CUSTOM_SCHEME
 
 /* System includes */
-#include "unordered_map"
 
 /* External includes */
 
@@ -120,30 +119,27 @@ public:
         KRATOS_ERROR_IF(n_variables != n_second_derivative) << "Your list of variables is not the same size as the list of second derivatives variables" << std::endl;
         
         for (unsigned int i_var = 0; i_var < n_variables; ++i_var){
-            std::string variable_name = rParameters["variable"].GetArrayItem(i_var).GetString();
-            std::string first_derivative_name = rParameters["first_derivative"].GetArrayItem(i_var).GetString();
-            std::string second_derivative_name = rParameters["second_derivative"].GetArrayItem(i_var).GetString();
-        
+            const std::string& variable_name = rParameters["variable"].GetArrayItem(i_var).GetString();
+            const std::string& first_derivative_name = rParameters["first_derivative"].GetArrayItem(i_var).GetString();
+            const std::string& second_derivative_name = rParameters["second_derivative"].GetArrayItem(i_var).GetString();
+            
             if(KratosComponents<Variable<double>>::Has(variable_name)){
                 Variable<double> variable = KratosComponents< Variable<double> >::Get(variable_name);
                 Variable<double> first_derivative = KratosComponents< Variable<double> >::Get(first_derivative_name);
                 Variable<double> second_derivative = KratosComponents< Variable<double> >::Get(second_derivative_name);
-                const std::size_t key = variable.Key();
-                mDoubleVariable[key] = variable;
-                mFirtsDoubleDerivatives[key] = first_derivative;
-                mSecondDoubleDerivatives[key] = second_derivative;
+                mDoubleVariable.push_back(variable);
+                mFirtsDoubleDerivatives.push_back(first_derivative);
+                mSecondDoubleDerivatives.push_back(second_derivative);
             } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
                 Variable<array_1d< double, 3>> variable = KratosComponents< Variable<array_1d< double, 3>> >::Get(variable_name);
                 Variable<array_1d< double, 3>> first_derivative = KratosComponents< Variable<array_1d< double, 3>> >::Get(first_derivative_name);
                 Variable<array_1d< double, 3>> second_derivative = KratosComponents< Variable<array_1d< double, 3>> >::Get(second_derivative_name);
-                const std::size_t key = variable.Key();
-                mArrayVariable[key] = variable;
-                mFirtsArrayDerivatives[key] = first_derivative;
-                mSecondArrayDerivatives[key] = second_derivative;
+                mArrayVariable.push_back(variable);
+                mFirtsArrayDerivatives.push_back(first_derivative);
+                mSecondArrayDerivatives.push_back(second_derivative);
             } else {
-                KRATOS_ERROR << "Only double, component and vector variables are allowed in the visualization variables list." ;
+                KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
             }
-            
         }
     }
 
@@ -212,19 +208,19 @@ public:
             auto it_node = rModelPart.Nodes().begin() + i;
 
             //ATTENTION::: the prediction is performed only on free nodes
-            
-            for ( auto var_it = mDoubleVariable.begin(); var_it!= mDoubleVariable.end(); ++var_it ) {
+            std::size_t counter = 0;
+            for ( auto& i_var : mDoubleVariable) {
                 // Derivatives
-                Variable<double> dvar = mFirtsDoubleDerivatives[var_it->first];
-                Variable<double> d2var = mSecondDoubleDerivatives[var_it->first];
+                Variable<double> dvar = mFirtsDoubleDerivatives[counter];
+                Variable<double> d2var = mSecondDoubleDerivatives[counter];
                 
                 // Values
                 const double dot2un1 = it_node->FastGetSolutionStepValue(d2var, 1);
                 const double dotun1 = it_node->FastGetSolutionStepValue(dvar, 1);
-                const double un1 = it_node->FastGetSolutionStepValue(var_it->second, 1);
+                const double un1 = it_node->FastGetSolutionStepValue(i_var, 1);
                 const double dot2un0 = it_node->FastGetSolutionStepValue(d2var);
                 double& dotun0 = it_node->FastGetSolutionStepValue(dvar);
-                double& un0 = it_node->FastGetSolutionStepValue(var_it->second);
+                double& un0 = it_node->FastGetSolutionStepValue(i_var);
                 
                 if (it_node->HasDofFor(d2var)) {
                     if (it_node -> IsFixed(d2var)) {
@@ -233,13 +229,13 @@ public:
                 } } else if (it_node->HasDofFor(dvar)) {
                     if (it_node -> IsFixed(dvar)) {
                         un0 = (dotun1 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
-                } } else if (it_node -> IsFixed(var_it->second) == false) {
+                } } else if (it_node -> IsFixed(i_var) == false) {
                     un0 = un1 + delta_time * dotun1 + 0.5 * std::pow(delta_time, 2) * dot2un1;
                 }
                 
                 for (std::size_t i_order = 2; i_order < BDFBaseType::mOrder + 1; ++i_order) {
                     const double dotun = it_node->FastGetSolutionStepValue(dvar, i_order);
-                    const double un = it_node->FastGetSolutionStepValue(var_it->second, i_order);
+                    const double un = it_node->FastGetSolutionStepValue(i_var, i_order);
                     
                     if (it_node->HasDofFor(d2var)) {
                         if (it_node -> IsFixed(d2var)) {
@@ -250,27 +246,28 @@ public:
                             un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
                     } }
                 }
+                counter++;
             }
-            
-            for ( auto var_it = mArrayVariable.begin(); var_it!= mArrayVariable.end(); ++var_it ) {
+            counter = 0;
+            for ( auto& i_var : mArrayVariable) {
                 // Values
-                const array_1d<double, 3>& dot2un1 = it_node->FastGetSolutionStepValue(mSecondArrayDerivatives[var_it->first], 1);
-                const array_1d<double, 3>& dotun1 = it_node->FastGetSolutionStepValue(mFirtsArrayDerivatives[var_it->first], 1);
-                const array_1d<double, 3>& un1 = it_node->FastGetSolutionStepValue(var_it->second, 1);
-                const array_1d<double, 3>& dot2un0 = it_node->FastGetSolutionStepValue(mSecondArrayDerivatives[var_it->first]);
-                array_1d<double, 3>& dotun0 = it_node->FastGetSolutionStepValue(mFirtsArrayDerivatives[var_it->first]);
-                array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(var_it->second);
+                const array_1d<double, 3>& dot2un1 = it_node->FastGetSolutionStepValue(mSecondArrayDerivatives[counter], 1);
+                const array_1d<double, 3>& dotun1 = it_node->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter], 1);
+                const array_1d<double, 3>& un1 = it_node->FastGetSolutionStepValue(i_var, 1);
+                const array_1d<double, 3>& dot2un0 = it_node->FastGetSolutionStepValue(mSecondArrayDerivatives[counter]);
+                array_1d<double, 3>& dotun0 = it_node->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter]);
+                array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(i_var);
                 
                 // Components
-                std::string variable_name = (var_it->second).Name();
+                std::string variable_name = (i_var).Name();
                 VariableComponent<ComponentType> var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_X"));
                 VariableComponent<ComponentType> var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_Y"));
                 VariableComponent<ComponentType> var_z = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_Z"));
-                std::string dvariable_name = (mFirtsArrayDerivatives[var_it->first]).Name();
+                std::string dvariable_name = (mFirtsArrayDerivatives[counter]).Name();
                 VariableComponent<ComponentType> dvar_x = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name.append("_X"));
                 VariableComponent<ComponentType> dvar_y = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name.append("_Y"));
                 VariableComponent<ComponentType> dvar_z = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name.append("_Z"));
-                std::string d2variable_name = (mSecondArrayDerivatives[var_it->first]).Name();
+                std::string d2variable_name = (mSecondArrayDerivatives[counter]).Name();
                 VariableComponent<ComponentType> d2var_x = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name.append("_X"));
                 VariableComponent<ComponentType> d2var_y = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name.append("_Y"));
                 VariableComponent<ComponentType> d2var_z = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name.append("_Z"));
@@ -312,8 +309,8 @@ public:
                 }
                 
                 for (std::size_t i_order = 2; i_order < BDFBaseType::mOrder + 1; ++i_order) {
-                    const array_1d<double, 3>& dotun = it_node->FastGetSolutionStepValue(mFirtsArrayDerivatives[var_it->first], i_order);
-                    const array_1d<double, 3>& un = it_node->FastGetSolutionStepValue(var_it->second, i_order);
+                    const array_1d<double, 3>& dotun = it_node->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter], i_order);
+                    const array_1d<double, 3>& un = it_node->FastGetSolutionStepValue(i_var, i_order);
                     
                     if (it_node->HasDofFor(d2var_x)) {
                         if (it_node -> IsFixed(d2var_x)) {
@@ -345,6 +342,7 @@ public:
                         } }
                     }
                 }
+                counter++;
             }
 
             // Updating time derivatives
@@ -373,39 +371,39 @@ public:
 
         // Check for variables keys
         // Verify that the variables are correctly initialized
-        for ( auto var_it = mDoubleVariable.begin(); var_it!= mDoubleVariable.end(); ++var_it )
-            KRATOS_CHECK_VARIABLE_KEY(var_it->second) 
-        for ( auto var_it = mFirtsDoubleDerivatives.begin(); var_it!= mFirtsDoubleDerivatives.end(); ++var_it )
-            KRATOS_CHECK_VARIABLE_KEY(var_it->second) 
-        for ( auto var_it = mSecondDoubleDerivatives.begin(); var_it!= mSecondDoubleDerivatives.end(); ++var_it )
-            KRATOS_CHECK_VARIABLE_KEY(var_it->second) 
-        for ( auto var_it = mArrayVariable.begin(); var_it!= mArrayVariable.end(); ++var_it )
-            KRATOS_CHECK_VARIABLE_KEY(var_it->second) 
-        for ( auto var_it = mFirtsArrayDerivatives.begin(); var_it!= mFirtsArrayDerivatives.end(); ++var_it )
-            KRATOS_CHECK_VARIABLE_KEY(var_it->second) 
-        for ( auto var_it = mSecondArrayDerivatives.begin(); var_it!= mSecondArrayDerivatives.end(); ++var_it )
-            KRATOS_CHECK_VARIABLE_KEY(var_it->second) 
+        for ( auto& i_var : mDoubleVariable)
+            KRATOS_CHECK_VARIABLE_KEY(i_var) 
+        for ( auto& i_var : mFirtsDoubleDerivatives)
+            KRATOS_CHECK_VARIABLE_KEY(i_var) 
+        for ( auto& i_var : mSecondDoubleDerivatives)
+            KRATOS_CHECK_VARIABLE_KEY(i_var) 
+        for ( auto& i_var : mArrayVariable)
+            KRATOS_CHECK_VARIABLE_KEY(i_var) 
+        for ( auto& i_var : mFirtsArrayDerivatives)
+            KRATOS_CHECK_VARIABLE_KEY(i_var) 
+        for ( auto& i_var : mSecondArrayDerivatives)
+            KRATOS_CHECK_VARIABLE_KEY(i_var) 
 
         // Check that variables are correctly allocated
         for(auto& rnode : rModelPart.Nodes()) {
-            for ( auto var_it = mDoubleVariable.begin(); var_it!= mDoubleVariable.end(); ++var_it )
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(var_it->second, rnode) 
-            for ( auto var_it = mFirtsDoubleDerivatives.begin(); var_it!= mFirtsDoubleDerivatives.end(); ++var_it )
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(var_it->second, rnode)
-            for ( auto var_it = mSecondDoubleDerivatives.begin(); var_it!= mSecondDoubleDerivatives.end(); ++var_it )
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(var_it->second, rnode) 
-            for ( auto var_it = mArrayVariable.begin(); var_it!= mArrayVariable.end(); ++var_it )
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(var_it->second, rnode) 
-            for ( auto var_it = mFirtsArrayDerivatives.begin(); var_it!= mFirtsArrayDerivatives.end(); ++var_it )
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(var_it->second, rnode) 
-            for ( auto var_it = mSecondArrayDerivatives.begin(); var_it!= mSecondArrayDerivatives.end(); ++var_it )
-                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(var_it->second, rnode) 
+            for ( auto& i_var : mDoubleVariable)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
+            for ( auto& i_var : mFirtsDoubleDerivatives)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode)
+            for ( auto& i_var : mSecondDoubleDerivatives)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
+            for ( auto& i_var : mArrayVariable)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
+            for ( auto& i_var : mFirtsArrayDerivatives)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
+            for ( auto& i_var : mSecondArrayDerivatives)
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
     
-            for ( auto var_it = mDoubleVariable.begin(); var_it!= mDoubleVariable.end(); ++var_it )
-                KRATOS_CHECK_DOF_IN_NODE(var_it->second, rnode)
+            for ( auto& i_var : mDoubleVariable)
+                KRATOS_CHECK_DOF_IN_NODE(i_var, rnode)
                 
-            for ( auto var_it = mArrayVariable.begin(); var_it!= mArrayVariable.end(); ++var_it ) {
-                std::string variable_name = (var_it->second).Name();
+            for ( auto& i_var : mArrayVariable) {
+                std::string variable_name = (i_var).Name();
                 VariableComponent<ComponentType> var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_X"));
                 VariableComponent<ComponentType> var_y = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_Y"));
                 VariableComponent<ComponentType> var_z = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name.append("_Z"));
@@ -445,12 +443,12 @@ protected:
     ///@name Protected member Variables
     ///@{
     
-    std::unordered_map<std::size_t, Variable< double>> mDoubleVariable;                     /// The double variables  
-    std::unordered_map<std::size_t, Variable< double>> mFirtsDoubleDerivatives;             /// The first derivative double variable to compute 
-    std::unordered_map<std::size_t, Variable< double>> mSecondDoubleDerivatives;            /// The second derivative double variable to compute
-    std::unordered_map<std::size_t, Variable<array_1d<double, 3>>> mArrayVariable;          /// The array variables to compute 
-    std::unordered_map<std::size_t, Variable<array_1d<double, 3>>> mFirtsArrayDerivatives;  /// The first derivative array variable to compute 
-    std::unordered_map<std::size_t, Variable<array_1d<double, 3>>> mSecondArrayDerivatives; /// The second derivative array variable to compute
+    std::vector<Variable< double>> mDoubleVariable;                     /// The double variables  
+    std::vector<Variable< double>> mFirtsDoubleDerivatives;             /// The first derivative double variable to compute 
+    std::vector<Variable< double>> mSecondDoubleDerivatives;            /// The second derivative double variable to compute
+    std::vector<Variable<array_1d<double, 3>>> mArrayVariable;          /// The array variables to compute 
+    std::vector<Variable<array_1d<double, 3>>> mFirtsArrayDerivatives;  /// The first derivative array variable to compute 
+    std::vector<Variable<array_1d<double, 3>>> mSecondArrayDerivatives; /// The second derivative array variable to compute
 
     ///@}
     ///@name Protected Operators
@@ -468,19 +466,23 @@ protected:
     inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
     {
         // DOUBLES
-        for ( auto var_it = mDoubleVariable.begin(); var_it!= mDoubleVariable.end(); ++var_it ) {
-            double& dotun0 = itNode->FastGetSolutionStepValue(mFirtsDoubleDerivatives[var_it->first]);
-            dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(var_it->second);
+        std::size_t counter = 0;
+        for ( auto& i_var : mDoubleVariable) {
+            double& dotun0 = itNode->FastGetSolutionStepValue(mFirtsDoubleDerivatives[counter]);
+            dotun0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
             for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(var_it->second, i_order);
+                dotun0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+            counter++;
         }
         
         // ARRAYS
-        for ( auto var_it = mArrayVariable.begin(); var_it!= mArrayVariable.end(); ++var_it ) {
-            array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(mFirtsArrayDerivatives[var_it->first]);
-            noalias(dotun0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(var_it->second);
+        counter = 0;
+        for ( auto& i_var : mArrayVariable) {
+            array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter]);
+            noalias(dotun0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
             for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                noalias(dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(var_it->second, i_order);
+                noalias(dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+            counter++;
         }
     }
 
@@ -492,19 +494,23 @@ protected:
     inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {
         // DOUBLES
-        for ( auto var_it = mFirtsDoubleDerivatives.begin(); var_it!= mFirtsDoubleDerivatives.end(); ++var_it ) {
-            double& dot2un0 = itNode->FastGetSolutionStepValue(mSecondDoubleDerivatives[var_it->first]);
-            dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(var_it->second);
+        std::size_t counter = 0;
+        for ( auto& i_var : mFirtsDoubleDerivatives) {
+            double& dot2un0 = itNode->FastGetSolutionStepValue(mSecondDoubleDerivatives[counter]);
+            dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
             for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                dot2un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(var_it->second, i_order);
+                dot2un0 += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+            counter++;
         }
         
         // ARRAYS
-        for ( auto var_it = mFirtsArrayDerivatives.begin(); var_it!= mFirtsArrayDerivatives.end(); ++var_it ) {
-            array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(mSecondArrayDerivatives[var_it->first]);
-            noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(var_it->second);
+        counter = 0;
+        for ( auto& i_var : mFirtsArrayDerivatives) {
+            array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(mSecondArrayDerivatives[counter]);
+            noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
             for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-                noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(var_it->second, i_order);
+                noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(i_var, i_order);
+            counter++;
         }
     }
     

@@ -360,14 +360,14 @@ namespace Kratos
                 .def(init <const std::size_t>())
             ;
             
-//         // Residual Based BDF custom Scheme Type
-//         class_< ResidualBasedBDFCustomSchemeType,
-//             bases< BaseSchemeType >,  boost::noncopyable >
-//             (
-//                 "ResidualBasedBDFCustomScheme", init<  >() )
-//                 .def(init <const std::size_t>())
-//                 .def(init <const std::size_t, Parameters>())
-//             ;
+        // Residual Based BDF custom Scheme Type
+        class_< ResidualBasedBDFCustomSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ResidualBasedBDFCustomScheme", init<  >() )
+                .def(init <const std::size_t>())
+                .def(init <const std::size_t, Parameters>())
+            ;
 
             //********************************************************************
             //********************************************************************
