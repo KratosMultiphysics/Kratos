@@ -55,6 +55,11 @@ class CoSimulationBaseApplication
 
     std::string Name() { return this->mName; }
 
+    virtual void Initialize(std::string iMode)
+    {
+        mpIo->Initialize(this->mName);
+    }
+
     /////////////////////////////////////////////////
     /// Methods specific for Co-Simulation
     /////////////////////////////////////////////////
@@ -63,8 +68,16 @@ class CoSimulationBaseApplication
     {
         DataPointerType data = DataPointerType(new CoSimulationData<double>(iName, iSize));
         mCoSimulationData.push_back(data);
-        return data;
+        return data; 
     }
+
+    virtual DataPointerType AddCoSimulationData(std::string iName, std::string iMeshName)
+    {
+        DataPointerType data = DataPointerType(new CoSimulationData<double>(iName, iSize));
+        mCoSimulationData.push_back(data);
+        return data; 
+    }
+  
 
 
     virtual void SetIo(BaseIoPointerType iIo)

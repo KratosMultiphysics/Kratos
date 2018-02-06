@@ -51,6 +51,12 @@ class CoSimulationBaseIo
     /////////////////////////////////////////////////
     /// Methods specific for Co-Simulation
     /////////////////////////////////////////////////
+    virtual void Initialize(std::string iName)
+    {
+        std::string StringName = (dot + slash + dot + iName);        
+        CoSimulation_MakeFolder(StringName);
+    }
+
 
     /// Data synchronization methods
     /* 
