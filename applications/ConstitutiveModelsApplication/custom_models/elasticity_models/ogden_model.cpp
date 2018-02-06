@@ -389,8 +389,7 @@ namespace Kratos
 
     rDerivativeFactors[3] = rDerivativeFactors[2] * b3 + (rStressDerivatives(rOrder[0],rOrder[2]) - rStressDerivatives(rOrder[2],rOrder[1]))/(b1-b3);
     rDerivativeFactors[4] = rDerivativeFactors[2] * b3 + (rStressDerivatives(rOrder[2],rOrder[0]) - rStressDerivatives(rOrder[2],rOrder[1]))/(b1-b3);
-    rDerivativeFactors[5] = 2*b3*b3*(t1-t3)/((b1-b3)*(b1-b3)*(b1-b3)) + (rStressDerivatives(rOrder[0],rOrder[2]) - rStressDerivatives(rOrder[2],rOrder[0]))*b1*b3/((b1-b3)*(b1-b3)) - (rStressDerivatives(rOrder[0],rOrder[0]) + rStressDerivatives(rOrder[2],rOrder[2]))*b3*b3/((b1-b3)*(b1-b3)) - rStressDerivatives(rOrder[2],rOrder[1])*(b1+b3)/(b1-b3);
-
+    rDerivativeFactors[5] = 2*b3*b3*(t1-t3)/((b1-b3)*(b1-b3)*(b1-b3)) + (rStressDerivatives(rOrder[0],rOrder[2]) + rStressDerivatives(rOrder[2],rOrder[0]))*(b1*b3)/((b1-b3)*(b1-b3)) - (rStressDerivatives(rOrder[0],rOrder[0]) + rStressDerivatives(rOrder[2],rOrder[2]))*b3*b3/((b1-b3)*(b1-b3)) - rStressDerivatives(rOrder[2],rOrder[1])*(b1+b3)/(b1-b3);
 
     // alternative approach: (de Borst)
     // rDerivativeFactors[0] = (t1-t3)/((b1-b3)*(b1-b3)) - (rStressDerivatives(rOrder[2],rOrder[2]))/(b1-b3);
@@ -400,7 +399,7 @@ namespace Kratos
 
     // rDerivativeFactors[3] = rDerivativeFactors[2];
     // rDerivativeFactors[4] = 2 * rDerivativeFactors[2] * b3;
-    // rDerivativeFactors[5] = rDerivativeFactors[2] * b3 * b3;
+    //rDerivativeFactors[5] = rDerivativeFactors[2] * b3 * b3;
 
     KRATOS_CATCH(" ")
   }
@@ -456,9 +455,6 @@ namespace Kratos
     KRATOS_TRY
 
     //Calculate Ogden main stress derivatives
-    const ModelDataType&  rModelData        = rVariables.GetModelData();
-    const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
-
     const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
 
     const double& rBulkModulus = rMaterial.GetBulkModulus();
@@ -492,9 +488,6 @@ namespace Kratos
     KRATOS_TRY
 
     //Calculate Ogden main stress derivatives
-    const ModelDataType&  rModelData        = rVariables.GetModelData();
-    const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
-
     const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
     const std::vector<double>& rModelParameters = rMaterial.GetModelParameters(); //nu values, lambda values
 
@@ -506,8 +499,7 @@ namespace Kratos
     {
 	const double& mu_p = rModelParameters[p];
 	const double& alpha_p = rModelParameters[p+size];
-	double f = athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) );
-
+	
 	rValue += 0.5 * mu_p * alpha_p * std::pow(rVariables.Strain.Invariants.J,(-alpha_p*athird)) * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * ( 1.0 - this->msIdentityMatrix(i,j) );
 
     }
@@ -534,6 +526,8 @@ namespace Kratos
     noalias(StressEigenValues)=ZeroVector(3);
     this->CalculateMainStresses(rVariables, StressEigenValues);
 
+    Matrix ConstitutiveMatrixB = rConstitutiveMatrix;
+    
     double value = 0;
     for(SizeType i=0; i<rVoigtSize; i++)
     {
@@ -543,20 +537,19 @@ namespace Kratos
 
 		value = CalculateStressDerivativesI(rVariables,value,rIndexVoigtTensor[i][0],rIndexVoigtTensor[j][0]);
 		rConstitutiveMatrix(i,j) = value - 2.0 * StressEigenValues[rIndexVoigtTensor[i][0]] * this->msIdentityMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[j][0]);
+		//std::cout<<" T/C ["<<rIndexVoigtTensor[i][0]<<","<<rIndexVoigtTensor[i][1]<<","<<rIndexVoigtTensor[j][0]<<","<<rIndexVoigtTensor[j][1]<<"] "<<value<<std::endl;
 	    }
 	    else if( rIndexVoigtTensor[i][0] == rIndexVoigtTensor[j][0] && rIndexVoigtTensor[i][1] == rIndexVoigtTensor[j][1] ){
 		
 		value = CalculateStressDerivativesII(rVariables,value,rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1]);
-		rConstitutiveMatrix(i,j) = value - StressEigenValues[rIndexVoigtTensor[i][0]] * this->msIdentityMatrix(rIndexVoigtTensor[i][0],rIndexVoigtTensor[j][0]);
- 
-	    }
-	    else{
-		rConstitutiveMatrix(i,j) = 0.0;
+		rConstitutiveMatrix(i,j) = value - StressEigenValues[rIndexVoigtTensor[i][0]];
+		//std::cout<<" T/C ["<<rIndexVoigtTensor[i][0]<<","<<rIndexVoigtTensor[i][1]<<","<<rIndexVoigtTensor[j][0]<<","<<rIndexVoigtTensor[j][1]<<"] "<<value<<std::endl;				
 	    }
 	}
     }
 
-    //std::cout<<" ConstitutiveMatrix "<<rConstitutiveMatrix<<std::endl;
+    // CalculateAndAddConstitutiveTensorB(rVariables,rConstitutiveMatrix);
+    // rConstitutiveMatrix *= 0.5;
     
     rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
 
@@ -613,13 +606,13 @@ namespace Kratos
 									   StressEigenValues,DerivativeFactors,
 									   Option,TensorDerivative(t,e),
 									   rIndexVoigtTensor[i][0],rIndexVoigtTensor[i][1],
-									   rIndexVoigtTensor[j][0],e);
-	    }
+									   rIndexVoigtTensor[j][0],e);		
+	    }	    
 	    t+=1;
 	}
 
     }
-
+    
     array_1d<double,3> VectorDerivatives;
     t = 0;
     for(SizeType i=0; i<rVoigtSize; i++)
@@ -654,14 +647,16 @@ namespace Kratos
     const ModelDataType&  rModelData  = rVariables.GetModelData();
     const MatrixType& rStressMatrix   = rModelData.GetStressMatrix(); //stress stored as StressMatrix
 
+   
     double Cabcd = 0;
     for(unsigned int e=0; e<3; e++)
     {
 	Cabcd += rVectorDerivative[e] * rVariables.Strain.Matrix(e,d);
     }
 
+    
     Cabcd *= 2.0;
-    Cabcd -= (1.0/rVariables.Strain.Invariants.J)*rStressMatrix(a,d)*this->msIdentityMatrix(b,c);
+    Cabcd -= rStressMatrix(a,d)*this->msIdentityMatrix(b,c);
     //std::cout<<" Cabcd "<<Cabcd<<" stress "<<rStressMatrix(a,d)<<std::endl;
 
     rCabcd += Cabcd;
@@ -724,7 +719,7 @@ namespace Kratos
 		rCabcd += rStressDerivatives(i,j) * Dabcd;
 	    }
 	}
-	
+
 	array_1d<unsigned int,5> Order;
 	Order[0] = 0;
 	Order[1] = 1;
@@ -753,8 +748,8 @@ namespace Kratos
 	    Dabcd = ConstitutiveModelUtilities::CalculateFourthOrderTensorProduct(EigenVectorA,EigenVectorA,Dabcd,a,b,c,d);
 	    Cabcd += (rStrainEigenValues[j]-rStrainEigenValues[k]) * Dabcd;
 	    rCabcd += Cabcd * alpha;
-
 	}
+	
 
     }
 

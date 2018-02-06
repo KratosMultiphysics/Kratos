@@ -5,7 +5,7 @@
 	    "properties_id": 0,
 	    "time_settings":{
 		"time_step": 0.05,
-		"end_time":50
+		"end_time":0.05
 	    },
 	    "integration_settings":{
 		"integration_point": [0.75,0.75,0.0]

@@ -657,7 +657,7 @@ namespace Kratos
     else if( a == c && b == d ){
 	
 	Cabcd = CalculateStressDerivativesII(rVariables,Cabcd,a,b);
-	rCabcd = Cabcd - rStressEigenValues[a] * this->msIdentityMatrix(a,c);
+	rCabcd = Cabcd - rStressEigenValues[a];
 	
     }
 
