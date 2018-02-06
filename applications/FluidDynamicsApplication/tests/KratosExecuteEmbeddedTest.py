@@ -13,8 +13,6 @@ class KratosExecuteEmbeddedTest(KratosUnittest.TestCase):
 
         self.ProjectParameters = ProjectParameters
 
-        self.vector_space = KratosMultiphysics.UblasSparseSpace()
-
         self.main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
@@ -82,9 +80,10 @@ class KratosExecuteEmbeddedTest(KratosUnittest.TestCase):
         while(time <= end_time):
 
             Dt = self.solver.ComputeDeltaTime()
-            time = time + Dt
-            step = step + 1
+            step += 1
+            time += Dt
             self.main_model_part.CloneTimeStep(time)
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
 
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()

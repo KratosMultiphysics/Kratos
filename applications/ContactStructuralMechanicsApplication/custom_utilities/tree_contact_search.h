@@ -17,15 +17,14 @@
 // External includes
 
 // Project includes
+#include "processes/simple_mortar_mapper_process.h" 
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "utilities/openmp_utils.h"
 
 /* Custom includes*/
 #include "custom_includes/point_item.h"
-
-/* Custom utilities*/
-#include "custom_utilities/search_utilities.h"
+#include "custom_conditions/paired_condition.h"
 
 /* Tree structures */
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
@@ -48,6 +47,8 @@ namespace Kratos
     
     enum CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
     
+    enum CheckGap {NoCheck = 0, DirectCheck = 1, MappingCheck = 2};
+    
 ///@}
 ///@name  Functions
 ///@{
@@ -61,7 +62,7 @@ namespace Kratos
  * The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
  * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree 
  */
-
+template<unsigned int TDim, unsigned int TNumNodes>
 class TreeContactSearch
 {
 public:
@@ -97,20 +98,20 @@ public:
     
     /**
      * The constructor of the search utility uses the following inputs:
-     * @param rMainModelPart: The model part to be considered
-     * @param AllocationSize: The allocation considered in the search
-     * @param ActiveCheckFactor: The factor considered to check if active or not
-     * @param IntegrationOrder: The integration order considered
-     * @param BucketSize: The size of the bucket
+     * @param rMainModelPart The model part to be considered
+     * @param ThisParameters The condiguration parameters, it includes:
+     *                       - The allocation considered in the search
+     *                       - The factor considered to check if active or not
+     *                       - The integration order considered
+     *                       - The size of the bucket
+     *                       - The proportion increased of the Radius/Bounding-box volume for the search
+     *                       - TypeSearch: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
      * NOTE: Use an InterfacePreprocess object to create such a model part from a regular one:
      * InterfaceMapper = InterfacePreprocess()
      * InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
      */
     
-    TreeContactSearch(
-        ModelPart & rMainModelPart,
-        Parameters ThisParameters =  Parameters(R"({})")
-        );
+    TreeContactSearch( ModelPart& rMainModelPart, Parameters ThisParameters =  Parameters(R"({})") ); 
     
     virtual ~TreeContactSearch()= default;;
 
@@ -132,37 +133,19 @@ public:
      * This function clears the mortar conditions already created 
      */
     
-    void TotalClearScalarMortarConditions();
+    void ClearScalarMortarConditions();
     
     /**
      * This function clears the mortar conditions already created 
      */
     
-    void TotalClearComponentsMortarConditions();
+    void ClearComponentsMortarConditions();
     
     /**
      * This function clears the ALM frictionless mortar conditions already created 
      */
     
-    void TotalClearALMFrictionlessMortarConditions();
-    
-    /**
-     * This function clears the mortar conditions already created (scalar version)
-     */
-    
-    void PartialClearScalarMortarConditions();
-    
-    /**
-     * This function clears the mortar conditions already created (components version)
-     */
-        
-    void PartialClearComponentsMortarConditions();
-    
-    /**
-     * This function clears the ALM frictionless mortar conditions already created 
-     */
-    
-    void PartialClearALMFrictionlessMortarConditions();
+    void ClearALMFrictionlessMortarConditions();
       
     /**
      * This function creates a lists  points ready for the Mortar method
@@ -178,18 +161,9 @@ public:
 
     /**
      * This function has as pourpose to find potential contact conditions and fill the mortar conditions with the necessary pointers
-     * @param Searchfactor: The proportion increased of the Radius/Bounding-box volume for the search
-     * @param TypeSearch: 0 means search in radius, 1 means search in box // TODO: Add more types of bounding boxes, as kdops, look bounding_volume_tree.h
-     * @return The mortar conditions alreay created
      */
     
     void UpdateMortarConditions();
-    
-    /**
-     * This function has as pourpose to clean the existing pairs
-     */
-    
-    void CleanMortarConditions();
     
     /**
      * It checks the current mortar conditions
@@ -208,12 +182,6 @@ public:
      */
         
     void ResetContactOperators();
-    
-    /**
-     * This resets all the contact operators
-     */
-        
-    void TotalResetContactOperators();
     
     ///@}
     ///@name Access
@@ -258,39 +226,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-            
-    /**
-     * It check the conditions if they are correctly detected
-     * @return ConditionPointers1: A vector containing the pointers to the conditions 
-     * @param pCond1: The pointer to the condition in the destination model part
-     * @param pCond2: The pointer to the condition in the destination model part  
-     */
-    
-    static inline CheckResult CheckCondition(
-        ConditionMap::Pointer& ConditionPointers1,
-        const Condition::Pointer& pCond1,
-        const Condition::Pointer& pCond2,
-        const bool InvertedSearch = false
-        );
-    
-    /**  
-     * Calculates the minimal distance between one node and its center 
-     * @return The radius of the geometry 
-     */ 
-    
-    static inline double Radius(GeometryType& ThisGeometry);
-    
-    /**
-     * This converts the framework string to an enum
-     * @param str: The string
-     * @return SearchTreeType: The equivalent enum
-     */
-    
-    SearchTreeType ConvertSearchTree(const std::string& str);
     
     ///@}
     ///@name Protected Operations
@@ -318,17 +256,13 @@ private:
     ///@name Member Variables
     ///@{
   
-    ModelPart& mrMainModelPart;               // The main model part
-    unsigned int mDimension;                  // Dimension size of the space
-    unsigned int mAllocationSize;             // Allocation size for the vectors and max number of potential results
-    double mSearchFactor;                     // The search factor to be considered
-    bool mDualSearchCheck;                    // The search is done reciprocally
-    bool mStrictSearchCheck;                  // The search is done requiring IsInside as true
-    bool mUseExactIntegration;                // The search filter the results with the exact integration
-    bool mInvertedSearch;                     // The search will be done inverting the way master and slave/master is assigned
-    SearchTreeType mSearchTreeType;           // The search tree considered
-    unsigned int mBucketSize;                 // Bucket size for kd-tree
-    PointVector mPointListDestination;        // A list that contents the all the points (from nodes) from the modelpart 
+    ModelPart& mrMainModelPart;                      // The main model part
+    Parameters mThisParameters;                      // The configuration parameters
+    CheckGap mCheckGap;                              // If the gap is checked during the search
+    bool mInvertedSearch;                            // The search will be done inverting the way master and slave/master is assigned
+    std::string mConditionName;                      // The name of the condition to be created
+    bool mCreateAuxiliarConditions;                  // If the auxiliar conditions are created or not
+    PointVector mPointListDestination;               // A list that contents the all the points (from nodes) from the modelpart 
 
     ///@}
     ///@name Private Operators
@@ -337,7 +271,130 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+       
+    /**
+     * This method computes the maximal nodal H
+     */
+    inline double GetMaxNodalH();
+       
+    /**
+     * This method computes the mean nodal H
+     */
+    inline double GetMeanNodalH();
+       
+    /**
+     * This method initializes the acceleraction when there is a volume acceleration
+     */
+    inline void InitializeAcceleration();
+    
+    /**
+     * It check the conditions if they are correctly detected
+     * @return ConditionPointers1: A vector containing the pointers to the conditions 
+     * @param pCond1 The pointer to the condition in the destination model part
+     * @param pCond2 The pointer to the condition in the destination model part  
+     * @param InvertedSearch If the search is inverted
+     */
+    
+    static inline CheckResult CheckCondition(
+        IndexSet::Pointer IndexesSet,
+        const Condition::Pointer pCond1,
+        const Condition::Pointer pCond2,
+        const bool InvertedSearch = false
+        );
+    
+    /**
+     * This method reorders the ID of the conditions
+     */
 
+    inline std::size_t ReorderConditionsIds();
+    
+    /**
+     * This method checks the potential pairing between two conditions/geometries
+     */
+    inline void AddPotentialPairing(
+        ModelPart& rComputingModelPart,
+        std::size_t& ConditionId,
+        Condition::Pointer pCondSlave,
+        PointVector& PointsFound,
+        const unsigned int NumberOfPointsFound,
+        IndexSet::Pointer IndexesSet
+        );
+    
+    /**
+     * This method add a new pair to the computing model part
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param ConditionId The ID of the new condition to be created
+     * @param pCondSlave The pointer to the slave condition
+     * @param pCondMaster The pointer to the master condition
+     */
+    inline void AddPairing(
+        ModelPart& rComputingModelPart,
+        std::size_t& ConditionId,
+        Condition::Pointer pCondSlave,
+        Condition::Pointer pCondMaster
+        );
+    
+    /**
+     * This method add a new pair to the computing model part
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param ConditionId The ID of the new condition to be created
+     * @param pCondSlave The pointer to the slave condition
+     * @param pCondMaster The pointer to the master condition
+     * @param IndexesSet The map of indexes considered
+     */
+    inline void AddPairing(
+        ModelPart& rComputingModelPart,
+        std::size_t& ConditionId,
+        Condition::Pointer pCondSlave,
+        Condition::Pointer pCondMaster,
+        IndexSet::Pointer IndexesSet
+        );
+    
+    /**
+     * This method checks the pairing
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param ConditionId The ID of the new condition to be created
+     */
+    inline void CheckPairing(
+        ModelPart& rComputingModelPart,
+        std::size_t& ConditionId
+        );
+    
+    /**
+     * This method creates the auxiliar the pairing
+     * @param rContactModelPart The modelpart  used in the assemble of the system
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param ConditionId The ID of the new condition to be created
+     */
+    inline void CreateAuxiliarConditions(
+        ModelPart& rContactModelPart,
+        ModelPart& rComputingModelPart,
+        std::size_t& ConditionId
+        );
+    
+    /**  
+     * Calculates the minimal distance between one node and its center 
+     * @return The radius of the geometry 
+     */ 
+    
+    static inline double Radius(GeometryType& ThisGeometry);
+    
+    /**
+     * This converts the framework string to an enum
+     * @param str The string
+     * @return SearchTreeType: The equivalent enum
+     */
+    
+    SearchTreeType ConvertSearchTree(const std::string& str);
+    
+    /**
+     * This converts the framework string to an enum
+     * @param str The string
+     * @return CheckGap: The equivalent enum
+     */
+    
+    CheckGap ConvertCheckGap(const std::string& str);
+    
     ///@}
     ///@name Private  Access
     ///@{
@@ -364,22 +421,22 @@ private:
 ///@name Input and output
 ///@{
 
-/****************************** INPUT STREAM FUNCTION ******************************/
-/***********************************************************************************/
-
-template<class TPointType, class TPointerType>
-inline std::istream& operator >> (std::istream& rIStream,
-                                  TreeContactSearch& rThis);
-
-/***************************** OUTPUT STREAM FUNCTION ******************************/
-/***********************************************************************************/
-
-template<class TPointType, class TPointerType>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const TreeContactSearch& rThis)
-{
-    return rOStream;
-}
+// /****************************** INPUT STREAM FUNCTION ******************************/
+// /***********************************************************************************/
+// 
+// template<class TPointType, class TPointerType>
+// inline std::istream& operator >> (std::istream& rIStream,
+//                                   TreeContactSearch& rThis);
+// 
+// /***************************** OUTPUT STREAM FUNCTION ******************************/
+// /***********************************************************************************/
+// 
+// template<class TPointType, class TPointerType>
+// inline std::ostream& operator << (std::ostream& rOStream,
+//                                   const TreeContactSearch& rThis)
+// {
+//     return rOStream;
+// }
 
 ///@}
 

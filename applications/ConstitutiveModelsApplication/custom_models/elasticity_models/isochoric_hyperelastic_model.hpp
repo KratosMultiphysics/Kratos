@@ -307,7 +307,7 @@ namespace Kratos
 
 	StressMatrix *= 2.0;
 	
-	rStressMatrix += StressMatrix;
+	noalias(rStressMatrix) += StressMatrix;
       }
       else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 
@@ -316,7 +316,7 @@ namespace Kratos
 	
 	StressMatrix *= 2.0; 
 	
-	rStressMatrix += StressMatrix;
+	noalias(rStressMatrix) += StressMatrix;
       }
       	
 	

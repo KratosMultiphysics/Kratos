@@ -1,8 +1,32 @@
-<img src="http://www.cimne.com/kratos/img/logo.png">
+<img src="https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/kratos.png">
 
 # Overview
 
 _Kratos_ is a framework for building multi-disciplinary finite element programs. It provides several tools for fast implementation of finite element applications. CFD, CSD, Thermally Coupled Problems, Particles, ...
+
+[![Release][release-image]][releases]
+[![License][license-image]][license]
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a06a0e564b2d450dafb0684905c1e83c)](https://www.codacy.com/app/pooyan/Kratos?utm_source=github.com&utm_medium=referral&utm_content=KratosMultiphysics/Kratos&utm_campaign=badger)
+
+[release-image]: https://img.shields.io/badge/release-5.2-green.svg?style=flat
+[releases]: https://github.com/KratosMultiphysics/Kratos/releases
+
+[license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
+[license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
+
+
+
+Build Status <img src="https://blog.travis-ci.com/images/travis-mascot-200px.png" height="30"/>
+------------
+
+| Master | Release-5.2|
+|:------:|:----:|
+|[![Master][kratos-master-status]][travis-branches]|[![Release-5.2][kratos-Release-5.2-status]][travis-branches]|
+
+[kratos-Release-5.2-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=Release-5.2
+[kratos-master-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=master
+[travis-branches]: https://travis-ci.org/KratosMultiphysics/Kratos/branches
+[travis-builds]: https://travis-ci.org/KratosMultiphysics/Kratos/builds
 
 # What is _Kratos_?
 
@@ -45,3 +69,7 @@ _Kratos_ is **OPEN SOURCE**. The main code and program structure is available an
 ![](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/Home/Manos.jpg)
 
 _Kratos_ is **FREE** because it is devoted mainly to developers, researchers and students and, therefore, it is the most fruitful way to share knowledge and built a robust numerical methods laboratory adapted to their users' needs. Free because you have the freedom to modify and distribute the software. The one thing you're not able to do with free software is take away other people's freedom. Please, read the license for more detailed information.
+
+# Examples
+
+Examples can be found in the [examples repository](https://github.com/KratosMultiphysics/Examples).

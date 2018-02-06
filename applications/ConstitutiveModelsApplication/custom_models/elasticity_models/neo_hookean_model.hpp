@@ -115,7 +115,9 @@ namespace Kratos
 
       if( C10.Key() == 0 || rMaterialProperties[C10] <= 0.00 )
 	KRATOS_ERROR << "C10 has an invalid key or value" << std::endl;
-      
+      if( BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.00 )
+	KRATOS_ERROR << "BULK_MODULUS has an invalid key or value" << std::endl;
+
       return 0;
 	  
       KRATOS_CATCH(" ")	  
@@ -202,6 +204,8 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
     
+
+    //**** Particular calculation for the basic neo-hookean models ****//
     
     // virtual void CalculateAndAddStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
     // {
@@ -277,6 +281,7 @@ namespace Kratos
     //   KRATOS_CATCH(" ")
     // }
 
+    //**** Particular calculation for the basic neo-hookean models ****//
     
     //************// W
 

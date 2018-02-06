@@ -34,7 +34,7 @@ namespace Kratos
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(NURBS_COORDINATES);
 
     KratosNurbsTestcaseApplication::KratosNurbsTestcaseApplication():
-
+        KratosApplication("NurbsTestcaseApplication"),
 
 
         mNurbsPatchGeometry3D(PointerVector< Node<3> >(),Vector(), Vector(), Vector(),int(),int(),int(),int()),

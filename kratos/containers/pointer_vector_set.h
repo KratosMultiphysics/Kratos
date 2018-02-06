@@ -70,7 +70,7 @@ template<class TDataType,
          class TGetKeyType = SetIdentityFunction<TDataType>,
          class TCompareType = std::less<typename TGetKeyType::result_type>,
          class TEqualType = std::equal_to<typename TGetKeyType::result_type>,
-         class TPointerType = boost::shared_ptr<TDataType>,
+         class TPointerType = Kratos::shared_ptr<TDataType>,
          class TContainerType = std::vector<TPointerType> >
 class PointerVectorSet
 {
@@ -448,6 +448,8 @@ public:
     void clear()
     {
         mData.clear();
+        mSortedPartSize = size_type();
+        mMaxBufferSize = 1;
     }
 
     iterator find(const key_type& Key)

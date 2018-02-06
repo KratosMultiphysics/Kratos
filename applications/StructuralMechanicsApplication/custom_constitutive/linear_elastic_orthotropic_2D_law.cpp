@@ -7,19 +7,18 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
-//       Contact:    A.Winterstein@tum.de
+//       Contact:    A.Winterstein [at] tum.de
 //
 
 // System includes
 #include <iostream>
 
 // External includes
-#include<cmath>
+// #include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "includes/checks.h"
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 
 #include "structural_mechanics_application_variables.h"
 
@@ -119,6 +118,18 @@ namespace Kratos
 			this->CalculateLinearElasticMatrix(ConstitutiveMatrix, MaterialProperties);
 		}
 	}
+
+	//************************************************************************************
+	//************************************************************************************
+
+	bool& LinearElasticOrthotropic2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+	{
+		// This Constitutive Law has been checked with Stenberg Stabilization
+		if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE)
+			rValue = true;
+		
+		return rValue;
+	}
 	
 	//***********************COMPUTE TOTAL STRAIN*****************************************
 	//************************************************************************************
@@ -155,24 +166,42 @@ namespace Kratos
 	{
 		//double G13 = G12;	// currently handled through "shell_cross_section.cpp"
 		//double G23 = G12;	// currently handled through "shell_cross_section.cpp"
-		const double v12 = rMaterialProperties[POISSON_RATIO_XY];
 
-		const double v21 = v12*rMaterialProperties[YOUNG_MODULUS_Y] / rMaterialProperties[YOUNG_MODULUS_X];
+        double youngs_modulus_x, youngs_modulus_y, poisson_ration_xy, shear_modulus_xy;
+        if (rMaterialProperties.Has(SHELL_ORTHOTROPIC_LAYERS))
+        {
+            // Using the Values directly from the ply-definition
+            youngs_modulus_x  = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,1);
+            youngs_modulus_y  = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,2);
+            poisson_ration_xy = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,3);
+            shear_modulus_xy  = rMaterialProperties[SHELL_ORTHOTROPIC_LAYERS](0,4);
+        }
+        else
+        {
+            youngs_modulus_x  = rMaterialProperties[YOUNG_MODULUS_X];
+            youngs_modulus_y  = rMaterialProperties[YOUNG_MODULUS_Y];
+            poisson_ration_xy = rMaterialProperties[SHEAR_MODULUS_XY];
+            shear_modulus_xy  = rMaterialProperties[SHEAR_MODULUS_XY];
+        }
+
+		const double v12 = poisson_ration_xy;
+
+		const double v21 = v12*youngs_modulus_y / youngs_modulus_x;
 		
-		const double Q11 = rMaterialProperties[YOUNG_MODULUS_X] / (1.0 - v12*v21);
-		const double Q12 = v12*rMaterialProperties[YOUNG_MODULUS_Y] / (1.0 - v12*v21);
-		const double Q22 = rMaterialProperties[YOUNG_MODULUS_Y] / (1.0 - v12*v21);
-		const double Q66 = rMaterialProperties[SHEAR_MODULUS_XY];
+		const double Q11 = youngs_modulus_x / (1.0 - v12*v21);
+		const double Q12 = v12*youngs_modulus_y / (1.0 - v12*v21);
+		const double Q22 = youngs_modulus_y / (1.0 - v12*v21);
+		const double Q66 = shear_modulus_xy;
 		//double Q44 = G23;
 		//double Q55 = G13;
 
 		const double theta = 0.0;	// rotation currently handled through 
 		// "shell_cross_section.cpp" variable iPlyAngle. Left in for clarity.
 
-		const double c = cos(theta);
+		const double c = std::cos(theta);
 		const double c2 = c*c;
 		const double c4 = c2 * c2;
-		const double s = sin(theta);
+		const double s = std::sin(theta);
 		const double s2 = s*s;
 		const double s4 = s2*s2;
 
@@ -193,7 +222,6 @@ namespace Kratos
 
 	//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 	//************************************************************************************
-
 	
 	void LinearElasticOrthotropic2DLaw::GetLawFeatures(Features& rFeatures)
 	{
@@ -207,10 +235,10 @@ namespace Kratos
 		rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
 		//Set the strain size
-		rFeatures.mStrainSize = GetStrainSize();
+		rFeatures.mStrainSize = 3;
 
 		//Set the spacedimension
-		rFeatures.mSpaceDimension = WorkingSpaceDimension();
+		rFeatures.mSpaceDimension = 2;
 	}
 	
 
@@ -226,17 +254,20 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
-		KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS_X);
-		KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_X));
+        if(!rMaterialProperties.Has(SHELL_ORTHOTROPIC_LAYERS))
+        {
+            KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS_X);
+            KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_X));
 
-		KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS_Y);
-		KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_Y));
+            KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS_Y);
+            KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS_Y));
 
-		KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO_XY);
-		KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO_XY));
+            KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO_XY);
+            KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO_XY));
 
-		KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-		KRATOS_CHECK(rMaterialProperties.Has(DENSITY));
+            KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+            KRATOS_CHECK(rMaterialProperties.Has(DENSITY));
+        }
 
 		return 0;
 	}

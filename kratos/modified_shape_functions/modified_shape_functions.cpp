@@ -61,8 +61,8 @@ namespace Kratos
         return mNodalDistances;
     };
 
-    // Sets the condensation matrix to transform the subdivsion values to entire element ones.
-    void ModifiedShapeFunctions::SetIntersectionPointsCondensationMatrix(
+    // Sets the condensation matrix to transform the subdivision values to entire element ones.
+    void ModifiedShapeFunctions::SetCondensationMatrix(
         Matrix& rIntPointCondMatrix,
         const std::vector<int>& rEdgeNodeI,
         const std::vector<int>& rEdgeNodeJ,
@@ -102,7 +102,7 @@ namespace Kratos
     // Given the subdivision pattern of either the positive or negative side, computes the shape function values.
     void ModifiedShapeFunctions::ComputeValuesOnOneSide(
         Matrix &rShapeFunctionsValues,
-        std::vector<Matrix> &rShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rShapeFunctionsGradientsValues,
         Vector &rWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rSubdivisionsVector,
         const Matrix &rPmatrix,
@@ -133,9 +133,10 @@ namespace Kratos
             rWeightsValues.resize(n_total_int_pts, false);
         }
 
-        // Clear the gradients vector
-        rShapeFunctionsGradientsValues.clear();
-        rShapeFunctionsGradientsValues.reserve(n_total_int_pts);
+        // Resize the shape function gradients vector
+        if (rShapeFunctionsGradientsValues.size() != n_total_int_pts) {
+            rShapeFunctionsGradientsValues.resize(n_total_int_pts, false);
+        }
 
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
@@ -145,7 +146,7 @@ namespace Kratos
             // Get the subdivision shape function values
             const Matrix subdivision_sh_func_values = r_subdivision_geom.ShapeFunctionsValues(IntegrationMethod);
             ShapeFunctionsGradientsType subdivision_sh_func_gradients_values;
-            r_subdivision_geom.ShapeFunctionsIntegrationPointsGradients(subdivision_sh_func_gradients_values, IntegrationMethod);
+            subdivision_sh_func_gradients_values = r_subdivision_geom.ShapeFunctionsIntegrationPointsGradients(subdivision_sh_func_gradients_values, IntegrationMethod);
 
             // Get the subdivision Jacobian values on all Gauss pts.
             Vector subdivision_jacobians_values;
@@ -173,8 +174,6 @@ namespace Kratos
                 }
 
                 // Condense the shape function gradients local values to obtain the original nodes ones
-                Matrix aux_gauss_gradients = ZeroMatrix(n_nodes, n_dim);
-
                 Matrix sh_func_gradients_mat = ZeroMatrix(n_dim, split_edges_size);
                 for (unsigned int dim = 0; dim < n_dim; ++dim ) {
                     for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
@@ -182,25 +181,32 @@ namespace Kratos
                     }
                 }
 
-                rShapeFunctionsGradientsValues.push_back(trans(prod(sh_func_gradients_mat, rPmatrix)));
+                rShapeFunctionsGradientsValues[i_subdivision*n_int_pts + i_gauss] = trans(prod(sh_func_gradients_mat, rPmatrix));
             }
         }
     };
 
     // Given the interfaces pattern of either the positive or negative interface side, computes the shape function values.
-    void ModifiedShapeFunctions::ComputeInterfaceValuesOnOneSide(
+    void ModifiedShapeFunctions::ComputeFaceValuesOnOneSide(
         Matrix &rInterfaceShapeFunctionsValues,
-        std::vector<Matrix> &rInterfaceShapeFunctionsGradientsValues,
+        ShapeFunctionsGradientsType &rInterfaceShapeFunctionsGradientsValues,
         Vector &rInterfaceWeightsValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
+        const std::vector<IndexedPointGeometryPointerType> &rParentGeometriesVector,
+        const std::vector<unsigned int> &rInterfacesParentIdsVector,
+        const Matrix &rPmatrix,
         const IntegrationMethodType IntegrationMethod) {
 
         // Set some auxiliar variables
-        const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of positive or negative subdivisions
-        const unsigned int n_nodes = mpInputGeometry->PointsNumber();                                        // Split geometry number of nodes
-        const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
-        const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
         GeometryPointerType p_input_geometry = this->GetInputGeometry();                                     // Pointer to the input geometry
+        const unsigned int n_nodes = p_input_geometry->PointsNumber();                                       // Split geometry number of nodes
+        const unsigned int n_edges = p_input_geometry->EdgesNumber();                                        // Number of edges in original geometry
+        const unsigned int split_edges_size = n_edges + n_nodes;                                             // Split edges vector size
+        const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
+        const unsigned int n_dim = (*rParentGeometriesVector[0]).Dimension();                                // Number of dimensions
+        const unsigned int n_int_pts = 
+            n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
+        const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
         // Resize the shape function values matrix
         if (rInterfaceShapeFunctionsValues.size1() != n_total_int_pts) {
@@ -214,14 +220,17 @@ namespace Kratos
             rInterfaceWeightsValues.resize(n_total_int_pts, false);
         }
 
-        // Clear the gradients vector
-        rInterfaceShapeFunctionsGradientsValues.clear();
-        rInterfaceShapeFunctionsGradientsValues.reserve(n_total_int_pts);
+        // Resize the shape functions gradients
+        if (rInterfaceShapeFunctionsGradientsValues.size() != n_total_int_pts) {
+            rInterfaceShapeFunctionsGradientsValues.resize(n_total_int_pts, false);
+        }
 
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_interface = 0; i_interface < n_interfaces; ++i_interface) {
 
+            const unsigned int i_parent = rInterfacesParentIdsVector[i_interface];
             const IndexedPointGeometryType& r_interface_geom = *rInterfacesVector[i_interface];
+            IndexedPointGeometryType& r_parent_geom = *rParentGeometriesVector[i_parent];
 
             std::vector < CoordinatesArrayType > interface_gauss_pts_gl_coords, interface_gauss_pts_loc_coords;
             interface_gauss_pts_gl_coords.clear();
@@ -237,61 +246,74 @@ namespace Kratos
             Vector intersection_jacobians;
             r_interface_geom.DeterminantOfJacobian(intersection_jacobians, IntegrationMethod);
 
-            // Store the Gauss points weights
-            for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                rInterfaceWeightsValues(i_interface*n_int_pts + i_gauss) = intersection_jacobians(i_gauss) * interface_gauss_pts[i_gauss].Weight();
-            }
-
-            // Compute the global coordinates of the intersection Gauss pts.
-            for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                CoordinatesArrayType global_coordinates = ZeroVector(3);
-                r_interface_geom.GlobalCoordinates(global_coordinates, interface_gauss_pts[i_gauss].Coordinates());
-                interface_gauss_pts_gl_coords.push_back(global_coordinates);
-            }
-
-            // Compute the local coordinates of the intersection Gauss pts in the complete geometry.
-            for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                CoordinatesArrayType local_coordinates = ZeroVector(3);
-                local_coordinates = p_input_geometry->PointLocalCoordinates(local_coordinates, interface_gauss_pts_gl_coords[i_gauss]);
-                interface_gauss_pts_loc_coords.push_back(local_coordinates);
-            }
-
             // Get the original geometry shape function and gradients values over the intersection
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                double det_jac;
-                Vector aux_sh_func;
-                Matrix aux_grad_sh_func, aux_grad_sh_func_local, jac_mat, inv_jac_mat;
-                const CoordinatesArrayType loc_coords = interface_gauss_pts_loc_coords[i_gauss];
+                // Store the Gauss points weights
+                rInterfaceWeightsValues(i_interface*n_int_pts + i_gauss) = intersection_jacobians(i_gauss) * interface_gauss_pts[i_gauss].Weight();
+
+                // Compute the global coordinates of the intersection Gauss pt.
+                CoordinatesArrayType global_coords = ZeroVector(3);
+                global_coords = r_interface_geom.GlobalCoordinates(global_coords, interface_gauss_pts[i_gauss].Coordinates());
+
+                // Compute the parent geometry local coordinates of the intersection Gauss pt.
+                CoordinatesArrayType loc_coords = ZeroVector(3);
+                loc_coords = r_parent_geom.PointLocalCoordinates(loc_coords, global_coords);
 
                 // Compute shape function values
-                aux_sh_func = p_input_geometry->ShapeFunctionsValues(aux_sh_func, loc_coords);
+                // 1. Obtain the parent subgeometry shape function values
+                // 2. Expand them according to the split edges vector
+                // 3. Contract them again using P matrix to get the values over the input geometry
+                double det_jac;
+                Vector aux_sh_func, aux_sh_func_cond;
+
+                aux_sh_func = r_parent_geom.ShapeFunctionsValues(aux_sh_func, loc_coords);
+                Vector aux_sh_func_exp = ZeroVector(split_edges_size);
+                for (unsigned int i = 0; i < n_nodes; ++i) {
+                    aux_sh_func_exp(r_parent_geom[i].Id()) = aux_sh_func(i);
+                }
+                aux_sh_func_cond = prod(aux_sh_func_exp, rPmatrix);
                 for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                    rInterfaceShapeFunctionsValues(i_interface*n_int_pts + i_gauss, i_node) = aux_sh_func(i_node);
+                    rInterfaceShapeFunctionsValues(i_interface*n_int_pts + i_gauss, i_node) = aux_sh_func_cond(i_node);
                 }
 
                 // Compute gradient values
-                jac_mat = p_input_geometry->Jacobian(jac_mat, loc_coords);
+                // 1. Obtain the parent subgeometry shape function gradients local values
+                // 2. Get the subgeometry shape function gradients global values by multiplying the inverse Jacobian
+                // 3. Expand them according to the split edges vector
+                // 4. Contract them again using P matrix to get the values over the input geometry
+                Matrix aux_grad_sh_func, aux_grad_sh_func_cond, aux_grad_sh_func_local, jac_mat, inv_jac_mat;
+                aux_grad_sh_func_local = r_parent_geom.ShapeFunctionsLocalGradients(aux_grad_sh_func_local, loc_coords);
+                jac_mat = r_parent_geom.Jacobian(jac_mat, loc_coords);
                 MathUtils<double>::InvertMatrix( jac_mat, inv_jac_mat, det_jac );
-                aux_grad_sh_func_local = p_input_geometry->ShapeFunctionsLocalGradients(aux_grad_sh_func_local, loc_coords);
-                aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat);  
-                rInterfaceShapeFunctionsGradientsValues.push_back(aux_grad_sh_func);
+                aux_grad_sh_func = prod(aux_grad_sh_func_local, inv_jac_mat); 
+
+                Matrix aux_grad_sh_func_exp = ZeroMatrix(n_dim, split_edges_size);
+                for (unsigned int dim = 0; dim < n_dim; ++dim ) {
+                    for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
+                        aux_grad_sh_func_exp(dim, r_parent_geom[i_node].Id()) = aux_grad_sh_func(i_node, dim);
+                    }
+                }
+
+                aux_grad_sh_func_cond = prod(aux_grad_sh_func_exp, rPmatrix);
+                rInterfaceShapeFunctionsGradientsValues[i_interface*n_int_pts + i_gauss] = trans(aux_grad_sh_func_cond);
             }
         }
     };
 
-    // Given the interfaces pattern of either the positive or negative interface side, computes the outwards unit normal vector
-    void ModifiedShapeFunctions::ComputeInterfaceNormalOnOneSide(
-        std::vector<Vector> &rInterfaceUnitNormalValues,
+    // Given the interfaces pattern of either the positive or negative interface side, computes the outwards area normal vector
+    void ModifiedShapeFunctions::ComputeFaceNormalOnOneSide(
+        std::vector<Vector> &rInterfaceAreaNormalValues,
         const std::vector<IndexedPointGeometryPointerType> &rInterfacesVector,
         const IntegrationMethodType IntegrationMethod) {
 
         // Set some auxiliar variables
         const unsigned int n_interfaces = rInterfacesVector.size();                                          // Number of interfaces
-        const unsigned int n_int_pts = (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod);   // Number of Gauss pts. per interface
+        const unsigned int n_int_pts = 
+            n_interfaces > 0 ? (*rInterfacesVector[0]).IntegrationPointsNumber(IntegrationMethod) : 0;       // Number of Gauss pts. per interface
         const unsigned int n_total_int_pts = n_interfaces * n_int_pts;                                       // Total Gauss pts.
 
-        rInterfaceUnitNormalValues.clear();
-        rInterfaceUnitNormalValues.reserve(n_total_int_pts);
+        rInterfaceAreaNormalValues.clear();
+        rInterfaceAreaNormalValues.reserve(n_total_int_pts);
 
         // Compute each Gauss pt. shape functions values
         for (unsigned int i_interface = 0; i_interface < n_interfaces; ++i_interface) {
@@ -303,13 +325,11 @@ namespace Kratos
             IntegrationPointsArrayType interface_gauss_pts;
             interface_gauss_pts = r_interface_geom.IntegrationPoints(IntegrationMethod);
 
-            // Compute the ouwards unit normal vector values
+            // Compute the ouwards area normal vector values
             for (unsigned int i_gauss = 0; i_gauss < n_int_pts; ++i_gauss) {
-                array_1d<double,3> aux_unit_normal = r_interface_geom.UnitNormal(interface_gauss_pts[i_gauss].Coordinates());
-                rInterfaceUnitNormalValues.push_back(aux_unit_normal);
+                array_1d<double,3> aux_area_normal = r_interface_geom.AreaNormal(interface_gauss_pts[i_gauss].Coordinates());
+                rInterfaceAreaNormalValues.push_back(aux_area_normal);
             }
         }
     };
-
-
 }; // namespace Kratos

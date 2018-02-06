@@ -39,8 +39,8 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         self.error_assumed = self.params["error_assumed"].GetDouble()
         
     def ExecuteInitialize(self):
-        self.file_name_1 = os.getcwd() + "/" + self.params["file_name_1"].GetString()
-        self.file_name_2 = os.getcwd() + "/" + self.params["file_name_2"].GetString()
+        self.file_name_1 = os.path.join(os.getcwd(), self.params["file_name_1"].GetString())
+        self.file_name_2 = os.path.join(os.getcwd(), self.params["file_name_2"].GetString())
         
     def ExecuteBeforeSolutionLoop(self):
         pass
@@ -144,6 +144,10 @@ def _ReadMetric(input_file1, input_file2, dimension):
             space = "  "
             end_line = "  \n"
         
+        if (lines1[i][0] == " "):
+            lines1[i] = lines1[i][1:]
+        if (lines2[i][0] == " "):
+            lines1[i][0] = lines2[i][1:]
         tmp1 = _ConvertStringToListFloat(lines1[i], space, end_line)
         tmp2 = _ConvertStringToListFloat(lines2[i], space, end_line)
         

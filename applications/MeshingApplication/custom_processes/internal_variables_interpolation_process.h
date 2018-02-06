@@ -99,9 +99,9 @@ public:
 
     /**
      * The constructor of the search utility uses the following inputs:
-     * @param rOriginMainModelPart: The model part from where interpolate values
-     * @param rDestinationMainModelPart: The model part where we want to interpolate the values
-     * @param ThisParameters: The parameters containing all the information needed
+     * @param rOriginMainModelPart The model part from where interpolate values
+     * @param rDestinationMainModelPart The model part where we want to interpolate the values
+     * @param ThisParameters The parameters containing all the information needed
      */
 
     InternalVariablesInterpolationProcess(
@@ -232,7 +232,7 @@ private:
 
     /**
      * This function creates a lists of gauss points ready for the search
-     * @param ThisModelPart: The model part to consider
+     * @param ThisModelPart The model part to consider
      */
 
     PointVector CreateGaussPointList(ModelPart& ThisModelPart);
@@ -257,11 +257,11 @@ private:
 
     /**
      * This converts the interpolation string to an enum
-     * @param str: The string that you want to comvert in the equivalent enum
+     * @param Str The string that you want to comvert in the equivalent enum
      * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
 
-    InterpolationTypes ConvertInter(const std::string& str);
+    InterpolationTypes ConvertInter(const std::string& Str);
 
     ///@}
     ///@name Private  Access

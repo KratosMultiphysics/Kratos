@@ -6,8 +6,8 @@ from . import recoverer
 
 
 class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
-    def __init__(self, pp, model_part, cplusplus_recovery_tool):
-        recoverer.DerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
+    def __init__(self, pp, model_part):
+        recoverer.DerivativesRecoverer.__init__(self, pp, model_part)
         self.dimension = pp.domain_size
         self.model_part = model_part
         self.use_lumped_mass_matrix = pp.CFD_DEM["material_acceleration_calculation_type"].GetInt() == 3
@@ -95,8 +95,8 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
             self.custom_functions_tool.SetValueOfAllNotes(self.recovery_model_part, ZeroVector(3), variable)
 
 class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, recoverer.VorticityRecoverer):
-    def __init__(self, pp, model_part, cplusplus_recovery_tool):
-        Pouliot2012EdgeDerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
+    def __init__(self, pp, model_part):
+        Pouliot2012EdgeDerivativesRecoverer.__init__(self, pp, model_part)
         self.element_type = self.GetElementType(pp)
         self.FillUpModelPart(self.element_type)
         self.DOFs = self.GetDofs(pp)
@@ -149,8 +149,8 @@ class Pouliot2012EdgeGradientRecoverer(Pouliot2012EdgeDerivativesRecoverer, reco
             return (VELOCITY_Z_GRADIENT_X, VELOCITY_Z_GRADIENT_Y, VELOCITY_Z_GRADIENT_Z)
 
 class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecoverer, recoverer.MaterialAccelerationRecoverer):
-    def __init__(self, pp, model_part, cplusplus_recovery_tool):
-        Pouliot2012EdgeGradientRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
+    def __init__(self, pp, model_part):
+        Pouliot2012EdgeGradientRecoverer.__init__(self, pp, model_part)
         self.store_full_gradient = self.pp.CFD_DEM["store_full_gradient_option"].GetBool()
 
     def RecoverMaterialAcceleration(self):
@@ -166,8 +166,8 @@ class Pouliot2012EdgeMaterialAccelerationRecoverer(Pouliot2012EdgeGradientRecove
             self.cplusplus_recovery_tool.CalculateVectorMaterialDerivativeComponent(self.model_part, VELOCITY_Z_GRADIENT, ACCELERATION, MATERIAL_ACCELERATION)
 
 class Pouliot2012EdgeLaplacianRecoverer(Pouliot2012EdgeMaterialAccelerationRecoverer, recoverer.LaplacianRecoverer):
-    def __init__(self, pp, model_part, cplusplus_recovery_tool):
-        Pouliot2012EdgeDerivativesRecoverer.__init__(self, pp, model_part, cplusplus_recovery_tool)
+    def __init__(self, pp, model_part):
+        Pouliot2012EdgeDerivativesRecoverer.__init__(self, pp, model_part)
         self.element_type = self.GetElementType(pp)
         self.condition_type = self.GetConditionType(pp)
         self.FillUpModelPart(self.element_type)

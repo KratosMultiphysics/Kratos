@@ -159,21 +159,21 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new TwoFluidVMS element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
+        return Kratos::make_shared< TwoFluidVMS >(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties);
     }
     Element::Pointer Create(IndexType NewId,
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const override
     {
-        return boost::make_shared< TwoFluidVMS >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< TwoFluidVMS >(NewId, pGeom, pProperties);
     }
     
     /// Provides local contributions from body forces to the RHS
@@ -389,7 +389,7 @@ KRATOS_WATCH(Ngauss);  */
             double TauOne, TauTwo;
 
             //compute stabilization parameters
-            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
+            this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
             this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, DarcyTerm, TauOne, TauTwo, N, DN_DX, wGauss);
             
@@ -501,7 +501,7 @@ KRATOS_WATCH(Ngauss);  */
             const double DarcyTerm = A + B*VelNorm;
 
             double TauOne,TauTwo;
-            this->CalculateTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
+            this->CalculateStabilizationTau(TauOne, TauTwo, VelNorm, ElemSize, Density, Viscosity, DarcyTerm, rCurrentProcessInfo);
 
             // Add dynamic stabilization terms ( all terms involving a delta(u) )
             this->AddMassStabTerms(MassMatrix, Density, AdvVel, DarcyTerm, TauOne, N, DN_DX, wGauss);
@@ -868,11 +868,11 @@ protected:
      * values given by rShapeFunc and add the result, weighted by Weight, to
      * rResult. This is an auxiliary function used to compute values in integration
      * points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Step: The time Step (Defaults to 0 = Current)
-     * @param Weight: The variable will be weighted by this value before it is added to rResult
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Step The time Step (Defaults to 0 = Current)
+     * @param Weight The variable will be weighted by this value before it is added to rResult
      */
     virtual void AddPointContribution(double& rResult,
                                       const Variable< double >& rVariable,
@@ -888,10 +888,10 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Step: The time Step (Defaults to 0 = Current)
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Step The time Step (Defaults to 0 = Current)
      */
     void EvaluateInPoint(double& rResult,
                                  const Variable< double >& rVariable,
@@ -924,10 +924,10 @@ protected:
      * values given by rShapeFunc and add the result, weighted by Weight, to
      * rResult. This is an auxiliary function used to compute values in integration
      * points.
-     * @param rResult: The vector where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Weight: The variable will be weighted by this value before it is added to rResult
+     * @param rResult The vector where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Weight The variable will be weighted by this value before it is added to rResult
      */
     virtual void AddPointContribution(array_1d< double, 3 > & rResult,
                                       const Variable< array_1d< double, 3 > >& rVariable,
@@ -944,9 +944,9 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
      */
     void EvaluateInPoint(array_1d< double, 3 > & rResult,
                                  const Variable< array_1d< double, 3 > >& rVariable,
@@ -1120,7 +1120,7 @@ protected:
         }
     }
 
-    void CalculateTau(
+    void CalculateStabilizationTau(
         double& TauOne,
         double& TauTwo,
         const double VelNorm,

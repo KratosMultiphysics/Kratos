@@ -31,9 +31,12 @@ def CreateSolver(main_model_part, custom_settings):
         elif (solver_type == "eigen_value"):
             solver_module_name = "structural_mechanics_eigensolver"
 
+        elif (solver_type == "harmonic_analysis"):
+            solver_module_name = "structural_mechanics_harmonic_analysis_solver"
+
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"Static\", \"Dynamic\", \"eigen_value\""
+            err_msg += "Available options are: \"Static\", \"Dynamic\", \"eigen_value\", \"harmonic_analysis\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
@@ -58,6 +61,11 @@ def CreateSolver(main_model_part, custom_settings):
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
         err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
+
+    # Remove settings that are not needed any more
+    custom_settings["solver_settings"].RemoveValue("solver_type")
+    if custom_settings["solver_settings"].Has("time_integration_method"):
+        custom_settings["solver_settings"].RemoveValue("time_integration_method")
 
     solver_module = __import__(solver_module_name)
     solver = solver_module.CreateSolver(main_model_part, custom_settings["solver_settings"])
