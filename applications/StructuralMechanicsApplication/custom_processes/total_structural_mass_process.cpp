@@ -32,16 +32,15 @@ void TotalStructuralMassProcess::Execute()
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
     
     #pragma omp parallel for reduction(+:total_mass)
-    for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) 
-    {
-        auto it_elem = elements_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(elements_array.size()); ++i){
+        const auto it_elem = elements_array.begin() + i;
         
         // We get the condition geometry
-        GeometryType& r_this_geometry = it_elem->GetGeometry();
+        const GeometryType& r_this_geometry = it_elem->GetGeometry();
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         
         // We get the values from the condition
-        Kratos::Properties& this_properties = it_elem->GetProperties();
+        const Properties& this_properties = it_elem->GetProperties();
         const double density = this_properties[DENSITY];
         
         if (local_space_dimension == 1) { // BEAM CASE
@@ -51,8 +50,9 @@ void TotalStructuralMassProcess::Execute()
             const double thickness = this_properties[THICKNESS];
             total_mass += density * thickness * r_this_geometry.Area();
         } else { // SOLID
-            const double thickness = (dimension == 2) ? this_properties[THICKNESS] : 1.0;
-            total_mass += density * thickness * r_this_geometry.Volume();
+            const double thickness = (dimension == 2) ? (this_properties.Has(THICKNESS)) ? this_properties[THICKNESS] : 1.0 : 1.0;
+            const double volume = (dimension == 2) ? r_this_geometry.Area() : r_this_geometry.Volume();
+            total_mass += density * thickness * volume;
         }
     }
     
