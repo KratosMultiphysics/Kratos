@@ -63,6 +63,16 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     def _create_solution_scheme(self):
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
+        # In case of rotation dof we declare the dynamic variables
+        if self.settings["rotation_dofs"].GetBool():
+            dynamic_variables = KratosMultiphysics.Parameters("""
+            {
+                "variable"              : ["DISPLACEMENT","ROTATION"],
+                "first_derivative"      : ["VELOCITY","ANGULAR_VELOCITY"],
+                "second_derivative"     : ["ACCELERATION","ANGULAR_ACCELERATION"]
+            }
+            """)
+            
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
         if(scheme_type == "newmark"):
@@ -72,9 +82,15 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
         elif(scheme_type == "backward_euler"):
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
+            if self.settings["rotation_dofs"].GetBool():
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(1, dynamic_variables)
+            else:
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
         elif(scheme_type == "bdf2"):
-            mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
+            if self.settings["rotation_dofs"].GetBool():
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(2, dynamic_variables)
+            else:
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
         elif(scheme_type == "relaxation"):
             damp_factor_f =-0.3
             dynamic_factor_m = 10.0
