@@ -27,10 +27,10 @@ namespace Kratos
 {
 	namespace StaticCondensationUtility
 	{
-		void CondenseLeftHandSide(
+        void CondenseLeftHandSide(
             ElementType& rTheElement,
             MatrixType& rLeftHandSideMatrix,
-			const std::vector<int> & rDofList)
+            const std::vector<int> & rDofList)
         {
             KRATOS_TRY;
             const SizeType num_dofs_condensed = rDofList.size();
@@ -70,8 +70,8 @@ namespace Kratos
 
         std::vector<MatrixType> CalculateSchurComplements(
             ElementType& rTheElement,
-			const MatrixType& rLeftHandSideMatrix,
-			const std::vector<int> & rDofList)
+            const MatrixType& rLeftHandSideMatrix,
+            const std::vector<int> & rDofList)
         {
             KRATOS_TRY;
             // K11(0) K12(1)	
@@ -90,24 +90,24 @@ namespace Kratos
             sub_matrices[3] = ZeroMatrix(num_dofs_condensed, num_dofs_condensed);
 
             FillSchurComplements(sub_matrices[0], rLeftHandSideMatrix, remaining_dof_list, 
-                                 remaining_dof_list, num_dofs_remaining, num_dofs_remaining);
+                                    remaining_dof_list, num_dofs_remaining, num_dofs_remaining);
 
             FillSchurComplements(sub_matrices[1], rLeftHandSideMatrix, remaining_dof_list, 
-                                 rDofList, num_dofs_remaining, num_dofs_condensed);
+                                    rDofList, num_dofs_remaining, num_dofs_condensed);
 
             FillSchurComplements(sub_matrices[2], rLeftHandSideMatrix, rDofList, 
-                                 remaining_dof_list, num_dofs_condensed, num_dofs_remaining);
+                                    remaining_dof_list, num_dofs_condensed, num_dofs_remaining);
 
             FillSchurComplements(sub_matrices[3], rLeftHandSideMatrix, rDofList, 
-                                 rDofList, num_dofs_condensed, num_dofs_condensed);
+                                    rDofList, num_dofs_condensed, num_dofs_condensed);
 
             return sub_matrices;
             KRATOS_CATCH("") 
         }
 
-		std::vector<int> CreateRemainingDofList(
+        std::vector<int> CreateRemainingDofList(
             ElementType& rTheElement,
-			const std::vector<int> & rDofList)
+            const std::vector<int> & rDofList)
         {
             KRATOS_TRY;
             const SizeType num_dofs_condensed = rDofList.size();
@@ -132,13 +132,13 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-		void FillSchurComplements(
-			MatrixType& Submatrix,
-			const MatrixType& rLeftHandSideMatrix,
-			const std::vector<int>& rVecA,
-			const std::vector<int>& rVecB,
-			const SizeType& rSizeA,
-			const SizeType& rSizeB) //maybe inline
+        void FillSchurComplements(
+            MatrixType& Submatrix,
+            const MatrixType& rLeftHandSideMatrix,
+            const std::vector<int>& rVecA,
+            const std::vector<int>& rVecB,
+            const SizeType& rSizeA,
+            const SizeType& rSizeB) //maybe inline
         {
             KRATOS_TRY;
             SizeType current_dof_a = 0;
@@ -156,7 +156,7 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-		void ConvertingCondensation(
+        void ConvertingCondensation(
             ElementType& rTheElement,
             Vector& rLocalizedDofVector,
             Vector& rValues,

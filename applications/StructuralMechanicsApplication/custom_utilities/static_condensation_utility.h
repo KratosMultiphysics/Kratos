@@ -30,22 +30,22 @@ namespace Kratos
 {
 	namespace StaticCondensationUtility
 	{
-        typedef Element ElementType;
-        typedef std::size_t SizeType;
-        typedef Matrix MatrixType;
+		typedef Element ElementType;
+		typedef std::size_t SizeType;
+		typedef Matrix MatrixType;
 
 		void CondenseLeftHandSide(
-            ElementType& rTheElement,
+			ElementType& rTheElement,
 			MatrixType& rLeftHandSideMatrix,
 			const std::vector<int> & rDofList);
 
 		std::vector<MatrixType> CalculateSchurComplements(
-            ElementType& rTheElement,
+			ElementType& rTheElement,
 			const MatrixType& rLeftHandSideMatrix,
 			const std::vector<int> & rDofList);
 
 		std::vector<int> CreateRemainingDofList(
-            ElementType& rTheElement,
+			ElementType& rTheElement,
 			const std::vector<int> & rDofList);
 
 		void FillSchurComplements(
@@ -57,13 +57,13 @@ namespace Kratos
 			const SizeType& rSizeB); //maybe inline
 
 		void ConvertingCondensation(
-            ElementType& rTheElement,
+			ElementType& rTheElement,
 			Vector& rLocalizedDofVector,
 			Vector& rValues,
 			const std::vector<int>& rDofList,
 			const MatrixType& rLeftHandSideMatrix);
 
-        SizeType GetNumDofsElement(ElementType& rTheElement);
+		SizeType GetNumDofsElement(ElementType& rTheElement);
 
 	}  // namespace StaticCondensationUtility
   

@@ -890,16 +890,14 @@ namespace Kratos
 	void CrBeamElement2D2N::save(Serializer& rSerializer) const
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-		// PROBLEM ::: serializer cant save and load bounded_vectors
-		//rSerializer.save("DeformationForces", this->DeformationForces);
+		rSerializer.save("DeformationForces", this->DeformationForces);
 		rSerializer.save("GlobalInternalForces", this->F_int_global);
 	}
 
 	void CrBeamElement2D2N::load(Serializer& rSerializer)
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-		// PROBLEM ::: serializer cant save and load bounded_vectors
-		//rSerializer.load("DeformationForces", this->DeformationForces);
+		rSerializer.load("DeformationForces", this->DeformationForces);
 		rSerializer.load("GlobalInternalForces", this->F_int_global);
 	}
 } // namespace Kratos.
