@@ -27,7 +27,7 @@ import data_logger_factory
 # ==============================================================================
 def CreateAlgorithm( ModelPartController, Analyzer, Communicator, OptimizationSettings ):
     AlgorithmName = OptimizationSettings["optimization_algorithm"]["name"].GetString()
-    
+
     Mapper = mapper_factory.CreateMapper( ModelPartController, OptimizationSettings ) 
     DataLogger = data_logger_factory.CreateDataLogger( ModelPartController, Communicator, OptimizationSettings )  
 

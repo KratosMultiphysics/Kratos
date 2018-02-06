@@ -117,7 +117,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ResetMeshDisplacement()
+    void ResetMeshToReferenceMesh()
     {
         for(auto & node_i: mrModelPart.Nodes())
         {

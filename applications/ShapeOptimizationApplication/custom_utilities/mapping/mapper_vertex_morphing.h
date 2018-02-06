@@ -104,13 +104,13 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphing( ModelPart& designSurface, Parameters MapperSettings )
+    MapperVertexMorphing( ModelPart& designSurface, Parameters mapper_settings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables(designSurface.Nodes().size()),
-          mFilterType( MapperSettings["filter_function_type"].GetString() ),
-          mFilterRadius( MapperSettings["filter_radius"].GetDouble() ),
-          mMaxNumberOfNeighbors( MapperSettings["max_nodes_in_filter_radius"].GetInt() ),
-          mConsistentBackwardMapping (MapperSettings["consistent_mapping_to_geometry_space"].GetBool() )
+          mFilterType( mapper_settings["filter_function_type"].GetString() ),
+          mFilterRadius( mapper_settings["filter_radius"].GetDouble() ),
+          mMaxNumberOfNeighbors( mapper_settings["max_nodes_in_filter_radius"].GetInt() ),
+          mConsistentBackwardMapping (mapper_settings["consistent_mapping_to_geometry_space"].GetBool() )
     {
         CreateListOfNodesOfDesignSurface();
         CreateFilterFunction();

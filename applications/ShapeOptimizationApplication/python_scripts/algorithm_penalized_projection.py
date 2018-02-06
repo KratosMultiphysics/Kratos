@@ -133,11 +133,12 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __callAnalyzerToPerformRequestedAnalyses( self ):
         self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
-        self.__ResetPossibleMeshDisplacementDuringAnalysis()
+        self.__ResetPossibleMeshModificationDuringAnalysis()
 
     # --------------------------------------------------------------------------
-    def __ResetPossibleMeshDisplacementDuringAnalysis( self ):
-        self.ModelPartController.ResetMeshDisplacement()
+    def __ResetPossibleMeshModificationDuringAnalysis( self ):
+        self.ModelPartController.ResetMeshToReferenceMesh()
+
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
         gradientOfObjectiveFunction = self.Communicator.getReportedGradientOf ( self.onlyObjective )

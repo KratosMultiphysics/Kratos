@@ -56,8 +56,8 @@ class ModelPartController:
         self.MeshController.UpdateMeshAccordingInputVariable( InputVariable )
 
     # --------------------------------------------------------------------------    
-    def ResetMeshDisplacement( self ):
-        MeshControllerUtilities( self.OptimizationModelPart ).ResetMeshDisplacement()    
+    def ResetMeshToReferenceMesh( self ):
+        MeshControllerUtilities( self.OptimizationModelPart ).ResetMeshToReferenceMesh()    
 
     # --------------------------------------------------------------------------
     def GetOptimizationModelPart( self ):
