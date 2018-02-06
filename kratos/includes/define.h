@@ -26,17 +26,20 @@
 /* Project includes */
 #include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
+#include "includes/shared_pointers.h"
 #include "includes/exception.h"
 
 
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    #define KRATOS_COMPILED_IN_LINUX
 
-#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef boost::shared_ptr<a > Pointer; \
-typedef boost::shared_ptr<a > SharedPointer; \
-typedef boost::weak_ptr<a > WeakPointer
+#elif defined(__APPLE__) && defined(__MACH__)
+    #define KRATOS_COMPILED_IN_OSX
 
-#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef boost::shared_ptr<a > Pointer; \
-typedef typename boost::shared_ptr<a > SharedPointer; \
-typedef typename boost::weak_ptr<a > WeakPointer
+#elif defined(_WIN32)
+    #define KRATOS_COMPILED_IN_WINDOWS
+#endif
+
 
 //-----------------------------------------------------------------
 //

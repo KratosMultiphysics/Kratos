@@ -1,10 +1,16 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import structural_mechanics_solver
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Importing the Kratos Library
+import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
+
+# Import applications
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+
+# Import base class file
+import structural_mechanics_solver
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -26,6 +32,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
+            "scheme_type"   : "newmark",
             "damp_factor_m" :-0.3,
             "rayleigh_alpha": 0.0,
             "rayleigh_beta" : 0.0
@@ -33,10 +40,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
-        if not custom_settings.Has("scheme_type"): # Override defaults in the base class.
-            custom_settings.AddEmptyValue("scheme_type")
-            custom_settings["scheme_type"].SetString("newmark")
-        
+
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
         print("::[ImplicitMechanicalSolver]:: Construction finished")
@@ -54,7 +58,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     #### Private functions ####
 
     def _create_solution_scheme(self):
-        scheme_type = self.settings["scheme_type"].GetString()
+        scheme_type = self.dynamic_settings["scheme_type"].GetString()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
         if(scheme_type == "newmark"):

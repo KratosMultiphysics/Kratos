@@ -13,9 +13,7 @@
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "testing/testing.h"
@@ -23,14 +21,13 @@
 #include "includes/kratos_application.h"
 #include "includes/kernel.h"
 
-
 namespace Kratos {
-	namespace Testing {
+namespace Testing {
 
-		KRATOS_TEST_CASE_IN_SUITE(ModelPartIOSubModelPartsDivision, KratosCoreFastSuite)
-		{
-			boost::shared_ptr<std::iostream> p_input(new std::stringstream(
-				R"input(
+KRATOS_TEST_CASE_IN_SUITE(
+    ModelPartIOSubModelPartsDivision, KratosCoreFastSuite) {
+    Kratos::shared_ptr<std::iostream> p_input(new std::stringstream(
+        R"input(
 				Begin ModelPartData
                                  DENSITY 2700.000000
 				 BODY_FORCE [3] (0.000000,0.000000,0.000000)
@@ -94,81 +91,157 @@ namespace Kratos {
                                 End SubModelPart
 			)input"));
 
-			Kernel kernel;
-			KratosApplication application;
-			application.Register();
-			kernel.Initialize();
+    Kernel kernel;
+    KratosApplication application(std::string("Kratos"));
+    application.Register();
+    kernel.Initialize();
 
-			ModelPartIO model_part_io(p_input);
+    ModelPartIO model_part_io(p_input);
 
-			boost::shared_ptr<std::stringstream> p_output_0(new std::stringstream);
-			boost::shared_ptr<std::stringstream> p_output_1(new std::stringstream);
-			boost::shared_ptr<std::iostream> streams[2] = { p_output_0, p_output_1 };
+    Kratos::shared_ptr<std::stringstream> p_output_0(new std::stringstream);
+    Kratos::shared_ptr<std::stringstream> p_output_1(new std::stringstream);
+    Kratos::shared_ptr<std::iostream> streams[2] = {p_output_0, p_output_1};
 
-			std::size_t number_of_partitions = 2;
-			std::size_t number_of_colors = 1;
-			IO::GraphType domains_colored_graph(number_of_partitions, number_of_colors);
-			domains_colored_graph(0, 0) = 1;
-			domains_colored_graph(1, 0) = 0;
-			IO::PartitionIndicesType nodes_partitions = { 0,0,1,1 };
-			IO::PartitionIndicesType elements_partitions = { 0,1 };
-			IO::PartitionIndicesType conditions_partitions = { 0,1 };
-			IO::PartitionIndicesContainerType nodes_all_partitions = { { 0 },{ 0,1 },{ 1 },{ 0,1 } };
-			IO::PartitionIndicesContainerType elements_all_partitions = { { 0 },{ 1 } };
-			IO::PartitionIndicesContainerType conditions_all_partitions = { { 0 },{ 1 } };
+    std::size_t number_of_partitions = 2;
+    std::size_t number_of_colors = 1;
+    IO::GraphType domains_colored_graph(number_of_partitions, number_of_colors);
+    domains_colored_graph(0, 0) = 1;
+    domains_colored_graph(1, 0) = 0;
+    IO::PartitionIndicesType nodes_partitions = {0, 0, 1, 1};
+    IO::PartitionIndicesType elements_partitions = {0, 1};
+    IO::PartitionIndicesType conditions_partitions = {0, 1};
+    IO::PartitionIndicesContainerType nodes_all_partitions = {
+        {0}, {0, 1}, {1}, {0, 1}};
+    IO::PartitionIndicesContainerType elements_all_partitions = {{0}, {1}};
+    IO::PartitionIndicesContainerType conditions_all_partitions = {{0}, {1}};
 
-			model_part_io.DivideInputToPartitions(streams, number_of_partitions, domains_colored_graph,
-				nodes_partitions,
-				elements_partitions,
-				conditions_partitions,
-				nodes_all_partitions,
-				elements_all_partitions,
-				conditions_all_partitions);
+    model_part_io.DivideInputToPartitions(streams, number_of_partitions,
+        domains_colored_graph, nodes_partitions, elements_partitions,
+        conditions_partitions, nodes_all_partitions, elements_all_partitions,
+        conditions_all_partitions);
 
-			ModelPart model_part_0("Partition 0");
-			model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
-			model_part_0.AddNodalSolutionStepVariable(FORCE);
-			model_part_0.AddNodalSolutionStepVariable(PARTITION_INDEX);
-			model_part_0.GetCommunicator().SetNumberOfColors(number_of_colors);
+    ModelPart model_part_0("Partition 0");
+    model_part_0.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part_0.AddNodalSolutionStepVariable(FORCE);
+    model_part_0.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    model_part_0.GetCommunicator().SetNumberOfColors(number_of_colors);
 
-			ModelPartIO model_part_io_0(p_output_0);
-			model_part_io_0.ReadModelPart(model_part_0);
+    ModelPartIO model_part_io_0(p_output_0);
+    model_part_io_0.ReadModelPart(model_part_0);
 
+    KRATOS_CHECK_EQUAL(model_part_0.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(model_part_0.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(model_part_0.NumberOfConditions(), 1);
+    KRATOS_CHECK_EQUAL(model_part_0.NumberOfSubModelParts(), 1);
+    KRATOS_CHECK(model_part_0.HasSubModelPart("BasePart"));
+    KRATOS_CHECK_EQUAL(
+        model_part_0.GetSubModelPart("BasePart").NumberOfNodes(), 2);
+    KRATOS_CHECK_EQUAL(
+        model_part_0.GetSubModelPart("BasePart").NumberOfElements(), 0);
+    KRATOS_CHECK_EQUAL(
+        model_part_0.GetSubModelPart("BasePart").NumberOfConditions(), 1);
 
-			KRATOS_CHECK_EQUAL(model_part_0.NumberOfNodes(), 3);
-			KRATOS_CHECK_EQUAL(model_part_0.NumberOfElements(), 1);
-			KRATOS_CHECK_EQUAL(model_part_0.NumberOfConditions(), 1);
-			KRATOS_CHECK_EQUAL(model_part_0.NumberOfSubModelParts(), 1);
-			KRATOS_CHECK(model_part_0.HasSubModelPart("BasePart"));
-			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BasePart").NumberOfNodes(), 2);
-			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BasePart").NumberOfElements(), 0);
-			KRATOS_CHECK_EQUAL(model_part_0.GetSubModelPart("BasePart").NumberOfConditions(), 1);
+    ModelPart model_part_1("Partition 1");
+    model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part_1.AddNodalSolutionStepVariable(FORCE);
+    model_part_1.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    model_part_1.GetCommunicator().SetNumberOfColors(number_of_colors + 1);
 
-			ModelPart model_part_1("Partition 1");
-			model_part_1.AddNodalSolutionStepVariable(DISPLACEMENT);
-			model_part_1.AddNodalSolutionStepVariable(FORCE);
-			model_part_1.AddNodalSolutionStepVariable(PARTITION_INDEX);
-			model_part_1.GetCommunicator().SetNumberOfColors(number_of_colors + 1);
+    ModelPartIO model_part_io_1(p_output_1);
+    model_part_io_1.ReadModelPart(model_part_1);
 
-			ModelPartIO model_part_io_1(p_output_1);
-			model_part_io_1.ReadModelPart(model_part_1);
+    KRATOS_CHECK_EQUAL(model_part_1.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(model_part_1.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(model_part_1.NumberOfConditions(), 1);
+    KRATOS_CHECK_EQUAL(model_part_1.NumberOfSubModelParts(), 1);
+    KRATOS_CHECK(model_part_1.HasSubModelPart("BasePart"));
+    KRATOS_CHECK_EQUAL(
+        model_part_1.GetSubModelPart("BasePart").NumberOfNodes(), 1);
+    KRATOS_CHECK_EQUAL(
+        model_part_1.GetSubModelPart("BasePart").NumberOfElements(), 0);
+    KRATOS_CHECK_EQUAL(
+        model_part_1.GetSubModelPart("BasePart").NumberOfConditions(), 0);
 
-			KRATOS_CHECK_EQUAL(model_part_1.NumberOfNodes(), 3);
-			KRATOS_CHECK_EQUAL(model_part_1.NumberOfElements(), 1);
-			KRATOS_CHECK_EQUAL(model_part_1.NumberOfConditions(), 1);
-			KRATOS_CHECK_EQUAL(model_part_1.NumberOfSubModelParts(), 1);
-			KRATOS_CHECK(model_part_1.HasSubModelPart("BasePart"));
-			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BasePart").NumberOfNodes(), 1);
-			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BasePart").NumberOfElements(), 0);
-			KRATOS_CHECK_EQUAL(model_part_1.GetSubModelPart("BasePart").NumberOfConditions(), 0);
+    //KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(p_output_1->str(), R"/(Begin SubModelPart BaseNodes
+    //Begin SubModelPartNodes
+    //2
+    //End SubModelPartNodes
+    //End Mesh)/");
+}
 
+KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
+    
+    // Create a model part to write
+    ModelPart main_model_part("MainModelPart");
+    main_model_part.SetBufferSize(1);
+    Properties::Pointer p_properties_1(new Properties(1));
+    p_properties_1->SetValue(DENSITY, 1000.0);
+    p_properties_1->SetValue(VISCOSITY, 1E-05);
+    main_model_part.AddProperties(p_properties_1);
 
-//KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(p_output_1->str(), R"/(Begin SubModelPart BaseNodes
-//Begin SubModelPartNodes
-//2
-//End SubModelPartNodes
-//End Mesh)/");
+    main_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    main_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    main_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+    main_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
 
-		}
-	}
+    std::vector<ModelPart::IndexType> elem_nodes_1 = {1,2,4};
+    std::vector<ModelPart::IndexType> elem_nodes_2 = {3,4,2};
+    main_model_part.CreateNewElement("Element2D3N", 1, elem_nodes_1, p_properties_1);
+    main_model_part.CreateNewElement("Element2D3N", 2, elem_nodes_2, p_properties_1);
+
+    std::vector<ModelPart::IndexType> cond_nodes_1 = {1,2};
+    std::vector<ModelPart::IndexType> cond_nodes_2 = {3,4};
+    std::vector<ModelPart::IndexType> cond_nodes_3 = {4};
+    main_model_part.CreateNewCondition("Condition2D2N", 1, cond_nodes_1, p_properties_1);
+    main_model_part.CreateNewCondition("Condition2D2N", 2, cond_nodes_2, p_properties_1);
+    main_model_part.CreateNewCondition("PointCondition2D1N", 3, cond_nodes_3, p_properties_1);
+
+    ModelPart::Pointer p_sub_model_part = main_model_part.CreateSubModelPart("SubModelPart");
+    std::vector<ModelPart::IndexType> sub_model_part_nodes = {1,2,4};
+    std::vector<ModelPart::IndexType> sub_model_part_elems = {1};
+    std::vector<ModelPart::IndexType> sub_model_part_conds = {1,3};
+    p_sub_model_part->AddNodes(sub_model_part_nodes);
+    p_sub_model_part->AddElements(sub_model_part_elems);
+    p_sub_model_part->AddConditions(sub_model_part_conds);
+
+    // Create the output .mdpa file
+    std::string output_file_name = "main_model_part_output";
+    std::fstream output_file;
+    output_file.open(output_file_name + ".mdpa", std::fstream::out);
+    output_file.close();
+
+    // Fill the output .mdpa file
+    ModelPartIO model_part_io_write(output_file_name, IO::WRITE);
+    model_part_io_write.WriteModelPart(main_model_part);
+
+    // Read and check the written .mdpa file
+    ModelPartIO model_part_io_output(output_file_name);
+    ModelPart main_model_part_output("MainModelPartOutput");
+    model_part_io_output.ReadModelPart(main_model_part_output);
+
+    // Assert results
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfProperties(), 1);
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfSubModelParts() ,1);
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfNodes(), 4);
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfElements(), 2);
+    KRATOS_CHECK_EQUAL(main_model_part_output.NumberOfConditions(), 3);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfConditions(), 2);
+
+    // Remove the generated files
+    std::string aux_string_mdpa = output_file_name + ".mdpa"; 
+    std::string aux_string_time = output_file_name + ".time";
+    const char *mdpa_to_remove = aux_string_mdpa.c_str();
+    const char *time_to_remove = aux_string_time.c_str();
+    std::string error_msg = "Error deleting test output file: " + output_file_name;
+    if (remove(mdpa_to_remove) != 0) {
+        KRATOS_ERROR << error_msg + ".mdpa";
+    }
+    if (remove(time_to_remove) != 0) {
+        KRATOS_ERROR << error_msg + ".time";
+    }
+}
+
+}  // namespace Testing.
 }  // namespace Kratos.

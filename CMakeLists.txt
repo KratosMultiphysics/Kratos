@@ -29,6 +29,10 @@ SET( CMAKE_CXX_FLAGS_CUSTOM "" )
 SET( CMAKE_SHARED_LINKER_FLAGS_CUSTOM "" )
 SET( CMAKE_EXE_LINKER_FLAGS_CUSTOM "" )
 
+if(USE_COTIRE MATCHES ON)
+    set(CMAKE_SKIP_RPATH ON)
+endif(USE_COTIRE MATCHES ON)
+
 # If build mode is not defined, assume Release
 if(NOT CMAKE_BUILD_TYPE)
   message("Undefined CMAKE_BUILD_TYPE, building in 'Release' mode.")
@@ -403,9 +407,15 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
-# Kratos Testing
+# Kratos Testing. Install everything except sources
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests 
+    PATTERN "*.git" EXCLUDE
+    PATTERN "*.c" EXCLUDE
+    PATTERN "*.h" EXCLUDE
+    PATTERN "*.cpp" EXCLUDE
+    PATTERN "*.hpp" EXCLUDE
+  )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 ################################################################################

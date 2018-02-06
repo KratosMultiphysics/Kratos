@@ -16,6 +16,7 @@
 #include <boost/python/raw_function.hpp>
 
 // Project includes
+#include "includes/define.h"
 #include "input_output/logger.h"
 
 using namespace boost::python;

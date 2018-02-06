@@ -146,14 +146,14 @@ public:
     {
         boost::timer timer;        
         std::cout << "> Creating search tree to perform mapping..." << std::endl;        
-        mpSearchTree = boost::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
+        mpSearchTree = Kratos::shared_ptr<KDTree>(new KDTree(mListOfNodesOfDesignSurface.begin(), mListOfNodesOfDesignSurface.end(), mBucketSize));
         std::cout << "> Search tree created in: " << timer.elapsed() << " s" << std::endl;        
     }   
 
     // --------------------------------------------------------------------------
     void CreateFilterFunction()
     {
-        mpFilterFunction = boost::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
+        mpFilterFunction = Kratos::shared_ptr<FilterFunction>(new FilterFunction(mFilterType, mFilterRadius));
     }     
 
     // --------------------------------------------------------------------------

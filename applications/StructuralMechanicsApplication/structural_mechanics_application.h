@@ -34,7 +34,6 @@
 #include "custom_elements/cr_beam_element_3D2N.hpp"
 #include "custom_elements/cr_beam_element_2D2N.hpp"
 
-
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/membrane_element.hpp"
@@ -76,6 +75,9 @@
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
@@ -375,6 +377,9 @@ private:
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
+    const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
+    const HyperElasticIsotropicKirchhoffPlaneStrain2D  mHyperElasticIsotropicKirchhoffPlaneStrain2D;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
     const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;

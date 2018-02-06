@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:         KratosFluidDynamicsApplication $
-//   Last modified by:    $Author:              RZorrilla $
-//   Date:                $Date:             October 2016 $
-//   Revision:            $Revision:                  0.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ruben Zorrilla
 //
 
 #if !defined (KRATOS_NEWTONIAN_LAW_2D_H_INCLUDED)

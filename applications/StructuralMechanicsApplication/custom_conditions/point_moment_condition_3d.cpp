@@ -43,7 +43,7 @@ namespace Kratos
 
     Condition::Pointer PointMomentCondition3D::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
-        return Condition::Pointer( new PointMomentCondition3D ( NewId, pGeom, pProperties ));
+        return Kratos::make_shared<PointMomentCondition3D>( NewId, pGeom, pProperties );
     }
 
     //************************************************************************************
@@ -51,7 +51,7 @@ namespace Kratos
 
     Condition::Pointer PointMomentCondition3D::Create( IndexType NewId, NodesArrayType const& rThisNodes,  PropertiesType::Pointer pProperties ) const
     {
-        return Condition::Pointer( new PointMomentCondition3D ( NewId, GetGeometry().Create( rThisNodes ), pProperties ));
+        return Kratos::make_shared<PointMomentCondition3D>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************

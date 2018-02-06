@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 #if !defined (KRATOS_BINGHAM_LAW_3D_H_INCLUDED)

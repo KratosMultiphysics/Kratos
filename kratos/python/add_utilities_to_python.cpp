@@ -64,6 +64,10 @@ void AddUtilitiesToPython()
 {
     using namespace boost::python;
 
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
     class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >("PythonGenericFunctionUtility", init<const std::string&>() )
     .def(init<const std::string&, Parameters>())
@@ -84,8 +88,18 @@ void AddUtilitiesToPython()
     .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
     ;
 
+    // This is required to recognize the different overloads of ConditionNumberUtility::GetConditionNumber
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef double (ConditionNumberUtility::*InputGetConditionNumber)(SparseSpaceType::MatrixType&, LinearSolverType::Pointer, LinearSolverType::Pointer);
+    typedef double (ConditionNumberUtility::*DirectGetConditionNumber)(SparseSpaceType::MatrixType&);
+
+    InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
+    DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
+    
     class_<ConditionNumberUtility>("ConditionNumberUtility", init<>())
-    .def("GetConditionNumber",&ConditionNumberUtility::GetConditionNumber)
+    .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
+    .def("GetConditionNumber", ThisGetConditionNumber)
+    .def("GetConditionNumber", ThisDirectGetConditionNumber)
     ;
 
     class_<VariableUtils > ("VariableUtils", init<>())
@@ -103,7 +117,9 @@ void AddUtilitiesToPython()
     .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
     .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
     // .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
-    // .def("CheckVariableExists", &VariableUtils::SetToZero_VelocityVectorVar)
+    // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< Variable<double> >)
+    // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
+    // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< Variable<array_1d<double, 3> > > )
     .def("ApplyFixity", &VariableUtils::ApplyFixity< Variable<double> >)
     .def("ApplyFixity", &VariableUtils::ApplyFixity< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("ApplyVector", &VariableUtils::ApplyVector< Variable<double> >)
@@ -329,19 +345,16 @@ void AddUtilitiesToPython()
     // Exact integration (for testing)
     class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<>())
     .def(init<const unsigned int>())
-    .def(init<const unsigned int, const bool>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<2,2>::TestGetExactAreaIntegration)
     ;
     class_<ExactMortarIntegrationUtility<3,3>>("ExactMortarIntegrationUtility3D3N", init<>())
     .def(init<const unsigned int>())
-    .def(init<const unsigned int, const bool>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,3>::TestGetExactAreaIntegration)
     ;
     class_<ExactMortarIntegrationUtility<3,4>>("ExactMortarIntegrationUtility3D4N", init<>())
     .def(init<const unsigned int>())
-    .def(init<const unsigned int, const bool>())
     .def("TestGetExactIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactIntegration)
     .def("TestGetExactAreaIntegration",&ExactMortarIntegrationUtility<3,4>::TestGetExactAreaIntegration)
     ;
