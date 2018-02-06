@@ -42,6 +42,13 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_parameters);
 
+        # Check shape functions input data
+        shape_func = settings["shape_functions"].GetString()
+        if (shape_func != "standard"):
+            if (shape_func != "ausas"):
+                error_msg = "Requested shape functions " + shape_func + " are not implemented yet.\n Available options are:\n\t- ausas\n\t- standard"
+                raise Exception(error_msg)
+
         # Get the origin model part
         self.origin_model_part = Model[settings["model_part_name"].GetString()]
 
