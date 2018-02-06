@@ -32,16 +32,15 @@ void TotalStructuralMassProcess::Execute()
     ElementsArrayType& elements_array = mrThisModelPart.Elements();
     
     #pragma omp parallel for reduction(+:total_mass)
-    for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) 
-    {
-        auto it_elem = elements_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(elements_array.size()); ++i){
+        const auto it_elem = elements_array.begin() + i;
         
         // We get the condition geometry
-        GeometryType& r_this_geometry = it_elem->GetGeometry();
+        const GeometryType& r_this_geometry = it_elem->GetGeometry();
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         
         // We get the values from the condition
-        Kratos::Properties& this_properties = it_elem->GetProperties();
+        const Properties& this_properties = it_elem->GetProperties();
         const double density = this_properties[DENSITY];
         
         if (local_space_dimension == 1) { // BEAM CASE
