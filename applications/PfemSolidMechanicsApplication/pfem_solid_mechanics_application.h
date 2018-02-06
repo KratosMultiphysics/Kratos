@@ -50,8 +50,6 @@
 #include "custom_elements/updated_lagrangian_U_W_wP_DME_element.hpp"
 #include "custom_elements/updated_lagrangian_U_J_W_wP_element.hpp"
 #include "custom_elements/updated_lagrangian_U_J_W_wP_HO_element.hpp"
-#include "custom_elements/updated_lagrangian_U_J_W_wP_stab_element.hpp"
-#include "custom_elements/updated_lagrangian_U_J_W_wP_FIC_element.hpp"
 #include "custom_elements/updated_lagrangian_U_J_W_wP_DME_element.hpp"
 #include "custom_elements/small_displacement_U_W_wP_element.hpp"
 
@@ -289,8 +287,6 @@ namespace Kratos
     const UpdatedLagrangianUWwPDMEElement        mUpdatedLagrangianUWwPDMEElement2D3N;
     const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement2D3N;
     const UpdatedLagrangianUJWwPHOElement              mUpdatedLagrangianUJWwPHOElement2D3N;
-    const UpdatedLagrangianUJWwPStabElement          mUpdatedLagrangianUJWwPStabElement2D3N;
-    const UpdatedLagrangianUJWwPFICElement            mUpdatedLagrangianUJWwPFICElement2D3N;
     const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement2D3N;
     const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement3D4N;
     const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement3D4N;
