@@ -44,7 +44,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     const bool ReformModelPartAtEachTimeStep) : 
     Process(), 
     mrModelPart(rModelPart), 
-    mrVisualizationModelPart(rVisualizationModelPart) , 
+    mrVisualizationModelPart(rVisualizationModelPart), 
     mVisualizationScalarVariables(VisualizationScalarVariables),
     mVisualizationVectorVariables(VisualizationVectorVariables),
     mVisualizationComponentVariables(VisualizationComponentVariables),
@@ -64,7 +64,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     {
         "shape_functions"                     : "standard",
         "reform_model_part_at_each_time_step" : false,
-        "visualization_variables"             : ["VELOCITY","PRESSURE"]
+        "visualization_variables"             : ["VELOCITY","PRESSURE","DISTANCE"]
     })");
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -93,22 +93,22 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitialize() {
     KRATOS_TRY;
 
     // Required variables check
-    const Node<3> &r_node = *mrModelPart.NodesBegin();
-    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_node);
+    const Node<3> &r_orig_node = *mrModelPart.NodesBegin();
+    KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISTANCE, r_orig_node);
 
     // Check visualization scalar variables
     for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationScalarVariables[i_var], r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationScalarVariables[i_var], r_orig_node);
     }
 
     // Check visualization vector variables
     for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationVectorVariables[i_var], r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationVectorVariables[i_var], r_orig_node);
     }
 
     // Check visualization component variables
     for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationComponentVariables[i_var], r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(mVisualizationComponentVariables[i_var], r_orig_node);
     }
 
     KRATOS_CATCH("");
@@ -141,17 +141,21 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
         mrVisualizationModelPart.AddProperties(p_pos_prop, p_pos_prop->Id());
         mrVisualizationModelPart.AddProperties(p_neg_prop, p_neg_prop->Id());
 
-        // Add all the origin model part nodes to the visualization model part
+        // Create a copy of all the origin model part nodes to the visualization model part
         // Note that the original nodes will be reused when creating the splitting geometries
-        mrVisualizationModelPart.AddNodes(mrModelPart.NodesBegin(), mrModelPart.NodesEnd());
+        ModelPart::NodeIterator orig_nodes_begin = mrModelPart.NodesBegin();
+        for (int i_node = 0; i_node < static_cast<int>(n_nodes); ++i_node){
+            auto it_node = orig_nodes_begin + i_node;
+            auto pnode = mrVisualizationModelPart.CreateNewNode(it_node->Id(), it_node->X(), it_node->Y(), it_node->Z());
+        }
 
         // Add the elements to the visualization model part
         ModelPart::ElementIterator elems_begin = mrModelPart.ElementsBegin();
         for (unsigned int i_elem = 0; i_elem < n_elems; ++i_elem){
-            auto it_elem = elems_begin + i_elem;
+            ModelPart::ElementIterator it_elem = elems_begin + i_elem;
 
             // Get element geometry
-            Geometry<Node<3>>::Pointer p_geometry = it_elem->pGetGeometry();
+            const Geometry<Node<3>>::Pointer p_geometry = it_elem->pGetGeometry();
             const unsigned int n_nodes = p_geometry->PointsNumber();
             Vector nodal_distances(n_nodes);
 
@@ -192,12 +196,14 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
                         DivideGeometry::IndexedPointType &sub_geom_node = p_sub_geom->operator[](i_sub_geom_node);
                         const unsigned int local_id = sub_geom_node.Id();
 
-                        // Non-intersection node. Take the node from the parent geometry
+                        // Non-intersection node. Get the copied original geometry nodes
+                        // Note that we do not reuse the original model part node since this forces
+                        // the new intersection nodes to have the same buffer size, variables list, etc.
                         if (local_id < sub_geom_n_nodes){
-                            sub_geom_nodes_array.push_back(p_geometry->operator()(local_id));
-
-                        // Intersection node. The node is located in an intersected edge.
-                        // Thus, take it from the geometry created by the splitting util.
+                            const unsigned int aux_gl_id = (p_geometry->operator()(local_id))->Id();
+                            sub_geom_nodes_array.push_back(mrVisualizationModelPart.pGetNode(aux_gl_id));
+                            // Intersection node. The node is located in an intersected edge.
+                            // Thus, take it from the geometry created by the splitting util.
                         } else {
                             const unsigned int intersected_edge_id = local_id - n_nodes;
 
@@ -316,7 +322,7 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
                 } else {
                     (mrVisualizationModelPart.ElementsEnd()-1)->SetProperties(p_neg_prop);
                 }
-            }
+            } 
         }
 
         // Once all the entities have been created, renumber the ids.
@@ -330,17 +336,17 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
         mrModelPart.GetCommunicator().ScanSum(n_conds_local, n_conds_scansum);
 
         // Origin model part number of entities
-        int n_orig_nodes = mrModelPart.NumberOfNodes();
-        int n_orig_elems = mrModelPart.NumberOfElements();
-        int n_orig_conds = mrModelPart.NumberOfConditions();
-        mrModelPart.GetCommunicator().SumAll(n_orig_nodes);
-        mrModelPart.GetCommunicator().SumAll(n_orig_elems);
-        mrModelPart.GetCommunicator().SumAll(n_orig_conds);
+        int n_nodes_orig = mrModelPart.NumberOfNodes();
+        int n_elems_orig = mrModelPart.NumberOfElements();
+        int n_conds_orig = mrModelPart.NumberOfConditions();
+        mrModelPart.GetCommunicator().SumAll(n_nodes_orig);
+        mrModelPart.GetCommunicator().SumAll(n_elems_orig);
+        mrModelPart.GetCommunicator().SumAll(n_conds_orig);
 
         // Initialize the new ids. values
-        std::size_t new_node_id(n_orig_nodes + n_nodes_scansum);
-        std::size_t new_elem_id(n_orig_elems + n_elems_scansum);
-        std::size_t new_cond_id(n_orig_conds + n_conds_scansum);
+        std::size_t new_node_id(n_nodes_orig + n_nodes_scansum - n_nodes_local + 1);
+        std::size_t new_elem_id(n_elems_orig + n_elems_scansum - n_elems_local + 1);
+        std::size_t new_cond_id(n_conds_orig + n_conds_scansum - n_conds_local + 1);
 
         // Set the new entities ids. values
         auto new_nodes_begin = new_nodes_vect.begin();
@@ -349,17 +355,20 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
 
         for (int i_node = 0; i_node < static_cast<int>(new_nodes_vect.size()); ++i_node){
             auto it_node = new_nodes_begin + i_node;
-            it_node->SetId(new_node_id++);
-        }
-
-        for (int i_cond = 0; i_cond < static_cast<int>(new_conds_vect.size()); ++i_cond){
-            auto it_cond = new_conds_begin + i_cond;
-            it_cond->SetId(new_cond_id++);
+            const unsigned int new_id = new_node_id + i_node;
+            it_node->SetId(new_id);
         }
 
         for (int i_elem = 0; i_elem < static_cast<int>(mNewElementsPointers.size()); ++i_elem){
             auto it_elem = new_elems_begin + i_elem;
-            it_elem->SetId(new_elem_id++);
+            const unsigned int new_id = new_elem_id + i_elem;
+            it_elem->SetId(new_id);
+        }
+
+        for (int i_cond = 0; i_cond < static_cast<int>(new_conds_vect.size()); ++i_cond){
+            auto it_cond = new_conds_begin + i_cond;
+            const unsigned int new_id = new_cond_id + i_cond;
+            it_cond->SetId(new_id);
         }
 
         mrVisualizationModelPart.AddElements(mNewElementsPointers.begin(), mNewElementsPointers.end());
@@ -374,6 +383,31 @@ void EmbeddedSkinVisualizationProcess::ExecuteInitializeSolutionStep() {
 }
 
 void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
+
+    // First of all, get the original model part nodal values for the non-intersection nodes
+    const unsigned int n_old_nodes = mrModelPart.NumberOfNodes();
+    ModelPart::NodeConstantIterator old_nodes_begin = mrModelPart.NodesBegin();
+    ModelPart::NodeIterator new_nodes_begin = mrVisualizationModelPart.NodesBegin();
+
+    for (int i_node = 0; i_node < static_cast<int>(n_old_nodes); ++i_node){
+        auto it_new_node = new_nodes_begin + i_node;
+        const auto it_old_node = old_nodes_begin + i_node;
+
+        for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
+            it_new_node->FastGetSolutionStepValue(mVisualizationScalarVariables[i_var]) = 
+                it_old_node->FastGetSolutionStepValue(mVisualizationScalarVariables[i_var]);
+        }
+
+        for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
+            it_new_node->FastGetSolutionStepValue(mVisualizationVectorVariables[i_var]) = 
+                it_old_node->FastGetSolutionStepValue(mVisualizationVectorVariables[i_var]);
+        }
+
+        for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
+            it_new_node->FastGetSolutionStepValue(mVisualizationComponentVariables[i_var]) = 
+                it_old_node->FastGetSolutionStepValue(mVisualizationComponentVariables[i_var]);
+        }
+    }
 
     // For all the new elements, compute the interpolation with the proper shape functions
     const int n_new_elems = mNewElementsPointers.size();
@@ -390,28 +424,43 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeOutputStep() {
         // Bear in mind that the non-split geometries kept the parent geometry
         // values, since they have been built using the origin model part nodes.
         for (unsigned int i_node = 0; i_node < n_points; ++i_node){
-            Node<3>::Pointer p_node = r_geometry(i_node);
-
             // Search for the current node in the cut nodes hash map
+            Node<3>::Pointer p_node = r_geometry(i_node);
             CutNodesMapType::iterator cut_node_info = mCutNodesMap.find(p_node);
 
             // If it is not find, keep the origin value
             // Otherwise, the nodal values are computed with the modified shape functions values
             // Note that there is no necessity of locking the nodes since are always repeated
             if (cut_node_info != mCutNodesMap.end()){
+
                 // Get the cut node info from the map tuple iterator
                 Node<3>::Pointer p_edge_node_i, p_edge_node_j;
                 double weight_edge_node_i, weight_edge_node_j;
                 std::tie(p_edge_node_i, p_edge_node_j, weight_edge_node_i, weight_edge_node_j) = std::get<1>(*cut_node_info);
 
-                // Interpolate the nodal values
-                double &pres_edge_node_i = p_edge_node_i->FastGetSolutionStepValue(PRESSURE);
-                double &pres_edge_node_j = p_edge_node_j->FastGetSolutionStepValue(PRESSURE);
-                p_node->FastGetSolutionStepValue(PRESSURE) = weight_edge_node_i*pres_edge_node_i + weight_edge_node_j*pres_edge_node_j;
+                // Interpolate the scalar variables
+                for (unsigned int i_var = 0; i_var < mVisualizationScalarVariables.size(); ++i_var){
+                    Variable<double> scalar_var = mVisualizationScalarVariables[i_var];
+                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(scalar_var);
+                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(scalar_var);
+                    p_node->FastGetSolutionStepValue(scalar_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
+                }
 
-                array_1d<double, 3>& vel_node_i = p_edge_node_i->FastGetSolutionStepValue(VELOCITY);
-                array_1d<double, 3>& vel_node_j = p_edge_node_j->FastGetSolutionStepValue(VELOCITY);
-                p_node->FastGetSolutionStepValue(VELOCITY) = weight_edge_node_i*vel_node_i + weight_edge_node_j*vel_node_j;
+                // Interpolate the vector variables
+                for (unsigned int i_var = 0; i_var < mVisualizationVectorVariables.size(); ++i_var){
+                    Variable<array_1d<double, 3> > vector_var = mVisualizationVectorVariables[i_var];
+                    const array_1d<double, 3> &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(vector_var);
+                    const array_1d<double, 3> &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(vector_var);
+                    p_node->FastGetSolutionStepValue(vector_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
+                }
+
+                // Interpolate the component variables
+                for (unsigned int i_var = 0; i_var < mVisualizationComponentVariables.size(); ++i_var){
+                    VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > comp_var = mVisualizationComponentVariables[i_var];
+                    const double &edge_node_i_value = p_edge_node_i->FastGetSolutionStepValue(comp_var);
+                    const double &edge_node_j_value = p_edge_node_j->FastGetSolutionStepValue(comp_var);
+                    p_node->FastGetSolutionStepValue(comp_var) = weight_edge_node_i * edge_node_i_value + weight_edge_node_j * edge_node_j_value;
+                }
             }
         }
     }
@@ -427,14 +476,14 @@ void EmbeddedSkinVisualizationProcess::ExecuteFinalizeSolutionStep(){
         mNewElementsPointers.clear();
 
         // Mark all the nodes, elements and conditions to be removed
-        VariableUtils().SetFlag<ModelPart::NodesContainerType>(MARKER, true, mrVisualizationModelPart.Nodes());
-        VariableUtils().SetFlag<ModelPart::ElementsContainerType>(MARKER, true, mrVisualizationModelPart.Elements());
-        VariableUtils().SetFlag<ModelPart::ConditionsContainerType>(MARKER, true, mrVisualizationModelPart.Conditions());
+        VariableUtils().SetFlag<ModelPart::NodesContainerType>(TO_ERASE, true, mrVisualizationModelPart.Nodes());
+        VariableUtils().SetFlag<ModelPart::ElementsContainerType>(TO_ERASE, true, mrVisualizationModelPart.Elements());
+        VariableUtils().SetFlag<ModelPart::ConditionsContainerType>(TO_ERASE, true, mrVisualizationModelPart.Conditions());
 
         // Remove all the nodes, elements and conditions
-        mrVisualizationModelPart.RemoveNodes(MARKER);
-        mrVisualizationModelPart.RemoveElements(MARKER);
-        mrVisualizationModelPart.RemoveConditions(MARKER);
+        mrVisualizationModelPart.RemoveNodes(TO_ERASE);
+        mrVisualizationModelPart.RemoveElements(TO_ERASE);
+        mrVisualizationModelPart.RemoveConditions(TO_ERASE);
 
         // Initialize the create visualization mesh flag again
         mSetVisualizationMesh = true;
@@ -462,7 +511,6 @@ const bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
     const bool is_positive = (n_pos == pts_number) ? true : false;
 
     return is_positive;
-
 }
 
 const bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
@@ -484,7 +532,6 @@ const bool EmbeddedSkinVisualizationProcess::ElementIsSplit(
     const bool is_split = (n_pos > 0 && n_neg > 0) ? true : false;
 
     return is_split;
-
 }
 
 ModifiedShapeFunctions::Pointer EmbeddedSkinVisualizationProcess::SetModifiedShapeFunctionsUtility(
