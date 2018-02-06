@@ -256,7 +256,7 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	Vector get_eigenvector_of_element(ModelPart::ElementType& traced_element, const int& id_eigenvalue, const int& size_of_eigenvector)
+	Vector get_eigenvector_of_element(ModelPart::ElementIterator traced_element, int id_eigenvalue, int size_of_eigenvector)
 	{
 
 		KRATOS_TRY;
@@ -268,11 +268,11 @@ public:
            	  KratosComponents<VariableDenseMatrixType>::Get("EIGENVECTOR_MATRIX");
 
 		int k = 0;
-		for (auto& node_i : traced_element.GetGeometry())
+		for (ModelPart::NodeIterator node_i = traced_element->GetGeometry().begin(); node_i != traced_element->GetGeometry().end(); ++node_i)
 		{
-			Matrix& rNodeEigenvectors = node_i.GetValue(rEIGENVECTOR_MATRIX);
+			Matrix& rNodeEigenvectors = node_i->GetValue(rEIGENVECTOR_MATRIX);
 
-			ModelPart::NodeType::DofsContainerType& NodeDofs = node_i.GetDofs();
+			ModelPart::NodeType::DofsContainerType& NodeDofs = node_i->GetDofs();
 
 			int NumNodeDofs = NodeDofs.size();
 
@@ -296,8 +296,8 @@ public:
 
 		// First gradients are initialized
 		array_3d zeros_array(3, 0.0);
-		for (auto& node_i : mr_model_part.Nodes())
-			noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT) ) = zeros_array;
+		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
+			noalias(node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT) ) = zeros_array;
 
 		// Gradient calculation is done by a semi-analytic approaches
 		// The gradient is computed in one step
@@ -347,8 +347,8 @@ public:
 		boost::python::dict dFdX;
 
 		// Fill dictionary with gradient information
-		for (auto& node_i : mr_model_part.Nodes())
-			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
+		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
+			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
 
 		return dFdX;
 
@@ -416,7 +416,7 @@ protected:
 		// Working variables
 		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 
-		for (auto& elem_i : mr_model_part.Elements())
+		for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
 		{
 			Matrix mass_matrix_org;
 			Matrix LHS_org;
@@ -424,8 +424,8 @@ protected:
 			Vector dummy;
 			Matrix aux_matrix = Matrix(0,0);
 			Vector aux_vector = Vector(0);
-			elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
-			elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
+			elem_i->CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
+			elem_i->CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
 			double traced_eigenvalue = 0.0;
 
 			// Get size of element eigenvector and initialize eigenvector
@@ -443,19 +443,19 @@ protected:
 			}
 
 			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
-			for (auto& node_i : elem_i.GetGeometry())
+			for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
 			{
 				array_3d gradient_contribution(3, 0.0);
 				Matrix perturbed_LHS = Matrix(0,0);
 				Matrix perturbed_mass_matrix = Matrix(0,0);
 
 				// Derivative of response w.r.t. x-coord ------------------------
-				node_i.X0() += mDelta;
+				node_i->X0() += mDelta;
 
-				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
+				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
 
-				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
+				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
 				// Loop over eigenvalues
@@ -481,7 +481,7 @@ protected:
 				gradient_contribution[0] /= ks_values_sum;
 				gradient_contribution[0] *= -1.0;
 
-				node_i.X0() -= mDelta;
+				node_i->X0() -= mDelta;
 
 				// End derivative of response w.r.t. x-coord --------------------
 
@@ -491,12 +491,12 @@ protected:
 
 
 				// Derivative of response w.r.t. y-coord ------------------------
-				node_i.Y0() += mDelta;
+				node_i->Y0() += mDelta;
 
-				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
+				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
 
-				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
+				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
 				// Loop over eigenvalues
@@ -520,7 +520,7 @@ protected:
 				gradient_contribution[1] /= ks_values_sum;
 				gradient_contribution[1] *= -1.0;
 
-				node_i.Y0() -= mDelta;
+				node_i->Y0() -= mDelta;
 				// End derivative of response w.r.t. y-coord --------------------
 
 				// Reset pertubed RHS and mass matrix
@@ -528,13 +528,13 @@ protected:
 				perturbed_mass_matrix= Matrix(0,0);
 
 				// Derivative of response w.r.t. z-coord ------------------------
-				node_i.Z0() += mDelta;
+				node_i->Z0() += mDelta;
 
-				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
+				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
 
 
-				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
+				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
 				// Loop over eigenvalues
@@ -558,11 +558,11 @@ protected:
 				gradient_contribution[2] /= ks_values_sum;
 				gradient_contribution[2] *= -1.0;
 
-				node_i.Z0() -= mDelta;
+				node_i->Z0() -= mDelta;
 				// End derivative of response w.r.t. z-coord --------------------
 
 				// Assemble sensitivity to node
-				noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT)) += gradient_contribution;
+				noalias(node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT)) += gradient_contribution;
 
 			}// End loop over nodes of element
 
