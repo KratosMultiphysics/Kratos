@@ -137,8 +137,8 @@ public:
 
     /**
      * Clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param rThisNodes: the nodes of the new element
+     * @param NewId the ID of the new element
+     * @param rThisNodes the nodes of the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override {
@@ -153,8 +153,8 @@ public:
     /**
      * Fill the element data structure. If the element is split,
      * calls the modified shape functions calculator.
-     * @param rData: reference to the element data structure
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rData reference to the element data structure
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     void FillEmbeddedElementData(
         EmbeddedElementDataStruct& rData,
@@ -229,9 +229,9 @@ public:
 
     /**
      * Calculates both LHS and RHS contributions
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS vector
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
@@ -273,10 +273,10 @@ public:
     /**
      * Calculates both LHS and RHS elemental contributions for those cases in where
      * all the nodes belong to the fluid domain.
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS vector
-     * @param rData: reference to element data structure
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rData reference to element data structure
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     template<unsigned int MatrixSize>
     void ComputeElementAsFluid(
@@ -315,10 +315,10 @@ public:
     /**
     * Calculates both LHS and RHS elemental contributions for those cases in where
     * the element has both fluid and structure nodes.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
-    * @param rCurrentProcessInfo: reference to the ProcessInfo
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
+    * @param rCurrentProcessInfo reference to the ProcessInfo
     */
     template<unsigned int MatrixSize>
     void ComputeElementAsMixed(
@@ -390,7 +390,7 @@ public:
      * Given a vector variable, this function computes its value inside de element.
      * If the function has not implemented this variable computation, throws an error.
      * @param rVariable Variable to be computed.
-     * @return rOutput Reference to the output array.
+     * @param rOutput Reference to the output array.
      * @param rCurrentProcessInfo Reference to the process info.
      */
     void Calculate(
@@ -495,9 +495,9 @@ protected:
     * This functions adds the contribution of the boundary terms in the level set cut
     * These terms, which do not vanish at the level set since the test function is not zero
     * at the intersection points, come from the integration by parts of the stress term.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddIntersectionBoundaryTermsContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -569,8 +569,8 @@ protected:
 
     /**
      * This function computes the penalty coefficient for the level set BC imposition
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rData: reference to element data structure
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rData reference to element data structure
      */
     double ComputePenaltyCoefficient(const EmbeddedElementDataStruct& rData) {
 
@@ -612,9 +612,9 @@ protected:
 
     /**
     * This functions adds the penalty extra term level set contribution.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddBoundaryConditionPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -683,9 +683,9 @@ protected:
 
     /**
     * This functions adds the level set strong boundary condition imposition contribution.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddBoundaryConditionModifiedNitcheContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -796,9 +796,9 @@ protected:
 
     /**
     * This drops the outer nodes velocity constributions in both LHS and RHS matrices.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void DropOuterNodesVelocityContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -826,9 +826,9 @@ protected:
 
     /**
     * This function adds the Nitsche normal component of the penalty contribution (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterNormalPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -924,9 +924,9 @@ protected:
 
     /**
     * This function adds the Nitsche normal component of the symmetric counterpart of the fluxes (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterNormalSymmetricCounterpartContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -1023,9 +1023,9 @@ protected:
 
     /**
     * This function adds the Nitsche tangential component of the penalty contribution (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterTangentialPenaltyContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -1120,9 +1120,9 @@ protected:
 
     /**
     * This function adds the Nitsche tangential component of the symmetric counterpart of the fluxes (Winter formulation).
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSlipWinterTangentialSymmetricCounterpartContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -1222,9 +1222,9 @@ protected:
 
     /**
     * This functions collects and adds all the level set boundary condition contributions
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddBoundaryConditionElementContribution(
         MatrixType& rLeftHandSideMatrix,
@@ -1253,8 +1253,8 @@ protected:
 
     /**
     * This functions sets the B strain matrix (pressure columns are set to zero)
-    * @param rDN_DX: reference to the current Gauss pt. shape function gradients
-    * @param rB_matrix: reference to the computed B strain matrix
+    * @param rDN_DX reference to the current Gauss pt. shape function gradients
+    * @param rB_matrix reference to the computed B strain matrix
     */
     void SetInterfaceStrainMatrix(
         const bounded_matrix<double, TNumNodes, TDim>& rDN_DX,
@@ -1287,8 +1287,8 @@ protected:
 
     /**
     * This functions sets the normal projection matrix nxn
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rNormProjMatrix: reference to the computed normal projection matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param rNormProjMatrix reference to the computed normal projection matrix
     */
     void SetNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
@@ -1309,8 +1309,8 @@ protected:
 
     /**
     * This functions sets the tangential projection matrix I - nxn
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rTangProjMatrix: reference to the computed tangential projection matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param rTangProjMatrix reference to the computed tangential projection matrix
     */
     void SetTangentialProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
@@ -1332,8 +1332,8 @@ protected:
 
     /**
     * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param rVoigtNormProjMatrix reference to the computed normal projection auxiliar matrix
     */
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
@@ -1361,8 +1361,8 @@ protected:
 
     /**
     * This functions sets a vector containing the element previous solution
-    * @param rData: reference to the element data structure
-    * @param rPrevSolVector: reference to the previous solution vector
+    * @param rData reference to the element data structure
+    * @param rPrevSolVector reference to the previous solution vector
     */
     void GetPreviousSolutionVector(
         const ElementDataType& rData,

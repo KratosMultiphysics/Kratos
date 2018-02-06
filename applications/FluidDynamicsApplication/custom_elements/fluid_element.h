@@ -153,9 +153,9 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new FluidElement element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
@@ -165,9 +165,9 @@ public:
     /// Create a new element of this type using given geometry
     /**
      * Returns a pointer to a new FluidElement element, created using given input
-     * @param NewId: the ID of the new element
-     * @param pGeom: a pointer to the geomerty to be used to create the element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
@@ -341,9 +341,9 @@ protected:
     /**
      * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
      * Evaluate the convective operator for each node's shape function at an arbitrary point
-     * @param rResult: Output vector
-     * @param rConvVel: Convective velocity evaluated at the integration point
-     * @param DN_DX: Derivatives of shape functions evaluated at the integration point
+     * @param rResult Output vector
+     * @param rConvVel Convective velocity evaluated at the integration point
+     * @param DN_DX Derivatives of shape functions evaluated at the integration point
      */
     void ConvectionOperator(Vector& rResult,
                             const array_1d<double,3>& rConvVel,

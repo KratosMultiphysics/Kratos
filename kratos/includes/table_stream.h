@@ -90,7 +90,7 @@ public:
 
     /**
      * This is the operator << for any kind of input
-     * @param Input: The input considered
+     * @param Input The input considered
      * @return The updated table stream
      */
     template<typename TClass> 
@@ -140,7 +140,7 @@ public:
     
     /**
      * This is the operator << just for floats
-     * @param Input: The float considered
+     * @param Input The float considered
      * @return The updated table stream
      */
     TableStream& operator<<(float Input)
@@ -151,7 +151,7 @@ public:
     
     /**
      * This is the operator << just for doubles
-     * @param Input: The double considered
+     * @param Input The double considered
      * @return The updated table stream
      */
     TableStream& operator<<(double Input)
@@ -215,8 +215,8 @@ public:
     }
 
     /** Add a column to our table
-     * @param HeaderName: Name to be print for the header
-     * @param ColumnWidth: The width of the column must be at least 4 spaces
+     * @param HeaderName Name to be print for the header
+     * @param ColumnWidth The width of the column must be at least 4 spaces
      */
     void AddColumn(
         const std::string& HeaderName, 
@@ -398,7 +398,7 @@ private:
     
     /**
      * This functions prints into the stream a double or float value with scientific notation (respeting the spaces asigned)
-     * @param Input: The double or float to print
+     * @param Input The double or float to print
      */
     template<typename TClass> 
     void OutputDecimalNumber(TClass Input)

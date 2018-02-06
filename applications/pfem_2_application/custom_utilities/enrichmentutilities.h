@@ -607,7 +607,7 @@ namespace Kratos
 	  int j_aux = i + 2;
 	  if (j_aux>2) j_aux -= 3; 
 	  boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
-	  array_1d<double,3> N; bool useful=false;
+	  array_1d<double,3> N; //bool useful=false;
 	  
 	  int useful_node_for_N0star=-1;
 	  int useful_node_for_N1star=-1;
@@ -645,10 +645,10 @@ namespace Kratos
 		active_node_in_replacement_shape_function(aux_nodes_father_nodes(i,0))=1;
 	      if (aux_nodes_father_nodes(j_aux,0)==aux_nodes_father_nodes(j_aux,1))
 		active_node_in_replacement_shape_function(aux_nodes_father_nodes(j_aux,0))=2;
-	      if( (aux_nodes_father_nodes(i,0)!=aux_nodes_father_nodes(i,1)) && (aux_nodes_father_nodes(j_aux,0)!=aux_nodes_father_nodes(j_aux,1)))
-		{
-		  useful=true;
-		}
+	    //  if( (aux_nodes_father_nodes(i,0)!=aux_nodes_father_nodes(i,1)) && (aux_nodes_father_nodes(j_aux,0)!=aux_nodes_father_nodes(j_aux,1)))
+		//{
+		//  useful=true;
+		//}
 	      
 	      coord_subdomain(0,0)=rPoints(i,0);
 	      coord_subdomain(0,1)=rPoints(i,1);
@@ -677,15 +677,15 @@ namespace Kratos
 	    {
 	      partition_father_nodes=aux_nodes_father_nodes;
 	      coord_subdomain=aux_points;
-	      useful=true;
-	      int non_aux_node=-1; //one of the nodes of this partition is actually a real node, which has repeated father node 
+	      //useful=true;
+	      //int non_aux_node=-1; //one of the nodes of this partition is actually a real node, which has repeated father node 
 	      int non_aux_node_father_node=-1; //the real node id
 	      //we have to check the 3 of them: 
 	      for (int j = 0; j < 3; j++)
 		{
 		  if(partition_father_nodes(j,0)==partition_father_nodes(j,1))
 		    {
-		      non_aux_node=j;
+		      //non_aux_node=j;
 		      non_aux_node_father_node=partition_father_nodes(j,0);
 		    }
 		}
@@ -1110,7 +1110,7 @@ namespace Kratos
 	  int j_aux = i + 2;
 	  if (j_aux>2) j_aux -= 3; 
 	  boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
-	  array_1d<double,3> N; bool useful=false;
+	  array_1d<double,3> N; //bool useful=false;
 	    	      
 	  int useful_node_for_N0star=-1;
 	  int useful_node_for_N1star=-1;
@@ -1149,10 +1149,10 @@ namespace Kratos
 		active_node_in_replacement_shape_function(aux_nodes_father_nodes(i,0))=1;
 	      if (aux_nodes_father_nodes(j_aux,0)==aux_nodes_father_nodes(j_aux,1))
 		active_node_in_replacement_shape_function(aux_nodes_father_nodes(j_aux,0))=2;
-	      if( (aux_nodes_father_nodes(i,0)!=aux_nodes_father_nodes(i,1)) && (aux_nodes_father_nodes(j_aux,0)!=aux_nodes_father_nodes(j_aux,1)))
-		{
-		  useful=true;
-		}
+	    //  if( (aux_nodes_father_nodes(i,0)!=aux_nodes_father_nodes(i,1)) && (aux_nodes_father_nodes(j_aux,0)!=aux_nodes_father_nodes(j_aux,1)))
+		//{
+		//  useful=true;
+		//}
 		
 	      coord_subdomain(0,0)=rPoints(i,0);
 	      coord_subdomain(0,1)=rPoints(i,1);
@@ -1183,15 +1183,15 @@ namespace Kratos
 	      //the last partition, made by the 3 aux nodes.
 	      partition_father_nodes=aux_nodes_father_nodes;
 	      coord_subdomain=aux_points;
-	      useful=true;
-	      int non_aux_node=-1; //one of the nodes of this partition is actually a real node, which has repeated father node 
+	      //useful=true;
+	      //int non_aux_node=-1; //one of the nodes of this partition is actually a real node, which has repeated father node 
 	      int non_aux_node_father_node=-1; //the real node id
 	      //we have to check the 3 of them: 
 	      for (int j = 0; j < 3; j++)
 		{
 		  if(partition_father_nodes(j,0)==partition_father_nodes(j,1))
 		    {
-		      non_aux_node=j;
+		      //non_aux_node=j;
 		      non_aux_node_father_node=partition_father_nodes(j,0);
 		    }
 		}
@@ -1279,7 +1279,6 @@ namespace Kratos
 
 	      double xp=0.0;
 	      double yp=0.0;
-	      double zp=0.0;
 	      double temp_areaaux_2=0.0;
 	      bounded_matrix<double, 4, 8 > N_new=ZeroMatrix(4,8);
 		
@@ -1294,7 +1293,6 @@ namespace Kratos
 
 		  xp=0.0;
 		  yp=0.0;
-		  zp=0.0;
 
 		  for (unsigned int tt=0; tt<3; tt++)
 		    {
@@ -1501,7 +1499,6 @@ namespace Kratos
       const int edge_j[] = {1, 2, 3, 2, 3, 3};
       //int z=0;
       //int n=0;
-      int index=0;
       std::vector< Matrix > edges_o(8);
       
       for (unsigned int i = 0; i < 8; i++)
@@ -1782,7 +1779,6 @@ namespace Kratos
       boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomainaux1; //used to retrieve derivatives
       boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomainaux1; 
       double temp_areaaux1=0.0;
-      int local=0;
       
 
       CalculateGeometryData(rPoints, DN_DX_subdomainaux1, temp_areaaux1);//222
@@ -2080,7 +2076,7 @@ namespace Kratos
 		  
 		  //int t_max = shape_function_id;
 		 
-		  int index=shape_function_aux_id;
+		  unsigned int index=shape_function_aux_id;
 		  
 		  for (unsigned int pos=0; pos<index; pos++)
 		    {

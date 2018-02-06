@@ -165,9 +165,9 @@ namespace Kratos
         /// Create a new element of this type
         /**
          * Returns a pointer to a new FractionalStep element, created using given input
-         * @param NewId: the ID of the new element
-         * @param ThisNodes: the nodes of the new element
-         * @param pProperties: the properties assigned to the new element
+         * @param NewId the ID of the new element
+         * @param ThisNodes the nodes of the new element
+         * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
 	    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
@@ -178,9 +178,9 @@ namespace Kratos
 	
         /**
          * Returns a pointer to a new FractionalStep element, created using given input
-         * @param NewId: the ID of the new element
-         * @param pGeom: a pointer to the geometry
-         * @param pProperties: the properties assigned to the new element
+         * @param NewId the ID of the new element
+         * @param pGeom a pointer to the geometry
+         * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
 		
@@ -191,9 +191,9 @@ namespace Kratos
         
         /**
          * Clones the selected element variables, creating a new one
-         * @param NewId: the ID of the new element
-         * @param ThisNodes: the nodes of the new element
-         * @param pProperties: the properties assigned to the new element
+         * @param NewId the ID of the new element
+         * @param ThisNodes the nodes of the new element
+         * @param pProperties the properties assigned to the new element
          * @return a Pointer to the new element
          */
         
@@ -559,9 +559,9 @@ namespace Kratos
         /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
         /**
          * Evaluate the convective operator for each node's shape function at an arbitrary point
-         * @param rResult: Output vector
-         * @param rVelocity: Velocity evaluated at the integration point
-         * @param rShapeDeriv: Derivatives of shape functions evaluated at the integration point
+         * @param rResult Output vector
+         * @param rVelocity Velocity evaluated at the integration point
+         * @param rShapeDeriv Derivatives of shape functions evaluated at the integration point
          * @see GetAdvectiveVel provides rVelocity
          */
         void ConvectionOperator(Vector& rResult,
@@ -581,9 +581,9 @@ namespace Kratos
          * Evaluate a nodal variable in the point where the form functions take the
          * values given by rShapeFunc and write the result to rResult.
          * This is an auxiliary function used to compute values in integration points.
-         * @param rResult: The variable where the value will be added to
-         * @param rVariable: The nodal variable to be read
-         * @param rShapeFunc: The values of the form functions in the point
+         * @param rResult The variable where the value will be added to
+         * @param rVariable The nodal variable to be read
+         * @param rShapeFunc The values of the form functions in the point
          */
         template< class TVariableType >
         void EvaluateInPoint(TVariableType& rResult,
