@@ -31,7 +31,7 @@ include_directories(
 if( DEFINED ENV{MKLROOT} )
 	message( "MKLROOT = $ENV{MKLROOT}" )
 	include_directories( $ENV{MKLROOT}/include )
-	add_definitions( -DEIGEN_USE_MKL_ALL )
+	add_definitions( -DMKL -DEIGEN_USE_MKL_ALL )
 else()
 	message( "MKLROOT not defined" )
 endif()

@@ -680,8 +680,8 @@ public:
 
     /**
      * Transfer objects from a given process to a destination process
-     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-     * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+     * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+     * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
      **/
     virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects)
     {
@@ -692,8 +692,8 @@ public:
 
     /**
     * Transfer objects from a given process to a destination process
-    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
     **/
     virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects)
     {
@@ -704,8 +704,8 @@ public:
 
     /**
     * Transfer objects from a given process to a destination process
-    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
     **/
     virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects)
     {
@@ -716,8 +716,8 @@ public:
 
     /**
      * Transfer objects from a given process to a destination process
-     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-     * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+     * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+     * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
      **/
     virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
     {
@@ -727,8 +727,8 @@ public:
 
     /**
     * Transfer objects from a given process to a destination process
-    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
     **/
     virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
     {
@@ -738,8 +738,8 @@ public:
 
     /**
     * Transfer objects from a given process to a destination process
-    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
-    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    * @param SendObjects list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects list of objects to be received.  RecvObjects[i] -> objects from process i
     **/
     virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects,Kratos::Serializer& particleSerializer)
     {

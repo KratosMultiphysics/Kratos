@@ -22,6 +22,7 @@
 #include "includes/cfd_variables.h"
 #include "custom_elements/fluid_element.h"
 #include "fluid_dynamics_application_variables.h"
+#include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
 {
@@ -97,7 +98,7 @@ public:
     constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
     constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
 
-    constexpr static unsigned int StrainSize = (Dim*3)-3;
+    constexpr static unsigned int StrainSize = (Dim-1)*3;
 
     ///@}
     ///@name Life Cycle
@@ -148,10 +149,10 @@ public:
 
     /// Create a new element of this type
     /**
-     * Returns a pointer to a new SymbolicNavierStokes element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * Returns a pointer to a new SymbolicNavierStokes element, created using given input.
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
@@ -160,10 +161,10 @@ public:
 
     /// Create a new element of this type using given geometry
     /**
-     * Returns a pointer to a new FluidElement element, created using given input
-     * @param NewId: the ID of the new element
-     * @param pGeom: a pointer to the geomerty to be used to create the element
-     * @param pProperties: the properties assigned to the new element
+     * Returns a pointer to a new FluidElement element, created using given input.
+     * @param NewId the ID of the new element
+     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
@@ -221,8 +222,11 @@ protected:
         TElementData& rData,
         VectorType& rRHS) override;
 
-    virtual void AddBoundaryIntegral(TElementData& rData,
-        const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS);
+    void AddBoundaryIntegral(
+        TElementData& rData,
+        const Vector& rUnitNormal,
+        MatrixType& rLHS,
+        VectorType& rRHS) override;
 
     void ComputeGaussPointLHSContribution(
         TElementData& rData,
@@ -235,47 +239,6 @@ protected:
     void ComputeConstitutiveResponse(TElementData& rData);
 
     void ComputeStrain(TElementData& rData);
-
-    /**
-    * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation.
-    * 2D version.
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
-    */
-    void SetVoigtNormalProjectionMatrix(
-        const array_1d<double, 3>& rUnitNormal,
-        bounded_matrix<double, 2, 3>& rVoigtNormProjMatrix) const;
-        
-     
-    /**
-    * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation.
-    * 3D version
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @param rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
-    */ 
-    void SetVoigtNormalProjectionMatrix(
-        const array_1d<double, 3>& rUnitNormal,
-        bounded_matrix<double, 3, 6>& rVoigtNormProjMatrix) const;  
-
-    /**
-    * This functions sets the B strain matrix (pressure columns are set to zero).
-    * 2D version.
-    * @param rDN_DX: reference to the current Gauss pt. shape function gradients
-    * @param rB_matrix: reference to the computed B strain matrix
-    */
-    void SetInterfaceStrainMatrix(
-        const bounded_matrix<double, NumNodes, 2>& rDN_DX,
-        bounded_matrix<double, 3, NumNodes*3>& rB_matrix) const;
-        
-    /**
-    * This functions sets the B strain matrix (pressure columns are set to zero).
-    * 3D version.
-    * @param rDN_DX: reference to the current Gauss pt. shape function gradients
-    * @param rB_matrix: reference to the computed B strain matrix
-    */
-    void SetInterfaceStrainMatrix(
-        const bounded_matrix<double, NumNodes, 3>& rDN_DX,
-        bounded_matrix<double, 6, NumNodes*4>& rB_matrix) const;
 
     ///@}
     ///@name Protected  Access
