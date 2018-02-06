@@ -116,7 +116,7 @@ public:
     /**
      * Type Definitions
      */
-    typedef boost::shared_ptr< TrilinosResidualBasedNewmarkScheme<TSparseSpace, TDenseSpace> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(TrilinosResidualBasedNewmarkScheme);
 
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
 
