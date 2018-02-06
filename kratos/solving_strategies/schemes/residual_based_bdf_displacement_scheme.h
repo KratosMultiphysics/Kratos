@@ -46,6 +46,7 @@ namespace Kratos
  * @brief BDF integration scheme (displacement based)
  * @details The \f$ n \f$ order Backward Differentiation Formula (BDF) method is a two step \f$ n \f$ order accurate method. 
  * Look at the base class for more details
+ * @see ResidualBasedBDFScheme
  * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace,  class TDenseSpace>
@@ -316,33 +317,31 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /**
+     * @brief Updating first time derivative (velocity)
+     * @param itNode the node interator
+     */
+    
+    inline void UpdateFirstDerivative(NodesArrayType::iterator itNode) override
+    {
+        array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(VELOCITY);
+        noalias(dotun0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
+        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+            noalias(dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);
+    }
 
     /**
-     * @brief Performing the update of the derivatives
-     * @param rModelPart The model of the problem to solve
-     * @param rDofSet Set of all primary variables
-     * @param A LHS matrix
-     * @param Dx incremental update of primary variables
-     * @param b RHS Vector
+     * @brief Updating second time derivative (acceleration)
+     * @param itNode the node interator
      */
-    inline void UpdateDerivatives(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
-        ) override
+    
+    inline void UpdateSecondDerivative(NodesArrayType::iterator itNode) override
     {
-        // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
-
-        #pragma omp parallel for
-        for(int i = 0;  i< num_nodes; ++i) {
-            auto it_node = rModelPart.Nodes().begin() + i;
-            
-            UpdateFirstDerivative(it_node);
-            UpdateSecondDerivative(it_node);
-        }
+        array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
+        noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
+        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
+            noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);
     }
     
     ///@}
@@ -373,32 +372,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
-    /**
-     * @brief Updating first time derivative (velocity)
-     * @param itNode the node interator
-     */
-    
-    inline void UpdateFirstDerivative(NodesArrayType::iterator itNode)
-    {
-        array_1d<double, 3>& dotun0 = itNode->FastGetSolutionStepValue(VELOCITY);
-        noalias(dotun0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(DISPLACEMENT);
-        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(dotun0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(DISPLACEMENT, i_order);;
-    }
-
-    /**
-     * @brief Updating second time derivative (acceleration)
-     * @param itNode the node interator
-     */
-    
-    inline void UpdateSecondDerivative(NodesArrayType::iterator itNode)
-    {
-        array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(ACCELERATION);
-        noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(VELOCITY);
-        for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
-            noalias(dot2un0) += BDFBaseType::mBDF[i_order] * itNode->FastGetSolutionStepValue(VELOCITY, i_order);;
-    }
     
     ///@}
     ///@name Private  Access

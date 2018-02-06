@@ -391,13 +391,42 @@ protected:
      * @param Dx incremental update of primary variables
      * @param b RHS Vector
      */
-    virtual inline void UpdateDerivatives(
+    inline void UpdateDerivatives(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b
         )
+    {
+        // Updating time derivatives (nodally for efficiency)
+        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+
+        #pragma omp parallel for
+        for(int i = 0;  i< num_nodes; ++i) {
+            auto it_node = rModelPart.Nodes().begin() + i;
+            
+            UpdateFirstDerivative(it_node);
+            UpdateSecondDerivative(it_node);
+        }
+    }
+    
+    /**
+     * @brief Updating first time derivative (velocity)
+     * @param itNode the node interator
+     */
+    
+    virtual inline void UpdateFirstDerivative(NodesArrayType::iterator itNode)
+    {
+        KRATOS_ERROR << "Calling base BDF class" << std::endl;
+    }
+
+    /**
+     * @brief Updating second time derivative (acceleration)
+     * @param itNode the node interator
+     */
+    
+    virtual inline void UpdateSecondDerivative(NodesArrayType::iterator itNode)
     {
         KRATOS_ERROR << "Calling base BDF class" << std::endl;
     }
