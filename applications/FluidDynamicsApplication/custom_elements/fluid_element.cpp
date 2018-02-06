@@ -457,19 +457,19 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
                                       Matrix &rNContainer,
                                       ShapeFunctionDerivativesArrayType &rDN_DX) const
 {
-    const GeometryData::IntegrationMethod IntMethod = this->GetIntegrationMethod();
+    const GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
     const GeometryType& r_geometry = this->GetGeometry();
-    const unsigned int number_of_gauss_points = r_geometry.IntegrationPointsNumber(IntMethod);
+    const unsigned int number_of_gauss_points = r_geometry.IntegrationPointsNumber(integration_method);
 
     Vector DetJ;
-    r_geometry.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,IntMethod);
+    r_geometry.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,integration_method);
 
     if (rNContainer.size1() != number_of_gauss_points || rNContainer.size2() != NumNodes) {
         rNContainer.resize(number_of_gauss_points,NumNodes,false);
     }
-    rNContainer = r_geometry.ShapeFunctionsValues(IntMethod);
+    rNContainer = r_geometry.ShapeFunctionsValues(integration_method);
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = r_geometry.IntegrationPoints(IntMethod);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = r_geometry.IntegrationPoints(integration_method);
 
     if (rGaussWeights.size() != number_of_gauss_points) {
         rGaussWeights.resize(number_of_gauss_points,false);
