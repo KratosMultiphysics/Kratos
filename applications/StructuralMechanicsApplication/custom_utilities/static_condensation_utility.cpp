@@ -159,9 +159,9 @@ namespace Kratos
 		void ConvertingCondensation(
             ElementType& rTheElement,
             Vector& rLocalizedDofVector,
-			Vector& rValues,
-			const std::vector<int>& rDofList,
-			const MatrixType& rLeftHandSideMatrix)
+            Vector& rValues,
+            const std::vector<int>& rDofList,
+            const MatrixType& rLeftHandSideMatrix)
         {
             KRATOS_TRY;
             const double numerical_limit = std::numeric_limits<double>::epsilon();
