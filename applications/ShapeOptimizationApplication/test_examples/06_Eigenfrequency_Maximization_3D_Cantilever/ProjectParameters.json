@@ -71,14 +71,6 @@
             }
         }
     ],
-    "mesh_solver_settings"                  : {
-            "solver_type": "mesh_solver_structural_similarity",
-                "model_import_settings"           : {
-                "input_type"     : "mdpa",
-                "input_filename" : "structure"
-            },
-            "compute_reactions"     : false
-    },
     "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
@@ -139,6 +131,24 @@
                 "filter_radius"              : 0.1,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : true
+            },
+            "mesh_motion" : {
+                "apply_ale_mesh_solver" : true,
+                "mesh_solver_settings" : {
+                    "solver_type": "mesh_solver_structural_similarity",
+                    "ale_linear_solver_settings"  : {
+                        "solver_type"         : "AMGCL",
+                        "max_iteration"       : 500,
+                        "tolerance"           : 1e-7,
+                        "provide_coordinates" : false,
+                        "smoother_type"       : "ilu0",
+                        "krylov_type"         : "bicgstab",
+                        "coarsening_type"     : "aggregation",
+                        "scaling"             : false,
+                        "verbosity"           : 1
+                    },
+                    "compute_reactions"     : true
+                }
             },
             "damping" : {
                 "perform_damping" : true,
