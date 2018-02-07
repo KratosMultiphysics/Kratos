@@ -122,8 +122,11 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
+
+            this->CalculateMaterialResponse(data);
 
             this->AddTimeIntegratedSystem(
                 data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -158,6 +161,8 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
+            this->CalculateMaterialResponse(data);
+
             this->AddTimeIntegratedLHS(data, rLeftHandSideMatrix);
         }
     }
@@ -188,6 +193,8 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
+
+            this->CalculateMaterialResponse(data);
 
             this->AddTimeIntegratedRHS(data, rRightHandSideVector);
         }
@@ -225,6 +232,8 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
             const auto& r_dndx = shape_derivatives[g];
             data.UpdateGeometryValues(
                 gauss_weights[g], row(shape_functions, g), r_dndx);
+            
+            this->CalculateMaterialResponse(data);
 
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
         }
@@ -263,6 +272,8 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
+
+            this->CalculateMaterialResponse(data);
 
             this->AddMassLHS(data, rMassMatrix);
         }

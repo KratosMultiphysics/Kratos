@@ -90,7 +90,6 @@ void SymbolicNavierStokes<TElementData>::PrintInfo(
 template <class TElementData>
 void SymbolicNavierStokes<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
-    this->CalculateMaterialResponse(rData);
     this->ComputeGaussPointLHSContribution(rData, rLHS);
     this->ComputeGaussPointRHSContribution(rData, rRHS);
 }
@@ -98,14 +97,12 @@ void SymbolicNavierStokes<TElementData>::AddTimeIntegratedSystem(
 template <class TElementData>
 void SymbolicNavierStokes<TElementData>::AddTimeIntegratedLHS(
     TElementData& rData, MatrixType& rLHS) {
-    this->CalculateMaterialResponse(rData);
     this->ComputeGaussPointLHSContribution(rData, rLHS);
 }
 
 template <class TElementData>
 void SymbolicNavierStokes<TElementData>::AddTimeIntegratedRHS(
     TElementData& rData, VectorType& rRHS) {
-    this->CalculateMaterialResponse(rData);
     this->ComputeGaussPointRHSContribution(rData, rRHS);
 }
 
