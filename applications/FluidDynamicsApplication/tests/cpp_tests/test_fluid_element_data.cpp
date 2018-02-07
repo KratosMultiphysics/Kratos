@@ -474,6 +474,10 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 
     // Set the element properties
     Properties::Pointer p_properties = model_part.pGetProperties(0);
+    p_properties->SetValue(DENSITY, 1000.0);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+    ConstitutiveLaw::Pointer pConsLaw(new Newtonian2DLaw());
+    p_properties->SetValue(CONSTITUTIVE_LAW, pConsLaw);
 
     // Geometry creation
     model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -532,7 +536,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     int counter = 0;
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
-        //i->Initialize(); // The element does nothing here
+        i->Initialize(); // Initialize constitutive law
         i->Check(model_part.GetProcessInfo());
         i->CalculateLocalVelocityContribution(LHS, RHS, model_part.GetProcessInfo());
 
