@@ -136,8 +136,9 @@ void FluidElementUtilities<TNumNodes>::VoigtTransformForProduct(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
 
-template class FluidElementUtilities<3>;
-template class FluidElementUtilities<4>;
+template class FluidElementUtilities<3>; // triangle3
+template class FluidElementUtilities<4>; // tetrahedra4, quadrilateral4
+template class FluidElementUtilities<8>; // hexahedra8
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
