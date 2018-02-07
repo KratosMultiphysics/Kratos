@@ -62,6 +62,8 @@ public:
 
     void WriteModelPart(ModelPart& rModelPart) override;
 
+    void ReadModelPart(ModelPart& rModelPart) override;
+
     ///@}
 
 protected:

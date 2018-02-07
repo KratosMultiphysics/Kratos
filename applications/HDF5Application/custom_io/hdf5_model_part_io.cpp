@@ -2,8 +2,6 @@
 
 #include "custom_utilities/hdf5_points_data.h"
 #include "custom_utilities/hdf5_connectivities_data.h"
-#include "custom_io/hdf5_nodal_solution_step_variables_io.h"
-#include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 
 namespace Kratos
@@ -126,23 +124,6 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
         const int size = info.TotalSize;
         mpFile->WriteAttribute(mPrefix + "/Conditions/" + r_conds.first, "Size", size);
     }
-
-    KRATOS_CATCH("");
-}
-
-void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
-{
-    KRATOS_TRY;
-
-    ReadProperties(rModelPart.rProperties());
-    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
-    process_info_io.ReadDataValueContainer(rModelPart.GetProcessInfo());
-    ReadNodes(rModelPart.Nodes());
-    ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
-    ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
-    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
-    nodal_variables_io.ReadAndAssignVariablesList(rModelPart);
-    nodal_variables_io.ReadAndAssignBufferSize(rModelPart);
 
     KRATOS_CATCH("");
 }

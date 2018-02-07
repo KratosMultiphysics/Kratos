@@ -70,5 +70,22 @@ void ModelPartIOBase::WriteModelPart(ModelPart& rModelPart)
     KRATOS_CATCH("");
 }
 
+void ModelPartIOBase::ReadModelPart(ModelPart& rModelPart)
+{
+    KRATOS_TRY;
+
+    ReadProperties(rModelPart.rProperties());
+    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
+    process_info_io.ReadDataValueContainer(rModelPart.GetProcessInfo());
+    ReadNodes(rModelPart.Nodes());
+    ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
+    ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
+    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
+    nodal_variables_io.ReadAndAssignVariablesList(rModelPart);
+    nodal_variables_io.ReadAndAssignBufferSize(rModelPart);
+
+    KRATOS_CATCH("");
+}
+
 } // namespace HDF5.
 } // namespace Kratos.

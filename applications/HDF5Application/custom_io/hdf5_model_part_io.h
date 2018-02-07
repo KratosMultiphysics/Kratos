@@ -70,8 +70,6 @@ public:
 
     void WriteConditions(ConditionsContainerType const& rConditions) override;
 
-    void ReadModelPart(ModelPart& rModelPart) override;
-
     ///@}
 
 protected:

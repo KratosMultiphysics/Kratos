@@ -45,6 +45,8 @@ public:
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(PartitionedModelPartIO);
 
+    typedef ModelPartIOBase BaseType;
+
     ///@}
     ///@name Life Cycle
     ///@{
