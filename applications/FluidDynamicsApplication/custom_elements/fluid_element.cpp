@@ -469,9 +469,10 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
         rData.C.resize(StrainSize,StrainSize,false);
     if(rData.Stress.size() != StrainSize)
         rData.Stress.resize(StrainSize,false);
+    if(rData.StrainRate.size() != StrainSize)
+        rData.StrainRate.resize(StrainSize,false);
 
-    Vector StrainRate;
-    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(StrainRate,rData.Velocity,rData.DN_DX);
+    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(rData.StrainRate,rData.Velocity,rData.DN_DX);
 
     auto& Values = rData.ConstitutiveLawValues;
 
@@ -483,7 +484,7 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-    Values.SetStrainVector(StrainRate);         //this is the input parameter
+    Values.SetStrainVector(rData.StrainRate);   //this is the input parameter
     Values.SetStressVector(rData.Stress);       //this is an ouput parameter
     Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
 
@@ -704,14 +705,8 @@ void StrainRateSpecialization<TElementData,2>::Calculate(
     Vector& rStrainRate,
     const typename TElementData::NodalVectorData& rVelocities,
     const typename TElementData::ShapeDerivativesType& rDNDX) {
-    
-    constexpr std::size_t StrainSize = 3;
-    if (rStrainRate.size() != StrainSize) {
-        rStrainRate.resize(StrainSize);
-    }
 
-    noalias(rStrainRate) = ZeroVector(StrainSize);
-
+    noalias(rStrainRate) = ZeroVector(3);
     for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
         rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
         rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
@@ -725,13 +720,7 @@ void StrainRateSpecialization<TElementData,3>::Calculate(
     const typename TElementData::NodalVectorData& rVelocities,
     const typename TElementData::ShapeDerivativesType& rDNDX) {
 
-    constexpr std::size_t StrainSize = 6;
-    if (rStrainRate.size() != StrainSize) {
-        rStrainRate.resize(StrainSize);
-    }
-
-    noalias(rStrainRate) = ZeroVector(StrainSize);
-
+    noalias(rStrainRate) = ZeroVector(6);
     for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
         rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
         rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);

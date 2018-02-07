@@ -72,6 +72,9 @@ array_1d<double,TNumNodes*(TDim+1)> rhs;
 
 void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
 {
+    // Base class Initialize manages constitutive law parameters
+    FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
+    
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
@@ -94,8 +97,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
-
-    this->ConstitutiveLawValues = ConstitutiveLaw::Parameters(rElement.GetGeometry(),rElement.GetProperties(),rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

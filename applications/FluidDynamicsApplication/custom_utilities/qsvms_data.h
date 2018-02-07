@@ -60,6 +60,9 @@ int UseOSS;
 
 void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
 {
+    // Base class Initialize manages constitutive law parameters
+    FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::Initialize(rElement,rProcessInfo);
+    
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);

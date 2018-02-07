@@ -73,7 +73,7 @@ public:
     ///@name Public Operations
     ///@{
 
-    virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) = 0;
+    virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo);
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo);
 
