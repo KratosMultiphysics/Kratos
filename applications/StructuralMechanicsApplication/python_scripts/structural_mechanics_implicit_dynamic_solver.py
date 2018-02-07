@@ -46,8 +46,10 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         print("::[ImplicitMechanicalSolver]:: Construction finished")
 
         # Setting minimum buffer
-        if(self.dynamic_settings["scheme_type"].GetString() == "bdf2"):
-            self.settings["buffer_size"].SetInt(3)
+        scheme_type = self.dynamic_settings["scheme_type"].GetString()
+        if("bdf" in scheme_type):
+            order = int(scheme_type.replace("bdf",""))
+            self.settings["buffer_size"].SetInt(order + 1)
 
     def AddVariables(self):
         super(ImplicitMechanicalSolver, self).AddVariables()
@@ -63,16 +65,6 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     def _create_solution_scheme(self):
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
-        # In case of rotation dof we declare the dynamic variables
-        if self.settings["rotation_dofs"].GetBool():
-            dynamic_variables = KratosMultiphysics.Parameters("""
-            {
-                "variable"              : ["DISPLACEMENT","ROTATION"],
-                "first_derivative"      : ["VELOCITY","ANGULAR_VELOCITY"],
-                "second_derivative"     : ["ACCELERATION","ANGULAR_ACCELERATION"]
-            }
-            """)
-            
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
         self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
         if(scheme_type == "newmark"):
@@ -81,16 +73,29 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         elif(scheme_type == "bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        elif(scheme_type == "backward_euler"):
-            if self.settings["rotation_dofs"].GetBool():
-                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(1, dynamic_variables)
+        elif("bdf" in scheme_type or scheme_type == "backward_euler"):
+            if (scheme_type == "backward_euler"):
+                order = 1
             else:
-                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
-        elif(scheme_type == "bdf2"):
+                order = int(scheme_type.replace("bdf",""))
+            
+            # Warning
+            if (order > 2):
+                print("WARNING:: BDF Order: ", order, " constant time step must be considered")
+                
+            # In case of rotation dof we declare the dynamic variables
             if self.settings["rotation_dofs"].GetBool():
-                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(2, dynamic_variables)
+                dynamic_variables = KratosMultiphysics.Parameters("""
+                {
+                    "variable"              : ["DISPLACEMENT","ROTATION"],
+                    "first_derivative"      : ["VELOCITY","ANGULAR_VELOCITY"],
+                    "second_derivative"     : ["ACCELERATION","ANGULAR_ACCELERATION"]
+                }
+                """)
+            if self.settings["rotation_dofs"].GetBool():
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(order, dynamic_variables)
             else:
-                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
+                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(order)
         elif(scheme_type == "relaxation"):
             damp_factor_f =-0.3
             dynamic_factor_m = 10.0
