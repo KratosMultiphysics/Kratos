@@ -75,17 +75,20 @@ template< class TElementData >
 void FluidElement<TElementData>::Initialize() {
     KRATOS_TRY;
 
-    const Properties& r_properties = this->GetProperties();
-    KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-        << "In initialization of Element " << this->Info()
-        << ": No CONSTITUTIVE_LAW defined for property " << r_properties.Id()
-        << "." << std::endl;
+    // If we are restarting, the constitutive law will be already defined
+    if (mpConstitutiveLaw == nullptr) {
+        const Properties& r_properties = this->GetProperties();
+        KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+            << "In initialization of Element " << this->Info()
+            << ": No CONSTITUTIVE_LAW defined for property "
+            << r_properties.Id() << "." << std::endl;
 
-    mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+        mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
 
-    const GeometryType& r_geometry = this->GetGeometry();
-    const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
-    mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
+        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
+    }
 
     KRATOS_CATCH("");
 }
@@ -674,6 +677,12 @@ template< class TElementData >
 ConstitutiveLaw::Pointer FluidElement<TElementData>::GetConstitutiveLaw() {
     return this->mpConstitutiveLaw;
 }
+
+template< class TElementData >
+const ConstitutiveLaw::Pointer FluidElement<TElementData>::GetConstitutiveLaw() const {
+    return this->mpConstitutiveLaw;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions

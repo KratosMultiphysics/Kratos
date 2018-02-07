@@ -397,6 +397,8 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    const ConstitutiveLaw::Pointer GetConstitutiveLaw() const;
+
     ConstitutiveLaw::Pointer GetConstitutiveLaw();
 
     ///@}
