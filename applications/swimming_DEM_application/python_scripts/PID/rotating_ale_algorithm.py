@@ -80,15 +80,13 @@ class Algorithm(BaseAlgorithm):
 
     def AssessStationarity(self):
         BaseAlgorithm.AssessStationarity(self)
+        #if self.time > 10.0:
+        #    self.stationarity = True
 
         if self.stationarity:
             self.rotator.SetStationaryField(self.fluid_model_part, self.time)
 
     def FluidSolve(self, time='None', solve_system=True):
-        Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
-
-        if solve_system:
-            self.fluid_solution.fluid_solver.Solve()
-        else:
-            Say("Skipping solving system and rotating stationary velocity field...\n")
+        BaseAlgorithm.FluidSolve(self, time, solve_system)
+        if not solve_system:
             self.rotator.RotateFluidVelocities(time)

@@ -33,7 +33,8 @@ class Algorithm(BaseAlgorithm):
             self.fluid_loader.FillFluidDataStep()
         else:
             BaseAlgorithm.FluidSolve(self, time, solve_system = False)
-            self.fluid_loader.LoadFluid(time)
+            if not self.stationarity:
+                self.fluid_loader.LoadFluid(time)
 
     def PerformInitialDEMStepOperations(self, time = None):
         pass
