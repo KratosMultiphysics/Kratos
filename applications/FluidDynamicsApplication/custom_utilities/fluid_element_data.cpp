@@ -15,6 +15,14 @@ FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::~FluidElementData()
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(
+    const Element& rElement,
+    const ProcessInfo& rProcessInfo) {
+
+    ConstitutiveLawValues = ConstitutiveLaw::Parameters(rElement.GetGeometry(),rElement.GetProperties(),rProcessInfo);
+}
+
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 int FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Check(
     const Element& rElement, const ProcessInfo& rProcessInfo)
 {
