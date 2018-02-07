@@ -274,8 +274,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-    model_part.AddNodalSolutionStepVariable(DENSITY);
-    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
     model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
     model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -335,12 +333,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     reference_velocity(2,0) = 0.2; reference_velocity(2,1) = 0.3;
 
     Element::Pointer p_element = model_part.pGetElement(1);
-
-    // Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
-        it_node->FastGetSolutionStepValue(DENSITY) = p_properties->GetValue(DENSITY);
-        it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_properties->GetValue(DYNAMIC_VISCOSITY);
-    }
 
     for(unsigned int i=0; i<3; i++){
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
@@ -457,8 +449,6 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-    model_part.AddNodalSolutionStepVariable(DENSITY);
-    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -509,12 +499,6 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 
 
     Element::Pointer p_element = model_part.pGetElement(1);
-
-    // Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
-        it_node->FastGetSolutionStepValue(DENSITY) = 1000.0;
-        it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = 1e-5;
-    }
 
     for(unsigned int i=0; i<4; i++){
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
