@@ -320,6 +320,14 @@ public:
         pVariable = static_cast<const Variable<TDataType>*>(GetVariableData(name));
     }
 
+	template<class TDataType, std::size_t TDataSize>
+	void load(std::string const & rTag, std::array<TDataType, TDataSize>& rObject)
+	{
+		load_trace_point(rTag);
+		for (SizeType i = 0; i < TDataSize; i++)
+			load("E", rObject[i]);
+	}
+
     template<class TDataType>
     void load(std::string const & rTag, std::vector<TDataType>& rObject)
     {
@@ -432,7 +440,13 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
 
-
+	template<class TDataType, std::size_t TDataSize>
+	void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
+	{
+		save_trace_point(rTag);
+		for (SizeType i = 0; i < TDataSize; i++)
+			save("E", rObject[i]);
+	}
 
     template<class TDataType>
     void save(std::string const & rTag, std::vector<TDataType> const& rObject)
