@@ -6,14 +6,14 @@
 // Project includes
 
 // Application includes
-#include "custom_utilities/hdf5_xdmf_connectivities_writer_process.h"
+#include "custom_processes/hdf5_xdmf_connectivities_writer_process.h"
 
 namespace Kratos
 {
 namespace Python
 {
 
-void AddCustomUtilitiesToPython()
+void AddCustomProcessesToPython()
 {
     using namespace boost::python;
 

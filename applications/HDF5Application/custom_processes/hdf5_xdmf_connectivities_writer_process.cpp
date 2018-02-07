@@ -1,4 +1,4 @@
-#include "custom_utilities/hdf5_xdmf_connectivities_writer_process.h"
+#include "custom_processes/hdf5_xdmf_connectivities_writer_process.h"
 
 #include "custom_io/hdf5_file_serial.h"
 #include "utilities/openmp_utils.h"

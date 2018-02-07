@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED)
-#define KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED)
+#define KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED
 
 // System includes
 
@@ -26,9 +26,9 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython();
+void  AddCustomProcessesToPython();
 
 }  // namespace Python.
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED defined
+#endif // KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED defined
