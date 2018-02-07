@@ -23,7 +23,7 @@
 
 // Application includes
 #include "custom_io/hdf5_file_serial.h"
-#include "custom_utilities/hdf5_connectivities_data.h"
+#include "custom_io/hdf5_connectivities_data.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 

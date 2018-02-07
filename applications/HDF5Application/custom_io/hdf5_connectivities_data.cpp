@@ -1,4 +1,4 @@
-#include "custom_utilities/hdf5_connectivities_data.h"
+#include "custom_io/hdf5_connectivities_data.h"
 
 #include "includes/kratos_components.h"
 #include "utilities/openmp_utils.h"

@@ -17,7 +17,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "custom_io/hdf5_file_serial.h"
-#include "custom_utilities/hdf5_points_data.h"
+#include "custom_io/hdf5_points_data.h"
 
 namespace Kratos
 {

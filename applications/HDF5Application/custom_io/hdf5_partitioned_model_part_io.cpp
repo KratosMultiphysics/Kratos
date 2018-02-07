@@ -1,8 +1,8 @@
 #include "hdf5_partitioned_model_part_io.h"
 
 #include "utilities/openmp_utils.h"
-#include "custom_utilities/hdf5_points_data.h"
-#include "custom_utilities/hdf5_connectivities_data.h"
+#include "custom_io/hdf5_points_data.h"
+#include "custom_io/hdf5_connectivities_data.h"
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 
