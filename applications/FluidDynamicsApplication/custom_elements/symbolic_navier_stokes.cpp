@@ -158,8 +158,8 @@ template <>
 void SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >::ComputeGaussPointLHSContribution(
     SymbolicNavierStokesData<2,3>& rData, MatrixType& rLHS) {
 
-    const double rho = this->Interpolate(rData.Density,rData.N);
-    const double mu = this->Interpolate(rData.DynamicViscosity,rData.N);
+    const double rho = rData.Density;
+    const double mu = rData.DynamicViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -406,8 +406,8 @@ template <>
 void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
     SymbolicNavierStokesData<3,4>& rData, MatrixType& rLHS) {
 
-    const double rho = this->Interpolate(rData.Density,rData.N);
-    const double mu = this->Interpolate(rData.DynamicViscosity,rData.N);
+    const double rho = rData.Density;
+    const double mu = rData.DynamicViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -1035,8 +1035,8 @@ template <>
 void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
     SymbolicNavierStokesData<2,3>& rData, VectorType& rRHS) {
 
-    const double rho = this->Interpolate(rData.Density,rData.N);
-    const double mu = this->Interpolate(rData.DynamicViscosity,rData.N);
+    const double rho = rData.Density;
+    const double mu = rData.DynamicViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -1111,8 +1111,8 @@ template <>
 void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
     SymbolicNavierStokesData<3,4>& rData, VectorType& rRHS) {
 
-    const double rho = this->Interpolate(rData.Density,rData.N);
-    const double mu = this->Interpolate(rData.DynamicViscosity,rData.N);
+    const double rho = rData.Density;
+    const double mu = rData.DynamicViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;

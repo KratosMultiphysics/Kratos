@@ -45,10 +45,10 @@ NodalVectorData BodyForce;
 NodalVectorData MomentumProjection;
 
 NodalScalarData Pressure;
-NodalScalarData Density;
-NodalScalarData DynamicViscosity;
 NodalScalarData MassProjection;
 
+double Density;
+double DynamicViscosity;
 double CSmagorinsky;
 double DeltaTime;
 double DynamicTau;
@@ -64,14 +64,15 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::Initialize(rElement,rProcessInfo);
     
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Properties& r_properties = rElement.GetProperties();
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromNodalData(BodyForce,BODY_FORCE,r_geometry);
     this->FillFromNodalData(MomentumProjection,ADVPROJ,r_geometry);
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
-    this->FillFromNodalData(Density,DENSITY,r_geometry);
-    this->FillFromNodalData(DynamicViscosity,DYNAMIC_VISCOSITY,r_geometry);
     this->FillFromNodalData(MassProjection,DIVPROJ,r_geometry);
+    this->FillFromProperties(Density,DENSITY,r_properties);
+    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
     this->FillFromElementData(CSmagorinsky,C_SMAGORINSKY,rElement);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);

@@ -112,9 +112,9 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElemen
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProperties(double& rData,
-    const Variable<double>& rVariable, const Element& rElement)
+    const Variable<double>& rVariable, const Properties& rProperties)
 {
-    rData = rElement.GetProperties().GetValue(rVariable);
+    rData = rProperties.GetValue(rVariable);
 }
 
 // Triangles

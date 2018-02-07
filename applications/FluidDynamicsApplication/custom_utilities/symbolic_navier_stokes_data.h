@@ -51,9 +51,9 @@ NodalVectorData BodyForce;
 NodalScalarData Pressure;
 NodalScalarData Pressure_OldStep1;
 NodalScalarData Pressure_OldStep2;
-NodalScalarData Density;
-NodalScalarData DynamicViscosity;
 
+double Density;
+double DynamicViscosity;
 double SoundVelocity;  // (needed if artificial compressibility is considered)
 double DeltaTime;      // Time increment
 double DynamicTau;     // Dynamic tau considered in ASGS stabilization coefficients
@@ -76,6 +76,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
     
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Properties& r_properties = rElement.GetProperties();
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
@@ -84,8 +85,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
     this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2);
-    this->FillFromNodalData(Density,DENSITY,r_geometry);
-    this->FillFromNodalData(DynamicViscosity,DYNAMIC_VISCOSITY,r_geometry);
+    this->FillFromProperties(Density,DENSITY,r_properties);
+    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
     this->FillFromProcessInfo(SoundVelocity,SOUND_VELOCITY,rProcessInfo);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);

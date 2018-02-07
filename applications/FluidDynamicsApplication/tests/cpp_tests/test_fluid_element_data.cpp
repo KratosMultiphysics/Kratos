@@ -95,7 +95,7 @@ public:
     void Initialize(
         const Element& rElement, const ProcessInfo& rProcessInfo) override {
         this->FillFromProperties(
-            KinematicViscosity, KINEMATIC_VISCOSITY, rElement);
+            KinematicViscosity, KINEMATIC_VISCOSITY, rElement.GetProperties());
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
