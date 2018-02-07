@@ -37,7 +37,13 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 
 void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart, const int TimeOrder, const double DeltaTime);
 
-//void MoveMesh(const ModelPart::NodesContainerType& rNodes);
+void MoveMesh(const ModelPart::NodesContainerType& rNodes);
+
+void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType& rNodes);
+
+void UpdateReferenceMesh(const ModelPart::NodesContainerType& rNodes);
+
+//void GenerateMeshPart(ModelPart::Pointer pMeshModelPart, const ModelPart::ElementsContainerType& rElements);
 
 } // namespace Move Mesh Utilities.
 

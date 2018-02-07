@@ -82,15 +82,52 @@ namespace MoveMeshUtilities {
     KRATOS_CATCH("");
   }
 
-/*
+
   void MoveMesh(const ModelPart::NodesContainerType& rNodes){
     for (auto& r_node : rNodes) {
-      (r_node)->X() = (r_node)->X0() + r_node->GetSolutionStepValue(MESH_DISPLACEMENT_X);
-      (r_node)->Y() = (r_node)->Y0() + r_node->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
-      (r_node)->Z() = (r_node)->Z0() + r_node->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
+      (r_node).X() = (r_node).X0() + r_node.GetSolutionStepValue(MESH_DISPLACEMENT_X);
+      (r_node).Y() = (r_node).Y0() + r_node.GetSolutionStepValue(MESH_DISPLACEMENT_Y);
+      (r_node).Z() = (r_node).Z0() + r_node.GetSolutionStepValue(MESH_DISPLACEMENT_Z);
     }
   }
-*/
+
+  void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType& rNodes) {
+    for (auto& r_node : rNodes) {
+      (r_node).X() = (r_node).X0();
+      (r_node).Y() = (r_node).Y0();
+      (r_node).Z() = (r_node).Z0();
+    }
+  }
+
+  void UpdateReferenceMesh(const ModelPart::NodesContainerType& rNodes) {
+    for (auto& r_node : rNodes) {
+      (r_node).X0() = (r_node).X();
+      (r_node).Y0() = (r_node).Y();
+      (r_node).Z0() = (r_node).Z();
+    }
+  }
+
+
+/*   void GenerateMeshPart(ModelPart::Pointer pMeshModelPart, const ModelPart::ElementsContainerType& rElements) {
+    pMeshModelPart = ModelPart::Pointer(new ModelPart("MeshPart", 1));
+
+    // initializing mesh nodes
+    //pMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
+
+    // creating mesh elements
+    ModelPart::ElementsContainerType &MeshElems =
+        pMeshModelPart->Elements();
+    Element::Pointer pElem;
+
+    for (ModelPart::ElementsContainerType::iterator it =
+             rElements.ElementsBegin();
+         it != rElements.ElementsEnd(); ++it) {
+
+      pElem = Kratos::make_shared<LaplacianMeshMovingElement>(
+          (*it).Id(), (*it).pGetGeometry(), (*it).pGetProperties());
+      MeshElems.push_back(pElem);
+    }
+  } */
 } // namespace Move Mesh Utilities.
 
 } // namespace Kratos.

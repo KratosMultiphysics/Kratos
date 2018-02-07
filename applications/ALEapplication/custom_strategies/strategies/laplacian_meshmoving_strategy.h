@@ -88,7 +88,7 @@ public:
     m_time_order = TimeOrder;
     bool calculate_norm_dx_flag = false;
 
-    
+
     typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
         new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,
                                                        TDenseSpace>());
@@ -162,8 +162,7 @@ public:
 
     ProcessInfo &rCurrentProcessInfo = (mp_mesh_model_part)->GetProcessInfo();
 
-    // Setting mesh to initial configuration
-    SetMeshToInitialConfiguration();
+    MoveMeshUtilities::SetMeshToInitialConfiguration(mp_mesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     unsigned int dimension =
         BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE];
@@ -188,8 +187,9 @@ public:
     }
     // Update FEM-base
     const double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+
     MoveMeshUtilities::CalculateMeshVelocities(mp_mesh_model_part, m_time_order, delta_time);
-    MoveMesh();
+    MoveMeshUtilities::MoveMesh(mp_mesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     if (m_reform_dof_set_at_each_step == true)
       m_strategy_x->Clear();
@@ -248,15 +248,15 @@ public:
     KRATOS_CATCH("");
   }
 */
-  void MoveMesh() override {
+/*   void MoveMesh() override {
     for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
          i != BaseType::GetModelPart().NodesEnd(); ++i) {
       (i)->X() = (i)->X0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_X);
       (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
       (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
     }
-  }
-
+  } */
+/*
   void SetMeshToInitialConfiguration() {
     for (ModelPart::NodeIterator i = (*mp_mesh_model_part).NodesBegin();
          i != (*mp_mesh_model_part).NodesEnd(); ++i) {
@@ -265,16 +265,16 @@ public:
       (i)->Y() = (i)->Y0();
       (i)->Z() = (i)->Z0();
     }
-  }
+  } */
 
-  void UpdateReferenceMesh() {
+/*   void UpdateReferenceMesh() {
     for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
          i != BaseType::GetModelPart().NodesEnd(); ++i) {
       (i)->X0() = (i)->X();
       (i)->Y0() = (i)->Y();
       (i)->Z0() = (i)->Z();
     }
-  }
+  } */
 
   /*@} */
   /**@name Operators
