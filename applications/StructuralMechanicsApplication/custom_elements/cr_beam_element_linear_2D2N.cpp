@@ -55,10 +55,10 @@ namespace Kratos
 			// Kt
 			this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
 				
-			Vector NodalDeformation = ZeroVector(msElementSize);
-			this->GetValuesVector(NodalDeformation);
+			Vector nodal_deformation = ZeroVector(msElementSize);
+			this->GetValuesVector(nodal_deformation);
 			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
+			rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
 	
 			rRightHandSideVector += this->CalculateBodyForces();
 
@@ -69,10 +69,10 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo)
 		{
 			KRATOS_TRY;
-			Vector NodalDeformation = ZeroVector(msElementSize);
-			this->GetValuesVector(NodalDeformation);
+			Vector nodal_deformation = ZeroVector(msElementSize);
+			this->GetValuesVector(nodal_deformation);
 			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= prod(this->K_master, NodalDeformation);
+			rRightHandSideVector -= prod(this->mK_Master, nodal_deformation);
 
 
 
@@ -100,7 +100,7 @@ namespace Kratos
 
 
 			this->GlobalizeMatrix(rLeftHandSideMatrix);
-			this->K_master = rLeftHandSideMatrix;
+			this->mK_Master = rLeftHandSideMatrix;
 			KRATOS_CATCH("")
 		}
 
@@ -118,21 +118,21 @@ namespace Kratos
 		const double s = std::sin(current_element_angle);
 
 		bounded_matrix<double,msElementSize,msElementSize>
-		 RotationMatrix = ZeroMatrix(msElementSize,msElementSize);
+		 rotation_matrix = ZeroMatrix(msElementSize,msElementSize);
 
-		RotationMatrix(0, 0) = c;
-		RotationMatrix(0, 1) = -s;
-		RotationMatrix(1, 0) = s;
-		RotationMatrix(1, 1) = c;
-		RotationMatrix(2, 2) = 1.00;
+		rotation_matrix(0, 0) = c;
+		rotation_matrix(0, 1) = -s;
+		rotation_matrix(1, 0) = s;
+		rotation_matrix(1, 1) = c;
+		rotation_matrix(2, 2) = 1.00;
 
-		RotationMatrix(3, 3) = c;
-		RotationMatrix(3, 4) = -s;
-		RotationMatrix(4, 3) = s;
-		RotationMatrix(4, 4) = c;
-		RotationMatrix(5, 5) = 1.00;
+		rotation_matrix(3, 3) = c;
+		rotation_matrix(3, 4) = -s;
+		rotation_matrix(4, 3) = s;
+		rotation_matrix(4, 4) = c;
+		rotation_matrix(5, 5) = 1.00;
 
-		return RotationMatrix;
+		return rotation_matrix;
 		KRATOS_CATCH("")
 	}
 
@@ -150,14 +150,14 @@ namespace Kratos
 			rOutput.resize(write_points_number);
 		}
 
-		Matrix LeftHandSideMatrix = this->CreateElementStiffnessMatrix_Total();
+		Matrix left_hand_side_matrix = this->CreateElementStiffnessMatrix_Total();
 
-		Vector NodalDeformation = ZeroVector(msElementSize);
-		this->GetValuesVector(NodalDeformation);
+		Vector nodal_deformation = ZeroVector(msElementSize);
+		this->GetValuesVector(nodal_deformation);
 
-		bounded_matrix<double,msElementSize,msElementSize> TransformationMatrix = this->CreateRotationMatrix();
+		bounded_matrix<double,msElementSize,msElementSize> transformation_matrix = this->CreateRotationMatrix();
 		// calculate local displacements
-		NodalDeformation = prod(Matrix(trans(TransformationMatrix)),NodalDeformation);
+		nodal_deformation = prod(Matrix(trans(transformation_matrix)),nodal_deformation);
 		
 
 		//// start static back condensation
@@ -166,13 +166,13 @@ namespace Kratos
 			Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
 			std::vector<int> dofList(dof_list_input.size());
 			for (size_t i=0;i<dof_list_input.size();++i) dofList[i]=dof_list_input[i];
-			Vector nodal_deformation_temp = NodalDeformation;
+			Vector nodal_deformation_temp = nodal_deformation;
 			StaticCondensationUtility::ConvertingCondensation(
-				*this,nodal_deformation_temp,NodalDeformation,dofList,LeftHandSideMatrix);
+				*this,nodal_deformation_temp,nodal_deformation,dofList,left_hand_side_matrix);
 		}
 		//// end static back condensation
 
-		Vector Stress = prod(LeftHandSideMatrix, NodalDeformation); 
+		Vector stress = prod(left_hand_side_matrix, nodal_deformation); 
 
 
 		//rOutput[GP 1,2,3][x,y,z]
@@ -187,20 +187,20 @@ namespace Kratos
 			rOutput[1][1] = 0.00;
 			rOutput[2][1] = 0.00;
 
-			rOutput[0][2] = 1.0 *Stress[2] * 0.75 - Stress[5] * 0.25;
-			rOutput[1][2] = 1.0 *Stress[2] * 0.50 - Stress[5] * 0.50;
-			rOutput[2][2] = 1.0 *Stress[2] * 0.25 - Stress[5] * 0.75;
+			rOutput[0][2] = 1.0 *stress[2] * 0.75 - stress[5] * 0.25;
+			rOutput[1][2] = 1.0 *stress[2] * 0.50 - stress[5] * 0.50;
+			rOutput[2][2] = 1.0 *stress[2] * 0.25 - stress[5] * 0.75;
 
 		}
 		if (rVariable == FORCE)
 		{
-			rOutput[0][0] = -1.0 * Stress[0] * 0.75 + Stress[3] * 0.25;
-			rOutput[1][0] = -1.0 * Stress[0] * 0.50 + Stress[3] * 0.50;
-			rOutput[2][0] = -1.0 * Stress[0] * 0.25 + Stress[3] * 0.75;
+			rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[3] * 0.25;
+			rOutput[1][0] = -1.0 * stress[0] * 0.50 + stress[3] * 0.50;
+			rOutput[2][0] = -1.0 * stress[0] * 0.25 + stress[3] * 0.75;
 
-			rOutput[0][1] = -1.0 * Stress[1] * 0.75 + Stress[4] * 0.25;
-			rOutput[1][1] = -1.0 *Stress[1] * 0.50 + Stress[4] * 0.50;
-			rOutput[2][1] = -1.0 *Stress[1] * 0.25 + Stress[4] * 0.75;
+			rOutput[0][1] = -1.0 * stress[1] * 0.75 + stress[4] * 0.25;
+			rOutput[1][1] = -1.0 *stress[1] * 0.50 + stress[4] * 0.50;
+			rOutput[2][1] = -1.0 *stress[1] * 0.25 + stress[4] * 0.75;
 
 			rOutput[0][2] = 0.00;
 			rOutput[1][2] = 0.00;
@@ -234,14 +234,14 @@ namespace Kratos
 
 	void CrBeamElementLinear2D2N::save(Serializer& rSerializer) const
 	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-		rSerializer.save("MasterStiffnessMatrix", this->K_master);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement2D2N);
+		rSerializer.save("MasterStiffnessMatrix", this->mK_Master);
 	}
 
 	void CrBeamElementLinear2D2N::load(Serializer& rSerializer)
 	{
-		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-		rSerializer.load("MasterStiffnessMatrix", this->K_master);
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement2D2N);
+		rSerializer.load("MasterStiffnessMatrix", this->mK_Master);
 	}
 
 } // namespace Kratos.

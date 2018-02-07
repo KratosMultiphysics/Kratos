@@ -207,13 +207,13 @@ namespace Kratos
 
 		rDampingMatrix = ZeroMatrix(msElementSize, msElementSize);
 
-		Matrix StiffnessMatrix = ZeroMatrix(msElementSize, msElementSize);
+		Matrix stiffness_matrix = ZeroMatrix(msElementSize, msElementSize);
 
-		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
+		this->CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
 
-		Matrix MassMatrix = ZeroMatrix(msElementSize, msElementSize);
+		Matrix mass_matrix = ZeroMatrix(msElementSize, msElementSize);
 
-		this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+		this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
 		double alpha = 0.0;
 		if (this->GetProperties().Has(RAYLEIGH_ALPHA))
@@ -235,8 +235,8 @@ namespace Kratos
 			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 		}
 
-		rDampingMatrix += alpha * MassMatrix;
-		rDampingMatrix += beta  * StiffnessMatrix;
+		rDampingMatrix += alpha * mass_matrix;
+		rDampingMatrix += beta  * stiffness_matrix;
 
 		KRATOS_CATCH("")
 	}
@@ -246,20 +246,20 @@ namespace Kratos
 		{
 			KRATOS_TRY;
 			// t 
-			this->DeformationForces = this->CalculateInternalStresses_DeformationModes();
+			this->mDeformationForces = this->CalculateInternalStresses_DeformationModes();
 
 			// qe
-			Vector NodalForces = ZeroVector(msElementSize);
-			NodalForces = this->ReturnElementForces_Local();
+			Vector nodal_forces = ZeroVector(msElementSize);
+			nodal_forces = this->ReturnElementForces_Local();
 			// q
-			this->GlobalizeVector(NodalForces);
-			this->F_int_global = NodalForces;
+			this->GlobalizeVector(nodal_forces);
+			this->mInternalGlobalForces = nodal_forces;
 			// Kt
 			this->CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
 				
 			// residual >>> r = f_ext - f_int
 			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= NodalForces;
+			rRightHandSideVector -= nodal_forces;
 	
 
 			rRightHandSideVector += this->CalculateBodyForces();
@@ -272,7 +272,7 @@ namespace Kratos
 		{
 			KRATOS_TRY;
 			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= this->F_int_global;
+			rRightHandSideVector -= this->mInternalGlobalForces;
 			rRightHandSideVector += this->CalculateBodyForces();
 			KRATOS_CATCH("")
 		}
@@ -297,8 +297,8 @@ namespace Kratos
 		const Matrix& Ncontainer = this->GetGeometry().ShapeFunctionsValues(
 			GeometryData::GI_GAUSS_1);
 
-		bounded_vector<double,3> EquivalentLineLoad = ZeroVector(3); 
-		bounded_vector<double,msElementSize> BodyForcesGlobal = ZeroVector(msElementSize);
+		bounded_vector<double,3> equivalent_line_load = ZeroVector(3); 
+		bounded_vector<double,msElementSize> body_forces_global = ZeroVector(msElementSize);
 
 		const double A = this->GetProperties()[CROSS_AREA];
 		const double l = this->CalculateLength();
@@ -307,7 +307,7 @@ namespace Kratos
 		//calculating equivalent line load
  		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
-			EquivalentLineLoad += A * rho*
+			equivalent_line_load += A * rho*
 				this->GetGeometry()[i].
 				FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
 		} 
@@ -319,16 +319,16 @@ namespace Kratos
 			int index = i*msLocalSize;
 			for (int j = 0; j < msDimension; ++j)
 			{
-				BodyForcesGlobal[j + index] =
-					EquivalentLineLoad[j] * Ncontainer(0, i) * l;
+				body_forces_global[j + index] =
+					equivalent_line_load[j] * Ncontainer(0, i) * l;
 			}
 		} 
 
 		// adding the nodal moments
  		this->CalculateAndAddWorkEquivalentNodalForcesLineLoad
-			(EquivalentLineLoad, BodyForcesGlobal, l);  
+			(equivalent_line_load, body_forces_global, l);  
 		// return the total ForceVector
-		return BodyForcesGlobal;
+		return body_forces_global;
 		KRATOS_CATCH("")
 	}
 
@@ -340,68 +340,68 @@ namespace Kratos
 		KRATOS_TRY;
 		//calculate orthogonal load vector
 		const double numerical_limit = std::numeric_limits<double>::epsilon();
-		Vector GeometricOrientation = ZeroVector(3);
-		GeometricOrientation[0] = this->GetGeometry()[1].X()
+		Vector geometric_orientation = ZeroVector(3);
+		geometric_orientation[0] = this->GetGeometry()[1].X()
 			- this->GetGeometry()[0].X();
-		GeometricOrientation[1] = this->GetGeometry()[1].Y()
+		geometric_orientation[1] = this->GetGeometry()[1].Y()
 			- this->GetGeometry()[0].Y();
-		GeometricOrientation[2] = 0.000;
+		geometric_orientation[2] = 0.000;
 
 
-		const double VectorNormA = MathUtils<double>::Norm(GeometricOrientation);
-		if (VectorNormA > numerical_limit) GeometricOrientation /= VectorNormA;
+		const double vector_norm_a = MathUtils<double>::Norm(geometric_orientation);
+		if (vector_norm_a > numerical_limit) geometric_orientation /= vector_norm_a;
 
-		Vector LineLoadDir = ZeroVector(3);
+		Vector line_load_direction = ZeroVector(3);
 		for (int i = 0; i < msDimension; ++i)
 		{
-			LineLoadDir[i] = ForceInput[i];
+			line_load_direction[i] = ForceInput[i];
 		}
 
-		const double VectorNormB = MathUtils<double>::Norm(LineLoadDir);
-		if (VectorNormB > numerical_limit) LineLoadDir /= VectorNormB;
+		const double vector_norm_b = MathUtils<double>::Norm(line_load_direction);
+		if (vector_norm_b > numerical_limit) line_load_direction /= vector_norm_b;
 
-		double cosAngle = 0.00;
+		double cos_angle = 0.00;
 		for (int i = 0; i < msDimension; ++i)
 		{
-			cosAngle += LineLoadDir[i] * GeometricOrientation[i];
+			cos_angle += line_load_direction[i] * geometric_orientation[i];
 		}
 
-		const double sinAngle = std::sqrt(1.00 - (cosAngle*cosAngle));
-		const double NormForceVectorOrth = sinAngle * VectorNormB;
+		const double sin_angle = std::sqrt(1.00 - (cos_angle*cos_angle));
+		const double norm_force_vector_orthogonal = sin_angle * vector_norm_b;
 
 
-		Vector NodeA = ZeroVector(3);
-		NodeA[0] = this->GetGeometry()[0].X();
-		NodeA[1] = this->GetGeometry()[0].Y();
-		NodeA[2] = 0.00;
+		Vector node_a = ZeroVector(3);
+		node_a[0] = this->GetGeometry()[0].X();
+		node_a[1] = this->GetGeometry()[0].Y();
+		node_a[2] = 0.00;
 
 
-		Vector NodeB = ZeroVector(3);
-		NodeB = NodeA + LineLoadDir;
+		Vector node_b = ZeroVector(3);
+		node_b = node_a + line_load_direction;
 
-		Vector NodeC = ZeroVector(3);
-		NodeC = NodeA + (GeometricOrientation*cosAngle);
+		Vector node_c = ZeroVector(3);
+		node_c = node_a + (geometric_orientation*cos_angle);
 
-		Vector LoadOrthogonalDir = ZeroVector(3);
-		LoadOrthogonalDir = NodeB - NodeC;
-		const double VectorNormC = MathUtils<double>::Norm(LoadOrthogonalDir);
-		if (VectorNormC > numerical_limit) LoadOrthogonalDir /= VectorNormC;
+		Vector load_orthogonal_direction = ZeroVector(3);
+		load_orthogonal_direction = node_b - node_c;
+		const double vector_norm_c = MathUtils<double>::Norm(load_orthogonal_direction);
+		if (vector_norm_c > numerical_limit) load_orthogonal_direction /= vector_norm_c;
 
 
 
 		// now caluclate respective work equivilent nodal moments
 
-		const double CustomMoment = NormForceVectorOrth *
+		const double custom_moment = norm_force_vector_orthogonal *
 			GeometryLength*GeometryLength / 12.00;
 
-		Vector MomentNodeA = ZeroVector(3);
-		MomentNodeA = MathUtils<double>::CrossProduct(GeometricOrientation,
-			LoadOrthogonalDir);
-		MomentNodeA *= CustomMoment;
+		Vector moment_node_a = ZeroVector(3);
+		moment_node_a = MathUtils<double>::CrossProduct(geometric_orientation,
+			load_orthogonal_direction);
+		moment_node_a *= custom_moment;
 
 
-		rRightHandSideVector[msDimension] += MomentNodeA[2];
-		rRightHandSideVector[(2*msDimension)+1] -= MomentNodeA[2];
+		rRightHandSideVector[msDimension] += moment_node_a[2];
+		rRightHandSideVector[(2*msDimension)+1] -= moment_node_a[2];
 
 		KRATOS_CATCH("")
 	}
@@ -467,13 +467,13 @@ namespace Kratos
 		KRATOS_TRY;
 		const double numerical_limit = std::numeric_limits<double>::epsilon();
 
-		Vector CurrentDisplacement = ZeroVector(msElementSize);
-		this->GetValuesVector(CurrentDisplacement,0);
+		Vector current_displacement = ZeroVector(msElementSize);
+		this->GetValuesVector(current_displacement,0);
 
-		const double dx = (this->GetGeometry()[1].X0()+CurrentDisplacement[3])
-		 - (this->GetGeometry()[0].X0()+CurrentDisplacement[0]);
-		const double dy = (this->GetGeometry()[1].Y0()+CurrentDisplacement[4])
-		 - (this->GetGeometry()[0].Y0()+CurrentDisplacement[1]);
+		const double dx = (this->GetGeometry()[1].X0()+current_displacement[3])
+		 - (this->GetGeometry()[0].X0()+current_displacement[0]);
+		const double dy = (this->GetGeometry()[1].Y0()+current_displacement[4])
+		 - (this->GetGeometry()[0].Y0()+current_displacement[1]);
 
 		const double norm = std::sqrt((dx*dx) + (dy*dy));
 
@@ -580,7 +580,7 @@ namespace Kratos
 		KRATOS_TRY	
 		// element properties
 		const double L = this->CalculateLength();
-		const double N = this->DeformationForces[0];
+		const double N = this->mDeformationForces[0];
 
 		// element material stiffness matrix
 		bounded_matrix<double,msLocalSize,msLocalSize> Kd = ZeroMatrix(msLocalSize, msLocalSize);
@@ -598,8 +598,8 @@ namespace Kratos
 		KRATOS_TRY	
 		// element properties
 		const double L = this->CalculateLength();
-		const double N = this->DeformationForces[0];
-		const double Q = (-2.00 / L) * this->DeformationForces[2];
+		const double N = this->mDeformationForces[0];
+		const double Q = (-2.00 / L) * this->mDeformationForces[2];
 
 		// element material stiffness matrix
 		bounded_matrix<double,msElementSize,msElementSize> Kr = ZeroMatrix(msElementSize, msElementSize);
@@ -654,20 +654,20 @@ namespace Kratos
 		KRATOS_TRY;
 		//calculate v
 
-		Vector CurrentDisplacement = ZeroVector(msElementSize);
-		this->GetValuesVector(CurrentDisplacement,0);
+		Vector current_displacement = ZeroVector(msElementSize);
+		this->GetValuesVector(current_displacement,0);
 
-		bounded_vector<double,msLocalSize> DeformationParameters = ZeroVector(msLocalSize);
-		DeformationParameters[0] = this->CalculateLength() - this->CalculateReferenceLength();
-		DeformationParameters[1] = CurrentDisplacement[5] - CurrentDisplacement[2];
-		DeformationParameters[2] = CurrentDisplacement[5] + CurrentDisplacement[2];
-		DeformationParameters[2] -= 2.00 * (this->CalculateDeformedElementAngle()
+		bounded_vector<double,msLocalSize> deformation_parameters = ZeroVector(msLocalSize);
+		deformation_parameters[0] = this->CalculateLength() - this->CalculateReferenceLength();
+		deformation_parameters[1] = current_displacement[5] - current_displacement[2];
+		deformation_parameters[2] = current_displacement[5] + current_displacement[2];
+		deformation_parameters[2] -= 2.00 * (this->CalculateDeformedElementAngle()
 		 - this->CalculateInitialElementAngle());
 
 		//calculate modulus 2PI for phi_a
-		DeformationParameters[2] = this->Modulus2Pi(DeformationParameters[2] + Globals::Pi) - Globals::Pi;
+		deformation_parameters[2] = this->Modulus2Pi(deformation_parameters[2] + Globals::Pi) - Globals::Pi;
 
-		return DeformationParameters;
+		return deformation_parameters;
 		KRATOS_CATCH("")
 	}
 
@@ -678,9 +678,9 @@ namespace Kratos
 		KRATOS_TRY;
 		//calculate t
 
-		bounded_vector<double,msLocalSize> DeformationStresses = ZeroVector(msLocalSize);
+		bounded_vector<double,msLocalSize> deformation_stresses = ZeroVector(msLocalSize);
 
-		bounded_vector<double,msLocalSize> DeformationModes = this->CalculateDeformationParameters();
+		bounded_vector<double,msLocalSize> deformation_modes = this->CalculateDeformationParameters();
 
 		bounded_matrix<double,msLocalSize,msLocalSize> K_d_mat = this->CreateElementStiffnessMatrix_Kd_mat();
 		bounded_matrix<double,msLocalSize,msLocalSize> K_d_geo = this->CreateElementStiffnessMatrix_Kd_geo();
@@ -688,9 +688,9 @@ namespace Kratos
 
 
 
-		DeformationStresses = prod(K_d,DeformationModes);
+		deformation_stresses = prod(K_d,deformation_modes);
 
-		return DeformationStresses;
+		return deformation_stresses;
 		KRATOS_CATCH("")
 	}
 
@@ -702,23 +702,23 @@ namespace Kratos
 		const double c = std::cos(current_element_angle);
 		const double s = std::sin(current_element_angle);
 
-		bounded_matrix<double,msElementSize,msElementSize> RotationMatrix = ZeroMatrix(msElementSize,msElementSize);
+		bounded_matrix<double,msElementSize,msElementSize> rotation_matrix = ZeroMatrix(msElementSize,msElementSize);
 
-		RotationMatrix(0, 0) = c;
-		RotationMatrix(0, 1) = -s;
-		RotationMatrix(1, 0) = s;
-		RotationMatrix(1, 1) = c;
-		RotationMatrix(2, 2) = 1.00;
+		rotation_matrix(0, 0) = c;
+		rotation_matrix(0, 1) = -s;
+		rotation_matrix(1, 0) = s;
+		rotation_matrix(1, 1) = c;
+		rotation_matrix(2, 2) = 1.00;
 
-		RotationMatrix(3, 3) = c;
-		RotationMatrix(3, 4) = -s;
-		RotationMatrix(4, 3) = s;
-		RotationMatrix(4, 4) = c;
-		RotationMatrix(5, 5) = 1.00;
+		rotation_matrix(3, 3) = c;
+		rotation_matrix(3, 4) = -s;
+		rotation_matrix(4, 3) = s;
+		rotation_matrix(4, 4) = c;
+		rotation_matrix(5, 5) = 1.00;
 
 
 
-		return RotationMatrix;
+		return rotation_matrix;
 		KRATOS_CATCH("")
 	}
 
@@ -890,15 +890,15 @@ namespace Kratos
 	void CrBeamElement2D2N::save(Serializer& rSerializer) const
 	{
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-		rSerializer.save("DeformationForces", this->DeformationForces);
-		rSerializer.save("GlobalInternalForces", this->F_int_global);
+		rSerializer.save("mDeformationForces", this->mDeformationForces);
+		rSerializer.save("GlobalInternalForces", this->mInternalGlobalForces);
 	}
 
 	void CrBeamElement2D2N::load(Serializer& rSerializer)
 	{
 		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-		rSerializer.load("DeformationForces", this->DeformationForces);
-		rSerializer.load("GlobalInternalForces", this->F_int_global);
+		rSerializer.load("mDeformationForces", this->mDeformationForces);
+		rSerializer.load("GlobalInternalForces", this->mInternalGlobalForces);
 	}
 } // namespace Kratos.
 

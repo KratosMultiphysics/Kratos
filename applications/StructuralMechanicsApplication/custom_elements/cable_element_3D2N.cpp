@@ -53,36 +53,36 @@ namespace Kratos
 
 		KRATOS_TRY
 		bounded_matrix<double,msLocalSize,msLocalSize>
-		 LocalStiffnessMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+		 local_stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 
 		if (this->mIsCompressed)
 		{
-			LocalStiffnessMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+			local_stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 		}
 
 		else
 		{
-			this->CalculateElasticStiffnessMatrix(LocalStiffnessMatrix,
+			this->CalculateElasticStiffnessMatrix(local_stiffness_matrix,
 				rCurrentProcessInfo);
 			bounded_matrix<double,msLocalSize,msLocalSize> K_geo = ZeroMatrix(msLocalSize, msLocalSize);
 			this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
 
-			LocalStiffnessMatrix += K_geo;
+			local_stiffness_matrix += K_geo;
 		}
 
-		return LocalStiffnessMatrix;
+		return local_stiffness_matrix;
 		KRATOS_CATCH("")
 	}
 
 
-	void CableElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+    void CableElement3D2N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 										VectorType& rRightHandSideVector,
 										ProcessInfo& rCurrentProcessInfo){
 
 		KRATOS_TRY
 		//calculate internal forces
-		bounded_vector<double,msLocalSize> InternalForces = ZeroVector(msLocalSize);
-		this->UpdateInternalForces(InternalForces);
+		bounded_vector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
+		this->UpdateInternalForces(internal_forces);
 		//resizing the matrices + create memory for LHS
 		rLeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 		//creating LHS
@@ -96,7 +96,7 @@ namespace Kratos
 		//create+compute RHS
 		rRightHandSideVector = ZeroVector(msLocalSize);
 		//update Residual
-		rRightHandSideVector -= InternalForces;
+		rRightHandSideVector -= internal_forces;
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
 		}
@@ -108,15 +108,15 @@ namespace Kratos
 										ProcessInfo& rCurrentProcessInfo){
 
 		KRATOS_TRY
-		bounded_vector<double,msLocalSize> InternalForces = ZeroVector(msLocalSize);
-		this->UpdateInternalForces(InternalForces);
+		bounded_vector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
+		this->UpdateInternalForces(internal_forces);
 
 		if (this->mIsCompressed) {
 			rRightHandSideVector = ZeroVector(msLocalSize);
 		}
 		else {
 			rRightHandSideVector = ZeroVector(msLocalSize);
-			rRightHandSideVector -= InternalForces;
+			rRightHandSideVector -= internal_forces;
 			//add bodyforces 
 			rRightHandSideVector += this->CalculateBodyForces();
 		}
@@ -129,10 +129,10 @@ namespace Kratos
 
 		KRATOS_TRY
 		bounded_matrix<double,msLocalSize,msLocalSize>
-		 TransformationMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+		 transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-		this->CreateTransformationMatrix(TransformationMatrix);
-		const double InternalStrainGL = this->CalculateGreenLagrangeStrain();
+		this->CreateTransformationMatrix(transformation_matrix);
+		const double internal_strain_green_lagrange = this->CalculateGreenLagrangeStrain();
 		const double l = this->CalculateCurrentLength();
 		const double L0 = this->CalculateReferenceLength();
 		const double E = this->GetProperties()[YOUNG_MODULUS];
@@ -143,30 +143,30 @@ namespace Kratos
 			prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
 		}
 
-		const double N = ((E*InternalStrainGL + prestress) * l * A) / L0;
+		const double normal_force = ((E*internal_strain_green_lagrange + prestress) * l * A) / L0;
 
-		if (N < 0.00) this->mIsCompressed = true;
+		if (normal_force < 0.00) this->mIsCompressed = true;
 		else this->mIsCompressed = false;
 
 		//internal force vectors
 		bounded_vector<double,msLocalSize> f_local = ZeroVector(msLocalSize);
-		f_local[0] = -1.00 * N;
-		f_local[3] = 1.00 * N;
+		f_local[0] = -1.00 * normal_force;
+		f_local[3] = 1.00 * normal_force;
 		rinternalForces = ZeroVector(msLocalSize);
-		noalias(rinternalForces) = prod(TransformationMatrix, f_local);
+		noalias(rinternalForces) = prod(transformation_matrix, f_local);
 		KRATOS_CATCH("");
 	}
 
 	
 	void CableElement3D2N::save(Serializer& rSerializer) const
 	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TrussElement3D2N);
 		rSerializer.save("mIscompressed", this->mIsCompressed);
 
 	}
 	void CableElement3D2N::load(Serializer& rSerializer)
 	{
-		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TrussElement3D2N);
 		rSerializer.load("mIscompressed", this->mIsCompressed);
 	}
 } // namespace Kratos.

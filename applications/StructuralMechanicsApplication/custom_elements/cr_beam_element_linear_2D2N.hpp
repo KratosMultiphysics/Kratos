@@ -21,7 +21,6 @@
 
 // Project includes
 #include "custom_elements/cr_beam_element_2D2N.hpp"
-#include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
@@ -97,7 +96,7 @@ namespace Kratos
 		CrBeamElementLinear2D2N() {};
 
 		// stores the globalized master stiffness matrix for reaction forces
-		Matrix K_master = ZeroMatrix(msElementSize,msElementSize);
+		Matrix mK_Master = ZeroMatrix(msElementSize,msElementSize);
 
 		
 		friend class Serializer;

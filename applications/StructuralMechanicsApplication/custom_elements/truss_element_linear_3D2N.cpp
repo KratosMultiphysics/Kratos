@@ -69,10 +69,10 @@ namespace Kratos
 		rLeftHandSideMatrix = this->CreateElementStiffnessMatrix(rCurrentProcessInfo);
 
 
-		Vector NodalDeformation = ZeroVector(msLocalSize);
-		this->GetValuesVector(NodalDeformation, 0);
+		Vector nodal_deformation = ZeroVector(msLocalSize);
+		this->GetValuesVector(nodal_deformation, 0);
 		rRightHandSideVector = ZeroVector(msLocalSize);
-		rRightHandSideVector -= prod(rLeftHandSideMatrix, NodalDeformation);
+		rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
 		rRightHandSideVector += this->CalculateBodyForces();
 		this->AddPrestressLinear(rRightHandSideVector);
 
@@ -107,12 +107,12 @@ namespace Kratos
 
 			KRATOS_TRY
 
-			Matrix LeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-			this->CalculateLeftHandSide(LeftHandSideMatrix, rCurrentProcessInfo);
-			Vector NodalDeformation = ZeroVector(msLocalSize);
-			this->GetValuesVector(NodalDeformation);
+			Matrix left_hand_side_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+			this->CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
+			Vector nodal_deformation = ZeroVector(msLocalSize);
+			this->GetValuesVector(nodal_deformation);
 			rRightHandSideVector = ZeroVector(msLocalSize);
-			rRightHandSideVector -= prod(LeftHandSideMatrix, NodalDeformation);
+			rRightHandSideVector -= prod(left_hand_side_matrix, nodal_deformation);
 			this->AddPrestressLinear(rRightHandSideVector);
 
 			//add bodyforces 
@@ -189,12 +189,12 @@ namespace Kratos
 
 	void TrussElementLinear3D2N::save(Serializer& rSerializer) const
 	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, TrussElement3D2N);
 
 	}
 	void TrussElementLinear3D2N::load(Serializer& rSerializer)
 	{
-		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, TrussElement3D2N);
 	}
 
 

@@ -20,7 +20,6 @@
 
 // Project includes
 #include "custom_elements/truss_element_3D2N.hpp"
-#include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
 

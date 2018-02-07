@@ -94,17 +94,17 @@ namespace Kratos
 		ProcessInfo& rCurrentProcessInfo){
 
 		KRATOS_TRY
-		bounded_matrix<double,msLocalSize,msLocalSize> LocalStiffnessMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+		bounded_matrix<double,msLocalSize,msLocalSize> local_stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-		this->CalculateElasticStiffnessMatrix(LocalStiffnessMatrix,
+		this->CalculateElasticStiffnessMatrix(local_stiffness_matrix,
 			rCurrentProcessInfo);
 		bounded_matrix<double,msLocalSize,msLocalSize> K_geo = ZeroMatrix(msLocalSize, msLocalSize);
 		this->CalculateGeometricStiffnessMatrix(K_geo, rCurrentProcessInfo);
 
-		LocalStiffnessMatrix += K_geo;
+		local_stiffness_matrix += K_geo;
 
 
-		return LocalStiffnessMatrix;
+		return local_stiffness_matrix;
 		KRATOS_CATCH("")
 	}
 
@@ -119,13 +119,13 @@ namespace Kratos
 
 		noalias(rDampingMatrix) = ZeroMatrix(msLocalSize, msLocalSize);
 
-		MatrixType StiffnessMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+		MatrixType stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-		this->CalculateLeftHandSide(StiffnessMatrix, rCurrentProcessInfo);
+		this->CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
 
-		MatrixType MassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+		MatrixType mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-		this->CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+		this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
 		double alpha = 0.0;
 		if (this->GetProperties().Has(RAYLEIGH_ALPHA))
@@ -147,8 +147,8 @@ namespace Kratos
 			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 		}
 
-		rDampingMatrix += alpha * MassMatrix;
-		rDampingMatrix += beta  * StiffnessMatrix;
+		rDampingMatrix += alpha * mass_matrix;
+		rDampingMatrix += beta  * stiffness_matrix;
 
 		KRATOS_CATCH("")
 	}
@@ -167,15 +167,15 @@ namespace Kratos
 		const double L = this->CalculateReferenceLength();
 		const double rho = this->GetProperties()[DENSITY];
 
-		const double TotalMass = A * L * rho;
+		const double total_mass = A * L * rho;
 
-		Vector LumpFact = ZeroVector(msNumberOfNodes);
+		Vector lumping_factor = ZeroVector(msNumberOfNodes);
 
-		LumpFact = this->GetGeometry().LumpingFactors(LumpFact);
+		lumping_factor = this->GetGeometry().LumpingFactors(lumping_factor);
 
 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
-			double temp = LumpFact[i] * TotalMass;
+			double temp = lumping_factor[i] * total_mass;
 
 			for (int j = 0; j < msDimension; ++j)
 			{
@@ -199,21 +199,21 @@ namespace Kratos
 		const double L = this->CalculateReferenceLength();
 		const double rho = this->GetProperties()[DENSITY];
 
-		double TotalMass = A * L * rho;
-		bounded_vector<double,msDimension> BodyForcesNode = ZeroVector(msDimension);
-		bounded_vector<double,msLocalSize> BodyForcesGlobal = ZeroVector(msLocalSize);
+		double total_mass = A * L * rho;
+		bounded_vector<double,msDimension> body_forces_node = ZeroVector(msDimension);
+		bounded_vector<double,msLocalSize> body_forces_global = ZeroVector(msLocalSize);
 
 		//assemble global Vector
 		for (int i = 0; i < msNumberOfNodes; ++i) {
-			BodyForcesNode = TotalMass*this->GetGeometry()[i]
+			body_forces_node = total_mass*this->GetGeometry()[i]
 				.FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0,i);
 
 			for (unsigned int j = 0; j < msDimension; ++j) {
-				BodyForcesGlobal[(i*msDimension) + j] = BodyForcesNode[j];
+				body_forces_global[(i*msDimension) + j] = body_forces_node[j];
 			}
 		}
 		
-		return BodyForcesGlobal;
+		return body_forces_global;
 		KRATOS_CATCH("")
 	}
 
@@ -278,8 +278,8 @@ namespace Kratos
 
 		KRATOS_TRY
 		//calculate internal forces
-		bounded_vector<double,msLocalSize> InternalForces = ZeroVector(msLocalSize);
-		this->UpdateInternalForces(InternalForces);
+		bounded_vector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
+		this->UpdateInternalForces(internal_forces);
 		//resizing the matrices + create memory for LHS
 		rLeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 		//creating LHS
@@ -289,7 +289,7 @@ namespace Kratos
 		//create+compute RHS
 		rRightHandSideVector = ZeroVector(msLocalSize);
 		//update Residual
-		rRightHandSideVector -= InternalForces;
+		rRightHandSideVector -= internal_forces;
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
 
@@ -302,9 +302,9 @@ namespace Kratos
 		KRATOS_TRY
 		rRightHandSideVector = ZeroVector(msLocalSize);
 
-		bounded_vector<double,msLocalSize> InternalForces = ZeroVector(msLocalSize);
-		this->UpdateInternalForces(InternalForces);
-		rRightHandSideVector -= InternalForces;
+		bounded_vector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
+		this->UpdateInternalForces(internal_forces);
+		rRightHandSideVector -= internal_forces;
 
 		//add bodyforces 
 		rRightHandSideVector += this->CalculateBodyForces();
@@ -388,12 +388,12 @@ namespace Kratos
 					prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
 				}
 	
-				const double internal_strain_gl = this->CalculateGreenLagrangeStrain();
+				const double internal_strain_green_lagrange = this->CalculateGreenLagrangeStrain();
 				const double L0 = this->CalculateReferenceLength();
 				const double l = this->CalculateCurrentLength();
 				const double E = this->GetProperties()[YOUNG_MODULUS];
 				
-				truss_forces[0] = ((E*internal_strain_gl + prestress) * l * A) / L0;
+				truss_forces[0] = ((E*internal_strain_green_lagrange + prestress) * l * A) / L0;
 
 				rOutput[0] = truss_forces;
 			}
@@ -524,10 +524,10 @@ namespace Kratos
 
 		KRATOS_TRY
 		bounded_matrix<double,msLocalSize,msLocalSize>
-		 TransformationMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+		 transformation_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-		this->CreateTransformationMatrix(TransformationMatrix);
-		const double InternalStrainGL = this->CalculateGreenLagrangeStrain();
+		this->CreateTransformationMatrix(transformation_matrix);
+		const double internal_strain_green_lagrange = this->CalculateGreenLagrangeStrain();
 		const double l = this->CalculateCurrentLength();
 		const double L0 = this->CalculateReferenceLength();
 		const double E = this->GetProperties()[YOUNG_MODULUS];
@@ -538,14 +538,14 @@ namespace Kratos
 			prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
 		}
 
-		const double N = ((E*InternalStrainGL + prestress) * l * A) / L0;
+		const double normal_force = ((E*internal_strain_green_lagrange + prestress) * l * A) / L0;
 
 		//internal force vectors
 		bounded_vector<double,msLocalSize> f_local = ZeroVector(msLocalSize);
-		f_local[0] = -1.00 * N;
-		f_local[3] = 1.00 * N;
+		f_local[0] = -1.00 * normal_force;
+		f_local[3] = 1.00 * normal_force;
 		rinternalForces = ZeroVector(msLocalSize);
-		noalias(rinternalForces) = prod(TransformationMatrix, f_local);
+		noalias(rinternalForces) = prod(transformation_matrix, f_local);
 		KRATOS_CATCH("");
 	}
 
@@ -556,46 +556,46 @@ namespace Kratos
 		//1st calculate transformation matrix
 		typedef bounded_vector<double,msDimension> arraydim;
 		typedef bounded_vector<double,msLocalSize> arraylocal;
-		arraydim DirectionVectorX = ZeroVector(msDimension);
-		arraydim DirectionVectorY = ZeroVector(msDimension);
-		arraydim DirectionVectorZ = ZeroVector(msDimension);
-		arraylocal ReferenceCoordinates = ZeroVector(msLocalSize);
-		arraydim GlobalZ = ZeroVector(msDimension);
-		GlobalZ[2] = 1.0;
+		arraydim direction_vector_x = ZeroVector(msDimension);
+		arraydim direction_vector_y = ZeroVector(msDimension);
+		arraydim direction_vector_z = ZeroVector(msDimension);
+		arraylocal reference_coordinates = ZeroVector(msLocalSize);
+		arraydim global_z_vector = ZeroVector(msDimension);
+		global_z_vector[2] = 1.0;
 
-		this->WriteTransformationCoordinates(ReferenceCoordinates);
+		this->WriteTransformationCoordinates(reference_coordinates);
 
 		for (unsigned int i = 0; i < msDimension; ++i)
 		{
-			DirectionVectorX[i] = (ReferenceCoordinates[i + msDimension] -
-				ReferenceCoordinates[i]);
+			direction_vector_x[i] = (reference_coordinates[i + msDimension] -
+				reference_coordinates[i]);
 		}
 		// local x-axis (e1_local) is the beam axis  (in GID is e3_local)
 		double VectorNorm;
-		VectorNorm = MathUtils<double>::Norm(DirectionVectorX);
-		if (VectorNorm != 0) DirectionVectorX /= VectorNorm;
+		VectorNorm = MathUtils<double>::Norm(direction_vector_x);
+		if (VectorNorm != 0) direction_vector_x /= VectorNorm;
 
-		if (DirectionVectorX[2] == 1.00) {
-			DirectionVectorY[1] = 1.0;
-			DirectionVectorZ[0] = -1.0;
+		if (direction_vector_x[2] == 1.00) {
+			direction_vector_y[1] = 1.0;
+			direction_vector_z[0] = -1.0;
 		}
 
-		if (DirectionVectorX[2] == -1.00) {
-			DirectionVectorY[1] = 1.0;
-			DirectionVectorZ[0] = 1.0;
+		if (direction_vector_x[2] == -1.00) {
+			direction_vector_y[1] = 1.0;
+			direction_vector_z[0] = 1.0;
 		}
 
-		if (fabs(DirectionVectorX[2]) != 1.00) {
-                    MathUtils<double>::UnitCrossProduct(DirectionVectorY, DirectionVectorX, GlobalZ);
-                    MathUtils<double>::UnitCrossProduct(DirectionVectorZ, DirectionVectorY, DirectionVectorX);
+		if (fabs(direction_vector_x[2]) != 1.00) {
+                    MathUtils<double>::UnitCrossProduct(direction_vector_y, direction_vector_x, global_z_vector);
+                    MathUtils<double>::UnitCrossProduct(direction_vector_z, direction_vector_y, direction_vector_x);
 		}
 
 		//2nd fill big rotation matrix
-		bounded_matrix<double,msDimension,msDimension> CurrentCS = ZeroMatrix(msDimension, msDimension);
+		bounded_matrix<double,msDimension,msDimension> current_coordinate_system = ZeroMatrix(msDimension, msDimension);
 		for (unsigned int i = 0; i < msDimension; ++i) {
-			CurrentCS(i, 0) = DirectionVectorX[i];
-			CurrentCS(i, 1) = DirectionVectorY[i];
-			CurrentCS(i, 2) = DirectionVectorZ[i];
+			current_coordinate_system(i, 0) = direction_vector_x[i];
+			current_coordinate_system(i, 1) = direction_vector_y[i];
+			current_coordinate_system(i, 2) = direction_vector_z[i];
 		}
 
 		rRotationMatrix = ZeroMatrix(msLocalSize, msLocalSize);
@@ -606,7 +606,7 @@ namespace Kratos
 			{
 				for (unsigned int j = 0; j<msDimension; ++j)
 				{
-					rRotationMatrix(i + kk, j + kk) = CurrentCS(i, j);
+					rRotationMatrix(i + kk, j + kk) = current_coordinate_system(i, j);
 				}
 			}
 		}
@@ -648,12 +648,12 @@ namespace Kratos
 
 				GetGeometry()[i].SetLock();
 
-				array_1d<double, 3 > &ForceResidual = 
+				array_1d<double, 3 > &r_force_residual = 
 					GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
 				for (int j = 0; j<msDimension; ++j)
 				{
-					ForceResidual[j] += rRHSVector[index + j];
+					r_force_residual[j] += rRHSVector[index + j];
 				}
 				
 				GetGeometry()[i].UnSetLock();

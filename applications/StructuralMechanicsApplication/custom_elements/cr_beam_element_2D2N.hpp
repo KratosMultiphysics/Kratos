@@ -252,10 +252,10 @@ namespace Kratos
 	private:
 
 		// stores the deformation modes
-		bounded_vector<double,msLocalSize> DeformationForces = ZeroVector(msLocalSize);
+		bounded_vector<double,msLocalSize> mDeformationForces = ZeroVector(msLocalSize);
 
 		// stores the globalized internal forces for calculation of the residual
-		Vector F_int_global = ZeroVector(msElementSize);
+		Vector mInternalGlobalForces = ZeroVector(msElementSize);
 		
 
 		friend class Serializer;
