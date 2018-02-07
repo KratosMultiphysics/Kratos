@@ -351,8 +351,7 @@ namespace Kratos {
         ModelPart& fem_model_part = GetFemModelPart();
         ElementsArrayType& pElements = fem_model_part.GetCommunicator().LocalMesh().Elements();
         const int number_of_rigid_body_elements = pElements.size();
-
-        #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
+        
         for (int k = 0; k < number_of_rigid_body_elements; k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -837,7 +836,7 @@ namespace Kratos {
             }
         }
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
         for (int k = 0; k < int(pTConditions.size()); k++) {
 
             ConditionsArrayType::iterator it = pTConditions.ptr_begin() + k;

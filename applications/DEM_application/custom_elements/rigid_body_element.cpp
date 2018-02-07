@@ -140,21 +140,29 @@ namespace Kratos {
         array_1d<double, 3> global_relative_coordinates;
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
         
-        NodesArrayType::iterator i_begin = mListOfNodes.begin(); 
-        NodesArrayType::iterator i_end = mListOfNodes.end();
-        int iter = 0; 
+        vector<unsigned int> node_partition;
+        int NumberOfThreads = OpenMPUtils::GetNumThreads();
+        
+        OpenMPUtils::CreatePartition(NumberOfThreads, mListOfNodes.size(), node_partition);
 
-        for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
+        #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
+        for (int k = 0; k < NumberOfThreads; k++) {
+            NodesArrayType::iterator i_begin = mListOfNodes.begin() + node_partition[k];
+            NodesArrayType::iterator i_end = mListOfNodes.begin() + node_partition[k + 1];
+            int iter = node_partition[k];
+        
+            for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
 
-            GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[iter], global_relative_coordinates); 
-            array_1d<double, 3>& node_position = i->Coordinates(); 
-            array_1d<double, 3>& delta_displacement = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-            array_1d<double, 3> previous_position;
-            noalias(previous_position) = node_position;
-            noalias(node_position)= central_node.Coordinates() + global_relative_coordinates;
-            noalias(delta_displacement) = node_position - previous_position;
-            noalias(i->FastGetSolutionStepValue(VELOCITY)) = rigid_body_velocity;
-            iter++;
+                GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[iter], global_relative_coordinates); 
+                array_1d<double, 3>& node_position = i->Coordinates(); 
+                array_1d<double, 3>& delta_displacement = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+                array_1d<double, 3> previous_position;
+                noalias(previous_position) = node_position;
+                noalias(node_position)= central_node.Coordinates() + global_relative_coordinates;
+                noalias(delta_displacement) = node_position - previous_position;
+                noalias(i->FastGetSolutionStepValue(VELOCITY)) = rigid_body_velocity;
+                iter++;
+            }
         }        
     }
     
@@ -169,20 +177,29 @@ namespace Kratos {
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
 
         array_1d<double, 3> previous_position;
-        NodesArrayType::iterator i_begin = mListOfNodes.begin(); 
-        NodesArrayType::iterator i_end = mListOfNodes.end(); 
-        int iter = 0;
         
-        for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
+        vector<unsigned int> node_partition;
+        int NumberOfThreads = OpenMPUtils::GetNumThreads();
+        
+        OpenMPUtils::CreatePartition(NumberOfThreads, mListOfNodes.size(), node_partition);
 
-            GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[iter], global_relative_coordinates);
-            GeometryFunctions::CrossProduct( rigid_body_angular_velocity, global_relative_coordinates, linear_vel_due_to_rotation );
-            array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
-            noalias(velocity) = rigid_body_velocity + linear_vel_due_to_rotation;                                    
-            noalias(i->FastGetSolutionStepValue(ANGULAR_VELOCITY)) = rigid_body_angular_velocity;
-            noalias(i->FastGetSolutionStepValue(DELTA_ROTATION)) = rigid_body_delta_rotation;
-            iter++;
-        }                        
+        #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
+        for (int k = 0; k < NumberOfThreads; k++) {
+            NodesArrayType::iterator i_begin = mListOfNodes.begin() + node_partition[k];
+            NodesArrayType::iterator i_end = mListOfNodes.begin() + node_partition[k + 1];
+            int iter = node_partition[k];
+        
+            for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
+
+                GeometryFunctions::QuaternionVectorLocal2Global(Orientation, mListOfCoordinates[iter], global_relative_coordinates);
+                GeometryFunctions::CrossProduct( rigid_body_angular_velocity, global_relative_coordinates, linear_vel_due_to_rotation );
+                array_1d<double, 3>& velocity = i->FastGetSolutionStepValue(VELOCITY);
+                noalias(velocity) = rigid_body_velocity + linear_vel_due_to_rotation;                                    
+                noalias(i->FastGetSolutionStepValue(ANGULAR_VELOCITY)) = rigid_body_angular_velocity;
+                noalias(i->FastGetSolutionStepValue(DELTA_ROTATION)) = rigid_body_delta_rotation;
+                iter++;
+            }
+        }
     }
         
     void RigidBodyElement3D::GetRigidBodyElementsForce(const array_1d<double,3>& gravity) {
@@ -201,25 +218,33 @@ namespace Kratos {
         array_1d<double, 3> center_to_node_vector;
         array_1d<double, 3> additional_torque;
 
-        NodesArrayType::iterator i_begin = mListOfNodes.begin();
-        NodesArrayType::iterator i_end = mListOfNodes.end();
-                
-        for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
+        vector<unsigned int> node_partition;
+        int NumberOfThreads = OpenMPUtils::GetNumThreads();
+        
+        OpenMPUtils::CreatePartition(NumberOfThreads, mListOfNodes.size(), node_partition);
+
+        #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
+        for (int k = 0; k < NumberOfThreads; k++) {
+            NodesArrayType::iterator i_begin = mListOfNodes.begin() + node_partition[k];
+            NodesArrayType::iterator i_end = mListOfNodes.begin() + node_partition[k + 1];
+
+            for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
                         
-            array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(CONTACT_FORCES);
-            center_forces[0] += node_forces[0];
-            center_forces[1] += node_forces[1];
-            center_forces[2] += node_forces[2];
+                array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(CONTACT_FORCES);
+                center_forces[0] += node_forces[0];
+                center_forces[1] += node_forces[1];
+                center_forces[2] += node_forces[2];
                         
-            array_1d<double, 3>& node_position = i->Coordinates();
+                array_1d<double, 3>& node_position = i->Coordinates();
             
-            center_to_node_vector[0] = node_position[0] - central_node.Coordinates()[0];
-            center_to_node_vector[1] = node_position[1] - central_node.Coordinates()[1];
-            center_to_node_vector[2] = node_position[2] - central_node.Coordinates()[2];
-            GeometryFunctions::CrossProduct(center_to_node_vector, node_forces, additional_torque);
-            center_torque[0] += additional_torque[0];
-            center_torque[1] += additional_torque[1];
-            center_torque[2] += additional_torque[2];
+                center_to_node_vector[0] = node_position[0] - central_node.Coordinates()[0];
+                center_to_node_vector[1] = node_position[1] - central_node.Coordinates()[1];
+                center_to_node_vector[2] = node_position[2] - central_node.Coordinates()[2];
+                GeometryFunctions::CrossProduct(center_to_node_vector, node_forces, additional_torque);
+                center_torque[0] += additional_torque[0];
+                center_torque[1] += additional_torque[1];
+                center_torque[2] += additional_torque[2];
+            }
         }
     }
     
