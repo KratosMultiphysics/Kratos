@@ -15,8 +15,6 @@ class Hdf5FixedMeshOutputProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "model_part_name" : "please_specify_model_part_name",
-                "list_of_elements" : [],
-                "list_of_conditions" : [],
                 "list_of_variables" : [],
                 "output_time_frequency": 1.0,
                 "output_step_frequency": 0,
@@ -27,8 +25,6 @@ class Hdf5FixedMeshOutputProcess(KratosMultiphysics.Process):
             """)
         settings.ValidateAndAssignDefaults(default_settings)
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self._list_of_elements = settings["list_of_elements"].Clone()
-        self._list_of_conditions = settings["list_of_conditions"].Clone()
         self._list_of_variables = settings["list_of_variables"].Clone()
         self._output_time_frequency = settings["output_time_frequency"].GetDouble()
         self._output_step_frequency = settings["output_step_frequency"].GetInt()
@@ -59,8 +55,6 @@ class Hdf5FixedMeshOutputProcess(KratosMultiphysics.Process):
         params = KratosMultiphysics.Parameters("""{
             "prefix" : "/ModelData"
         }""")
-        params.AddValue("list_of_elements", self._list_of_elements)
-        params.AddValue("list_of_conditions", self._list_of_conditions)
         if self._partitioned:
             return KratosHDF5.HDF5PartitionedModelPartIO(params, hdf5_file)
         else:
