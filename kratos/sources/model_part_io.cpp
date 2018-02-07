@@ -250,15 +250,12 @@ namespace Kratos
         // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
         if (rThisElements.size() > 0) {
             std::string element_name;
+
+            auto it_element = rThisElements.begin();
             auto elements_components = KratosComponents<Element>::GetComponents();
             
             // Fisrt we do the first element
-            for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                if(CompareElementsAndConditionsUtility::IsSame(*(rThisElements.begin()), *it_comp->second)) {
-                    element_name = it_comp->first;
-                    break;
-                }
-            }
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it_element, element_name);
             
             (*mpStream) << "Begin Elements\t" << element_name << std::endl;
             (*mpStream) << "\t" << rThisElements.begin()->Id() << "\t" << (rThisElements.begin()->pGetProperties())->Id() << "\t";
@@ -271,7 +268,7 @@ namespace Kratos
                 auto it_elem_previous = rThisElements.begin() + i - 1;
                 auto it_elem_current = rThisElements.begin() + i;
 
-                if(CompareElementsAndConditionsUtility::IsSame(*it_elem_previous, *it_elem_current)) {
+                if(GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                     (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
                         (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
@@ -279,12 +276,7 @@ namespace Kratos
                 } else {
                     (*mpStream) << "End Elements" << std::endl << std::endl;;
                     
-                    for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                        if(CompareElementsAndConditionsUtility::IsSame(*it_elem_current, *it_comp->second)) {
-                            element_name = it_comp->first;
-                            break;
-                        }
-                    }
+                    CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
                     
                     (*mpStream) << "Begin Elements\t" << element_name << std::endl;
                     (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
@@ -347,16 +339,13 @@ namespace Kratos
         
         if (rThisConditions.size() > 0) {
             std::string condition_name;
+
+            auto it_condition = rThisConditions.begin();
             auto conditions_components = KratosComponents<Condition>::GetComponents();
             
             // Fisrt we do the first condition
-            for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                if(CompareElementsAndConditionsUtility::IsSame(*(rThisConditions.begin()), *it_comp->second)) {
-                    condition_name = it_comp->first;
-                    break;
-                }
-            }
-            
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it_condition, condition_name);
+
             (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
             (*mpStream) << "\t" << rThisConditions.begin()->Id() << "\t" << (rThisConditions.begin()->pGetProperties())->Id() << "\t";
             for (std::size_t i_node = 0; i_node < rThisConditions.begin()->GetGeometry().size(); i_node++)
@@ -368,7 +357,7 @@ namespace Kratos
                 auto it_cond_previous = rThisConditions.begin() + i - 1;
                 auto it_cond_current = rThisConditions.begin() + i;
 
-                if(CompareElementsAndConditionsUtility::IsSame(*it_cond_previous, *it_cond_current)) {
+                if(GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                     (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
                         (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
@@ -376,14 +365,7 @@ namespace Kratos
                 } else {
                     (*mpStream) << "End Conditions" << std::endl << std::endl;;
 
-                    for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                        auto component_obj = *(it_comp->second);
-
-                        if(CompareElementsAndConditionsUtility::IsSame(*it_cond_current, *it_comp->second)) {
-                            condition_name = it_comp->first;
-                            break;
-                        }
-                    }
+                    CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
                     
                     (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
                     (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
