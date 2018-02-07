@@ -91,9 +91,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    VariableComponent(const std::string& NewName, const AdaptorType& NewAdaptor)
-        : BaseType(NewName, sizeof(DataType), true), mAdaptor(NewAdaptor)
+    VariableComponent(const std::string& ComponentName, const std::string& SourceName, int ComponentIndex, const AdaptorType& NewAdaptor)
+        : BaseType(ComponentName, sizeof(DataType), true, NewAdaptor.GetComponentIndex()), mAdaptor(NewAdaptor)
     {
+        SetKey(GenerateKey(SourceName, sizeof(DataType), true,  ComponentIndex));
     }
 
     /// Copy constructor.
@@ -275,7 +276,7 @@ private:
 ///@}
 
 template<class TAdaptorType>
-const VariableComponent<TAdaptorType> VariableComponent<TAdaptorType>::msStaticObject("NONE", TAdaptorType::StaticObject());
+const VariableComponent<TAdaptorType> VariableComponent<TAdaptorType>::msStaticObject("NONE", "NONE", 0, TAdaptorType::StaticObject());
 
 ///@name Type Definitions
 ///@{
