@@ -34,7 +34,7 @@ namespace Kratos {
     // Destructor
     Cluster3D::~Cluster3D() {
 
-        if (GetProperties()[BREAKABLE_CLUSTER]) {
+        if (this->HasProperties() && GetProperties()[BREAKABLE_CLUSTER]) {
             for (unsigned int i = 0; i < mListOfCoordinates.size(); i++) {
                 mListOfSphericParticles[i]->Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);
                 mListOfSphericParticles[i]->GetGeometry()[0].Set(DEMFlags::BELONGS_TO_A_CLUSTER, false);

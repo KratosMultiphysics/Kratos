@@ -1052,6 +1052,13 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    /// Check that the Condition has a correctly initialized pointer to a Properties instance.
+    bool HasProperties() const
+    {
+        return mpProperties != nullptr;
+    }
+
     ///@}
     ///@name Input and output
     ///@{
