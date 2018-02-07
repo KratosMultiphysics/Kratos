@@ -170,15 +170,15 @@ namespace Kratos
          {
             KRATOS_TRY
 
-      //std::cout << " Update " << std::endl;
-      //update of displacement (by DOF)
-      for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
-      {
-         if (i_dof->IsFree() )
-         {
-            i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
-         }
-      }
+            //std::cout << " Update " << std::endl;
+            //update of displacement (by DOF)
+            for (typename DofsArrayType::iterator i_dof = rDofSet.begin(); i_dof != rDofSet.end(); ++i_dof)
+            {
+               if (i_dof->IsFree() )
+               {
+                  i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
+               }
+            }
 
             //updating time derivatives (nodally for efficiency)
             array_1d<double, 3 > DeltaDisplacement;
