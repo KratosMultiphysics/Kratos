@@ -14,7 +14,6 @@
 #define KRATOS_HDF5_MODEL_PART_IO_BASE_H_INCLUDED
 
 // System includes
-#include <vector>
 #include <string>
 
 // External includes
@@ -27,7 +26,6 @@
 // Application includes
 #include "hdf5_application_define.h"
 #include "custom_io/hdf5_file.h"
-#include "custom_utilities/hdf5_connectivities_io.h"
 
 namespace Kratos
 {
@@ -72,16 +70,12 @@ protected:
 
     ~ModelPartIOBase() = default;
 
-    File& GetFile() const;
-
     ///@}
     ///@name Member Variables
     ///@{
 
     File::Pointer mpFile;
     std::string mPrefix;
-    std::vector<Internals::FileItem> mElementIO;
-    std::vector<Internals::FileItem> mConditionIO;
 
     ///@}
 

@@ -2,7 +2,7 @@
 
 #include "includes/kratos_components.h"
 #include "utilities/openmp_utils.h"
-#include "custom_utilities/compare_element_and_condition_utility.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 namespace Kratos
 {
@@ -106,7 +106,7 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
 }
 
 // Fill data from elements of a single element type.
-void ConnectivitiesData::SetData(ConstElementsContainerType const& rElements)
+void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
 
@@ -116,46 +116,34 @@ void ConnectivitiesData::SetData(ConstElementsContainerType const& rElements)
         Clear();
         return;
     }
-    const ElementType& r_expected_element = *rElements.front();
-    CompareElementAndConditionUtility::FindNameInRegistry(r_expected_element, mName);
-    const unsigned geometry_size = r_expected_element.GetGeometry().size();
     mIds.resize(num_elems, false);
     mPropertiesIds.resize(num_elems, false);
+    const unsigned geometry_size = rElements.front().GetGeometry().size();
     mConnectivities.resize(num_elems, geometry_size, false);
+    CompareElementsAndConditionsUtility::FindNameInRegistry(rElements.front(), mName);
 
     // Fill arrays and perform checks.
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(num_elems, num_threads, partition);
-#pragma omp parallel
+    #pragma omp parallel for
+    for (unsigned i = 0; i < num_elems; ++i)
     {
-        const int thread_id = OpenMPUtils::ThisThread();
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-        {
-            const ElementType& r_elem = *rElements[i];
-            // Check element type. (this is done by the bins utility.)
-            //KRATOS_ERROR_IF(typeid(r_elem) != typeid(r_expected_element))
-            //    << "Element #" << r_elem.Id() << " is not "
-            //    << typeid(r_expected_element).name() << std::endl;
-            // Fill ids.
-            mIds[i] = r_elem.Id();
-            mPropertiesIds[i] = r_elem.GetProperties().Id();
-            // Check for matching node count.
-            const ElementType::GeometryType& r_geom = r_elem.GetGeometry();
-            KRATOS_ERROR_IF(r_geom.size() != geometry_size)
-                << "Geometry has non-standard size for element #" << r_elem.Id()
-                << std::endl;
-            // Fill connectivities.
-            for (unsigned k = 0; k < geometry_size; ++k)
-                mConnectivities(i, k) = r_geom[k].Id();
-        }
+        ElementsContainerType::const_iterator it = rElements.begin() + i;
+        // Check that the element and geometry types are the same.
+        KRATOS_ERROR_IF_NOT(CompareElementsAndConditionsUtility::IsSame(*it, rElements.front()))
+            << "Element #" << it->Id() << " is not the same as #" << rElements.front().Id() << '!' << std::endl;
+        // Fill ids.
+        mIds[i] = it->Id();
+        mPropertiesIds[i] = it->GetProperties().Id();
+        const ElementType::GeometryType& r_geom = it->GetGeometry();
+        // Fill connectivities.
+        for (unsigned k = 0; k < geometry_size; ++k)
+            mConnectivities(i, k) = r_geom[k].Id();
     }
 
     KRATOS_CATCH("");
 }
 
 // Fill data from conditions of a single condition type.
-void ConnectivitiesData::SetData(ConstConditionsContainerType const& rConditions)
+void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
 {
     KRATOS_TRY;
 
@@ -165,39 +153,27 @@ void ConnectivitiesData::SetData(ConstConditionsContainerType const& rConditions
         Clear();
         return;
     }
-    const ConditionType& r_expected_condition = *rConditions.front();
-    CompareElementAndConditionUtility::FindNameInRegistry(r_expected_condition, mName);
-    const unsigned geometry_size = r_expected_condition.GetGeometry().size();
     mIds.resize(num_conds, false);
     mPropertiesIds.resize(num_conds, false);
+    const unsigned geometry_size = rConditions.front().GetGeometry().size();
     mConnectivities.resize(num_conds, geometry_size, false);
+    CompareElementsAndConditionsUtility::FindNameInRegistry(rConditions.front(), mName);
 
     // Fill arrays and perform checks.
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(num_conds, num_threads, partition);
-#pragma omp parallel
+    #pragma omp parallel for
+    for (unsigned i = 0; i < num_conds; ++i)
     {
-        const int thread_id = OpenMPUtils::ThisThread();
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-        {
-            const ConditionType& r_cond = *rConditions[i];
-            // Check condition type. (this is done by the bins utility.)
-            //KRATOS_ERROR_IF(typeid(r_cond) != typeid(r_expected_condition))
-            //    << "Condition #" << r_cond.Id() << " is not "
-            //    << typeid(r_expected_condition).name() << std::endl;
-            // Fill ids.
-            mIds[i] = r_cond.Id();
-            mPropertiesIds[i] = r_cond.GetProperties().Id();
-            // Check for matching node count.
-            const ConditionType::GeometryType& r_geom = r_cond.GetGeometry();
-            KRATOS_ERROR_IF(r_geom.size() != geometry_size)
-                << "Geometry has non-standard size for condition #" << r_cond.Id()
-                << std::endl;
-            // Fill connectivities.
-            for (unsigned k = 0; k < geometry_size; ++k)
-                mConnectivities(i, k) = r_geom[k].Id();
-        }
+        ConditionsContainerType::const_iterator it = rConditions.begin() + i;
+        // Check that the condition and geometry types are the same.
+        KRATOS_ERROR_IF_NOT(CompareElementsAndConditionsUtility::IsSame(*it, rConditions.front()))
+            << "Condition #" << it->Id() << " is not the same as #" << rConditions.front().Id() << '!' << std::endl;
+        // Fill ids.
+        mIds[i] = it->Id();
+        mPropertiesIds[i] = it->GetProperties().Id();
+        const ConditionType::GeometryType& r_geom = it->GetGeometry();
+        // Fill connectivities.
+        for (unsigned k = 0; k < geometry_size; ++k)
+            mConnectivities(i, k) = r_geom[k].Id();
     }
 
     KRATOS_CATCH("");

@@ -2,9 +2,11 @@
 
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/hdf5_points_data.h"
+#include "custom_utilities/hdf5_connectivities_data.h"
 #include "custom_io/hdf5_nodal_solution_step_variables_io.h"
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
+#include "custom_utilities/factor_elements_and_conditions_utility.h"
 
 namespace Kratos
 {
@@ -29,7 +31,7 @@ bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
     unsigned local_start_index, local_block_size;
     unsigned ghost_start_index, ghost_block_size;
 
-    File& r_file = GetFile();
+    File& r_file = *mpFile;
 
     std::tie(local_start_index, local_block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Local");
     std::tie(ghost_start_index, ghost_block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Ghost");
@@ -62,7 +64,7 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     local_nodes.reserve(num_nodes);
     ghost_nodes.reserve(0.1 * num_nodes);
 
-    File& r_file = GetFile();
+    File& r_file = *mpFile;
 
     // Divide nodes into local and global containers.
     int my_pid = r_file.GetPID();
@@ -101,13 +103,16 @@ void PartitionedModelPartIO::ReadElements(NodesContainerType& rNodes,
 
     unsigned start_index, block_size;
     rElements.clear();
-    File& r_file = GetFile();
+    std::vector<std::string> group_names;
+    mpFile->GetGroupNames(mPrefix + "/Elements", group_names);
 
-    Internals::ConnectivitiesInput<ElementType> elem_inputs(mElementIO);
-    for (auto& r_item : elem_inputs)
+    for (const auto& r_name : group_names)
     {
-        std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(r_file, r_item.Path);
-        r_item.ReadConnectivities(r_file, rNodes, rProperties, start_index, block_size, rElements);
+        Internals::ConnectivitiesData connectivities;
+        std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(
+            *mpFile, mPrefix + "/Elements/" + r_name);
+        connectivities.ReadData(*mpFile, mPrefix + "/Elements/" + r_name, start_index, block_size);
+        connectivities.CreateEntities(rNodes, rProperties, rElements);
     }
 
     KRATOS_CATCH("");
@@ -117,13 +122,18 @@ void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElement
 {
     KRATOS_TRY;
 
-    Internals::ConnectivitiesOutput<ElementType> elem_outputs(mElementIO, rElements);
-    File& r_file = GetFile();
+    FactorElementsUtility factored_elements(rElements);
+
     WriteInfo info;
-    for (auto& r_item : elem_outputs)
+    for (const auto& r_elems : factored_elements)
     {
-        r_item.WriteConnectivities(r_file, info);
-        DataSetPartitionUtility::WritePartitionTable(r_file, r_item.Path, info);
+        Internals::ConnectivitiesData connectivities;
+        connectivities.SetData(r_elems.second);
+        connectivities.WriteData(*mpFile, mPrefix + "/Elements/" + r_elems.first, info);
+        const int size = info.TotalSize;
+        mpFile->WriteAttribute(mPrefix + "/Elements/" + r_elems.first, "Size", size);
+        DataSetPartitionUtility::WritePartitionTable(
+            *mpFile, mPrefix + "/Elements/" + r_elems.first, info);
     }
 
     KRATOS_CATCH("");
@@ -137,14 +147,16 @@ void PartitionedModelPartIO::ReadConditions(NodesContainerType& rNodes,
 
     unsigned start_index, block_size;
     rConditions.clear();
+    std::vector<std::string> group_names;
+    mpFile->GetGroupNames(mPrefix + "/Conditions", group_names);
 
-    File& r_file = GetFile();
-
-    Internals::ConnectivitiesInput<ConditionType> cond_inputs(mConditionIO);
-    for (auto& r_item : cond_inputs)
+    for (const auto& r_name : group_names)
     {
-        std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(r_file, r_item.Path);
-        r_item.ReadConnectivities(r_file, rNodes, rProperties, start_index, block_size, rConditions);
+        Internals::ConnectivitiesData connectivities;
+        std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(
+            *mpFile, mPrefix + "/Conditions/" + r_name);
+        connectivities.ReadData(*mpFile, mPrefix + "/Conditions/" + r_name, start_index, block_size);
+        connectivities.CreateEntities(rNodes, rProperties, rConditions);
     }
 
     KRATOS_CATCH("");
@@ -154,13 +166,18 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
 {
     KRATOS_TRY;
 
-    Internals::ConnectivitiesOutput<ConditionType> cond_outputs(mConditionIO, rConditions);
-    File& r_file = GetFile();
+    FactorConditionsUtility factored_conditions(rConditions);
+
     WriteInfo info;
-    for (auto& r_item : cond_outputs)
+    for (const auto& r_conds : factored_conditions)
     {
-        r_item.WriteConnectivities(r_file, info);
-        DataSetPartitionUtility::WritePartitionTable(r_file, r_item.Path, info);
+        Internals::ConnectivitiesData connectivities;
+        connectivities.SetData(r_conds.second);
+        connectivities.WriteData(*mpFile, mPrefix + "/Conditions/" + r_conds.first, info);
+        const int size = info.TotalSize;
+        mpFile->WriteAttribute(mPrefix + "/Conditions/" + r_conds.first, "Size", size);
+        DataSetPartitionUtility::WritePartitionTable(
+            *mpFile, mPrefix + "/Conditions/" + r_conds.first, info);
     }
 
     KRATOS_CATCH("");
@@ -186,7 +203,7 @@ void PartitionedModelPartIO::ReadModelPart(ModelPart& rModelPart)
 
 void PartitionedModelPartIO::Check()
 {
-    if (GetFile().GetTotalProcesses() == 1)
+    if (mpFile->GetTotalProcesses() == 1)
         KRATOS_ERROR << "Using PartitionedModelPartIO with single process file access." << std::endl;
 }
 
@@ -241,11 +258,10 @@ void PartitionedModelPartIO::ReadAndAssignPartitionIndex(const std::string& rPat
     // local nodes are read. Then copy it to the solution step data after the buffer
     // is initialized.
     unsigned start_index, block_size;
-    File& r_file = GetFile();
-    std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(r_file, rPath);
+    std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(*mpFile, rPath);
     Vector<int> partition_ids, node_ids;
-    r_file.ReadDataSet(rPath + "/PARTITION_INDEX", partition_ids, start_index, block_size);
-    r_file.ReadDataSet(rPath + "/Ids", node_ids, start_index, block_size);
+    mpFile->ReadDataSet(rPath + "/PARTITION_INDEX", partition_ids, start_index, block_size);
+    mpFile->ReadDataSet(rPath + "/Ids", node_ids, start_index, block_size);
     for (unsigned i = 0; i < node_ids.size(); ++i)
         r_nodes[node_ids[i]].FastGetSolutionStepValue(PARTITION_INDEX) = partition_ids[i];
 

@@ -20,6 +20,7 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hdf5_connectivities_data.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hdf5_xdmf_connectivities_writer_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hdf5_data_set_partition_utility.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/factor_elements_and_conditions_utility.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/hdf5_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp

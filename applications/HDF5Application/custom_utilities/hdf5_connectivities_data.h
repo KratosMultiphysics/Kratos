@@ -89,10 +89,10 @@ public:
                         ConditionsContainerType& rConditions);
 
     // Fill data from elements of a single element type.
-    void SetData(ConstElementsContainerType const& rElements);
+    void SetData(ElementsContainerType const& rElements);
 
     // Fill data from conditions of a single condition type.
-    void SetData(ConstConditionsContainerType const& rConditions);
+    void SetData(ConditionsContainerType const& rConditions);
 
     void Clear();
     ///@}

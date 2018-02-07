@@ -15,9 +15,7 @@ ModelPartIOBase::ModelPartIOBase(Parameters Settings, File::Pointer pFile)
 
     Parameters default_params(R"(
         {
-            "prefix": "",
-            "list_of_elements": [],
-            "list_of_conditions": []
+            "prefix": ""
         })");
 
     Settings.ValidateAndAssignDefaults(default_params);
@@ -25,18 +23,6 @@ ModelPartIOBase::ModelPartIOBase(Parameters Settings, File::Pointer pFile)
     mPrefix = Settings["prefix"].GetString();
     if (mPrefix == "/")
         mPrefix = "";
-
-    for (unsigned i = 0; i < Settings["list_of_elements"].size(); ++i)
-    {
-        std::string elem_name = Settings["list_of_elements"].GetArrayItem(i).GetString();
-        mElementIO.push_back({elem_name, mPrefix + "/Elements/" + elem_name});
-    }
-
-    for (unsigned i = 0; i < Settings["list_of_conditions"].size(); ++i)
-    {
-        std::string cond_name = Settings["list_of_conditions"].GetArrayItem(i).GetString();
-        mConditionIO.push_back({cond_name, mPrefix + "/Conditions/" + cond_name});
-    }
 
     KRATOS_CATCH("");
 }
@@ -82,11 +68,6 @@ void ModelPartIOBase::WriteModelPart(ModelPart& rModelPart)
     WriteConditions(rModelPart.Conditions());
 
     KRATOS_CATCH("");
-}
-
-File& ModelPartIOBase::GetFile() const
-{
-    return *mpFile;
 }
 
 } // namespace HDF5.

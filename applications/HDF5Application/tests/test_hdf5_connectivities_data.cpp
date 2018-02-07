@@ -24,8 +24,8 @@
 // Application includes
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_utilities/hdf5_connectivities_data.h"
-#include "custom_utilities/hdf5_pointer_bins_utility.h"
-#include "custom_utilities/compare_element_and_condition_utility.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
+#include "custom_utilities/factor_elements_and_conditions_utility.h"
 
 namespace Kratos
 {
@@ -137,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_ReadData, KratosHDF5TestSuite)
     test_file.WriteAttribute("/Elements", "Name", std::string("Element2D3N"));
 
     HDF5::Internals::ConnectivitiesData data;
-    data.ReadData(test_file, "/Elements", 0, ids.size());
+    data.ReadData(test_file, "/Elements", info.StartIndex, info.BlockSize);
     KRATOS_CHECK(data.Name() == "Element2D3N");
     KRATOS_CHECK(data.size() == ids.size());
     KRATOS_CHECK(data.GetConnectivities().size2() == connectivities.size2());
@@ -174,7 +174,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateElements, KratosHDF5TestS
     test_file.WriteAttribute("/Elements", "Name", std::string("Element2D3N"));
 
     HDF5::Internals::ConnectivitiesData data;
-    data.ReadData(test_file, "/Elements", 0, ids.size());
+    data.ReadData(test_file, "/Elements", info.StartIndex, info.BlockSize);
     KRATOS_CHECK(data.Name() == "Element2D3N");
     HDF5::ElementsContainerType new_elements;
     data.CreateEntities(nodes, properties, new_elements);
@@ -184,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateElements, KratosHDF5TestS
     {
         Element& r_elem = elements[r_new_elem.Id()];
         KRATOS_CHECK(r_new_elem.GetProperties().Id() == r_elem.GetProperties().Id());
-        KRATOS_CHECK(HDF5::CompareElementAndConditionUtility::IsSame(r_elem, r_new_elem));
+        KRATOS_CHECK(CompareElementsAndConditionsUtility::IsSame(r_elem, r_new_elem));
         for (unsigned j = 0; j < r_elem.GetGeometry().size(); ++j)
             KRATOS_CHECK(r_new_elem.GetGeometry()[j].Id() == r_elem.GetGeometry()[j].Id());
     }
@@ -214,7 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateConditions, KratosHDF5Tes
     test_file.WriteAttribute("/Conditions", "Name", std::string("SurfaceCondition3D3N"));
 
     HDF5::Internals::ConnectivitiesData data;
-    data.ReadData(test_file, "/Conditions", 0, ids.size());
+    data.ReadData(test_file, "/Conditions", info.StartIndex, info.BlockSize);
     KRATOS_CHECK(data.Name() == "SurfaceCondition3D3N");
     HDF5::ConditionsContainerType new_conditions;
     data.CreateEntities(nodes, properties, new_conditions);
@@ -224,7 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateConditions, KratosHDF5Tes
     {
         Condition& r_cond = conditions[r_new_cond.Id()];
         KRATOS_CHECK(r_new_cond.GetProperties().Id() == r_cond.GetProperties().Id());
-        KRATOS_CHECK(HDF5::CompareElementAndConditionUtility::IsSame(r_cond, r_new_cond));
+        KRATOS_CHECK(CompareElementsAndConditionsUtility::IsSame(r_cond, r_new_cond));
         for (unsigned j = 0; j < r_cond.GetGeometry().size(); ++j)
             KRATOS_CHECK(r_new_cond.GetGeometry()[j].Id() == r_cond.GetGeometry()[j].Id());
     }
@@ -240,17 +240,14 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData1, KratosHDF5TestSuite)
     CreateTestMesh(nodes, properties, elements, ids, pids, connectivities);
 
     HDF5::Internals::ConnectivitiesData data;
-    std::vector<const HDF5::ElementType*> bin_keys{&elements.front()};
-    HDF5::Internals::PointerBinsUtility<HDF5::ElementType> elem_bins(bin_keys);
-    elem_bins.CreateBins(elements);
-    HDF5::ConstElementsContainerType& element_ptrs = elem_bins.GetBin(bin_keys.front());
-    data.SetData(element_ptrs);
+    FactorElementsUtility factored_elements(elements);
+    data.SetData(factored_elements.begin()->second);
     KRATOS_CHECK(data.Name() == "Element2D3N");
-    KRATOS_CHECK(data.size() == element_ptrs.size());
+    KRATOS_CHECK(data.size() == elements.size());
     for (unsigned i = 0; i < data.size(); ++i)
     {
-        Element const& r_elem = *element_ptrs[i];
-        KRATOS_CHECK(r_elem.Id() == static_cast<unsigned>(data.GetIds()[i]));
+        const unsigned id = data.GetIds()[i];
+        Element const& r_elem = elements[id];
         KRATOS_CHECK(r_elem.GetProperties().Id() == static_cast<unsigned>(data.GetPropertiesIds()[i]));
         KRATOS_CHECK(r_elem.GetGeometry().size() == static_cast<unsigned>(data.GetConnectivities().size2()));
         for (unsigned j = 0; j < data.GetConnectivities().size2(); ++j)
@@ -268,11 +265,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData2, KratosHDF5TestSuite)
     CreateTestMesh(nodes, properties, conditions, ids, pids, connectivities);
 
     HDF5::Internals::ConnectivitiesData data;
-    std::vector<const HDF5::ConditionType*> bin_keys{&conditions.front()};
-    HDF5::Internals::PointerBinsUtility<HDF5::ConditionType> cond_bins(bin_keys);
-    cond_bins.CreateBins(conditions);
-    HDF5::ConstConditionsContainerType& condition_ptrs = cond_bins.GetBin(bin_keys.front());
-    data.SetData(condition_ptrs);
+    FactorConditionsUtility factored_conditions(conditions);
+    data.SetData(factored_conditions.begin()->second);
     // A set of deprecated "do nothing" conditions in the core is causing the
     // wrong condition name to be assigned here because they have the same type
     // as the non-deprecated conditions but are registered in a different name.
@@ -281,8 +275,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData2, KratosHDF5TestSuite)
     KRATOS_CHECK(data.size() == conditions.size());
     for (unsigned i = 0; i < data.size(); ++i)
     {
-        Condition const& r_cond = *condition_ptrs[i];
-        KRATOS_CHECK(r_cond.Id() == static_cast<unsigned>(data.GetIds()[i]));
+        const unsigned id = data.GetIds()[i];
+        Condition const& r_cond = conditions[id];
         KRATOS_CHECK(r_cond.GetProperties().Id() == static_cast<unsigned>(data.GetPropertiesIds()[i]));
         KRATOS_CHECK(r_cond.GetGeometry().size() == static_cast<unsigned>(data.GetConnectivities().size2()));
         for (unsigned j = 0; j < data.GetConnectivities().size2(); ++j)
@@ -308,20 +302,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_WriteData, KratosHDF5TestSuite)
     CreateTestMesh(nodes, properties, elements, ids, pids, connectivities);
 
     HDF5::Internals::ConnectivitiesData data;
-    std::vector<const HDF5::ElementType*> bin_keys{&elements.front()};
-    HDF5::Internals::PointerBinsUtility<HDF5::ElementType> elem_bins(bin_keys);
-    elem_bins.CreateBins(elements);
-    HDF5::ConstElementsContainerType& element_ptrs = elem_bins.GetBin(bin_keys.front());
-    data.SetData(element_ptrs);
+
+    FactorElementsUtility factored_elements(elements);
+    data.SetData(factored_elements.begin()->second);
     HDF5::WriteInfo info;
     data.WriteData(test_file, "/Elements", info);
 
     HDF5::Vector<int> new_ids, new_pids;
     HDF5::Matrix<int> new_connectivities;
     std::string name;
-    test_file.ReadDataSet("/Elements/Ids", new_ids, 0, ids.size());
-    test_file.ReadDataSet("/Elements/PropertiesIds", new_pids, 0, pids.size());
-    test_file.ReadDataSet("/Elements/Connectivities", new_connectivities, 0, connectivities.size1());
+    test_file.ReadDataSet("/Elements/Ids", new_ids, info.StartIndex, info.BlockSize);
+    test_file.ReadDataSet("/Elements/PropertiesIds", new_pids, info.StartIndex, info.BlockSize);
+    test_file.ReadDataSet("/Elements/Connectivities", new_connectivities, info.StartIndex, info.BlockSize);
     test_file.ReadAttribute("/Elements", "Name", name);
     KRATOS_CHECK(name == "Element2D3N");
     KRATOS_CHECK(new_connectivities.size2() == connectivities.size2());

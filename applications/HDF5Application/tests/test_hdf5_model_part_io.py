@@ -109,9 +109,7 @@ class TestCase(KratosUnittest.TestCase):
     def _get_model_part_io(self, hdf5_file):
         params = Parameters("""
         {
-            "prefix" : "/ModelData",
-            "list_of_elements" : ["Element2D3N", "Element2D4N"],
-            "list_of_conditions" : ["SurfaceCondition3D3N", "SurfaceCondition3D4N"]
+            "prefix" : "/ModelData"
         }""")
         return HDF5ModelPartIO(params, hdf5_file)
 
