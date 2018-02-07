@@ -871,13 +871,25 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourRigidFacesElasticContactForce[i], OldLocalElasticContactForce);
             const double previous_indentation = indentation + LocalDeltDisp[2];
-            double LocalRelVel[3] = {0.0};
+            data_buffer.mLocalRelVel[0] = 0.0;
+            data_buffer.mLocalRelVel[1] = 0.0;
+            data_buffer.mLocalRelVel[2] = 0.0;
             
             if (indentation > 0.0) {
                 
-                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
-                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation,
-                                                                     previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall, sliding);
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
+                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,
+                                                                    OldLocalElasticContactForce, 
+                                                                    LocalElasticContactForce, 
+                                                                    LocalDeltDisp, 
+                                                                    data_buffer.mLocalRelVel, 
+                                                                    indentation,
+                                                                    previous_indentation, 
+                                                                    ViscoDampingLocalContactForce, 
+                                                                    cohesive_force, 
+                                                                    this, 
+                                                                    wall, 
+                                                                    sliding);
             }
 
             double LocalContactForce[3]  = {0.0};
@@ -898,7 +910,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             if (wall->GetProperties()[COMPUTE_WEAR]) {
                 const double area              = Globals::Pi * GetInteractionRadius() * GetInteractionRadius();
                 const double inverse_of_volume = 1.0 / (4.0 * 0.333333333333333 * area * GetInteractionRadius());
-                ComputeWear(LocalCoordSystem, RelVel, LocalRelVel, data_buffer.mDt, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
+                ComputeWear(LocalCoordSystem, RelVel, data_buffer.mLocalRelVel, data_buffer.mDt, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
             } //wall->GetProperties()[COMPUTE_WEAR] if
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
