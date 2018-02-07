@@ -6,7 +6,8 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
 set( KRATOS_ULF_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}/ULF_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/ULF_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/ULF_application_variables
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_ulf_python_application.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 

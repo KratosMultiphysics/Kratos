@@ -2284,7 +2284,7 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 }
 ///@}
 
-///@} // Fluid Dynamics Application group
+///@} // ULF Application group
 
 } // namespace Kratos.
 

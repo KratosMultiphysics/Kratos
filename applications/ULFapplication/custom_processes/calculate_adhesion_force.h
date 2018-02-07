@@ -1,10 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: ajarauta $
-//   Date:                $Date: 2007-11-06 12:34:26 $
-//   Revision:            $Revision: 1.4 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//  this process save structural elements in a separate list
+//  Main author:     ajarauta 
+
 
 #if !defined(CALCULATE_ADHESION_FORCE_INCLUDED )
 #define  CALCULATE_ADHESION_FORCE_INCLUDED
@@ -34,18 +38,76 @@
 
 namespace Kratos
 {
+
+
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+	calculate adhesion force
+
+
+*/
+
+
   class CalculateAdhesionForce
   : public Process
   {
   public:
-    /*
-    void CalculateAdhesionForce2D(ModelPart& ThisModelPart)
+      
+///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of PushStructureProcess
+    KRATOS_CLASS_POINTER_DEFINITION(CalculateAdhesionForce);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    CalculateAdhesionForce()
     {
-	//KRATOS_TRY
-	
-	//KRATOS_CATCH("")
     }
-    */
+
+    /// Destructor.
+    virtual ~CalculateAdhesionForce()
+    {
+    }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    //	void operator()()
+    //	{
+    //		MergeParts();
+    //	}
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+    
     void CalculateAdhesionForce3D(ModelPart& ThisModelPart)
     {
 	KRATOS_TRY
@@ -167,13 +229,161 @@ namespace Kratos
       else
 	return c/sqrt(c*c);
     }        
-    
-    private:
-    
-  }; // Class CalculateAdhesionForce
+  
+  
+  ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "CalculateAdhesionForce";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "CalculateAdhesionForce";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+//		CalculateAdhesionForce& operator=(CalculateAdhesionForce const& rOther);
+
+    /// Copy constructor.
+//		CalculateAdhesionForce(CalculateAdhesionForce& rOther);
+
+
+    ///@}
+
+}; // Class CalculateAdhesionForce
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  CalculateAdhesionForce& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const CalculateAdhesionForce& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
 
 
 }  // namespace Kratos.
+
+
 
 #endif // KRATOS_CALCULATE_ADHESION_FORCE_INCLUDED defined 
 

@@ -1,10 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: ajarauta $
-//   Date:                $Date: 2007-11-06 12:34:26 $
-//   Revision:            $Revision: 1.4 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//  this process save structural elements in a separate list
+//  Main author:     ajarauta 
+
 
 #if !defined(CALCULATE_NORMAL_EQ_INCLUDED )
 #define  CALCULATE_NORMAL_EQ_INCLUDED
@@ -34,10 +38,75 @@
 
 namespace Kratos
 {
+
+    ///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+	calculate normal eq
+
+
+*/
+
   class CalculateNormalEq
   : public Process
   {
   public:
+
+///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of PushStructureProcess
+    KRATOS_CLASS_POINTER_DEFINITION(CalculateNormalEq);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    CalculateNormalEq()
+    {	
+    }
+
+    /// Destructor.
+    virtual ~CalculateNormalEq()
+    {
+    }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    //	void operator()()
+    //	{
+    //		MergeParts();
+    //	}
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+    
+
     void CalculateNormalEq3D(ModelPart& ThisModelPart)
     {
 	KRATOS_TRY
@@ -159,12 +228,158 @@ namespace Kratos
       return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
     }    
     
-    private:
-    
-  }; // Class CalculateNormalEq
+///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "AssignSurfaceTensionConditions";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "AssignSurfaceTensionConditions";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+//		CalculateNormalEq& operator=(CalculateNormalEq const& rOther);
+
+    /// Copy constructor.
+//		CalculateNormalEq(CalculateNormalEq const& rOther);
+
+
+    ///@}
+
+}; // Class CalculateNormalEq
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  CalculateNormalEq& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const CalculateNormalEq& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
 
 
 }  // namespace Kratos.
+
 
 #endif // KRATOS_CALCULATE_NORMAL_EQ_INCLUDED  defined 
 

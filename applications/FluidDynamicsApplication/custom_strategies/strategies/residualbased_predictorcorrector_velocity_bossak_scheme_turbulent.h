@@ -425,8 +425,8 @@ namespace Kratos {
                 }
             }
 
-             if (rModelPart.GetCommunicator().MyPID() == 0)
-                 std::cout << "end of prediction" << std::endl;
+//              if (rModelPart.GetCommunicator().MyPID() == 0)
+//                  std::cout << "end of prediction" << std::endl;
 
         }
 

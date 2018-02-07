@@ -1,11 +1,13 @@
-
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: ajarauta $
-//   Date:                $Date: 2015-10-17 12:30:33 $
-//   Revision:            $Revision: 1.0 $
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
 //
-//
+//  Main author:     ajarauta 
 
 
 #if !defined(KRATOS_FIND_NODAL_NEIGHBOURS_SURFACE_PROCESS_H_INCLUDED )
