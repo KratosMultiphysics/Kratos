@@ -309,7 +309,6 @@ namespace Kratos
 		Vector mNodalForces;
 
 		int mIterationCount = 0;
-		bool mIsLumpedMassMatrix = false;
 
 		
 

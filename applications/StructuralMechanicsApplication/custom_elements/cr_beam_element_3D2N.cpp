@@ -789,15 +789,14 @@ namespace Kratos
 		rMassMatrix = ZeroMatrix(msElementSize, msElementSize);
 
 
+		bool check_has_lumped_mass_matrix = true;
 
 		if (this->GetProperties().Has(LUMPED_MASS_MATRIX)) {
-			this->mIsLumpedMassMatrix = GetProperties()[LUMPED_MASS_MATRIX];
+			check_has_lumped_mass_matrix = GetProperties()[LUMPED_MASS_MATRIX];
 		}
-		else this->mIsLumpedMassMatrix = true;
 
 
-
-		if (this->mIsLumpedMassMatrix)
+		if (check_has_lumped_mass_matrix)
 		{
 			this->CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
 		}
@@ -1774,8 +1773,6 @@ namespace Kratos
 		rSerializer.save("QuaternionVecB", this->mQuaternionVEC_B);
 		rSerializer.save("QuaternionScaA", this->mQuaternionSCA_A);
 		rSerializer.save("QuaternionScaB", this->mQuaternionSCA_B);
-
-		rSerializer.save("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
 	}
 
 	void CrBeamElement3D2N::load(Serializer& rSerializer)
@@ -1803,7 +1800,6 @@ namespace Kratos
 		rSerializer.load("QuaternionVecB", this->mQuaternionVEC_B);
 		rSerializer.load("QuaternionScaA", this->mQuaternionSCA_A);
 		rSerializer.load("QuaternionScaB", this->mQuaternionSCA_B);
-		rSerializer.load("mIsLumpedMassMatrix", this->mIsLumpedMassMatrix);
 	}
 
 } // namespace Kratos.
