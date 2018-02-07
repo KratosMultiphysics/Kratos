@@ -124,6 +124,10 @@ public:
         return *mpSourceVariable;
     }
 
+    const int GetComponentIndex() const {
+        return mComponentIndex;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
