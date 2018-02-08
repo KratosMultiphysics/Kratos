@@ -914,32 +914,23 @@ namespace Kratos {
         ModelPart& fem_model_part = GetFemModelPart();
         NodesArrayType& pNodes = fem_model_part.Nodes();
 
-        vector<unsigned int> node_partition;
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
+        #pragma omp parallel for schedule(dynamic, 100)
+        for (unsigned int k = 0; k < pNodes.size(); k++) {
+            ModelPart::NodeIterator i = pNodes.begin() + k;
 
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
+            array_1d<double, 3>& node_rhs = i->FastGetSolutionStepValue(CONTACT_FORCES);
+            array_1d<double, 3>& node_rhs_elas = i->FastGetSolutionStepValue(ELASTIC_FORCES);
+            array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+            double& node_pressure = i->GetSolutionStepValue(DEM_PRESSURE);
+            //double& node_area = i->GetSolutionStepValue(DEM_NODAL_AREA);
+            double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
 
-            NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-            NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
-
-            for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
-
-                array_1d<double, 3>& node_rhs = i->FastGetSolutionStepValue(CONTACT_FORCES);
-                array_1d<double, 3>& node_rhs_elas = i->FastGetSolutionStepValue(ELASTIC_FORCES);
-                array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-                double& node_pressure = i->GetSolutionStepValue(DEM_PRESSURE);
-                //double& node_area = i->GetSolutionStepValue(DEM_NODAL_AREA);
-                double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
-
-                noalias(node_rhs) = ZeroVector(3);
-                noalias(node_rhs_elas) = ZeroVector(3);
-                noalias(node_rhs_tang) = ZeroVector(3);
-                node_pressure = 0.0;
-                //node_area = 0.0;
-                shear_stress = 0.0;
-
-            }
+            noalias(node_rhs) = ZeroVector(3);
+            noalias(node_rhs_elas) = ZeroVector(3);
+            noalias(node_rhs_tang) = ZeroVector(3);
+            node_pressure = 0.0;
+            //node_area = 0.0;
+            shear_stress = 0.0;
         }
         KRATOS_CATCH("")
     }
@@ -950,25 +941,17 @@ namespace Kratos {
         ModelPart& fem_model_part = GetFemModelPart();
         NodesArrayType& pNodes = fem_model_part.Nodes();
 
-        vector<unsigned int> node_partition;
-        OpenMPUtils::CreatePartition(mNumberOfThreads, pNodes.size(), node_partition);
+        #pragma omp parallel for schedule(dynamic, 100)
+        for (unsigned int k = 0; k < pNodes.size(); k++) {
+            ModelPart::NodeIterator i = pNodes.begin() + k;
 
-        #pragma omp parallel for
-        for (int k = 0; k < mNumberOfThreads; k++) {
-
-            NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-            NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
-
-            for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
-
-                double& node_pressure = i->FastGetSolutionStepValue(DEM_PRESSURE);
-                double node_area = i->FastGetSolutionStepValue(DEM_NODAL_AREA);
-                double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
-                array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
-
-                node_pressure = node_pressure / node_area;
-                shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
-            }
+            double& node_pressure = i->FastGetSolutionStepValue(DEM_PRESSURE);
+            double node_area = i->FastGetSolutionStepValue(DEM_NODAL_AREA);
+            double& shear_stress = i->FastGetSolutionStepValue(SHEAR_STRESS);
+            array_1d<double, 3>& node_rhs_tang = i->FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
+            
+            node_pressure = node_pressure / node_area;
+            shear_stress = GeometryFunctions::module(node_rhs_tang) / node_area;
         }
         KRATOS_CATCH("")
     }
