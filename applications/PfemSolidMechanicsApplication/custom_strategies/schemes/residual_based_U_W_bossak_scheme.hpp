@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_NEW_RESIDUAL_BASED_U_W_BOSSAK_SCHEME )
-#define      KRATOS_NEW_RESIDUAL_BASED_U_W_BOSSAK_SCHEME
+#if !defined(KRATOS_RESIDUAL_BASED_U_W_BOSSAK_SCHEME )
+#define      KRATOS_RESIDUAL_BASED_U_W_BOSSAK_SCHEME
 
 // System includes
 
@@ -38,13 +38,13 @@ namespace Kratos
    /** @brief Bossak integration scheme (for dynamic problems)
     */
    template<class TSparseSpace,  class TDenseSpace >
-      class NewResidualBasedUWBossakScheme: public ResidualBasedDisplacementBossakScheme<TSparseSpace,TDenseSpace>
+      class ResidualBasedUWBossakScheme: public ResidualBasedDisplacementBossakScheme<TSparseSpace,TDenseSpace>
    {   
       public:
 
          ///@name Type Definitions
          ///@{
-         KRATOS_CLASS_POINTER_DEFINITION( NewResidualBasedUWBossakScheme );
+         KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedUWBossakScheme );
 
          typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
 
@@ -78,13 +78,13 @@ namespace Kratos
          ///@{
 
          /// Default Constructor.
-         NewResidualBasedUWBossakScheme()
+         ResidualBasedUWBossakScheme()
             :DerivedType()
          {
          }
 
          /// Copy Constructor.
-         NewResidualBasedUWBossakScheme(NewResidualBasedUWBossakScheme& rOther)
+         ResidualBasedUWBossakScheme(ResidualBasedUWBossakScheme& rOther)
             :DerivedType(rOther)
          {
          }
@@ -92,11 +92,11 @@ namespace Kratos
          /// Clone.
          BaseTypePointer Clone() override
          {
-            return BaseTypePointer( new NewResidualBasedUWBossakScheme(*this) );
+            return BaseTypePointer( new ResidualBasedUWBossakScheme(*this) );
          }
 
          /// Destructor.
-         ~NewResidualBasedUWBossakScheme() override {}
+         ~ResidualBasedUWBossakScheme() override {}
 
          ///@}
          ///@name Operators
@@ -264,7 +264,7 @@ namespace Kratos
          ///@{
 
          ///@}
-   }; // Class NewResidualBasedUWBossakScheme
+   }; // Class ResidualBasedUWBossakScheme
    ///@}
 
    ///@name Type Definitions
@@ -282,4 +282,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NEW_RESIDUAL_BASED_U_W_BOSSAK_SCHEME defined
+#endif // KRATOS_RESIDUAL_BASED_U_W_BOSSAK_SCHEME defined

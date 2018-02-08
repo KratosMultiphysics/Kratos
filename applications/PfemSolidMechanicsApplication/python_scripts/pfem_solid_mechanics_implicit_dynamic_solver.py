@@ -45,7 +45,7 @@ class PfemDynamicMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
         time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
         time_integration_method.SetParameters(self.process_info)
 
-        mechanical_scheme = KratosPfemSolid.NewResidualBasedUWBossakScheme()
+        mechanical_scheme = KratosPfemSolid.ResidualBasedUWBossakScheme()
                     
         return mechanical_scheme
  
