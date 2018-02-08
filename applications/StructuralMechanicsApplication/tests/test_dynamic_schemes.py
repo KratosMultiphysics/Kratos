@@ -108,7 +108,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         # Fill buffer solution
         for i in range(buffer_size):
             time = time + dt
-            step = step + 1
+            step = i + 1
             mp.CloneTimeStep(time)
             mp.ProcessInfo[KratosMultiphysics.STEP] = step
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, A * cos(omega*time))
@@ -177,7 +177,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         # Fill buffer solution
         for i in range(buffer_size):
             time = time + dt
-            step = step + 1
+            step = i + 1
             mp.CloneTimeStep(time)
             mp.ProcessInfo[KratosMultiphysics.STEP] = step
 
