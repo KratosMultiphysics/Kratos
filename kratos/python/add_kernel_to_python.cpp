@@ -52,7 +52,8 @@ const ConstitutiveLaw& GetConstitutiveLaw(
         return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
     }
 
-    // return ConstitutiveLaw::StaticObject(); // //@technical-committee this does not work , I need help
+    KRATOS_ERROR << "ConstitutiveLaw \"" << constitutive_law_name
+                 << "\" not registered in KratosComponents" << std::endl;
 }
 
 template <class TVariableType>
