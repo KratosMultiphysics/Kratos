@@ -183,7 +183,6 @@ namespace Kratos {
             noalias(i->FastGetSolutionStepValue(ANGULAR_VELOCITY)) = rigid_body_angular_velocity;
             noalias(i->FastGetSolutionStepValue(DELTA_ROTATION)) = rigid_body_delta_rotation;
             iter++;
-
         }
     }
         
