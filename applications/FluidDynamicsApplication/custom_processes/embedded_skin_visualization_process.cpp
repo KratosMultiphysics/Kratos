@@ -75,7 +75,7 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
 
     if (available_shape_functions.find(rParameters["shape_functions"].GetString()) == available_shape_functions.end()){
         error_msg << "currently prescribed shape_functions : " << rParameters["shape_functions"].GetString() << std::endl;
-        error_msg << "admissible values are : standard, ausas" << std::endl;
+        error_msg << "\tAdmissible values are : standard, ausas" << std::endl;
         KRATOS_ERROR << error_msg.str();
     }
 
