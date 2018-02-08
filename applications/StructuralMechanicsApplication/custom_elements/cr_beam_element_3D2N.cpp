@@ -198,9 +198,8 @@ namespace Kratos
 		//calculating equivalent line load
 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
-			equivalent_line_load += A * rho*
-				this->GetGeometry()[i].
-				FastGetSolutionStepValue(VOLUME_ACCELERATION)*Ncontainer(0, i);
+			noalias(equivalent_line_load) += (A * rho * Ncontainer(0, i))*
+				this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
 		}
 
 
@@ -343,8 +342,8 @@ namespace Kratos
 			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 		}
 
-		rDampingMatrix += alpha * mass_matrix;
-		rDampingMatrix += beta  * stiffness_matrix;
+		noalias(rDampingMatrix) += alpha * mass_matrix;
+		noalias(rDampingMatrix) += beta  * stiffness_matrix;
 
 		KRATOS_CATCH("")
 	}
@@ -1011,13 +1010,12 @@ namespace Kratos
 		{
 			this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
 			bounded_matrix<double,msElementSize,msElementSize> rotation_matrix = ZeroMatrix(msElementSize,msElementSize);
-			bounded_matrix<double,msElementSize,msElementSize> aux_matrix = ZeroMatrix(msElementSize,msElementSize);
 
 
 			if(this->mIterationCount==0) rotation_matrix = this->CalculateInitialLocalCS();
 			else this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,rotation_matrix);
 
-			aux_matrix = prod(rotation_matrix, rMassMatrix);
+			bounded_matrix<double,msElementSize,msElementSize> aux_matrix = prod(rotation_matrix, rMassMatrix);
 			rMassMatrix = prod(aux_matrix,
 				Matrix(trans(rotation_matrix)));
 		}
@@ -1093,10 +1091,8 @@ namespace Kratos
 			this->CreateElementStiffnessMatrix_Geometry();
 
 
-		bounded_matrix<double,msElementSize,msElementSize> aux_matrix = ZeroMatrix(msElementSize);
-		aux_matrix = prod(transformation_matrix, rLeftHandSideMatrix);
-		rLeftHandSideMatrix = prod(aux_matrix,
-			Matrix(trans(transformation_matrix)));
+		bounded_matrix<double,msElementSize,msElementSize> aux_matrix = prod(transformation_matrix, rLeftHandSideMatrix);
+		noalias(rLeftHandSideMatrix) = prod(aux_matrix,trans(transformation_matrix));
 
 		KRATOS_CATCH("")
 	}
@@ -1193,7 +1189,6 @@ namespace Kratos
 
 		KRATOS_TRY
 		Vector actual_deformation = ZeroVector(msElementSize);
-
 		this->GetValuesVector(actual_deformation, 0);
 
 		Vector increment_deformation = actual_deformation
@@ -1221,9 +1216,9 @@ namespace Kratos
 		bounded_matrix<double,msElementSize,msElementSize> transformation_matrix;
 		if(this->mIterationCount==1) transformation_matrix = this->CalculateInitialLocalCS();
 		else this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,transformation_matrix);
-		// stress = ZeroVector(msElementSize);
+
 		Vector stress = this->mNodalForces;
-		stress = prod(Matrix(trans(transformation_matrix)),stress);
+		noalias(stress) = prod(trans(transformation_matrix),stress);
 
 		//rOutput[GP 1,2,3][x,y,z]
 

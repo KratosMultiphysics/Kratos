@@ -749,7 +749,54 @@ namespace Kratos
 		const ProcessInfo& rCurrentProcessInfo) {
 
 		KRATOS_TRY
-		//TODO!
+		//element with two nodes can only represent results at one node 
+		const unsigned int&  write_points_number = GetGeometry()
+			.IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
+		if (rOutput.size() != write_points_number) {
+			rOutput.resize(write_points_number);
+		}
+
+		bounded_matrix<double,msElementSize,msElementSize> transformation_matrix = this->CreateRotationMatrix();
+		Vector stress = this->mInternalGlobalForces;
+		noalias(stress) = prod(trans(transformation_matrix),stress);
+
+		//rOutput[GP 1,2,3][x,y,z]
+
+		if (rVariable == MOMENT)
+		{
+			rOutput[0][0] = 0.00;
+			rOutput[1][0] = 0.00;
+			rOutput[2][0] = 0.00;
+
+			rOutput[0][1] = 0.00;
+			rOutput[1][1] = 0.00;
+			rOutput[2][1] = 0.00;
+
+			rOutput[0][2] = 1.0 *stress[2] * 0.75 - stress[5] * 0.25;
+			rOutput[1][2] = 1.0 *stress[2] * 0.50 - stress[5] * 0.50;
+			rOutput[2][2] = 1.0 *stress[2] * 0.25 - stress[5] * 0.75;
+
+		}
+		if (rVariable == FORCE)
+		{
+			rOutput[0][0] = -1.0 * stress[0] * 0.75 + stress[3] * 0.25;
+			rOutput[1][0] = -1.0 * stress[0] * 0.50 + stress[3] * 0.50;
+			rOutput[2][0] = -1.0 * stress[0] * 0.25 + stress[3] * 0.75;
+
+			rOutput[0][1] = -1.0 * stress[1] * 0.75 + stress[4] * 0.25;
+			rOutput[1][1] = -1.0 *stress[1] * 0.50 + stress[4] * 0.50;
+			rOutput[2][1] = -1.0 *stress[1] * 0.25 + stress[4] * 0.75;
+
+			rOutput[0][2] = 0.00;
+			rOutput[1][2] = 0.00;
+			rOutput[2][2] = 0.00;
+
+		}
+
+		
+
+
+
 		KRATOS_CATCH("")
 	}
 
