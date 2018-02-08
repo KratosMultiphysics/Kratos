@@ -44,6 +44,16 @@ class PfemDynamicMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
 #        beta = 0.25*(1-alphaM+alphaF)*(1-alphaM+alphaF);
 #        gamma = 0.5-alphaM+alphaF;
         mechanical_scheme = KratosPfemSolid.ResidualBasedUWBossakScheme(alphaM, dynamic, alphaF, beta, gamma)
+
+        self.process_info[KratosMultiphysics.NEWMARK_BETA] = beta
+        self.process_info[KratosMultiphysics.NEWMARK_GAMMA] = gamma
+        self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = alphaM
+
+        time_integration_method = KratosSolid.BossakMethod()
+        time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
+        time_integration_method.SetParameters(self.process_info)
+
+        mechanical_scheme = KratosPfemSolid.NewResidualBasedUWBossakScheme()
                     
         return mechanical_scheme
  

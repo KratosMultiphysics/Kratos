@@ -36,6 +36,9 @@
 #include "custom_strategies/schemes/residual_based_U_W_bossak_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_contact_bossak_scheme.hpp"
 
+
+#include "custom_strategies/schemes/new_residual_based_U_W_bossak_scheme.hpp"
+
 namespace Kratos
 {
 
@@ -60,6 +63,7 @@ namespace Kratos
       typedef ResidualBasedUWBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedUWBossakSchemeType;
       typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;    
 
+      typedef NewResidualBasedUWBossakScheme< SparseSpaceType, LocalSpaceType >  NewResidualBasedUWBossakSchemeType;
     
 
       //********************************************************************
@@ -103,6 +107,13 @@ namespace Kratos
 	.def("Initialize", &ResidualBasedContactBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
       
+      // Residual Based Displacement Bossak Scheme Type
+      class_< NewResidualBasedUWBossakSchemeType,
+      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	(
+      	 "NewResidualBasedUWBossakScheme", init<>() )
+      	.def("Initialize", &NewResidualBasedUWBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+      	;
       
       //********************************************************************
       //*******************CONVERGENCE CRITERIA CLASSES*********************
