@@ -1057,7 +1057,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSCo
     const auto& p = rData.Pressure;
     const auto& pn = rData.Pressure_OldStep1;
     const auto& pnn = rData.Pressure_OldStep2;
-    const auto& stress = rData.Stress;
+    const auto& stress = rData.ShearStress;
 
     // Get shape function values
     const auto& N = rData.N;
@@ -1133,7 +1133,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSCo
     const auto& p = rData.Pressure;
     const auto& pn = rData.Pressure_OldStep1;
     const auto& pnn = rData.Pressure_OldStep2;
-    const auto& stress = rData.Stress;
+    const auto& stress = rData.ShearStress;
 
     // Get shape function values
     const auto& N = rData.N;

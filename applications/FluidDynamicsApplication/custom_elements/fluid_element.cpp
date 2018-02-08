@@ -490,7 +490,7 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
     Values.SetStrainVector(rData.StrainRate);   //this is the input parameter
-    Values.SetStressVector(rData.Stress);       //this is an ouput parameter
+    Values.SetStressVector(rData.ShearStress);  //this is an ouput parameter
     Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
 
     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.

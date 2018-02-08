@@ -24,8 +24,8 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(
     if (StrainRate.size() != StrainSize) {
         StrainRate.resize(StrainSize);
     }
-    if (Stress.size() != StrainSize) {
-        Stress.resize(StrainSize);
+    if (ShearStress.size() != StrainSize) {
+        ShearStress.resize(StrainSize);
     }
     if (C.size1() != StrainSize || C.size2() != StrainSize) {
         C.resize(StrainSize,StrainSize);

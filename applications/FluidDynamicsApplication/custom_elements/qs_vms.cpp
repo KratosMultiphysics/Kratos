@@ -516,7 +516,7 @@ void QSVMS<TElementData>::AddVelocitySystem(
 
     // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
     // This could potentially be optimized, as it can be integrated exactly using one less integration order when compared to previous terms.
-    Internals::AddViscousTerm<Dim>(dynamic_viscosity,rData.Weight,rData.DN_DX,rLHS);
+    this->AddViscousTerm(rData,rLHS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -607,17 +607,15 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,StrainSize> constitutive_matrix = ZeroMatrix(StrainSize,StrainSize);
-    const double dynamic_viscosity = rData.DynamicViscosity;
-    FluidElementUtilities<NumNodes>::GetNewtonianConstitutiveMatrix(dynamic_viscosity,constitutive_matrix);
+    const auto& constitutive_matrix = rData.C;
     
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
 
     boost::numeric::ublas::bounded_matrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
     FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
     
     // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
-    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,stress_matrix);
+    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,shear_stress_matrix);
 
     // Contribution to boundary stress from p*n
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -629,9 +627,8 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     }
 
     // RHS: stress computed using current solution
-    array_1d<double,LocalSize> nodal_values(LocalSize,0.0);
-    this->GetCurrentValuesVector(rData,nodal_values);
-    array_1d<double,Dim> current_stress = boost::numeric::ublas::prod(normal_stress_operator,nodal_values);
+    array_1d<double,Dim> shear_stress = boost::numeric::ublas::prod(normal_projection,rData.ShearStress);
+    const double p_gauss = this->Interpolate(rData.Pressure,rData.N);
 
     // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -641,10 +638,27 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
             for (unsigned int col = 0; col < LocalSize; col++) {
                 rLHS(row,col) -= wni*normal_stress_operator(d,col);
             }
-            rRHS[row] += wni*current_stress[d];
+            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
         }
     }
 }
+
+template <class TElementData>
+void QSVMS<TElementData>::AddViscousTerm(const TElementData& rData, MatrixType& rLHS) {
+
+    constexpr std::size_t StrainSize = (Dim-1)*3;
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
+
+    const auto& constitutive_matrix = rData.C;
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+
+    // Multiply times integration point weight (I do this here to avoid a temporal in LHS += weight * Bt * C * B)
+    shear_stress_matrix *= rData.Weight;
+
+    noalias(rLHS) += boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),shear_stress_matrix);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

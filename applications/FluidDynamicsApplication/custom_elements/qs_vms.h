@@ -298,6 +298,8 @@ protected:
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
+    void AddViscousTerm(const TElementData& rData, MatrixType& rLHS);
+
     /**
      * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
      * This function is used to implement Smagorinsky type LES or non-Newtonian dynamics in derived classes.
@@ -340,7 +342,7 @@ protected:
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale);
 
-        virtual void ASGSMomentumResidual(
+    virtual void ASGSMomentumResidual(
         TElementData& rData,
         array_1d<double,3>& rMomentumRes);
 
