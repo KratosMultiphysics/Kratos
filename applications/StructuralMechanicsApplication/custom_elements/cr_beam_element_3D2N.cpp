@@ -789,14 +789,14 @@ namespace Kratos
 		rMassMatrix = ZeroMatrix(msElementSize, msElementSize);
 
 
-		bool check_has_lumped_mass_matrix = true;
+		bool check_use_consistent_mass_matrix = false;
 
-		if (this->GetProperties().Has(LUMPED_MASS_MATRIX)) {
-			check_has_lumped_mass_matrix = GetProperties()[LUMPED_MASS_MATRIX];
+		if (this->GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
+			check_use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
 		}
 
 
-		if (check_has_lumped_mass_matrix)
+		if (!check_use_consistent_mass_matrix)
 		{
 			this->CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
 		}
