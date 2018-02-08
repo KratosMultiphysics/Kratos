@@ -69,6 +69,16 @@ EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
+    // Validate if given shape functions value is admissible
+    std::set<std::string> available_shape_functions = {"standard","ausas"};
+    std::stringstream error_msg;
+
+    if (available_shape_functions.find(rParameters["shape_functions"].GetString()) == available_shape_functions.end()){
+        error_msg << "currently prescribed shape_functions : " << rParameters["shape_functions"].GetString() << std::endl;
+        error_msg << "admissible values are : standard, ausas" << std::endl;
+        KRATOS_ERROR << error_msg.str();
+    }
+
     mShapeFunctions = rParameters["shape_functions"].GetString();
     mReformModelPartAtEachTimeStep = rParameters["reform_model_part_at_each_time_step"].GetBool();
 
