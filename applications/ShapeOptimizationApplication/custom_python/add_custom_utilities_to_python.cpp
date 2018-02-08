@@ -30,6 +30,7 @@
 #include "custom_utilities/mapping/mapper_vertex_morphing_matrix_free.h"
 #include "custom_utilities/mapping/mapper_vertex_morphing_improved_integration.h"
 #include "custom_utilities/damping/damping_utilities.h"
+#include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/response_functions/strain_energy_response_function.h"
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
@@ -56,17 +57,14 @@ void  AddCustomUtilitiesToPython()
         .def("MapToDesignSpace", &MapperVertexMorphing::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphing::MapToGeometrySpace)
         ;
-
     class_<MapperVertexMorphingMatrixFree, bases<Process> >("MapperVertexMorphingMatrixFree", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphingMatrixFree::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingMatrixFree::MapToGeometrySpace)
         ;
-
     class_<MapperVertexMorphingImprovedIntegration, bases<Process> >("MapperVertexMorphingImprovedIntegration", init<ModelPart&, Parameters>())
         .def("MapToDesignSpace", &MapperVertexMorphingImprovedIntegration::MapToDesignSpace)
         .def("MapToGeometrySpace", &MapperVertexMorphingImprovedIntegration::MapToGeometrySpace)
         ;
-
 
     // ================================================================
     // For a possible damping of nodal variables
@@ -92,7 +90,7 @@ void  AddCustomUtilitiesToPython()
         // General optimization operations
         // ----------------------------------------------------------------
         .def("ComputeControlPointUpdate", &OptimizationUtilities::ComputeControlPointUpdate)
-        .def("UpdateControlPointChangeByInputVariable", &OptimizationUtilities::UpdateControlPointChangeByInputVariable)        
+        .def("AddFirstVariableToSecondVariable", &OptimizationUtilities::AddFirstVariableToSecondVariable)
         ;
 
     // ========================================================================
@@ -101,9 +99,16 @@ void  AddCustomUtilitiesToPython()
     class_<GeometryUtilities, bases<Process> >("GeometryUtilities", init<ModelPart&>())
         .def("ComputeUnitSurfaceNormals", &GeometryUtilities::ComputeUnitSurfaceNormals)
         .def("ProjectNodalVariableOnUnitSurfaceNormals", &GeometryUtilities::ProjectNodalVariableOnUnitSurfaceNormals)
-        .def("UpdateShapeChangeByInputVariable", &GeometryUtilities::UpdateShapeChangeByInputVariable)
         .def("ExtractSurfaceNodes", &GeometryUtilities::ExtractSurfaceNodes)
         ;
+
+    // ========================================================================
+    // For mesh handling
+    // ========================================================================
+    class_<MeshControllerUtilities, bases<Process> >("MeshControllerUtilities", init<ModelPart&>())
+        .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
+        .def("ResetMeshToReferenceMesh", &MeshControllerUtilities::ResetMeshToReferenceMesh)
+        ;        
 
     // ========================================================================
     // For calculations related to response functions
@@ -132,7 +137,6 @@ void  AddCustomUtilitiesToPython()
         .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
         ;
-
     class_<VTKFileIO, bases<Process> >("VTKFileIO", init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &VTKFileIO::InitializeLogging)
         .def("LogNodalResults", &VTKFileIO::LogNodalResults)

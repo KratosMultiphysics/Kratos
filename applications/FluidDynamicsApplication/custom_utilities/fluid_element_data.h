@@ -21,6 +21,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/process_info.h"
+#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -46,10 +47,16 @@ public:
 
     using ShapeDerivativesType = boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>;
 
+    /// Physical space dimension for the problem.
     constexpr static unsigned int Dim = TDim;
 
+    /// Number of nodes of the element.
     constexpr static unsigned int NumNodes = TNumNodes;
 
+    /// Size of the strain and stress vectors (in Voigt notation) for the formulation
+    constexpr static unsigned int StrainSize = (TDim-1)*3; // 3 in 2D, 6 in 3D
+
+    /// This lets FluidElement know wether this element requires an external time scheme or not.
     constexpr static bool ElementManagesTimeIntegration = TElementIntegratesInTime;
 
     ///@}
@@ -72,7 +79,7 @@ public:
     ///@name Public Operations
     ///@{
 
-    virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) = 0;
+    virtual void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo);
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo);
 
@@ -89,6 +96,21 @@ public:
     ShapeFunctionsType N;
 
     ShapeDerivativesType DN_DX;
+
+    /// StrainRate vector in Voigt notation.
+    /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
+    Vector StrainRate;
+
+    /// Stress vector in Voigt notation.
+    /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
+    Vector Stress;
+
+    /// Constitutive tensor C (expressed as a Matrix).
+    /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
+    Matrix C;
+
+    /// Constitutive law configuration (stored here to avoid re-initialization within the element).
+    ConstitutiveLaw::Parameters ConstitutiveLawValues;
     
     ///@}
 protected:
@@ -110,7 +132,7 @@ protected:
 
     void FillFromElementData(double& rData, const Variable<double>& rVariable, const Element& rElement);
 
-    void FillFromProperties(double& rData, const Variable<double>& rVariable, const Element& rElement);
+    void FillFromProperties(double& rData, const Variable<double>& rVariable, const Properties& rProperties);
 
     ///@}
 };
