@@ -398,10 +398,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
 
         // Compute some Gauss pt. auxiliar matrices
-        // TODO: SUBSTITUTE THIS ONCE C CLAW ACCESS IS IMPLEMENTED BY JORDI
-        // const bounded_matrix<double, LocalSize, Strainsize> aux_matrix_BC = prod(trans(B_matrix), trans(rData.C));
-        const bounded_matrix<double, StrainSize, StrainSize> C_matrix = ZeroMatrix(StrainSize, StrainSize);
-        const bounded_matrix<double, LocalSize, StrainSize> aux_matrix_BC = prod(trans(B_matrix), trans(C_matrix));
+        const bounded_matrix<double, LocalSize, StrainSize> aux_matrix_BC = prod(trans(B_matrix), trans(rData.C));
         const bounded_matrix<double, StrainSize, Dim> aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
         const bounded_matrix<double, LocalSize, Dim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
 
@@ -468,10 +465,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
         FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
 
         // Compute some Gauss pt. auxiliar matrices
-        // const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(rData.C, B_matrix);
-        // TODO: SUBSTITUTE THIS ONCE C CLAW ACCESS IS IMPLEMENTED BY JORDI
-        const bounded_matrix<double, StrainSize, StrainSize> C_matrix = ZeroMatrix(StrainSize, StrainSize);
-        const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(C_matrix, B_matrix);
+        const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(rData.C, B_matrix);
         const bounded_matrix<double, StrainSize, Dim> aux_matrix_PtangA = prod(tang_proj_matrix, voigt_normal_proj_matrix);
         const bounded_matrix<double, LocalSize, Dim> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
 
@@ -558,10 +552,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
         // Compute some Gauss pt. auxiliar matrices
         const bounded_matrix<double, LocalSize, Dim> aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
         const bounded_matrix<double, LocalSize, Dim> aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tang_proj_matrix);
-        // TODO: SUBSTITUTE THIS ONCE C CLAW ACCESS IS IMPLEMENTED BY JORDI
-        const bounded_matrix<double, StrainSize, StrainSize> C_matrix = ZeroMatrix(StrainSize, StrainSize);
-        const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(C_matrix, B_matrix);
-        // const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(rData.C, B_matrix);
+        const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(rData.C, B_matrix);
         const bounded_matrix<double, Dim, LocalSize> aux_matrix_ACB = prod(voigt_normal_proj_matrix, aux_matrix_CB);
         const bounded_matrix<double, LocalSize, LocalSize> aux_matrix_BtransAtransPtanACB = prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
 
@@ -604,11 +595,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
 
     // Compute the effective viscosity as the average of the lower diagonal constitutive tensor
     // TODO: TO BE OBTAINED FROM THE CLAW ONCE JORDI FINISHES HIS IMPLEMENTATION
-    double eff_mu = 0.0;
-    for (unsigned int j = 0; j < NumNodes; ++j){
-        eff_mu += rData.DynamicViscosity(j); // TODO: CHECK IF THIS HAS TO BE COMPUTED WITH THE DYNAMIC ONE (CONSISTENCY)
-    }
-    eff_mu /= NumNodes;
+    double eff_mu = rData.DynamicViscosity;
 
     // Compute the element average velocity norm
     double v_norm = 0.0;
@@ -623,11 +610,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
     v_norm = std::sqrt(v_norm);
 
     // Compute the element average density
-    double avg_rho = 0.0;
-    for (unsigned int j = 0; j < NumNodes; ++j){
-        avg_rho += rData.Density(j);
-    }
-    avg_rho /= NumNodes;
+    double avg_rho = rData.Density;
 
     // Compute the Nitsche coefficient (including the Winter stabilization term)
     const double h = this->ElementSize();
@@ -643,11 +626,7 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
     
     // Compute the effective viscosity as the average of the lower diagonal constitutive tensor
     // TODO: TO BE OBTAINED FROM THE CLAW ONCE JORDI FINISHES HIS IMPLEMENTATION
-    double eff_mu = 0.0;
-    for (unsigned int j = 0; j < NumNodes; ++j){
-        eff_mu += rData.DynamicViscosity(j); // TODO: CHECK IF THIS HAS TO BE COMPUTED WITH THE DYNAMIC ONE (CONSISTENCY)
-    }
-    eff_mu /= NumNodes;
+    double eff_mu = rData.DynamicViscosity;
 
     const double penalty = 1.0/10.0;
     const double slip_length = 1.0e+08;
@@ -667,11 +646,7 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
     
     // Compute the effective viscosity as the average of the lower diagonal constitutive tensor
     // TODO: TO BE OBTAINED FROM THE CLAW ONCE JORDI FINISHES HIS IMPLEMENTATION
-    double eff_mu = 0.0;
-    for (unsigned int j = 0; j < NumNodes; ++j){
-        eff_mu += rData.DynamicViscosity(j); // TODO: CHECK IF THIS HAS TO BE COMPUTED WITH THE DYNAMIC ONE (CONSISTENCY)
-    }
-    eff_mu /= NumNodes;
+    double eff_mu = rData.DynamicViscosity;
 
     const double penalty = 1.0/10.0;
     const double slip_length = 1.0e+08;
