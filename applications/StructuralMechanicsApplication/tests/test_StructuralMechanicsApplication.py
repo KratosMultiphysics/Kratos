@@ -45,7 +45,7 @@ from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 # Harmonic analysis tests
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
-# Dynamic basic tests 
+# Dynamic basic tests
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 
 ##### SMALL TESTS #####
@@ -208,7 +208,7 @@ def AssambleTestSuites():
     smallSuite.addTest(TDynamicSchemesTests('test_fall_bossak_scheme'))
     smallSuite.addTest(TDynamicSchemesTests('test_fall_newmark_scheme'))
     smallSuite.addTest(TDynamicSchemesTests('test_fall_bdf2_scheme'))
-    
+
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
@@ -249,7 +249,7 @@ def AssambleTestSuites():
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     nightSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     nightSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
-    # 2Node Element tests    
+    # 2Node Element tests
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
     nightSuite.addTest(T3D2NTrussTest('test_execution'))
@@ -285,7 +285,7 @@ def AssambleTestSuites():
     nightSuite.addTests(smallSuite)
 
     ### Adding Validation Tests
-    # For very long tests that should not be in nighly and you can use to validate 
+    # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
@@ -328,7 +328,7 @@ def AssambleTestSuites():
     validationSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
     validationSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
     ### ---| OLD Shell Tests End
-    
+
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite) # already contains the smallSuite
