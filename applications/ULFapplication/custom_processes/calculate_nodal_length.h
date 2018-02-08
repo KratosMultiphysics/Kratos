@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:     ajarauta 
+//  Main author:     Alex Jarauta
+
 
 
 #if !defined(CALCULATE_NODAL_LENGTH_INCLUDED )
@@ -61,7 +62,7 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-	calculate nodal length_h
+	calculate nodal length_h, used for droplet dynamics 
 
 
 */
@@ -116,7 +117,7 @@ namespace Kratos
 	array_1d<double,2> r10 = ZeroVector(2);
 	array_1d<double,2> r20 = ZeroVector(2);
 	
-	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
 	    {
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
@@ -207,7 +208,7 @@ namespace Kratos
 
 	
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ;
-	    im != ThisModelPart.NodesEnd() ; im++)
+	    im != ThisModelPart.NodesEnd() ; ++im)
 	    {
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)

@@ -167,7 +167,7 @@ public:
         {
             PointVector list_of_nodes;
             list_of_nodes.reserve(ThisModelPart.Nodes().size());
-            for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
+            for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; ++i_node)
             {
                 (list_of_nodes).push_back(*(i_node.base()));
             }
@@ -221,7 +221,7 @@ public:
         
         in_mid.segmentlist = (int *) malloc(in_mid.numberofpoints * 2 * sizeof(int));
         int count_inter=0;
-        for(ModelPart::ElementsContainerType::const_iterator im = ThisModelPart.ElementsBegin(); im!=ThisModelPart.ElementsEnd(); im++)
+        for(ModelPart::ElementsContainerType::const_iterator im = ThisModelPart.ElementsBegin(); im!=ThisModelPart.ElementsEnd(); ++im)
 	{
 	  if (im->GetValue(IS_WATER_ELEMENT) != 0.0)
 	  {
@@ -563,7 +563,7 @@ public:
         //filling the neighbour list
         ModelPart::ElementsContainerType::const_iterator el_begin = ThisModelPart.ElementsBegin();
         for(ModelPart::ElementsContainerType::const_iterator iii = ThisModelPart.ElementsBegin();
-                iii != ThisModelPart.ElementsEnd(); iii++)
+                iii != ThisModelPart.ElementsEnd(); ++iii)
         {
             //Geometry< Node<3> >& geom = iii->GetGeometry();
             int base = ( iii->Id() - 1 )*3;
@@ -700,7 +700,7 @@ private:
         //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
         /////double radius;
 
-        for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); in++)
+        for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); ++in)
         {
             unsigned int n_points_in_radius;
             double radius;
@@ -750,7 +750,7 @@ private:
         //20140210 ajarauta
         //not erase INTERFACE node
         for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin();
-	    in != ThisModelPart.NodesEnd(); in++)
+	    in != ThisModelPart.NodesEnd(); ++in)
 	    {
 	      if((in)->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
 		in->Set(TO_ERASE,false);
@@ -777,10 +777,12 @@ private:
 
         //int number_of_preserved_elems=0;
         int number_of_preserved_elems=0;
-        int point_base;
+        /////int point_base;
         //loop for passing alpha shape
         for(unsigned int el = 0; el< el_number; el++)
         {
+            int point_base;
+            
             int base = el * 3;
 
             //coordinates
@@ -889,7 +891,7 @@ private:
         ThisModelPart.Elements().Unique();
 
         //now the boundary faces
-        for(ModelPart::ElementsContainerType::iterator iii = ThisModelPart.ElementsBegin();	iii != ThisModelPart.ElementsEnd(); iii++)
+        for(ModelPart::ElementsContainerType::iterator iii = ThisModelPart.ElementsBegin();	iii != ThisModelPart.ElementsEnd(); ++iii)
         {
             int base = ( iii->Id() - 1 )*3;
 
@@ -1179,7 +1181,7 @@ private:
         //typedef std::vector<double::Pointer> PointVector;
 	int num_nodes_int = 0;
 	for(ModelPart::ConditionsContainerType::iterator isinter = ThisModelPart.ConditionsBegin();
-	    isinter!=ThisModelPart.ConditionsEnd(); isinter++)
+	    isinter!=ThisModelPart.ConditionsEnd(); ++isinter)
 	{
 	  Geometry<Node<3> >& geom = isinter->GetGeometry();
 	  for (unsigned int i = 0; i < geom.size(); i++)

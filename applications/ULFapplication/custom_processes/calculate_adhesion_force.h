@@ -108,20 +108,21 @@ namespace Kratos
     ///@name Operations
     ///@{
     
+    
     void CalculateAdhesionForce3D(ModelPart& ThisModelPart)
     {
 	KRATOS_TRY
 	
 	double gamma = ThisModelPart.GetProcessInfo()[SURFTENS_COEFF]; //Surface tension coefficient [N m-1]
 	double pi = 3.14159265359;
-	///////double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
+	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
 	double theta, sign_force, theta_rad, cos_t;
 	array_1d<double,2> nu0 = ZeroVector(2);
 	array_1d<double,2> vel = ZeroVector(2);
 	array_1d<double,2> n_tp = ZeroVector(2);
 	
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ;
-	    im != ThisModelPart.NodesEnd() ; im++)
+	    im != ThisModelPart.NodesEnd() ; ++im)
 	    {
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)

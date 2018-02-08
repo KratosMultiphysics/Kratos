@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:     ajarauta 
+//  Main author:     Alex Jarauta
 
 
 #if !defined(KRATOS_FIND_NODAL_NEIGHBOURS_SURFACE_PROCESS_H_INCLUDED )
@@ -113,7 +113,7 @@ public:
 
         //first of all the neighbour nodes and conditions array are initialized to the guessed size
         //and empties the old entries
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
             (in->GetValue(NEIGHBOUR_NODES)).reserve(mavg_nodes);
             WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
@@ -125,7 +125,7 @@ public:
         }
 
         //add the neighbour conditions to all the nodes in the mesh
-        for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ic++)
+        for(ConditionsContainerType::iterator ic = rConds.begin(); ic!=rConds.end(); ++ic)
         {
             Condition::GeometryType& pGeom = ic->GetGeometry();
             for(unsigned int i = 0; i < pGeom.size(); i++)

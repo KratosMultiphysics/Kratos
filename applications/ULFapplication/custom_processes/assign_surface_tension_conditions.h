@@ -116,7 +116,7 @@ namespace Kratos
         
         Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
 	int id = ThisModelPart.Conditions().size();
-	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
 	{
 	  if (im->FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0 || im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
 	  {

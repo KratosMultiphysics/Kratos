@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:     ajarauta 
+//  Main author:     Alex Jarauta
 
 
 #if !defined(FIND_TRIPLE_POINT_CONDITION_INCLUDED )
@@ -62,9 +62,7 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-	find triple point
-
-
+	find triple point for sessile droplets, based on the given geometries.
 */
 
   class FindTriplePoint
@@ -116,7 +114,7 @@ namespace Kratos
       double xmax = 0.0;
       int num_istruct = 0;
       //FIRST STEP: find IS_STRUCTURE nodes and their mean y coordinate, min and max x coordinate
-      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
       {
 	  if (im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
 	  {
@@ -227,11 +225,14 @@ namespace Kratos
       KRATOS_TRY
       
       unsigned int num_tp = 0;
-      unsigned int num_fs = 0;
+      /////unsigned int num_fs = 0;
       array_1d<double,3> An = ZeroVector(3);
       
       for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
       {
+
+          unsigned int num_fs = 0;
+
 	  num_fs = num_tp = 0;
 	  if ((im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0) && (im->FastGetSolutionStepValue(CONTACT_ANGLE) == 0.0) && (im->FastGetSolutionStepValue(VELOCITY_X) != 0.0))
 	      im->FastGetSolutionStepValue(TRIPLE_POINT) = 0.0;

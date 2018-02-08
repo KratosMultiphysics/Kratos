@@ -115,7 +115,7 @@ namespace Kratos
 	
 	
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ;
-	    im != ThisModelPart.NodesEnd() ; im++)
+	    im != ThisModelPart.NodesEnd() ; ++im)
 	    {
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
@@ -178,9 +178,9 @@ namespace Kratos
 	double theta = 0.0;
 	double pi = 3.14159265359;
 	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
-	/////double theta_rad = theta_eq*pi/180.0;
+	double theta_rad = theta_eq*pi/180.0;
 
-	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
 	{
 	      if (im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
 	      {
@@ -250,7 +250,7 @@ namespace Kratos
 			    xj = neighb_faces[i].GetGeometry()[j].X();
 			    yj = neighb_faces[i].GetGeometry()[j].Y();
 			    zj = neighb_faces[i].GetGeometry()[j].Z();
-			    ///////idx_j = j;
+			    idx_j = j;
 			  }
 			  else
 			  {
@@ -258,7 +258,7 @@ namespace Kratos
 			    xk = neighb_faces[i].GetGeometry()[j].X();
 			    yk = neighb_faces[i].GetGeometry()[j].Y();
 			    zk = neighb_faces[i].GetGeometry()[j].Z();	
-			    ///////idx_k = j;
+			    idx_k = j;
 			  }
 			  visited++;
 			}
@@ -335,6 +335,7 @@ namespace Kratos
 	
 	KRATOS_CATCH("")
     }
+    
     
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// AUXILIAR FUNCTIONS ////////////////////////////////////////////////////////////////////////////////////////////////////////////

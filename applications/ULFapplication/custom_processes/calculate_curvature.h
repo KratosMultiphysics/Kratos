@@ -70,11 +70,7 @@ namespace Kratos
 	
 	curvature for 3D is based on Mayer approach in the follwoing reference:
 	M. Meyer, M. Desbrun, P. Schröder, and A. H. Barr. Discrete differential geometry operators for triangulated 2-manifolds. Visualization and Math. III, pages 35–57, 2003.
-
-
-
 */
-
 
   class CalculateCurvature
   : public Process
@@ -126,7 +122,7 @@ namespace Kratos
 	double x0,y0,x1,y1,x2,y2;
 	int neighnum = 0;
 	
-	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
 	    {
 	      if (im->FastGetSolutionStepValue(IS_INTERFACE) != 0.0 && im->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) == 0.0)
 	      {
@@ -284,7 +280,7 @@ namespace Kratos
 	double pi = 3.14159265;
 	double hpi = 0.5*pi;
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ;
-	    im != ThisModelPart.NodesEnd() ; im++)
+	    im != ThisModelPart.NodesEnd() ; ++im)
 	    {
 	      if (im->FastGetSolutionStepValue(FLAG_VARIABLE) > 0.999)// || im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
 	      {
@@ -550,9 +546,9 @@ namespace Kratos
 		double xi = im->X();
 		double yi = im->Y();
 		double zi = im->Z();
-		double xj = 0.0;
-		double yj = 0.0;
-		double zj = 0.0;
+		/////double xj = 0.0;
+		/////double yj = 0.0;
+		/////double zj = 0.0;
 		double alfa = 0.0;
 		double beta = 0.0;
 		double kappaN_ij = 0.0;
@@ -608,6 +604,10 @@ namespace Kratos
 		
 		for (unsigned j = 0; j < neighb.size(); j++)
 		{
+                
+                    double xj = 0.0;
+                    double yj = 0.0;
+                    double zj = 0.0;
 		  //first find unit tanjent of edge i-j
 		  xj = neighb[j].X();
 		  yj = neighb[j].Y();
@@ -1084,14 +1084,18 @@ namespace Kratos
     {
       double x0 = 1.0;			//initial guess
       double x1 = 0.0;			//next guess or solution
-      double fx = 0.0;			//function
-      double dfx = 0.0;      		//function derivative
+      /////double fx = 0.0;			//function
+      /////double dfx = 0.0;      		//function derivative
       double tol = 1.0e-7;		//tolerance for the solution
       double epsi = 1.0e-10;		//minimum value of function derivative
       unsigned int MaxIter = 20;	//maximum number of iterations
       bool foundsol = false;		//solution has been found
       for(unsigned int i = 0; i < MaxIter; i++)
       {
+          
+          double fx = 0.0;
+          double dfx = 0.0;
+
 	  fx = func_Newton(x0,terms_vec,kappa_H,kappa_G,kappaN_ij);
 	  dfx = dxfunc_Newton(x0,terms_vec_der,kappa_H,kappa_G,kappaN_ij);
 	  if (abs(dfx) < epsi)

@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:     ajarauta 
+//  Main author:     Alex Jarauta
+
 
 
 #if !defined(CALCULATE_NORMAL_EQ_INCLUDED )
@@ -61,7 +62,7 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-	calculate normal eq
+	calculate normal equilibrium based on given geometries, contact angle, tripple point. It is used in droplet dynamis.
 
 
 */
@@ -114,14 +115,14 @@ namespace Kratos
 	double pi = 3.14159265359;
 	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
 	double theta_rad = theta_eq*pi/180.0;
-	double theta = 0.0;
+	///////double theta = 0.0;
 	
 	array_1d<double,3> normal_eq = ZeroVector(3);
 	array_1d<double,3> normal_xy = ZeroVector(3);
 	normal_xy[2] = 1.0;
 	array_1d<double,2> temp = ZeroVector(2);
 	
-	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
 	{
 	    //Find the neighbours of TRIPLE_POINT at the boundary
 	    if (im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
