@@ -29,9 +29,10 @@ namespace Python {
  * @args tuple boost::python::object representing the arguments of the function The first argument is the label
  * @kwargs dictionary of boost::python::objects resenting key-value pairs for
  * @severity Logger::Severity The message level of severity @see Logger::Severity
+ * @useKwargLabel bool Indicates if the label must be gather from kwargs (true) or is the first argument of the call (false)
  * name arguments
  **/
-object printImpl(tuple args, dict kwargs, Logger::Severity severity) {
+object printImpl(tuple args, dict kwargs, Logger::Severity severity, bool useKwargLabel) {
     if(len(args) == 0)
         std::cout << "ERROR" << std::endl;
     
@@ -39,15 +40,26 @@ object printImpl(tuple args, dict kwargs, Logger::Severity severity) {
     Logger::Severity severityOption = severity;
     Logger::Category categoryOption = Logger::Category::STATUS;
 
+    const char* label;
+
+    // Get the label
+    if(useKwargLabel) {
+        if(kwargs.contains("label")) {
+            label = extract<const char *>(kwargs["label"]);
+        } else {
+            label = "undefined";
+        }
+    } else {
+        label = extract<const char *>(boost::python::str(args[0]));
+    }
+
     // Extract the tuple part
-    for(int i = 1; i < len(args); ++i) {
+    for(int i = (useKwargLabel ? 0 : 1); i < len(args); ++i) {
         object curArg = args[i];
         if(curArg) {
             buffer << extract<const char *>(boost::python::str(args[i])) << ((i != len(args)) ? " " : "");
         }
     }
-
-    const char* label = extract<const char *>(boost::python::str(args[0]));
 
     // Extract the options
     if(kwargs.contains("severity")) {
@@ -71,7 +83,7 @@ object printImpl(tuple args, dict kwargs, Logger::Severity severity) {
  * name arguments
  **/
 object printDefault(tuple args, dict kwargs) {
-    return printImpl(args, kwargs, Logger::Severity::INFO);
+    return printImpl(args, kwargs, Logger::Severity::INFO, true);
 }
 
 /**
@@ -81,7 +93,7 @@ object printDefault(tuple args, dict kwargs) {
  * name arguments
  **/
 object printInfo(tuple args, dict kwargs) {
-    return printImpl(args, kwargs, Logger::Severity::INFO);
+    return printImpl(args, kwargs, Logger::Severity::INFO, false);
 }
 
 /**
@@ -91,7 +103,7 @@ object printInfo(tuple args, dict kwargs) {
  * name arguments
  **/
 object printWarning(tuple args, dict kwargs) {
-    return printImpl(args, kwargs, Logger::Severity::WARNING);
+    return printImpl(args, kwargs, Logger::Severity::WARNING, false);
 }
 
 void  AddLoggerToPython() {
