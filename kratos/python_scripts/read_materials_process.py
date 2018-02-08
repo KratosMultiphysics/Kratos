@@ -283,9 +283,6 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         This function is the analogon to IsVector(), but it checks if interpolation is required
         It does NOT throw if the Vector is not valid, type checking is done later
         """
-
-        print("here")
-
         interpolation_required = False
         if not parameter.IsArray():
             return False
@@ -421,7 +418,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 prop.SetValue( var, value.GetVector() )
             elif self.__is_double_with_interpolation(value):
                 interpolated_double = self.__compute_interpolated_value(geom_entity, table_dict,
-                                                                        key, value["@table"].GetString())
+                                                                        key, value)
                 prop.SetValue(var, interpolated_double)
             elif self.__is_vector_with_interpolation(value):
                 interpolated_vector = self.__compute_interpolated_vector(geom_entity, table_dict,
@@ -434,11 +431,10 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             else:
                 raise TypeError("Type of value is not available for " + key)
 
-
-        print(prop)
-
-    def __compute_interpolated_value(self, geom_entity, table_dict, variable_name, table_name):
+    def __compute_interpolated_value(self, geom_entity, table_dict, variable_name, value):
         # Retrieve information needed for interpolation
+        table_name = value["@table"].GetString()
+
         if table_name not in table_dict.keys():
             raise NameError('Table "' + table_name + '" not found')
 
@@ -467,7 +463,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                     raise ValueError(err_msg)
                 input_value /= len(nodes)
         else:
-            raise Exception("Type of input_variable_location \"" + input_variable_location + "\" is not valid!")
+            raise Exception('Type of input_variable_location "' + input_variable_location + '" is not valid!')
 
         interpolated_value = table.GetValue(input_value) # interpolate the value from the table
 
@@ -484,7 +480,8 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             elif sub_param.IsInt(): # needed?
                 interpolated_vector[i] = sub_param.GetInt()
             elif self.__has_interpolation_keyword(sub_param):
-                interpolated_vector[i] = self.__compute_interpolated_value(geom_entity, table_dict, variable_name, sub_param["@table"].GetString())
+                interpolated_vector[i] = self.__compute_interpolated_value(geom_entity, table_dict,
+                                                                           variable_name, sub_param)
             else:
                 raise TypeError("Wrong Type of Value")
 
@@ -502,7 +499,8 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 elif sub_param.IsInt(): # needed?
                     interpolated_matrix[i,j] = sub_param.GetInt()
                 elif self.__has_interpolation_keyword(sub_param):
-                    interpolated_matrix[i,j] = self.__compute_interpolated_value(geom_entity, table_dict, variable_name, sub_param["@table"].GetString())
+                    interpolated_matrix[i,j] = self.__compute_interpolated_value(geom_entity, table_dict,
+                                                                                 variable_name, sub_param)
                 else:
                     raise TypeError("Wrong Type of Value")
 

@@ -10,7 +10,7 @@ def GetFilePath(fileName):
 
 class TestMaterialsInput(KratosUnittest.TestCase):
 
-    def _test_input(self):
+    def test_input(self):
         try:
             import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
         except:
