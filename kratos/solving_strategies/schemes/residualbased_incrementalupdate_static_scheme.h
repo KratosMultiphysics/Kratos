@@ -180,10 +180,10 @@ public:
     
     /**
      * It initializes a non-linear iteration (for the element)
-     * @param rModelPart: The model of the problem to solve
-     * @param A: LHS matrix
-     * @param Dx: Incremental update of primary variables
-     * @param b: RHS Vector
+     * @param rModelPart The model of the problem to solve
+     * @param A LHS matrix
+     * @param Dx Incremental update of primary variables
+     * @param b RHS Vector
      */
 
     void InitializeNonLinIteration(
@@ -240,8 +240,8 @@ public:
 
     /**
      * It initializes a non-linear iteration (for an individual condition)
-     * @param rCurrentConditiont: The condition to compute
-     * @param CurrentProcessInfo: The current process info instance
+     * @param rCurrentConditiont The condition to compute
+     * @param CurrentProcessInfo The current process info instance
      */
 
     void InitializeNonLinearIteration(
@@ -254,8 +254,8 @@ public:
 
     /**
      * It initializes a non-linear iteration (for an individual element)
-     * @param rCurrentElement: The element to compute
-     * @param CurrentProcessInfo: The current process info instance
+     * @param rCurrentElement The element to compute
+     * @param CurrentProcessInfo The current process info instance
      */
 
     void InitializeNonLinearIteration(
