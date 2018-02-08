@@ -55,7 +55,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mCableElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-      // Adding the beam element
+      // Adding the beam elements
       mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mCrBeamElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
@@ -165,7 +165,7 @@ void KratosStructuralMechanicsApplication::Register() {
     std::cout << "            \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |                   " << std::endl;
     std::cout << "                  | |   |    |   | (    |   |   | |   (   | |                     " << std::endl;
     std::cout << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
-    
+
     // Generalized eigenvalue problem
     KRATOS_REGISTER_VARIABLE(BUILD_LEVEL)
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_VECTOR)
@@ -188,7 +188,6 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Truss generalized variables
     KRATOS_REGISTER_VARIABLE(TRUSS_PRESTRESS_PK2)
-    KRATOS_REGISTER_VARIABLE(TRUSS_IS_CABLE)
 
     // Beam generalized variables
     KRATOS_REGISTER_VARIABLE(AREA_EFFECTIVE_Y)
