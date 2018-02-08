@@ -101,6 +101,7 @@ public:
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
     constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
+    constexpr static unsigned int StrainSize = FluidElement<TElementData>::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -468,12 +469,6 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 
 namespace Internals {
-
-template <unsigned int TDim>
-void AddViscousTerm(double DynamicViscosity,
-                    double GaussWeight,
-                    const Kratos::Matrix& rDN_DX,
-                    Kratos::Matrix& rLHS);
 
 template <class TElementData, bool TDataKnowsAboutTimeIntegration>
 class SpecializedAddTimeIntegratedSystem {

@@ -603,7 +603,6 @@ template <class TElementData>
 void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
-    constexpr std::size_t StrainSize = (Dim-1)*3;
     boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
@@ -646,7 +645,6 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
 template <class TElementData>
 void QSVMS<TElementData>::AddViscousTerm(const TElementData& rData, MatrixType& rLHS) {
 
-    constexpr std::size_t StrainSize = (Dim-1)*3;
     boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
@@ -861,90 +859,6 @@ void QSVMS<TElementData>::load(Serializer& rSerializer)
 // Internals
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Internals {
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Dim == 2
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <>
-void AddViscousTerm<2>(double DynamicViscosity,
-                       double GaussWeight,
-                       const Kratos::Matrix& rDN_DX,
-                       Kratos::Matrix& rLHS)
-{
-    double weight = GaussWeight * DynamicViscosity;
-
-    constexpr double four_thirds = 4.0 / 3.0;
-    constexpr double minus_two_thirds = -2.0 / 3.0;
-
-    const unsigned int num_nodes = rDN_DX.size1();
-    const unsigned int block_size = 3;
-
-    for (unsigned int a = 0; a < num_nodes; ++a)
-    {
-        unsigned int row = a*block_size;
-        for (unsigned int b = 0; b < num_nodes; ++b)
-        {
-            unsigned int col = b*block_size;
-
-            // First row
-            rLHS(row,col) += weight * ( four_thirds * rDN_DX(a,0) * rDN_DX(b,0) + rDN_DX(a,1) * rDN_DX(b,1) );
-            rLHS(row,col+1) += weight * ( minus_two_thirds * rDN_DX(a,0) * rDN_DX(b,1) + rDN_DX(a,1) * rDN_DX(b,0) );
-
-            // Second row
-            rLHS(row+1,col) += weight * ( minus_two_thirds * rDN_DX(a,1) * rDN_DX(b,0) + rDN_DX(a,0) * rDN_DX(b,1) );
-            rLHS(row+1,col+1) += weight * ( four_thirds * rDN_DX(a,1) * rDN_DX(b,1) + rDN_DX(a,0) * rDN_DX(b,0) );
-        }
-    }
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Dim == 3
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <>
-void AddViscousTerm<3>(double DynamicViscosity,
-                       double GaussWeight,
-                       const Kratos::Matrix& rDN_DX,
-                       Kratos::Matrix& rLHS)
-{
-    double weight = GaussWeight * DynamicViscosity;
-
-    constexpr double one_third = 1.0 / 3.0;
-    constexpr double minus_two_thirds = -2.0 / 3.0;
-
-    const unsigned int num_nodes = rDN_DX.size1();
-    const unsigned int block_size = 4;
-
-    unsigned int row(0),col(0);
-
-    for (unsigned int i = 0; i < num_nodes; ++i)
-    {
-        row = i*block_size;
-        for (unsigned int j = 0; j < num_nodes; ++j)
-        {
-            col = j*block_size;
-            // (dN_i/dx_k dN_j/dx_k)
-            const double diag =  rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
-
-            // First row
-            rLHS(row,col) += weight * ( one_third * rDN_DX(i,0) * rDN_DX(j,0) + diag );
-            rLHS(row,col+1) += weight * ( minus_two_thirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
-            rLHS(row,col+2) += weight * ( minus_two_thirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0) );
-
-            // Second row
-            rLHS(row+1,col) += weight * ( minus_two_thirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
-            rLHS(row+1,col+1) += weight * ( one_third * rDN_DX(i,1) * rDN_DX(j,1) + diag );
-            rLHS(row+1,col+2) += weight * ( minus_two_thirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1) );
-
-            // Third row
-            rLHS(row+2,col) += weight * ( minus_two_thirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2) );
-            rLHS(row+2,col+1) += weight * ( minus_two_thirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2) );
-            rLHS(row+2,col+2) += weight * ( one_third * rDN_DX(i,2) * rDN_DX(j,2) + diag );
-        }
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // For Standard data: Time integration is not available
