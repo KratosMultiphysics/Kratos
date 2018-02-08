@@ -53,6 +53,16 @@ template<class TDataType> const TDataType ConstitutiveLawGetValue(ConstitutiveLa
     TDataType tmp = rThisConstitutiveLaw.GetValue(rThisVariable, value);
     return tmp;
 }
+
+template<class TDataType> const TDataType ConstitutiveLawCalculateValue(ConstitutiveLaw& rThisConstitutiveLaw,
+                                                                        ConstitutiveLaw::Parameters& rParameterValues, 
+                                                                        const Variable<TDataType >& rThisVariable ) 
+{ 
+    TDataType tmp;
+    tmp = rThisConstitutiveLaw.CalculateValue(rParameterValues, rThisVariable, tmp);
+    return tmp;
+}
+
 template<class TDataType> void ConstitutiveLawSetValue(ConstitutiveLaw& rThisConstitutiveLaw, const Variable<TDataType>& rThisVariable, TDataType& value, const ProcessInfo& rCurrentProcessInfo)
 { rThisConstitutiveLaw.SetValue(rThisVariable, value, rCurrentProcessInfo); }
 
@@ -176,6 +186,11 @@ void  AddConstitutiveLawToPython()
     .def("SetValue", &ConstitutiveLawSetValue<array_1d<double,3>  >)
     .def("SetValue", &ConstitutiveLawSetValue<Vector >)
     .def("SetValue", &ConstitutiveLawSetValue<Matrix >)
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<int> )
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<double> )
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<array_1d<double,3>  >)
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<Vector >)
+    .def("CalculateValue", &ConstitutiveLawCalculateValue<Matrix >)
     .def("CalculateMaterialResponse",&NewInterfaceCalculateMaterialResponse)
     .def("CalculateMaterialResponsePK1",&ConstitutiveLaw::CalculateMaterialResponsePK1)
     .def("CalculateMaterialResponsePK2",&ConstitutiveLaw::CalculateMaterialResponsePK2)

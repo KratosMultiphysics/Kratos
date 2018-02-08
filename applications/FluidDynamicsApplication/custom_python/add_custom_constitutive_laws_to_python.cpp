@@ -55,17 +55,17 @@ using namespace boost::python;
 void  AddCustomConstitutiveLawsToPython()
 {
 
-    class_< Euler2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Euler2DLaw",  init<>() );
+    class_< Euler2DLaw, Euler2DLaw::Pointer, bases< ConstitutiveLaw >, boost::noncopyable >( "Euler2DLaw",  init<>() );
 
-    class_< Euler3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Euler3DLaw",  init<>() );
+    class_< Euler3DLaw, Euler3DLaw::Pointer, bases< ConstitutiveLaw >, boost::noncopyable >( "Euler3DLaw",  init<>() );
     
-    class_< Bingham3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Bingham3DLaw",init<>() );
+    class_< Bingham3DLaw, Bingham3DLaw::Pointer, bases< ConstitutiveLaw >, boost::noncopyable >( "Bingham3DLaw",init<>() );
 
-    class_< Newtonian2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian2DLaw",  init<>() );
+    class_< Newtonian2DLaw, Newtonian2DLaw::Pointer, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian2DLaw",  init<>() );
      
-    class_< Newtonian3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian3DLaw",  init<>() );
+    class_< Newtonian3DLaw, Newtonian3DLaw::Pointer, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian3DLaw",  init<>() );
   
-    class_< HerschelBulkey3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "HerschelBulkey3DLaw",  init<>() );
+    class_< HerschelBulkey3DLaw, HerschelBulkey3DLaw::Pointer, bases< ConstitutiveLaw >, boost::noncopyable >( "HerschelBulkey3DLaw",  init<>() );
     
 }
 

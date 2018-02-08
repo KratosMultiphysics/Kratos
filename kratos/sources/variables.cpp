@@ -462,6 +462,9 @@ KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS)
 KRATOS_CREATE_VARIABLE(double, INTEGRATION_WEIGHT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 
+KRATOS_CREATE_VARIABLE( Vector, TAIT_PARAMETERS_MOLTEN_STATE )
+KRATOS_CREATE_VARIABLE( Vector, TAIT_PARAMETERS_SOLID_STATE )
+
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -1002,6 +1005,9 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(INTEGRATION_WEIGHT)
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
+    
+    KRATOS_REGISTER_VARIABLE( TAIT_PARAMETERS_MOLTEN_STATE )
+    KRATOS_REGISTER_VARIABLE( TAIT_PARAMETERS_SOLID_STATE )
 
     //Register objects with general definition
     Serializer::Register("Node", Node<3>());

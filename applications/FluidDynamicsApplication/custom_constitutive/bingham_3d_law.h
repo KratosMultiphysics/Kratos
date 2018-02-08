@@ -82,6 +82,15 @@ public:
      * Operations needed by the base class:
      */
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+    
+    /**
+     * calculates the value of a specified variable
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */    
+    double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
 
     /**
      * This function is designed to be called once to check compatibility with element
@@ -100,6 +109,17 @@ public:
      * @return
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
+    
+    
+    /**
+     * @return the working space dimension of the current constitutive law
+     */
+    SizeType WorkingSpaceDimension(){ return 3;}
+
+    /**
+     * returns the size of the strain vector of the current constitutive law
+     */
+    SizeType GetStrainSize(){return 6;}
 
     /**
      * Input and output
@@ -146,6 +166,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    double CalculateV(const Vector& bm, const Vector& bs, const double T, const double P);
 
 
     ///@}

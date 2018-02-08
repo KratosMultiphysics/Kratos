@@ -580,6 +580,9 @@ void  AddContainersToPython()
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTEGRATION_WEIGHT )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
+    
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TAIT_PARAMETERS_MOLTEN_STATE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TAIT_PARAMETERS_SOLID_STATE )
 
 
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer, boost::noncopyable >	("ConvectionDiffusionSettings", init<	>() )
