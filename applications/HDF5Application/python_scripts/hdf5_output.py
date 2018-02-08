@@ -21,107 +21,131 @@ class OutputObject(metaclass=ABCMeta):
 
 class HDF5SerialFileFactory(FileFactory):
 
-    def __init__(self, file_access_mode="truncate", echo_level=0):
-        self._file_access_mode = file_access_mode
-        self._echo_level = echo_level
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "file_access_mode" : "truncate",
+                "file_driver" : "sec2",
+                "echo_level" : 0
+            }
+            """)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings.AddEmptyValue("file_name")
     
     def Open(self, file_name):
-        params = KratosMultiphysics.Parameters("""{
-            "file_name" : "",
-            "file_access_mode" : "",
-            "file_driver" : "sec2",
-            "echo_level" : 0
-        }""")
-        params["file_name"].SetString(file_name)
-        params["file_access_mode"].SetString(self._file_access_mode)
-        params["echo_level"].SetInt(self._echo_level)
-        return KratosHDF5.HDF5FileSerial(params)
+        self.settings["file_name"].SetString(file_name)
+        return KratosHDF5.HDF5FileSerial(settings)
 
 
 class HDF5ParallelFileFactory(FileFactory):
 
-    def __init__(self, file_access_mode="truncate", echo_level=0):
-        self._file_access_mode = file_access_mode
-        self._echo_level = echo_level
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "file_access_mode" : "truncate",
+                "file_driver" : "mpio",
+                "echo_level" : 0
+            }
+            """)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings.AddEmptyValue("file_name")
     
     def Open(self, file_name):
-        params = KratosMultiphysics.Parameters("""{
-            "file_name" : "",
-            "file_access_mode" : "",
-            "file_driver" : "mpio",
-            "echo_level" : 0
-        }""")
-        params["file_name"].SetString(file_name)
-        params["file_access_mode"].SetString(self._file_access_mode)
-        params["echo_level"].SetInt(self._echo_level)
-        return KratosHDF5.HDF5FileParallel(params)
+        self.settings["file_name"].SetString(file_name)
+        return KratosHDF5.HDF5FileParallel(self.settings)
 
 
 class ModelPartOutput(OutputObject):
     """A class for writing a model part."""
 
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "prefix" : "/ModelData"
+            }
+            """)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
     def Execute(self, model_part, hdf5_file):
-        params = KratosMultiphysics.Parameters("""{
-            "prefix" : "/ModelData"
-        }""")
-        KratosHDF5.HDF5ModelPartIO(params, hdf5_file).WriteModelPart(model_part)
+        KratosHDF5.HDF5ModelPartIO(self.settings, hdf5_file).WriteModelPart(model_part)
 
 
 class NodalResultsOutput(OutputObject):
     """A class for writing nodal results of a model part."""
 
-    def __init__(self, list_of_variables):
-        self._list_of_variables = list_of_variables
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "prefix" : "/ResultsData",
+                "list_of_variables": []
+            }
+            """)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings.AddEmptyValue("partitioned")
+        self.settings["partitioned"].SetBool(False)
 
     def Execute(self, model_part, hdf5_file):
-        params = KratosMultiphysics.Parameters("""{
-            "prefix" : "/ResultsData",
-            "partitioned": false,
-            "list_of_variables": []
-        }""")
-        for var in self._list_of_variables:
-            params["list_of_variables"].Append(var)
-        KratosHDF5.HDF5NodalSolutionStepDataIO(params, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
+        KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
 
 
 class PartitionedModelPartOutput(OutputObject):
     """A class for writing a partitioned model part."""
 
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "prefix" : "/ModelData"
+            }
+            """)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
     def Execute(self, model_part, hdf5_file):
-        params = KratosMultiphysics.Parameters("""{
-            "prefix" : "/ModelData"
-        }""")
-        KratosHDF5.HDF5PartitionedModelPartIO(params, hdf5_file).WriteModelPart(model_part)
+        KratosHDF5.HDF5PartitionedModelPartIO(self.settings, hdf5_file).WriteModelPart(model_part)
 
 
 class PartitionedNodalResultsOutput(OutputObject):
     """A class for writing nodal results of a partitioned model part."""
 
-    def __init__(self, list_of_variables):
-        self._list_of_variables = list_of_variables
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "prefix" : "/ResultsData",
+                "list_of_variables": []
+            }
+            """)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings.AddEmptyValue("partitioned")
+        self.settings["partitioned"].SetBool(True)
 
     def Execute(self, model_part, hdf5_file):
-        params = KratosMultiphysics.Parameters("""{
-            "prefix" : "/ResultsData",
-            "partitioned": true,
-            "list_of_variables": []
-        }""")
-        for var in self._list_of_variables:
-            params["list_of_variables"].Append(var)
-        KratosHDF5.HDF5NodalSolutionStepDataIO(params, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
+        KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
 
 
 class TemporalOutputProcess(KratosMultiphysics.Process):
     """A process for writing temporal simulation results."""
 
-    def __init__(self, model_part, hdf5_file_factory, output_time_frequency, output_step_frequency=0):
+    def __init__(self, model_part, hdf5_file_factory, settings):
         KratosMultiphysics.Process.__init__(self)
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "output_time_frequency": 1.0,
+                "output_step_frequency": 0,
+                "time_tag_precision": 4
+            }
+            """)
+        settings.ValidateAndAssignDefaults(default_settings)
         self._model_part = model_part
         self._hdf5_file_factory = hdf5_file_factory
-        self._output_time_frequency = output_time_frequency
-        self._output_step_frequency = output_step_frequency
+        self._output_time_frequency = settings["output_time_frequency"].GetDouble()
+        self._output_step_frequency = settings["output_step_frequency"].GetInt()
+        self._time_tag_precision = settings["time_tag_precision"].GetInt()
         self._list_of_outputs = []
-        self._time_tag_precision = 4
         self._output_time = 0.0
         self._output_step = 0
 
@@ -147,3 +171,20 @@ class TemporalOutputProcess(KratosMultiphysics.Process):
         fmt = "{:." + str(self._time_tag_precision) + "f}"
         time_tag = "-" + fmt.format(self._model_part.ProcessInfo[KratosMultiphysics.TIME])
         return self._model_part.Name + time_tag + ".h5"
+
+class StaticOutputProcess(KratosMultiphysics.Process):
+    """A process for writing static simulation results."""
+
+    def __init__(self, model_part, hdf5_file_factory):
+        KratosMultiphysics.Process.__init__(self)
+        self._model_part = model_part
+        self._hdf5_file_factory = hdf5_file_factory
+        self._list_of_outputs = []
+
+    def AddOutputObject(self, output):
+        self._list_of_outputs.append(output)
+
+    def Execute(self):
+        hdf5_file = self._hdf5_file_factory.Open(self._model_part.Name + ".h5")
+        for output in self._list_of_outputs:
+            output.Execute(self._model_part, hdf5_file)

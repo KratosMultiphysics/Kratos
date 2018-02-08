@@ -55,44 +55,35 @@ def GetListOfTimeLabels(file_name):
     return list_of_time_labels
 
 
-class CreateMultipleMeshXdmfFileProcess(KratosMultiphysics.Process):
-
-    def __init__(self, file_name):
-        self._file_name = file_name
-
-    def Execute(self):
-        temporal_grid = xdmf.TemporalGrid()
-        GenerateXdmfConnectivities(self._file_name)
-        # Get the initial spatial grid from the base file.
-        with h5py.File(self._file_name, "r") as h5py_file:
-            current_spatial_grid = GetSpatialGrid(h5py_file)
-        for current_time in GetListOfTimeLabels(self._file_name):
-            current_file_name = self._file_name.replace(".h5", "-" + current_time + ".h5")
-            # Check if the current file has mesh information.
-            with h5py.File(current_file_name, "r") as h5py_file:
-                has_mesh = ("ModelData" in h5py_file.keys())
-            if has_mesh:
-                GenerateXdmfConnectivities(current_file_name)
-            with h5py.File(current_file_name, "r") as h5py_file:
-                if has_mesh:
-                    # Update current spatial grid
-                    current_spatial_grid = GetSpatialGrid(h5py_file)
-                # Initialize the current grid with the spatial grid.
-                current_grid = xdmf.SpatialGrid()
-                for grid in current_spatial_grid.grids:
-                    current_grid.add_grid(xdmf.UniformGrid(grid.name, grid.geometry, grid.topology))
-                # Add the (time-dependent) results.
-                for nodal_result in GetNodalResults(h5py_file):
-                    current_grid.add_attribute(nodal_result)
-            # Add the current grid to the temporal grid.
-            temporal_grid.add_grid(xdmf.Time(current_time), current_grid)
-        # Create the domain.
-        domain = xdmf.Domain(temporal_grid)
-        # Write.
-        xdmf_file_name = self._file_name.replace(".h5", ".xdmf")
-        xdmf.ET.ElementTree(xdmf.Xdmf(domain).create_xml_element()).write(xdmf_file_name)
-
-
 if __name__ == '__main__':
     file_name = sys.argv[1]
-    CreateMultipleMeshXdmfFileProcess(file_name).Execute()
+    temporal_grid = xdmf.TemporalGrid()
+    GenerateXdmfConnectivities(file_name)
+    # Get the initial spatial grid from the base file.
+    with h5py.File(file_name, "r") as h5py_file:
+        current_spatial_grid = GetSpatialGrid(h5py_file)
+    for current_time in GetListOfTimeLabels(file_name):
+        current_file_name = file_name.replace(".h5", "-" + current_time + ".h5")
+        # Check if the current file has mesh information.
+        with h5py.File(current_file_name, "r") as h5py_file:
+            has_mesh = ("ModelData" in h5py_file.keys())
+        if has_mesh:
+            GenerateXdmfConnectivities(current_file_name)
+        with h5py.File(current_file_name, "r") as h5py_file:
+            if has_mesh:
+                # Update current spatial grid
+                current_spatial_grid = GetSpatialGrid(h5py_file)
+            # Initialize the current grid with the spatial grid.
+            current_grid = xdmf.SpatialGrid()
+            for grid in current_spatial_grid.grids:
+                current_grid.add_grid(xdmf.UniformGrid(grid.name, grid.geometry, grid.topology))
+            # Add the (time-dependent) results.
+            for nodal_result in GetNodalResults(h5py_file):
+                current_grid.add_attribute(nodal_result)
+        # Add the current grid to the temporal grid.
+        temporal_grid.add_grid(xdmf.Time(current_time), current_grid)
+    # Create the domain.
+    domain = xdmf.Domain(temporal_grid)
+    # Write.
+    xdmf_file_name = file_name.replace(".h5", ".xdmf")
+    xdmf.ET.ElementTree(xdmf.Xdmf(domain).create_xml_element()).write(xdmf_file_name)
