@@ -27,12 +27,12 @@ class PartitionedMultipleMeshTemporalOutputProcess(KratosMultiphysics.Process):
         model_part_output = hdf5_output.PartitionedModelPartOutput(settings["model_part_output_settings"])
         results_output = hdf5_output.PartitionedNodalResultsOutput(settings["results_settings"])
         self._static_output = hdf5_output.StaticOutputProcess(model_part, hdf5_file_factory)
-        self._static_output.AddOutputObject(model_part_output)
-        self._static_output.AddOutputObject(results_output)
+        self._static_output.AddOutput(model_part_output)
+        self._static_output.AddOutput(results_output)
         self._temporal_output = hdf5_output.TemporalOutputProcess(
             model_part, hdf5_file_factory, settings["output_time_settings"])
-        self._temporal_output.AddOutputObject(model_part_output)
-        self._temporal_output.AddOutputObject(results_output)
+        self._temporal_output.AddOutput(model_part_output)
+        self._temporal_output.AddOutput(results_output)
 
     def ExecuteBeforeSolutionLoop(self):
         self._static_output.Execute()

@@ -35,7 +35,7 @@ class HDF5SerialFileFactory(FileFactory):
     
     def Open(self, file_name):
         self.settings["file_name"].SetString(file_name)
-        return KratosHDF5.HDF5FileSerial(settings)
+        return KratosHDF5.HDF5FileSerial(self.settings)
 
 
 class HDF5ParallelFileFactory(FileFactory):
@@ -149,7 +149,7 @@ class TemporalOutputProcess(KratosMultiphysics.Process):
         self._output_time = 0.0
         self._output_step = 0
 
-    def AddOutputObject(self, output):
+    def AddOutput(self, output):
         self._list_of_outputs.append(output)
 
     def ExecuteBeforeSolutionLoop(self):
@@ -181,7 +181,7 @@ class StaticOutputProcess(KratosMultiphysics.Process):
         self._hdf5_file_factory = hdf5_file_factory
         self._list_of_outputs = []
 
-    def AddOutputObject(self, output):
+    def AddOutput(self, output):
         self._list_of_outputs.append(output)
 
     def Execute(self):
