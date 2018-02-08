@@ -38,7 +38,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VELOCITY" : VELOCITY,
                         "REACTION" : REACTION,
                         "DISTANCE" : DISTANCE,
-			 "AUX_VEL" : AUX_VEL,                        
+			 "AUX_VEL" : AUX_VEL,
                         "DISPLACEMENT" : DISPLACEMENT,
                         "IS_INTERFACE" : IS_INTERFACE,
                         "IS_STRUCTURE" : IS_STRUCTURE,
@@ -48,7 +48,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "DENSITY": DENSITY,
                         "VISCOSITY": VISCOSITY}
 
-#defining a model part for the fluid 
+#defining a model part for the fluid
 lagrangian_model_part = ModelPart("LagrangianPart");
 
 SolverType=problem_settings.SolverType
@@ -115,8 +115,7 @@ else:
     print("Unknown GiD multiple file mode, assuming Single")
     multifile = MultiFileFlag.SingleFile
 
-
-input_file_name = "lagrangian-droplet_test" 
+input_file_name = "lagrangian-droplet_test"
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
@@ -132,9 +131,9 @@ elif(element_type == "SurfaceTension"):
     solver_lagr.AddDofs(lagrangian_model_part, SolverSettings)
 
 #setting the limits of the bounding box
-box_corner1 = Vector(3); 
+box_corner1 = Vector(3);
 box_corner1[0]=problem_settings.bounding_box_corner1_x; box_corner1[1]=problem_settings.bounding_box_corner1_y; box_corner1[2]=problem_settings.bounding_box_corner1_z;
-box_corner2 = Vector(3); 
+box_corner2 = Vector(3);
 box_corner2[0]=problem_settings.bounding_box_corner2_x; box_corner2[1]=problem_settings.bounding_box_corner2_y; box_corner2[2]=problem_settings.bounding_box_corner2_z;
 #here we write the convergence data..,
 outstring2 = "convergence_info.txt"
@@ -176,12 +175,11 @@ for node in lagrangian_model_part.Nodes:
 Multifile = True
 # Initialize .post.list file (GiD postprocess list)
 #f = open(ProjectParameters.problem_name+'.post.lst','w')
-#f.write('Multiple\n')   
-
+#f.write('Multiple\n')
 ################################################################
 
 # Stepping and time settings
-Dt = ProjectParameters.Dt 
+Dt = ProjectParameters.Dt
 Nsteps  = ProjectParameters.nsteps
 final_time = ProjectParameters.max_time
 output_time = ProjectParameters.output_time
@@ -191,7 +189,7 @@ out = 0
 step = 0
 
 while(time <= final_time):
-    
+
     time = time + Dt
     step = step + 1
     lagrangian_model_part.CloneTimeStep(time)
@@ -209,12 +207,12 @@ while(time <= final_time):
 ##################################################
 
     if(output_time <= out):
-      
+
         out = 0
 	
         gid_io.FinalizeResults()
         #f.write(ProjectParameters.problem_name+'_'+str(time)+'.post.bin\n')
-  
+
         res_name1 = str("water")
         gid_io.ChangeOutputName(res_name1)
         gid_io.InitializeMesh( time );
@@ -222,7 +220,7 @@ while(time <= final_time):
         gid_io.WriteMesh((lagrangian_model_part).GetMesh());
         gid_io.FinalizeMesh();
         gid_io.InitializeResults(time, (lagrangian_model_part).GetMesh());
-    
+
         gid_io.WriteNodalResults(CURVATURE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(IS_BOUNDARY,lagrangian_model_part.Nodes,time,0)
@@ -234,11 +232,11 @@ while(time <= final_time):
         gid_io.WriteNodalResults(PRESSURE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
-        
+
         gid_io.Flush()
         gid_io.FinalizeResults();
 
     out = out + Dt
 
-else:
-    gid_io.FinalizeResults()
+
+gid_io.FinalizeResults()

@@ -22,6 +22,7 @@
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
 #include "includes/dem_variables.h"
+#include "includes/cfd_variables.h"
 
 
 #include "geometries/triangle_2d_3.h"

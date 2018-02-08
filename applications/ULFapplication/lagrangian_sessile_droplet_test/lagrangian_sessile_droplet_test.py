@@ -38,7 +38,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VELOCITY" : VELOCITY,
                         "REACTION" : REACTION,
                         "DISTANCE" : DISTANCE,
-			 "AUX_VEL" : AUX_VEL,                        
+			 "AUX_VEL" : AUX_VEL,
                         "DISPLACEMENT" : DISPLACEMENT,
                         "IS_INTERFACE" : IS_INTERFACE,
                         "IS_STRUCTURE" : IS_STRUCTURE,
@@ -48,7 +48,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "DENSITY": DENSITY,
                         "VISCOSITY": VISCOSITY}
 
-#defining a model part for the fluid 
+#defining a model part for the fluid
 lagrangian_model_part = ModelPart("LagrangianPart");
 
 SolverType=problem_settings.SolverType
@@ -132,9 +132,9 @@ elif(element_type == "SurfaceTension"):
     solver_lagr.AddDofs(lagrangian_model_part, SolverSettings)
 
 #setting the limits of the bounding box
-box_corner1 = Vector(3); 
+box_corner1 = Vector(3);
 box_corner1[0]=problem_settings.bounding_box_corner1_x; box_corner1[1]=problem_settings.bounding_box_corner1_y; box_corner1[2]=problem_settings.bounding_box_corner1_z;
-box_corner2 = Vector(3); 
+box_corner2 = Vector(3);
 box_corner2[0]=problem_settings.bounding_box_corner2_x; box_corner2[1]=problem_settings.bounding_box_corner2_y; box_corner2[2]=problem_settings.bounding_box_corner2_z;
 #here we write the convergence data..,
 outstring2 = "convergence_info.txt"
@@ -181,7 +181,7 @@ Multifile = True
 ################################################################
 
 # Stepping and time settings
-Dt = ProjectParameters.Dt 
+Dt = ProjectParameters.Dt
 Nsteps  = ProjectParameters.nsteps
 final_time = ProjectParameters.max_time
 output_time = ProjectParameters.output_time
@@ -191,7 +191,6 @@ out = 0
 step = 0
 
 while(time <= final_time):
-    
     time = time + Dt
     step = step + 1
     lagrangian_model_part.CloneTimeStep(time)
@@ -216,9 +215,8 @@ while(time <= final_time):
             else:
                 node.Free(VELOCITY_X)
 	    
+      lag_solver.Solve()
       
-      lag_solver.Solve()	
-
 ##################################################
 ##################################################
 
@@ -256,4 +254,4 @@ while(time <= final_time):
     out = out + Dt
 
 
-    gid_io.FinalizeResults()
+gid_io.FinalizeResults()

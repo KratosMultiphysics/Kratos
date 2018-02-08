@@ -7,8 +7,6 @@ from KratosMultiphysics.StructuralApplication import *
 #from KratosMultiphysics.PFEMApplication import PfemUtils
 from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.MeshingApplication import *
-import math
-import time
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -36,7 +34,6 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
-    
     #20150128 ajarauta: surface tension variables
     model_part.AddNodalSolutionStepVariable(CURVATURE)
     model_part.AddNodalSolutionStepVariable(IS_WATER)
@@ -105,7 +102,6 @@ class STMonolithicSolver:
         self.abs_vel_tol = 1e-6
         self.rel_pres_tol = 1e-3
         self.abs_pres_tol = 1e-6
-
         self.dynamic_tau = 0.0
         self.oss_switch = 0
 
@@ -115,7 +111,7 @@ class STMonolithicSolver:
         self.max_iter = 30
         
         self.contact_angle = contact_angle
-        self.gamma = gamma        
+        self.gamma = gamma
 
         # default settings
         self.echo_level = 0
@@ -159,15 +155,15 @@ class STMonolithicSolver:
             bounding_box_corner2_x = 1.01000e+10
             bounding_box_corner2_y = 1.01000e+10
             bounding_box_corner2_z = 1.01000e+10
-            box_corner1 = Vector(3); 
+            box_corner1 = Vector(3);
             box_corner1[0]=bounding_box_corner1_x; box_corner1[1]=bounding_box_corner1_y; box_corner1[2]=bounding_box_corner1_z;
-            box_corner2 = Vector(3); 
+            box_corner2 = Vector(3);
             box_corner2[0]=bounding_box_corner2_x; box_corner2[1]=bounding_box_corner2_y; box_corner2[2]=bounding_box_corner2_z;
             self.box_corner1 = box_corner1
             self.box_corner2 = box_corner2
 	  
             if(domain_size == 2):
-                self.Mesher =  TriGenDropletModeler()            
+                self.Mesher =  TriGenDropletModeler()
                 self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
                 #this is needed if we want to also store the conditions a node belongs to
                 self.condition_neigh_finder = FindConditionsNeighboursProcess(model_part,2, 10)
@@ -178,7 +174,7 @@ class STMonolithicSolver:
 
     #
     def Initialize(self):
-        
+
         if self.use_slip_conditions == False:
             for cond in self.model_part.Conditions:
                 if cond.GetValue(IS_STRUCTURE) != 0.0:
@@ -195,7 +191,7 @@ class STMonolithicSolver:
                 if cond.GetValue(IS_STRUCTURE) != 0.0:
                     for node in cond.GetNodes():
                         node.SetValue(IS_STRUCTURE, 1.0)
-       
+                        
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol, self.rel_pres_tol, self.abs_pres_tol)
         #self.conv_criteria = ResidualCriteria(0.0001, 0.0000001)
@@ -246,8 +242,7 @@ class STMonolithicSolver:
             if (node.GetSolutionStepValue(IS_BOUNDARY) == 0.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
                 node.SetSolutionStepValue(NORMAL_X,0,0.0)
                 node.SetSolutionStepValue(NORMAL_Y,0,0.0)
-                node.SetSolutionStepValue(NORMAL_Z,0,0.0)    
-
+                node.SetSolutionStepValue(NORMAL_Z,0,0.0)
 
         if (self.domain_size == 2):
             FindTriplePoint().FindTriplePoint2D(self.model_part)
@@ -256,24 +251,23 @@ class STMonolithicSolver:
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
             self.cont_angle_cond()
 
-            
         #self.solver.MoveMesh()
 	  
         (self.solver).Solve() #it dumps in this line... 20151020
         #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
-        
+
         #self.solver.MoveMesh()
-        
+
         if(self.eul_model_part == 0):
             (self.fluid_neigh_finder).Execute();
             #(self.fluid_neigh_finder).Execute();
             self.Remesh();
 
-    #
+
     def SetEchoLevel(self, level):
         (self.solver).SetEchoLevel(level)
 
-    #
+
     def Clear(self):
         (self.solver).Clear()
 
@@ -298,7 +292,7 @@ class STMonolithicSolver:
         (self.condition_neigh_finder).Execute();
         
         #print "marking fluid" and applying fluid boundary conditions
-        (self.ulf_apply_bc_process).Execute();  
+        (self.ulf_apply_bc_process).Execute();
         #(self.mark_fluid_process).Execute();
 	
         (self.UlfUtils).CalculateNodalArea(self.model_part,self.domain_size);
@@ -313,7 +307,7 @@ class STMonolithicSolver:
         
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
        
-######################################################################################################                
+######################################################################################################
         #FOR PFEM
         NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
         if (self.domain_size == 2):
@@ -362,15 +356,14 @@ class STMonolithicSolver:
                     node.Fix(VELOCITY_Y)
 
 
-def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR 3D!!!!!!!!!!
-    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle)    
+def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR 3D!
+    fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle)
       
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha
 
     if(hasattr(config, "eul_model_part")):
         fluid_solver.eulerian_model_part = config.eul_model_part
-    
         
     # definition of the convergence criteria
     if(hasattr(config, "velocity_relative_tolerance")):
@@ -401,4 +394,3 @@ def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR
             config.linear_solver_config)
 
     return fluid_solver
-
