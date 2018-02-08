@@ -87,7 +87,7 @@ class Geometry(XdmfItem):
     """Represents nodal coordinates."""
 
     def __init__(self, data):
-        assert isinstance(data, DataItem)
+        #assert isinstance(data, DataItem)
         self._data = data
 
     def xml_tag(self):
@@ -133,8 +133,8 @@ class UniformMeshTopology(Topology):
     """Represents a topology of a single element or condition type."""
 
     def __init__(self, cell_type, data):
-        assert isinstance(cell_type, TopologyCellType)
-        assert isinstance(data, DataItem)
+        #assert isinstance(cell_type, TopologyCellType)
+        #assert isinstance(data, DataItem)
         self._cell_type = cell_type
         self._data = data
 
@@ -149,7 +149,7 @@ class HDF5UniformDataItem(DataItem):
     """Represents a uniform data item with the heavy data stored in HDF5."""
 
     def __init__(self, data_set):
-        assert isinstance(data_set, h5py.Dataset)
+        #assert isinstance(data_set, h5py.Dataset)
         self._file_name = data_set.file.filename
         self._data_set_name = data_set.name
         self._dtype = data_set.dtype
@@ -180,8 +180,8 @@ class NodalSolutionStepData(Attribute):
     """Represents nodal solution step data."""
 
     def __init__(self, name, data):
-        assert isinstance(name, str)
-        assert isinstance(data, DataItem)
+        #assert isinstance(name, str)
+        #assert isinstance(data, DataItem)
         self._name = name
         self._data = data
     
@@ -226,7 +226,7 @@ class SpatialGrid(Grid):
             grid.add_attribute(attr)
 
     def add_grid(self, grid):
-        assert isinstance(grid, Grid)
+        #assert isinstance(grid, Grid)
         self.grids.append(grid)
 
 
@@ -250,8 +250,8 @@ class TemporalGrid(Grid):
             grid.add_attribute(attr)
 
     def add_grid(self, time, grid):
-        assert isinstance(time, Time)
-        assert isinstance(grid, Grid)
+        #assert isinstance(time, Time)
+        #assert isinstance(grid, Grid)
         self._times.append(time)
         self._grids.append(grid)
 
@@ -260,9 +260,9 @@ class UniformGrid(Grid):
     """Represents a grid of a single element or condition type with results data."""
 
     def __init__(self, name, geom, topology):
-        assert isinstance(name, str)
-        assert isinstance(geom, Geometry)
-        assert isinstance(topology, Topology)
+        #assert isinstance(name, str)
+        #assert isinstance(geom, Geometry)
+        #assert isinstance(topology, Topology)
         self._name = name
         self._geometry = geom
         self._topology = topology
@@ -278,7 +278,7 @@ class UniformGrid(Grid):
         return e
 
     def add_attribute(self, attr):
-        assert isinstance(attr, Attribute)
+        #assert isinstance(attr, Attribute)
         self._attributes.append(attr)
 
     @property
@@ -297,7 +297,7 @@ class UniformGrid(Grid):
 class Domain(XdmfItem):
 
     def __init__(self, grid):
-        assert isinstance(grid, Grid)
+        #assert isinstance(grid, Grid)
         self._grid = grid
     
     def xml_tag(self):
@@ -312,7 +312,7 @@ class Domain(XdmfItem):
 class Xdmf(XdmfItem):
 
     def __init__(self, domain):
-        assert isinstance(domain, Domain)
+        #assert isinstance(domain, Domain)
         self._domain = domain
     
     def xml_tag(self):
