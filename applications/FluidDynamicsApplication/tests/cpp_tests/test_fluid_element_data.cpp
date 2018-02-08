@@ -95,7 +95,7 @@ public:
     void Initialize(
         const Element& rElement, const ProcessInfo& rProcessInfo) override {
         this->FillFromProperties(
-            KinematicViscosity, KINEMATIC_VISCOSITY, rElement);
+            KinematicViscosity, KINEMATIC_VISCOSITY, rElement.GetProperties());
     }
 
     static int Check(const Element& rElement, const ProcessInfo& rProcessInfo) {
@@ -274,8 +274,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-    model_part.AddNodalSolutionStepVariable(DENSITY);
-    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
     model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
     model_part.AddNodalSolutionStepVariable(SOUND_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -335,12 +333,6 @@ KRATOS_TEST_CASE_IN_SUITE(EmbeddedElement2D3N, FluidDynamicsApplicationFastSuite
     reference_velocity(2,0) = 0.2; reference_velocity(2,1) = 0.3;
 
     Element::Pointer p_element = model_part.pGetElement(1);
-
-    // Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
-        it_node->FastGetSolutionStepValue(DENSITY) = p_properties->GetValue(DENSITY);
-        it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = p_properties->GetValue(DYNAMIC_VISCOSITY);
-    }
 
     for(unsigned int i=0; i<3; i++){
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
@@ -457,8 +449,6 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 
     // Variables addition
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-    model_part.AddNodalSolutionStepVariable(DENSITY);
-    model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -474,6 +464,10 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 
     // Set the element properties
     Properties::Pointer p_properties = model_part.pGetProperties(0);
+    p_properties->SetValue(DENSITY, 1000.0);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+    ConstitutiveLaw::Pointer pConsLaw(new Newtonian2DLaw());
+    p_properties->SetValue(CONSTITUTIVE_LAW, pConsLaw);
 
     // Geometry creation
     model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -506,12 +500,6 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
 
     Element::Pointer p_element = model_part.pGetElement(1);
 
-    // Set the nodal DENSITY and DYNAMIC_VISCOSITY values
-    for (ModelPart::NodeIterator it_node=model_part.NodesBegin(); it_node<model_part.NodesEnd(); ++it_node){
-        it_node->FastGetSolutionStepValue(DENSITY) = 1000.0;
-        it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = 1e-5;
-    }
-
     for(unsigned int i=0; i<4; i++){
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
         p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
@@ -532,7 +520,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     int counter = 0;
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
-        //i->Initialize(); // The element does nothing here
+        i->Initialize(); // Initialize constitutive law
         i->Check(model_part.GetProcessInfo());
         i->CalculateLocalVelocityContribution(LHS, RHS, model_part.GetProcessInfo());
 

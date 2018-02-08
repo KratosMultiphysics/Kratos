@@ -305,7 +305,7 @@ protected:
      * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
      * @return Kinematic viscosity at the integration point.
      */
-    virtual double EffectiveViscosity(
+    KRATOS_DEPRECATED virtual double EffectiveViscosity(
         TElementData& rData,
         double ElementSize);
 
