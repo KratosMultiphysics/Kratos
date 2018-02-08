@@ -37,18 +37,18 @@ namespace Kratos
 EmbeddedSkinVisualizationProcess::EmbeddedSkinVisualizationProcess(
     ModelPart& rModelPart,
     ModelPart& rVisualizationModelPart,
-    const std::vector<Variable< double> > VisualizationScalarVariables,
-    const std::vector<Variable< array_1d<double, 3> > > VisualizationVectorVariables,
-    const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > > VisualizationComponentVariables,
-    const std::string ShapeFunctions,
+    const std::vector<Variable< double> >& rVisualizationScalarVariables,
+    const std::vector<Variable< array_1d<double, 3> > >& rVisualizationVectorVariables,
+    const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >& rVisualizationComponentVariables,
+    const std::string& rShapeFunctions,
     const bool ReformModelPartAtEachTimeStep) : 
     Process(), 
     mrModelPart(rModelPart), 
     mrVisualizationModelPart(rVisualizationModelPart), 
-    mVisualizationScalarVariables(VisualizationScalarVariables),
-    mVisualizationVectorVariables(VisualizationVectorVariables),
-    mVisualizationComponentVariables(VisualizationComponentVariables),
-    mShapeFunctions(ShapeFunctions),
+    mVisualizationScalarVariables(rVisualizationScalarVariables),
+    mVisualizationVectorVariables(rVisualizationVectorVariables),
+    mVisualizationComponentVariables(rVisualizationComponentVariables),
+    mShapeFunctions(rShapeFunctions),
     mReformModelPartAtEachTimeStep(ReformModelPartAtEachTimeStep){ 
 }
 
@@ -516,14 +516,12 @@ const bool EmbeddedSkinVisualizationProcess::ElementIsPositive(
     Geometry<Node<3>>::Pointer pGeometry){
 
     const unsigned int pts_number = pGeometry->PointsNumber();
-    unsigned int n_pos (0), n_neg(0);
+    unsigned int n_pos (0);
 
     for (unsigned int i_node = 0; i_node < pts_number; ++i_node){
         const double dist = (pGeometry->operator[](i_node)).FastGetSolutionStepValue(DISTANCE);
         if (dist > 0.0)
             n_pos++;
-        else
-            n_neg++;
     }
 
     const bool is_positive = (n_pos == pts_number) ? true : false;

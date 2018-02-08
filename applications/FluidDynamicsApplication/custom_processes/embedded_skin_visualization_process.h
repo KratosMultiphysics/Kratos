@@ -108,10 +108,10 @@ public:
     EmbeddedSkinVisualizationProcess(
         ModelPart& rModelPart,
         ModelPart& rVisualizationModelPart,
-        const std::vector<Variable< double> > VisualizationScalarVariables,
-        const std::vector<Variable< array_1d<double, 3> > > VisualizationVectorVariables,
-        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > > VisualizationComponentVariables,
-        const std::string ShapeFunctions = "standard",
+        const std::vector<Variable< double> >& rVisualizationScalarVariables,
+        const std::vector<Variable< array_1d<double, 3> > >& rVisualizationVectorVariables,
+        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >& rVisualizationComponentVariables,
+        const std::string& rShapeFunctions = "standard",
         const bool ReformModelPartAtEachTimeStep = false);
 
     /// Constructor with Kratos parameters.

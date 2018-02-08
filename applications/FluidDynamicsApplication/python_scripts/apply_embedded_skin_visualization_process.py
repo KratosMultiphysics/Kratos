@@ -52,7 +52,7 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
 
         # Check that the nodal results array is empty
         if (settings["output_configuration"]["result_file_configuration"]["nodal_results"].size() != 0):
-            error_mgs = "The nodal_results field in output_configuration is not empty.\n Add the variables in the visualization_variables field instead."
+            error_msg = "The nodal_results field in output_configuration is not empty.\n Add the variables in the visualization_variables field instead."
             raise Exception(error_msg)
 
         # Add the visualization model part variables to the visualization model part.
@@ -74,8 +74,6 @@ class ApplyEmbeddedSkinVisualizationProcess(KratosMultiphysics.Process):
             aux_params)
 
         # Set the output variables and build the GiD output process
-        settings["output_configuration"]["result_file_configuration"]["nodal_results"]
-
         if (settings["parallel_type"].GetString() == "OpenMP"):
             from gid_output_process import GiDOutputProcess
             self.gid_output = GiDOutputProcess(self.visualization_model_part, settings["visualization_model_part_name"].GetString(), settings["output_configuration"])
