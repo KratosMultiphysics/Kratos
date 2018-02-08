@@ -33,7 +33,6 @@
 
 //schemes
 #include "custom_strategies/schemes/residual_based_bossak_scheme.hpp"
-#include "custom_strategies/schemes/residual_based_U_W_bossak_scheme.hpp"
 #include "custom_strategies/schemes/residual_based_contact_bossak_scheme.hpp"
 
 
@@ -60,7 +59,6 @@ namespace Kratos
 
       //custom scheme types
       typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >    ResidualBasedBossakSchemeType;
-      typedef ResidualBasedUWBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedUWBossakSchemeType;
       typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;    
 
       typedef NewResidualBasedUWBossakScheme< SparseSpaceType, LocalSpaceType >  NewResidualBasedUWBossakSchemeType;
@@ -85,18 +83,6 @@ namespace Kratos
 	.def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
       
-
-      // Residual Based Bossak Scheme Type
-      class_< ResidualBasedUWBossakSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ResidualBasedUWBossakScheme", init< double , double >() )
-   .def(init<>())
-   .def(init<double,double>())
-   .def(init<double,double,double>())
-   .def(init<double,double,double,double,double>())
-	.def("Initialize", &ResidualBasedUWBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
       
       // Residual Based Bossak Scheme Type
       class_< ResidualBasedContactBossakSchemeType,
