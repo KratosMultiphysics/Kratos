@@ -47,10 +47,16 @@ public:
 
     using ShapeDerivativesType = boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim>;
 
+    /// Physical space dimension for the problem.
     constexpr static unsigned int Dim = TDim;
 
+    /// Number of nodes of the element.
     constexpr static unsigned int NumNodes = TNumNodes;
 
+    /// Size of the strain and stress vectors (in Voigt notation) for the formulation
+    constexpr static unsigned int StrainSize = (TDim-1)*3; // 3 in 2D, 6 in 3D
+
+    /// This lets FluidElement know wether this element requires an external time scheme or not.
     constexpr static bool ElementManagesTimeIntegration = TElementIntegratesInTime;
 
     ///@}

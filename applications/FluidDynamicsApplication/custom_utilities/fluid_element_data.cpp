@@ -20,6 +20,16 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(
     const ProcessInfo& rProcessInfo) {
 
     ConstitutiveLawValues = ConstitutiveLaw::Parameters(rElement.GetGeometry(),rElement.GetProperties(),rProcessInfo);
+
+    if (StrainRate.size() != StrainSize) {
+        StrainRate.resize(StrainSize);
+    }
+    if (Stress.size() != StrainSize) {
+        Stress.resize(StrainSize);
+    }
+    if (C.size1() != StrainSize || C.size2() != StrainSize) {
+        C.resize(StrainSize,StrainSize);
+    }
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>

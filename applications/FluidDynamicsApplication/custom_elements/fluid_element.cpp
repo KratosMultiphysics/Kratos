@@ -477,15 +477,6 @@ array_1d<double, 3> FluidElement<TElementData>::Interpolate(
 template <class TElementData>
 void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
 
-    constexpr std::size_t StrainSize = (Dim-1)*3;
-    
-    if(rData.C.size1() != StrainSize)
-        rData.C.resize(StrainSize,StrainSize,false);
-    if(rData.Stress.size() != StrainSize)
-        rData.Stress.resize(StrainSize,false);
-    if(rData.StrainRate.size() != StrainSize)
-        rData.StrainRate.resize(StrainSize,false);
-
     Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(rData.StrainRate,rData.Velocity,rData.DN_DX);
 
     auto& Values = rData.ConstitutiveLawValues;

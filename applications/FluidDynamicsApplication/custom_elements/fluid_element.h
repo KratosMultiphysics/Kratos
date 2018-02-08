@@ -104,6 +104,8 @@ public:
 
     static constexpr unsigned int LocalSize = NumNodes * BlockSize;
 
+    static constexpr unsigned int StrainSize = TElementData::StrainSize;
+
     ///@}
     ///@name Life Cycle
     ///@{
