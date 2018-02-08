@@ -199,15 +199,12 @@ namespace Kratos {
         array_1d<double, 3>& center_torque = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
         center_forces[0] = center_forces[1] = center_forces[2] = center_torque[0] = center_torque[1] = center_torque[2] = 0.0;
 
-        array_1d<double, 3> center_to_node_vector;
-        array_1d<double, 3> additional_torque;
-
         vector<unsigned int> node_partition;
         int NumberOfThreads = OpenMPUtils::GetNumThreads();
         
         OpenMPUtils::CreatePartition(NumberOfThreads, mListOfNodes.size(), node_partition);
 
-        #pragma omp parallel for schedule(dynamic, 100) //schedule(guided)
+        #pragma omp parallel for
         for (int k = 0; k < NumberOfThreads; k++) {
             NodesArrayType::iterator i_begin = mListOfNodes.begin() + node_partition[k];
             NodesArrayType::iterator i_end = mListOfNodes.begin() + node_partition[k + 1];
@@ -220,6 +217,7 @@ namespace Kratos {
                 center_forces[2] += node_forces[2];
                         
                 array_1d<double, 3>& node_position = i->Coordinates();
+                array_1d<double, 3> center_to_node_vector, additional_torque;
             
                 center_to_node_vector[0] = node_position[0] - central_node.Coordinates()[0];
                 center_to_node_vector[1] = node_position[1] - central_node.Coordinates()[1];
