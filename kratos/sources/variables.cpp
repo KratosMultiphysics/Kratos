@@ -1205,6 +1205,6 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_FLAG(PERIODIC);
 
     // Register ConstitutiveLaw BaseClass
-    KRATOS_REGISTER_CONSTITUTIVE_LAW("ConstitutiveLaw", mConstitutiveLaw); //@technical-committee is this place ok?
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ConstitutiveLaw", mConstitutiveLaw);
 }
 }  // namespace Kratos.
