@@ -51,9 +51,9 @@ NodalVectorData BodyForce;
 NodalScalarData Pressure;
 NodalScalarData Pressure_OldStep1;
 NodalScalarData Pressure_OldStep2;
-NodalScalarData Density;
-NodalScalarData DynamicViscosity;
 
+double Density;
+double DynamicViscosity;
 double SoundVelocity;  // (needed if artificial compressibility is considered)
 double DeltaTime;      // Time increment
 double DynamicTau;     // Dynamic tau considered in ASGS stabilization coefficients
@@ -66,20 +66,17 @@ double bdf2;
 boost::numeric::ublas::bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
 array_1d<double,TNumNodes*(TDim+1)> rhs;
 
-// Auxiliary containers for the constitutive law
-Matrix C;
-Vector Stress;
-Vector Strain;
-
-ConstitutiveLaw::Parameters ConstitutiveLawValues;
-
 ///@}
 ///@name Public Operations
 ///@{
 
 void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
 {
+    // Base class Initialize manages constitutive law parameters
+    FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
+    
     const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Properties& r_properties = rElement.GetProperties();
     this->FillFromNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
@@ -88,8 +85,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
     this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2);
-    this->FillFromNodalData(Density,DENSITY,r_geometry);
-    this->FillFromNodalData(DynamicViscosity,DYNAMIC_VISCOSITY,r_geometry);
+    this->FillFromProperties(Density,DENSITY,r_properties);
+    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
     this->FillFromProcessInfo(SoundVelocity,SOUND_VELOCITY,rProcessInfo);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
@@ -101,8 +98,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
-
-    ConstitutiveLawValues = ConstitutiveLaw::Parameters(rElement.GetGeometry(),rElement.GetProperties(),rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
@@ -113,8 +108,6 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
     KRATOS_CHECK_VARIABLE_KEY(MESH_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(BODY_FORCE);
     KRATOS_CHECK_VARIABLE_KEY(PRESSURE);
-    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
@@ -122,10 +115,10 @@ static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,r_geometry[i]);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DENSITY,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DYNAMIC_VISCOSITY,r_geometry[i]);
     }
 
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
     KRATOS_CHECK_VARIABLE_KEY(SOUND_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(DELTA_TIME);
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_TAU);
