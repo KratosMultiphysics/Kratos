@@ -92,7 +92,7 @@ namespace Kratos
 
 		KRATOS_TRY;
 		bounded_matrix<double,msElementSize,msElementSize>
-		 transformation_matrix = this->GetReferenceRotationMatrix();
+		 transformation_matrix = this->CalculateInitialLocalCS();
 		rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
 		rLeftHandSideMatrix +=
 			this->CreateElementStiffnessMatrix_Material();
@@ -181,7 +181,7 @@ namespace Kratos
 		Vector nodal_deformation = ZeroVector(msElementSize);
 		this->GetValuesVector(nodal_deformation);
 
-		bounded_matrix<double,msElementSize,msElementSize> transformation_matrix = this->GetReferenceRotationMatrix();
+		bounded_matrix<double,msElementSize,msElementSize> transformation_matrix = this->CalculateInitialLocalCS();
 		nodal_deformation = prod(Matrix(trans(transformation_matrix)),nodal_deformation);
 
 
@@ -247,11 +247,19 @@ namespace Kratos
 
 		if (rVariable == LOCAL_AXES_VECTOR)
 		{
+			bounded_matrix<double,msElementSize,msElementSize> transformation_matrix;
+			transformation_matrix = this->CalculateInitialLocalCS();
+
 			rOutput.resize(3);
 			for (int i = 0; i < 3; ++i) rOutput[i] = ZeroVector(3);
-			rOutput[0] = this->GetNX0();
-			rOutput[1] = this->GetNY0();
-			rOutput[2] = this->GetNZ0();
+
+			for (size_t i=0;i<3;++i)
+			{
+				for (size_t j=0;j<3;++j)
+				{
+					rOutput[i][j] = transformation_matrix(j,i);
+				}
+			}
 		}
 
 		KRATOS_CATCH("");

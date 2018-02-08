@@ -110,7 +110,7 @@ namespace Kratos
 		/**
          * @brief This function calculates the internal element forces
          */
-		bounded_vector<double,msLocalSize> CalculateElementForces();
+		bounded_vector<double,msLocalSize> CalculateElementForces(const Vector& Bisectrix,const Vector& VectorDifference);
 
 
 		/**
@@ -118,19 +118,20 @@ namespace Kratos
 		 * @param rRotationMatrix The current transformation matrix
          */
 		void CalculateTransformationMatrix(
-			bounded_matrix<double,msElementSize,msElementSize>& rRotationMatrix);
+			bounded_matrix<double,msElementSize,msElementSize>& rRotationMatrix,
+			Vector& Bisectrix, Vector& VectorDifference);
 
 
 		/**
          * @brief This function calculates the initial transformation matrix to globalize/localize vectors and/or matrices
          */
-		void CalculateInitialLocalCS();
+		bounded_matrix<double,msElementSize,msElementSize> CalculateInitialLocalCS();
 
 
 		/**
          * @brief This function updates constantly the transformation matrix
          */
-		bounded_matrix<double,msDimension,msDimension> UpdateRotationMatrixLocal();
+		bounded_matrix<double,msDimension,msDimension> UpdateRotationMatrixLocal(Vector& Bisectrix, Vector& VectorDifference);
 
 		void CalculateLocalSystem(
 			MatrixType& rLeftHandSideMatrix,
@@ -240,7 +241,7 @@ namespace Kratos
 		/**
          * @brief This function updates incremental deformation w.r.t. to current and previous deformations
          */
-		void UpdateIncrementDeformation();
+		Vector UpdateIncrementDeformation();
 
 
 		/**
@@ -283,68 +284,47 @@ namespace Kratos
 			bounded_vector<double,msElementSize>& rRightHandSideVector,
 			const double GeometryLength);
 
-		/**
-         * @brief This function calculates the geometric part of the total stiffness matrix
-         */
-		void CalculateGeometricStiffnessMatrix(MatrixType& rGeometricStiffnessMatrix,
-			ProcessInfo& rCurrentProcessInfo);
-
 
 		/**
-         * @brief This function calculates the elastic part of the total stiffness matrix
-         */
-		void CalculateElasticStiffnessMatrix(MatrixType& rElasticStiffnessMatrix,
-			ProcessInfo& rCurrentProcessInfo);
+         * @brief This function calculates the symmetric deformation modes
+		 * @param VectorDifference The vector differences of the quaternions
+         */		
+		Vector CalculateSymmetricDeformationMode(const Vector& VectorDifference); 
+
+		/**
+         * @brief This function calculates the antisymmetric deformation modes
+		 * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
+         */		
+		Vector CalculateAntiSymmetricDeformationMode(const Vector& Bisectrix); 
+
+		/**
+         * @brief This function calculates the local nodal forces
+		 * @param Bisectrix The bisectrix between the local axis1 from the last iter. step and the updated axis 1
+		 * @param VectorDifference The vector differences of the quaternions
+         */		
+		void CalculateLocalNodalForces(const Vector& Bisectrix,const Vector& VectorDifference);
 
 	private:
-		Vector mNX, mNY, mNZ;
-		Vector mTotalNodalDeformation;
-		Vector mIncrementDeformation;
-		Matrix mRotationMatrix;
-		bounded_matrix<double,msElementSize,msElementSize> mRotationMatrix0;
-		Vector mNX0, mNY0, mNZ0;
-		Vector mQuaternionVEC_A, mQuaternionVEC_B;
-		double mQuaternionSCA_A, mQuaternionSCA_B;
-		Vector mPhiS, mPhiA;
-		Vector mNodalForces;
 
 		int mIterationCount = 0;
+		Vector mTotalNodalDeformation = ZeroVector(msElementSize); // save as the displacement from the last iteration step is needed
+		Matrix mLocalRotationMatrix  = ZeroMatrix(msDimension); // save this as updating the matrix takes rather long
+		Vector mQuaternionVEC_A = ZeroVector(msDimension);
+		Vector mQuaternionVEC_B = ZeroVector(msDimension);
+		double mQuaternionSCA_A = 1.00;
+		double mQuaternionSCA_B = 1.00;
+		Vector mNodalForces = ZeroVector(msElementSize);
 
-		
 
 
-
+	
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;
 		void load(Serializer& rSerializer) override;
 
 
 	public:
-		bounded_matrix<double,msElementSize,msElementSize>
-		 GetReferenceRotationMatrix() const {return this->mRotationMatrix0;};
 		void IncrementIterationCounter() {this->mIterationCount += 1;};
-		Vector GetNX0() {return this->mNX0;};
-		Vector GetNY0() {return this->mNY0;};
-		Vector GetNZ0() {return this->mNZ0;};
-	};
-
-
-	class Orientation 
-	{
-	private:
-		//const values
-		static constexpr int msDimension = 3;
-		
-	public:
-		Orientation(array_1d<double, msDimension>& v1, const double theta = 0.00);
-
-		void CalculateRotationMatrix(Matrix& R);
-		void CalculateBasisVectors(array_1d<double, msDimension>& v1,
-								   array_1d<double, msDimension>& v2,
-								   array_1d<double, msDimension>& v3);
-
-	private:
-		Matrix mRotationMatrix;
 	};
 
 
