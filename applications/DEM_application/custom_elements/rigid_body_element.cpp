@@ -140,8 +140,8 @@ namespace Kratos {
         array_1d<double, 3> global_relative_coordinates;
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
         
-        NodesArrayType::iterator i_begin = mListOfNodes.begin() + node_partition[k];
-        NodesArrayType::iterator i_end = mListOfNodes.begin() + node_partition[k + 1];
+        NodesArrayType::iterator i_begin = mListOfNodes.begin();
+        NodesArrayType::iterator i_end = mListOfNodes.begin();
         int iter = 0.0;
         
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
@@ -170,8 +170,8 @@ namespace Kratos {
 
         array_1d<double, 3> previous_position;
         
-        NodesArrayType::iterator i_begin = mListOfNodes.begin() + node_partition[k];
-        NodesArrayType::iterator i_end = mListOfNodes.begin() + node_partition[k + 1];
+        NodesArrayType::iterator i_begin = mListOfNodes.begin();
+        NodesArrayType::iterator i_end = mListOfNodes.begin();
         int iter = 0.0;
         
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i) {
