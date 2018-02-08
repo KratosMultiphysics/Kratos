@@ -155,11 +155,11 @@ public:
         unsigned int bucket_size = 20;
 
         //performing the interpolation - all of the nodes in this list will be preserved
-        unsigned int max_results = 100;
+        ///////unsigned int max_results = 100;
         //PointerVector<PointType> res(max_results);
         //NodeIterator res(max_results);
-        PointVector res(max_results);
-        DistanceVector res_distances(max_results);
+        ///////PointVector res(max_results);
+        ///////DistanceVector res_distances(max_results);
         Node<3> work_point(0,0.0,0.0,0.0);
         //if the remove_node switch is activated, we check if the nodes got too close
 
@@ -391,13 +391,14 @@ public:
         //node to get the DOFs from
         Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 
-        double z = 0.0;
+        /////double z = 0.0;
         int n_points_before_refinement = in2.numberofpoints;
         //if points were added, we add them as nodes to the ModelPart
         if (out2.numberofpoints > n_points_before_refinement )
         {
             for(int i = n_points_before_refinement; i<out2.numberofpoints; i++)
             {
+                double z = 0.0;
                 int id=i+1;
                 int base = i*2;
                 double& x= out2.pointlist[base];
@@ -436,7 +437,7 @@ public:
 
         //int number_of_preserved_elems=0;
 
-        int point_base;
+        /////int point_base;
         //WHAT ARE THOSE????
 // 			Node<3> work_point(0,0.0,0.0,0.0);
         unsigned int MaximumNumberOfResults = list_of_new_nodes.size();
@@ -453,6 +454,8 @@ public:
 
             for(int el = 0; el< in2.numberoftriangles; el++)
             {
+                int point_base;
+                
                 int base = el * 3;
                 //coordinates
                 point_base = (in2.trianglelist[base] - 1)*2;
@@ -693,12 +696,15 @@ private:
         DistanceVector res_distances(max_results);
         Node<3> work_point(0,0.0,0.0,0.0);
 
-        unsigned int n_points_in_radius;
+        /////unsigned int n_points_in_radius;
         //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
-        double radius;
+        /////double radius;
 
         for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in != ThisModelPart.NodesEnd(); in++)
         {
+            unsigned int n_points_in_radius;
+            double radius;
+            
             radius=h_factor*in->FastGetSolutionStepValue(NODAL_H);
 
             work_point[0]=in->X();

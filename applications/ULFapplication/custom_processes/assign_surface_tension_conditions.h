@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:     ajarauta 
+//  Main author:     Alex Jarauta
 
 
 #if !defined(ASSIGN_SURFACE_TENSION2D_CONDITION_INCLUDED )
@@ -62,7 +62,7 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-	assign surface tension condition
+	assign surface tension condition for water droplets
 
 
 */

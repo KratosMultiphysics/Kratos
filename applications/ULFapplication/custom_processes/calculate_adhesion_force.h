@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main author:     ajarauta 
+//  Main author:     Alex Jarauta
 
 
 #if !defined(CALCULATE_ADHESION_FORCE_INCLUDED )
@@ -62,7 +62,7 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-	calculate adhesion force
+	calculating adhesion force for droplets, based on the given domain configuration
 
 
 */
@@ -114,7 +114,7 @@ namespace Kratos
 	
 	double gamma = ThisModelPart.GetProcessInfo()[SURFTENS_COEFF]; //Surface tension coefficient [N m-1]
 	double pi = 3.14159265359;
-	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
+	///////double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
 	double theta, sign_force, theta_rad, cos_t;
 	array_1d<double,2> nu0 = ZeroVector(2);
 	array_1d<double,2> vel = ZeroVector(2);
