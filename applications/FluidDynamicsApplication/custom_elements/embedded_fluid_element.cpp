@@ -82,6 +82,8 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         data.UpdateGeometryValues(data.PositiveSideWeights[g],
             row(data.PositiveSideN, g), data.PositiveSideDNDX[g]);
 
+        this->CalculateMaterialResponse(data);
+
         this->AddTimeIntegratedSystem(
             data, rLeftHandSideMatrix, rRightHandSideVector);
     }
@@ -93,6 +95,9 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
             data.UpdateGeometryValues(data.PositiveInterfaceWeights[g],
                 row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
+                
+            this->CalculateMaterialResponse(data);
+            
             this->AddBoundaryIntegral(data, data.PositiveInterfaceUnitNormals[g],
                 rLeftHandSideMatrix, rRightHandSideVector);
         }
@@ -299,28 +304,24 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
     }
 
     // Compute the element average values
-    double avg_rho = 0.0;
-    double avg_visc = 0.0;
+    double rho = rData.Density;
+    double mu = rData.DynamicViscosity;
     array_1d<double, Dim> avg_vel(Dim,0.0);
 
     for (unsigned int i = 0; i < NumNodes; ++i) {
-        avg_rho += rData.Density[i];
-        avg_visc += rData.DynamicViscosity[i];
         avg_vel += row(rData.Velocity, i);
     }
 
     constexpr double weight = 1./double(NumNodes);
-    avg_rho *= weight;
-    avg_visc *= weight;
     avg_vel *= weight;
 
     const double v_norm = norm_2(avg_vel);
 
     // Compute the penalty constant
     double h = this->ElementSize();
-    const double pen_cons = avg_rho*std::pow(h, Dim)/rData.DeltaTime +
-                                avg_rho*avg_visc*std::pow(h,Dim-2) +
-                                avg_rho*v_norm*std::pow(h, Dim-1);
+    const double pen_cons = rho*std::pow(h, Dim)/rData.DeltaTime +
+                                rho*mu*std::pow(h,Dim-2) +
+                                rho*v_norm*std::pow(h, Dim-1);
 
     // Return the penalty coefficient
     constexpr double K = 10.0;

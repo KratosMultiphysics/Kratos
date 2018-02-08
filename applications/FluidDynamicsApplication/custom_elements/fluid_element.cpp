@@ -71,6 +71,28 @@ Element::Pointer FluidElement<TElementData>::Create(IndexType NewId, GeometryTyp
     KRATOS_CATCH("");
 }
 
+template< class TElementData >
+void FluidElement<TElementData>::Initialize() {
+    KRATOS_TRY;
+
+    // If we are restarting, the constitutive law will be already defined
+    if (mpConstitutiveLaw == nullptr) {
+        const Properties& r_properties = this->GetProperties();
+        KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+            << "In initialization of Element " << this->Info()
+            << ": No CONSTITUTIVE_LAW defined for property "
+            << r_properties.Id() << "." << std::endl;
+
+        mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+
+        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
+    }
+
+    KRATOS_CATCH("");
+}
+
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                       VectorType& rRightHandSideVector,
@@ -100,8 +122,11 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
+
+            this->CalculateMaterialResponse(data);
 
             this->AddTimeIntegratedSystem(
                 data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -136,6 +161,8 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
+            this->CalculateMaterialResponse(data);
+
             this->AddTimeIntegratedLHS(data, rLeftHandSideMatrix);
         }
     }
@@ -166,6 +193,8 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
+
+            this->CalculateMaterialResponse(data);
 
             this->AddTimeIntegratedRHS(data, rRightHandSideVector);
         }
@@ -203,6 +232,8 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
             const auto& r_dndx = shape_derivatives[g];
             data.UpdateGeometryValues(
                 gauss_weights[g], row(shape_functions, g), r_dndx);
+            
+            this->CalculateMaterialResponse(data);
 
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
         }
@@ -241,6 +272,8 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
+
+            this->CalculateMaterialResponse(data);
 
             this->AddMassLHS(data, rMassMatrix);
         }
@@ -357,9 +390,11 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     // Extra variables used in computing projections
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
 
+    const GeometryType& r_geometry = this->GetGeometry();
+
     for(unsigned int i=0; i<NumNodes; ++i)
     {
-        Node<3>& rNode = this->GetGeometry()[i];
+        const Node<3>& rNode = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
 
         // Check that required dofs exist
@@ -373,10 +408,16 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     if ( Dim == 2)
     {
         for (unsigned int i=0; i<NumNodes; ++i) {
-            if (this->GetGeometry()[i].Z() != 0.0)
-                KRATOS_ERROR << "Node " << this->GetGeometry()[i].Id() << "has non-zero Z coordinate." << std::endl;
+            if (r_geometry[i].Z() != 0.0)
+                KRATOS_ERROR << "Node " << r_geometry[i].Id() << "has non-zero Z coordinate." << std::endl;
         }
     }
+
+    // Check the constitutive law
+    KRATOS_ERROR_IF(mpConstitutiveLaw == nullptr) << "Constitutive Law not initialized for Element " << this->Info() << std::endl;
+
+    out = mpConstitutiveLaw->Check(this->GetProperties(),r_geometry,rCurrentProcessInfo);
+    KRATOS_ERROR_IF_NOT( out == 0) << "The Constitutive Law provided for Element " << this->Info() << " is not correct." << std::endl;
 
     return out;
 }
@@ -433,24 +474,48 @@ array_1d<double, 3> FluidElement<TElementData>::Interpolate(
     return result;
 }
 
+template <class TElementData>
+void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
+
+    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(rData.StrainRate,rData.Velocity,rData.DN_DX);
+
+    auto& Values = rData.ConstitutiveLawValues;
+
+    const Vector Nvec(rData.N);
+    Values.SetShapeFunctionsValues(Nvec);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    Values.SetStrainVector(rData.StrainRate);   //this is the input parameter
+    Values.SetStressVector(rData.Stress);       //this is an ouput parameter
+    Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
+
+    //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
+    //this is ok under the hypothesis that no history dependent behaviour is employed
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+}
+
 template< class TElementData >
 void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
                                       Matrix &rNContainer,
                                       ShapeFunctionDerivativesArrayType &rDN_DX) const
 {
-    const GeometryData::IntegrationMethod IntMethod = this->GetIntegrationMethod();
+    const GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
     const GeometryType& r_geometry = this->GetGeometry();
-    const unsigned int number_of_gauss_points = r_geometry.IntegrationPointsNumber(IntMethod);
+    const unsigned int number_of_gauss_points = r_geometry.IntegrationPointsNumber(integration_method);
 
     Vector DetJ;
-    r_geometry.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,IntMethod);
+    r_geometry.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,integration_method);
 
     if (rNContainer.size1() != number_of_gauss_points || rNContainer.size2() != NumNodes) {
         rNContainer.resize(number_of_gauss_points,NumNodes,false);
     }
-    rNContainer = r_geometry.ShapeFunctionsValues(IntMethod);
+    rNContainer = r_geometry.ShapeFunctionsValues(integration_method);
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = r_geometry.IntegrationPoints(IntMethod);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = r_geometry.IntegrationPoints(integration_method);
 
     if (rGaussWeights.size() != number_of_gauss_points) {
         rGaussWeights.resize(number_of_gauss_points,false);
@@ -610,6 +675,17 @@ void FluidElement<TElementData>::IntegrationPointVorticity(
     }
 }
 
+template< class TElementData >
+ConstitutiveLaw::Pointer FluidElement<TElementData>::GetConstitutiveLaw() {
+    return this->mpConstitutiveLaw;
+}
+
+template< class TElementData >
+const ConstitutiveLaw::Pointer FluidElement<TElementData>::GetConstitutiveLaw() const {
+    return this->mpConstitutiveLaw;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -620,6 +696,7 @@ template< class TElementData >
 void FluidElement<TElementData>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+    rSerializer.save("mpConstitutiveLaw",this->mpConstitutiveLaw);
 }
 
 
@@ -627,7 +704,45 @@ template< class TElementData >
 void FluidElement<TElementData>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    rSerializer.load("mpConstitutiveLaw",this->mpConstitutiveLaw);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace Internals {
+
+template< class TElementData >
+void StrainRateSpecialization<TElementData,2>::Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX) {
+
+    noalias(rStrainRate) = ZeroVector(3);
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
+        rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
+        rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
+        rStrainRate[2] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
+    }
+}
+
+template< class TElementData >
+void StrainRateSpecialization<TElementData,3>::Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX) {
+
+    noalias(rStrainRate) = ZeroVector(6);
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
+        rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
+        rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
+        rStrainRate[2] += rDNDX(i,2)*rVelocities(i,2);
+        rStrainRate[4] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
+        rStrainRate[5] += rDNDX(i,1)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,1);
+        rStrainRate[6] += rDNDX(i,0)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,0);
+    }
+}
+
+} // namespace Internals
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation

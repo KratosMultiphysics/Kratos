@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined(KRATOS_SERIALIZER_H_INCLUDED )
@@ -112,9 +112,9 @@ template <class TDataType> class Variable;
  *
  * @brief The serialization consists in storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media.
  *
- * @details The serialization consists in storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media. 
- * The idea of serialization is based on saving all object's data consecutively in the file or buffer and then load it in the same order. 
- * In Kratos a serialization mechanism is used for creating the restart file. So for storing an object into restart file and retrieve it afterward on must add the necessary component used by serialization. 
+ * @details The serialization consists in storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media.
+ * The idea of serialization is based on saving all object's data consecutively in the file or buffer and then load it in the same order.
+ * In Kratos a serialization mechanism is used for creating the restart file. So for storing an object into restart file and retrieve it afterward on must add the necessary component used by serialization.
  *
  * @author Pooyan Dadvand
  */
@@ -166,7 +166,7 @@ public:
             p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::out);
         }
         mpBuffer = p_file;
-        KRATOS_ERROR_IF_NOT(*mpBuffer) << "Error opening input file : " 
+        KRATOS_ERROR_IF_NOT(*mpBuffer) << "Error opening input file : "
                                        << std::string(Filename+".rest") << std::endl;
     }
 
@@ -233,7 +233,7 @@ public:
                     typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
 
                     KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
-                        << "There is no object registered in Kratos with name : " 
+                        << "There is no object registered in Kratos with name : "
                         << object_name << std::endl;
 
                     if(!pValue)
@@ -320,6 +320,14 @@ public:
         pVariable = static_cast<const Variable<TDataType>*>(GetVariableData(name));
     }
 
+	template<class TDataType, std::size_t TDataSize>
+	void load(std::string const & rTag, std::array<TDataType, TDataSize>& rObject)
+	{
+		load_trace_point(rTag);
+		for (SizeType i = 0; i < TDataSize; i++)
+			load("E", rObject[i]);
+	}
+
     template<class TDataType>
     void load(std::string const & rTag, std::vector<TDataType>& rObject)
     {
@@ -386,13 +394,8 @@ public:
     void load(std::string const & rTag, bounded_vector<TDataType, TDimension>& rObject)
     {
         load_trace_point(rTag);
-        SizeType size;
 
-        load("size", size);
-
-        KRATOS_DEBUG_ERROR_IF_NOT(rObject.size() == size) << "Object has wrong size!" << std::endl;
-
-        for(SizeType i = 0 ; i < size ; ++i)
+        for(SizeType i = 0 ; i < TDimension ; ++i)
             load("E", rObject[i]);
 //    read(rObject);
     }
@@ -401,17 +404,9 @@ public:
     void load(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2>& rObject)
     {
         load_trace_point(rTag);
-        SizeType size1;
-        SizeType size2;
 
-        load("size1", size1);
-        load("size2", size2);
-
-        KRATOS_DEBUG_ERROR_IF_NOT(rObject.size1() == size1 && 
-                                  rObject.size2() == size2) << "Object has wrong size!" << std::endl;
-        
-        for(SizeType i = 0 ; i < size1 ; ++i)
-            for(SizeType j = 0 ; j < size2 ; ++j)
+        for(SizeType i = 0 ; i < TDimension1 ; ++i)
+            for(SizeType j = 0 ; j < TDimension2 ; ++j)
                 load("E", rObject(i,j));
 //    read(rObject);
     }
@@ -432,7 +427,13 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
 
-
+	template<class TDataType, std::size_t TDataSize>
+	void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
+	{
+		save_trace_point(rTag);
+		for (SizeType i = 0; i < TDataSize; i++)
+			save("E", rObject[i]);
+	}
 
     template<class TDataType>
     void save(std::string const & rTag, std::vector<TDataType> const& rObject)
@@ -604,11 +605,8 @@ public:
     void save(std::string const & rTag, bounded_vector<TDataType, TDimension> const& rObject)
     {
         save_trace_point(rTag);
-        SizeType size = rObject.size();
 
-        save("size", size);
-
-        for(SizeType i = 0 ; i < size ; ++i)
+        for(SizeType i = 0 ; i < TDimension ; ++i)
             save("E", rObject[i]);
 //    write(rObject);
     }
@@ -617,14 +615,9 @@ public:
     void save(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2> const& rObject)
     {
         save_trace_point(rTag);
-        SizeType size1 = rObject.size1();
-        SizeType size2 = rObject.size2();
 
-        save("size1", size1);
-        save("size2", size2);
-
-        for(SizeType i = 0 ; i < size1 ; ++i)
-            for(SizeType j = 0 ; j < size2 ; ++j)
+        for(SizeType i = 0 ; i < TDimension1 ; ++i)
+            for(SizeType j = 0 ; j < TDimension2 ; ++j)
                 save("E", rObject(i,j));
 //    write(rObject);
     }
@@ -883,7 +876,7 @@ private:
                 typename RegisteredObjectsNameContainerType::iterator i_name = msRegisteredObjectsName.find(typeid (*pValue).name());
 
                 if (i_name == msRegisteredObjectsName.end())
-                    KRATOS_ERROR << "There is no object registered in Kratos with type id : " 
+                    KRATOS_ERROR << "There is no object registered in Kratos with type id : "
                                  << typeid (*pValue).name() << std::endl;
                 else
                     write(i_name->second);

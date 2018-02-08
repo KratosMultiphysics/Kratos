@@ -785,7 +785,7 @@ private:
         for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
             rSerializer.save("Argument", i_row->first);
             for(auto j = i_row->second.begin() ; j != i_row->second.end(); j++)
-                rSerializer.save("Column", j);
+                rSerializer.save("Column", *j);
         }
     }
 
@@ -800,7 +800,7 @@ private:
         for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
             rSerializer.load("Argument", i_row->first);
             for(auto j = i_row->second.begin() ; j != i_row->second.end() ; j++)
-                rSerializer.load("Column", j);
+                rSerializer.load("Column", *j);
         }
    }
 
