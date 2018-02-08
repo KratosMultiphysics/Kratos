@@ -45,8 +45,7 @@ namespace Kratos {
         {
             SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
 
-            KRATOS_ERROR_IF_NOT(rObjectToBeSaved.size() == rObjectToBeLoaded.size()) 
-                << "Object sizes are not consistent" << std::endl;
+            KRATOS_CHECK_EQUAL(rObjectToBeLoaded.size(), rObjectToBeSaved.size());
 
             for (std::size_t i=0; i< rObjectToBeSaved.size(); ++i)
                 KRATOS_CHECK_EQUAL(rObjectToBeLoaded[i], rObjectToBeSaved[i]);
@@ -55,11 +54,10 @@ namespace Kratos {
         template<typename TObjectType>
         void TestObjectSerializationComponentwise2D(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
         {
-            SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);   
+            SaveAndLoadObjects(rObjectToBeSaved, rObjectToBeLoaded);
 
-            KRATOS_ERROR_IF_NOT(rObjectToBeSaved.size1() == rObjectToBeLoaded.size1() &&
-                                rObjectToBeSaved.size2() == rObjectToBeLoaded.size2()) 
-                << "Object sizes are not consistent" << std::endl;
+            KRATOS_CHECK_EQUAL(rObjectToBeLoaded.size1(), rObjectToBeSaved.size1());
+            KRATOS_CHECK_EQUAL(rObjectToBeLoaded.size2(), rObjectToBeSaved.size2());
 
             for (std::size_t i=0; i<rObjectToBeSaved.size1(); ++i) {
                 for (std::size_t j=0; j<rObjectToBeSaved.size2(); ++j) {
@@ -86,14 +84,14 @@ namespace Kratos {
         }
 
         /*********************************************************************/
-        /* Testing the Datatypes that for which the 
+        /* Testing the Datatypes that for which the
            "KRATOS_SERIALIZATION_DIRECT_LOAD" macro is used */
         /*********************************************************************/
         KRATOS_TEST_CASE_IN_SUITE(SerializerBool, KratosCoreFastSuite)
         {
             bool object_to_be_saved = true;
             bool object_to_be_loaded;
-            
+
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
@@ -101,7 +99,7 @@ namespace Kratos {
         {
             int object_to_be_saved = -105;
             int object_to_be_loaded;
-            
+
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
@@ -109,7 +107,7 @@ namespace Kratos {
         {
             long object_to_be_saved = -1598456605;
             long object_to_be_loaded;
-            
+
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
@@ -117,7 +115,7 @@ namespace Kratos {
         {
             double object_to_be_saved = -159845.6605;
             double object_to_be_loaded;
-            
+
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
@@ -125,7 +123,7 @@ namespace Kratos {
         {
             unsigned long object_to_be_saved = 1598456605;
             unsigned long object_to_be_loaded;
-            
+
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
@@ -133,7 +131,7 @@ namespace Kratos {
         {
             unsigned int object_to_be_saved = 15905;
             unsigned int object_to_be_loaded;
-            
+
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
@@ -141,7 +139,7 @@ namespace Kratos {
         {
             std::string object_to_be_saved = "MyStringToBeSerialized";
             std::string object_to_be_loaded;
-            
+
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
@@ -151,7 +149,7 @@ namespace Kratos {
             Matrix object_to_be_loaded;
 
             FillMatrixWithValues(object_to_be_saved);
-            
+
             TestObjectSerializationComponentwise2D(object_to_be_saved, object_to_be_loaded);
         }
 
@@ -159,7 +157,7 @@ namespace Kratos {
         {
             long long object_to_be_saved = -1598456546843565605;
             long long object_to_be_loaded;
-            
+
             TestObjectSerialization(object_to_be_saved, object_to_be_loaded);
         }
 
@@ -191,6 +189,23 @@ namespace Kratos {
                 KRATOS_CHECK_EQUAL((*p_loaded_array)[i], (*p_array)[i]);
         }
 
+        KRATOS_TEST_CASE_IN_SUITE(SerializerStdArray, KratosCoreFastSuite)
+        {
+            using Array5Dbl = std::array<double,5>;
+            using Array7Int = std::array<int,7>;
+
+            Array5Dbl object_to_be_saved_1;
+            Array5Dbl object_to_be_loaded_1;
+            Array7Int object_to_be_saved_2;
+            Array7Int object_to_be_loaded_2;
+
+            FillVectorWithValues(object_to_be_saved_1);
+            FillVectorWithValues(object_to_be_saved_2);
+
+            TestObjectSerializationComponentwise1D(object_to_be_saved_1, object_to_be_loaded_1);
+            TestObjectSerializationComponentwise1D(object_to_be_saved_2, object_to_be_loaded_2);
+        }
+
         KRATOS_TEST_CASE_IN_SUITE(SerializerStdVector, KratosCoreFastSuite)
         {
             std::vector<double> object_to_be_saved(5);
@@ -213,9 +228,9 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerMap, KratosCoreFastSuite)
         {
-            std::map <std::string, double> object_to_be_saved { 
-                { "42", -30.556 }, 
-                { "3",   10.258 } 
+            std::map <std::string, double> object_to_be_saved {
+                { "42", -30.556 },
+                { "3",   10.258 }
             };
             std::map<std::string, double> object_to_be_loaded;
 
@@ -224,9 +239,9 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(SerializerUnorderedMap, KratosCoreFastSuite)
         {
-            std::unordered_map <std::string, double> object_to_be_saved { 
-                { "42", -30.556 }, 
-                { "3",   10.258 } 
+            std::unordered_map <std::string, double> object_to_be_saved {
+                { "42", -30.556 },
+                { "3",   10.258 }
             };
             std::unordered_map<std::string, double> object_to_be_loaded;
 
@@ -273,7 +288,7 @@ namespace Kratos {
         {
             using Matrix53Double = bounded_matrix<double,5,3>;
             using Matrix26Int = bounded_matrix<int,2,6>;
-            
+
             Matrix53Double object_to_be_saved_1;
             Matrix53Double object_to_be_loaded_1;
             Matrix53Double object_to_be_saved_2;
@@ -281,7 +296,7 @@ namespace Kratos {
 
             FillMatrixWithValues(object_to_be_saved_1);
             FillMatrixWithValues(object_to_be_saved_2);
-            
+
             TestObjectSerializationComponentwise2D(object_to_be_saved_1, object_to_be_loaded_1);
             TestObjectSerializationComponentwise2D(object_to_be_saved_2, object_to_be_loaded_2);
         }
