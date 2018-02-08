@@ -53,12 +53,12 @@ void XdmfConnectivitiesWriterProcess::Execute()
     std::vector<std::string> labels;
     Matrix<int> connectivities;
     KRATOS_ERROR_IF(mpFile->HasPath(mPrefix + "/Xdmf/Elements")) << "Path \"" << mPrefix + "/Xdmf/Elements\" exists." << std::endl;
-    mpFile->GetLinkNames(mPrefix + "/Elements", labels);
+    mpFile->GetGroupNames(mPrefix + "/Elements", labels);
     for (unsigned i = 0; i < labels.size(); ++i)
         CreateXdmfConnectivities(mPrefix + "/Elements/" + labels[i], mPrefix + "/Xdmf/Elements/" + labels[i]);
 
     KRATOS_ERROR_IF(mpFile->HasPath(mPrefix + "/Xdmf/Conditions")) << "Path \"" << mPrefix + "/Xdmf/Conditions\" exists." << std::endl;
-    mpFile->GetLinkNames(mPrefix + "/Conditions", labels);
+    mpFile->GetGroupNames(mPrefix + "/Conditions", labels);
     for (unsigned i = 0; i < labels.size(); ++i)
         CreateXdmfConnectivities(mPrefix + "/Conditions/" + labels[i], mPrefix + "/Xdmf/Conditions/" + labels[i]);
 
