@@ -18,10 +18,13 @@
 
 #include "fluid_dynamics_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "custom_utilities/tait_equation_utility.h"
 
 namespace Kratos
 {
 
+//                 const double x30 =             4*S[0]*sigma_y*x19*x6;
+//                 const double x31 =             2*S[2];
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
@@ -76,6 +79,8 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     //1.- Lame constants
     const double mu          = MaterialProperties[DYNAMIC_VISCOSITY];
     const double sigma_y    = MaterialProperties[YIELD_STRESS];
+//                 const double x30 =             4*S[0]*sigma_y*x19*x6;
+//                 const double x31 =             2*S[2];
     const double m    = MaterialProperties[REGULARIZATION_COEFFICIENT];
     
     const double gamma_dot = std::sqrt(2.*S[0]*S[0] + 2.*S[1]*S[1] + 2.*S[2]*S[2] 
@@ -115,6 +120,8 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
             C(3,3) = mu_effective;
             C(4,4) = mu_effective;
             C(5,5) = mu_effective;
+//                 const double x30 =             4*S[0]*sigma_y*x19*x6;
+//                 const double x31 =             2*S[2];
 //         }
 //         else
 //         {
@@ -209,18 +216,15 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 //************************************************************************************
 double& Bingham3DLaw::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
-    const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();    
-    const Vector& bm  = MaterialProperties[TAIT_PARAMETERS_MOLTEN_STATE];
-    const Vector& bs  = MaterialProperties[TAIT_PARAMETERS_SOLID_STATE];
-    
-    KRATOS_DEBUG_ERROR_IF(bm.size() != 10) << "expected size for TAIT_PARAMETERS_MOLTEN_STATE is 10. Got instead a size of " << bm.size() << " provided vector is " << bm << std::endl;
-    KRATOS_DEBUG_ERROR_IF(bs.size() != 10) << "expected size for TAIT_PARAMETERS_SOLID_STATE  is 10. Got instead a size of " << bs.size() << " provided vector is " << bs << std::endl;
-    
-    const auto& N = rParameterValues.GetShapeFunctionsValues();
-    const auto& geom = rParameterValues.GetElementGeometry();
-    
     if(rThisVariable == BULK_MODULUS)
     {
+        const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();    
+        const Vector& bm  = MaterialProperties[TAIT_PARAMETERS_MOLTEN_STATE];
+        const Vector& bs  = MaterialProperties[TAIT_PARAMETERS_SOLID_STATE];
+                
+        const auto& N = rParameterValues.GetShapeFunctionsValues();
+        const auto& geom = rParameterValues.GetElementGeometry();
+    
         double T = 0.0;
         double P = 0.0;
         for(unsigned int i=0; i<geom.size(); ++i)
@@ -231,40 +235,16 @@ double& Bingham3DLaw::CalculateValue(Parameters& rParameterValues, const Variabl
         T += 273.15; //transform temperature to Kelvins
         P += 101325.0; //make the pressure absolute by adding the atmospheric pressure
 
-        
         const double dP = 10.0; //pressure increment employed in computing the k by numeric differentiation
         
-        const double V = CalculateV(bm,bs,T,P);
-        const double Vperturbed = CalculateV(bm,bs,T,P+dP);
-        
-        rValue = -(V*dP)/(Vperturbed-V); //note that we define the bulk modulus as k=Dp/Drho (that is, the inverse of what is on the paper)
-        
+        rValue = TaitEquationUtility::CalculateBulkModulus(bm,bs,T,P,dP);
     }
     else
+    {
         rValue = 0.0;
+    }
     
     return rValue;
-}
-
-double Bingham3DLaw::CalculateV(const Vector& bm, const Vector& bs, const double T, const double P)
-{
-    const double Tt = bm[5] + bm[6]*P; //glass transition gradient 
-    
-    if(T > Tt )
-    {
-        const double V0 = bm[1] + bm[2]*(T-bm[5]);
-        const double Vt = 0.0;
-        const double B  = bm[3]+bm[4]*(T-bm[5]);
-        return V0*(1.0 - 0.0894*std::log(1.0+P/B)) - Vt;
-        
-    }
-    else
-    {
-        const double V0 = bs[1] + bs[2]*(T-bs[5]);
-        const double Vt = bs[7]*std::exp(bs[8]*(T-bs[5]) - bs[9]*P);
-        const double B  = bs[3]+bs[4]*(T-bs[5]);
-        return V0*(1.0 - 0.0894*std::log(1.0+P/B)) - Vt;
-    }
 }
 
 

@@ -166,8 +166,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    double CalculateV(const Vector& bm, const Vector& bs, const double T, const double P);
-
 
     ///@}
     ///@name Private Operations
