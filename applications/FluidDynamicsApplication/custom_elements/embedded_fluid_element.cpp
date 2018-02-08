@@ -82,6 +82,8 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         data.UpdateGeometryValues(data.PositiveSideWeights[g],
             row(data.PositiveSideN, g), data.PositiveSideDNDX[g]);
 
+        this->CalculateMaterialResponse(data);
+
         this->AddTimeIntegratedSystem(
             data, rLeftHandSideMatrix, rRightHandSideVector);
     }
@@ -93,6 +95,9 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
             data.UpdateGeometryValues(data.PositiveInterfaceWeights[g],
                 row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
+                
+            this->CalculateMaterialResponse(data);
+            
             this->AddBoundaryIntegral(data, data.PositiveInterfaceUnitNormals[g],
                 rLeftHandSideMatrix, rRightHandSideVector);
         }
