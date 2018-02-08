@@ -147,8 +147,8 @@ namespace Kratos
 			beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 		}
 
-		rDampingMatrix += alpha * mass_matrix;
-		rDampingMatrix += beta  * stiffness_matrix;
+		noalias(rDampingMatrix) += alpha * mass_matrix;
+		noalias(rDampingMatrix) += beta  * stiffness_matrix;
 
 		KRATOS_CATCH("")
 	}

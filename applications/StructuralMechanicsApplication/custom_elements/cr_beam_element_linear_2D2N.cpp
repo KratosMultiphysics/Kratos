@@ -154,7 +154,7 @@ namespace Kratos
 
 		bounded_matrix<double,msElementSize,msElementSize> transformation_matrix = this->CreateRotationMatrix();
 		// calculate local displacements
-		nodal_deformation = prod(Matrix(trans(transformation_matrix)),nodal_deformation);
+		nodal_deformation = prod((trans(transformation_matrix)),nodal_deformation);
 		
 
 		//// start static back condensation
