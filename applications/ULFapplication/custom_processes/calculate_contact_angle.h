@@ -61,7 +61,7 @@ namespace Kratos
 
 /// Short class definition.
 /** Detail class definition.
-	calculate contact angle
+	calculate contact angle for every tiple point, based on the given domain configuration
 
 
 */

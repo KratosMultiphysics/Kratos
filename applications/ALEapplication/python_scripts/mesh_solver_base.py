@@ -1,3 +1,4 @@
+
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
@@ -13,12 +14,10 @@ class MeshSolverBase(object):
     """The base class for mesh motion solvers.
     
     This class defines the user interface to mesh motion solvers.
-
     Derived classes must override the function _create_mesh_motion_solver()
     to customize the mesh motion algorithm. The mesh motion solver and linear
     solver should always be retrieved using the getter functions. Only the 
     member variables listed below should be accessed directly.
-
     Public member variables:
     settings -- Kratos parameters for general mesh motion settings.
     model_part -- the mesh motion model part.
@@ -127,4 +126,4 @@ class MeshSolverBase(object):
         
         The mesh motion solver must provide the functions defined in SolutionStrategy.
         """
-        raise Exception("Mesh motion solver must be created by the derived class.")
+raise Exception("Mesh motion solver must be created by the derived class.")
