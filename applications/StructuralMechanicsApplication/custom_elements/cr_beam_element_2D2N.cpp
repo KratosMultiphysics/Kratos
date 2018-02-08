@@ -259,10 +259,10 @@ namespace Kratos
 				
 			// residual >>> r = f_ext - f_int
 			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= nodal_forces;
+			noalias(rRightHandSideVector) -= nodal_forces;
 	
 
-			rRightHandSideVector += this->CalculateBodyForces();
+			noalias(rRightHandSideVector) += this->CalculateBodyForces();
 
 			KRATOS_CATCH("")
 		}
@@ -272,8 +272,8 @@ namespace Kratos
 		{
 			KRATOS_TRY;
 			rRightHandSideVector = ZeroVector(msElementSize);
-			rRightHandSideVector -= this->mInternalGlobalForces;
-			rRightHandSideVector += this->CalculateBodyForces();
+			noalias(rRightHandSideVector) -= this->mInternalGlobalForces;
+			noalias(rRightHandSideVector) += this->CalculateBodyForces();
 			KRATOS_CATCH("")
 		}
 

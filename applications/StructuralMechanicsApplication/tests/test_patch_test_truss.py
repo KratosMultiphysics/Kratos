@@ -565,7 +565,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             bcs_neumann.AddConditions([1]) 
             #create Elements
             mp.CreateNewElement("CableElement3D2N", 1, [1,2], mp.GetProperties()[0])
-            mp.CreateNewElement("CableElement3D2N", 2, [2,3], mp.GetProperties()[0])       
+            mp.CreateNewElement("CableElement3D2N", 2, [2,3], mp.GetProperties()[0])
             #apply constant boundary conditions
             Force_X = 100000000
             self._apply_BCs(bcs_xyz,'xyz')

@@ -96,9 +96,9 @@ namespace Kratos
 		//create+compute RHS
 		rRightHandSideVector = ZeroVector(msLocalSize);
 		//update Residual
-		rRightHandSideVector -= internal_forces;
+		noalias(rRightHandSideVector) -= internal_forces;
 		//add bodyforces 
-		rRightHandSideVector += this->CalculateBodyForces();
+		noalias(rRightHandSideVector) += this->CalculateBodyForces();
 		}
 
 		KRATOS_CATCH("")
@@ -116,9 +116,9 @@ namespace Kratos
 		}
 		else {
 			rRightHandSideVector = ZeroVector(msLocalSize);
-			rRightHandSideVector -= internal_forces;
+			noalias(rRightHandSideVector) -= internal_forces;
 			//add bodyforces 
-			rRightHandSideVector += this->CalculateBodyForces();
+			noalias(rRightHandSideVector) += this->CalculateBodyForces();
 		}
 
 		KRATOS_CATCH("")

@@ -289,9 +289,9 @@ namespace Kratos
 		//create+compute RHS
 		rRightHandSideVector = ZeroVector(msLocalSize);
 		//update Residual
-		rRightHandSideVector -= internal_forces;
+		noalias(rRightHandSideVector) -= internal_forces;
 		//add bodyforces 
-		rRightHandSideVector += this->CalculateBodyForces();
+		noalias(rRightHandSideVector) += this->CalculateBodyForces();
 
 		KRATOS_CATCH("")
 	}
@@ -304,10 +304,10 @@ namespace Kratos
 
 		bounded_vector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
 		this->UpdateInternalForces(internal_forces);
-		rRightHandSideVector -= internal_forces;
+		noalias(rRightHandSideVector) -= internal_forces;
 
 		//add bodyforces 
-		rRightHandSideVector += this->CalculateBodyForces();
+		noalias(rRightHandSideVector) += this->CalculateBodyForces();
 		KRATOS_CATCH("")
 	}
 

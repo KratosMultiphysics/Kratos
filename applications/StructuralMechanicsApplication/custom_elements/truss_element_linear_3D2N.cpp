@@ -72,8 +72,8 @@ namespace Kratos
 		Vector nodal_deformation = ZeroVector(msLocalSize);
 		this->GetValuesVector(nodal_deformation, 0);
 		rRightHandSideVector = ZeroVector(msLocalSize);
-		rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
-		rRightHandSideVector += this->CalculateBodyForces();
+		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, nodal_deformation);
+		noalias(rRightHandSideVector) += this->CalculateBodyForces();
 		this->AddPrestressLinear(rRightHandSideVector);
 
 		KRATOS_CATCH("")
@@ -112,11 +112,11 @@ namespace Kratos
 			Vector nodal_deformation = ZeroVector(msLocalSize);
 			this->GetValuesVector(nodal_deformation);
 			rRightHandSideVector = ZeroVector(msLocalSize);
-			rRightHandSideVector -= prod(left_hand_side_matrix, nodal_deformation);
+			noalias(rRightHandSideVector) -= prod(left_hand_side_matrix, nodal_deformation);
 			this->AddPrestressLinear(rRightHandSideVector);
 
 			//add bodyforces 
-			rRightHandSideVector += this->CalculateBodyForces();
+			noalias(rRightHandSideVector) += this->CalculateBodyForces();
 			KRATOS_CATCH("")
 		}
 
