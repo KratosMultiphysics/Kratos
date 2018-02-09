@@ -110,6 +110,8 @@ void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
         C(5,5) = mu;
             
     }
+
+    this->mViscosity = mu;
 	  
 }
 
@@ -157,6 +159,18 @@ int Newtonian3DLaw::Check(const Properties& rMaterialProperties,
     return 0;
 
 }
+
+bool& Newtonian3DLaw::GetValue(const Variable<bool>& rThisVariable,bool& rValue) {}
+int& Newtonian3DLaw::GetValue(const Variable<int>& rThisVariable,int& rValue) {}
+
+double& Newtonian3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue) {
+    return this->mViscosity;
+}
+
+Vector& Newtonian3DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) {}
+Matrix& Newtonian3DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) {}
+array_1d<double, 3 > & Newtonian3DLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable,array_1d<double, 3 > & rValue) {}
+array_1d<double, 6 > & Newtonian3DLaw::GetValue(const Variable<array_1d<double, 6 > >& rVariable, array_1d<double, 6 > & rValue) {}
 
 
 } // Namespace Kratos

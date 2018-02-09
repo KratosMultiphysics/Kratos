@@ -111,6 +111,9 @@ public:
 
     /// Constitutive law configuration (stored here to avoid re-initialization within the element).
     ConstitutiveLaw::Parameters ConstitutiveLawValues;
+
+    /// Effective viscosity (in dynamic units) produced by the constitutive law
+    double EffectiveViscosity;
     
     ///@}
 protected:

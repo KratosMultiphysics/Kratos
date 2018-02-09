@@ -104,6 +104,13 @@ public:
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
+    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
+    array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rVariable,array_1d<double, 3 > & rValue) override;
+    array_1d<double, 6 > & GetValue(const Variable<array_1d<double, 6 > >& rVariable, array_1d<double, 6 > & rValue) override;
     /**
      * Input and output
      */
@@ -145,6 +152,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    double mViscosity;
 
     ///@}
     ///@name Private Operators

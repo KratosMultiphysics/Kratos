@@ -410,7 +410,7 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     // Check the constitutive law
     KRATOS_ERROR_IF(mpConstitutiveLaw == nullptr) << "Constitutive Law not initialized for Element " << this->Info() << std::endl;
 
-    constexpr auto dimension = Dim;  // I need to set this here otherwise it gives me a linking error when attempting to '<<' it.
+    constexpr auto dimension = Dim;  // I need to set this here otherwise it gives me a linking error when attempting to '<<' Dim.
 
     KRATOS_ERROR_IF(mpConstitutiveLaw->WorkingSpaceDimension() != Dim)
         << "Wrong dimension: The " << mpConstitutiveLaw->WorkingSpaceDimension()
@@ -483,12 +483,14 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
 
     auto& Values = rData.ConstitutiveLawValues;
 
-    const Vector Nvec(rData.N);
-    Values.SetShapeFunctionsValues(Nvec);
+    const Vector shape_functions_vector(rData.N);
+    Values.SetShapeFunctionsValues(shape_functions_vector);
 
     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     //this is ok under the hypothesis that no history dependent behavior is employed
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+
+    mpConstitutiveLaw->GetValue(EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
 }
 
 template< class TElementData >

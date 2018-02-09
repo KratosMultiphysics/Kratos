@@ -434,7 +434,7 @@ void QSVMS<TElementData>::AddVelocitySystem(
     double ElemSize = this->ElementSize();
 
     double density = rData.Density;
-    double dynamic_viscosity = rData.DynamicViscosity; // TODO: this must go through the constitutive law (JC)
+    double dynamic_viscosity = rData.EffectiveViscosity; // TODO: this must go through the constitutive law (JC)
     array_1d<double,3> body_force = this->Interpolate(rData.BodyForce,rData.N);
     array_1d<double,3> momentum_projection = this->Interpolate(rData.MomentumProjection,rData.N);
     double mass_projection = this->Interpolate(rData.MassProjection,rData.N);
@@ -574,7 +574,7 @@ void QSVMS<TElementData>::AddMassStabilization(
     double ElemSize = this->ElementSize();
 
     double density = rData.Density;
-    double dynamic_viscosity = rData.DynamicViscosity; //TODO this must go through the constitutive law (JC)
+    double dynamic_viscosity = rData.EffectiveViscosity; //TODO this must go through the constitutive law (JC)
 
     double TauOne;
     double TauTwo;
@@ -801,7 +801,7 @@ void QSVMS<TElementData>::SubscaleVelocity(
     array_1d<double,3> &rVelocitySubscale)
 {
     double ElemSize = this->ElementSize();
-    double dynamic_viscosity = rData.DynamicViscosity;
+    double dynamic_viscosity = rData.EffectiveViscosity;
 
     double TauOne;
     double TauTwo;
@@ -827,7 +827,7 @@ void QSVMS<TElementData>::SubscalePressure(
 {
     //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
     double ElemSize = this->ElementSize();
-    double dynamic_viscosity = rData.DynamicViscosity;
+    double dynamic_viscosity = rData.EffectiveViscosity;
 
     double TauOne;
     double TauTwo;

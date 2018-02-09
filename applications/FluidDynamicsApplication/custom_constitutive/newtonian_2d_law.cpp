@@ -109,6 +109,8 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     }
 
+    this->mViscosity = mu;
+
 }
 
 
@@ -140,9 +142,7 @@ void Newtonian2DLaw::GetLawFeatures(Features& rFeatures)
 // bool Newtonian2DLaw::CheckParameters(Parameters& rValues)
 // {
 //     return rValues.CheckAllParameters();
-// }
-
-
+// }    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
 int Newtonian2DLaw::Check(const Properties& rMaterialProperties,
                           const GeometryType& rElementGeometry,
@@ -155,6 +155,18 @@ int Newtonian2DLaw::Check(const Properties& rMaterialProperties,
     return 0;
 
 }
+
+bool& Newtonian2DLaw::GetValue(const Variable<bool>& rThisVariable,bool& rValue) {}
+int& Newtonian2DLaw::GetValue(const Variable<int>& rThisVariable,int& rValue) {}
+
+double& Newtonian2DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue) {
+    return this->mViscosity;
+}
+
+Vector& Newtonian2DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) {}
+Matrix& Newtonian2DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) {}
+array_1d<double, 3 > & Newtonian2DLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable,array_1d<double, 3 > & rValue) {}
+array_1d<double, 6 > & Newtonian2DLaw::GetValue(const Variable<array_1d<double, 6 > >& rVariable, array_1d<double, 6 > & rValue) {}
 
 
 } // Namespace Kratos
