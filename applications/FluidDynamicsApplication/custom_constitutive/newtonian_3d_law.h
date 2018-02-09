@@ -109,8 +109,8 @@ public:
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
     Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
-    array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rVariable,array_1d<double, 3 > & rValue) override;
-    array_1d<double, 6 > & GetValue(const Variable<array_1d<double, 6 > >& rVariable, array_1d<double, 6 > & rValue) override;
+    array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,array_1d<double, 3 > & rValue) override;
+    array_1d<double, 6 > & GetValue(const Variable<array_1d<double, 6 > >& rThisVariable, array_1d<double, 6 > & rValue) override;
     /**
      * Input and output
      */

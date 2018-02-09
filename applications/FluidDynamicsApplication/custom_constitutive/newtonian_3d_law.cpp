@@ -160,17 +160,34 @@ int Newtonian3DLaw::Check(const Properties& rMaterialProperties,
 
 }
 
-bool& Newtonian3DLaw::GetValue(const Variable<bool>& rThisVariable,bool& rValue) {}
-int& Newtonian3DLaw::GetValue(const Variable<int>& rThisVariable,int& rValue) {}
-
-double& Newtonian3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue) {
-    return this->mViscosity;
+bool& Newtonian3DLaw::GetValue(const Variable<bool>& rThisVariable,bool& rValue) {
+    return ConstitutiveLaw::GetValue(rThisVariable,rValue);
 }
 
-Vector& Newtonian3DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) {}
-Matrix& Newtonian3DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) {}
-array_1d<double, 3 > & Newtonian3DLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable,array_1d<double, 3 > & rValue) {}
-array_1d<double, 6 > & Newtonian3DLaw::GetValue(const Variable<array_1d<double, 6 > >& rVariable, array_1d<double, 6 > & rValue) {}
+int& Newtonian3DLaw::GetValue(const Variable<int>& rThisVariable,int& rValue) {
+    return ConstitutiveLaw::GetValue(rThisVariable,rValue);
+}
+
+double& Newtonian3DLaw::GetValue(const Variable<double>& rThisVariable, double& rValue) {
+    rValue = this->mViscosity;
+    return rValue;
+}
+
+Vector& Newtonian3DLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) {
+    return ConstitutiveLaw::GetValue(rThisVariable,rValue);
+}
+
+Matrix& Newtonian3DLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) {
+    return ConstitutiveLaw::GetValue(rThisVariable,rValue);
+}
+
+array_1d<double, 3 > & Newtonian3DLaw::GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,array_1d<double, 3 > & rValue) {
+    return ConstitutiveLaw::GetValue(rThisVariable,rValue);
+}
+
+array_1d<double, 6 > & Newtonian3DLaw::GetValue(const Variable<array_1d<double, 6 > >& rThisVariable, array_1d<double, 6 > & rValue) {
+    return ConstitutiveLaw::GetValue(rThisVariable,rValue);
+}
 
 
 } // Namespace Kratos
