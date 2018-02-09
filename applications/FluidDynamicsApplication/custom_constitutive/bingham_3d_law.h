@@ -60,6 +60,18 @@ public:
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
+    /**
+     * Copy constructor.
+     */
+    Bingham3DLaw (const Bingham3DLaw& rOther);
+
+
+    /**
+     * Assignment operator.
+     */
+
+    //Bingham3DLaw& operator=(const Bingham3DLaw& rOther);
+
 
     /**
      * Destructor.

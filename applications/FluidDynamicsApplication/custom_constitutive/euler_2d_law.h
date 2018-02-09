@@ -58,6 +58,18 @@ namespace Kratos
         ConstitutiveLaw::Pointer Clone() const override;
 
         /**
+         * Copy constructor.
+         */
+        Euler2DLaw (const Euler2DLaw& rOther);
+
+
+        /**
+         * Assignment operator.
+         */
+
+        Euler2DLaw& operator = (const Euler2DLaw& rOther);
+
+        /**
          * Destructor.
          */
         ~Euler2DLaw() override;
