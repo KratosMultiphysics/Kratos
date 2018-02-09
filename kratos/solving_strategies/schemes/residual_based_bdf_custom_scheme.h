@@ -300,8 +300,8 @@ public:
                         if (it_node -> IsFixed(d2var_z)) {
                             dotun0[2] = (dot2un0[2] - BDFBaseType::mBDF[1] * dotun1[2])/BDFBaseType::mBDF[0];
                             un0[2] = (dotun0[2] - BDFBaseType::mBDF[1] * un1[2])/BDFBaseType::mBDF[0];
-                    } } else if (it_node->HasDofFor(dvar_y)) {
-                        if (it_node -> IsFixed(dvar_y)) {
+                    } } else if (it_node->HasDofFor(dvar_z)) {
+                        if (it_node -> IsFixed(dvar_z)) {
                             un0[2] = (dotun1[2] - BDFBaseType::mBDF[1] * un1[2])/BDFBaseType::mBDF[0];
                     } } else if (it_node -> IsFixed(var_z) == false) {
                         un0[2] = un1[2] + delta_time * dotun1[2] + 0.5 * std::pow(delta_time, 2) * dot2un1[2];
