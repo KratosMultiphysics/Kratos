@@ -758,7 +758,7 @@ namespace Kratos
 
 		bounded_matrix<double,msElementSize,msElementSize> transformation_matrix = this->CreateRotationMatrix();
 		Vector stress = this->mInternalGlobalForces;
-		noalias(stress) = prod(trans(transformation_matrix),stress);
+		stress = prod(trans(transformation_matrix),stress);
 
 		//rOutput[GP 1,2,3][x,y,z]
 

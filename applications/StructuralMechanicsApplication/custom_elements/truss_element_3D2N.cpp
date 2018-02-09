@@ -117,7 +117,7 @@ namespace Kratos
 			rDampingMatrix.resize(msLocalSize, msLocalSize, false);
 		}
 
-		noalias(rDampingMatrix) = ZeroMatrix(msLocalSize, msLocalSize);
+		rDampingMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
 		MatrixType stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
 

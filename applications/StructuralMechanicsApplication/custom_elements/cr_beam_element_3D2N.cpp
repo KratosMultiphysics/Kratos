@@ -1218,7 +1218,7 @@ namespace Kratos
 		else this->AssembleSmallInBigMatrix(this->mLocalRotationMatrix,transformation_matrix);
 
 		Vector stress = this->mNodalForces;
-		noalias(stress) = prod(trans(transformation_matrix),stress);
+		stress = prod(trans(transformation_matrix),stress);
 
 		//rOutput[GP 1,2,3][x,y,z]
 

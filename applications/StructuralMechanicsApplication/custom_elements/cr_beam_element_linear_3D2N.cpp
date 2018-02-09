@@ -79,10 +79,10 @@ namespace Kratos
 		Vector nodal_deformation = ZeroVector(msElementSize);
 		this->GetValuesVector(nodal_deformation);
 		rRightHandSideVector = ZeroVector(msElementSize);
-		rRightHandSideVector -= prod(left_hand_side_matrix, nodal_deformation);
+		noalias(rRightHandSideVector) -= prod(left_hand_side_matrix, nodal_deformation);
 
 		//add bodyforces 
-		rRightHandSideVector += this->CalculateBodyForces();
+		noalias(rRightHandSideVector) += this->CalculateBodyForces();
 		KRATOS_CATCH("")
 
 	}
@@ -94,7 +94,7 @@ namespace Kratos
 		bounded_matrix<double,msElementSize,msElementSize>
 		 transformation_matrix = this->CalculateInitialLocalCS();
 		rLeftHandSideMatrix = ZeroMatrix(msElementSize, msElementSize);
-		rLeftHandSideMatrix +=
+		noalias(rLeftHandSideMatrix) +=
 			this->CreateElementStiffnessMatrix_Material();
 
 
@@ -111,7 +111,7 @@ namespace Kratos
 
 		bounded_matrix<double,msElementSize,msElementSize> aux_matrix = ZeroMatrix(msElementSize);
 		aux_matrix = prod(transformation_matrix, rLeftHandSideMatrix);
-		rLeftHandSideMatrix = prod(aux_matrix,
+		noalias(rLeftHandSideMatrix) = prod(aux_matrix,
 			Matrix(trans(transformation_matrix)));
 
 
