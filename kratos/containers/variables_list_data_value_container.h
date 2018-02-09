@@ -993,10 +993,10 @@ private:
     {
         rSerializer.save("Variables List", mpVariablesList);
         rSerializer.save("QueueSize", mQueueSize);
-        if(mpVariablesList->DataSize() != 0 )
+        if(mpVariablesList->DataSize() != 0 ) 
             rSerializer.save("QueueIndex", SizeType(mpCurrentPosition-mpData)/mpVariablesList->DataSize());
         else
-            rSerializer.save("QueueIndex", 0);
+            rSerializer.save("QueueIndex", SizeType(0));
 
 
         if(mpData == 0)
@@ -1026,7 +1026,7 @@ private:
         // Setting the current position at the begining of data
         if(queue_index > mQueueSize)
             KRATOS_THROW_ERROR(std::invalid_argument, "Invalid Queue index loaded : ", queue_index)
-            mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
+        mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
 
         std::string name;
         for(SizeType i = 0 ; i < mQueueSize ; i++)

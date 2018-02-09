@@ -15,6 +15,8 @@
 #include "testing/testing.h"
 #include "includes/serializer.h"
 #include "geometries/point.h"
+#include "includes/element.h"
+#include "geometries/triangle_2d_3.h"
 
 namespace Kratos {
     namespace Testing {
@@ -25,12 +27,23 @@ namespace Kratos {
         template<typename TObjectType>
         void SaveAndLoadObjects(const TObjectType& rObjectToBeSaved, TObjectType& rObjectToBeLoaded)
         {
-            Serializer serializer;
+            Serializer save_serializer;
+            Serializer load_serializer;
+
+            std::stringstream * save_serializer_buffer;
+            std::stringstream * load_serializer_buffer;
+
+            save_serializer_buffer = (std::stringstream *)save_serializer.pGetBuffer();
+            load_serializer_buffer = (std::stringstream *)load_serializer.pGetBuffer();
 
             const std::string tag_string("TestString");
 
-            serializer.save(tag_string, rObjectToBeSaved);
-            serializer.load(tag_string, rObjectToBeLoaded);
+            save_serializer.save(tag_string, rObjectToBeSaved);
+
+            // Move the content of the first serializer to the second
+            *load_serializer_buffer << save_serializer_buffer->rdbuf();
+
+            load_serializer.load(tag_string, rObjectToBeLoaded);
         }
 
         template<typename TObjectType>
@@ -301,5 +314,29 @@ namespace Kratos {
             TestObjectSerializationComponentwise2D(object_to_be_saved_2, object_to_be_loaded_2);
         }
 
+        KRATOS_TEST_CASE_IN_SUITE(SerializerNode, KratosCoreFastSuite)
+        {
+            Node<3> node_to_be_saved(500, 0.1, 0.1, 0.1);
+            Node<3> node_to_be_loaded;
+
+            TestObjectSerialization(node_to_be_saved, node_to_be_loaded);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(SerializerElement, KratosCoreFastSuite)
+        {
+            Element element_to_be_saved(0, 
+                Triangle2D3<Node<3>>::Pointer( 
+                    new Triangle2D3<Node<3>>(
+                        Node<3>::Pointer(new Node<3>(500, 0.1, 0.1, 0.1)),
+                        Node<3>::Pointer(new Node<3>(501, 0.1, 1.1, 0.1)),
+                        Node<3>::Pointer(new Node<3>(502, 1.1, 0.6, 0.1))
+                    )
+                )
+            );
+
+            Element element_to_be_loaded;
+
+            TestObjectSerialization(element_to_be_saved, element_to_be_loaded);
+        }
     } // namespace Testing
 }  // namespace Kratos.
