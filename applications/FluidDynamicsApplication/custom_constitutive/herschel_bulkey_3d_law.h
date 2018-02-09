@@ -68,13 +68,6 @@ public:
 
 
     /**
-     * Assignment operator.
-     */
-
-    //HerschelBulkey3DLaw& operator=(const HerschelBulkey3DLaw& rOther);
-
-
-    /**
      * Destructor.
      */
     ~HerschelBulkey3DLaw() override;

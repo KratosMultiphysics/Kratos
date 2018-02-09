@@ -47,8 +47,7 @@ Bingham3DLaw::Bingham3DLaw(const Bingham3DLaw& rOther)
 
 ConstitutiveLaw::Pointer Bingham3DLaw::Clone() const
 {
-    Bingham3DLaw::Pointer p_clone(new Bingham3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<Bingham3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

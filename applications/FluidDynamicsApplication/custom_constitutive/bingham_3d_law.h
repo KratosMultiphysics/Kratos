@@ -67,13 +67,6 @@ public:
 
 
     /**
-     * Assignment operator.
-     */
-
-    //Bingham3DLaw& operator=(const Bingham3DLaw& rOther);
-
-
-    /**
      * Destructor.
      */
     ~Bingham3DLaw() override;

@@ -47,8 +47,7 @@ Newtonian3DLaw::Newtonian3DLaw(const Newtonian3DLaw& rOther)
 
 ConstitutiveLaw::Pointer Newtonian3DLaw::Clone() const
 {
-    Newtonian3DLaw::Pointer p_clone(new Newtonian3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<Newtonian3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

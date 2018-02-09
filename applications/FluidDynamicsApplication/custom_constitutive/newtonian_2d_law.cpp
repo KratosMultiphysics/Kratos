@@ -47,8 +47,7 @@ Newtonian2DLaw::Newtonian2DLaw(const Newtonian2DLaw& rOther)
 
 ConstitutiveLaw::Pointer Newtonian2DLaw::Clone() const
 {
-    Newtonian2DLaw::Pointer p_clone(new Newtonian2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<Newtonian2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

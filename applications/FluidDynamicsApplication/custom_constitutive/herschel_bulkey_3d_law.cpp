@@ -47,8 +47,7 @@ HerschelBulkey3DLaw::HerschelBulkey3DLaw(const HerschelBulkey3DLaw& rOther)
 
 ConstitutiveLaw::Pointer HerschelBulkey3DLaw::Clone() const
 {
-    HerschelBulkey3DLaw::Pointer p_clone(new HerschelBulkey3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HerschelBulkey3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************

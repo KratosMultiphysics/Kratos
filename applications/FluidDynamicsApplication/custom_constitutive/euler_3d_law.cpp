@@ -43,8 +43,7 @@ namespace Kratos
     //************************************************************************************
 
     ConstitutiveLaw::Pointer Euler3DLaw::Clone() const {
-        Euler3DLaw::Pointer p_clone(new Euler3DLaw(*this));
-        return p_clone;
+        return Kratos::make_shared<Euler3DLaw>(*this);
     }
 
     //*******************************DESTRUCTOR*******************************************

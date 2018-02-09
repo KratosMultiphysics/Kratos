@@ -62,13 +62,6 @@ namespace Kratos
          */
         Euler2DLaw (const Euler2DLaw& rOther);
 
-
-        /**
-         * Assignment operator.
-         */
-
-        Euler2DLaw& operator = (const Euler2DLaw& rOther);
-
         /**
          * Destructor.
          */

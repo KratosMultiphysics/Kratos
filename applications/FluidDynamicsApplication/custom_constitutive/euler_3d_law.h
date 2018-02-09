@@ -61,12 +61,6 @@ namespace Kratos
 
 
         /**
-         * Assignment operator.
-         */
-
-        Euler3DLaw& operator = (const Euler3DLaw& rOther);
-
-        /**
          * Destructor.
          */
         ~Euler3DLaw() override;

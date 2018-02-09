@@ -63,14 +63,6 @@ public:
      */
     Newtonian2DLaw (const Newtonian2DLaw& rOther);
 
-
-    /**
-     * Assignment operator.
-     */
-
-    //Newtonian3DLaw& operator=(const Newtonian3DLaw& rOther);
-
-
     /**
      * Destructor.
      */

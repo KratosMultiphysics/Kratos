@@ -65,13 +65,6 @@ public:
 
 
     /**
-     * Assignment operator.
-     */
-
-    //Newtonian3DLaw& operator=(const Newtonian3DLaw& rOther);
-
-
-    /**
      * Destructor.
      */
     ~Newtonian3DLaw() override;
