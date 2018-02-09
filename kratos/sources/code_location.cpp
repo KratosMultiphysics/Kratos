@@ -25,6 +25,9 @@
 
 namespace Kratos
 {
+    CodeLocation::CodeLocation() :
+		mFileName("Unknown"), mFunctionName("Unknown"), mLineNumber(-1) {}
+
 	CodeLocation::CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber) :
 		mFileName(FileName), mFunctionName(FunctionName), mLineNumber(LineNumber) {}
 

@@ -56,9 +56,9 @@ public:
     /// Counted pointer of ProcessFactoryUtility
     KRATOS_CLASS_POINTER_DEFINITION( ProcessFactoryUtility );
 
-    typedef typename boost::python::object ObjectType;
+    typedef boost::python::object ObjectType;
     
-    typedef typename boost::python::list     ListType;
+    typedef boost::python::list     ListType;
     
     ///@}
     ///@name Life Cycle
