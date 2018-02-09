@@ -517,16 +517,18 @@ void QSVMS<TElementData>::AddVelocitySystem(
         rLocalRHS[row + Dim] += rData.Weight * TauOne * forcing; // Grad(q) * TauOne * (Density * BodyForce)
     }
 
-    // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
-    // This could potentially be optimized, as it can be integrated exactly using one less integration order when compared to previous terms.
-    this->AddViscousTerm(rData,LHS);
-
-    // Rewrite local contribution into residual form (A*dx = b - A*x)
+    // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
+    noalias(rLocalRHS) -= prod(LHS, values);
+
+    /* Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
+     * For a generic (potentially non-linear) constitutive law, one cannot assume that RHS = F - LHS*current_values.
+     * Because of this, the AddViscousTerm function manages both the LHS and the RHS.
+     */ 
+    this->AddViscousTerm(rData,LHS,rLocalRHS);
 
     noalias(rLocalLHS) += LHS;
-    noalias(rLocalRHS) -= prod(LHS, values);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -653,7 +655,10 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::AddViscousTerm(const TElementData& rData, boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS) {
+void QSVMS<TElementData>::AddViscousTerm(
+    const TElementData& rData,
+    boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+    VectorType& rRHS) {
 
     boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
@@ -662,9 +667,10 @@ void QSVMS<TElementData>::AddViscousTerm(const TElementData& rData, boost::numer
     boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
 
     // Multiply times integration point weight (I do this here to avoid a temporal in LHS += weight * Bt * C * B)
-    shear_stress_matrix *= rData.Weight;
+    strain_matrix *= rData.Weight;
 
     noalias(rLHS) += boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),shear_stress_matrix);
+    noalias(rRHS) -= boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),rData.ShearStress);
 }
 
 
@@ -907,7 +913,7 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
         const auto& r_velocities = rData.Velocity;
         const auto& r_velocities_step1 = rData.Velocity_OldStep1;
         const auto& r_velocities_step2 = rData.Velocity_OldStep2;
-        
+
         for (unsigned int i = 0; i < TElementData::NumNodes; ++i) {
             for (unsigned int d = 0; d < TElementData::Dim; ++d)  {
                 // Velocity Dofs

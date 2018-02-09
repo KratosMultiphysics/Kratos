@@ -301,7 +301,8 @@ protected:
 
     void AddViscousTerm(
         const TElementData& rData,
-        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS);
+        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+        VectorType& rRHS);
 
     /**
      * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
