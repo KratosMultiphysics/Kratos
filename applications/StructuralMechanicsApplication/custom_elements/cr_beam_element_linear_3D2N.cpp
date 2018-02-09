@@ -103,7 +103,7 @@ namespace Kratos
 		{
 			Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
 			std::vector<int> dofList(dof_list_input.size());
-			for (size_t i=0;i<dof_list_input.size();++i) dofList[i]=dof_list_input[i];
+			for (SizeType i=0;i<dof_list_input.size();++i) dofList[i]=dof_list_input[i];
 			StaticCondensationUtility::CondenseLeftHandSide(*this,rLeftHandSideMatrix,dofList);
 		}
 		//// end static condensation
@@ -190,7 +190,7 @@ namespace Kratos
 		{
 			Vector dof_list_input = this->GetValue(CONDENSED_DOF_LIST);
 			std::vector<int> dofList(dof_list_input.size());
-			for (size_t i=0;i<dof_list_input.size();++i) dofList[i]=dof_list_input[i];
+			for (SizeType i=0;i<dof_list_input.size();++i) dofList[i]=dof_list_input[i];
 			Vector nodal_deformation_temp = nodal_deformation;
 			StaticCondensationUtility::ConvertingCondensation(
 				*this,nodal_deformation_temp,nodal_deformation,dofList,left_hand_side_matrix);
@@ -253,9 +253,9 @@ namespace Kratos
 			rOutput.resize(3);
 			for (int i = 0; i < 3; ++i) rOutput[i] = ZeroVector(3);
 
-			for (size_t i=0;i<3;++i)
+			for (SizeType i=0;i<3;++i)
 			{
-				for (size_t j=0;j<3;++j)
+				for (SizeType j=0;j<3;++j)
 				{
 					rOutput[i][j] = transformation_matrix(j,i);
 				}

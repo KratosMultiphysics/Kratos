@@ -871,7 +871,7 @@ namespace Kratos
 		Vector rotated_nx0 = ZeroVector(msDimension);
 		Vector rotated_ny0 = ZeroVector(msDimension);
 		Vector rotated_nz0 = ZeroVector(msDimension);
-		for (size_t i=0;i<msDimension;++i)
+		for (SizeType i=0;i<msDimension;++i)
 		{
 			rotated_nx0[i] = reference_transformation(i,0);
 			rotated_ny0[i] = reference_transformation(i,1);
@@ -945,9 +945,7 @@ namespace Kratos
 		{Vector rotated_nx0 = ZeroVector(msDimension);
 		for (unsigned int i = 0; i < msDimension; ++i) rotated_nx0[i] = this->mLocalRotationMatrix(i, 0);
 		Vector temp_vector = ZeroVector(msDimension);
-		temp_vector[0] = rotated_nx0[1]*Bisectrix[2] - rotated_nx0[2]*Bisectrix[1];
-        temp_vector[1] = rotated_nx0[2]*Bisectrix[0] - rotated_nx0[0]*Bisectrix[2];
-        temp_vector[2] = rotated_nx0[0]*Bisectrix[1] - rotated_nx0[1]*Bisectrix[0];
+		MathUtils<double>::CrossProduct(temp_vector,rotated_nx0,Bisectrix);
 		phi_a = prod(Matrix(trans(this->mLocalRotationMatrix)), temp_vector);
 		phi_a *= 4.00;}
 		return phi_a;
@@ -1283,9 +1281,9 @@ namespace Kratos
 			rOutput.resize(3);
 			for (int i = 0; i < 3; ++i) rOutput[i] = ZeroVector(3);
 
-			for (size_t i=0;i<3;++i)
+			for (SizeType i=0;i<3;++i)
 			{
-				for (size_t j=0;j<3;++j)
+				for (SizeType j=0;j<3;++j)
 				{
 					rOutput[i][j] = transformation_matrix(j,i);
 				}
