@@ -25,9 +25,7 @@ class Rotator:
                             [axis[2], 0., -axis[0]],
                             [-axis[1], axis[0], 0.]])
 
-    def Rotate(self, model_part, time):
-        Say('Starting mesh movement...')
-
+    def GetRotationMatrices(self, time):
         sin = math.sin(self.omega * time)
         cos = math.cos(self.omega * time)
 
@@ -36,6 +34,12 @@ class Rotator:
 
         # Rotation matrix' (derivative of R with respect to time)
         Rp = - self.omega * sin * self.I + self.omega * cos * self.Ux + self.omega * sin * self.UU
+
+        return R, Rp
+
+    def Rotate(self, model_part, time):
+        Say('Starting mesh movement...')
+        R, Rp = self.GetRotationMatrices(time)
 
         for node in model_part.Nodes:
             P0 = np.array([node.X0, node.Y0, node.Z0])
@@ -51,6 +55,13 @@ class Rotator:
             node.SetSolutionStepValue(MESH_VELOCITY, Vector(list(Velocity)))
 
         Say('Mesh movement finshed.')
+
+    def UndoRotationOfVectors(self, time, list_of_vectors):
+        R, Rp = self.GetRotationMatrices(time)
+        R_inv = np.linalg.inv(R)
+        for i, vector in enum(list_of_vectors):
+            list_of_vectors[i] = np.linalg.dot(R_inv, vector)
+
 
     def Normalize(self, v):
         mod_2 = sum([x ** 2 for x in v])
@@ -79,14 +90,22 @@ class Algorithm(BaseAlgorithm):
             self.projection_module.UpdateDatabase(self.h_min)
 
     def AssessStationarity(self):
-        BaseAlgorithm.AssessStationarity(self)
-        #if self.time > 10.0:
-        #    self.stationarity = True
+        # BaseAlgorithm.AssessStationarity(self)
+        if self.time > 0.0002:
+           self.stationarity = True
 
         if self.stationarity:
             self.rotator.SetStationaryField(self.fluid_model_part, self.time)
 
+    def SetFluidLoader(self):
+        import hdf5_io_tools_PID
+        self.fluid_loader = hdf5_io_tools_PID.FluidHDF5LoaderPID(self.all_model_parts.Get('FluidPart'),
+                                                                 self.all_model_parts.Get('SpheresPart'),
+                                                                 self.pp,
+                                                                 self.main_path)
+
     def FluidSolve(self, time='None', solve_system=True):
         BaseAlgorithm.FluidSolve(self, time, solve_system)
+
         if not solve_system:
             self.rotator.RotateFluidVelocities(time)
