@@ -373,30 +373,30 @@ public:
         // Verify that the variables are correctly initialized
         for ( const auto& i_var : mDoubleVariable)
             KRATOS_CHECK_VARIABLE_KEY(i_var) 
-        for ( auto& i_var : mFirtsDoubleDerivatives)
+        for ( const auto& i_var : mFirtsDoubleDerivatives)
             KRATOS_CHECK_VARIABLE_KEY(i_var) 
-        for ( auto& i_var : mSecondDoubleDerivatives)
+        for ( const auto& i_var : mSecondDoubleDerivatives)
             KRATOS_CHECK_VARIABLE_KEY(i_var) 
         for ( const auto& i_var : mArrayVariable)
             KRATOS_CHECK_VARIABLE_KEY(i_var) 
-        for ( auto& i_var : mFirtsArrayDerivatives)
+        for ( const auto& i_var : mFirtsArrayDerivatives)
             KRATOS_CHECK_VARIABLE_KEY(i_var) 
-        for ( auto& i_var : mSecondArrayDerivatives)
+        for ( const auto& i_var : mSecondArrayDerivatives)
             KRATOS_CHECK_VARIABLE_KEY(i_var) 
 
         // Check that variables are correctly allocated
         for(auto& rnode : rModelPart.Nodes()) {
             for ( const auto& i_var : mDoubleVariable)
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
-            for ( auto& i_var : mFirtsDoubleDerivatives)
+            for ( const auto& i_var : mFirtsDoubleDerivatives)
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode)
-            for ( auto& i_var : mSecondDoubleDerivatives)
+            for ( const auto& i_var : mSecondDoubleDerivatives)
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
             for ( const auto& i_var : mArrayVariable)
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
-            for ( auto& i_var : mFirtsArrayDerivatives)
+            for ( const auto& i_var : mFirtsArrayDerivatives)
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
-            for ( auto& i_var : mSecondArrayDerivatives)
+            for ( const auto& i_var : mSecondArrayDerivatives)
                 KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(i_var, rnode) 
     
             for ( const auto& i_var : mDoubleVariable)
@@ -495,7 +495,7 @@ protected:
     {
         // DOUBLES
         std::size_t counter = 0;
-        for ( auto& i_var : mFirtsDoubleDerivatives) {
+        for ( const auto& i_var : mFirtsDoubleDerivatives) {
             double& dot2un0 = itNode->FastGetSolutionStepValue(mSecondDoubleDerivatives[counter]);
             dot2un0 = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
             for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
@@ -505,7 +505,7 @@ protected:
         
         // ARRAYS
         counter = 0;
-        for ( auto& i_var : mFirtsArrayDerivatives) {
+        for ( const auto& i_var : mFirtsArrayDerivatives) {
             array_1d<double, 3>& dot2un0 = itNode->FastGetSolutionStepValue(mSecondArrayDerivatives[counter]);
             noalias(dot2un0) = BDFBaseType::mBDF[0] * itNode->FastGetSolutionStepValue(i_var);
             for (std::size_t i_order = 1; i_order < BDFBaseType::mOrder + 1; ++i_order)
