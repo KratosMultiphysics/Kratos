@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Klaus B Sautter (based on the work of JMCarbonel)
-//					 
+//
 //
 
 #if !defined(KRATOS_EXPLICIT_STRATEGY)
@@ -31,11 +31,11 @@
 namespace Kratos
 {
 
-    /** 
+    /**
      * @class ExplicitStrategy
-     * 
+     *
      * @brief This strategy is used for the explicit time integration
-     * 
+     *
      * @author Klauss B Sautter (based on the work of JMCarbonel)
      */
 
@@ -115,8 +115,8 @@ public:
         //set EchoLevel to the deffault value (only time is displayed)
         SetEchoLevel(1);
 
-        //set RebuildLevel to the deffault value 
-        BaseType::SetRebuildLevel(0);  
+        //set RebuildLevel to the deffault value
+        BaseType::SetRebuildLevel(0);
 
         KRATOS_CATCH( "" )
     }
@@ -141,7 +141,7 @@ public:
     {
         return mpScheme;
     };
-    
+
      //Set and Get the BuilderAndSolver
 
     void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
@@ -153,9 +153,9 @@ public:
     {
         return mpBuilderAndSolver;
     };
-    
+
     //Ser and Get Flags
-  
+
     void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
     {
       mInitializeWasPerformed = InitializePerformedFlag;
@@ -212,12 +212,12 @@ public:
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
-        TSystemMatrixType matrix_a_dummy = TSystemMatrixType();   
+        TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
 
         //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
         if (pScheme->SchemeIsInitialized() == false)
             pScheme->Initialize(BaseType::GetModelPart());
-        
+
         //Initialize The Elements - OPERATIONS TO BE DONE ONCE
         if (pScheme->ElementsAreInitialized() == false)
             pScheme->InitializeElements(BaseType::GetModelPart());
@@ -229,7 +229,7 @@ public:
         pBuilderAndSolver->BuildLHS(pScheme, r_model_part, matrix_a_dummy); //calculate Mass Matrix
         TSystemVectorType mb  = TSystemVectorType();
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb); //calculate Residual for scheme initialization
-        
+
         mInitializeWasPerformed = true;
 
 	    //std::cout<<" Rebuild Level "<<BaseType::mRebuildLevel<<std::endl;
@@ -239,7 +239,7 @@ public:
 
     //**********************************************************************
     //**********************************************************************
-    
+
     void InitializeSolutionStep()
     {
         KRATOS_TRY
@@ -247,7 +247,7 @@ public:
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
-        TSystemMatrixType matrix_a_dummy = TSystemMatrixType();   
+        TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
         TSystemVectorType mDx = TSystemVectorType();
         TSystemVectorType mb = TSystemVectorType();
 
@@ -276,7 +276,7 @@ public:
     double Solve() override
     {
         KRATOS_TRY
-        DofsArrayType dof_set_dummy; 
+        DofsArrayType dof_set_dummy;
         TSystemMatrixType mA  = TSystemMatrixType();
         TSystemVectorType mDx = TSystemVectorType();
         TSystemVectorType mb  = TSystemVectorType();
@@ -288,7 +288,7 @@ public:
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if(mInitializeWasPerformed == false) Initialize();
-            
+
         //prints informations about the current time
         if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
@@ -299,7 +299,7 @@ public:
         //initialize solution step
         if(mSolutionStepIsInitialized == false) InitializeSolutionStep();
 
-        
+
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
 
 
@@ -310,7 +310,7 @@ public:
         //to avoid error accumulation
         pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
 
-        
+
         //move the mesh if needed
         if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
@@ -338,9 +338,9 @@ public:
 
         KRATOS_CATCH( "" )
     }
-    
-    
-    
+
+
+
 
     /*@} */
     /**@name Operators
@@ -449,18 +449,18 @@ protected:
     bool mSolutionStepIsInitialized;
 
     bool mInitializeWasPerformed;
-    
-    bool mComputeTime; 
-    
+
+    bool mComputeTime;
+
 
     /*@} */
     /**@name Private Operators*/
     /*@{ */
-    
+
       //**********************************************************************
     //**********************************************************************
 
-    
+
     void CalculateReactions()
     {
 
@@ -468,16 +468,16 @@ protected:
 
     //**********************************************************************
     //**********************************************************************
-    
+
     /**
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    
+
     int Check()
     {
         KRATOS_TRY
-        
+
         BaseType::Check();
 
         GetScheme()->Check(BaseType::GetModelPart());
@@ -487,7 +487,7 @@ protected:
         KRATOS_CATCH( "" )
     }
 
-    
+
 //***************************************************************************
 //***************************************************************************
 

@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -20,30 +20,20 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
 
-    
-    def _add_explicit_variables(self,mp):
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
-
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)  
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)  
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION) 
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)     
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)  
-        
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
+
     def _apply_material_properties(self,mp,dim):
         #define properties
         mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
@@ -54,7 +44,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I22,0.00001)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I33,0.00001)
 
-        g = [0,0,0]  
+        g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
         cl = StructuralMechanicsApplication.LinearElastic3DLaw()
@@ -69,16 +59,16 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
-        if (which_dof == 'xz'):            
+        if (which_dof == 'xz'):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
         if (which_dof == 'yz'):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)       
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
         if (which_dof == 'rotXYZ'):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_X, True, mp.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Y, True, mp.Nodes)
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)             
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)
 
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
         if(which_dof == 'y'):
@@ -86,33 +76,33 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
                 POINT_LOAD_Y, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
-            #     POINT_LOAD_Y,0,load_size_dir)        
+            #     POINT_LOAD_Y,0,load_size_dir)
         if(which_dof == 'x'):
             KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
                 POINT_LOAD_X, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
-            #     POINT_LOAD_X,0,load_size_dir)  
+            #     POINT_LOAD_X,0,load_size_dir)
 
     def _solve_linear(self,mp):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        
+
         compute_reactions = True  #Now the rotation reactions (TORQUE) is added, so it works
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp, 
-                                                                scheme, 
-                                                                linear_solver, 
-                                                                builder_and_solver, 
-                                                                compute_reactions, 
-                                                                reform_step_dofs, 
+        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
+                                                                scheme,
+                                                                linear_solver,
+                                                                builder_and_solver,
+                                                                compute_reactions,
+                                                                reform_step_dofs,
                                                                 calculate_norm_dx,
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
-        
+
         strategy.Check()
         strategy.Solve()
 
@@ -122,22 +112,22 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(1e-15,1e-15)
         convergence_criterion.SetEchoLevel(0)
-        
+
         max_iters = 1000
         compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                scheme, 
-                                                                linear_solver, 
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                scheme,
+                                                                linear_solver,
                                                                 convergence_criterion,
-                                                                builder_and_solver, 
+                                                                builder_and_solver,
                                                                 max_iters,
-                                                                compute_reactions, 
-                                                                reform_step_dofs, 
+                                                                compute_reactions,
+                                                                reform_step_dofs,
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
-        
+
         strategy.Check()
         strategy.Solve()
 
@@ -153,28 +143,19 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                scheme, 
-                                                                linear_solver, 
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                scheme,
+                                                                linear_solver,
                                                                 convergence_criterion,
-                                                                builder_and_solver, 
+                                                                builder_and_solver,
                                                                 max_iters,
-                                                                compute_reactions, 
-                                                                reform_step_dofs, 
+                                                                compute_reactions,
+                                                                reform_step_dofs,
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
-        
+
         strategy.Check()
         strategy.Solve()
-
-    def _create_dynamic_explicit_strategy(self,mp):
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
-
-        strategy = StructuralMechanicsApplication.ExplicitStrategy(mp,
-                                            scheme,linear_solver,0,0,1)
-        strategy.SetEchoLevel(0)
-        return strategy
 
 
     def _check_results_linear(self,mp,endNode):
@@ -249,7 +230,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             #delta_time is computed from previous time in process_info
             mp.CloneTimeStep(time)
 
-        mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False        
+        mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def test_cr_beam_linear(self):
         dim = 3
@@ -266,16 +247,16 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #add dofs
         self._add_dofs(mp)
         #create condition
-        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
         #create submodelparts for dirichlet boundary conditions
         bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
         bcs_xyz.AddNodes([1])
         bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-        bcs_rot.AddNodes([1])    
+        bcs_rot.AddNodes([1])
         #create a submodalpart for neumann boundary conditions
         bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
         bcs_neumann.AddNodes([nr_nodes])
-        bcs_neumann.AddConditions([1])             
+        bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
             mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
@@ -287,9 +268,9 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         self._apply_BCs(bcs_rot,'rotXYZ')
 
         self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
-        
+
         #solve + compare
-        self._solve_linear(mp)    
+        self._solve_linear(mp)
         self._check_results_linear(mp,nr_nodes)
 
     def test_cr_beam_linear_local_axis2(self):
@@ -307,16 +288,16 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             #add dofs
             self._add_dofs(mp)
             #create condition
-            mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+            mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
             #create submodelparts for dirichlet boundary conditions
             bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
             bcs_xyz.AddNodes([1])
             bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-            bcs_rot.AddNodes([1])    
+            bcs_rot.AddNodes([1])
             #create a submodalpart for neumann boundary conditions
             bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
             bcs_neumann.AddNodes([nr_nodes])
-            bcs_neumann.AddConditions([1])             
+            bcs_neumann.AddConditions([1])
             #create Element
             for i in range(nr_elements):
                 mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
@@ -330,9 +311,9 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             self._apply_BCs(bcs_rot,'rotXYZ')
 
             self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
-            
+
             #solve + compare
-            self._solve_linear(mp)    
+            self._solve_linear(mp)
             self._check_results_linear(mp,nr_nodes)
 
     def test_cr_beam_nonlinear(self):
@@ -350,12 +331,12 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #add dofs
         self._add_dofs(mp)
         #create condition
-        mp.CreateNewCondition("PointMomentCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        mp.CreateNewCondition("PointMomentCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
         #create submodelparts for dirichlet boundary conditions
         bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
         bcs_xyz.AddNodes([1])
         bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-        bcs_rot.AddNodes([1])               
+        bcs_rot.AddNodes([1])
         #create Element
         for i in range(nr_elements):
             mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
@@ -377,7 +358,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             #apply non-constant boundary conditions
             Moment_i = Moment_Z*time_i
             mp.Nodes[nr_nodes].SetSolutionStepValue(StructuralMechanicsApplication.
-                POINT_MOMENT_Z,0,Moment_i)  
+                POINT_MOMENT_Z,0,Moment_i)
             #solve + compare
             self._solve_nonlinear(mp)
             self._check_results_nonlinear(mp,time_step,Moment_i,nr_nodes)
@@ -399,16 +380,16 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #add dofs
         self._add_dofs(mp)
         #create condition
-        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
         #create submodelparts for dirichlet boundary conditions
         bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
         bcs_xyz.AddNodes([1])
         bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-        bcs_rot.AddNodes([1])     
+        bcs_rot.AddNodes([1])
         #create a submodalpart for neumann boundary conditions
         bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
         bcs_neumann.AddNodes([nr_nodes])
-        bcs_neumann.AddConditions([1])            
+        bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
             mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
@@ -433,13 +414,13 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         y = []
         y_1 = []
         while (time_i <= time_end):
-            
+
             time_i += time_delta
-            mp.CloneTimeStep(time_i)            
+            mp.CloneTimeStep(time_i)
             #solve + compare
-            self._solve_dynamic(mp)  
+            self._solve_dynamic(mp)
             self._check_results_dynamic(mp,time_i,nr_nodes,time_step)
-            time_step += 1        
+            time_step += 1
 
     def test_cr_beam_dynamic_consistent_mass_matrix(self):
         dim = 3
@@ -457,16 +438,16 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #add dofs
         self._add_dofs(mp)
         #create condition
-        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
         #create submodelparts for dirichlet boundary conditions
         bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
         bcs_xyz.AddNodes([1])
         bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-        bcs_rot.AddNodes([1])     
+        bcs_rot.AddNodes([1])
         #create a submodalpart for neumann boundary conditions
         bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
         bcs_neumann.AddNodes([nr_nodes])
-        bcs_neumann.AddConditions([1])            
+        bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
             mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
@@ -491,13 +472,13 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         y = []
         y_1 = []
         while (time_i <= time_end):
-            
+
             time_i += time_delta
-            mp.CloneTimeStep(time_i)            
+            mp.CloneTimeStep(time_i)
             #solve + compare
-            self._solve_dynamic(mp)  
+            self._solve_dynamic(mp)
             self._check_results_dynamic(mp,time_i,nr_nodes,time_step)
-            time_step += 1        
+            time_step += 1
 
     def test_cr_beam_dynamic_explicit(self):
         dim = 3
@@ -505,7 +486,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         nr_elements = nr_nodes-1
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
-        self._add_explicit_variables(mp)
+        _add_explicit_variables(mp)
         self._apply_material_properties(mp,dim)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.LUMPED_MASS_MATRIX,0)
 
@@ -516,16 +497,16 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         #add dofs
         self._add_dofs(mp)
         #create condition
-        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
         #create submodelparts for dirichlet boundary conditions
         bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
         bcs_xyz.AddNodes([1])
         bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-        bcs_rot.AddNodes([1])     
+        bcs_rot.AddNodes([1])
         #create a submodalpart for neumann boundary conditions
         bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
         bcs_neumann.AddNodes([nr_nodes])
-        bcs_neumann.AddConditions([1])            
+        bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
             mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
@@ -545,16 +526,16 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         time_i = time_start
         time_step = 0
         self._set_and_fill_buffer(mp,2,time_delta)
-        strategy_expl = self._create_dynamic_explicit_strategy(mp)
+        strategy_expl = _create_dynamic_explicit_strategy(mp)
         while (time_i <= time_end):
-            
+
             time_i += time_delta
-            mp.CloneTimeStep(time_i)            
+            mp.CloneTimeStep(time_i)
             #solve + compare
             strategy_expl.Solve()
             self._check_results_dynamic_explicit(mp,time_i,nr_nodes,time_step)
 
-            time_step += 1   
+            time_step += 1
 
 class TestCrBeam2D2N(KratosUnittest.TestCase):
     def setUp(self):
@@ -570,29 +551,19 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,mp)
 
 
-    def _add_explicit_variables(self,mp):
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
-
-    
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)  
-        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)  
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION) 
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+        mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_VELOCITY)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)     
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)  
-        
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ANGULAR_ACCELERATION)
+
     def _apply_material_properties(self,mp,dim):
         #define properties
         mp.GetProperties()[0].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
@@ -601,7 +572,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         mp.GetProperties()[0].SetValue(KratosMultiphysics.POISSON_RATIO,0.30)
         mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.I33,0.00001)
 
-        g = [0,0,0]  
+        g = [0,0,0]
         mp.GetProperties()[0].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
 
         cl = StructuralMechanicsApplication.LinearElastic3DLaw()
@@ -615,12 +586,12 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         if (which_dof == 'xy'):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
-        if (which_dof == 'x'):            
+        if (which_dof == 'x'):
             KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
         if (which_dof == 'y'):
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)     
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
         if (which_dof == 'rotZ'):
-            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)             
+            KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)
 
     def _apply_Neumann_BCs(self,mp,which_dof,load_size_dir):
         if(which_dof == 'y'):
@@ -628,33 +599,33 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
                 POINT_LOAD_Y, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
-            #     POINT_LOAD_Y,0,load_size_dir)        
+            #     POINT_LOAD_Y,0,load_size_dir)
         if(which_dof == 'x'):
             KratosMultiphysics.VariableUtils().SetScalarVar(StructuralMechanicsApplication.
                 POINT_LOAD_X, load_size_dir, mp.Nodes)
             # for node in mp.Nodes:
             #     node.SetSolutionStepValue(StructuralMechanicsApplication.
-            #     POINT_LOAD_X,0,load_size_dir)  
+            #     POINT_LOAD_X,0,load_size_dir)
 
     def _solve_linear(self,mp):
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        
+
         compute_reactions = True  #Now the rotation reactions (TORQUE) is added, so it works
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp, 
-                                                                scheme, 
-                                                                linear_solver, 
-                                                                builder_and_solver, 
-                                                                compute_reactions, 
-                                                                reform_step_dofs, 
+        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
+                                                                scheme,
+                                                                linear_solver,
+                                                                builder_and_solver,
+                                                                compute_reactions,
+                                                                reform_step_dofs,
                                                                 calculate_norm_dx,
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
-        
+
         strategy.Check()
         strategy.Solve()
 
@@ -664,22 +635,22 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = StructuralMechanicsApplication.DisplacementAndOtherDoFCriteria(1e-15,1e-15)
         convergence_criterion.SetEchoLevel(0)
-        
+
         max_iters = 1000
         compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                scheme, 
-                                                                linear_solver, 
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                scheme,
+                                                                linear_solver,
                                                                 convergence_criterion,
-                                                                builder_and_solver, 
+                                                                builder_and_solver,
                                                                 max_iters,
-                                                                compute_reactions, 
-                                                                reform_step_dofs, 
+                                                                compute_reactions,
+                                                                reform_step_dofs,
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
-        
+
         strategy.Check()
         strategy.Solve()
 
@@ -695,31 +666,21 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         compute_reactions = True
         reform_step_dofs = True
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                scheme, 
-                                                                linear_solver, 
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                scheme,
+                                                                linear_solver,
                                                                 convergence_criterion,
-                                                                builder_and_solver, 
+                                                                builder_and_solver,
                                                                 max_iters,
-                                                                compute_reactions, 
-                                                                reform_step_dofs, 
+                                                                compute_reactions,
+                                                                reform_step_dofs,
                                                                 move_mesh_flag)
         strategy.SetEchoLevel(0)
-        
+
         strategy.Check()
         strategy.Solve()
 
 
-    def _create_dynamic_explicit_strategy(self,mp):
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
-
-        strategy = StructuralMechanicsApplication.ExplicitStrategy(mp,
-                                            scheme,linear_solver,0,0,1)
-        strategy.SetEchoLevel(0)
-        return strategy
-
-        
     def _check_results_linear(self,mp,endNode):
         #check displacement result
         displacement_cantilever_tip = mp.Nodes[endNode].GetSolutionStepValue(
@@ -793,7 +754,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
             #delta_time is computed from previous time in process_info
             mp.CloneTimeStep(time)
 
-        mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False        
+        mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def test_cr_beam_linear(self):
         dim = 2
@@ -810,16 +771,16 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         #add dofs
         self._add_dofs(mp)
         #create condition
-        mp.CreateNewCondition("PointLoadCondition2D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        mp.CreateNewCondition("PointLoadCondition2D1N",1,[nr_nodes],mp.GetProperties()[0])
         #create submodelparts for dirichlet boundary conditions
         bcs_xyz = mp.CreateSubModelPart("Dirichlet_XY")
         bcs_xyz.AddNodes([1])
         bcs_rot = mp.CreateSubModelPart("Dirichlet_Rot")
-        bcs_rot.AddNodes([1])    
+        bcs_rot.AddNodes([1])
         #create a submodalpart for neumann boundary conditions
         bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
         bcs_neumann.AddNodes([nr_nodes])
-        bcs_neumann.AddConditions([1])             
+        bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
             mp.CreateNewElement("CrLinearBeamElement2D2N", i+1, [i+1,i+2],
@@ -831,9 +792,9 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         self._apply_BCs(bcs_rot,'rotZ')
 
         self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
-        
+
         #solve + compare
-        self._solve_linear(mp)    
+        self._solve_linear(mp)
         self._check_results_linear(mp,nr_nodes)
 
 
@@ -853,16 +814,16 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         #add dofs
         self._add_dofs(mp)
         #create condition
-        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
         #create submodelparts for dirichlet boundary conditions
         bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
         bcs_xyz.AddNodes([1])
         bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-        bcs_rot.AddNodes([1])     
+        bcs_rot.AddNodes([1])
         #create a submodalpart for neumann boundary conditions
         bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
         bcs_neumann.AddNodes([nr_nodes])
-        bcs_neumann.AddConditions([1])            
+        bcs_neumann.AddConditions([1])
         #create Element
         for i in range(nr_elements):
             mp.CreateNewElement("CrBeamElement2D2N", i+1, [i+1,i+2],
@@ -887,13 +848,13 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         y = []
         y_1 = []
         while (time_i <= time_end):
-            
+
             time_i += time_delta
-            mp.CloneTimeStep(time_i)            
+            mp.CloneTimeStep(time_i)
             #solve + compare
-            self._solve_dynamic(mp)  
+            self._solve_dynamic(mp)
             self._check_results_dynamic(mp,time_i,nr_nodes,time_step)
-            time_step += 1  
+            time_step += 1
 
     def test_cr_beam_nonlinear(self):
         dim = 2
@@ -910,12 +871,12 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
         #add dofs
         self._add_dofs(mp)
         #create condition
-        mp.CreateNewCondition("PointMomentCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+        mp.CreateNewCondition("PointMomentCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
         #create submodelparts for dirichlet boundary conditions
         bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
         bcs_xyz.AddNodes([1])
         bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-        bcs_rot.AddNodes([1])               
+        bcs_rot.AddNodes([1])
         #create Element
         for i in range(nr_elements):
             mp.CreateNewElement("CrBeamElement2D2N", i+1, [i+1,i+2],
@@ -937,7 +898,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
             #apply non-constant boundary conditions
             Moment_i = Moment_Z*time_i
             mp.Nodes[nr_nodes].SetSolutionStepValue(StructuralMechanicsApplication.
-                POINT_MOMENT_Z,0,Moment_i)  
+                POINT_MOMENT_Z,0,Moment_i)
             #solve + compare
             self._solve_nonlinear(mp)
             self._check_results_nonlinear(mp,time_step,Moment_i,nr_nodes)
@@ -949,7 +910,7 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
             nr_elements = nr_nodes-1
             mp = KratosMultiphysics.ModelPart("solid_part")
             self._add_variables(mp)
-            self._add_explicit_variables(mp)
+            _add_explicit_variables(mp)
             self._apply_material_properties(mp,dim)
             mp.GetProperties()[0].SetValue(StructuralMechanicsApplication.LUMPED_MASS_MATRIX,0)
 
@@ -960,16 +921,16 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
             #add dofs
             self._add_dofs(mp)
             #create condition
-            mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])  
+            mp.CreateNewCondition("PointLoadCondition3D1N",1,[nr_nodes],mp.GetProperties()[0])
             #create submodelparts for dirichlet boundary conditions
             bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
             bcs_xyz.AddNodes([1])
             bcs_rot = mp.CreateSubModelPart("Dirichlet_RotAll")
-            bcs_rot.AddNodes([1])     
+            bcs_rot.AddNodes([1])
             #create a submodalpart for neumann boundary conditions
             bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
             bcs_neumann.AddNodes([nr_nodes])
-            bcs_neumann.AddConditions([1])            
+            bcs_neumann.AddConditions([1])
             #create Element
             for i in range(nr_elements):
                 mp.CreateNewElement("CrBeamElement2D2N", i+1, [i+1,i+2],
@@ -989,18 +950,38 @@ class TestCrBeam2D2N(KratosUnittest.TestCase):
             time_i = time_start
             time_step = 0
             self._set_and_fill_buffer(mp,2,time_delta)
-            strategy_expl = self._create_dynamic_explicit_strategy(mp)
+            strategy_expl = _create_dynamic_explicit_strategy(mp)
             while (time_i <= time_end):
-                
+
                 time_i += time_delta
-                mp.CloneTimeStep(time_i)            
+                mp.CloneTimeStep(time_i)
                 #solve + compare
                 strategy_expl.Solve()
                 self._check_results_dynamic_explicit(mp,time_i,nr_nodes,time_step)
 
-                time_step += 1   
+                time_step += 1
+
+
+
+def _add_explicit_variables(mp):
+    mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
+    mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
+    mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
+
+def _create_dynamic_explicit_strategy(mp):
+    linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+    scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
+
+    strategy = StructuralMechanicsApplication.ExplicitStrategy(mp,
+                                        scheme,linear_solver,0,0,1)
+    strategy.SetEchoLevel(0)
+    return strategy
 
 if __name__ == '__main__':
     KratosUnittest.main()
 
-        
+

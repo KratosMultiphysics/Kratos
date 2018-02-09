@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Klaus B Sautter (based on the work of JMCarbonell)
-//					 
+//
 
 #if !defined(KRATOS_EXPLICIT_BUILDER_AND_SOLVER )
 #define  KRATOS_EXPLICIT_BUILDER_AND_SOLVER
@@ -126,7 +126,7 @@ public:
 
 
         auto it_node = rModelPart.NodesBegin();
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i=0;i<static_cast<int>(r_nodes.size());++i)
         {
             (it_node+i)->SetValue(NODAL_MASS,0.00);
@@ -134,7 +134,7 @@ public:
 
         if (rModelPart.NodesBegin()->HasDofFor(ROTATION_Z))
         {
-            #pragma omp parallel for 
+            #pragma omp parallel for
             for(int i=0;i<static_cast<int>(r_nodes.size());++i)
                 {
                     array_1d<double,3>& r_nodal_inertia = (it_node+i)->GetValue(NODAL_INERTIA);
@@ -143,17 +143,17 @@ public:
         }
 
         auto it_elem = rModelPart.ElementsBegin();
-        #pragma omp parallel for 
-        for (int i=0;i<static_cast<int>(r_elements.size());++i)  
+        #pragma omp parallel for
+        for (int i=0;i<static_cast<int>(r_elements.size());++i)
         {
             //Getting nodal mass and inertia from element
             Vector dummy_vector;
-            // this function needs to be implemented in the respective 
-            // element to provide inertias and nodal masses 
+            // this function needs to be implemented in the respective
+            // element to provide inertias and nodal masses
             (it_elem+i)->AddExplicitContribution(dummy_vector,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
         }
-        
-        
+
+
         KRATOS_CATCH( "" )
     }
 
@@ -166,25 +166,25 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        
+
         // Compute condition contributions to RHS.
         CalculateAndAddConditionsRHS(pScheme, rModelPart);
 
         // Compute element contributions to RHS.
         CalculateAndAddElementsRHS(pScheme, rModelPart);
 
-        
+
         KRATOS_CATCH( "" )
 
     }
 
 
-    
-    
+
+
     //***************************************************************************
     //***************************************************************************
 
-   
+
     void CalculateAndAddConditionsRHS(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart )
     {
         KRATOS_TRY
@@ -192,8 +192,8 @@ public:
         ProcessInfo& rCurrentProcessInfo      = rModelPart.GetProcessInfo();
         ConditionsArrayType& pConditions      = rModelPart.Conditions();
 
-        typename ConditionsArrayType::ptr_iterator it_begin=pConditions.ptr_begin();    
-        #pragma omp parallel for 
+        typename ConditionsArrayType::ptr_iterator it_begin=pConditions.ptr_begin();
+        #pragma omp parallel for
         for (int i =0;i<static_cast<int>(pConditions.size());++i)
         {
             LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
@@ -212,7 +212,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    
+
     //***************************************************************************
     //***************************************************************************
 
@@ -221,12 +221,12 @@ public:
     {
 
         KRATOS_TRY
-        
+
         ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
         ElementsArrayType& pElements        = rModelPart.Elements();
-        
-        typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin();  
-        #pragma omp parallel for 
+
+        typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin();
+        #pragma omp parallel for
         for (int i =0;i<static_cast<int>(pElements.size());++i)
         {
             LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
@@ -239,12 +239,12 @@ public:
 
         KRATOS_CATCH("")
     }
-    
-    
+
+
     //**************************************************************************
     //**************************************************************************
 
-    
+
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
