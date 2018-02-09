@@ -281,8 +281,8 @@ protected:
 
     void AddVelocitySystem(
         TElementData& rData,
-        MatrixType& rLHS,
-        VectorType& rRHS) override;
+        MatrixType& rLocalLHS,
+        VectorType& rLocalRHS) override;
 
     void AddMassLHS(
         TElementData& rData,
@@ -299,7 +299,9 @@ protected:
         MatrixType& rLHS,
         VectorType& rRHS) override;
 
-    void AddViscousTerm(const TElementData& rData, MatrixType& rLHS);
+    void AddViscousTerm(
+        const TElementData& rData,
+        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS);
 
     /**
      * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.

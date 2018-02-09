@@ -424,9 +424,12 @@ void QSVMS<TElementData>::AddTimeIntegratedRHS(
 template< class TElementData >
 void QSVMS<TElementData>::AddVelocitySystem(
     TElementData& rData,
-    MatrixType &rLHS,
-    VectorType &rRHS)
+    MatrixType &rLocalLHS,
+    VectorType &rLocalRHS)
 {
+    auto& LHS = rData.LHS;
+    LHS.clear();
+
     // Interpolate nodal data on the integration point
     double ElemSize = this->ElementSize();
 
@@ -480,43 +483,50 @@ void QSVMS<TElementData>::AddVelocitySystem(
             for (unsigned int d = 0; d < Dim; d++)
             {
                 //K += GaussWeight * Density * Viscosity * rDN_DX(i, d) * rDN_DX(j, d);
-                rLHS(row+d,col+d) += K;
+                LHS(row+d,col+d) += K;
 
                 // v * Grad(p) block
                 G = TauOne * AGradN[i] * rData.DN_DX(j,d); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
                 PDivV = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
 
                 // Write v * Grad(p) component
-                rLHS(row+d,col+Dim) += rData.Weight * (G - PDivV);
+                LHS(row+d,col+Dim) += rData.Weight * (G - PDivV);
                 // Use symmetry to write the q * Div(u) component
-                rLHS(col+Dim,row+d) += rData.Weight * (G + PDivV);
+                LHS(col+Dim,row+d) += rData.Weight * (G + PDivV);
 
                 // q-p stabilization block
                 laplacian += rData.DN_DX(i,d) * rData.DN_DX(j,d); // Stabilization: Grad(q) * TauOne * Grad(p)
 
                 for (unsigned int e = 0; e < Dim; e++) // Stabilization: Div(v) * TauTwo * Div(u)
-                    rLHS(row+d,col+e) += rData.Weight*TauTwo*rData.DN_DX(i,d)*rData.DN_DX(j,e);
+                    LHS(row+d,col+e) += rData.Weight*TauTwo*rData.DN_DX(i,d)*rData.DN_DX(j,e);
             }
 
             // Write q-p term
-            rLHS(row+Dim,col+Dim) += rData.Weight*TauOne*laplacian;
+            LHS(row+Dim,col+Dim) += rData.Weight*TauOne*laplacian;
         }
 
         // RHS terms
         double forcing = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
-            rRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
-            rRHS[row+d] += rData.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-            rRHS[row+d] -= rData.Weight * TauTwo * rData.DN_DX(i,d) * mass_projection;
+            rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
+            rLocalRHS[row+d] += rData.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+            rLocalRHS[row+d] -= rData.Weight * TauTwo * rData.DN_DX(i,d) * mass_projection;
             forcing += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
         }
-        rRHS[row + Dim] += rData.Weight * TauOne * forcing; // Grad(q) * TauOne * (Density * BodyForce)
+        rLocalRHS[row + Dim] += rData.Weight * TauOne * forcing; // Grad(q) * TauOne * (Density * BodyForce)
     }
 
     // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
     // This could potentially be optimized, as it can be integrated exactly using one less integration order when compared to previous terms.
-    this->AddViscousTerm(rData,rLHS);
+    this->AddViscousTerm(rData,LHS);
+
+    // Rewrite local contribution into residual form (A*dx = b - A*x)
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData,values);
+
+    noalias(rLocalLHS) += LHS;
+    noalias(rLocalRHS) -= prod(LHS, values);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -643,7 +653,7 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::AddViscousTerm(const TElementData& rData, MatrixType& rLHS) {
+void QSVMS<TElementData>::AddViscousTerm(const TElementData& rData, boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS) {
 
     boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
@@ -891,29 +901,24 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
 
         noalias(rLHS) += rData.bdf0*mass_matrix + velocity_lhs;
         
-        Vector values = ZeroVector(rRHS.size());
         Vector acceleration = ZeroVector(rRHS.size());
 
         int LocalIndex = 0;
         const auto& r_velocities = rData.Velocity;
         const auto& r_velocities_step1 = rData.Velocity_OldStep1;
         const auto& r_velocities_step2 = rData.Velocity_OldStep2;
-        const auto& r_pressures = rData.Pressure;
-
+        
         for (unsigned int i = 0; i < TElementData::NumNodes; ++i) {
             for (unsigned int d = 0; d < TElementData::Dim; ++d)  {
-                values[LocalIndex] = r_velocities(i,d);
                 // Velocity Dofs
                 acceleration[LocalIndex] = rData.bdf0*r_velocities(i,d);
                 acceleration[LocalIndex] += rData.bdf1*r_velocities_step1(i,d);
                 acceleration[LocalIndex] += rData.bdf2*r_velocities_step2(i,d);
                 ++LocalIndex;
             }
-            values[LocalIndex] = r_pressures[i];
             ++LocalIndex;
         }
 
-        noalias(rRHS) -= prod(velocity_lhs,values);
         noalias(rRHS) -= prod(mass_matrix,acceleration);
 }
 

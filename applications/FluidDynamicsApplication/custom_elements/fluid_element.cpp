@@ -237,12 +237,6 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
 
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
         }
-
-        // Rewrite local contribution into residual form (A*dx = b - A*x)
-        array_1d<double,LocalSize> values;
-        this->GetCurrentValuesVector(data,values);
-
-        noalias(rRightHandSideVector) -= prod(rDampMatrix, values);
     }
 }
 
@@ -485,7 +479,7 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
     Values.SetShapeFunctionsValues(Nvec);
 
     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
-    //this is ok under the hypothesis that no history dependent behaviour is employed
+    //this is ok under the hypothesis that no history dependent behavior is employed
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 }
 
@@ -583,7 +577,9 @@ void FluidElement<TElementData>::AddTimeIntegratedRHS(
 
 template <class TElementData>
 void FluidElement<TElementData>::AddVelocitySystem(
-    TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
+    TElementData& rData,
+    MatrixType& rLocalLHS,
+    VectorType& rLocalRHS) {
     KRATOS_TRY;
 
     KRATOS_ERROR << "Calling base FluidElement::AddVelocitySystem "

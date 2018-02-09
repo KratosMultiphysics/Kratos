@@ -373,8 +373,8 @@ protected:
 
     virtual void AddVelocitySystem(
         TElementData& rData,
-        MatrixType& rLHS,
-        VectorType& rRHS);
+        MatrixType& rLocalLHS,
+        VectorType& rLocalRHS);
 
     virtual void AddMassLHS(
         TElementData& rData,
