@@ -459,6 +459,40 @@ protected:
     }
 
     /**
+     * @brief It adds the dynamic RHS contribution of the objects 
+     * \f[ \mathbf{b} - \mathbf{M} a - \mathbf{D} v \f]
+     * @param rObject The object to compute
+     * @param RHS_Contribution The dynamic contribution for the RHS
+     * @param D The damping matrix
+     * @param M The mass matrix
+     * @param rCurrentProcessInfo The current process info instance
+     */
+        
+    template <typename TObjectType>
+    void TemplateAddDynamicsToRHS(
+        TObjectType rObject,
+        LocalSystemVectorType& RHS_Contribution,
+        LocalSystemMatrixType& D,
+        LocalSystemMatrixType& M,
+        ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        const std::size_t this_thread = OpenMPUtils::ThisThread();
+        
+        // Adding inertia contribution
+        if (M.size1() != 0) {
+            rObject->GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
+            noalias(RHS_Contribution) -= prod(M, mVector.dot2un0[this_thread]);
+        }
+
+        // Adding damping contribution
+        if (D.size1() != 0) {
+            rObject->GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
+            noalias(RHS_Contribution) -= prod(D, mVector.dotun0[this_thread]);
+        }
+    }
+    
+    /**
      * @brief It adds the dynamic RHS contribution of the elements 
      * \f[ \mathbf{b} - \mathbf{M} a - \mathbf{D} v \f]
      * @param pElement The element to compute
@@ -476,19 +510,7 @@ protected:
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
-        
-        // Adding inertia contribution
-        if (M.size1() != 0) {
-            pElement->GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
-            noalias(RHS_Contribution) -= prod(M, mVector.dot2un0[this_thread]);
-        }
-
-        // Adding damping contribution
-        if (D.size1() != 0) {
-            pElement->GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
-            noalias(RHS_Contribution) -= prod(D, mVector.dotun0[this_thread]);
-        }
+        TemplateAddDynamicsToRHS<Element::Pointer>(pElement, RHS_Contribution, D, M, rCurrentProcessInfo);
     }
 
     /**
@@ -509,20 +531,7 @@ protected:
         ProcessInfo& rCurrentProcessInfo
         ) override
     {
-        const std::size_t this_thread = OpenMPUtils::ThisThread();
-        
-        // Adding inertia contribution
-        if (M.size1() != 0) {
-            pCondition->GetSecondDerivativesVector(mVector.dot2un0[this_thread], 0);
-            noalias(RHS_Contribution) -= prod(M, mVector.dot2un0[this_thread]);
-        }
-
-        // Adding damping contribution
-        // Damping contribution
-        if (D.size1() != 0) {
-            pCondition->GetFirstDerivativesVector(mVector.dotun0[this_thread], 0);
-            noalias(RHS_Contribution) -= prod(D, mVector.dotun0[this_thread]);
-        }
+        TemplateAddDynamicsToRHS<Condition::Pointer>(pCondition, RHS_Contribution, D, M, rCurrentProcessInfo);
     }
 
     ///@}
