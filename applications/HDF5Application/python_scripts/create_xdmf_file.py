@@ -55,7 +55,7 @@ def GetListOfTimeLabels(file_name):
     return list_of_time_labels
 
 
-if __name__ == '__main__':
+def main():
     file_name = sys.argv[1]
     temporal_grid = xdmf.TemporalGrid()
     GenerateXdmfConnectivities(file_name)
@@ -87,3 +87,7 @@ if __name__ == '__main__':
     # Write.
     xdmf_file_name = file_name.replace(".h5", ".xdmf")
     xdmf.ET.ElementTree(xdmf.Xdmf(domain).create_xml_element()).write(xdmf_file_name)
+
+
+if __name__ == '__main__':
+    main()
