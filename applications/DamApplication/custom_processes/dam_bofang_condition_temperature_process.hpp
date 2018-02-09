@@ -59,8 +59,6 @@ class DamBofangConditionTemperatureProcess : public Process
                 "Day_Ambient_Temp"                                 : 1,
                 "Water_level"                                      : 0.0,
                 "Water_level_Table"                                : 0,
-                "Outer_temp"                                       : 0.0,
-                "Outer_temp_Table"                                 : 0,
                 "Month"                                            : 1.0,
                 "Month_Table"                                      : 0
             }  )");
@@ -85,13 +83,11 @@ class DamBofangConditionTemperatureProcess : public Process
         mAmplitude = rParameters["Temperature_Amplitude"].GetDouble();
         mDay = rParameters["Day_Ambient_Temp"].GetInt();
         mWaterLevel = rParameters["Water_level"].GetDouble();
-        mOuterTemp = rParameters["Outer_temp"].GetDouble();
         mMonth = rParameters["Month"].GetDouble();
         mFreq = 0.52323;
 
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableIdWater = rParameters["Water_level_Table"].GetInt();
-        mTableIdOuter = rParameters["Outer_temp_Table"].GetInt();
         mTableIdMonth = rParameters["Month_Table"].GetInt();
 
         if (mTableIdWater != 0)
