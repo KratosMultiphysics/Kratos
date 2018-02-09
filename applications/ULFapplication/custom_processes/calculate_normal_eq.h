@@ -127,23 +127,23 @@ namespace Kratos
 	    //Find the neighbours of TRIPLE_POINT at the boundary
 	    if (im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
 	    {
-		temp[0] = im->FastGetSolutionStepValue(NORMAL_TP_X);
-		temp[1] = im->FastGetSolutionStepValue(NORMAL_TP_Y);
+		temp[0] = im->FastGetSolutionStepValue(NORMAL_TRIPLE_POINT_X);
+		temp[1] = im->FastGetSolutionStepValue(NORMAL_TRIPLE_POINT_Y);
 		temp = NormalizeVec2D(temp);
 		normal_eq[0] = sin(theta_rad)*temp[0];
 		normal_eq[1] = sin(theta_rad)*temp[1];
 		normal_eq[2] = cos(theta_rad);
 		normal_eq = NormalizeVec3D(normal_eq);	      
-		im->FastGetSolutionStepValue(NORMAL_EQ) = normal_eq;
+		im->FastGetSolutionStepValue(NORMAL_EQUILIBRIUM) = normal_eq;
 		
-		im->FastGetSolutionStepValue(NORMAL_CL_EQ_X) = -cos(theta_rad)*temp[0];
-		im->FastGetSolutionStepValue(NORMAL_CL_EQ_Y) = -cos(theta_rad)*temp[1];		
-		im->FastGetSolutionStepValue(NORMAL_CL_EQ_Z) = sin(theta_rad);
-		im->FastGetSolutionStepValue(NORMAL_CL_EQ) = NormalizeVec3D(im->FastGetSolutionStepValue(NORMAL_CL_EQ));
+		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_EQUILIBRIUM_X) = -cos(theta_rad)*temp[0];
+		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_EQUILIBRIUM_Y) = -cos(theta_rad)*temp[1];		
+		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_EQUILIBRIUM_Z) = sin(theta_rad);
+		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_EQUILIBRIUM) = NormalizeVec3D(im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_EQUILIBRIUM));
 
 	    }
 	    else
-		im->FastGetSolutionStepValue(NORMAL_EQ) = ZeroVector(3);
+		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_EQUILIBRIUM) = ZeroVector(3);
 	}	
 	KRATOS_CATCH("")
     }    

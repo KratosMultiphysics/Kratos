@@ -413,14 +413,14 @@ public:
 	    int node_indx_wrong = 5;
 	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
 	    {
-	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(CURVATURE) != 0.0)
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(MEAN_CURVATURE_2D) != 0.0)
 		k++;
 	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_BOUNDARY) < 0.1)
 		node_indx_wrong = iNode;
 	    }
 	    if(k > 2 && node_indx_wrong != 5)
 	    {
-	      this->GetGeometry()[node_indx_wrong].FastGetSolutionStepValue(CURVATURE) = 0.0;
+	      this->GetGeometry()[node_indx_wrong].FastGetSolutionStepValue(MEAN_CURVATURE_2D) = 0.0;
 	    }
 	    k = 0;
 	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
@@ -444,14 +444,14 @@ public:
 	    int node_indx_wrong = 5;
 	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
 	    {
-	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(MEAN_CURVATURE) != 0.0)
+	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(MEAN_CURVATURE_3D) != 0.0)
 		k++;
 	      if(this->GetGeometry()[iNode].FastGetSolutionStepValue(IS_BOUNDARY) < 0.1)
 		node_indx_wrong = iNode;
 	    }
 	    if(k > 2 && node_indx_wrong != 5)
 	    {
-	      this->GetGeometry()[node_indx_wrong].FastGetSolutionStepValue(MEAN_CURVATURE) = 0.0;
+	      this->GetGeometry()[node_indx_wrong].FastGetSolutionStepValue(MEAN_CURVATURE_3D) = 0.0;
 	    }
 	    k = 0;
 	    for(unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
@@ -1329,7 +1329,7 @@ protected:
     void ApplySurfaceTensionContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector,
             const array_1d< double, 3 >& node_indx, const int& k, const ProcessInfo& rCurrentProcessInfo)
     {
-	const double gamma = rCurrentProcessInfo[SURFTENS_COEFF]; //surface tension coefficient between air and water [N m-1]	
+	const double gamma = rCurrentProcessInfo[SURFACE_TENSION_COEF]; //surface tension coefficient between air and water [N m-1]	
 	
 	double dt = rCurrentProcessInfo[DELTA_TIME];
 	
@@ -1344,7 +1344,7 @@ protected:
 	//Clearing spurious curvatures:
 	for(unsigned int i = 0; i < 3; i++){
 	    if((this->GetGeometry()[i].FastGetSolutionStepValue(IS_BOUNDARY) == 0.0) || (this->GetGeometry()[i].FastGetSolutionStepValue(IS_FREE_SURFACE) == 0.0))
-	        this->GetGeometry()[i].FastGetSolutionStepValue(CURVATURE) = 0.0;
+	        this->GetGeometry()[i].FastGetSolutionStepValue(MEAN_CURVATURE_2D) = 0.0;
 	}
 	
 	//Flag counter to identify contact element:
@@ -1394,21 +1394,21 @@ protected:
 	    {
 	      for(int i = 0; i < 3; i++)
 	      {
-		avg_curv += 0.333333333333*(this->GetGeometry()[i].FastGetSolutionStepValue(CURVATURE));
+		avg_curv += 0.333333333333*(this->GetGeometry()[i].FastGetSolutionStepValue(MEAN_CURVATURE_2D));
 	      }
-	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(CURVATURE) > avg_curv)
+	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > avg_curv)
 	      {
 		ii = node_indx[1];
 		jj = node_indx[2];
 		kk = node_indx[0];
 	      }
-	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(CURVATURE) > avg_curv)
+	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > avg_curv)
 	      {
 		ii = node_indx[0];
 		jj = node_indx[2];
 		kk = node_indx[1];
 	      }
-	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(CURVATURE) > avg_curv)
+	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > avg_curv)
 	      {
 		ii = node_indx[0];
 		jj = node_indx[1];
@@ -1420,7 +1420,7 @@ protected:
 	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 	      {
 		jj = node_indx[0];
-		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(CURVATURE) > 1.0)
+		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > 1.0)
 		{
 		  ii = node_indx[1]; //TRIPLE_POINT
 		  kk = node_indx[2]; //IS_STRUCTURE
@@ -1434,7 +1434,7 @@ protected:
 	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 	      {
 		jj = node_indx[1];
-		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(CURVATURE) > 1.0)
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > 1.0)
 		{
 		  ii = node_indx[0]; //TRIPLE_POINT
 		  kk = node_indx[2]; //IS_STRUCTURE
@@ -1448,7 +1448,7 @@ protected:
 	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 	      {
 		jj = node_indx[2];
-		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(CURVATURE) > 1.0)
+		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > 1.0)
 		{
 		  ii = node_indx[0]; //TRIPLE_POINT
 		  kk = node_indx[1]; //IS_STRUCTURE
@@ -1530,8 +1530,8 @@ protected:
 	double dl = sqrt(x12[0]*x12[0] + x12[1]*x12[1]);
 	x12 /= dl;
 	
-	double curv1 = this->GetGeometry()[ii].FastGetSolutionStepValue(CURVATURE);
-	double curv2 = this->GetGeometry()[jj].FastGetSolutionStepValue(CURVATURE);
+	double curv1 = this->GetGeometry()[ii].FastGetSolutionStepValue(MEAN_CURVATURE_2D);
+	double curv2 = this->GetGeometry()[jj].FastGetSolutionStepValue(MEAN_CURVATURE_2D);
 	
 	array_1d<double,2> norm_eq;
 	
@@ -1623,7 +1623,7 @@ protected:
 	    An3[1] = this->GetGeometry()[kk].FastGetSolutionStepValue(NORMAL_Y);
 	    double norm3 = sqrt(An3[0]*An3[0] + An3[1]*An3[1]);
 	    An3 /= norm3;
-	    double curv3 = this->GetGeometry()[kk].FastGetSolutionStepValue(CURVATURE);
+	    double curv3 = this->GetGeometry()[kk].FastGetSolutionStepValue(MEAN_CURVATURE_2D);
 	    
 	    double x3 = this->GetGeometry()[kk].X();
 	    double y3 = this->GetGeometry()[kk].Y();

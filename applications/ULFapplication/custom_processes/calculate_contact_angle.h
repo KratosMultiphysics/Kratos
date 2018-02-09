@@ -177,8 +177,8 @@ namespace Kratos
 	
 	double theta = 0.0;
 	double pi = 3.14159265359;
-	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
-	double theta_rad = theta_eq*pi/180.0;
+	///////double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
+	///////double theta_rad = theta_eq*pi/180.0;
 
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
 	{
@@ -208,7 +208,7 @@ namespace Kratos
 		normal_geom = im->FastGetSolutionStepValue(NORMAL_GEOMETRIC);
 		/////double dot_prod = 0.0;
 		
-		im->FastGetSolutionStepValue(NORMAL_CL) = ZeroVector(3);
+		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE) = ZeroVector(3);
 		array_1d<double,2> aux = ZeroVector(2);
 		array_1d<double,3> temp = ZeroVector(3);
 		
@@ -246,19 +246,19 @@ namespace Kratos
 			{
 			  if (visited == 0)
 			  {
-                            int idx_j = 6;
+                            ///////int idx_j = 6;
 			    xj = neighb_faces[i].GetGeometry()[j].X();
 			    yj = neighb_faces[i].GetGeometry()[j].Y();
 			    zj = neighb_faces[i].GetGeometry()[j].Z();
-			    idx_j = j;
+			    ///////idx_j = j;
 			  }
 			  else
 			  {
-                            int idx_k = 7;
+                            ///////int idx_k = 7;
 			    xk = neighb_faces[i].GetGeometry()[j].X();
 			    yk = neighb_faces[i].GetGeometry()[j].Y();
 			    zk = neighb_faces[i].GetGeometry()[j].Z();	
-			    idx_k = j;
+			    ///////idx_k = j;
 			  }
 			  visited++;
 			}
@@ -302,33 +302,33 @@ namespace Kratos
 		  
 		  //Normal to the contact line
 		  if (neighnum_caf == 1)
-		      im->FastGetSolutionStepValue(NORMAL_CL) += rij;
+		      im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE) += rij;
 		  if (neighnum_caf == 2)
-		      im->FastGetSolutionStepValue(NORMAL_CL) += 0.5*(rij+rik);		  
+		      im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE) += 0.5*(rij+rik);		  
 		  
 		}
 		NormalizeVec3D(normal_tp);
-		im->FastGetSolutionStepValue(NORMAL_TP_X) = normal_tp[0];
-		im->FastGetSolutionStepValue(NORMAL_TP_Y) = normal_tp[1];
-		im->FastGetSolutionStepValue(NORMAL_TP_Z) = normal_tp[2];
+		im->FastGetSolutionStepValue(NORMAL_TRIPLE_POINT_X) = normal_tp[0];
+		im->FastGetSolutionStepValue(NORMAL_TRIPLE_POINT_Y) = normal_tp[1];
+		im->FastGetSolutionStepValue(NORMAL_TRIPLE_POINT_Z) = normal_tp[2];
 		
 		aux[0] = normal_tp[0];
 		aux[1] = normal_tp[1];
 		NormalizeVec2D(aux);
-		NormalizeVec3D(im->FastGetSolutionStepValue(NORMAL_CL));
-		temp = im->FastGetSolutionStepValue(NORMAL_CL);
+		NormalizeVec3D(im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE));
+		temp = im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE);
 		
-		im->FastGetSolutionStepValue(NORMAL_CL_X) = cos(asin(temp[2]))*aux[0];
-		im->FastGetSolutionStepValue(NORMAL_CL_Y) = cos(asin(temp[2]))*aux[1];
-		NormalizeVec3D(im->FastGetSolutionStepValue(NORMAL_CL));
+		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_X) = cos(asin(temp[2]))*aux[0];
+		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_Y) = cos(asin(temp[2]))*aux[1];
+		NormalizeVec3D(im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE));
 		
 		if (num_faces != 0.0)
 		    im->FastGetSolutionStepValue(CONTACT_ANGLE) /= num_faces;
 		
 		if((im->FastGetSolutionStepValue(CONTACT_ANGLE)) < 90.0)
 		{
-		    im->FastGetSolutionStepValue(NORMAL_CL_X) *= -1.0;
-		    im->FastGetSolutionStepValue(NORMAL_CL_Y) *= -1.0;
+		    im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_X) *= -1.0;
+		    im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE_Y) *= -1.0;
 		}
 	      }
 	}

@@ -12,14 +12,12 @@ class FluidSolverConfiguration:
     class linear_solver_config:
         solver_type = "Super LU"
         scaling = False
-    
     #convergence criteria settings
     velocity_relative_tolerance = 1E-4
     velocity_absolute_tolerance = 1E-6
     pressure_relative_tolerance = 1E-4
     pressure_absolute_tolerance = 1E-6
     divergence_cleareance_step = 1
-    
     #other solver settings
     oss_switch = 0
     compute_reactions = True
@@ -28,15 +26,12 @@ class FluidSolverConfiguration:
     dynamic_tau = 0.1
     max_iteration = 20
     laplacian_form = 2
-    
     eulerian_model_part = 0
-
 # Monolithic solver
 Monolithic_Linear_Solver ="MixedUP"#"BiConjugate gradient stabilized"#
 Monolithic_Iterative_Tolerance = 1E-4
 Monolithic_Solver_Max_Iteration = 5000
 Monolithic_Preconditioner_type = "ILU0"#"Diagonal"
-
 Velocity_Linear_Solver="BiConjugate gradient stabilized"
 Pressure_Linear_Solver="Conjugate gradient"
 Velocity_Preconditioner_type="ILU0"

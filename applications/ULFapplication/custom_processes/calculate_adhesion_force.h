@@ -113,9 +113,9 @@ namespace Kratos
     {
 	KRATOS_TRY
 	
-	double gamma = ThisModelPart.GetProcessInfo()[SURFTENS_COEFF]; //Surface tension coefficient [N m-1]
+	double gamma = ThisModelPart.GetProcessInfo()[SURFACE_TENSION_COEF]; //Surface tension coefficient [N m-1]
 	double pi = 3.14159265359;
-	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
+	///////double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
 	double theta, sign_force, theta_rad, cos_t;
 	array_1d<double,2> nu0 = ZeroVector(2);
 	array_1d<double,2> vel = ZeroVector(2);
@@ -127,8 +127,8 @@ namespace Kratos
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
 	      {
-		nu0[0] = im->FastGetSolutionStepValue(NORMAL_TP_X);
-		nu0[1] = im->FastGetSolutionStepValue(NORMAL_TP_Y);
+		nu0[0] = im->FastGetSolutionStepValue( NORMAL_TRIPLE_POINT_X);
+		nu0[1] = im->FastGetSolutionStepValue( NORMAL_TRIPLE_POINT_Y);
 		NormalizeVec2D(nu0);
 		theta = im->FastGetSolutionStepValue(CONTACT_ANGLE);
 		theta_rad = (theta)*pi/180.0;
@@ -143,8 +143,8 @@ namespace Kratos
 		}
 		else
 		{
-		    n_tp[0] = im->FastGetSolutionStepValue(NORMAL_TP_X);
-		    n_tp[1] = im->FastGetSolutionStepValue(NORMAL_TP_Y);
+		    n_tp[0] = im->FastGetSolutionStepValue( NORMAL_TRIPLE_POINT_X);
+		    n_tp[1] = im->FastGetSolutionStepValue( NORMAL_TRIPLE_POINT_Y);
 		    sign_force = DotProduct2D(nu0,n_tp);
 		}
 		im->FastGetSolutionStepValue(ADHESION_FORCE_X) = -sign_force*gamma*cos_t*(im->FastGetSolutionStepValue(NODAL_LENGTH))*nu0[0];

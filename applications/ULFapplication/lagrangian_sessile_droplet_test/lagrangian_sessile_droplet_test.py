@@ -235,7 +235,7 @@ while(time <= final_time):
         gid_io.InitializeResults(time, (lagrangian_model_part).GetMesh());
     
         gid_io.WriteNodalResults(CONTACT_ANGLE,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(CURVATURE,lagrangian_model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(MEAN_CURVATURE_2D,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(IS_BOUNDARY,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(IS_FREE_SURFACE,lagrangian_model_part.Nodes,time,0)

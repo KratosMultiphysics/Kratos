@@ -208,7 +208,7 @@ namespace Kratos
 		  sign_curv = -1.0;
 		}
 		
-		im->FastGetSolutionStepValue(CURVATURE) = sign_curv*curv;
+		im->FastGetSolutionStepValue(MEAN_CURVATURE_2D) = sign_curv*curv;
 		
 	      }
 	      
@@ -263,11 +263,11 @@ namespace Kratos
 		double dT_norm = Norm2D(dT);
 		double curv_tp = dT_norm/ds;
 		// There is no need to compute curvature's sign: at triple point it's always positive!
-		im->FastGetSolutionStepValue(CURVATURE) = curv_tp;			
+		im->FastGetSolutionStepValue(MEAN_CURVATURE_2D) = curv_tp;			
 	      }
 	      
 	      if(im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0 && im->FastGetSolutionStepValue(TRIPLE_POINT)*1.0E8 == 0.0)
-		  im->FastGetSolutionStepValue(CURVATURE) = 0.0;
+		  im->FastGetSolutionStepValue(MEAN_CURVATURE_2D) = 0.0;
 	    }
 	    
 	KRATOS_CATCH("")
@@ -416,20 +416,20 @@ namespace Kratos
 		im->FastGetSolutionStepValue(NORMAL_GEOMETRIC_Z) = K_xi_norm[2];
 		
 		//Final step: kappa_H and kappa_G (mean curvature kappa_H is half the magnitude (norm) of K_xi vector)
-		im->FastGetSolutionStepValue(MEAN_CURVATURE) = 0.5*Norm3D(K_xi);
+		im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) = 0.5*Norm3D(K_xi);
 		im->FastGetSolutionStepValue(GAUSSIAN_CURVATURE) = (2*pi - theta_sum)/Sp;
 		
 		//Principal curvatures, taking care of square root term:
-		Delta_xi = ((im->FastGetSolutionStepValue(MEAN_CURVATURE))*(im->FastGetSolutionStepValue(MEAN_CURVATURE)) - im->FastGetSolutionStepValue(GAUSSIAN_CURVATURE));
+		Delta_xi = ((im->FastGetSolutionStepValue(MEAN_CURVATURE_3D))*(im->FastGetSolutionStepValue(MEAN_CURVATURE_3D)) - im->FastGetSolutionStepValue(GAUSSIAN_CURVATURE));
 		if(Delta_xi > 0.0)
 		{
-		  im->FastGetSolutionStepValue(PRINCIPAL_CURVATURE_1) = im->FastGetSolutionStepValue(MEAN_CURVATURE) + sqrt(Delta_xi);
-		  im->FastGetSolutionStepValue(PRINCIPAL_CURVATURE_2) = im->FastGetSolutionStepValue(MEAN_CURVATURE) - sqrt(Delta_xi);
+		  im->FastGetSolutionStepValue(PRINCIPAL_CURVATURE_1) = im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) + sqrt(Delta_xi);
+		  im->FastGetSolutionStepValue(PRINCIPAL_CURVATURE_2) = im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) - sqrt(Delta_xi);
 		}
 		else
 		{
-		  im->FastGetSolutionStepValue(PRINCIPAL_CURVATURE_1) = im->FastGetSolutionStepValue(MEAN_CURVATURE);
-		  im->FastGetSolutionStepValue(PRINCIPAL_CURVATURE_2) = im->FastGetSolutionStepValue(MEAN_CURVATURE);
+		  im->FastGetSolutionStepValue(PRINCIPAL_CURVATURE_1) = im->FastGetSolutionStepValue(MEAN_CURVATURE_3D);
+		  im->FastGetSolutionStepValue(PRINCIPAL_CURVATURE_2) = im->FastGetSolutionStepValue(MEAN_CURVATURE_3D);
 		}
 		
 		A_mixed = 0.0;
@@ -447,15 +447,15 @@ namespace Kratos
 		  if (neighb[i].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 		  {
 		    neigh_fs++;
-		    mean_curv += neighb[i].FastGetSolutionStepValue(MEAN_CURVATURE);
+		    mean_curv += neighb[i].FastGetSolutionStepValue(MEAN_CURVATURE_3D);
 		  }
 		}
 		if(neigh_fs != 0.0)
-		  im->FastGetSolutionStepValue(MEAN_CURVATURE) = mean_curv/neigh_fs;
+		  im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) = mean_curv/neigh_fs;
 	      }
 	      
 	      if ((im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0) && (im->FastGetSolutionStepValue(TRIPLE_POINT) == 0.0))
-		im->FastGetSolutionStepValue(MEAN_CURVATURE) = 0.0;
+		im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) = 0.0;
 	    }
 	KRATOS_CATCH("")
     }
@@ -465,7 +465,7 @@ namespace Kratos
 	KRATOS_TRY
 	
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ;
-	    im != ThisModelPart.NodesEnd() ; im++)
+	    im != ThisModelPart.NodesEnd() ; ++im)
 	    {
 	      if (im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
 	      {		
@@ -516,7 +516,7 @@ namespace Kratos
 		if (alfa > 0.0)
 		    sign_curv = -1.0;
 		
-		im->FastGetSolutionStepValue(CURVATURE) = sign_curv*curv;
+		im->FastGetSolutionStepValue(MEAN_CURVATURE_2D) = sign_curv*curv;
 	      }		
 	    }
 	    
@@ -560,7 +560,7 @@ namespace Kratos
 		WeakPointerVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		array_1d<double,3> dij = ZeroVector(3);
 		
-		double kappa_H = im->FastGetSolutionStepValue(MEAN_CURVATURE);
+		double kappa_H = im->FastGetSolutionStepValue(MEAN_CURVATURE_3D);
 		double kappa_G = im->FastGetSolutionStepValue(GAUSSIAN_CURVATURE);
 		
 		int option = 2; //choose 1 if you want to consider a + b = 2*kappa_H, choose 2 if a + c = 2*kappa_H

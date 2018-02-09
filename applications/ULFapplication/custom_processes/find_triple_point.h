@@ -127,7 +127,7 @@ namespace Kratos
       double dist = 0.0;
       double eps_tol = 1.0E-6;
       //SECON STEP: correct the flags
-      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
       {
 	  if (im->FastGetSolutionStepValue(IS_BOUNDARY) != 0.0 && im->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) == 0.0)
 	  {
@@ -170,7 +170,7 @@ namespace Kratos
 		    is_struct += neighb[i].FastGetSolutionStepValue(IS_STRUCTURE);
 		    is_lagin += neighb[i].FastGetSolutionStepValue(IS_LAGRANGIAN_INLET);
 		  }
-		  neighnum++;
+		  ///////neighnum++;
 	      }
 	      
 	      if (is_free < 1.1 && is_struct < 1.1 && is_lagin == 0.0 && (im->FastGetSolutionStepValue(IS_FREE_SURFACE) < 0.5))
@@ -231,9 +231,9 @@ namespace Kratos
       for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
       {
 
-          unsigned int num_fs = 0;
+          ///////unsigned int num_fs = 0;
 
-	  num_fs = num_tp = 0;
+	  ///////num_fs = num_tp = 0;
 	  if ((im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0) && (im->FastGetSolutionStepValue(CONTACT_ANGLE) == 0.0) && (im->FastGetSolutionStepValue(VELOCITY_X) != 0.0))
 	      im->FastGetSolutionStepValue(TRIPLE_POINT) = 0.0;
 	  

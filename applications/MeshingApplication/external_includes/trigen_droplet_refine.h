@@ -1,6 +1,6 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
+//   Last Modified by:    $Main author: rrossi $
 //   Date:                $Date: 2009-01-22 17:13:57 $
 //   Revision:            $Revision: 1.5 $
 //
@@ -301,7 +301,7 @@ public:
         KRATOS_WATCH(el_number);
         int counter = 0;
         //here I will assign a huge number of NODAL_H to the free surface nodes, so that there no nodes will be added
-        for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; i_node++)
+        for(ModelPart::NodesContainerType::iterator i_node = ThisModelPart.NodesBegin() ; i_node != ThisModelPart.NodesEnd() ; ++i_node)
         {
             if (i_node->FastGetSolutionStepValue(IS_FREE_SURFACE)!=0)
             {
@@ -881,7 +881,7 @@ private:
     {
 
         //reset the boundary flag
-        for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
+        for(ModelPart::NodesContainerType::const_iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); ++in)
         {
             in->FastGetSolutionStepValue(IS_BOUNDARY) = 0;
         }
@@ -1184,18 +1184,18 @@ private:
 	    isinter!=ThisModelPart.ConditionsEnd(); ++isinter)
 	{
 	  Geometry<Node<3> >& geom = isinter->GetGeometry();
-	  for (unsigned int i = 0; i < geom.size(); i++)
-	  {
-	    if (geom[i].FastGetSolutionStepValue(IS_INTERFACE) != 0.0)
-	    {
-	      num_nodes_int++;
-	    }
-	  }
+	  ///////for (unsigned int i = 0; i < geom.size(); i++)
+	  ///////{
+	    ///////if (geom[i].FastGetSolutionStepValue(IS_INTERFACE) != 0.0)
+	    ///////{
+	      ///////num_nodes_int++;
+	    ///////}
+	  ///////}
 	}
 	
 	//now we know how many nodes we have on the interface
 	for(ModelPart::ConditionsContainerType::iterator isinter = ThisModelPart.ConditionsBegin();
-	    isinter!=ThisModelPart.ConditionsEnd(); isinter++)
+	    isinter!=ThisModelPart.ConditionsEnd(); ++isinter)
 	{
 	  Geometry<Node<3> >& geom = isinter->GetGeometry();
 	  for (unsigned int i = 0; i < geom.size(); i++)

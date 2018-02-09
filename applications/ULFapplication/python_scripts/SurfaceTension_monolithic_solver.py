@@ -35,7 +35,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
     #20150128 ajarauta: surface tension variables
-    model_part.AddNodalSolutionStepVariable(CURVATURE)
+    model_part.AddNodalSolutionStepVariable(MEAN_CURVATURE_2D)
     model_part.AddNodalSolutionStepVariable(IS_WATER)
     model_part.AddNodalSolutionStepVariable(VISCOUS_STRESSX)
     model_part.AddNodalSolutionStepVariable(VISCOUS_STRESSY)
@@ -48,7 +48,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(CONTACT_ANGLE)
     model_part.AddNodalSolutionStepVariable(FRACT_VEL)
     model_part.AddNodalSolutionStepVariable(IS_LAGRANGIAN_INLET)
-    model_part.AddNodalSolutionStepVariable(MEAN_CURVATURE)
+    model_part.AddNodalSolutionStepVariable(MEAN_CURVATURE_3D)
     model_part.AddNodalSolutionStepVariable(GAUSSIAN_CURVATURE)
     model_part.AddNodalSolutionStepVariable(PRINCIPAL_CURVATURE_1)
     model_part.AddNodalSolutionStepVariable(PRINCIPAL_CURVATURE_2)
@@ -56,10 +56,10 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(PRINCIPAL_DIRECTION_2)
     model_part.AddNodalSolutionStepVariable(NORMAL_GEOMETRIC)
     model_part.AddNodalSolutionStepVariable(ADHESION_FORCE)
-    model_part.AddNodalSolutionStepVariable(NORMAL_CL)
-    model_part.AddNodalSolutionStepVariable(NORMAL_CL_EQ)
-    model_part.AddNodalSolutionStepVariable(NORMAL_EQ)
-    model_part.AddNodalSolutionStepVariable(NORMAL_TP)
+    model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_LINE)
+    model_part.AddNodalSolutionStepVariable(NORMAL_CONTACT_LINE_EQUILIBRIUM)
+    model_part.AddNodalSolutionStepVariable(NORMAL_EQUILIBRIUM)
+    model_part.AddNodalSolutionStepVariable(NORMAL_TRIPLE_POINT)
     model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_GRADIENT)
     model_part.AddNodalSolutionStepVariable(PHASE_FRACTION_GRADIENT)
 
@@ -107,9 +107,7 @@ class STMonolithicSolver:
 
         # non newtonian setting
         self.regularization_coef = 1000
-
         self.max_iter = 30
-        
         self.contact_angle = contact_angle
         self.gamma = gamma
 
@@ -120,7 +118,7 @@ class STMonolithicSolver:
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = True
         self.use_slip_conditions = False
-        
+
         #self.time_scheme = None
         #self.builder_and_solver = None
 
@@ -134,10 +132,10 @@ class STMonolithicSolver:
         self.divergence_clearance_steps = 0
 
         print("Construction monolithic solver finished")
-        
+
         print("after reading all the model contains:")
         print(self.model_part)
-        
+
         if(self.eul_model_part == 0):
             self.UlfUtils = UlfUtils()
           #self.PfemUtils = PfemUtils()
@@ -147,7 +145,7 @@ class STMonolithicSolver:
             self.alpha_shape = 3.5;
             self.ulf_apply_bc_process = UlfApplyBCProcess(model_part);
             #self.mark_fluid_process = MarkFluidProcess(model_part);
-	  
+
 	  #saving the limits of the box (all the nodes external to this will be erased)
             bounding_box_corner1_x = -1.00000e+00
             bounding_box_corner1_y = -1.00000e+00
@@ -161,7 +159,7 @@ class STMonolithicSolver:
             box_corner2[0]=bounding_box_corner2_x; box_corner2[1]=bounding_box_corner2_y; box_corner2[2]=bounding_box_corner2_z;
             self.box_corner1 = box_corner1
             self.box_corner2 = box_corner2
-	  
+
             if(domain_size == 2):
                 self.Mesher =  TriGenDropletModeler()
                 self.fluid_neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
@@ -216,7 +214,7 @@ class STMonolithicSolver:
 
         
         self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
-        self.model_part.ProcessInfo.SetValue(SURFTENS_COEFF, self.gamma)
+        self.model_part.ProcessInfo.SetValue(SURFACE_TENSION_COEF, self.gamma)
         
         if(self.eul_model_part == 0):
 	    #marking the fluid
@@ -324,7 +322,7 @@ class STMonolithicSolver:
                 if (node.GetSolutionStepValue(IS_BOUNDARY) == 0.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
                     node.SetSolutionStepValue(NORMAL_X,0,0.0)
                     node.SetSolutionStepValue(NORMAL_Y,0,0.0)
-                    node.SetSolutionStepValue(NORMAL_Z,0,0.0)	      
+                    node.SetSolutionStepValue(NORMAL_Z,0,0.0)
             FindTriplePoint().FindTriplePoint2D(self.model_part)
             CalculateCurvature().CalculateCurvature2D(self.model_part)
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
@@ -337,7 +335,7 @@ class STMonolithicSolver:
    
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
-        
+
     def cont_angle_cond(self):
         theta_adv = self.contact_angle + 1.0
         theta_rec = self.contact_angle - 1.0
@@ -358,13 +356,13 @@ class STMonolithicSolver:
 
 def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR 3D!
     fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle)
-      
+
     if(hasattr(config, "alpha")):
         fluid_solver.alpha = config.alpha
 
     if(hasattr(config, "eul_model_part")):
         fluid_solver.eulerian_model_part = config.eul_model_part
-        
+
     # definition of the convergence criteria
     if(hasattr(config, "velocity_relative_tolerance")):
         fluid_solver.rel_vel_tol = config.velocity_relative_tolerance
@@ -386,7 +384,6 @@ def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle): #FOR
         fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
     if(hasattr(config, "divergence_cleareance_step")):
         fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
-
 
     import linear_solver_factory
     if(hasattr(config, "linear_solver_config")):

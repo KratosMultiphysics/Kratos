@@ -144,7 +144,7 @@ namespace Kratos
 	    if(im->GetGeometry()[i].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 	    {
 	      nodes_int++;
-	      avg_curv += 0.5*im->GetGeometry()[i].FastGetSolutionStepValue(CURVATURE);
+	      avg_curv += 0.5*im->GetGeometry()[i].FastGetSolutionStepValue(MEAN_CURVATURE_2D);
 	    }
 	  }
 	  // We apply the condition ONLY to those elements with 2 nodes at the interface
@@ -156,7 +156,7 @@ namespace Kratos
 	    {
 	      if(im->GetGeometry()[j].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 	      {
-		im->GetGeometry()[j].FastGetSolutionStepValue(CURVATURE) = avg_curv;
+		im->GetGeometry()[j].FastGetSolutionStepValue(MEAN_CURVATURE_2D) = avg_curv;
 		Condition::NodesArrayType temp;
 		temp.reserve(1);
 		temp.push_back(*(im->GetGeometry()[j].base()));

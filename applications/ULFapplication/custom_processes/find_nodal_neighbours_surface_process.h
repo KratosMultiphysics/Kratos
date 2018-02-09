@@ -137,7 +137,7 @@ public:
         }
 
         //adding the neighbouring nodes
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
             WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
 
@@ -161,7 +161,7 @@ public:
     void ClearNeighbours()
     {
         NodesContainerType& rNodes = mr_model_part.Nodes();
-        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
             WeakPointerVector<Condition >& rC = in->GetValue(NEIGHBOUR_CONDITIONS);
             rC.erase(rC.begin(),rC.end());
