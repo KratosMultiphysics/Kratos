@@ -14,7 +14,6 @@
 //  Framework for Non-Matching Grid Mapping"
 
 
-
 #if !defined(KRATOS_MAPPING_APPLICATION_H_INCLUDED )
 #define  KRATOS_MAPPING_APPLICATION_H_INCLUDED
 

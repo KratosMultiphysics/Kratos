@@ -919,7 +919,7 @@ public:
         Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,b.Comm() );
 
         //defining the importer class
-        boost::shared_ptr<Epetra_Import> pDofImporter( new Epetra_Import(dof_update_map,b.Map()) );
+        Kratos::shared_ptr<Epetra_Import> pDofImporter = Kratos::make_shared<Epetra_Import>(dof_update_map,b.Map());
 
         //defining a temporary vector to gather all of the values needed
         Epetra_Vector temp_RHS(pDofImporter->TargetMap());

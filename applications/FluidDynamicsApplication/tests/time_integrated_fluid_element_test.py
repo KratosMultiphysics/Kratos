@@ -3,6 +3,8 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 
 import KratosMultiphysics.KratosUnittest as UnitTest
 
+import vms_monolithic_solver
+
 class WorkFolderScope:
     def __init__(self, work_folder):
         self.currentPath = os.getcwd()
@@ -46,8 +48,8 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
 
         with WorkFolderScope(self.work_folder):
             self.setUpModel()
-            self.setUpSolvers()
             self.setUpProblem()
+            self.setUpSolvers()
 
             self.runTest()
 
@@ -63,25 +65,13 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
     def setUpModel(self):
         self.fluid_model_part = ModelPart("Fluid")
 
-    def setUpSolvers(self):
-        import vms_monolithic_solver
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
-        self.fluid_model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY)
 
         model_part_io = ModelPartIO(self.input_file)
         model_part_io.ReadModelPart(self.fluid_model_part)
 
         self.fluid_model_part.SetBufferSize(3)
         vms_monolithic_solver.AddDofs(self.fluid_model_part)
-
-        ## Set up consitutive law
-        self.fluid_model_part.Properties[1].SetValue(DENSITY,1.0)
-        self.fluid_model_part.Properties[1].SetValue(DYNAMIC_VISCOSITY,0.01)
-        constitutive_law = Newtonian2DLaw()
-        self.fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,constitutive_law)
-
-        self.fluid_model_part.ProcessInfo.SetValue(SOUND_VELOCITY,1e12)
-        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,0)
 
         replace_settings = Parameters("""{
             "element_name": "",
@@ -91,6 +81,8 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         replace_settings["condition_name"].SetString(self.condition_name)
 
         ReplaceElementsAndConditionsProcess(self.fluid_model_part, replace_settings).Execute()
+
+    def setUpSolvers(self):
 
         # Building custom fluid solver
         self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
@@ -122,10 +114,6 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
 
         self.fluid_solver.solver.SetEchoLevel(0)
 
-        # Initialize constitutive law
-        for element in self.fluid_model_part.Elements:
-            element.Initialize()
-
         self.fluid_solver.solver.Check()
 
         self.fluid_solver.divergence_clearance_steps = 0
@@ -142,10 +130,21 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         mu = 0.01
         ux = 1.0
 
+        ## Set up consitutive law
+        self.fluid_model_part.Properties[1].SetValue(DENSITY,rho)
+        self.fluid_model_part.Properties[1].SetValue(DYNAMIC_VISCOSITY,mu)
+        constitutive_law = Newtonian2DLaw()
+        self.fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,constitutive_law)
+
+        self.fluid_model_part.ProcessInfo.SetValue(SOUND_VELOCITY,1e12)
+        self.fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH,0)
+
+        # Initialize constitutive law
+        for element in self.fluid_model_part.Elements:
+            element.Initialize()
+
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:
-            node.SetSolutionStepValue(DENSITY,rho)
-            node.SetSolutionStepValue(DYNAMIC_VISCOSITY,mu)
 
             if node.X == xmin or node.X == xmax or node.Y == ymin or node.Y == ymax:
                 node.Fix(VELOCITY_X)

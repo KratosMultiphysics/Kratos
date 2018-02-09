@@ -57,6 +57,11 @@ void Tetrahedra3D4ModifiedShapeFunctions::PrintData(std::ostream& rOStream) cons
     rOStream << "\tDistance values: " << distances_buffer.str();
 };
 
+// Returns a pointer to the splitting utility
+const DivideGeometry::Pointer Tetrahedra3D4ModifiedShapeFunctions::pGetSplittingUtil() const {
+    return mpTetrahedraSplitter;
+};
+
 // Returns true if the element is splitting
 bool Tetrahedra3D4ModifiedShapeFunctions::IsSplit() {
     return mpTetrahedraSplitter->mIsSplit;
@@ -343,6 +348,42 @@ void Tetrahedra3D4ModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNormals
     else
     {
         KRATOS_ERROR << "Using the ComputeNegativeExteriorFaceAreaNormals method for a non divided geometry.";
+    }
+};
+
+// Computes the positive side shape function values in the edges intersections
+void Tetrahedra3D4ModifiedShapeFunctions::ComputeShapeFunctionsOnPositiveEdgeIntersections(
+    Matrix &rPositiveEdgeIntersectionsShapeFunctionsValues){
+
+    if (this->IsSplit()) {
+        // Get the interface condensation matrix
+        Matrix p_matrix;
+        this->SetCondensationMatrix(
+            p_matrix,
+            mpTetrahedraSplitter->mEdgeNodeI,
+            mpTetrahedraSplitter->mEdgeNodeJ,
+            mpTetrahedraSplitter->mSplitEdges);
+
+        // Compute the edge intersections shape function values
+        this->ComputeEdgeIntersectionValuesOnOneSide(
+            p_matrix,
+            rPositiveEdgeIntersectionsShapeFunctionsValues);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputeShapeFunctionsOnPositiveEdgeIntersections method for a non divided geometry.";
+    }
+};
+
+// Computes the negative side shape function values in the edges intersections
+void Tetrahedra3D4ModifiedShapeFunctions::ComputeShapeFunctionsOnNegativeEdgeIntersections(
+    Matrix &rNegativeEdgeIntersectionsShapeFunctionsValues){
+    
+    if (this->IsSplit()) {
+        // Note that positive and negative sides values are equal for standard shape functions
+        this->ComputeShapeFunctionsOnPositiveEdgeIntersections(
+            rNegativeEdgeIntersectionsShapeFunctionsValues);
+    } else {
+        KRATOS_ERROR << "Using the ComputeShapeFunctionsOnNegativeEdgeIntersections method for a non divided geometry.";
     }
 };
 

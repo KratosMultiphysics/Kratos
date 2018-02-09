@@ -60,8 +60,8 @@ public:
     using ShapeDerivatives2DType = typename FluidElementData<2,TNumNodes,false>::ShapeDerivativesType;
     using ShapeDerivatives3DType = typename FluidElementData<3,TNumNodes,false>::ShapeDerivativesType;
 
-    constexpr static std::size_t VoigtVector2DSize = 3;
-    constexpr static std::size_t VoigtVector3DSize = 6;
+    constexpr static std::size_t VoigtVector2DSize = FluidElementData<2,TNumNodes,false>::StrainSize;
+    constexpr static std::size_t VoigtVector3DSize = FluidElementData<3,TNumNodes,false>::StrainSize;
 
     ///@}
     ///@name Life Cycle

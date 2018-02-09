@@ -309,7 +309,7 @@ void QSVMS<TElementData>::ASGSMomentumResidual(
     
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 
-    double density = this->Interpolate(rData.Density,rData.N);
+    double density = rData.Density;
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
@@ -371,7 +371,7 @@ void QSVMS<TElementData>::MomentumProjTerm(
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 
-    double density = this->Interpolate(rData.Density,rData.N);
+    double density = rData.Density;
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
@@ -430,8 +430,8 @@ void QSVMS<TElementData>::AddVelocitySystem(
     // Interpolate nodal data on the integration point
     double ElemSize = this->ElementSize();
 
-    double density = this->Interpolate(rData.Density,rData.N);
-    double dynamic_viscosity = this->EffectiveViscosity(rData,ElemSize);
+    double density = rData.Density;
+    double dynamic_viscosity = rData.DynamicViscosity; // TODO: this must go through the constitutive law (JC)
     array_1d<double,3> body_force = this->Interpolate(rData.BodyForce,rData.N);
     array_1d<double,3> momentum_projection = this->Interpolate(rData.MomentumProjection,rData.N);
     double mass_projection = this->Interpolate(rData.MassProjection,rData.N);
@@ -526,7 +526,7 @@ void QSVMS<TElementData>::AddMassLHS(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
-    double density = this->Interpolate(rData.Density,rData.N);
+    double density = rData.Density;
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -561,8 +561,8 @@ void QSVMS<TElementData>::AddMassStabilization(
 {
     double ElemSize = this->ElementSize();
 
-    double density = this->Interpolate(rData.Density,rData.N);
-    double dynamic_viscosity = this->EffectiveViscosity(rData,ElemSize);
+    double density = rData.Density;
+    double dynamic_viscosity = rData.DynamicViscosity; //TODO this must go through the constitutive law (JC)
 
     double TauOne;
     double TauTwo;
@@ -608,7 +608,7 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
     boost::numeric::ublas::bounded_matrix<double,StrainSize,StrainSize> constitutive_matrix = ZeroMatrix(StrainSize,StrainSize);
-    const double dynamic_viscosity = this->Interpolate(rData.DynamicViscosity,rData.N);
+    const double dynamic_viscosity = rData.DynamicViscosity;
     FluidElementUtilities<NumNodes>::GetNewtonianConstitutiveMatrix(dynamic_viscosity,constitutive_matrix);
     
     boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
@@ -653,10 +653,10 @@ double QSVMS<TElementData>::EffectiveViscosity(
     TElementData& rData, double ElementSize) {
     
     double c_s = rData.CSmagorinsky;
-    double viscosity = this->Interpolate(rData.DynamicViscosity, rData.N);
+    double viscosity = rData.DynamicViscosity; //this->Interpolate(rData.DynamicViscosity, rData.N);
 
     if (c_s != 0.0) {
-        const double density = this->Interpolate(rData.Density, rData.N);
+        const double density = rData.Density; //this->Interpolate(rData.Density, rData.N);
         const auto& r_velocities = rData.Velocity;
         const auto& r_dndx = rData.DN_DX;
 
@@ -773,11 +773,11 @@ void QSVMS<TElementData>::SubscaleVelocity(
     array_1d<double,3> &rVelocitySubscale)
 {
     double ElemSize = this->ElementSize();
-    double dynamic_viscosity = this->EffectiveViscosity(rData,ElemSize);
+    double dynamic_viscosity = rData.DynamicViscosity;
 
     double TauOne;
     double TauTwo;
-    double density = this->Interpolate(rData.Density,rData.N);
+    double density = rData.Density;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
     this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
 
@@ -799,11 +799,11 @@ void QSVMS<TElementData>::SubscalePressure(
 {
     //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
     double ElemSize = this->ElementSize();
-    double dynamic_viscosity = this->EffectiveViscosity(rData,ElemSize);
+    double dynamic_viscosity = rData.DynamicViscosity;
 
     double TauOne;
     double TauTwo;
-    double density = this->Interpolate(rData.Density,rData.N);
+    double density = rData.Density;
     array_1d<double, 3> convective_velocity =
         this->Interpolate(rData.Velocity, rData.N) -
         this->Interpolate(rData.MeshVelocity, rData.N);

@@ -26,24 +26,34 @@ from algorithm_base import OptimizationAlgorithm
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self, DesignSurface, DampingRegions, Analyzer, Mapper, Communicator, DataLogger, OptimizationSettings ):
-
-        self.DesignSurface = DesignSurface
+    def __init__( self, 
+                  ModelPartController, 
+                  Analyzer, 
+                  Communicator, 
+                  Mapper, 
+                  DataLogger, 
+                  OptimizationSettings ):
+                  
+        self.ModelPartController = ModelPartController
         self.Analyzer = Analyzer
-        self.Mapper = Mapper
         self.Communicator = Communicator
+        self.Mapper = Mapper
         self.DataLogger = DataLogger
         self.OptimizationSettings = OptimizationSettings
+
+        self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
+        self.DesignSurface = ModelPartController.GetDesignSurface()
 
         self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
         self.onlyObjective = OptimizationSettings["objectives"][0]["identifier"].GetString()
         self.initialStepSize = OptimizationSettings["line_search"]["step_size"].GetDouble()
         self.performDamping = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
-        self.geometryTools = GeometryUtilities( DesignSurface )
-        self.optimizationTools = OptimizationUtilities( DesignSurface, OptimizationSettings )
+        self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
+        self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
         if self.performDamping:
-            self.dampingUtilities = DampingUtilities( DesignSurface, DampingRegions, self.OptimizationSettings )
+            damping_regions = self.ModelPartController.GetDampingRegions()
+            self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
             
     # --------------------------------------------------------------------------
     def execute( self ):
@@ -53,20 +63,25 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
+        self.ModelPartController.InitializeMeshController()
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
     def __runOptimizationLoop( self ):
 
-        for optimizationIteration in range(1,self.maxIterations):
+        for self.optimizationIteration in range(1,self.maxIterations):
             print("\n>===================================================================")
-            print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",optimizationIteration)
+            print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",self.optimizationIteration)
             print(">===================================================================\n")
+
+            self.__initializeModelPartForNewSolutionStep()
+
+            self.__updateMeshAccordingCurrentShapeUpdate()
 
             self.__callCommunicatorToRequestNewAnalyses()
 
-            self.__callAnalyzerToPerformRequestedAnalyses( optimizationIteration )
+            self.__callAnalyzerToPerformRequestedAnalyses()
 
             self.__storeResultOfSensitivityAnalysisOnNodes()
 
@@ -80,18 +95,26 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             if self.performDamping:
                 self.__dampShapeUpdate()
 
-            self.__logCurrentOptimizationStep( optimizationIteration )
+            self.__logCurrentOptimizationStep()
 
             self.__timeOptimizationStep()
 
-            if self.__isAlgorithmConverged( optimizationIteration ):
+            if self.__isAlgorithmConverged():
                 break
-
-            self.__updateShape()
+            else:
+                self.__determineAbsoluteChanges()
 
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
+
+    # --------------------------------------------------------------------------
+    def __initializeModelPartForNewSolutionStep( self ):
+        self.ModelPartController.CloneTimeStep( self.optimizationIteration )
+
+    # --------------------------------------------------------------------------
+    def __updateMeshAccordingCurrentShapeUpdate( self ):
+        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE ) 
 
     # --------------------------------------------------------------------------
     def __callCommunicatorToRequestNewAnalyses( self ):
@@ -100,37 +123,38 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.Communicator.requestGradientOf( self.onlyObjective )
 
     # --------------------------------------------------------------------------
-    def __callAnalyzerToPerformRequestedAnalyses( self, optimizationIteration ):
-        self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, optimizationIteration, self.Communicator )
+    def __callAnalyzerToPerformRequestedAnalyses( self ):
+        self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
+        self.__ResetPossibleMeshModificationDuringAnalysis()
+
+    # --------------------------------------------------------------------------
+    def __ResetPossibleMeshModificationDuringAnalysis( self ):
+        self.ModelPartController.ResetMeshToReferenceMesh()
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
         gradientOfObjectiveFunction = self.Communicator.getReportedGradientOf ( self.onlyObjective )
-        self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, OBJECTIVE_SENSITIVITY )
-
-    # --------------------------------------------------------------------------
-    def __storeGradientOnNodalVariable( self , givenGradient, variable_name ):
-        for nodeId in givenGradient:
+        for nodeId in gradientOfObjectiveFunction:
             gradient = Vector(3)
-            gradient[0] = givenGradient[nodeId][0]
-            gradient[1] = givenGradient[nodeId][1]
-            gradient[2] = givenGradient[nodeId][2]
-            self.DesignSurface.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
+            gradient[0] = gradientOfObjectiveFunction[nodeId][0]
+            gradient[1] = gradientOfObjectiveFunction[nodeId][1]
+            gradient[2] = gradientOfObjectiveFunction[nodeId][2]
+            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,gradient)
 
     # --------------------------------------------------------------------------
     def __alignSensitivitiesToLocalSurfaceNormal( self ):
-            self.geometryTools.ComputeUnitSurfaceNormals()
-            self.geometryTools.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
+            self.GeometryUtilities.ComputeUnitSurfaceNormals()
+            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
-        self.dampingUtilities.DampNodalVariable( OBJECTIVE_SENSITIVITY )
+        self.DampingUtilities.DampNodalVariable( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate( self ):
         self.__mapSensitivitiesToDesignSpace()
-        self.optimizationTools.ComputeSearchDirectionSteepestDescent()
-        self.optimizationTools.ComputeControlPointUpdate()
+        self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
+        self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
     # --------------------------------------------------------------------------
@@ -143,11 +167,11 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __dampShapeUpdate( self ):
-        self.dampingUtilities.DampNodalVariable( SHAPE_UPDATE )
+        self.DampingUtilities.DampNodalVariable( SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
-    def __logCurrentOptimizationStep( self, optimizationIteration ):
-        self.DataLogger.LogCurrentData( optimizationIteration )
+    def __logCurrentOptimizationStep( self ):
+        self.DataLogger.LogCurrentData( self.optimizationIteration )
 
     # --------------------------------------------------------------------------
     def __timeOptimizationStep( self ):
@@ -155,12 +179,12 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         print("> Time needed for total optimization so far = ", self.DataLogger.GetTotalTime(), "s")
 
     # --------------------------------------------------------------------------
-    def __isAlgorithmConverged( self, optimizationIteration ):
+    def __isAlgorithmConverged( self ):
 
-        if optimizationIteration > 1 :
+        if self.optimizationIteration > 1 :
 
             # Check if maximum iterations were reached
-            if optimizationIteration == self.maxIterations:
+            if self.optimizationIteration == self.maxIterations:
                 print("\n> Maximal iterations of optimization problem reached!")
                 return True
 
@@ -175,11 +199,12 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             # Check if value of objective increases
             if relativeChangeOfObjectiveValue > 0:
                 print("\n> Value of objective function increased!")
-                return False
+                return False          
 
     # --------------------------------------------------------------------------
-    def __updateShape( self ):
-        self.optimizationTools.UpdateControlPointChangeByInputVariable( CONTROL_POINT_UPDATE )
-        self.geometryTools.UpdateShapeChangeByInputVariable( SHAPE_UPDATE )
+    def __determineAbsoluteChanges( self ):
+        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )        
+        self.OptimizationUtilities.AddFirstVariableToSecondVariable( SHAPE_UPDATE, SHAPE_CHANGE )
+
 
 # ==============================================================================
