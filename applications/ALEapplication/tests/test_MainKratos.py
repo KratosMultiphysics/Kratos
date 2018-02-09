@@ -45,27 +45,17 @@ class MainKratos:
 
         self.Model = Model()
         self.Model.AddModelPart(self.main_model_part)
-        #for i in range(self.ProjectParameters["solver_settings"]["skin_parts"].size()):
-        #    skin_part_name = self.ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-        #    self.Model.update({skin_part_name: self.main_model_part.GetSubModelPart(skin_part_name)})
 
-        #for i in range(self.ProjectParameters["solver_settings"]["no_skin_parts"].size()):
-        #    no_skin_part_name = self.ProjectParameters["solver_settings"]["no_skin_parts"][i].GetString()
-        #    self.Model.update({no_skin_part_name: self.main_model_part.GetSubModelPart(no_skin_part_name)})
-
-        #for i in range(self.ProjectParameters["initial_conditions_process_list"].size()):
-        #    initial_cond_part_name = self.ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-        #    self.Model.update({initial_cond_part_name: self.main_model_part.GetSubModelPart(initial_cond_part_name)})
-
-        #for i in range(self.ProjectParameters["gravity"].size()):
-        #    gravity_part_name = self.ProjectParameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-        #    self.Model.update({gravity_part_name: self.main_model_part.GetSubModelPart(gravity_part_name)})
-
-        #self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
-        self.list_of_processes  = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["initial_conditions_process_list"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses( self.ProjectParameters["auxiliar_process_list"] )
-
+        self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["boundary_conditions_process_list"])
+        if (ProjectParameters.Has("list_other_processes") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
+        if (ProjectParameters.Has("json_check_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"])
+        if (ProjectParameters.Has("check_analytic_results_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["check_analytic_results_process"])
+        if (ProjectParameters.Has("json_output_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"])
+        #print(self.list_of_processes)
         for process in self.list_of_processes:
             process.ExecuteInitialize()
 
@@ -111,7 +101,7 @@ class MainKratos:
 ##---------------------
 
             self.solver.Solve()
-            
+
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
 ##---------------------

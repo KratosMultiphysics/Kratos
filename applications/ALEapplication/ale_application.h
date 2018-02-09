@@ -174,6 +174,8 @@ private:
   const StructuralMeshMovingElement mStructuralMeshMovingElement3D8N;
   const StructuralMeshMovingElement mStructuralMeshMovingElement3D6N;
   const StructuralMeshMovingElement mStructuralMeshMovingElement3D15N;
+  const LaplacianMeshMovingElement mLaplacianMeshMovingElement;
+  const StructuralMeshMovingElement mStructuralMeshMovingElement;
   ///@}
   ///@name Private Operators
   ///@{

@@ -46,11 +46,8 @@ void AddCustomStrategiesToPython() {
       init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
       .def("UpdateReferenceMesh",
            &StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,
-                                         LinearSolverType>::UpdateReferenceMesh)
-      .def("CalculateMeshVelocities",
-           &StructuralMeshMovingStrategy<
-               SparseSpaceType, LocalSpaceType,
-               LinearSolverType>::CalculateMeshVelocities);
+                                         LinearSolverType>::UpdateReferenceMesh);
+
 
   class_<StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,
                                       LinearSolverType>,
@@ -59,11 +56,7 @@ void AddCustomStrategiesToPython() {
       init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
       .def("UpdateReferenceMesh",
            &StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,
-                                         LinearSolverType>::UpdateReferenceMesh)
-      .def("CalculateMeshVelocities",
-           &StructuralMeshMovingStrategy<
-               SparseSpaceType, LocalSpaceType,
-               LinearSolverType>::CalculateMeshVelocities);
+                                         LinearSolverType>::UpdateReferenceMesh);
 }
 
 } // namespace Python.

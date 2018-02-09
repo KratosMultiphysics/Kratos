@@ -61,7 +61,11 @@ KratosALEApplication::KratosALEApplication()
                  Element::GeometryType::PointsArrayType(6)))),
       mStructuralMeshMovingElement3D15N(
           0, Element::GeometryType::Pointer(new Prism3D15<Node<3>>(
-                 Element::GeometryType::PointsArrayType(15)))) {}
+                 Element::GeometryType::PointsArrayType(15)))),
+      //Elements with empty geometry for automatic element generation by GenerateMeshPart function
+      mLaplacianMeshMovingElement(0, Element::GeometryType::Pointer (new Geometry<Node<3>>())),
+      mStructuralMeshMovingElement(0, Element::GeometryType::Pointer (new Geometry<Node<3>>()))
+      {}
 
 void KratosALEApplication::Register() {
   // calling base class register to register Kratos components
@@ -81,6 +85,8 @@ void KratosALEApplication::Register() {
                           mLaplacianMeshMovingElement2D4N);
   KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElemtent3D8N",
                           mLaplacianMeshMovingElement3D8N);
+  KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement",
+                          mLaplacianMeshMovingElement);
   KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement2D3N",
                           mStructuralMeshMovingElement2D3N);
   KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement2D4N",
@@ -93,6 +99,8 @@ void KratosALEApplication::Register() {
                           mStructuralMeshMovingElement3D6N);
   KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement3D15N",
                           mStructuralMeshMovingElement3D15N);
+  KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement",
+                          mStructuralMeshMovingElement);
 
   // variables moved to core
   // MESH_VELOCITY currently put to the core since used in other applications

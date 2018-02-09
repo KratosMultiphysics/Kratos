@@ -73,12 +73,12 @@ public:
    */
   /*@{ */
 
-  LaplacianMeshMovingStrategy(ModelPart &model_part,
+  LaplacianMeshMovingStrategy(ModelPart &ModelPart,
                               typename TLinearSolver::Pointer pNewLinearSolver,
                               int TimeOrder = 1,
                               bool ReformDofSetAtEachStep = false,
                               bool ComputeReactions = false, int EchoLevel = 0)
-      : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part) {
+      : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(ModelPart) {
 
     KRATOS_TRY;
 
@@ -93,7 +93,8 @@ public:
         new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,
                                                        TDenseSpace>());
 
-    GenerateMeshPart();
+    std::string element_type = "LaplacianMeshMovingElement";
+    mp_mesh_model_part = MoveMeshUtilities::GenerateMeshPart(BaseType::GetModelPart(), element_type);
 
     typedef typename Kratos::VariableComponent<
         Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>
@@ -201,80 +202,15 @@ public:
     KRATOS_CATCH("");
   }
 
-/*
-  void CalculateMeshVelocities() {
-    KRATOS_TRY;
 
-    const double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-
-    KRATOS_ERROR_IF(delta_time <= 0.0)<< "Invalid DELTA_TIME." << std::endl;
-
-    const double coeff = 1 / delta_time;
-
-    if (m_time_order == 1) {
-      for (ModelPart::NodeIterator i = (*mp_mesh_model_part).GetCommunicator().LocalMesh().NodesBegin();
-           i != (*mp_mesh_model_part).GetCommunicator().LocalMesh().NodesEnd(); ++i) {
-
-        array_1d<double, 3> &mesh_v =
-            (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-        array_1d<double, 3> &disp =
-            (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-        array_1d<double, 3> &dispold =
-            (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-        noalias(mesh_v) = disp - dispold;
-        mesh_v *= coeff;
-      }
-    } else if (m_time_order == 2) {
-      const double c1 = 1.50 * coeff;
-      const double c2 = -2.0 * coeff;
-      const double c3 = 0.50 * coeff;
-
-      for (ModelPart::NodeIterator i = (*mp_mesh_model_part).GetCommunicator().LocalMesh().NodesBegin();
-           i != (*mp_mesh_model_part).GetCommunicator().LocalMesh().NodesEnd(); ++i) {
-
-        array_1d<double, 3> &mesh_v =
-            (i)->FastGetSolutionStepValue(MESH_VELOCITY);
-        noalias(mesh_v) = c1 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT);
-        noalias(mesh_v) +=
-            c2 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-        noalias(mesh_v) +=
-            c3 * (i)->FastGetSolutionStepValue(MESH_DISPLACEMENT, 2);
-      }
-    } else {
-      KRATOS_ERROR << "Wrong TimeOrder: Acceptable values are: 1 and 2"
-                   << std::endl;
-    }
-
-    KRATOS_CATCH("");
-  }
-*/
-/*   void MoveMesh() override {
-    for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
-         i != BaseType::GetModelPart().NodesEnd(); ++i) {
-      (i)->X() = (i)->X0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_X);
-      (i)->Y() = (i)->Y0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Y);
-      (i)->Z() = (i)->Z0() + i->GetSolutionStepValue(MESH_DISPLACEMENT_Z);
-    }
-  } */
-/*
-  void SetMeshToInitialConfiguration() {
-    for (ModelPart::NodeIterator i = (*mp_mesh_model_part).NodesBegin();
-         i != (*mp_mesh_model_part).NodesEnd(); ++i) {
-
-      (i)->X() = (i)->X0();
-      (i)->Y() = (i)->Y0();
-      (i)->Z() = (i)->Z0();
-    }
-  } */
-
-/*   void UpdateReferenceMesh() {
+  void UpdateReferenceMesh() {
     for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
          i != BaseType::GetModelPart().NodesEnd(); ++i) {
       (i)->X0() = (i)->X();
       (i)->Y0() = (i)->Y();
       (i)->Z0() = (i)->Z();
     }
-  } */
+  }
 
   /*@} */
   /**@name Operators
@@ -356,29 +292,6 @@ private:
   /*@} */
   /**@name Private Operations*/
   /*@{ */
-
-  void GenerateMeshPart() {
-    mp_mesh_model_part = ModelPart::Pointer(new ModelPart("MeshPart", 1));
-
-    // initializing mesh nodes
-    mp_mesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();
-
-    // creating mesh elements
-    ModelPart::ElementsContainerType &MeshElems =
-        mp_mesh_model_part->Elements();
-    Element::Pointer pElem;
-
-    for (ModelPart::ElementsContainerType::iterator it =
-             BaseType::GetModelPart().ElementsBegin();
-
-         it != BaseType::GetModelPart().ElementsEnd(); ++it) {
-
-      pElem = Kratos::make_shared<LaplacianMeshMovingElement>(
-          (*it).Id(), (*it).pGetGeometry(), (*it).pGetProperties());
-      MeshElems.push_back(pElem);
-    }
-  }
-
   /*@} */
   /**@name Private  Access */
   /*@{ */

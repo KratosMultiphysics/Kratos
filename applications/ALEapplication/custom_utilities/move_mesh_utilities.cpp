@@ -99,35 +99,34 @@ namespace MoveMeshUtilities {
     }
   }
 
-  void UpdateReferenceMesh(const ModelPart::NodesContainerType& rNodes) {
-    for (auto& r_node : rNodes) {
-      (r_node).X0() = (r_node).X();
-      (r_node).Y0() = (r_node).Y();
-      (r_node).Z0() = (r_node).Z();
-    }
-  }
+  ModelPart::Pointer GenerateMeshPart(ModelPart& rModelPart, std::string ElementName) {
 
+    ModelPart::Pointer p_mesh_model_part;
+    p_mesh_model_part = Kratos::make_shared<ModelPart>("MeshPart", 1);
 
-/*   void GenerateMeshPart(ModelPart::Pointer pMeshModelPart, const ModelPart::ElementsContainerType& rElements) {
-    pMeshModelPart = ModelPart::Pointer(new ModelPart("MeshPart", 1));
+    // initializing mesh nodes and variables
+    p_mesh_model_part->Nodes() = rModelPart.Nodes();
 
-    // initializing mesh nodes
-    //pMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
+    p_mesh_model_part->GetNodalSolutionStepVariablesList() =
+        rModelPart.GetNodalSolutionStepVariablesList();
+    p_mesh_model_part->SetBufferSize(rModelPart.GetBufferSize());
 
     // creating mesh elements
-    ModelPart::ElementsContainerType &MeshElems =
-        pMeshModelPart->Elements();
-    Element::Pointer pElem;
+    ModelPart::ElementsContainerType& r_mesh_elements =
+        p_mesh_model_part->Elements();
 
-    for (ModelPart::ElementsContainerType::iterator it =
-             rElements.ElementsBegin();
-         it != rElements.ElementsEnd(); ++it) {
 
-      pElem = Kratos::make_shared<LaplacianMeshMovingElement>(
-          (*it).Id(), (*it).pGetGeometry(), (*it).pGetProperties());
-      MeshElems.push_back(pElem);
-    }
-  } */
+    const Element& r_reference_element = KratosComponents<Element>::Get(ElementName);
+
+        for(int i=0; i< (int)rModelPart.Elements().size(); i++){
+        ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin() + i;
+        Element::Pointer p_element = r_reference_element.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+        r_mesh_elements.push_back(p_element);
+        }
+
+    return p_mesh_model_part;
+  }
+
 } // namespace Move Mesh Utilities.
 
 } // namespace Kratos.

@@ -41,9 +41,7 @@ void MoveMesh(const ModelPart::NodesContainerType& rNodes);
 
 void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType& rNodes);
 
-void UpdateReferenceMesh(const ModelPart::NodesContainerType& rNodes);
-
-//void GenerateMeshPart(ModelPart::Pointer pMeshModelPart, const ModelPart::ElementsContainerType& rElements);
+ModelPart::Pointer GenerateMeshPart(ModelPart& rModelPart, std::string ElementName);
 
 } // namespace Move Mesh Utilities.
 
