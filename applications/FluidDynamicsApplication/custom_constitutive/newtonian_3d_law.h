@@ -58,18 +58,6 @@ public:
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
-    /**
-     * Copy constructor.
-     */
-    Newtonian3DLaw (const Newtonian3DLaw& rOther);
-
-
-    /**
-     * Assignment operator.
-     */
-
-    //Newtonian3DLaw& operator=(const Newtonian3DLaw& rOther);
-
 
     /**
      * Destructor.

@@ -61,18 +61,6 @@ public:
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
-    /**
-     * Copy constructor.
-     */
-    HerschelBulkey3DLaw (const HerschelBulkey3DLaw& rOther);
-
-
-    /**
-     * Assignment operator.
-     */
-
-    //HerschelBulkey3DLaw& operator=(const HerschelBulkey3DLaw& rOther);
-
 
     /**
      * Destructor.
