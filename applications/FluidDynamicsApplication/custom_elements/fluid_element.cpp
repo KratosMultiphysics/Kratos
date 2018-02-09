@@ -484,15 +484,6 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
     const Vector Nvec(rData.N);
     Values.SetShapeFunctionsValues(Nvec);
 
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-    Values.SetStrainVector(rData.StrainRate);   //this is the input parameter
-    Values.SetStressVector(rData.ShearStress);  //this is an ouput parameter
-    Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
-
     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
     //this is ok under the hypothesis that no history dependent behaviour is employed
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
