@@ -190,7 +190,7 @@ def set_and_fill_buffer(mp,buffer_size,delta_time):
         mp.CloneTimeStep(time)
 
     mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-    
+
 def add_variables(mp):
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
