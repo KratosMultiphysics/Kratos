@@ -179,7 +179,7 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
                 DivideGeometry::Pointer p_split_utility = p_modified_shape_functions->pGetSplittingUtil();
 
                 // Create the auxiliar map that will be used to generate the skin
-                std::unordered_map<int, int> new_nodes_map;
+                std::unordered_map<unsigned int, unsigned int> new_nodes_map;
 
                 // Save the geometries from the splitting pattern in the visualization model part
                 const unsigned int n_pos_split_geom = (p_split_utility->mPositiveSubdivisions).size();
@@ -245,7 +245,8 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
                             mCutNodesMap.insert(CutNodesMapType::value_type(p_new_node, new_node_info));
 
                             // Link the new node global id. to its local index in the splitting util
-                            new_nodes_map.insert(std::make_pair<int, int>(local_id, temp_node_id));
+                            std::pair<unsigned int, unsigned int> new_pair(local_id, temp_node_id);
+                            new_nodes_map.insert(new_pair);
 
                             // Update the new nodes id. counter
                             temp_node_id++;
