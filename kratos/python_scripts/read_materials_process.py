@@ -269,8 +269,8 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 return True
             elif self.__is_matrix_with_interpolation(value):
                 return True
-            else:
-                return False
+
+        return False
 
     def __is_double_with_interpolation(self, parameter):
         """
@@ -444,7 +444,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         input_variable_location = table_info["input_variable_location"]
         table = table_info["table"]
 
-        if input_variable_location == "geometric_entity": # TODO use "geom_entity", "geometric_entity" or "geometrical_entity"?
+        if input_variable_location == "geom_entity":
             if geom_entity.Has(input_variable): # Values in Geom Entites are saved as Non-historical values (model_part_io.cpp)
                 input_value = geom_entity.GetValue(input_variable)
             else:

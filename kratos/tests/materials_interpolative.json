@@ -21,7 +21,7 @@
                         [ 0.0,   100.0 ],
                         [ 200.0, 500.0 ]
                     ],
-                    "input_variable_location": "geometric_entity"
+                    "input_variable_location": "geom_entity"
                 },
                 "Table5": {
                     "input_variable": "TEMPERATURE",
@@ -30,7 +30,7 @@
                         [ 0.0,   10.0 ],
                         [ 200.0, 35.0 ]
                     ],
-                    "input_variable_location": "geometric_entity"
+                    "input_variable_location": "geom_entity"
                 },
                 "Table2": {
                     "input_variable": "TEMPERATURE",
@@ -39,7 +39,7 @@
                         [ 0.0,   110.0 ],
                         [ 200.0, 230.0 ]
                     ],
-                    "input_variable_location": "geometric_entity"
+                    "input_variable_location": "geom_entity"
                 }
             }
         }
