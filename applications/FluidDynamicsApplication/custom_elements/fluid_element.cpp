@@ -410,6 +410,14 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     // Check the constitutive law
     KRATOS_ERROR_IF(mpConstitutiveLaw == nullptr) << "Constitutive Law not initialized for Element " << this->Info() << std::endl;
 
+    constexpr auto dimension = Dim;  // I need to set this here otherwise it gives me a linking error when attempting to '<<' it.
+
+    KRATOS_ERROR_IF(mpConstitutiveLaw->WorkingSpaceDimension() != Dim)
+        << "Wrong dimension: The " << mpConstitutiveLaw->WorkingSpaceDimension()
+        << "D constitutive law " << mpConstitutiveLaw->Info()
+        << " is not compatible with " << dimension << "D element " << this->Info()
+        << "." << std::endl;
+
     out = mpConstitutiveLaw->Check(this->GetProperties(),r_geometry,rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT( out == 0) << "The Constitutive Law provided for Element " << this->Info() << " is not correct." << std::endl;
 

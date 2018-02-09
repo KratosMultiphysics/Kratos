@@ -58,6 +58,15 @@ Newtonian2DLaw::~Newtonian2DLaw()
 }
 
 
+ConstitutiveLaw::SizeType Newtonian2DLaw::WorkingSpaceDimension() {
+    return 2;
+}
+
+ConstitutiveLaw::SizeType Newtonian2DLaw::GetStrainSize() {
+    return 3;
+}
+
+
 void  Newtonian2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
 

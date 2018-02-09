@@ -70,12 +70,20 @@ public:
     ~Newtonian3DLaw() override;
 
     /**
-     * Operators
+     * Operations needed by the base class:
      */
 
     /**
-     * Operations needed by the base class:
+     * @return Working space dimension constitutive law
      */
+    SizeType WorkingSpaceDimension() override;
+
+    /**
+     * @return Size of the strain vector (in Voigt notation) for the constitutive law
+     */
+    SizeType GetStrainSize() override;
+
+
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
     /**

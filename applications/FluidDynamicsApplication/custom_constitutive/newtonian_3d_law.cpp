@@ -57,6 +57,13 @@ Newtonian3DLaw::~Newtonian3DLaw()
 {
 }
 
+ConstitutiveLaw::SizeType Newtonian3DLaw::WorkingSpaceDimension() {
+    return 3;
+}
+
+ConstitutiveLaw::SizeType Newtonian3DLaw::GetStrainSize() {
+    return 6;
+}
 
 void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
