@@ -31,6 +31,14 @@
 namespace Kratos
 {
 
+    /** 
+     * @class ExplicitStrategy
+     * 
+     * @brief This strategy is used for the explicit time integration
+     * 
+     * @author Klauss B Sautter (based on the work of JMCarbonel)
+     */
+
 template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>

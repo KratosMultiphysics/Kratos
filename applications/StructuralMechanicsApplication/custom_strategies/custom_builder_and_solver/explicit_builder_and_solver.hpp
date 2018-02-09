@@ -126,7 +126,7 @@ public:
 
 
         auto it_node = rModelPart.NodesBegin();
-        #pragma omp parallel for firstprivate(it_node)
+        #pragma omp parallel for 
         for(int i=0;i<static_cast<int>(r_nodes.size());++i)
         {
             (it_node+i)->SetValue(NODAL_MASS,0.00);
@@ -134,7 +134,7 @@ public:
 
         if (rModelPart.NodesBegin()->HasDofFor(ROTATION_Z))
         {
-            #pragma omp parallel for firstprivate(it_node)
+            #pragma omp parallel for 
             for(int i=0;i<static_cast<int>(r_nodes.size());++i)
                 {
                     array_1d<double,3>& r_nodal_inertia = (it_node+i)->GetValue(NODAL_INERTIA);
@@ -143,7 +143,7 @@ public:
         }
 
         auto it_elem = rModelPart.ElementsBegin();
-        #pragma omp parallel for firstprivate(it_elem)
+        #pragma omp parallel for 
         for (int i=0;i<static_cast<int>(r_elements.size());++i)  
         {
             //Getting nodal mass and inertia from element
@@ -193,7 +193,7 @@ public:
         ConditionsArrayType& pConditions      = rModelPart.Conditions();
 
         typename ConditionsArrayType::ptr_iterator it_begin=pConditions.ptr_begin();    
-        #pragma omp parallel for firstprivate(it_begin)
+        #pragma omp parallel for 
         for (int i =0;i<static_cast<int>(pConditions.size());++i)
         {
             LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
@@ -226,7 +226,7 @@ public:
         ElementsArrayType& pElements        = rModelPart.Elements();
         
         typename ElementsArrayType::ptr_iterator it_begin=pElements.ptr_begin();  
-        #pragma omp parallel for firstprivate(it_begin)
+        #pragma omp parallel for 
         for (int i =0;i<static_cast<int>(pElements.size());++i)
         {
             LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
