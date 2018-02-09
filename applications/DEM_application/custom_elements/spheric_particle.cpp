@@ -831,9 +831,6 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             DeltVel[0] = vel[0] - wall_velocity_at_contact_point[0];
             DeltVel[1] = vel[1] - wall_velocity_at_contact_point[1];
             DeltVel[2] = vel[2] - wall_velocity_at_contact_point[2];
-            RelVel[0] = DeltVel[0];
-            RelVel[1] = DeltVel[1];
-            RelVel[2] = DeltVel[2];
 
             // For translation movement delta displacement
             const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -871,13 +868,25 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
 
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, mNeighbourRigidFacesElasticContactForce[i], OldLocalElasticContactForce);
             const double previous_indentation = indentation + LocalDeltDisp[2];
-            double LocalRelVel[3] = {0.0};
+            data_buffer.mLocalRelVel[0] = 0.0;
+            data_buffer.mLocalRelVel[1] = 0.0;
+            data_buffer.mLocalRelVel[2] = 0.0;
             
             if (indentation > 0.0) {
                 
-                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, LocalRelVel);
-                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,OldLocalElasticContactForce, LocalElasticContactForce, LocalDeltDisp, LocalRelVel, indentation,
-                                                                     previous_indentation, ViscoDampingLocalContactForce, cohesive_force, this, wall, sliding);
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
+                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,
+                                                                    OldLocalElasticContactForce, 
+                                                                    LocalElasticContactForce, 
+                                                                    LocalDeltDisp, 
+                                                                    data_buffer.mLocalRelVel, 
+                                                                    indentation,
+                                                                    previous_indentation, 
+                                                                    ViscoDampingLocalContactForce, 
+                                                                    cohesive_force, 
+                                                                    this, 
+                                                                    wall, 
+                                                                    sliding);
             }
 
             double LocalContactForce[3]  = {0.0};
@@ -898,7 +907,12 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             if (wall->GetProperties()[COMPUTE_WEAR]) {
                 const double area              = Globals::Pi * GetInteractionRadius() * GetInteractionRadius();
                 const double inverse_of_volume = 1.0 / (4.0 * 0.333333333333333 * area * GetInteractionRadius());
-                ComputeWear(LocalCoordSystem, RelVel, LocalRelVel, data_buffer.mDt, sliding, inverse_of_volume, LocalElasticContactForce[2], wall);
+                ComputeWear(data_buffer.mLocalRelVel, 
+                            data_buffer.mDt, 
+                            sliding, 
+                            inverse_of_volume, 
+                            LocalElasticContactForce[2], 
+                            wall);
             } //wall->GetProperties()[COMPUTE_WEAR] if
 
             if (this->Is(DEMFlags::HAS_STRESS_TENSOR)) {
@@ -915,13 +929,13 @@ void SphericParticle::RenewData()
   //To be redefined
 }
 void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,   // check for delete
-                                                  DEMWall* const wall,
-                                            double LocalCoordSystem[3][3],
-                                            double& DistPToB,
-                                            array_1d<double, 4>& Weight,
-                                            array_1d<double, 3>& wall_delta_disp_at_contact_point,
-                                            array_1d<double, 3>& wall_velocity_at_contact_point,
-                                            int& ContactType)
+                                                    DEMWall* const wall,
+                                                    double LocalCoordSystem[3][3],
+                                                    double& DistPToB,
+                                                    array_1d<double, 4>& Weight,
+                                                    array_1d<double, 3>& wall_delta_disp_at_contact_point,
+                                                    array_1d<double, 3>& wall_velocity_at_contact_point,
+                                                    int& ContactType)
 {
     size_t FE_size = wall->GetGeometry().size();
     
@@ -998,21 +1012,22 @@ void SphericParticle::ComputeConditionRelativeData(int rigid_neighbour_index,   
     }
 } //ComputeConditionRelativeData
 
-void SphericParticle::ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& relative_velocity, double tangential_vel[3],
-                                  double mTimeStep, bool sliding, double inverse_of_volume,
-                                  double LocalElasticContactForce, DEMWall* wall) {
+void SphericParticle::ComputeWear(double LocalRelVel[3], 
+                                  double mTimeStep, 
+                                  bool sliding, 
+                                  double inverse_of_volume,
+                                  double LocalElasticContactForce, 
+                                  DEMWall* wall) {
 
     array_1d<double, 3>& node_coor_array = this->GetGeometry()[0].Coordinates();
-    array_1d<double, 3> local_rel_vel;
-    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, relative_velocity, local_rel_vel);
     double volume_wear = 0.0;
     double WallSeverityOfWear           = wall->GetProperties()[SEVERITY_OF_WEAR];
     double WallImpactSeverityOfWear     = wall->GetProperties()[IMPACT_WEAR_SEVERITY];
     double InverseOfWallBrinellHardness = 1.0 / (wall->GetProperties()[BRINELL_HARDNESS]);
-    double Sliding_0 = tangential_vel[0] * mTimeStep;
-    double Sliding_1 = tangential_vel[1] * mTimeStep;
+    double Sliding_0 = LocalRelVel[0] * mTimeStep;
+    double Sliding_1 = LocalRelVel[1] * mTimeStep;
     
-    double impact_wear = WallImpactSeverityOfWear * InverseOfWallBrinellHardness * GetDensity() * mRadius * std::abs(local_rel_vel[2]);
+    double impact_wear = WallImpactSeverityOfWear * InverseOfWallBrinellHardness * GetDensity() * mRadius * std::abs(LocalRelVel[2]);
     if (sliding) volume_wear = WallSeverityOfWear * InverseOfWallBrinellHardness * std::abs(LocalElasticContactForce) * sqrt(Sliding_0 * Sliding_0 + Sliding_1 * Sliding_1);
     
     double element_area = wall->GetGeometry().Area();

@@ -43,6 +43,7 @@
 #include "custom_elements/embedded_fluid_element.h"
 //#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
+#include "custom_elements/two_fluid_vms_linearized_darcy.h"
 #include "custom_elements/stationary_stokes.h"
 #include "custom_elements/fractional_step.h"
 #include "custom_elements/fractional_step_discontinuous.h"
@@ -249,6 +250,7 @@ private:
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMS3D4N;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
+    const TwoFluidVMSLinearizedDarcy<3,4> mTwoFluidVMSLinearizedDarcy3D;
 
     const StationaryStokes<2> mStationaryStokes2D;
     const StationaryStokes<3> mStationaryStokes3D;
