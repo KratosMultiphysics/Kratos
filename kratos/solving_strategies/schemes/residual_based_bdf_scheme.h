@@ -132,7 +132,7 @@ public:
         mVector.dot2un0.resize(num_threads);
         
         // Doing a minimal check
-        KRATOS_ERROR_IF(mOrder < 1) << "ERROR:: Not possible to compute a BDF of order 1" << std::endl;
+        KRATOS_ERROR_IF(mOrder < 1) << "ERROR:: Not possible to compute a BDF of order less than 1" << std::endl;
         
         // We resize the BDF coefficients
         if (mBDF.size() != (mOrder + 1))
