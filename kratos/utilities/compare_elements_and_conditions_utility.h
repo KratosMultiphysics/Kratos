@@ -77,44 +77,6 @@ public:
         CompareElementsAndConditionsUtility::GetRegisteredName(*rCondition, rName);
     }
 
-    static void FindNameInRegistry(const Element& rElement, std::string& rName)
-    {
-        KRATOS_TRY;
-
-        const auto& components = KratosComponents<Element>::GetComponents();
-        for(auto it = components.begin(); it != components.end(); ++it) 
-        {
-            if (IsSame(*(it->second), rElement))
-            {
-                rName = it->first;
-                return;
-            }
-        }
-
-        KRATOS_ERROR << "Element \"" << typeid(rElement).name() << "\" not found!" << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    static void FindNameInRegistry(const Condition& rCondition, std::string& rName)
-    {
-        KRATOS_TRY;
-
-        const auto& components = KratosComponents<Condition>::GetComponents();
-        for(auto it = components.begin(); it != components.end(); ++it) 
-        {
-            if (IsSame(*(it->second), rCondition))
-            {
-                rName = it->first;
-                return;
-            }
-        }
-
-        KRATOS_ERROR << "Condition \"" << typeid(rCondition).name() << "\" not found!" << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
     ///@}
 
 private:

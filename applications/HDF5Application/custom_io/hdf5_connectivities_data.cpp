@@ -120,7 +120,7 @@ void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
     mPropertiesIds.resize(num_elems, false);
     const unsigned geometry_size = rElements.front().GetGeometry().size();
     mConnectivities.resize(num_elems, geometry_size, false);
-    CompareElementsAndConditionsUtility::FindNameInRegistry(rElements.front(), mName);
+    CompareElementsAndConditionsUtility::GetRegisteredName(rElements.front(), mName);
 
     // Fill arrays and perform checks.
     #pragma omp parallel for
@@ -128,7 +128,7 @@ void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
     {
         ElementsContainerType::const_iterator it = rElements.begin() + i;
         // Check that the element and geometry types are the same.
-        KRATOS_ERROR_IF_NOT(CompareElementsAndConditionsUtility::IsSame(*it, rElements.front()))
+        KRATOS_ERROR_IF_NOT(GeometricalObject::IsSame(*it, rElements.front()))
             << "Element #" << it->Id() << " is not the same as #" << rElements.front().Id() << '!' << std::endl;
         // Fill ids.
         mIds[i] = it->Id();
@@ -157,7 +157,7 @@ void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
     mPropertiesIds.resize(num_conds, false);
     const unsigned geometry_size = rConditions.front().GetGeometry().size();
     mConnectivities.resize(num_conds, geometry_size, false);
-    CompareElementsAndConditionsUtility::FindNameInRegistry(rConditions.front(), mName);
+    CompareElementsAndConditionsUtility::GetRegisteredName(rConditions.front(), mName);
 
     // Fill arrays and perform checks.
     #pragma omp parallel for
@@ -165,7 +165,7 @@ void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
     {
         ConditionsContainerType::const_iterator it = rConditions.begin() + i;
         // Check that the condition and geometry types are the same.
-        KRATOS_ERROR_IF_NOT(CompareElementsAndConditionsUtility::IsSame(*it, rConditions.front()))
+        KRATOS_ERROR_IF_NOT(GeometricalObject::IsSame(*it, rConditions.front()))
             << "Condition #" << it->Id() << " is not the same as #" << rConditions.front().Id() << '!' << std::endl;
         // Fill ids.
         mIds[i] = it->Id();

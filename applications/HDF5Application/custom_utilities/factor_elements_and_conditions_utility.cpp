@@ -27,7 +27,7 @@ std::vector<std::string> GetLocalComponentNames(const TContainerType& rElements)
     std::vector<std::pair<std::string, const typename TContainerType::data_type *>> components(1);
     std::string name;
     // Add first component.
-    CompareElementsAndConditionsUtility::FindNameInRegistry(rElements.front(), name);
+    CompareElementsAndConditionsUtility::GetRegisteredName(rElements.front(), name);
     components[0] = std::pair<std::string, const typename TContainerType::data_type *>(
         name, &rElements.front());
 
@@ -37,12 +37,12 @@ std::vector<std::string> GetLocalComponentNames(const TContainerType& rElements)
     for (typename TContainerType::const_iterator it = rElements.begin() + 1;
          it != rElements.end(); ++it)
     {
-        if (CompareElementsAndConditionsUtility::IsSame(*it, *components[pos].second) == false)
+        if (GeometricalObject::IsSame(*it, *components[pos].second) == false)
         {
             bool found = false;
             for (unsigned k = 0; k < components.size(); ++k)
             {
-                if (CompareElementsAndConditionsUtility::IsSame(*it, *components[k].second))
+                if (GeometricalObject::IsSame(*it, *components[k].second))
                 {
                     found = true;
                     pos = k;
@@ -52,7 +52,7 @@ std::vector<std::string> GetLocalComponentNames(const TContainerType& rElements)
 
             if (!found)
             {
-                CompareElementsAndConditionsUtility::FindNameInRegistry(*it, name);
+                CompareElementsAndConditionsUtility::GetRegisteredName(*it, name);
                 components.push_back(std::pair<std::string, const typename TContainerType::data_type*>(
                     name, &(*it)));
                 pos = components.size() - 1;
@@ -200,14 +200,13 @@ FactorElementsUtility::FactorElementsUtility(const ElementsContainerType& rEleme
     int pos = 0;
     for (auto it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
     {
-        if (CompareElementsAndConditionsUtility::IsSame(**it, *components[pos]) == false)
+        if (GeometricalObject::IsSame(**it, *components[pos]) == false)
         {
             // Find the new position.
             bool found = false;
             for (unsigned k = 0; k < components.size(); ++k)
             {
-                if (CompareElementsAndConditionsUtility::IsSame(
-                        **it, *components[k]))
+                if (GeometricalObject::IsSame(**it, *components[k]))
                 {
                     pos = k;
                     found = true;
@@ -248,14 +247,13 @@ FactorConditionsUtility::FactorConditionsUtility(const ConditionsContainerType& 
     int pos = 0;
     for (auto it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
     {
-        if (CompareElementsAndConditionsUtility::IsSame(**it, *components[pos]) == false)
+        if (GeometricalObject::IsSame(**it, *components[pos]) == false)
         {
             // Find the new position.
             bool found = false;
             for (unsigned k = 0; k < components.size(); ++k)
             {
-                if (CompareElementsAndConditionsUtility::IsSame(
-                        **it, *components[k]))
+                if (GeometricalObject::IsSame(**it, *components[k]))
                 {
                     pos = k;
                     found = true;

@@ -24,7 +24,6 @@
 // Application includes
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_connectivities_data.h"
-#include "utilities/compare_elements_and_conditions_utility.h"
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 
 namespace Kratos
@@ -184,7 +183,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateElements, KratosHDF5TestS
     {
         Element& r_elem = elements[r_new_elem.Id()];
         KRATOS_CHECK(r_new_elem.GetProperties().Id() == r_elem.GetProperties().Id());
-        KRATOS_CHECK(CompareElementsAndConditionsUtility::IsSame(r_elem, r_new_elem));
+        KRATOS_CHECK(GeometricalObject::IsSame(r_elem, r_new_elem));
         for (unsigned j = 0; j < r_elem.GetGeometry().size(); ++j)
             KRATOS_CHECK(r_new_elem.GetGeometry()[j].Id() == r_elem.GetGeometry()[j].Id());
     }
@@ -224,7 +223,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_CreateConditions, KratosHDF5Tes
     {
         Condition& r_cond = conditions[r_new_cond.Id()];
         KRATOS_CHECK(r_new_cond.GetProperties().Id() == r_cond.GetProperties().Id());
-        KRATOS_CHECK(CompareElementsAndConditionsUtility::IsSame(r_cond, r_new_cond));
+        KRATOS_CHECK(GeometricalObject::IsSame(r_cond, r_new_cond));
         for (unsigned j = 0; j < r_cond.GetGeometry().size(); ++j)
             KRATOS_CHECK(r_new_cond.GetGeometry()[j].Id() == r_cond.GetGeometry()[j].Id());
     }
