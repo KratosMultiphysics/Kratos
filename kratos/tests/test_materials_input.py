@@ -126,14 +126,14 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         #assign the real path
         test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("materials_interpolative.json"))
 
-        # Setting Values on the entities
+        # Populate the Entities with values, usually these are coming from mdpa
         for node in model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.AUX_INDEX, self._get_value_on_entity(node))
+            node.SetSolutionStepValue(KratosMultiphysics.AUX_INDEX, self._get_value_for_entity(node))
         for element in model_part.Elements:
-            element.SetValue(KratosMultiphysics.TEMPERATURE, self._get_value_on_entity(element))
+            element.SetValue(KratosMultiphysics.TEMPERATURE, self._get_value_for_entity(element))
 
         import read_materials_process
-        read_materials_process.Factory(test_settings,Model)
+        read_materials_process.Factory(test_settings, Model)
 
         self.assertEqual(model_part.NumberOfTables(), 4)
         table_1 = model_part.GetTable(1)
@@ -147,48 +147,47 @@ class TestMaterialsInput(KratosUnittest.TestCase):
 
         self.assertEqual(model_part.NumberOfProperties(), 23) # 2 props are in the mdpa already
 
-        errAfterProps
+        for elem in model_part.GetSubModelPart("Main_domain").Elements:
+            self.assertAlmostEqual(elem.Properties.GetValue(KratosMultiphysics.POISSON_RATIO), 0.39)
+            self.assertAlmostEqual(elem.Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS),
+                                    table_1.GetValue(elem.GetValue(KratosMultiphysics.TEMPERATURE)))
 
-        # TODO test the tables!
 
-        # for element in model_part.GetSubModelPart("Main_domain").Elements:
-        #     local_inertia_tensor = cond.Properties.GetValue(KratosMultiphysics.LOCAL_INERTIA_TENSOR)
-        #     local_inertia_tensor_expected = KratosMultiphysics.Matrix(2,2)
-        #     local_inertia_tensor_expected[0][0] = 1.27
-        #     local_inertia_tensor_expected[0][1] = ???
-        #     local_inertia_tensor_expected[1][0] = ???
-        #     local_inertia_tensor_expected[1][1] = 0.257
-        #     for i in range(2):
-        #         for j in range(2):
-        #             self.assertAlmostEqual(local_inertia_tensor[i][j], local_inertia_tensor_expected[i][j])
+            local_inertia_tensor = elem.Properties.GetValue(KratosMultiphysics.LOCAL_INERTIA_TENSOR)
+            local_inertia_tensor_expected = KratosMultiphysics.Matrix(2,2)
+            local_inertia_tensor_expected[0,0] = 1.27
+            local_inertia_tensor_expected[0,1] = table_3.GetValue(elem.GetValue(KratosMultiphysics.TEMPERATURE))
+            local_inertia_tensor_expected[1,0] = table_2.GetValue(self._get_value_for_entity(elem))
+            local_inertia_tensor_expected[1,1] = 0.257
+            for i in range(2):
+                for j in range(2):
+                    self.assertAlmostEqual(local_inertia_tensor[i,j], local_inertia_tensor_expected[i,j])
 
-        #     self.assertAlmostEqual(element.Properties.GetValue(KratosMultiphysics.YOUNG_MODULUS), ???)
-        #     self.assertAlmostEqual(element.Properties.GetValue(KratosMultiphysics.POISSON_RATIO), 0.39)
+        for cond in model_part.GetSubModelPart("Left_side").Conditions:
+            self.assertAlmostEqual(cond.Properties.GetValue(KratosMultiphysics.POISSON_RATIO), 0.55)
 
-        # for cond in model_part.GetSubModelPart("Left_side").Conditions:
-        #     cauchy_stress_vector = cond.Properties.GetValue(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
-        #     cauchy_stress_vector_expected = KratosMultiphysics.Vector(3)
-        #     cauchy_stress_vector_expected[0] = ??? #self._get_value_on_condition(cond)
-        #     cauchy_stress_vector_expected[1] = 0.3
-        #     cauchy_stress_vector_expected[2] = -2.58
-        #     for i in range(3):
-        #         self.assertAlmostEqual(cauchy_stress_vector[i], cauchy_stress_vector_expected[i])
+            cauchy_stress_vector = cond.Properties.GetValue(KratosMultiphysics.CAUCHY_STRESS_VECTOR)
+            cauchy_stress_vector_expected = KratosMultiphysics.Vector(3)
+            cauchy_stress_vector_expected[0] = table_4.GetValue(self._get_value_from_nodes(cond))
+            cauchy_stress_vector_expected[1] = 0.3
+            cauchy_stress_vector_expected[2] = -2.58
+            for i in range(3):
+                self.assertAlmostEqual(cauchy_stress_vector[i], cauchy_stress_vector_expected[i])
 
-        #     self.assertAlmostEqual(cond.Properties.GetValue(KratosMultiphysics.POISSON_RATIO), 0.55)
 
             # TODO test also the tables => should be the same as in the ModelPart
 
-    def _get_value_on_entity(self, entity):
+    def _get_value_for_entity(self, entity):
         # assign a value randomly
         return (20.0*entity.Id)%200
 
-    def _get_value_on_condition(self, condition):
-        cond_nodes = condition.GetNodes()
+    def _get_value_from_nodes(self, entity):
+        cond_nodes = entity.GetNodes()
         num_nodes = len(cond_nodes)
         value = 0.0
 
         for node in cond_nodes:
-            value += self._get_value_on_entity(node)
+            value += self._get_value_for_entity(node)
 
         return value / num_nodes
 

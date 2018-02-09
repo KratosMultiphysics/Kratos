@@ -453,7 +453,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 raise ValueError(err_msg)
         elif input_variable_location == "nodes":
             nodes = geom_entity.GetNodes()
-            input_value = 0
+            input_value = 0.0
             for node in nodes:
                 if node.SolutionStepsDataHas(input_variable): # Values in Nodes are saved as Historical values (model_part_io.cpp)
                     input_value += node.GetSolutionStepValue(input_variable)
@@ -461,7 +461,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                     err_msg  = "Node # " + str(node.Id)
                     err_msg += " does not have " + input_variable.Name()
                     raise ValueError(err_msg)
-                input_value /= len(nodes)
+            input_value /= len(nodes)
         else:
             raise Exception('Type of input_variable_location "' + input_variable_location + '" is not valid!')
 
