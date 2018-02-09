@@ -8,7 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main author:     Alex Jarauta
-
+//  Co-author  :     Elaf Mahrous
 
 #if !defined(FIND_TRIPLE_POINT_CONDITION_INCLUDED )
 #define  FIND_TRIPLE_POINT_CONDITION_INCLUDED

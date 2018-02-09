@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main author:     Alex Jarauta
+//  Co-author  :     Elaf Mahrous
 
 
 #if !defined(KRATOS_FIND_NODAL_NEIGHBOURS_SURFACE_PROCESS_H_INCLUDED )

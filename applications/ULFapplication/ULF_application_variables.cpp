@@ -7,8 +7,9 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:   
-//
+//  Main author:     Alex Jarauta
+//  Co-author  :     Elaf Mahrous
+
 
 
 #include "ULF_application_variables.h"
