@@ -10,68 +10,9 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def _add_variables(self,mp):
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-
-    def _create_solver(self,mp, scheme_name):
-        # Define a minimal newton raphson dynamic solver
-        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
-        if (scheme_name == "newmark"):
-            scheme = KratosMultiphysics.ResidualBasedNewmarkDisplacementScheme()
-        elif (scheme_name == "backward_euler"):
-            scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
-        elif (scheme_name == "bdf2"):
-            scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
-        else:
-            damp_factor_m = 0.0
-            scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        # Convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
-        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
-        convergence_criterion.SetEchoLevel(0)
-
-        max_iters = 10
-        compute_reactions = False
-        reform_step_dofs = True
-        move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
-                                                                         scheme,
-                                                                         linear_solver,
-                                                                         convergence_criterion,
-                                                                         builder_and_solver,
-                                                                         max_iters,
-                                                                         compute_reactions,
-                                                                         reform_step_dofs,
-                                                                         move_mesh_flag)
-        strategy.SetEchoLevel(0)
-
-        strategy.Check()
-
-        return strategy
-
-    def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
-        # Set buffer size
-        mp.SetBufferSize(buffer_size)
-
-        # Fill buffer
-        time = mp.ProcessInfo[KratosMultiphysics.TIME]
-        time = time - delta_time * (buffer_size)
-        mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for size in range(0, buffer_size):
-            step = size - (buffer_size -1)
-            mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-            time = time + delta_time
-            #delta_time is computed from previous time in process_info
-            mp.CloneTimeStep(time)
-
-        mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
-
     def _base_spring_test_dynamic_schemes(self, scheme_name = "bossak", buffer_size = 2, dt = 5.0e-3):
         mp = KratosMultiphysics.ModelPart("sdof")
-        self._add_variables(mp)
+        add_variables(mp)
 
         # Create node
         node = mp.CreateNewNode(1,0.0,0.0,0.0)
@@ -97,13 +38,13 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         end_time = 0.05
         step = 0
 
-        self._set_and_fill_buffer(mp,buffer_size,dt)
+        set_and_fill_buffer(mp,buffer_size,dt)
 
         #parameters for analytical solution
         omega = sqrt(stiffness/mass)
         A = init_displacement
 
-        self.strategy = self._create_solver(mp, scheme_name)
+        self.strategy = create_solver(mp, scheme_name)
 
         # Fill buffer solution
         for i in range(buffer_size):
@@ -138,7 +79,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
 
     def _base_fall_test_dynamic_schemes(self, scheme_name = "bossak", buffer_size = 2, dt = 1.0e-2):
         mp = KratosMultiphysics.ModelPart("sdof")
-        self._add_variables(mp)
+        add_variables(mp)
 
         # Create node
         node = mp.CreateNewNode(1,0.0,0.0,0.0)
@@ -165,10 +106,10 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
         end_time = 1.0e-1
         step = 0
 
-        self._set_and_fill_buffer(mp,buffer_size,dt)
+        set_and_fill_buffer(mp,buffer_size,dt)
 
         #parameters for analytical solution
-        self.strategy = self._create_solver(mp, scheme_name)
+        self.strategy = create_solver(mp, scheme_name)
 
         current_analytical_displacement_y = 0.0
         current_analytical_velocity_y = 0.0
@@ -232,6 +173,65 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
 
     def test_fall_bdf2_scheme(self):
         self._base_fall_test_dynamic_schemes("bdf2", 3)
+
+def set_and_fill_buffer(mp,buffer_size,delta_time):
+    # Set buffer size
+    mp.SetBufferSize(buffer_size)
+
+    # Fill buffer
+    time = mp.ProcessInfo[KratosMultiphysics.TIME]
+    time = time - delta_time * (buffer_size)
+    mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+    for size in range(0, buffer_size):
+        step = size - (buffer_size -1)
+        mp.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+        time = time + delta_time
+        #delta_time is computed from previous time in process_info
+        mp.CloneTimeStep(time)
+
+    mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+    
+def add_variables(mp):
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+
+def create_solver(mp, scheme_name):
+    # Define a minimal newton raphson dynamic solver
+    linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+    builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+    if (scheme_name == "newmark"):
+        scheme = KratosMultiphysics.ResidualBasedNewmarkDisplacementScheme()
+    elif (scheme_name == "backward_euler"):
+        scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(1)
+    elif (scheme_name == "bdf2"):
+        scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(2)
+    else:
+        damp_factor_m = 0.0
+        scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
+    # Convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
+    convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-4,1e-9)
+    convergence_criterion.SetEchoLevel(0)
+
+    max_iters = 10
+    compute_reactions = False
+    reform_step_dofs = True
+    move_mesh_flag = True
+    strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                        scheme,
+                                                                        linear_solver,
+                                                                        convergence_criterion,
+                                                                        builder_and_solver,
+                                                                        max_iters,
+                                                                        compute_reactions,
+                                                                        reform_step_dofs,
+                                                                        move_mesh_flag)
+    strategy.SetEchoLevel(0)
+
+    strategy.Check()
+
+    return strategy
 
 if __name__ == '__main__':
     KratosUnittest.main()
