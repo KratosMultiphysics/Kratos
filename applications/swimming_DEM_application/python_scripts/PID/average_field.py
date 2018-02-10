@@ -113,8 +113,8 @@ class Averager:
                         std_dev[0] = np.where(vel_norms > 0.0, std_dev[0] / vel_norms, 0.0)
                         std_dev[1] = np.where(abs(field[3]) > 0., std_dev[1] / abs(field[3]), 0.0)
 
-                v_stdv_modulus = sum(std_dev[0]) / self.n_nodes
-                p_stdv_modulus = sum(std_dev[1]) / self.n_nodes
+                v_stdv_modulus = np.sum(std_dev[0]) / self.n_nodes
+                p_stdv_modulus = np.sum(std_dev[1]) / self.n_nodes
 
             self.averaged_field_file_name = self.original_file_path.replace('.hdf5', '') + '_averaged.hdf5'
 
