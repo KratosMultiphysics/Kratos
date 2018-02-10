@@ -530,7 +530,7 @@ namespace Kratos
 	KRATOS_TRY
 	
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ;
-	    im != ThisModelPart.NodesEnd() ; im++)
+	    im != ThisModelPart.NodesEnd() ; ++im)
 	    {
 	      if (im->FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 	      {
@@ -606,9 +606,9 @@ namespace Kratos
 		for (unsigned j = 0; j < neighb.size(); j++)
 		{
                 
-                    double xj = 0.0;
-                    double yj = 0.0;
-                    double zj = 0.0;
+                    double xj;
+                    double yj;
+                    double zj;
 		  //first find unit tanjent of edge i-j
 		  xj = neighb[j].X();
 		  yj = neighb[j].Y();
@@ -621,7 +621,7 @@ namespace Kratos
 		  
 		  //terms are added to global system matrix and RHSvec
 		  kappaN_ij = NormalCurvature3D(xi,yi,zi,xj,yj,zj,n_vec);
-// 		  AddTermsToSys(kappaN_ij,kappa_H,alfa,beta,num_neighbs,LHSmat,RHSvec,option); //Includes versions depending on option below!!!
+// 		  AddTermsToSys(kappaN_ij,kappa_H,alfa,beta,num_neighbs,LHSmat,RHSvec,option); //Includes versions depending on option below
 // 		  AddTermsToEq(kappaN_ij,kappa_H,alfa,beta,num_neighbs,M,N,L);
 		  AddTermsToEq2(kappaN_ij,kappa_H,alfa,beta,num_neighbs,terms_func,terms_func_der);
 		}
@@ -631,24 +631,24 @@ namespace Kratos
 		double c = 0.0;
 		
 		//STEP 3: global system matrix is full. Now we solve the system
-		if(option == 1)
-		{
-		  //OPTION 1.1 - Meyer is right AND consider just first condition
-		  SolveSys2x2(b,c,LHSmat,RHSvec);
-		  a = 2.0*kappa_H - c;
-		}
-		else
-		{
-		  //OPTION 2.1 - Meyer is wrong AND consider just first condition
+// // // // // // // 		if(option == 1)
+// // // // // // // 		{
+// // // // // // // 		  //OPTION 1.1 - Meyer is right AND consider just first condition
+// // // // // // // 		  SolveSys2x2(b,c,LHSmat,RHSvec);
+// // // // // // // 		  a = 2.0*kappa_H - c;
+// // // // // // // 		}
+// // // // // // // 		else
+// // // // // // // 		{
+		  //OPTION 2.1 - consider just first condition
 // 		  SolveSys3x3(a,b,c,LHSmat,RHSvec);
 // 		  SolveSys2x2(a,b,LHSmat,RHSvec);
 // 		  c = 2.0*kappa_H - a;
 // 		  b = sqrt(a*(2.0*kappa_H - a) - kappa_G);
-		  //OPTION 2.2 - Meyer is wrong AND consider both conditions
-		  NewtonMethod(terms_func,terms_func_der,a,kappa_H,kappa_G,kappaN_ij);
-		  c = 2.0*kappa_H - a;
-		  b = sqrt(a*(2.0*kappa_H - a) - kappa_G);
-		}
+		  //OPTION 2.2 - consider both conditions
+                NewtonMethod(terms_func,terms_func_der,a,kappa_H,kappa_G,kappaN_ij);
+                c = 2.0*kappa_H - a;
+                b = sqrt(a*(2.0*kappa_H - a) - kappa_G);
+		///////}
 		
 		//Regardless option choice, fill the curvature tensor
 		B(0,0) = a;
@@ -695,7 +695,7 @@ namespace Kratos
 		}
 		else
 		{
-		  KRATOS_WATCH("b is zeroooooooooooooooooooooooo!!!!!!!!!!")
+		  KRATOS_WATCH("b is zero")
 		  eigen1[0] = 1.0;
 		  eigen1[1] = 0.0;
 		  eigen2[0] = 0.0;
@@ -753,9 +753,9 @@ namespace Kratos
       Vector3D(x1,y1,z1,x2,y2,z2,r12);      
       
       double hpi = 3.14159265*0.5;
-      double alfa0 = 0.0; //angle at node 0
-      double alfa1 = 0.0; //angle at node 1
-      double alfa2 = 0.0; //angle at node 2
+      double alfa0; //angle at node 0
+      double alfa1; //angle at node 1
+      double alfa2; //angle at node 2
       
       alfa0 = Angle2vecs3D(r01,r02);
       r01[0] = -r01[0];
@@ -846,7 +846,7 @@ namespace Kratos
     double NormalCurvature3D(const double xi, const double yi, const double zi,
 		  const double xj, const double yj, const double zj, array_1d<double,3>& n)
     {
-      double kappaN_ij = 0.0;
+      double kappaN_ij;
       array_1d<double,3> rji = ZeroVector(3);
       Vector3D(xj,yj,zj,xi,yi,zi,rji);
       double norm_rji = Norm3D(rji);
@@ -1094,8 +1094,8 @@ namespace Kratos
       for(unsigned int i = 0; i < MaxIter; i++)
       {
           
-          double fx = 0.0;
-          double dfx = 0.0;
+          double fx;
+          double dfx;
 
 	  fx = func_Newton(x0,terms_vec,kappa_H,kappa_G,kappaN_ij);
 	  dfx = dxfunc_Newton(x0,terms_vec_der,kappa_H,kappa_G,kappaN_ij);
@@ -1115,7 +1115,7 @@ namespace Kratos
     
     double func_Newton(double& x, array_1d<double,6>& terms_vec, double& kappa_H, double& kappa_G, double& kappaN_ij)
     {
-      double f_x = 0.0;
+      double f_x;
       f_x = terms_vec[0]*x*f_a(x,kappa_H,kappa_G) + terms_vec[1]*2.0*(kappa_H - x)*x*sqrt(f_a(x,kappa_H,kappa_G)) + 
 	    terms_vec[2]*f_a(x,kappa_H,kappa_G)*sqrt(f_a(x,kappa_H,kappa_G)) + terms_vec[3]*f_a(x,kappa_H,kappa_G) + 
 	    terms_vec[4]*sqrt(f_a(x,kappa_H,kappa_G)) + terms_vec[5]*2.0*(kappa_H - a);
@@ -1124,7 +1124,7 @@ namespace Kratos
     
     double dxfunc_Newton(double& x, array_1d<double,10>& tvder, double& kappa_H, double& kappa_G, double& kappaN_ij)
     {
-      double df_x = 0.0;
+      double df_x;
       df_x = tvder[0]*f_a(x,kappa_H,kappa_G) + tvder[1]*x*df_a(x,kappa_H) - tvder[2]*x*sqrt(f_a(x,kappa_H,kappa_G)) + 
 	      tvder[3]*2.0*(kappa_H - x)*sqrt(f_a(x,kappa_H,kappa_G)) + 
 	      tvder[4]*2.0*(kappa_H - x)*x*0.5*df_a(x,kappa_H)/sqrt(f_a(x,kappa_H,kappa_G)) + 

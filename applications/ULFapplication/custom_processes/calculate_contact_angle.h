@@ -205,8 +205,8 @@ namespace Kratos
 		array_1d<double,3> rik = ZeroVector(3);
 		array_1d<double,3> cross_prod_ijk = ZeroVector(3);
 		array_1d<double,3> normal_geom = ZeroVector(3);
-		array_1d<double,3> normal_tp = ZeroVector(3);
 		normal_geom = im->FastGetSolutionStepValue(NORMAL_GEOMETRIC);
+                array_1d<double,3> normal_tp = ZeroVector(3);
 		/////double dot_prod = 0.0;
 		
 		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE) = ZeroVector(3);

@@ -110,8 +110,8 @@ namespace Kratos
       KRATOS_TRY
       
       double mean_ystr = 0.0;
-      double xmin = 0.0;
-      double xmax = 0.0;
+      ///////double xmin = 0.0;
+      ///////double xmax = 0.0;
       int num_istruct = 0;
       //FIRST STEP: find IS_STRUCTURE nodes and their mean y coordinate, min and max x coordinate
       for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
@@ -152,7 +152,7 @@ namespace Kratos
       //THIRD STEP: apply TRIPLE_POINT flag
       double x_mean = 0.0;
       double num_tp = 0.0;
-      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
       {
 	  if (im->FastGetSolutionStepValue(IS_BOUNDARY) != 0.0)
 	  {
@@ -160,7 +160,7 @@ namespace Kratos
 	      double is_free = 0.0;
 	      double is_struct = 0.0;
 	      double is_lagin = 0.0;
-	      int neighnum = 0;
+	      ///////int neighnum = 0;
 	      
 	      for (unsigned int i = 0; i < neighb.size(); i++)
 	      {

@@ -131,45 +131,7 @@ namespace Kratos
 	}	
 	ThisModelPart.Conditions().Sort();	
         KRATOS_WATCH(ThisModelPart.Conditions().size())
-        
-	
-	
-	/*
-	// This is the condition looping over elements
-	for(ModelPart::ElementsContainerType::iterator im = ThisModelPart.ElementsBegin() ; im != ThisModelPart.ElementsEnd() ; ++im)
-        {
-	  int nodes_int = 0;
-	  double avg_curv = 0.0;
-	  for(unsigned int i = 0; i < 3; i++)
-	  {
-	    if(im->GetGeometry()[i].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
-	    {
-	      nodes_int++;
-	      avg_curv += 0.5*im->GetGeometry()[i].FastGetSolutionStepValue(MEAN_CURVATURE_2D);
-	    }
-	  }
-	  // We apply the condition ONLY to those elements with 2 nodes at the interface
-	  if(nodes_int>1)
-	  {
-	    Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
-	    int id = ThisModelPart.Conditions().size();
-	    for(unsigned int j = 0; j < 3; j++)
-	    {
-	      if(im->GetGeometry()[j].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
-	      {
-		im->GetGeometry()[j].FastGetSolutionStepValue(MEAN_CURVATURE_2D) = avg_curv;
-		Condition::NodesArrayType temp;
-		temp.reserve(1);
-		temp.push_back(*(im->GetGeometry()[j].base()));
-		Condition::Pointer p_cond = (KratosComponents<Condition>::Get("SurfaceTension2D")).Create(id, temp, properties);
-		ThisModelPart.Conditions().push_back(p_cond);
-		id++;
-	      }
-	    }
-	    ThisModelPart.Conditions().Sort();	
-	  }
-        }
-        */
+
 	
         KRATOS_CATCH("")
     }

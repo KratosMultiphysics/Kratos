@@ -200,7 +200,7 @@ while(time <= final_time):
     print("TIME = ", time)
 
     if(step >= 3):
-      
+
       for node in lagrangian_model_part.Nodes:
         if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) == 0.0):
             node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
@@ -214,9 +214,8 @@ while(time <= final_time):
                 node.Fix(VELOCITY_X)
             else:
                 node.Free(VELOCITY_X)
-	    
+
       lag_solver.Solve()
-      
 ##################################################
 ##################################################
 
@@ -233,7 +232,6 @@ while(time <= final_time):
         gid_io.WriteMesh((lagrangian_model_part).GetMesh());
         gid_io.FinalizeMesh();
         gid_io.InitializeResults(time, (lagrangian_model_part).GetMesh());
-    
         gid_io.WriteNodalResults(CONTACT_ANGLE,lagrangian_model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(MEAN_CURVATURE_2D,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)

@@ -189,14 +189,13 @@ class STMonolithicSolver:
                 if cond.GetValue(IS_STRUCTURE) != 0.0:
                     for node in cond.GetNodes():
                         node.SetValue(IS_STRUCTURE, 1.0)
-                        
+
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol, self.rel_pres_tol, self.abs_pres_tol)
         #self.conv_criteria = ResidualCriteria(0.0001, 0.0000001)
-        
+
         #(self.conv_criteria).SetEchoLevel(self.echo_level)
 
-       
         self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(self.alpha, self.move_mesh_strategy, self.domain_size)
 
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(
@@ -207,15 +206,14 @@ class STMonolithicSolver:
             builder_and_solver, self.max_iter, self.compute_reactions, self.ReformDofSetAtEachStep, self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
         self.solver.Check()
-        
+
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau)
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
         self.model_part.ProcessInfo.SetValue(M, self.regularization_coef)
 
-        
         self.model_part.ProcessInfo.SetValue(CONTACT_ANGLE_STATIC, self.contact_angle)
         self.model_part.ProcessInfo.SetValue(SURFACE_TENSION_COEF, self.gamma)
-        
+
         if(self.eul_model_part == 0):
 	    #marking the fluid
             (self.fluid_neigh_finder).Execute();
@@ -227,14 +225,14 @@ class STMonolithicSolver:
 # print "Initialization monolithic solver finished"
     #
     def Solve(self):
-            
+
         if self.ReformDofSetAtEachStep:
             if self.use_slip_conditions:
                 self.normal_util.CalculateOnSimplex(
                     self.model_part, self.domain_size, IS_STRUCTURE)
             if self.use_spalart_allmaras:
                 self.neighbour_search.Execute()
-                
+
         NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY) == 0.0):# and node.GetSolutionStepValue(TRIPLE_POINT) == 0):
@@ -273,36 +271,35 @@ class STMonolithicSolver:
 
     ##########################################
     def Remesh(self):
-       
+
         self.UlfUtils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
 			
         ##erase all conditions and elements prior to remeshing
         ((self.model_part).Elements).clear();
 
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
-        
+
         h_factor=0.25;
-        
+
         if (self.domain_size == 2):
          (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
-       
+
         (self.fluid_neigh_finder).Execute();
         (self.condition_neigh_finder).Execute();
-        
+
         #print "marking fluid" and applying fluid boundary conditions
         (self.ulf_apply_bc_process).Execute();
         #(self.mark_fluid_process).Execute();
 	
         (self.UlfUtils).CalculateNodalArea(self.model_part,self.domain_size);
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)
-        
+
         self.node_erase_process.Execute()
         #(self.mark_fluid_process).Execute();
-               
+
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)#, self.domain_size)
         self.node_erase_process.Execute()
-             
-        
+
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
        
 ######################################################################################################
@@ -328,11 +325,11 @@ class STMonolithicSolver:
             CalculateNodalLength().CalculateNodalLength2D(self.model_part)
             CalculateContactAngle().CalculateContactAngle2D(self.model_part)
             self.cont_angle_cond()
-	  
+
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
         print("end of remesh function")
     ######################################################################
-   
+
     def FindNeighbours(self):
         (self.neigh_finder).Execute();
 

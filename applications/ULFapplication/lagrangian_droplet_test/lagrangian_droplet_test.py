@@ -208,10 +208,9 @@ while(time <= final_time):
     if(output_time <= out):
 
         out = 0
-	
         gid_io.FinalizeResults()
-        #f.write(ProjectParameters.problem_name+'_'+str(time)+'.post.bin\n')
 
+        #f.write(ProjectParameters.problem_name+'_'+str(time)+'.post.bin\n')
         res_name1 = str("water")
         gid_io.ChangeOutputName(res_name1)
         gid_io.InitializeMesh( time );
