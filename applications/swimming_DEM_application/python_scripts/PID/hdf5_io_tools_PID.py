@@ -16,7 +16,7 @@ class FluidHDF5LoaderPID(BaseLoader):
                                                original_file_name = self.original_file_name,
                                                original_file_path = main_path,
                                                initial_time = 0.04,
-                                               steps_per_average_step = 50,
+                                               steps_per_average_step = 1,
                                                calculate_standard_deviations = True,
                                                normalize_standard_deviation = True,
                                                overwrite_previous=True)

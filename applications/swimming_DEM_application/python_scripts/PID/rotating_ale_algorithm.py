@@ -15,8 +15,18 @@ class Rotator:
         self.a_init = Vector(rotation_axis_initial_point)
         self.a_final = Vector(rotation_axis_final_point)
         self.omega = angular_velocity_module
-        self.axis = Vector(self.Normalize(self.a_final - self.a_init))
+        self.axis = Vector(Rotator.Normalize(self.a_final - self.a_init))
         self.CalculateRodriguesMatrices(self.axis)
+
+    @staticmethod
+    def Normalize(v):
+        mod_2 = sum([x ** 2 for x in v])
+
+        if mod_2 == 0:
+            return v
+        else:
+            mod_inv = 1.0 / math.sqrt(mod_2)
+            return mod_inv * v
 
     def CalculateRodriguesMatrices(self, axis):
         self.I = np.identity(3)
@@ -57,20 +67,9 @@ class Rotator:
         Say('Mesh movement finshed.')
 
     def UndoRotationOfVectors(self, time, list_of_vectors):
-        R, Rp = self.GetRotationMatrices(time)
+        R = self.GetRotationMatrices(time)[0]
         R_inv = np.linalg.inv(R)
-        for i, vector in enum(list_of_vectors):
-            list_of_vectors[i] = np.linalg.dot(R_inv, vector)
-
-
-    def Normalize(self, v):
-        mod_2 = sum([x ** 2 for x in v])
-
-        if mod_2 == 0:
-            return v
-        else:
-            mod_inv = 1.0 / math.sqrt(mod_2)
-            return mod_inv * v
+        list_of_vectors = np.dot(R_inv, list_of_vectors)
 
 class Algorithm(BaseAlgorithm):
     def __init__(self, varying_parameters = Parameters("{}")):
