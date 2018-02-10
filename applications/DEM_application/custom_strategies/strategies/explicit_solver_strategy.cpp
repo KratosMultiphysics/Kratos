@@ -885,7 +885,7 @@ namespace Kratos {
         NodesArrayType& pNodes = fem_model_part.Nodes();
 
         #pragma omp parallel for 
-        for (unsigned int k = 0; k < pNodes.size(); k++) {
+        for (int k = 0; k < (int)pNodes.size(); k++) {
             ModelPart::NodeIterator i = pNodes.begin() + k;
 
             array_1d<double, 3>& node_rhs = i->FastGetSolutionStepValue(CONTACT_FORCES);
@@ -912,7 +912,7 @@ namespace Kratos {
         NodesArrayType& pNodes = fem_model_part.Nodes();
 
         #pragma omp parallel for 
-        for (unsigned int k = 0; k < pNodes.size(); k++) {
+        for (int k = 0; k < (int)pNodes.size(); k++) {
             ModelPart::NodeIterator i = pNodes.begin() + k;
 
             double& node_pressure = i->FastGetSolutionStepValue(DEM_PRESSURE);

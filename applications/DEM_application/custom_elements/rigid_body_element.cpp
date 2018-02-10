@@ -200,7 +200,7 @@ namespace Kratos {
         center_forces[0] = center_forces[1] = center_forces[2] = center_torque[0] = center_torque[1] = center_torque[2] = 0.0;
 
         #pragma omp parallel for schedule(dynamic, 100)
-        for (unsigned int k = 0; k < mListOfNodes.size(); k++) {
+        for (int k = 0; k < (int)mListOfNodes.size(); k++) {
             ModelPart::NodeIterator i = mListOfNodes.begin() + k;
                         
             array_1d<double, 3>& node_forces = i->FastGetSolutionStepValue(CONTACT_FORCES);
