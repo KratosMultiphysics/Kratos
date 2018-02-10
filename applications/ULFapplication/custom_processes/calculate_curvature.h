@@ -627,8 +627,8 @@ namespace Kratos
 		}
 		
 		double a = 0.0;
-		double b = 0.0;
-		double c = 0.0;
+		double b ;
+		double c;
 		
 		//STEP 3: global system matrix is full. Now we solve the system
 // // // // // // // 		if(option == 1)

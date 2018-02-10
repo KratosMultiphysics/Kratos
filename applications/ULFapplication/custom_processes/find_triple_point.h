@@ -203,7 +203,7 @@ namespace Kratos
       
       int num_trip = 0;
       //FOURTH STEP: correct TRIPLE_POINT flag and count how many are there
-      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
       {
 	  if (im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
 	  {

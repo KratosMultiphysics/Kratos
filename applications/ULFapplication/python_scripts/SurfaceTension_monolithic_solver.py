@@ -248,7 +248,6 @@ class STMonolithicSolver:
             self.cont_angle_cond()
 
         #self.solver.MoveMesh()
-	  
         (self.solver).Solve() #it dumps in this line... 20151020
         #AssignPointNeumannConditions().AssignPointNeumannConditions3D(self.model_part)
 

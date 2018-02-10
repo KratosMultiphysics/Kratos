@@ -220,11 +220,8 @@ while(time <= final_time):
 ##################################################
 
     if(output_time <= out):
-      
         out = 0
-	
         gid_io.FinalizeResults()
-  
         res_name1 = str("water")
         gid_io.ChangeOutputName(res_name1)
         gid_io.InitializeMesh( time );
@@ -245,7 +242,6 @@ while(time <= final_time):
         gid_io.WriteNodalResults(PRESSURE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(TRIPLE_POINT,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,lagrangian_model_part.Nodes,time,0)
-        
         gid_io.Flush()
         gid_io.FinalizeResults();
 
