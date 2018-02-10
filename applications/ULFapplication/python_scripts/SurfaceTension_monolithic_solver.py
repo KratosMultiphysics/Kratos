@@ -289,13 +289,10 @@ class STMonolithicSolver:
         #print "marking fluid" and applying fluid boundary conditions
         (self.ulf_apply_bc_process).Execute();
         #(self.mark_fluid_process).Execute();
-	
         (self.UlfUtils).CalculateNodalArea(self.model_part,self.domain_size);
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)
-
         self.node_erase_process.Execute()
         #(self.mark_fluid_process).Execute();
-
         self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)#, self.domain_size)
         self.node_erase_process.Execute()
 
