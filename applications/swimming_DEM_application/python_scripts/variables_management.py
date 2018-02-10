@@ -202,7 +202,9 @@ def ConstructListsOfResultsToPrint(pp):
     pp.dem_nodal_results = []
     pp.clusters_nodal_results = []
     pp.rigid_faces_nodal_results = []
-    pp.dem_nodal_results += ["SLIP_VELOCITY"]
+
+    if pp.CFD_DEM["print_SLIP_VELOCITY_option"].GetBool():
+        pp.dem_nodal_results += ["SLIP_VELOCITY"]
 
     if pp.CFD_DEM["PostRadius"].GetBool():
         pp.dem_nodal_results += ["RADIUS"]
@@ -466,7 +468,7 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
     if pp.CFD_DEM["print_MEAN_HYDRODYNAMIC_REACTION_option"].GetBool():
         pp.nodal_results += ["MEAN_HYDRODYNAMIC_REACTION"]
 
-    if pp.CFD_DEM["embedded_option"].GetBool():
+    if pp.CFD_DEM["embedded_option"].GetBool() and pp.CFD_DEM["print_distance_option"].GetBool():
         pp.nodal_results += ["DISTANCE"]
 
     if pp.CFD_DEM["print_MATERIAL_ACCELERATION_option"].GetBool():
