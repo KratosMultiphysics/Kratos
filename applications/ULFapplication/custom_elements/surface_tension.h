@@ -1536,9 +1536,12 @@ protected:
 	array_1d<double,2> norm_eq;
 	
 	//elemental variables for the laplacian
-	boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-	boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx = ZeroMatrix(3,2);
-	array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
+	boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;
+        msWorkMatrix = ZeroMatrix(3,3);
+	boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
+        msDN_Dx = ZeroMatrix(3,2);
+	array_1d<double,3> msN; //dimension = number of nodes
+        msN = ZeroVector(3);
 	double Area;
 	GeometryUtils::CalculateGeometryData(this->GetGeometry(),msDN_Dx,msN,Area);
 	// 3 by 3 matrix that stores the laplacian

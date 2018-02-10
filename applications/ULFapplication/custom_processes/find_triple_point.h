@@ -228,7 +228,7 @@ namespace Kratos
       /////unsigned int num_fs = 0;
       array_1d<double,3> An = ZeroVector(3);
       
-      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+      for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
       {
 
           ///////unsigned int num_fs = 0;

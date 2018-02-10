@@ -272,7 +272,7 @@ class STMonolithicSolver:
     def Remesh(self):
 
         self.UlfUtils.MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
-			
+
         ##erase all conditions and elements prior to remeshing
         ((self.model_part).Elements).clear();
 
@@ -300,7 +300,6 @@ class STMonolithicSolver:
         self.node_erase_process.Execute()
 
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
-       
 ######################################################################################################
         #FOR PFEM
         NormalCalculationUtils().CalculateOnSimplex(self.model_part.Conditions, self.domain_size)
