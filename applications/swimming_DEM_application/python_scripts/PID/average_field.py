@@ -47,7 +47,6 @@ class Averager:
             Id = Averager.GetLastStationaryFieldId(file_or_group) + 1
             if Id:
                 name += '_' + str(Id)
-            print(name)
 
         group = file_or_group.create_group(name)
         group.attrs['Id'] = Id
@@ -104,18 +103,18 @@ class Averager:
                     std_dev[1] += (field[3] - p) ** 2
                     print('calculating standard deviations step ', i_sample, '...')
 
-            std_dev **= 0.5
-            std_dev /= i_sample
+                std_dev **= 0.5
+                std_dev /= i_sample
 
-            if self.normalize_standard_deviation:
-                norms = np.sqrt(field[0] ** 2 + field[1] ** 2 + field[2] ** 2)
+                if self.normalize_standard_deviation:
+                    vel_norms = np.sqrt(field[0] ** 2 + field[1] ** 2 + field[2] ** 2)
 
-                with np.errstate(divide='ignore', invalid='ignore'):
-                    std_dev[0] = np.where(norms > 0.0, std_dev[0] / norms, 0.0)
-                    std_dev[1] = np.where(abs(field[3]) > 0., std_dev[1] / abs(field[3]), 0.0)
+                    with np.errstate(divide='ignore', invalid='ignore'):
+                        std_dev[0] = np.where(vel_norms > 0.0, std_dev[0] / vel_norms, 0.0)
+                        std_dev[1] = np.where(abs(field[3]) > 0., std_dev[1] / abs(field[3]), 0.0)
 
-            v_stdv_modulus = sum(std_dev[0]) / self.n_nodes
-            p_stdv_modulus = sum(std_dev[1]) / self.n_nodes
+                v_stdv_modulus = sum(std_dev[0]) / self.n_nodes
+                p_stdv_modulus = sum(std_dev[1]) / self.n_nodes
 
             self.averaged_field_file_name = self.original_file_path.replace('.hdf5', '') + '_averaged.hdf5'
 
@@ -137,9 +136,8 @@ class Averager:
                     stat_group.attrs['pressure_standard_deviation'] = p_stdv_modulus
                     stat_group.create_dataset('v_mod_stdv', data = std_dev[0])
                     stat_group.create_dataset('p_stdv', data = std_dev[1])
-
-            print('velocity modulus mean standard deviation:', v_stdv_modulus)
-            print('pressure mean standard deviation:', p_stdv_modulus)
+                    print('velocity modulus mean standard deviation:', v_stdv_modulus)
+                    print('pressure mean standard deviation:', p_stdv_modulus)
 
 if __name__ == '__main__':
     import os
