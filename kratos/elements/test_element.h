@@ -70,7 +70,7 @@ public:
     /**  
      * @brief Default constructor
      * @param NewId the ID of the new element
-     * @param ThisNodes the nodes of the new element
+     * @param pGeometry the nodes of the new element
      * @param TheResidualType The problem to be solved (linear, non-linear, arc-length ...)
      */
     TestElement(IndexType NewId, GeometryType::Pointer pGeometry, const ResidualType TheResidualType = ResidualType::LINEAR);
@@ -78,7 +78,7 @@ public:
     /**  
      * @brief Default constructor
      * @param NewId The ID of the new element
-     * @param ThisNodes The nodes of the new element
+     * @param pGeometry The nodes of the new element
      * @param pProperties The properties assigned to the new element
      * @param TheResidualType The problem to be solved (linear, non-linear, arc-length ...)
      */
@@ -114,7 +114,6 @@ public:
      * @brief Clones the selected element variables, creating a new one
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
-     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
@@ -123,7 +122,7 @@ public:
 
     /**
      * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     * @param rResult The vector containing the list of the DoFs 
+     * @param rElementalDofList The vector containing the list of the DoFs 
      * @param rCurrentProcessInfo The current process info instance
      */
     void GetDofList(
