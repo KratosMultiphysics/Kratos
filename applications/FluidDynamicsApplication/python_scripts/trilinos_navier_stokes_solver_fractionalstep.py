@@ -45,7 +45,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "pressure_linear_solver_settings":  {
+            "pressure_linear_solver_settings": {
                 "solver_type"                        : "MultiLevelSolver",
                 "max_iteration"                      : 200,
                 "tolerance"                          : 1e-6,
@@ -190,10 +190,3 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         (self.solver).Check()
 
         print ("Initialization Trilinos_NavierStokesSolver_FractionalStep Finished")
-
-
-    def Solve(self):
-        (self.solver).Solve()
-
-        if self.compute_reactions:
-            self.solver.CalculateReactions()
