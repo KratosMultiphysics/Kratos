@@ -66,7 +66,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def print_on_rank_zero(self, *args):
         KratosMPI.mpi.world.barrier()
         if KratosMPI.mpi.rank == 0:
-            print(" ".join(map(str,args)))
+            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Private functions ####
 
