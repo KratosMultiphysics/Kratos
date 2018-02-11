@@ -152,16 +152,17 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
     def InitializeSolutionStep(self):
         (self.bdf_process).Execute()
-        if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
-            (self.find_nodal_neighbours_process).Execute()
         (self.solver).InitializeSolutionStep()
+
+
+    def SolveSolutionStep(self):
+        # Note that the first two time steps are dropped to fill the BDF buffer
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
+            (self.solver).SolveSolutionStep()
 
 
     def Solve(self):
         (self.bdf_process).Execute()
-        if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
-            (self.find_nodal_neighbours_process).Execute()
-
         # Note that the first two time steps are dropped to fill the BDF buffer
         if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
             (self.solver).Solve()

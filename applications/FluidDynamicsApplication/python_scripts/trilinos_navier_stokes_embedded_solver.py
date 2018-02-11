@@ -38,7 +38,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "distance_file_name"  : "distance_file"
             },
             "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
+            "dynamic_tau": 1.0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
