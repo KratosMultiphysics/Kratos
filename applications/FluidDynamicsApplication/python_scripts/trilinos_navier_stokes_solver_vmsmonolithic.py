@@ -79,24 +79,9 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
         import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        ## Set the element replace settings
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"VMS3D4N",
-                    "condition_name": "MonolithicWallCondition3D"
-                }
-                """)
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"VMS2D3N",
-                    "condition_name": "MonolithicWallCondition2D"
-                }
-                """)
-        else:
-            raise Exception("Domain size is neither 2 nor 3!!")
+        ## Set the element and condition names for the replace settings
+        self.element_name = "VMS"
+        self.condition_name = "MonolithicWallCondition"
 
         print("Construction of NavierStokesMPISolver_VMSMonolithic finished.")
 
@@ -122,10 +107,10 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
 
         # Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(NavierStokesMPISolver_VMSMonolithic, self)._ExecuteAfterReading()
+        super(NavierStokesMPISolver_VMSMonolithic, self)._execute_after_reading()
 
         # Call the base class set buffer size
-        super(NavierStokesMPISolver_VMSMonolithic, self)._SetBufferSize()
+        super(NavierStokesMPISolver_VMSMonolithic, self)._set_buffer_size()
 
         # Construct the communicators
         TrilinosModelPartImporter.CreateCommunicators()
@@ -151,7 +136,7 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
 
         ## If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
 
         ## Creating the Trilinos convergence criteria
         self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),

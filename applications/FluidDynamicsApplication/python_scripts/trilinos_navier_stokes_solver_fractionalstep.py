@@ -87,24 +87,9 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
-        ## Set the element replace settings
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"FractionalStep3D4N",
-                "condition_name": "WallCondition3D3N"
-                }
-                """)
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"FractionalStep2D3N",
-                "condition_name": "WallCondition2D2N"
-                }
-                """)
-        else:
-            raise Exception("Domain size is not 2 or 3.")
+        ## Set the element and condition names for the replace settings
+        self.element_name = "FractionalStep"
+        self.condition_name = "WallCondition"
 
         print("Construction of Trilinos_NavierStokesSolver_FractionalStep finished")
 
@@ -130,10 +115,10 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
 
         ## Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(Trilinos_NavierStokesSolver_FractionalStep, self)._ExecuteAfterReading()
+        super(Trilinos_NavierStokesSolver_FractionalStep, self)._execute_after_reading()
 
         ## Call the base class set buffer size
-        super(Trilinos_NavierStokesSolver_FractionalStep, self)._SetBufferSize()
+        super(Trilinos_NavierStokesSolver_FractionalStep, self)._set_buffer_size()
 
         ## Construct the communicators
         TrilinosModelPartImporter.CreateCommunicators()
@@ -159,7 +144,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
 
         ## If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
