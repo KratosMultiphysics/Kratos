@@ -124,6 +124,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_OLD_IT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONV_PROJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
         print("Fractional step fluid solver variables added correctly")
 
