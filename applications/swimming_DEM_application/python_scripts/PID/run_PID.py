@@ -31,7 +31,10 @@ varying_parameters["print_MATERIAL_FLUID_ACCEL_PROJECTED_option"] = False
 varying_parameters["print_BASSET_FORCE_option"] = True
 varying_parameters["print_VORTICITY_option"] = False
 varying_parameters["print_VELOCITY_GRADIENT_option"] = False
+varying_parameters["initial_averaging_time"] = 0.0002
 varying_parameters["interaction_start_time"] = 0.0001
+varying_parameters["steps_per_average_step"] = 1
+varying_parameters["averaging_has_already_been_done"] = False
 
 parameters = Parameters(json.dumps(varying_parameters))
 

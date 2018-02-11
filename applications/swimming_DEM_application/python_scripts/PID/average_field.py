@@ -1,7 +1,71 @@
+from KratosMultiphysics import *
 import math
 import numpy as np
 import h5py
-import rotating_ale_algorithm
+
+class Rotator:
+    def __init__(self,
+                 rotation_axis_initial_point,
+                 rotation_axis_final_point,
+                 angular_velocity_module):
+        self.a_init = Vector(rotation_axis_initial_point)
+        self.a_final = Vector(rotation_axis_final_point)
+        self.omega = angular_velocity_module
+        self.axis = Vector(Rotator.Normalize(self.a_final - self.a_init))
+        self.CalculateRodriguesMatrices(self.axis)
+
+    @staticmethod
+    def Normalize(v):
+        mod_2 = sum([x ** 2 for x in v])
+
+        if mod_2 == 0:
+            return v
+        else:
+            mod_inv = 1.0 / math.sqrt(mod_2)
+            return mod_inv * v
+
+    def CalculateRodriguesMatrices(self, axis):
+        self.I = np.identity(3)
+        self.UU = np.array([a * axis for a in axis])
+        self.Ux = np.array([[0, - axis[2], axis[1]],
+                            [axis[2], 0., -axis[0]],
+                            [-axis[1], axis[0], 0.]])
+
+    def GetRotationMatrices(self, time):
+        sin = math.sin(self.omega * time)
+        cos = math.cos(self.omega * time)
+
+        # Rotation matrix
+        R = cos * self.I + sin * self.Ux + (1.0 - cos) * self.UU
+
+        # Rotation matrix' (derivative of R with respect to time)
+        Rp = - self.omega * sin * self.I + self.omega * cos * self.Ux + self.omega * sin * self.UU
+
+        return R, Rp
+
+    def Rotate(self, model_part, time):
+        Say('Starting mesh movement...')
+        R, Rp = self.GetRotationMatrices(time)
+
+        for node in model_part.Nodes:
+            P0 = np.array([node.X0, node.Y0, node.Z0])
+
+            P = self.a_init + R.dot(P0 - self.a_init)
+
+            Displacement = P - P0
+            Velocity = Rp.dot(P0 - self.a_init)
+
+            node.X, node.Y, node.Z = P[0], P[1], P[2]
+
+            node.SetSolutionStepValue(DISPLACEMENT, Vector(list(Displacement)))
+            node.SetSolutionStepValue(MESH_VELOCITY, Vector(list(Velocity)))
+
+        Say('Mesh movement finshed.')
+
+    def UndoRotationOfVectors(self, time, list_of_vectors):
+        R = self.GetRotationMatrices(time)[0]
+        R_inv = np.linalg.inv(R)
+        list_of_vectors = np.dot(R_inv, list_of_vectors)
 
 class Averager:
     def __init__(self,
@@ -24,9 +88,10 @@ class Averager:
         self.dataset_name = dataset_name
         self.original_file_name = original_file_name
         self.original_file_path = original_file_path + '/' + original_file_name
+        self.averaged_field_file_path = self.original_file_path.replace('.hdf5', '') + '_averaged.hdf5'
         self.normalize_standard_deviation = normalize_standard_deviation
         self.overwrite_previous = overwrite_previous
-        self.rotator = rotating_ale_algorithm.Rotator(rotation_axis_initial_point, rotation_axis_final_point, angular_velocity_module)
+        self.rotator = Rotator(rotation_axis_initial_point, rotation_axis_final_point, angular_velocity_module)
 
     @staticmethod
     def GetLastStationaryFieldId(hdf5_file):
@@ -53,6 +118,13 @@ class Averager:
 
         return group
 
+
+    @staticmethod
+    def CopyDataset(file_or_group, dset, new_dset_name):
+        if new_dset_name in file_or_group:
+            file_or_group.__delitem__(new_dset_name)
+        file_or_group.copy(dset, new_dset_name)
+
     @staticmethod
     def ReadVariables(vel, p, hdf5_file, group_name):
         vel[0] = hdf5_file['/' + group_name + '/vx']
@@ -68,14 +140,14 @@ class Averager:
             return time >= self.initial_time and time < self.final_time
 
     def GetFilePath(self):
-        return self.averaged_field_file_name
+        return self.averaged_field_file_path
 
     def PerformAverage(self, reference_time=0.0):
         self.reference_time = reference_time
 
-        with h5py.File(self.original_file_path, 'r') as f:
-            self.times_str = [t for t in f if 'time' in f['/' + t].attrs]
-            self.n_nodes = f['/nodes'][:, 0].size
+        with h5py.File(self.original_file_path, 'r') as original_f:
+            self.times_str = [t for t in original_f if 'time' in original_f['/' + t].attrs]
+            self.n_nodes = original_f['/nodes'][:, 0].size
 
             p = np.zeros(self.n_nodes)
             vel = np.zeros((3, self.n_nodes))
@@ -84,7 +156,7 @@ class Averager:
             relevant_time_strings = [t for i, t in enumerate(self.times_str) if self.IsRelevant(i, t)]
 
             for i_sample, time_str in enumerate(relevant_time_strings, start=1):
-                Averager.ReadVariables(vel, p, f, time_str)
+                Averager.ReadVariables(vel, p, original_f, time_str)
                 self.rotator.UndoRotationOfVectors(float(time_str) - self.reference_time, vel)
                 field[:3] += vel
                 field[3] += p
@@ -96,7 +168,7 @@ class Averager:
                 std_dev = np.zeros((2, self.n_nodes))
 
                 for i_sample, time_str in enumerate(relevant_time_strings, start=1):
-                    Averager.ReadVariables(vel, p, f, time_str)
+                    Averager.ReadVariables(vel, p, original_f, time_str)
                     self.rotator.UndoRotationOfVectors(float(time_str) - self.reference_time, vel)
                     for i in range(3):
                         std_dev[0] += (field[i] - vel[i]) ** 2
@@ -116,15 +188,14 @@ class Averager:
                 v_stdv_modulus = np.sum(std_dev[0]) / self.n_nodes
                 p_stdv_modulus = np.sum(std_dev[1]) / self.n_nodes
 
-            self.averaged_field_file_name = self.original_file_path.replace('.hdf5', '') + '_averaged.hdf5'
-
-            with h5py.File(self.averaged_field_file_name) as f:
+            with h5py.File(self.averaged_field_file_path) as f:
                 f.attrs['initial_time'] = self.initial_time
                 f.attrs['final_time'] = float(time_str)
                 f.attrs['number_of_samples'] = i_sample
+                Averager.CopyDataset(f, original_f['/nodes'], 'nodes')
                 stat_group = Averager.CreateGroup(file_or_group=f,
-                                         name=self.dataset_name,
-                                         overwrite_previous=self.overwrite_previous)
+                                                  name=self.dataset_name,
+                                                  overwrite_previous=self.overwrite_previous)
                 stat_group.create_dataset('vx', data = field[0])
                 stat_group.create_dataset('vy', data = field[1])
                 stat_group.create_dataset('vz', data = field[2])
