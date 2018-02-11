@@ -296,14 +296,14 @@ void TestElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
     
     switch ( mResidualType )
     {
-        case mResidualType::LINEAR:
+        case ResidualType::LINEAR:
             for ( unsigned int j = 0; j < dimension; ++j )
                 rRightHandSideVector[j] += delta_displacement[j];
-        case mResidualType::NON_LINEAR:
+        case ResidualType::NON_LINEAR:
             for ( unsigned int j = 0; j < dimension; ++j )
                 rRightHandSideVector[j] += std::pow(delta_displacement[j], 2);
         default:
-            KRATOS_ERROR << "NOT IMPLEMENTED: ResidualType" << mResidualType << std::endl;
+            KRATOS_ERROR << "NOT IMPLEMENTED" << std::endl;
     }
 }
 
@@ -326,14 +326,14 @@ void TestElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, Proces
     
     switch ( mResidualType )
     {
-        case mResidualType::LINEAR:
+        case ResidualType::LINEAR:
             for ( unsigned int j = 0; j < dimension; ++j )
                 rLeftHandSideMatrix(j, j) += 1.0;
-        case mResidualType::NON_LINEAR:
+        case ResidualType::NON_LINEAR:
             for ( unsigned int j = 0; j < dimension; ++j )
                 rLeftHandSideMatrix(j, j) += delta_displacement[j] * 2;
         default:
-            KRATOS_ERROR << "NOT IMPLEMENTED: ResidualType" << mResidualType << std::endl;
+            KRATOS_ERROR << "NOT IMPLEMENTED" << std::endl;
     }
 }
 

@@ -35,7 +35,7 @@ namespace Kratos
      * @brief This enum is used in order of differentiante 
      * @details If more implementations are added, add the corresponding enum
      */
-    enum class ResidualType = {LINEAR = 0, NON_LINEAR = 1, ARC_LENGTH = 2};
+    enum class ResidualType {LINEAR = 0, NON_LINEAR = 1, ARC_LENGTH = 2};
     
 ///@}
 ///@name  Functions
@@ -73,7 +73,7 @@ public:
      * @param ThisNodes the nodes of the new element
      * @param TheResidualType The problem to be solved (linear, non-linear, arc-length ...)
      */
-    TestElement(IndexType NewId, GeometryType::Pointer pGeometry, const ResidualType TheResidualType = ResidualType:LINEAR);
+    TestElement(IndexType NewId, GeometryType::Pointer pGeometry, const ResidualType TheResidualType = ResidualType::LINEAR);
 
     /**  
      * @brief Default constructor
@@ -82,7 +82,7 @@ public:
      * @param pProperties The properties assigned to the new element
      * @param TheResidualType The problem to be solved (linear, non-linear, arc-length ...)
      */
-    TestElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const ResidualType TheResidualType = ResidualType:LINEAR);
+    TestElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const ResidualType TheResidualType = ResidualType::LINEAR);
 
     ///Copy constructor
     TestElement(TestElement const& rOther);
