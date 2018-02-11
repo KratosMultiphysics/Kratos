@@ -93,33 +93,33 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
-        ## Set the element replace settings
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"FractionalStep3D4N",
-                "condition_name": "WallCondition3D3N"
-                }
-                """)
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"FractionalStep2D3N",
-                "condition_name": "WallCondition2D2N"
-                }
-                """)
-        else:
-            raise Exception("Domain size is not 2 or 3.")
+        ## Set the element and condition names for the replace settings
+        self.element_name = "FractionalStep"
+        self.condition_name = "WallCondition"
 
         print("Construction of NavierStokesSolver_FractionalStep finished.")
 
 
     def AddVariables(self):
-        ## Add base class variables
-        super(NavierStokesSolver_FractionalStep, self).AddVariables()
-        ## Add specific variables needed for the fractional step solver
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)         # Kinematic viscosity value
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_TAU) # Variable stored in cfd_variables.h
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADVPROJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)         # TODO: Now kinematic viscosity value, update once the element migration is finished
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FRACT_VEL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE_OLD_IT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ)
@@ -133,7 +133,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
@@ -193,19 +193,20 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
 
 
     def Solve(self):
-        (self.solver).Solve()
+        # Note that the first two time steps are dropped to fill the buffer
+        if (self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] >= 2):
+            (self.solver).Solve()
+
         if(self.compute_reactions):
             (self.solver).CalculateReactions()
 
 
-    def _ExecuteAfterReading(self):
-        super(NavierStokesSolver_FractionalStep, self)._ExecuteAfterReading()
+    def _execute_after_reading(self):
+        super(NavierStokesSolver_FractionalStep, self)._execute_after_reading()
 
         # Read the KINEMATIC VISCOSITY
         for el in self.main_model_part.Elements:
-            # rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
             kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
             break
 
-        # KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)

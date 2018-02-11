@@ -42,19 +42,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"        : {
-                    "solver_type" : "AMGCL",
-                    "smoother_type":"ilu0",
-                    "krylov_type": "gmres",
-                    "coarsening_type": "aggregation",
-                    "max_iteration": 200,
-                    "provide_coordinates": false,
-                    "gmres_krylov_space_dimension": 100,
-                    "verbosity" : 0,
-                    "tolerance": 1e-7,
-                    "scaling": false,
-                    "block_size": 1,
-                    "use_block_matrices_if_possible" : true,
-                    "coarse_enough" : 5000
+                "solver_type" : "AMGCL_NS_Solver"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -81,33 +69,32 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        ## Set the element replace settings
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"VMS3D4N",
-                "condition_name": "MonolithicWallCondition3D"
-                }
-                """)
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"VMS2D3N",
-                "condition_name": "MonolithicWallCondition2D"
-                }
-                """)
-        else:
-            raise Exception("domain size is not 2 or 3")
+        ## Set the element and condition names for the replace settings
+        self.element_name = "VMS"
+        self.condition_name = "MonolithicWallCondition"
 
         print("Construction of NavierStokesSolver_VMSMonolithic finished")
 
 
     def AddVariables(self):
         ## Add base class variables
-        super(NavierStokesSolver_VMSMonolithic, self).AddVariables()
-        ## Add specific variables needed for the monolithic solver
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)         # Kinematic viscosity value
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)   # TODO: Now kinematic viscosity value, update once the element migration is finished
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_TAU) # Variable stored in cfd_variables.h
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.OSS_SWITCH)  # Variable stored in cfd_variables.h
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
 
         print("Monolithic fluid solver variables added correctly")
@@ -119,7 +106,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
 
         # Creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
@@ -170,17 +157,8 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
         print ("Monolithic solver initialization finished.")
 
 
-    def InitializeSolutionStep(self):
-        (self.solver).InitializeSolutionStep()
-
-
-    def Solve(self):
-        # Note that the first time step in buffer is filled when reading the model part
-        (self.solver).Solve()
-
-
-    def _ExecuteAfterReading(self):
-        super(NavierStokesSolver_VMSMonolithic, self)._ExecuteAfterReading()
+    def _execute_after_reading(self):
+        super(NavierStokesSolver_VMSMonolithic, self)._execute_after_reading()
 
         # Read the KINEMATIC VISCOSITY
         for el in self.main_model_part.Elements:

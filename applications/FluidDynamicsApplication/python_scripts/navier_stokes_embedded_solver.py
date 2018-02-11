@@ -45,15 +45,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"       : {
-                "solver_type"         : "AMGCL",
-                "max_iteration"       : 200,
-                "tolerance"           : 1e-7,
-                "provide_coordinates" : false,
-                "smoother_type"       : "ilu0",
-                "krylov_type"         : "lgmres",
-                "coarsening_type"     : "aggregation",
-                "scaling"             : true,
-                "verbosity"           : 0
+                "solver_type"         : "AMGCL_NS_Solver"
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
@@ -77,8 +69,12 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        ## Set the element replace settings
-        self._SetEmbeddedElementReplaceSettings()
+        ## Set the element and condition names for the replace settings
+        self.element_name = "EmbeddedNavierStokes"
+        self.condition_name = "NavierStokesWallCondition"
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
+            self.element_name = "EmbeddedSymbolicNavierStokes"
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -89,15 +85,22 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
 
     def AddVariables(self):
-        ## Add base class variables
-        super(NavierStokesEmbeddedMonolithicSolver, self).AddVariables()
-        ## Add specific variables needed for the embedded solver
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)               # TODO: To be removed once we do not take the values from the nodes
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)              # Distance function nodal values
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)     # Distance gradient nodal values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ELEMENTAL_DISTANCES)   # Store the element nodal distance values
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SOUND_VELOCITY)        # Speed of sound velocity
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)     # Nodal external pressure
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)     # At the moment, the EmbeddedNavierStokes element works with the DYNAMIC_VISCOSITY
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)     # TODO: To be removed once we do not take the values from the nodes
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_PRESSURE)          # Post-process variable (stores the fluid nodes pressure and is set to 0 in the structure ones)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
@@ -109,7 +112,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
 
         # Creating the solution strategy
         self.conv_criteria = KratosCFD.VelPrCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),
@@ -121,13 +124,6 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
         self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
                                                                             self.settings["time_order"].GetInt())
-
-        if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
-            number_of_avg_elems = 10
-            number_of_avg_nodes = 10
-            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part,
-                                                                                               number_of_avg_elems,
-                                                                                               number_of_avg_nodes)
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
                                                                                         self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
@@ -171,9 +167,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             (self.solver).Solve()
 
 
-    def _ExecuteAfterReading(self):
-        ## Base class _ExecuteAfterReading call
-        super(NavierStokesEmbeddedMonolithicSolver, self)._ExecuteAfterReading()
+    def _execute_after_reading(self):
+        ## Base class _execute_after_reading call
+        super(NavierStokesEmbeddedMonolithicSolver, self)._execute_after_reading()
 
         ## Set the SOUND_VELOCITY value (wave velocity)
         if self.main_model_part.Properties[1].Has(KratosMultiphysics.SOUND_VELOCITY):
@@ -209,65 +205,3 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             for node in self.main_model_part.Nodes:
                 distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, -distance_value)
-
-    def _SetEmbeddedElementReplaceSettings(self):
-        solver_type = self.settings["solver_type"].GetString()
-        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.settings.AddEmptyValue("element_replace_settings")
-
-        if (solver_type == "Embedded"):
-            if(domain_size == 3):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedNavierStokes3D4N",
-                    "condition_name": "NavierStokesWallCondition3D3N"
-                }
-                """)
-            elif(domain_size == 2):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedNavierStokes2D3N",
-                    "condition_name": "NavierStokesWallCondition2D2N"
-                }
-                """)
-            else:
-                raise Exception("Domain size is not 2 or 3!!")
-
-        elif (solver_type == "EmbeddedAusas"):
-            if(domain_size == 3):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedAusasNavierStokes3D4N",
-                    "condition_name": "EmbeddedAusasNavierStokesWallCondition3D3N"
-                }
-                """)
-            elif(domain_size == 2):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedAusasNavierStokes2D3N",
-                    "condition_name": "EmbeddedAusasNavierStokesWallCondition2D2N"
-                }
-                """)
-            else:
-                raise Exception("Domain size is not 2 or 3!!")
-
-        elif (solver_type == "EmbeddedDevelopment"):
-            if(domain_size == 3):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedSymbolicNavierStokes3D4N",
-                    "condition_name": "NavierStokesWallCondition3D3N"
-                }
-                """)
-            elif(domain_size == 2):
-                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedSymbolicNavierStokes2D3N",
-                    "condition_name": "NavierStokesWallCondition2D2N"
-                }
-                """)
-            else:
-                raise Exception("Domain size is not 2 or 3!!")
-
-        else:
-            raise Exception("Wrong embedded solver type!!")
