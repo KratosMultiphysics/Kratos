@@ -57,6 +57,14 @@ Bingham3DLaw::~Bingham3DLaw()
 {
 }
 
+ConstitutiveLaw::SizeType Bingham3DLaw::WorkingSpaceDimension() {
+    return 3;
+}
+
+ConstitutiveLaw::SizeType Bingham3DLaw::GetStrainSize() {
+    return 6;
+}
+
 
 void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {

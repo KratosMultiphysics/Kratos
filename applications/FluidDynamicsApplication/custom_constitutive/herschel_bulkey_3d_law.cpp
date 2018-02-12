@@ -57,6 +57,13 @@ HerschelBulkey3DLaw::~HerschelBulkey3DLaw()
 {
 }
 
+ConstitutiveLaw::SizeType HerschelBulkey3DLaw::WorkingSpaceDimension() {
+    return 3;
+}
+
+ConstitutiveLaw::SizeType HerschelBulkey3DLaw::GetStrainSize() {
+    return 6;
+}
 
 void  HerschelBulkey3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {

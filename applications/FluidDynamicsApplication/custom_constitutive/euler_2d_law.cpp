@@ -51,6 +51,14 @@ namespace Kratos
 
     Euler2DLaw::~Euler2DLaw() {}
 
+    ConstitutiveLaw::SizeType Euler2DLaw::WorkingSpaceDimension() {
+        return 2;
+    }
+
+    ConstitutiveLaw::SizeType Euler2DLaw::GetStrainSize() {
+        return 3;
+    }
+
     void  Euler2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
         // Get values to compute the constitutive law:
         Flags &Options = rValues.GetOptions();
