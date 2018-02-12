@@ -38,10 +38,10 @@
         "solver_type" : "mesh_solver_laplacian",
         "model_import_settings" : {
             "input_type"     : "mdpa",
-            "input_filename" : "test_laplacian_mesh_motion_2d/rectangle_2D3N_test"
+            "input_filename" : "test_mdpa_files/rectangle_2D3N_test"
         },
         "computing_model_part_name" : "Parts_Fluid",
-        "skin_parts"             : ["NoSlip2D_FixedBoundary","NoSlip2D_MovingBoundary"],
+        "skin_parts"             : ["FixedBoundary","MovingBoundary"],
         "no_skin_parts"          : [],
         "time_stepping"          : {
             "automatic_time_step" : false,
@@ -55,7 +55,7 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_FixedBoundary",
+            "model_part_name" : "FixedBoundary",
 	        "variable_name"   : "MESH_DISPLACEMENT",
             "value"           : [0.0, 0.0, 0.0]
         }
@@ -65,10 +65,10 @@
         "process_name"  : "ImposeALERectangleTestMotionProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "NoSlip2D_MovingBoundary"
+            "model_part_name" : "MovingBoundary"
         }
     }],
-    "_json_output_process" : [
+    "json_output_process" : [
         {
             "python_module"   : "json_output_process",
             "kratos_module" : "KratosMultiphysics",
@@ -87,7 +87,7 @@
             }
         }
         ],
-        "json_check_process" : [
+        "_json_check_process" : [
         {
             "python_module"   : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",

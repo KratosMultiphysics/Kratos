@@ -8,19 +8,19 @@ KratosMultiphysics.CheckForPreviousImport()
 import trilinos_mesh_solver_base
 
 
-def CreateSolver(model_part, custom_settings):
-    return TrilinosMeshSolverStructuralSimilarity(model_part, custom_settings)
+def CreateSolver(mesh_model_part, custom_settings):
+    return TrilinosMeshSolverStructuralSimilarity(mesh_model_part, custom_settings)
 
 
 class TrilinosMeshSolverStructuralSimilarity(trilinos_mesh_solver_base.TrilinosMeshSolverBase):
-    def __init__(self, model_part, custom_settings):
-        super(TrilinosMeshSolverStructuralSimilarity, self).__init__(model_part, custom_settings)
+    def __init__(self, mesh_model_part, custom_settings):
+        super(TrilinosMeshSolverStructuralSimilarity, self).__init__(mesh_model_part, custom_settings)
         mpi.world.barrier()
         if mpi.rank == 0:
             print("::[TrilinosMeshSolverStructuralSimilarity]:: Construction finished")
 
     #### Private functions ####
-    
+
     def _create_mesh_motion_solver(self):
         linear_solver = self.get_linear_solver()
         time_order = self.settings["time_order"].GetInt()
@@ -28,8 +28,8 @@ class TrilinosMeshSolverStructuralSimilarity(trilinos_mesh_solver_base.TrilinosM
         comm = self.get_communicator()
         solver = TrilinosApplication.TrilinosStructuralMeshMovingStrategy(
             comm,
-            self.model_part,
+            self.mesh_model_part,
             linear_solver,
             time_order,
             reform_dofs_each_step)
-return solver
+        return solver

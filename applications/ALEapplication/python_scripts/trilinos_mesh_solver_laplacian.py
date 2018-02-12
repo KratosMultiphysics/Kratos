@@ -8,13 +8,13 @@ KratosMultiphysics.CheckForPreviousImport()
 import trilinos_mesh_solver_base
 
 
-def CreateSolver(model_part, custom_settings):
-    return TrilinosMeshSolverComponentwise(model_part, custom_settings)
+def CreateSolver(mesh_model_part, custom_settings):
+    return TrilinosMeshSolverComponentwise(mesh_model_part, custom_settings)
 
 
 class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolverBase):
-    def __init__(self, model_part, custom_settings):
-        super(TrilinosMeshSolverComponentwise, self).__init__(model_part, custom_settings)
+    def __init__(self, mesh_model_part, custom_settings):
+        super(TrilinosMeshSolverComponentwise, self).__init__(mesh_model_part, custom_settings)
         mpi.world.barrier()
         if mpi.rank == 0:
             print("::[TrilinosMeshSolverComponentwise]:: Construction finished")
@@ -29,16 +29,16 @@ class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolv
         return linear_solver
 
     def _create_mesh_motion_solver(self):
-        domain_size = self.model_part.ProcessInfo[DOMAIN_SIZE]
+        domain_size = self.mesh_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         linear_solver = self.get_linear_solver()
-        time_order = self.settings("time_order").GetInt()
-        reform_dofs_each_step = self.settings("reform_dofs_each_step").GetBool()
+        time_order = 2 #self.settings("time_order").GetInt()
+        reform_dofs_each_step = False #self.settings("reform_dofs_each_step").GetBool()
         comm = self.get_communicator()
         solver = TrilinosApplication.TrilinosLaplacianMeshMovingStrategy(
             comm,
-            self.model_part, 
-            linear_solver, 
+            self.mesh_model_part,
+            linear_solver,
             domain_size,
-            time_order, 
-            reform_dof_at_every_step)
-return solver
+            time_order,
+            reform_dofs_each_step)
+        return solver

@@ -8,13 +8,13 @@ KratosMultiphysics.CheckForPreviousImport()
 import mesh_solver_base
 
 
-def CreateSolver(model_part, custom_settings):
-    return TrilinosMeshSolverBase(model_part, custom_settings)
+def CreateSolver(mesh_model_part, custom_settings):
+    return TrilinosMeshSolverBase(mesh_model_part, custom_settings)
 
 
 class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
-    def __init__(self, model_part, custom_settings):
-        super(TrilinosMeshSolverBase, self).__init__(model_part, custom_settings)
+    def __init__(self, mesh_model_part, custom_settings):
+        super(TrilinosMeshSolverBase, self).__init__(mesh_model_part, custom_settings)
         mpi.world.barrier()
         if mpi.rank == 0:
             print("::[TrilinosMeshSolverBase]:: Construction finished")
@@ -23,7 +23,7 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
 
     def AddVariables(self):
         super(TrilinosMeshSolverBase, self).AddVariables()
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         mpi.world.barrier()
         if mpi.rank == 0:
             print("::[MeshSolverBase]:: Variables ADDED.")
@@ -40,9 +40,9 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
         if not hasattr(self, '_communicator'):
             self._communicator = TrilinosApplication.CreateCommunicator()
         return self._communicator
-        
+
     #### Private functions ####
-    
+
     def _create_linear_solver(self):
         import trilinos_linear_elastic_ml_solver
         nit_max = 10000
@@ -51,4 +51,4 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
         return linear_solver
 
     def _create_mesh_motion_solver(self):
-raise Exception("Mesh motion solver must be created by the derived class.")
+        raise Exception("Mesh motion solver must be created by the derived class.")
