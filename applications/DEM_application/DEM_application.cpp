@@ -41,7 +41,6 @@
 #include "custom_strategies/schemes/forward_euler_scheme.h"
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/taylor_scheme.h"
-#include "custom_strategies/schemes/newmark_beta_scheme.h"
 #include "custom_strategies/schemes/velocity_verlet_scheme.h"
 #include "custom_strategies/schemes/runge_kutta_scheme.h"
 #include "custom_strategies/schemes/quaternion_integration_scheme.h"
@@ -837,11 +836,9 @@ void KratosDEMApplication::Register() {
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());
     Serializer::Register("TaylorScheme", TaylorScheme());
-    Serializer::Register("NewmarkBetaScheme", NewmarkBetaScheme());
     Serializer::Register("VelocityVerletScheme", VelocityVerletScheme());
     Serializer::Register("RungeKuttaScheme", RungeKuttaScheme());
-    Serializer::Register(
-        "QuaternionIntegrationScheme", QuaternionIntegrationScheme());
+    Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
 
     std::cout << " done." << std::endl;

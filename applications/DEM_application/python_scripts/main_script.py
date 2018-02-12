@@ -137,8 +137,6 @@ class Solution(object):
             return SymplecticEulerScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
             return TaylorScheme()
-        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            return NewmarkBetaScheme
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             return VelocityVerletScheme()
         else:
