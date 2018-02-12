@@ -241,6 +241,8 @@ class GiDDamOutputProcess(Process):
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
+            
+        self.PrintInitalStepInMultifileLists(label)
 
     def ExecuteInitializeSolutionStep(self):
 
@@ -301,8 +303,6 @@ class GiDDamOutputProcess(Process):
 
         else:
             label = self.printed_step_count
-            
-        self.PrintMultifileLists(label)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__write_mesh(label)
@@ -316,6 +316,8 @@ class GiDDamOutputProcess(Process):
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
             self.__write_step_to_list(label)
+            
+        self.PrintMultifileLists(label)
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -693,6 +695,19 @@ class GiDDamOutputProcess(Process):
         for mfilelist in self.multifilelists:
             mfilelist.file.write("Multiple\n")
             mfilelist.index = 1
+            
+    def PrintInitalStepInMultifileLists(self, label):
+        for mfilelist in self.multifilelists:
+                
+            if (self.post_mode == GiDPostMode.GiD_PostBinary):
+                text_to_print = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"                     
+                mfilelist.file.write(text_to_print)
+            else:
+                text_to_print1 = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%label+".post.msh\n"
+                text_to_print2 = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%label+".post.res\n"
+                mfilelist.file.write(text_to_print1)
+                mfilelist.file.write(text_to_print2)
+            self.Flush(mfilelist.file)
 
     def PrintMultifileLists(self, label):
         for mfilelist in self.multifilelists:
