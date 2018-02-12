@@ -107,18 +107,6 @@ class GiDDamOutputProcess(Process):
         self.step_count = 0
         self.printed_step_count = 0
         self.next_output = 0.0
-
-        self.multifiles = (            
-            MultifileList(self.base_file_name, 1),
-            MultifileList(self.base_file_name, 2),
-            MultifileList(self.base_file_name, 5),
-            MultifileList(self.base_file_name,10),
-            MultifileList(self.base_file_name,20),
-            MultifileList(self.base_file_name,50),
-            )
-
-        self.multifilelists = []            
-        self.SetMultifileLists(self.multifiles)
         
     def Flush(self,a):
         a.flush()
@@ -241,6 +229,40 @@ class GiDDamOutputProcess(Process):
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
+
+        result_file_configuration = self.param["result_file_configuration"]
+        output_control_type = result_file_configuration["output_control_type"].GetString()
+        if output_control_type == "time_s":
+            self.multifiles = (
+                MultifileList(self.base_file_name, 1),
+                MultifileList(self.base_file_name, 60),
+                MultifileList(self.base_file_name, 3600),
+            )
+        elif output_control_type == "time_h":
+            self.multifiles = (
+                MultifileList(self.base_file_name, 1),
+                MultifileList(self.base_file_name, 12),
+                MultifileList(self.base_file_name, 24),
+            )
+        elif output_control_type == "time_d":
+            self.multifiles = (
+                MultifileList(self.base_file_name, 1),
+                MultifileList(self.base_file_name, 7),
+            )
+        elif output_control_type == "time_w":
+            self.multifiles = (
+                MultifileList(self.base_file_name, 1),
+            )
+        elif output_control_type == "step":
+            self.multifiles = (
+                MultifileList(self.base_file_name, 1),
+            )
+        else:
+            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_control_type,"output_control_type")
+            raise Exception(msg)
+
+        self.multifilelists = []            
+        self.SetMultifileLists(self.multifiles)
             
         self.PrintInitalStepInMultifileLists(label)
 
@@ -710,9 +732,9 @@ class GiDDamOutputProcess(Process):
             self.Flush(mfilelist.file)
 
     def PrintMultifileLists(self, label):
+        
         for mfilelist in self.multifilelists:
-
-            if mfilelist.index == mfilelist.step:
+            if (label % mfilelist.step) == 0:
                 
                 if (self.post_mode == GiDPostMode.GiD_PostBinary):
                     text_to_print = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"                     
@@ -723,9 +745,6 @@ class GiDDamOutputProcess(Process):
                     mfilelist.file.write(text_to_print1)
                     mfilelist.file.write(text_to_print2)
                 self.Flush(mfilelist.file)
-                mfilelist.index = 0
-
-            mfilelist.index += 1
             
     def GetMultiFileListName(self, name):
         return name
