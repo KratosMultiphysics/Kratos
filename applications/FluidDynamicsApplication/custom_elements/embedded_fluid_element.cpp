@@ -113,7 +113,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
             AddSlipTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
         } else {
             // First, compute and assemble the penalty level set BC imposition contribution
-            // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution (Codina and Baiges, 2009)
+            // Secondly, compute and assemble the modified Nitsche method level set BC imposition contribution (Codina and Baiges, 2009)
             // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous constributions
             AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
             DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
@@ -254,7 +254,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
     // If there is embedded velocity, substract it to the previous iteration solution
     if (this->Has(EMBEDDED_VELOCITY)) {
         const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
-        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+        array_1d<double, LocalSize> embedded_vel_exp(LocalSize, 0.0);
 
         for (unsigned int i = 0; i < NumNodes; ++i) {
             for (unsigned int comp = 0; comp < Dim; ++comp) {
@@ -262,7 +262,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
             }
         }
 
-        values -= embedded_vel_exp;
+        noalias(values) -= embedded_vel_exp;
     }
 
     // Compute the Nitsche normal imposition penalty coefficient
@@ -315,7 +315,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
             }
         }
 
-        values -= embedded_vel_exp;
+        noalias(values) -= embedded_vel_exp;
     }
 
     // Set if the shear stress term is adjoint consistent (1.0) or not (-1.0)
@@ -329,7 +329,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         // Get the Gauss pt. data
         const double weight = rData.PositiveInterfaceWeights[g];
         const auto aux_N = row(rData.PositiveInterfaceN, g);
-        const bounded_matrix<double, NumNodes, Dim> aux_DN_DX = rData.PositiveInterfaceDNDX[g];
+        const bounded_matrix<double, NumNodes, Dim> &aux_DN_DX = rData.PositiveInterfaceDNDX[g];
         const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
 
         // Fill the pressure to Voigt notation operator normal projected matrix
@@ -373,10 +373,10 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContri
         noalias(aux_LHS) -= weight*prod(aux_matrix_VPnorm, N_mat);
     }
 
-    // LHS outside Nitche contribution assembly
+    // LHS outside Nitsche contribution assembly
     noalias(rLHS) += aux_LHS;
 
-    // RHS outside Nitche contribution assembly
+    // RHS outside Nitsche contribution assembly
     // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
     noalias(rRHS) -= prod(aux_LHS, values);
 }
@@ -527,11 +527,11 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
 
     }
 
-    // LHS outside Nitche contribution assembly
+    // LHS outside Nitsche contribution assembly
     noalias(rLHS) += aux_LHS_1;
     noalias(rLHS) += aux_LHS_2;
 
-    // RHS outside Nitche contribution assembly
+    // RHS outside Nitsche contribution assembly
     // If level set velocity is not 0, add its contribution to the RHS
     if (this->Has(EMBEDDED_VELOCITY)) {
         const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
@@ -577,7 +577,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
 
     // Compute the Nitsche coefficient (including the Winter stabilization term)
     const double h = ElementSizeCalculator<Dim,NumNodes>::GradientsElementSize(rData.DN_DX);
-    const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE?¿?¿
+    const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE
     const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
 
     return cons_coef;
@@ -812,10 +812,10 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
         }
     }
 
-    // LHS outside Nitche contribution assembly
+    // LHS outside Nitsche contribution assembly
     noalias(rLHS) += nitsche_lhs;
 
-    // RHS outside Nitche contribution assembly
+    // RHS outside Nitsche contribution assembly
     // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
     noalias(rRHS) -= prod(nitsche_lhs, values);
 

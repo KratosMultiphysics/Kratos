@@ -190,8 +190,7 @@ double ElementSizeCalculator<2,3>::GradientsElementSize(const bounded_matrix<dou
         }
         h += 1.0/h_inv;
     }
-    h = sqrt(h)/3.0;
-    return h;
+    return sqrt(h)/3.0;
 }
 
 // Tetrahedra3D4 version. 
@@ -206,8 +205,7 @@ double ElementSizeCalculator<3,4>::GradientsElementSize(const bounded_matrix<dou
         }
         h += 1.0/h_inv;
     }
-    h = sqrt(h)/4.0;
-    return h;
+    return sqrt(h)/4.0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
