@@ -314,14 +314,14 @@ public:
         // Generate lhs matrix. the factor 1 is chosen to preserve
         // SPD property
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
-        SparseSpaceType::SetToZero(rMassMatrix);
+        TSparseSpace::SetToZero(rMassMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
         this->ApplyDirichletConditions(rMassMatrix, 1.0);
 
         // Generate rhs matrix. the factor -1 is chosen to make
         // Eigenvalues corresponding to fixed dofs negative
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
-        SparseSpaceType::SetToZero(rStiffnessMatrix);
+        TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
         ApplyDirichletConditions(rStiffnessMatrix,-1.0);
 

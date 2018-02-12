@@ -88,8 +88,10 @@ public:
     BaseMortarConvergenceCriteria(const bool IODebug = false)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mIODebug(IODebug),
-          mGidIO("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly)
+          mpGidIO(nullptr)
     {
+        if (mIODebug)
+            mpGidIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteConditions);
     }
 
     ///Copy constructor 
@@ -176,26 +178,26 @@ public:
             
             if (nl_iter == 1)
             {
-                mGidIO.InitializeMesh(label);
-                mGidIO.WriteMesh(rModelPart.GetMesh());
-                mGidIO.FinalizeMesh();
-                mGidIO.InitializeResults(label, rModelPart.GetMesh());
+                mpGidIO->InitializeMesh(label);
+                mpGidIO->WriteMesh(rModelPart.GetMesh());
+                mpGidIO->FinalizeMesh();
+                mpGidIO->InitializeResults(label, rModelPart.GetMesh());
             }
             
-            mGidIO.WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
-            mGidIO.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
-            mGidIO.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-            mGidIO.WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
-            mGidIO.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
-            mGidIO.WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
-            mGidIO.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+            mpGidIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
+            mpGidIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
             if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X) == true)
             {
-                mGidIO.WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
-                mGidIO.WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
+                mpGidIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
+                mpGidIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
             }
-            mGidIO.WriteNodalResults(NORMAL_CONTACT_STRESS, rModelPart.Nodes(), label, 0);
-            mGidIO.WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
+            mpGidIO->WriteNodalResults(NORMAL_CONTACT_STRESS, rModelPart.Nodes(), label, 0);
+            mpGidIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
         }
         
         return true;
@@ -234,10 +236,10 @@ public:
         // GiD IO for debugging
         if (mIODebug == true)
         {
-            mGidIO.CloseResultFile();
+            mpGidIO->CloseResultFile();
             std::string new_name = "POST_LINEAR_ITER_STEP=";
             new_name.append(std::to_string(rModelPart.GetProcessInfo()[STEP]));
-            mGidIO.ChangeOutputName(new_name);
+            mpGidIO->ChangeOutputName(new_name);
         }
     }
     
@@ -260,7 +262,7 @@ public:
     { 
         // GiD IO for debugging
         if (mIODebug == true)
-            mGidIO.FinalizeResults();
+            mpGidIO->FinalizeResults();
     }
     
     ///@}
@@ -331,9 +333,8 @@ private:
     ///@name Member Variables
     ///@{
     
-    // If we generate an output gid file in order to debug
-    bool mIODebug;          
-    GidIOBaseType mGidIO;     
+    bool mIODebug;                  /// If we generate an output gid file in order to debug         
+    GidIOBaseType::Pointer mpGidIO; /// The pointer to the debugging GidIO    
     
     ///@}
     ///@name Private Operators
