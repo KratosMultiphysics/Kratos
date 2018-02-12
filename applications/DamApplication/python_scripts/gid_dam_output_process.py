@@ -108,16 +108,6 @@ class GiDDamOutputProcess(Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
-        self.multifiles = (            
-            MultifileList(self.DEM_parameters["problem_name"].GetString(), 1),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(), 2),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(), 5),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(),10),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(),20),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(),50),
-            )
-            
-        self.SetMultifileLists(self.multifiles)
 
 
     def ExecuteInitialize(self):
@@ -298,8 +288,6 @@ class GiDDamOutputProcess(Process):
 
         else:
             label = self.printed_step_count
-            
-        self.PrintMultifileLists(label)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__write_mesh(label)
@@ -683,31 +671,6 @@ class GiDDamOutputProcess(Process):
                         f.write(list_file_name)
                         f.flush()
 
-    def SetMultifileLists(self,multifile_list):
-        for mfilelist in multifile_list:
-            self.multifilelists.append(mfilelist)
-
-        for mfilelist in self.multifilelists:
-            mfilelist.file.write("Multiple\n")
-            mfilelist.index = 1
-
-    def PrintMultifileLists(self, label):
-        for mfilelist in self.multifilelists:
-
-            if mfilelist.index == mfilelist.step:
-                
-                if (self.encoding == GiDPostMode.GiD_PostBinary):
-                    text_to_print = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"                     
-                    mfilelist.file.write(text_to_print)
-                else:
-                    text_to_print1 = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%label+".post.msh\n"
-                    text_to_print2 = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%label+".post.res\n"
-                    mfilelist.file.write(text_to_print1)
-                    mfilelist.file.write(text_to_print2)
-                self.Flush(mfilelist.file)
-                mfilelist.index = 0
-
-            mfilelist.index += 1
     #
 # NOTE (PR): 'Codacy' suggest to change the following method, from a standard method to a 'classmethod' or 'staticmethod' as it does not refer to any of the class attributes
     @classmethod
