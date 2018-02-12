@@ -5,6 +5,7 @@
 #include "custom_elements/symbolic_navier_stokes.h"
 
 #include "custom_utilities/embedded_data.h"
+#include "custom_utilities/element_size_calculator.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 
@@ -613,7 +614,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
     double avg_rho = rData.Density;
 
     // Compute the Nitsche coefficient (including the Winter stabilization term)
-    const double h = this->ElementSize();
+    const double h = ElementSizeCalculator<Dim,NumNodes>::GradientsElementSize(rData.DN_DX);
     const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE?¿?¿
     const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
 
@@ -631,7 +632,7 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
     const double penalty = 1.0/10.0;
     const double slip_length = 1.0e+08;
 
-    const double h = this->ElementSize();
+    const double h = ElementSizeCalculator<Dim, NumNodes>::GradientsElementSize(rData.DN_DX);
     const double coeff_1 = slip_length / (slip_length + penalty*h);
     const double coeff_2 = eff_mu / (slip_length + penalty*h);
 
@@ -651,7 +652,7 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
     const double penalty = 1.0/10.0;
     const double slip_length = 1.0e+08;
 
-    const double h = this->ElementSize();
+    const double h = ElementSizeCalculator<Dim, NumNodes>::GradientsElementSize(rData.DN_DX);
     const double coeff_1 = slip_length*penalty*h / (slip_length + penalty*h);
     const double coeff_2 = eff_mu*penalty*h / (slip_length + penalty*h);
 
