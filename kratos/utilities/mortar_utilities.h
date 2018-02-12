@@ -51,17 +51,12 @@ namespace Kratos
 
 /**
  * @class MortarUtilities
- *
- * \ingroup KratosCore
- *
+ * @ingroup KratosCore
  * @brief This is a class that provides auxiliar utilities for the mortar integration
- *
  * @details This is a class that provides auxiliar utilities for the mortar integration. Many methods
  * in the following class are templatizaded and with explicit instantations delclared. 
- * Check the documentation for more details
- *
+ * @note Check the documentation for more details
  * @author Vicente Mataix Ferrandiz
- *
  * Contact: vmataix@cimne.upc.edu
  */
 class MortarUtilities
@@ -106,7 +101,7 @@ public:
     ///@{
 
     /**
-     * Project a point over a line/plane following an arbitrary direction
+     * @brief Project a point over a line/plane following an arbitrary direction
      * @param Geom The geometry where to be projected
      * @param PointDestiny The point to be projected
      * @param PointProjected The point pojected over the plane
@@ -135,7 +130,7 @@ public:
             distance = inner_prod(vector_points, Normal)/norm_2(Normal);
 
             PointProjected.Coordinates() = PointDestiny.Coordinates() + Vector * distance;
-            std::cout << " :: Warning: Zero projection vector. Projection using the condition vector instead." << std::endl;
+            KRATOS_WARNING("Warning: Zero projection vector.") << " Projection using the condition vector instead." << std::endl;
         }
         else if (std::abs(inner_prod(Vector, Normal) ) > tolerance) {
             distance = inner_prod(vector_points, Normal)/inner_prod(Vector, Normal); 
@@ -144,14 +139,14 @@ public:
         }
         else {
             PointProjected.Coordinates() = PointDestiny.Coordinates();
-            std::cout << " The line and the plane are coplanar, something wrong happened " << std::endl;
+            KRATOS_WARNING("Warning: The line and the plane are coplanar.")  << " Something wrong happened " << std::endl;
         }
         
         return distance;
     }
     
     /**
-     * Project a point over a plane (avoiding some steps)
+     * @brief Project a point over a plane (avoiding some steps)
      * @param PointOrigin A point in the plane
      * @param PointDestiny The point to be projected
      * @param Normal The normal of the plane
@@ -177,7 +172,7 @@ public:
     }
     
     /**
-     * Projects iteratively to get the coordinate
+     * @brief Projects iteratively to get the coordinate
      * @param GeomOrigin The origin geometry
      * @param PointDestiny The destination point
      * @param ResultingPoint The distance between the point and the plane
@@ -221,10 +216,7 @@ public:
             N_origin[0] = 0.5 * ( 1.0 - ResultingPoint[0]);
             N_origin[1] = 0.5 * ( 1.0 + ResultingPoint[0]);
             
-            array_1d<double,3> normal_xi(3, 0.0);
-            for( unsigned int i_node = 0; i_node < 2; ++i_node )
-                normal_xi += N_origin[i_node] * normals[i_node]; 
-            
+            array_1d<double,3> normal_xi = N_origin[0] * normals[0] + N_origin[1] * normals[1];
             normal_xi = normal_xi/norm_2(normal_xi); 
             
             current_global_coords = ZeroVector(3);
@@ -261,7 +253,7 @@ public:
     }
     
     /**
-     * This functions checks if the length of the line is to short, with the potential of provoque ill condition in the dual LM formulation
+     * @brief This functions checks if the length of the line is to short, with the potential of provoque ill condition in the dual LM formulation
      * @param GeometryLine The line to be checked
      * @param Tolerance The threshold length
      * @return True if the line is too short, false otherwise
@@ -280,7 +272,7 @@ public:
     }
     
     /**
-     * This functions checks if the semiperimeter is smaller than any of the sides of the triangle
+     * @brief This functions checks if the semiperimeter is smaller than any of the sides of the triangle
      * @param GeometryTriangle The triangle to be checked
      * @return True if the triangle is in bad shape, false otherwise
      */
@@ -290,7 +282,7 @@ public:
     }
     
     /**
-     * This functions checks if the semiperimeter is smaller than any of the sides of the triangle
+     * @brief This functions checks if the semiperimeter is smaller than any of the sides of the triangle
      * @param PointOrig1 The triangle first point
      * @param PointOrig2 The triangle second point
      * @param PointOrig3 The triangle third point
@@ -313,17 +305,17 @@ public:
         const bool Check = A2 <= 0.0 ? true : false;  // We consider as bad shaped the ones with no area or negative A2 (semiperimeter smaller than any side)
         
 //         // Debug
-//         std::cout << Check << " A2: " << A2 << std::endl;
+//         KRATOS_INFO("Check") << Check << " A2: " << A2 << std::endl;
 //         if (Check == true) {
-//             std::cout << "Warning:: The triangle is in bad shape" << std::endl;
-//             std::cout << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << PointOrig1.X() << "," << PointOrig1.Y() << "," << PointOrig1.Z()  << "},{" << PointOrig2.X() << "," << PointOrig2.Y() << "," << PointOrig2.Z()  << "},{" << PointOrig3.X() << "," << PointOrig3.Y() << "," << PointOrig3.Z()  << "}}]}]" << std::endl;
+//             KRATOS_WARNING("Bad shape") << "Warning:: The triangle is in bad shape" << std::endl;
+//             KRATOS_INFO("Mathematica triangle") << "Graphics3D[{EdgeForm[Thick],Triangle[{{" << PointOrig1.X() << "," << PointOrig1.Y() << "," << PointOrig1.Z()  << "},{" << PointOrig2.X() << "," << PointOrig2.Y() << "," << PointOrig2.Z()  << "},{" << PointOrig3.X() << "," << PointOrig3.Y() << "," << PointOrig3.Z()  << "}}]}]" << std::endl;
 //         }
         
         return Check;
     }
 
     /**
-     * This function rotates to align the projected points to a parallel plane to XY
+     * @brief This function rotates to align the projected points to a parallel plane to XY
      * @param PointToRotate The points from the origin geometry and the the point rotated 
      * @param PointReferenceRotation The center point used as reference to rotate
      * @param SlaveTangentXi The first tangent vector of the slave condition
@@ -350,8 +342,7 @@ public:
                 rotation_matrix(0, i) = SlaveTangentXi[i];
                 rotation_matrix(1, i) = SlaveTangentEta[i];
             }
-        }
-        else {
+        } else {
             for (unsigned int i = 0; i < 3; ++i) {
                 rotation_matrix(i, 0) = SlaveTangentXi[i];
                 rotation_matrix(i, 1) = SlaveTangentEta[i];
@@ -362,9 +353,10 @@ public:
     }
     
     /**
-     * This function calculates the normal in a specific GP with a given shape function
+     * @brief This function calculates the normal in a specific GP with a given shape function
      * @param N The shape function considered
      * @param Geom The geometry of condition of interest
+     * @return The normal in the GP
      */
 
     static inline array_1d<double,3> GaussPointUnitNormal(
@@ -379,7 +371,7 @@ public:
         
     #ifdef KRATOS_DEBUG
         const bool not_zero_vector = (this_norm > std::numeric_limits<double>::epsilon());
-        if (not_zero_vector == false) KRATOS_ERROR << "Zero norm normal vector. Norm:" << this_norm << std::endl;
+        KRATOS_ERROR_IF(!not_zero_vector) << "Zero norm normal vector. Norm:" << this_norm << std::endl;
     #endif
         
         normal /= this_norm;
@@ -388,7 +380,7 @@ public:
     }
     
     /**
-     * This function gives you the indexes needed to order a vector 
+     * @brief This function gives you the indexes needed to order a vector 
      * @param ThisVector The vector to order
      * @return idx The vector of indexes
      */
@@ -407,7 +399,7 @@ public:
     }
     
     /**
-     * It computes the mean of the normal in the condition in all the nodes
+     * @brief It computes the mean of the normal in the condition in all the nodes
      * @param rModelPart The model part to compute
      */
     
@@ -462,7 +454,7 @@ public:
     }
     
     /**
-     * It calculates the matrix of coordinates of a geometry
+     * @brief It calculates the matrix of coordinates of a geometry
      * @param ThisNodes The geometry to calculate
      * @param Current If we calculate the Current coordinates or the initial ones
      * @param Step The time step where it is computed
@@ -477,11 +469,10 @@ public:
         ) {
         /* DEFINITIONS */            
         bounded_matrix<double, TNumNodes, TDim> coordinates;
+        array_1d<double, 3> coord;
         
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
         {
-            array_1d<double, 3> coord;
-            
             if (Current == true)
                 coord = ThisNodes[i_node].Coordinates();
             else {
@@ -499,7 +490,7 @@ public:
     }
 
     /**
-     * It calculates the vector of an historical variable of a geometry
+     * @brief It calculates the vector of an historical variable of a geometry
      * @param ThisNodes The geometry to calculate
      * @param rVariable The name of the variable to calculate
      * @param Step The step where it is computed
@@ -522,7 +513,7 @@ public:
     }
     
     /**
-     * It calculates the vector of an historical variable of a geometry
+     * @brief It calculates the vector of an historical variable of a geometry
      * @param ThisNodes The geometry to calculate
      * @param rVariable The name of the variable to calculate
      * @param Step The step where it is computed
@@ -545,7 +536,7 @@ public:
     }
 
     /**
-     * It calculates the vector of a non-historical variable of a geometry
+     * @brief It calculates the vector of a non-historical variable of a geometry
      * @param ThisNodes The geometry to calculate
      * @param rVariable The name of the variable to calculate
      * @return var_vector The vector containing the variables of the geometry
@@ -566,7 +557,7 @@ public:
     }
     
     /**
-     * It calculates the vector of a non-historical variable of a geometry
+     * @brief It calculates the vector of a non-historical variable of a geometry
      * @param ThisNodes The geometry to calculate
      * @param rVariable The name of the variable to calculate
      * @return var_vector The vector containing the variables of the geometry
@@ -587,7 +578,7 @@ public:
     }
     
     /**
-     * It calculates the matrix of a variable of a geometry
+     * @brief It calculates the matrix of a variable of a geometry
      * @param Nodes The geometry to calculate
      * @param rVariable The name of the variable to calculate
      * @param Step The step where it is computed
@@ -613,7 +604,7 @@ public:
     }
 
     /**
-     * It calculates the matrix of a non-historical variable of a geometry
+     * @brief It calculates the matrix of a non-historical variable of a geometry
      * @param Nodes The geometry to calculate
      * @param rVariable The name of the variable to calculate
      * @return var_matrix The matrix containing the variables of the geometry
@@ -637,7 +628,7 @@ public:
     }
     
     /**
-     * It calculates the matrix containing the absolute value of another matrix
+     * @brief It calculates the matrix containing the absolute value of another matrix
      * @param InputMatrix The original matrix
      * @return AbsMatrix The matrix containing the absolute value of another matrix
      */
@@ -656,7 +647,7 @@ public:
     }
     
     /**
-     * This method gives the size to be computed
+     * @brief This method gives the size to be computed
      */
     template< unsigned int TDim, class TVarType>
     static inline unsigned int SizeToCompute()
@@ -668,7 +659,7 @@ public:
     }
     
     /**
-     * This method resets the value
+     * @brief This method resets the value
      * @param rThisModelPart The model part to update
      * @param ThisVariable The variable to set
      * @param InvertedPair If the master/slave follows the standard way 
@@ -681,20 +672,20 @@ public:
         );
     
     /**
-     * This method resets the auxiliar value
+     * @brief This method resets the auxiliar value
      * @param rThisModelPart The model part to update
      */
     template< class TVarType>
     static inline void ResetAuxiliarValue(ModelPart& rThisModelPart);
 
     /**
-     * This method returns the auxiliar variable
+     * @brief This method returns the auxiliar variable
      */
     template< class TVarType>
     static inline TVarType GetAuxiliarVariable();
 
     /**
-     * This method returns the auxiliar variable
+     * @brief This method returns the auxiliar variable
      */
     template< class TVarType>
     static inline double GetAuxiliarValue(
@@ -703,7 +694,7 @@ public:
         );
     
     /**
-     * This method adds the value
+     * @brief This method adds the value
      * @param ThisGeometry The geometrty to update
      * @param ThisVariable The variable to set
      */
@@ -715,7 +706,7 @@ public:
         );
     
     /**
-     * This method adds the value
+     * @brief This method adds the value
      * @warning This operation is not threadsafe
      * @param ThisGeometry The geometrty to update
      * @param ThisVariable The variable to set
@@ -728,7 +719,7 @@ public:
         );
     
     /**
-     * This method adds the value
+     * @brief This method adds the value
      * @param pThisNode The node to update
      * @param ThisVariable The variable to set
      */
@@ -741,7 +732,7 @@ public:
         );
 
     /**
-     * This method updates the database in the amster side
+     * @brief This method updates the database in the amster side
      * @param rThisModelPart The model part
      * @param ThisVariable The variable to set
      * @param Dx The vector with the increment of the value
@@ -1115,7 +1106,7 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<double>, Histori
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
 #ifdef KRATOS_DEBUG 
-    if (null_area) std::cout << "WARNING:: NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
 #endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     pThisNode->FastGetSolutionStepValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
@@ -1131,7 +1122,7 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<ComponentType, Historical
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
 #ifdef KRATOS_DEBUG 
-    if (null_area) std::cout << "WARNING:: NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
 #endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     pThisNode->FastGetSolutionStepValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX_X);
@@ -1147,7 +1138,7 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<array_1d<double,
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
 #ifdef KRATOS_DEBUG 
-    if (null_area) std::cout << "WARNING:: NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
 #endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     auto& aux_vector = pThisNode->FastGetSolutionStepValue(ThisVariable);
@@ -1164,7 +1155,7 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<double>, NonHist
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
 #ifdef KRATOS_DEBUG 
-    if (null_area) std::cout << "WARNING:: NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
 #endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     pThisNode->GetValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_MAUX);
@@ -1180,7 +1171,7 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<ComponentType, NonHistori
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
 #ifdef KRATOS_DEBUG 
-    if (null_area) std::cout << "WARNING:: NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
 #endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     pThisNode->GetValue(ThisVariable) += area_coeff * pThisNode->GetValue(NODAL_VAUX_X);
@@ -1196,7 +1187,7 @@ inline void MortarUtilities::AddAreaWeightedNodalValue<Variable<array_1d<double,
     double area_coeff = pThisNode->GetValue(NODAL_AREA);
     const bool null_area = (std::abs(area_coeff) < RefArea * Tolerance);
 #ifdef KRATOS_DEBUG 
-    if (null_area) std::cout << "WARNING:: NODE OF NULL AREA. ID: " << pThisNode->Id() << std::endl;
+    if (null_area) KRATOS_WARNING("WARNING:: NODE OF NULL AREA.") << " ID: " << pThisNode->Id() << std::endl;
 #endif
     area_coeff = null_area ? 0.0 : 1.0/area_coeff;
     auto& aux_vector = pThisNode->GetValue(ThisVariable);
