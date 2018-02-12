@@ -291,45 +291,7 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
                 }
             }
         }
-
-        // // Compute the Gauss pt. LHS contribution
-        // for (unsigned int i = 0; i < NumNodes; ++i){
-        //     for (unsigned int j = 0; j < NumNodes; ++j){
-        //         for (unsigned int m = 0; m < Dim; ++m){
-        //             const unsigned int row = i * BlockSize + m;
-        //             for (unsigned int n = 0; n < Dim; ++n){
-        //                 const unsigned int col = j * BlockSize + n;
-        //                 aux_LHS(row,col) += pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
-        //             }
-        //         }
-        //     }
-        // }
-
-        // // Set the shape functions auxiliar matrices
-        // bounded_matrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
-        // for (unsigned int i = 0; i < NumNodes; ++i){
-        //     for (unsigned int comp = 0; comp < Dim; ++comp){
-        //         N_mat(comp, i*BlockSize + comp) = aux_N(i);
-        //     }
-        // }
-        // bounded_matrix<double, LocalSize, Dim> N_mat_trans = trans(N_mat);
-
-        // // Set the normal projection matrix (n x n)
-        // bounded_matrix<double, Dim, Dim> normal_projection_matrix;
-        // FluidElementUtilities<NumNodes>::SetNormalProjectionMatrix(aux_unit_normal, normal_projection_matrix);
-
-        // // Compute the current cut point LHS contribution
-        // const bounded_matrix<double, LocalSize, Dim> aux_1 = prod(N_mat_trans, normal_projection_matrix);
-        // const bounded_matrix<double, LocalSize, LocalSize> aux_2 = prod(aux_1, N_mat);
-        // noalias(aux_LHS) += pen_coef * weight * aux_2;
     }
-
-    // LHS and RHS Nitsche contribution assembly
-    // noalias(rLHS) += aux_LHS;
-
-    // RHS outside Nitsche contribution assembly
-    // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
-    // noalias(rRHS) -= prod(aux_LHS, values);
 }
 
 template <class TBaseElement>
