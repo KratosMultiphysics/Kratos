@@ -18,17 +18,17 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "fluid_constitutive_law.h"
 
 namespace Kratos
 {
 /**
- * Defines a bingham non-newtonian constitutive law
+ * Defines a Newtonian constitutive law for 2D
  * This material law is defined by the parameters:
  * 1) DYNAMIC_VISCOSITY
  */
 
-class Newtonian2DLaw : public ConstitutiveLaw
+class Newtonian2DLaw : public FluidConstitutiveLaw
 {
 public:
     /**
@@ -85,12 +85,6 @@ public:
 
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
-    /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures
-     */
-    void GetLawFeatures(Features& rFeatures) override;
-
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -102,14 +96,6 @@ public:
      * @return
      */
     int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
-
-    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
-    int& GetValue(const Variable<int>& rThisVariable, int& rValue) override;
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
-    Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
-    array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,array_1d<double, 3 > & rValue) override;
-    array_1d<double, 6 > & GetValue(const Variable<array_1d<double, 6 > >& rThisVariable, array_1d<double, 6 > & rValue) override;
 
     /**
      * Input and output
@@ -152,8 +138,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mViscosity;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -174,15 +158,9 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    void load(Serializer& rSerializer) override;
 
 
 }; // Class Newtonian2DLaw

@@ -490,7 +490,7 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
     //this is ok under the hypothesis that no history dependent behavior is employed
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
-    mpConstitutiveLaw->GetValue(EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
+    mpConstitutiveLaw->CalculateValue(Values,EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
 }
 
 template< class TElementData >
