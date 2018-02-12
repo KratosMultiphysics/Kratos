@@ -125,7 +125,6 @@ namespace Kratos
     Vector mDetJ0;
 
     double mTotalDomainInitialSize;
-    double mdensity;
     double mThickness;									// thickness in actual configuration
 
     std::vector< array_1d<double, 3> > mStrainsVector;	//container of Strain
@@ -135,12 +134,12 @@ namespace Kratos
 
     std::vector< array_1d<double, 3> >  mV1;
     std::vector< array_1d<double, 3> >  mV2;
-    std::vector< Matrix >              mG_Vector;
+    std::vector< Matrix >              mGVector;
 
     std::vector< array_1d<double, 3> > mGab0;
     std::vector< array_1d<double, 3> > mG1; // Base vector 1 in updated reference configuration
     std::vector< array_1d<double, 3> > mG2; // Base vector 2 in updated reference configuration
-    unsigned int mStep;
+    unsigned int mStep;                     // Simulation step for formfinding
 
     bool mAnisotropicPrestress;             // determines if isotropic or anisotropic prestress is applied
     std::vector< array_1d<double, 3> > mG1Initial; // Base vector 1 in initial reference configuration
@@ -203,20 +202,6 @@ namespace Kratos
     //  boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
     //  array_1d<double, 3>& U);
 
-    void CrossProduct(
-      array_1d<double, 3>& cross,
-      array_1d<double, 3>& a,
-      array_1d<double, 3>& b);
-
-    //void SubtractMatrix(
-    //  MatrixType& Destination,
-    //  boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
-    //  int InitialRow,
-    //  int InitialCol);
-
-    //void ExpandReducedMatrix(
-    //  Matrix& Destination,
-    //  Matrix& ReducedMatrix);
 
     void CalculateQ(
       boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
@@ -255,20 +240,7 @@ namespace Kratos
       double weight,
       const ProcessInfo& rCurrentProcessInfo);
 
-    //// this function transforms the local stress (with 3 components)
-    //// to the global one (with 6 components)
-    //void Calculate_GlobalStressVector(
-    //  array_1d<double, 6>& GlobalVector,
-    //  Vector& LocalStressVector,
-    //  array_1d<double, 3>& v1,
-    //  array_1d<double, 3>& v2);
-
-    ////auxiliary function needed in the calculation of output stresses
-    //inline array_1d<double, 6> VoigtTensorComponents(
-    //  array_1d<double, 3>& a,
-    //  array_1d<double, 3>& b);
-
-    void CalculateMetricDeformed(unsigned int& PointNumber,
+    void CalculateMetricDeformed(const unsigned int& PointNumber,
         Matrix DN_De,
         array_1d<double, 3>& gab,
         array_1d<double, 3>& g1,
@@ -287,27 +259,42 @@ namespace Kratos
         Matrix& D
         );
 
+    void TransformPrestress(const unsigned int PointNumber);
 
-    /*void CalculateTransMatrixToLocalCartesian(
-        unsigned int& PointNumber,
-        array_1d<double, 3>& g1,
-        array_1d<double, 3>& g2,
-        array_1d<double, 3>& g3,
-        array_1d<double, 3>& gab,
-        array_1d<double, 3>& prestress,
-        array_1d<double, 3> GlobalPrestressAxis1,
-        array_1d<double, 3> GlobalPrestressAxis2);*/
+    void UpdatePrestress(const unsigned int PointNumber);
 
-    /*void TensorTransformation(
-        bounded_matrix<double,3,3>& rOriginLeft,
-        bounded_matrix<double,3,3>& rOriginRight,
-        bounded_matrix<double,3,3>& rTargetLeft,
-        bounded_matrix<double,3,3>& rTargetRight,
-        bounded_matrix<double,3,3>& rTensor);*/
+    void PrestressComputation(const unsigned int PointNumber);
 
-    void TransformPrestress(unsigned int PointNumber);
+    void ComputeBaseVectors(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints);
 
-    void UpdatePrestress(unsigned int PointNumber);
+    void InitializeMaterial(const unsigned int NumberIntegrationPoints);
+
+    void ComputeRelevantCoSys(const unsigned int PointNumber,
+             array_1d<double, 3>& rg1,array_1d<double, 3>& rg2,array_1d<double, 3>& rg3, array_1d<double, 3>& rgab,
+             array_1d<double, 3>& rG3,
+             array_1d<double, 3>& rE1Tot, array_1d<double, 3>& rE2Tot,array_1d<double, 3>& rE3Tot,
+             array_1d<double, 3>& rE1,array_1d<double, 3>& rE2,array_1d<double, 3>& rE3,
+             array_1d<double, 3>& rBaseRefContraTot1,array_1d<double, 3>& rBaseRefContraTot2);
+
+    void ComputeEigenvaluesDeformationGradient(const unsigned int PointNumber,
+                    bounded_matrix<double,3,3>& rOrigin, bounded_matrix<double,3,3>& rTarget, bounded_matrix<double,3,3>& rTensor,
+                    const array_1d<double, 3>& rBaseRefContraTot1, const array_1d<double, 3>& rBaseRefContraTot2,
+                    const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot, const array_1d<double, 3>& rE3Tot,
+                    const array_1d<double, 3>& rgab,
+                    double& rLambda1, double& rLambda2);
+
+    void ComputeEigenvectorsDeformationGradient(const unsigned int PointNumber,
+                                bounded_matrix<double,3,3>& rTensor, bounded_matrix<double,3,3>& rOrigin, 
+                                const bounded_matrix<double,3,3>& rDeformationGradientTotal,
+                                const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot,
+                                const double Lambda1, const double Lambda2,
+                                bounded_matrix<double,3,3>& rNAct);
+
+    void ModifyPrestress(const unsigned int PointNumber,
+                    bounded_matrix<double,3,3>& rOrigin, bounded_matrix<double,3,3>& rTarget,bounded_matrix<double,3,3>& rTensor,
+                    const array_1d<double, 3>& rE1, const array_1d<double, 3>& rE2, const array_1d<double, 3>& rE3, const array_1d<double, 3>& rG3,
+                    const array_1d<double, 3>& rg1, const array_1d<double, 3>& rg2, const array_1d<double, 3>& rg3, const bounded_matrix<double,3,3>& rNAct,
+                    const double Lambda1, const double Lambda2);
 
     int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -327,14 +314,14 @@ namespace Kratos
       rSerializer.save("ReferenceGeometry", mpReferenceGeometry);
       rSerializer.save("DetJ0", mDetJ0);
       rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
-      rSerializer.save("density", mdensity);
-      rSerializer.save("Thickness", mThickness);
+      //rSerializer.save("density", mdensity);
+      //rSerializer.save("Thickness", mThickness);
       rSerializer.save("StrainsVector", mStrainsVector);
       rSerializer.save("StressesVector", mStressesVector);
       rSerializer.save("CauchyStressesVector", mCauchyStressesVector);
       rSerializer.save("V1", mV1);
       rSerializer.save("V2", mV2);
-      rSerializer.save("G_Vector", mG_Vector);
+      rSerializer.save("G_Vector", mGVector);
     }
 
     void load(Serializer& rSerializer) override
@@ -344,14 +331,14 @@ namespace Kratos
       rSerializer.load("ReferenceGeometry", mpReferenceGeometry);
       rSerializer.load("DetJ0", mDetJ0);
       rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
-      rSerializer.load("density", mdensity);
-      rSerializer.load("Thickness", mThickness);
+      //rSerializer.load("density", mdensity);
+      //rSerializer.load("Thickness", mThickness);
       rSerializer.load("StrainsVector", mStrainsVector);
       rSerializer.load("StressesVector", mStressesVector);
       rSerializer.load("CauchyStressesVector", mCauchyStressesVector);
       rSerializer.load("V1", mV1);
       rSerializer.load("V2", mV2);
-      rSerializer.load("G_Vector", mG_Vector);
+      rSerializer.load("G_Vector", mGVector);
     }
 
     ///@}
