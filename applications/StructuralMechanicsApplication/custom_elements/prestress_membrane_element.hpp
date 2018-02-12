@@ -12,8 +12,6 @@
 #if !defined(KRATOS_MEMBRANE_ELEMENT_3D_H_INCLUDED )
 #define  KRATOS_MEMBRANE_ELEMENT_3D_H_INCLUDED
 
-
-
 // System includes
 
 // External includes
@@ -114,7 +112,6 @@ namespace Kratos
   private:
     ///@name Static Member Variables
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-    Geometry< Point >::Pointer  mpReferenceGeometry;
 
     Vector mDetJ0;
 
@@ -127,7 +124,7 @@ namespace Kratos
 
     std::vector< array_1d<double, 3> >  mV1;
     std::vector< array_1d<double, 3> >  mV2;
-    std::vector< Matrix >              mGVector;
+    std::vector< Matrix >               mGVector;
 
     std::vector< array_1d<double, 3> > mGab0;
     std::vector< array_1d<double, 3> > mG1; // Base vector 1 in updated reference configuration
@@ -138,7 +135,6 @@ namespace Kratos
     std::vector< array_1d<double, 3> > mG1Initial; // Base vector 1 in initial reference configuration
     std::vector< array_1d<double, 3> > mG2Initial; // Base vector 2 in initial reference configuration
     std::vector< array_1d<double, 3> > mG3Initial; // Base vector 2 in initial reference configuration
-    array_1d<double, 3> mPreStress;         // Pre-Stress which cannot be read through mpda file. this is a temporary solution
 
 
 
@@ -303,8 +299,7 @@ namespace Kratos
     void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-        rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
-      rSerializer.save("ReferenceGeometry", mpReferenceGeometry);
+      rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
       rSerializer.save("DetJ0", mDetJ0);
       rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
       rSerializer.save("StrainsVector", mStrainsVector);
@@ -318,8 +313,7 @@ namespace Kratos
     void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-        rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
-      rSerializer.load("ReferenceGeometry", mpReferenceGeometry);
+      rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
       rSerializer.load("DetJ0", mDetJ0);
       rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
       rSerializer.load("StrainsVector", mStrainsVector);
