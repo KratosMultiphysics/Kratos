@@ -64,26 +64,59 @@ namespace Kratos {
   void TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
-									       double timeStep,
+									       ProcessInfo &currentProcessInfo,
 									       ElementalVariables &rElementalVariables)
   {
     double FluidBulkModulus=0;
     double FluidYieldShear=0;
+    double staticFrictionCoefficient=0;
+    double regularizationCoefficient=0;
+    double inertialNumberThreshold=0;
+    double timeStep=currentProcessInfo[DELTA_TIME];
+
     this->EvaluatePropertyFromANotRigidNode(Density,DENSITY);
     this->EvaluatePropertyFromANotRigidNode(FluidBulkModulus,BULK_MODULUS);
     this->EvaluatePropertyFromANotRigidNode(FluidYieldShear,YIELD_SHEAR);
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient,REGULARIZATION_COEFFICIENT);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
 
     if(FluidBulkModulus==0){
       FluidBulkModulus = 1000000000.0;
     }
     VolumetricCoeff = FluidBulkModulus*timeStep;
-
+    // DeviatoricCoeff=this->ComputeBarkerBercovierMuIrheologyViscosity(rElementalVariables);
+    // double currentTime=currentProcessInfo[TIME];
+    // if(currentTime>5*timeStep){
+    //   DeviatoricCoeff=this->ComputeBarkerBercovierMuIrheologyViscosity(rElementalVariables);
+    // }else{
+    //   this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY); 
+    // }
+    
     if(FluidYieldShear!=0){
       // std::cout<<"For a Newtonian fluid I should not enter here"<<std::endl;
       DeviatoricCoeff=this->ComputeNonLinearViscosity(rElementalVariables.EquivalentStrainRate);
+    }else if(staticFrictionCoefficient!=0){
+      if(regularizationCoefficient!=0 && inertialNumberThreshold==0){
+    	// DeviatoricCoeff=this->ComputeBercovierMuIrheologyViscosity(rElementalVariables);
+	DeviatoricCoeff=this->ComputePapanastasiouMuIrheologyViscosity(rElementalVariables); 
+      }else if(regularizationCoefficient==0 && inertialNumberThreshold!=0){
+	DeviatoricCoeff=this->ComputeBarkerMuIrheologyViscosity(rElementalVariables);
+      }else if(regularizationCoefficient!=0 && inertialNumberThreshold!=0){
+    	DeviatoricCoeff=this->ComputeBarkerBercovierMuIrheologyViscosity(rElementalVariables);
+      }else{
+	DeviatoricCoeff=this->ComputeJopMuIrheologyViscosity(rElementalVariables);
+      }
     }else{
+      // std::cout<<"For a Newtonian fluid I should  enter here"<<std::endl;
       this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
     }
+
+    // std::cout<<"Density "<<Density<<std::endl;
+    // std::cout<<"FluidBulkModulus "<<FluidBulkModulus<<std::endl;
+    // std::cout<<"staticFrictionCoefficient "<<staticFrictionCoefficient<<std::endl;
+    // std::cout<<"DeviatoricCoeff "<<DeviatoricCoeff<<std::endl;
+
 
     this->mMaterialDeviatoricCoefficient=DeviatoricCoeff;
     this->mMaterialVolumetricCoefficient=VolumetricCoeff;
@@ -97,11 +130,13 @@ namespace Kratos {
 
   }
 
+  
 
   template< unsigned int TDim>
   double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeNonLinearViscosity(double & equivalentStrainRate)
   {
     double FluidViscosity=0;
+    
     double FluidFlowIndex=0;
     double FluidYieldShear=0;
     double FluidAdaptiveExponent=0;
@@ -119,9 +154,299 @@ namespace Kratos {
     }
     return FluidViscosity;
   }
+  
+
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+    double FluidViscosity=0;
+
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+
+    // double staticFrictionCoefficient=0.381862867;
+    // double dynamicFrictionCoefficient=0.643468384;
+    // double inertialNumberZero=0.279;
+    // double grainDiameter=0.002;
+    // double grainDensity=2500;
+    
+    double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+    double inertialNumber=0;
+    if(rElementalVariables.MeanPressure!=0){
+      inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(rElementalVariables.MeanPressure)/grainDensity);
+    }
+    // double inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(rElementalVariables.MeanPressure)/grainDensity);
+
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(rElementalVariables.MeanPressure)!=0){
+      double firstViscousTerm=staticFrictionCoefficient/rElementalVariables.EquivalentStrainRate;
+      // double secondViscousTerm=deltaFrictionCoefficient*inertialNumberZero/ ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
+      double secondViscousTerm=deltaFrictionCoefficient*inertialNumber/ ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
+      FluidViscosity=(firstViscousTerm+secondViscousTerm)*fabs(rElementalVariables.MeanPressure);
+    }else{
+      FluidViscosity=1.0;
+    }
+    return FluidViscosity;
+  }
 
 
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+    double FluidViscosity=0;
 
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+    double regularizationCoefficient=0;
+
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+    this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient,REGULARIZATION_COEFFICIENT);
+
+    // double staticFrictionCoefficient=0.381862867;
+    // double dynamicFrictionCoefficient=0.643468384;
+    // double inertialNumberZero=0.279;
+    // double grainDiameter=0.002;
+    // double grainDensity=2500;
+    // double regularizationCoefficient=0.01;
+
+    GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    double meanPressure=0;
+    double coeff=0.0;
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+	if(rGeom[i].IsNot(FREE_SURFACE)){
+	  meanPressure+=rGeom[i].GetSolutionStepValue(PRESSURE,0);
+	  coeff+=1.0;
+	}
+      }
+    if (meanPressure==0){
+      meanPressure=rElementalVariables.MeanPressure;
+    }else{
+      meanPressure*=1.0/coeff;
+    }
+     meanPressure=rElementalVariables.MeanPressure;
+
+     double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+     double inertialNumber=0;
+     if(rElementalVariables.MeanPressure!=0){
+       inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(rElementalVariables.MeanPressure)/grainDensity);
+     }
+    // double inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(meanPressure)/grainDensity);
+    
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(meanPressure)!=0){
+      double firstViscousTerm=staticFrictionCoefficient / sqrt(pow(rElementalVariables.EquivalentStrainRate,2)+pow(regularizationCoefficient,2));
+      // double secondViscousTerm=deltaFrictionCoefficient*inertialNumberZero / ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
+      double secondViscousTerm=deltaFrictionCoefficient*inertialNumber/ ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
+      FluidViscosity=(firstViscousTerm+secondViscousTerm)*fabs(meanPressure);
+    }else{
+      FluidViscosity=1.0;
+    }
+    
+    return FluidViscosity;
+  }
+
+
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputePapanastasiouMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+    double FluidViscosity=0;
+    
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+    double regularizationCoefficient=0;
+    double pressure=rElementalVariables.MeanPressure;
+
+    // if(pressure>0){
+    //   pressure=-1.0;
+    // }
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+    this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient,REGULARIZATION_COEFFICIENT);
+    
+    double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+    double inertialNumber=0;
+      if(rElementalVariables.MeanPressure!=0){
+	inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(pressure)/grainDensity);
+    }
+    
+    double exponent=-rElementalVariables.EquivalentStrainRate/regularizationCoefficient;
+
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(pressure)!=0){
+      double firstViscousTerm=staticFrictionCoefficient*(1-exp(exponent))/rElementalVariables.EquivalentStrainRate;
+      double secondViscousTerm=deltaFrictionCoefficient*inertialNumber/ ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
+      // double secondViscousTerm=deltaFrictionCoefficient*inertialNumberZero/ ((inertialNumberZero+inertialNumber)*rElementalVariables.EquivalentStrainRate);
+	
+      FluidViscosity=(firstViscousTerm+secondViscousTerm)*fabs(pressure);
+    }else{
+      FluidViscosity=1.0;
+    }
+
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+    for (SizeType i = 0; i < NumNodes; ++i)
+      {
+    	this->GetGeometry()[i].FastGetSolutionStepValue(FLOW_INDEX)=FluidViscosity;
+    	this->GetGeometry()[i].FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=rElementalVariables.EquivalentStrainRate;
+    	this->GetGeometry()[i].FastGetSolutionStepValue(ALPHA_PARAMETER)=inertialNumber;
+	// std::cout<<"FluidViscosity "<<FluidViscosity<<"  StrainRate "<<rElementalVariables.EquivalentStrainRate<<"  inertialNumber "<<inertialNumber<<"  pressure "<<rElementalVariables.MeanPressure<<std::endl;
+      }
+    
+    return FluidViscosity;
+  }
+
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBarkerMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+    double FluidViscosity=0;
+    // std::cout<<"here here"<<std::endl;
+
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+    double inertialNumberThreshold=0;
+    double infiniteFrictionCoefficient=0;
+    double alphaParameter=0;
+  
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
+    this->EvaluatePropertyFromANotRigidNode(infiniteFrictionCoefficient,INFINITE_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(alphaParameter,ALPHA_PARAMETER);
+
+    // double infiniteFrictionCoefficient=0.05; //it should be equal to c*h_0/d
+    // double alphaParameter=1.9; //it should be close to 2 and always less than 2
+
+    double inertialNumber=0;
+    if(rElementalVariables.MeanPressure!=0){
+      inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(rElementalVariables.MeanPressure)/grainDensity);
+    }
+    // double inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(rElementalVariables.MeanPressure)/grainDensity);
+
+    if(inertialNumber>inertialNumberThreshold){
+      FluidViscosity=(staticFrictionCoefficient*inertialNumberZero+dynamicFrictionCoefficient*inertialNumber+infiniteFrictionCoefficient*pow(inertialNumber,2))/(inertialNumberZero+inertialNumber);
+      // double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+      // double firstViscousTerm=staticFrictionCoefficient;
+      // // double secondViscousTerm=deltaFrictionCoefficient*inertialNumberZero / (inertialNumberZero+inertialNumber);
+      // double secondViscousTerm=deltaFrictionCoefficient*inertialNumber / (inertialNumberZero+inertialNumber);
+      // FluidViscosity=(firstViscousTerm+secondViscousTerm);
+    }else{
+      double denominator=staticFrictionCoefficient*inertialNumberZero+dynamicFrictionCoefficient*inertialNumberThreshold+infiniteFrictionCoefficient*pow(inertialNumberThreshold,2);
+      double exponent=alphaParameter*(inertialNumberZero+inertialNumberThreshold)*(inertialNumberZero+inertialNumberThreshold)/pow(denominator,2);
+      double firstAconstant=inertialNumberThreshold*exp(exponent);
+      FluidViscosity=sqrt(alphaParameter/log(firstAconstant/inertialNumber));
+    }
+
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(rElementalVariables.MeanPressure)!=0){
+      FluidViscosity*=fabs(rElementalVariables.MeanPressure)/rElementalVariables.EquivalentStrainRate;	    
+    }else{
+      FluidViscosity=1.0;
+    }
+    return FluidViscosity;
+  }
+
+  
+  template< unsigned int TDim>
+  double TwoStepUpdatedLagrangianVPFluidElement<TDim>::ComputeBarkerBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables)
+  {
+
+        double FluidViscosity=0;
+    // std::cout<<"here here"<<std::endl;
+
+    double staticFrictionCoefficient=0;
+    double dynamicFrictionCoefficient=0;
+    double inertialNumberZero=0;
+    double grainDiameter=0;
+    double grainDensity=0;
+    double inertialNumberThreshold=0;
+    double infiniteFrictionCoefficient=0;
+    double alphaParameter=0;
+    double regularizationCoefficient=0;
+  
+    this->EvaluatePropertyFromANotRigidNode(staticFrictionCoefficient,STATIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(dynamicFrictionCoefficient,DYNAMIC_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberZero,INERTIAL_NUMBER_ZERO);
+    this->EvaluatePropertyFromANotRigidNode(grainDiameter,GRAIN_DIAMETER);
+    this->EvaluatePropertyFromANotRigidNode(grainDensity,GRAIN_DENSITY);
+    this->EvaluatePropertyFromANotRigidNode(inertialNumberThreshold,INERTIAL_NUMBER_ONE);
+    this->EvaluatePropertyFromANotRigidNode(infiniteFrictionCoefficient,INFINITE_FRICTION);
+    this->EvaluatePropertyFromANotRigidNode(alphaParameter,ALPHA_PARAMETER);
+    this->EvaluatePropertyFromANotRigidNode(regularizationCoefficient,REGULARIZATION_COEFFICIENT);
+
+    // double staticFrictionCoefficient=0.381862867;
+    // double dynamicFrictionCoefficient=0.643468384;
+    // double inertialNumberZero=0.279;
+    // double grainDiameter=0.002;
+    // double grainDensity=2500;
+    // double inertialNumberThreshold=0.0001;
+    // double infiniteFrictionCoefficient=0.05; //it should be equal to c*h_0/d
+    // double alphaParameter=1.9; //it should be close to 2 and always less than 2
+
+    double inertialNumber=0;
+    if(rElementalVariables.MeanPressure!=0){
+      inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(rElementalVariables.MeanPressure)/grainDensity);
+    }
+    // double inertialNumber=rElementalVariables.EquivalentStrainRate*grainDiameter/sqrt(fabs(rElementalVariables.MeanPressure)/grainDensity);
+
+    if(inertialNumber>inertialNumberThreshold){
+      // FluidViscosity=(staticFrictionCoefficient*inertialNumberZero+dynamicFrictionCoefficient*inertialNumber+infiniteFrictionCoefficient*pow(inertialNumber,2))/(inertialNumberZero+inertialNumber);
+      double deltaFrictionCoefficient=dynamicFrictionCoefficient-staticFrictionCoefficient;
+      double firstViscousTerm=staticFrictionCoefficient;
+      double secondViscousTerm=deltaFrictionCoefficient*inertialNumber / (inertialNumberZero+inertialNumber);
+      FluidViscosity=(firstViscousTerm+secondViscousTerm);
+    }else{
+      double denominator=staticFrictionCoefficient*inertialNumberZero+dynamicFrictionCoefficient*inertialNumberThreshold+infiniteFrictionCoefficient*pow(inertialNumberThreshold,2);
+      double exponent=alphaParameter*(inertialNumberZero+inertialNumberThreshold)*(inertialNumberZero+inertialNumberThreshold)/pow(denominator,2);
+      double firstAconstant=inertialNumberThreshold*exp(exponent);
+      FluidViscosity=sqrt(alphaParameter/log(firstAconstant/inertialNumber));
+    }
+
+    if(rElementalVariables.EquivalentStrainRate!=0 && fabs(rElementalVariables.MeanPressure)!=0){
+      // FluidViscosity*=fabs(rElementalVariables.MeanPressure)/rElementalVariables.EquivalentStrainRate;
+      // FluidViscosity*=fabs(rElementalVariables.MeanPressure)/ sqrt(pow(rElementalVariables.EquivalentStrainRate,2)+pow(regularizationCoefficient,2));
+      double exponent=-rElementalVariables.EquivalentStrainRate/regularizationCoefficient;
+      FluidViscosity*=fabs(rElementalVariables.MeanPressure)*(1-exp(exponent))/rElementalVariables.EquivalentStrainRate;
+    }else{
+      if(rElementalVariables.MeanPressure==0 && rElementalVariables.EquivalentStrainRate!=0){
+    	FluidViscosity*=1.0 / sqrt(pow(rElementalVariables.EquivalentStrainRate,2)+pow(regularizationCoefficient,2));
+      }else if(rElementalVariables.MeanPressure!=0 && rElementalVariables.EquivalentStrainRate==0){
+    	FluidViscosity*=fabs(rElementalVariables.MeanPressure) / sqrt(0.001+pow(regularizationCoefficient,2));
+      }else{
+    	FluidViscosity=1.0;
+      }
+    }   
+  
+ 
+    return FluidViscosity;
+  }
+
+
+  
   template< unsigned int TDim >
   int TwoStepUpdatedLagrangianVPFluidElement<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
   {
@@ -970,11 +1295,14 @@ namespace Kratos {
     double MeanVelocity=0;
     this->CalcMeanVelocity(MeanVelocity,0);
 
-    Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) ); 
-  
-    if(Tau<0.0000001){
-      Tau=0.0000001;
-    }
+    // Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) ); 
+     Tau = (ElemSize * ElemSize * DeltaTime) / ( Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize +  8.0 * Viscosity * DeltaTime  ); 
+    // if(Tau<0.0000001){
+    //   Tau=0.0000001;
+    // }
+    // if(Tau>0.0001){
+    //   Tau=0.0001;
+    // }
 
     if(MeanVelocity==0){
       Tau=0;
@@ -1348,12 +1676,18 @@ namespace Kratos {
 
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
-
+	
     double Density = this->mMaterialDensity;
     double VolumetricCoeff = this->mMaterialVolumetricCoefficient;
-    double DeviatoricCoeff = 0;
-    this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
-    
+    double DeviatoricCoeff = this->mMaterialDeviatoricCoefficient;
+    // if(DeviatoricCoeff>10){
+    //   DeviatoricCoeff=10;
+    // }
+    // if(DeviatoricCoeff<0.0001){
+    //   DeviatoricCoeff=0.0001;
+    // }
+    DeviatoricCoeff=1.0;
+    // this->EvaluatePropertyFromANotRigidNode(DeviatoricCoeff,VISCOSITY);
     double Tau=0;
     this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
 
@@ -1369,6 +1703,19 @@ namespace Kratos {
 	computeElement=this->CalcCompleteStrainRate(rElementalVariables,rCurrentProcessInfo,rDN_DX,theta);
 
 	if(computeElement==true){
+
+	  double Pressure=0;
+	  double OldPressure=0;
+	  this->EvaluateInPoint(Pressure,PRESSURE,N,0);
+	  this->EvaluateInPoint(OldPressure,PRESSURE,N,1);
+	  rElementalVariables.MeanPressure=OldPressure*(1-theta)+Pressure*theta;
+	  this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,rCurrentProcessInfo,rElementalVariables);
+	  DeviatoricCoeff=1.0;
+	      
+	  // if(DeviatoricCoeff>10){
+	  // DeviatoricCoeff=1.0;
+	  // }
+	  // this->CalculateTauFIC(Tau,ElemSize,Density,DeviatoricCoeff,rCurrentProcessInfo);
 	  // Evaluate required variables at the integration point
 
 	  // double BulkCoeff =GaussWeight/(VolumetricCoeff);

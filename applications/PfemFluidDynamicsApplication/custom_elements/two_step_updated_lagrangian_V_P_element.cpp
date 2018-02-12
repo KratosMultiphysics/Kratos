@@ -214,7 +214,7 @@ namespace Kratos {
 
 	bool computeElement=this->CalcMechanicsUpdated(rElementalVariables,rCurrentProcessInfo,rDN_DX,g);
 
-	this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep,rElementalVariables);
+	this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,rCurrentProcessInfo,rElementalVariables);
 
 	this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
 
@@ -232,10 +232,12 @@ namespace Kratos {
 
 	  // double MeanValueMaterial=0.0;
 	  // this->ComputeMeanValueMaterialTangentMatrix(rElementalVariables,MeanValueMaterial,rDN_DX,DeviatoricCoeff,VolumetricCoeff,GaussWeight,MeanValueMass,TimeStep);    
-
+	  // double deviatoricCoeffTemp=DeviatoricCoeff;
+	  // DeviatoricCoeff=0;
 	  // // Add viscous term
 	  // this->ComputeCompleteTangentTerm(rElementalVariables,rLeftHandSideMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
 	  this->ComputeCompleteTangentTerm(rElementalVariables,StiffnessMatrix,rDN_DX,DeviatoricCoeff,VolumetricCoeff,theta,GaussWeight);
+	  // DeviatoricCoeff=deviatoricCoeffTemp;
 	}
       }
 

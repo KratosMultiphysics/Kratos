@@ -379,7 +379,7 @@ namespace Kratos
       virtual void ComputeMaterialParameters (double& Density,
 					      double& DeviatoricCoeff,
 					      double& VolumetricCoeff,
-					      double timeStep,
+					      ProcessInfo& rCurrentProcessInfo,
 					      ElementalVariables& rElementalVariables){};
 
       virtual double GetThetaMomentum (){return 1.0;};
