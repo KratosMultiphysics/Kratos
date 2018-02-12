@@ -18,19 +18,19 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "fluid_constitutive_law.h"
 
 namespace Kratos
 {
 /**
- * Defines a bingham non-newtonian constitutive law
+ * Defines a 3D Bingham non-Newtonian constitutive law
  * This material law is defined by the parameters:
  * 1) DYNAMIC_VISCOSITY
  * 2) YIELD_STRESS
  * 3) REGULARIZATION_COEFFICIENT
  */
 
-class Bingham3DLaw : public ConstitutiveLaw
+class Bingham3DLaw : public FluidConstitutiveLaw
 {
 public:
     /**
@@ -92,13 +92,6 @@ public:
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
     /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures
-     */
-    void GetLawFeatures(Features& rFeatures) override;
-
-
-    /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
@@ -115,15 +108,8 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
-    /**
-     * Print information about this object.
-     */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    virtual std::string Info() const;
+
 
 protected:
 
@@ -171,15 +157,9 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw  )
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    void load(Serializer& rSerializer) override;
 
 
 }; // Class Bingham3DLaw
