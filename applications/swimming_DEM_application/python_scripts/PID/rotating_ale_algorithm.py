@@ -22,6 +22,7 @@ class Algorithm(BaseAlgorithm):
         Add("steps_per_average_step").SetInt(1)
         Add("initial_averaging_time").SetDouble(0.0)
         Add("averaging_has_already_been_done").SetBool(False)
+        Add("stationary_start_time").SetDouble(0.0)
 
     def UpdateALEMeshMovement(self, time):
         if self.pp.CFD_DEM["ALE_option"].GetBool():
@@ -30,7 +31,7 @@ class Algorithm(BaseAlgorithm):
 
     def AssessStationarity(self):
         # BaseAlgorithm.AssessStationarity(self)
-        if self.time > self.pp.CFD_DEM["initial_averaging_time"].GetDouble():
+        if self.time > self.pp.CFD_DEM["stationary_start_time"].GetDouble():
            self.stationarity = True
 
         if self.stationarity:
