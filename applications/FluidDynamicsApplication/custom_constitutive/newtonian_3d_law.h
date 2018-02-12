@@ -24,7 +24,7 @@ namespace Kratos
 {
 
 /**
- * Defines a Newtonian constitutive law.
+ * Defines a Newtonian constitutive law in 3D.
  * This material law is defined by the parameters:
  * 1) DYNAMIC_VISCOSITY
  */
@@ -100,18 +100,11 @@ public:
     /**
      * Input and output
      */
+
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
-    /**
-     * Print information about this object.
-     */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    virtual std::string Info() const;
 
 protected:
 

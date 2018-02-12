@@ -96,6 +96,9 @@ int Newtonian2DLaw::Check(
     return 0;
 }
 
+std::string Newtonian2DLaw::Info() const {
+    return "Newtonian2DLaw";
+}
 
 void Newtonian2DLaw::save(Serializer& rSerializer) const {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
