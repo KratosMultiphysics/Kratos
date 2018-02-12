@@ -139,15 +139,6 @@ public:
     KRATOS_CATCH("");
   }
 
-// Eventually needed for optimization
-/*   void UpdateReferenceMesh() {
-    for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
-         i != BaseType::GetModelPart().NodesEnd(); ++i) {
-      (i)->X0() = (i)->X();
-      (i)->Y0() = (i)->Y();
-      (i)->Z0() = (i)->Z();
-    }
-  } */
 
   /*@} */
   /**@name Operators
