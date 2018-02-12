@@ -28,6 +28,12 @@
 #include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/axisym_point_rigid_contact_penalty_2D_condition.hpp"
 
+#include "custom_conditions/EP_point_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/EP_point_rigid_contact_penalty_2D_condition.hpp"
+#include "custom_conditions/EP_point_rigid_contact_penalty_wP_3D_condition.hpp"
+#include "custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.hpp"
+
+
 // #include "custom_conditions/axisym_point_rigid_contact_penalty_water_2D_condition.hpp"
 // #include "custom_conditions/beam_point_rigid_contact_penalty_3D_condition.hpp"
 // #include "custom_conditions/beam_point_rigid_contact_LM_3D_condition.hpp"
@@ -523,6 +529,7 @@ namespace Kratos
       mpProperties->SetValue(TANGENTIAL_PENALTY_RATIO, CustomProperties["TANGENTIAL_PENALTY_RATIO"].GetDouble());
       mpProperties->SetValue(TAU_STAB, CustomProperties["TAU_STAB"].GetDouble());
       mpProperties->SetValue(THICKNESS, 1.0);
+      mpProperties->SetValue(CONTACT_FRICTION_ANGLE, 0.0);
 
       mrMainModelPart.AddProperties(mpProperties, NumberOfProperties);
 
@@ -550,6 +557,18 @@ namespace Kratos
       }
       else if(  ConditionName == "AxisymPointContactPenaltyCondition2D1N" ){
       	return ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+      }
+       else if(  ConditionName == "EPPointContactPenaltyCondition3D1N" ) {
+        return ConditionType::Pointer(new EPPointRigidContactPenalty3DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+     }
+     else if(  ConditionName == "EPPointContactPenaltyCondition2D1N" ) {
+        return ConditionType::Pointer(new EPPointRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+     }
+     else if(  ConditionName == "EPPointContactPenaltywPCondition3D1N" ) {
+        return ConditionType::Pointer(new EPPointRigidContactPenaltywP3DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
+     }
+     else if(  ConditionName == "EPAxisymPointContactPenaltyCondition2D1N" ) {
+        return ConditionType::Pointer(new EPAxisymPointRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));
       } else {
         std::cout << ConditionName << std::endl;
         KRATOS_ERROR << "the specified contact condition does not exist " << std::endl;
@@ -685,6 +704,97 @@ namespace Kratos
     }
     
 
+    void CreateContactConditions()
+    {
+      KRATOS_TRY
+
+      ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo();
+      double Dimension = rCurrentProcessInfo[SPACE_DIMENSION];
+
+      ModelPart::ConditionsContainerType ContactConditions;
+      
+      ModelPart& rContactModelPart = mrMainModelPart.GetSubModelPart(mContactModelPartName);
+
+      if( mEchoLevel > 1 ){
+	std::cout<<"    ["<<rContactModelPart.Name()<<" :: CONDITIONS [OLD:"<<rContactModelPart.NumberOfConditions();
+      }
+
+      unsigned int id = mrMainModelPart.Conditions().back().Id() + 1;
+
+      ModelPart::NodesContainerType& rNodes = mrMainModelPart.Nodes();
+
+      // create contact condition for rigid and deformable bodies
+      for(ModelPart::NodesContainerType::ptr_iterator nd = rNodes.ptr_begin(); nd != rNodes.ptr_end(); ++nd)
+	{
+	  if( (*nd)->Is(BOUNDARY) && (*nd)->Is(CONTACT) ){
+
+	    ConditionType::Pointer pCondition;
+		   
+		   
+	    if( (*nd)->Is(RIGID) ){  //rigid wall contacting with a rigid body 
+		     
+	      GeometryType::Pointer pGeometry;
+	      if( Dimension == 2 )
+		pGeometry = GeometryType::Pointer(new Point2DType( (*nd) ));
+	      else if( Dimension == 3 )
+		pGeometry = GeometryType::Pointer(new Point3DType( (*nd) ));
+	      
+	      //pCondition= ModelPart::ConditionType::Pointer(new RigidBodyPointRigidContactCondition(id, pGeometry, mpProperties, mpParametricWall) );
+
+	      ContactConditions.push_back(pCondition);
+		     		     
+	    }
+	    else{ //rigid wall contacting with a deformable body 
+
+	      Condition::NodesArrayType  pConditionNode;
+	      pConditionNode.push_back( (*nd) );
+	      
+	      ConditionType::Pointer  pConditionType = FindPointCondition(rContactModelPart, (*nd) );
+	    
+	      pCondition = pConditionType->Clone(id, pConditionNode);
+              pCondition->SetData( pConditionType->GetData() );
+
+	      pCondition->Set(CONTACT);
+
+	      ContactConditions.push_back(pCondition);
+		     
+	    }
+	    
+	    id +=1;	   		
+	  }       		     
+
+	}
+
+
+      rContactModelPart.Conditions().swap(ContactConditions);
+
+
+      if( mEchoLevel > 1 ){
+	std::cout<<" / NEW:"<<rContactModelPart.NumberOfConditions()<<"] "<<std::endl;
+      }
+
+      std::string ModelPartName;
+
+      //Add contact conditions to computing domain
+      for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin(); i_mp!=mrMainModelPart.SubModelPartsEnd(); i_mp++)
+	{
+	  if(i_mp->Is(SOLID) && i_mp->Is(ACTIVE))
+	    ModelPartName = i_mp->Name();
+	}
+      
+      AddContactConditions(rContactModelPart, mrMainModelPart.GetSubModelPart(ModelPartName));
+
+      //Add contact conditions to  main domain( with AddCondition are already added )
+      //AddContactConditions(rContactModelPart, mrMainModelPart);
+ 
+      if( mEchoLevel >= 1 )
+	std::cout<<"  [CONTACT CANDIDATES : "<<rContactModelPart.NumberOfConditions()<<"] ("<<mContactModelPartName<<") "<<std::endl;
+
+      KRATOS_CATCH( "" )
+
+    }
+
+
     //**************************************************************************
     //**************************************************************************
 
@@ -692,6 +802,16 @@ namespace Kratos
     {
 
      KRATOS_TRY
+      const ProcessInfo& rCurrentProcessInfo= mrMainModelPart.GetProcessInfo(); 
+      if ( rCurrentProcessInfo.Has(IS_RESTARTED) && rCurrentProcessInfo.Has(LOAD_RESTART) ) {
+         if ( rCurrentProcessInfo[IS_RESTARTED] == true) {
+            if ( rCurrentProcessInfo[STEP] == rCurrentProcessInfo[LOAD_RESTART] ) {
+std::cout << " doing my.... ";
+               return mpConditionType;
+
+            }
+         }
+      }
 
      for(ModelPart::ConditionsContainerType::iterator i_cond =rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
        {

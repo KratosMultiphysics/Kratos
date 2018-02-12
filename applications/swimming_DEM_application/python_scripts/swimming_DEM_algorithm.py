@@ -24,7 +24,8 @@ try:
 except ImportError:
     pass
 
-# Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
+# Import MPI modules if needed. This way to do this is only valid when using OpenMPI.
+# For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # Kratos MPI
     from KratosMultiphysics.MetisApplication import *
@@ -134,7 +135,7 @@ class Algorithm(object):
         # Third, set the parameters fed to the particular case that you are running
         self.SetCustomBetaParameters(varying_parameters)
 
-        # Finally adjust some of the paramters for consistency
+        # Finally adjust some of the parameters for consistency
         #   This function should be reduced to a minimum since,
         #   in principle, there should be no need to change the parameters
         self.SetDerivedParameters()
@@ -225,6 +226,8 @@ class Algorithm(object):
         Add("frame_rotation_axis_initial_point").SetVector(Vector([0., 0., 0.]))
         Add("frame_rotation_axis_final_point").SetVector(Vector([0., 0., 1.]))
         Add("angular_velocity_magnitude").SetDouble(1.0)
+        Add("print_distance_option").SetBool(False)
+        Add("print_SLIP_VELOCITY_option").SetBool(False)
 
         # Making all time steps be an exact multiple of the smallest time step
         self.Dt_DEM = self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
