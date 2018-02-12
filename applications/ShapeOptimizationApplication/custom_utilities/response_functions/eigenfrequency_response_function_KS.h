@@ -294,7 +294,7 @@ public:
 
 		// First gradients are initialized
 		array_3d zeros_array(3, 0.0);
-		for (auto& node_i = mr_model_part.Nodes())
+		for (auto& node_i : mr_model_part.Nodes())
 			noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT) ) = zeros_array;
 
 		// Gradient calculation is done by a semi-analytic approaches
@@ -345,7 +345,7 @@ public:
 		boost::python::dict dFdX;
 
 		// Fill dictionary with gradient information
-		for (auto& node_i = mr_model_part.Nodes())
+		for (auto& node_i : mr_model_part.Nodes())
 			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
 
 		return dFdX;
@@ -414,7 +414,7 @@ protected:
 		// Working variables
 		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 
-		for (auto& elem_i = mr_model_part.Elements())
+		for (auto& elem_i : mr_model_part.Elements())
 		{
 			Matrix mass_matrix_org;
 			Matrix LHS_org;
@@ -441,7 +441,7 @@ protected:
 			}
 
 			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
-			for (auto& node_i = elem_i.GetGeometry())
+			for (auto& node_i : elem_i.GetGeometry())
 			{
 				array_3d gradient_contribution(3, 0.0);
 				Matrix perturbed_LHS = Matrix(0,0);

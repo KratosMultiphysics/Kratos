@@ -181,7 +181,7 @@ public:
 
 		// First gradients are initialized
 		array_3d zeros_array(3, 0.0);
-		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
+		for (auto& node_i : mr_model_part.Nodes())
 			noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT) )= zeros_array;
 
 		// Gradient calculation is done by a semi-analytic approaches
@@ -232,7 +232,7 @@ public:
 		boost::python::dict dFdX;
 
 		// Fill dictionary with gradient information
-		for (auto& node_i = mr_model_part.Nodes())
+		for (auto& node_i : mr_model_part.Nodes())
 			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
 
 		return dFdX;
@@ -303,11 +303,8 @@ protected:
 
 		// Computation of: \frac{dF}{dx} = eigenvector^T\cdot (frac{\partial RHS}{\partial x} -
 		//				                   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
-		for (auto& i_elem : mr_model_part.Elements())
+		for (auto& elem_i : mr_model_part.Elements())
 		{
-
-
-
 			Matrix mass_matrix_org;
 			Matrix LHS_org;
 			Vector eigenvector_of_element = Vector(0);
