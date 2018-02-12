@@ -262,10 +262,10 @@ namespace Kratos
 #define KRATOS_TRACE_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == __COUNT__) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
 #define KRATOS_TRACE_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
 #else
-#define KRATOS_TRACE(label) if(false) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
-#define KRATOS_TRACE_IF(label, conditional) if(false) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
-#define KRATOS_TRACE_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if(false) if (++KRATOS_LOG_OCCURRENCES == __COUNT__) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
-#define KRATOS_TRACE_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if(false) if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
+#define KRATOS_TRACE(label) ((void)0)
+#define KRATOS_TRACE_IF(label, conditional) ((void)0)
+#define KRATOS_TRACE_ONCE(label) ((void)0)
+#define KRATOS_TRACE_FIRST_N(label, logger_count) ((void)0)
 #endif
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
