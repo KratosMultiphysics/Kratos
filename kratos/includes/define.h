@@ -20,11 +20,9 @@
 
 /* External includes */
 #include "boost/smart_ptr.hpp"
-#include "boost/current_function.hpp"
 
 
 /* Project includes */
-#include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
 #include "includes/shared_pointers.h"
 #include "includes/exception.h"
@@ -56,70 +54,6 @@
 // Exceptions
 //
 //-----------------------------------------------------------------
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_1)
-#define KRATOS_EXCEPTION_LEVEL_1
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_2)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_3)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#define KRATOS_EXCEPTION_LEVEL_3
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_4)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#define KRATOS_EXCEPTION_LEVEL_3
-#define KRATOS_EXCEPTION_LEVEL_4
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_1)
-#define KRATOS_TRY_LEVEL_1 try {
-#define KRATOS_CATCH_LEVEL_1(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_1 {
-#define KRATOS_CATCH_LEVEL_1(MoreInfo) }
-#endif
-
-
-#if defined(KRATOS_EXCEPTION_LEVEL_2)
-#define KRATOS_TRY_LEVEL_2 try {
-#define KRATOS_CATCH_LEVEL_2(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_2 {
-#define KRATOS_CATCH_LEVEL_2(MoreInfo) }
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_3)
-#define KRATOS_TRY_LEVEL_3 try {
-#define KRATOS_CATCH_LEVEL_3(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_3 {
-#define KRATOS_CATCH_LEVEL_3(MoreInfo) }
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_4)
-#define KRATOS_TRY_LEVEL_4 try {
-#define KRATOS_CATCH_LEVEL_4(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_4 {
-#define KRATOS_CATCH_LEVEL_4(MoreInfo) }
-#endif
-
-#ifndef KRATOS_CURRENT_FUNCTION
-#define KRATOS_CURRENT_FUNCTION BOOST_CURRENT_FUNCTION
-#endif
-
 
 #define KRATOS_CATCH_AND_THROW(ExceptionType, MoreInfo, Block) \
 catch(ExceptionType& e)                                        \
@@ -161,11 +95,11 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 
 #define KRATOS_CATCH(MoreInfo) { };
 #endif
+
 //-----------------------------------------------------------------
 //
 // variables
 //
-
 //-----------------------------------------------------------------
 
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
@@ -384,9 +318,6 @@ namespace Kratos
 
 /**@name Type Definitions */
 /*@{ */
-/** Pointer to char
- */
-typedef const char* PointerToConstCharType;
 
 /*@} */
 
@@ -411,26 +342,10 @@ typedef const char* PointerToConstCharType;
 /* #define KRATOS_REGISTER_LINEAR_SOLVER_BEGIN \ */
 /* template<class TFunction> ApplyToLinearSolver(String Name){ */
 
-
-
-
 //Print Trace if defined
-//#define KRATOS_PRINT_TRACE
-#ifdef KRATOS_PRINT_TRACE
-
-#define KRATOS_TRACE(A,B) gTrace.Inform(A,B)
-
-#else
-
-#define KRATOS_TRACE(A,B)
-#endif
-
-#define KRATOS_WATCH(variable) \
-  std::cout << #variable << " : " << variable << std::endl;
+#define KRATOS_WATCH(variable) std::cout << #variable << " : " << variable << std::endl;
 
 }  /* namespace Kratos.*/
-
-
 
 #define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
 	Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));

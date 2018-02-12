@@ -75,6 +75,19 @@ void  AddCustomUtilitiesToPython()
     .def("InvertSearch",&TreeContactSearch<3, 4>::InvertSearch)
     ;
   
+    // Adding search related enums
+    enum_<SearchTreeType>("SearchTreeType")
+    .value("KdtreeInRadius", KdtreeInRadius)
+    .value("KdtreeInBox", KdtreeInBox)
+    .value("Kdop", Kdop)
+    ;
+
+    enum_<CheckGap>("CheckGap")
+    .value("NoCheck", NoCheck)
+    .value("DirectCheck", DirectCheck)
+    .value("MappingCheck", MappingCheck)
+    ;
+
     // Process Factory utility
     class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<boost::python::list&>())
     .def(init< >())
