@@ -191,7 +191,7 @@ namespace Kratos
       NodesArrayType& r_nodes   = rModelPart.Nodes();
 
       auto i_begin = rModelPart.NodesBegin();
-      #pragma omp parallel for
+      #pragma omp parallel for firstprivate(i_begin)
       for(int i=0;i<static_cast<int>(r_nodes.size());++i)
       {
         array_1d<double,3>& r_node_rhs  = (i_begin+i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
@@ -309,7 +309,7 @@ namespace Kratos
 
       auto i_begin = rModelPart.NodesBegin();
       const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
-      #pragma omp parallel for
+      #pragma omp parallel for firstprivate(i_begin)
       for(int i=0;i<static_cast<int>(r_nodes.size());++i)
       {
         array_1d<double,3>& r_middle_velocity       = (i_begin+i)->GetValue(MIDDLE_VELOCITY);
@@ -369,7 +369,7 @@ namespace Kratos
 
       auto i_begin = rModelPart.NodesBegin();
       const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
-      #pragma omp parallel for
+      #pragma omp parallel for firstprivate(i_begin)
       for(int i=0;i<static_cast<int>(r_nodes.size());++i)
       {
         //Current step information "N+1" (before step update).
@@ -466,7 +466,7 @@ namespace Kratos
 
       auto i_begin = rModelPart.NodesBegin();
       const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
-      #pragma omp parallel for
+      #pragma omp parallel for firstprivate(i_begin)
       for(int i=0;i<static_cast<int>(r_nodes.size());++i)
       {
         //Current step information "N+1" (before step update).
