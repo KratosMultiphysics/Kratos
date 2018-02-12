@@ -156,6 +156,11 @@ void PrestressMembraneElement::Initialize()
     this->SetValue(PRESTRESS_AXIS_1_GLOBAL, prestress_direction1);
     this->SetValue(PRESTRESS_AXIS_2_GLOBAL, prestress_direction2);
 
+    // set lambda_max
+    if(GetProperties().Has(LAMBDA_MAX))
+        this->SetValue(LAMBDA_MAX,GetProperties()[LAMBDA_MAX]);
+    else
+        this->SetValue(LAMBDA_MAX,1.2);
     mStep = 0;
 
     // Initialize Material
@@ -1170,6 +1175,9 @@ void PrestressMembraneElement::ComputeRelevantCoSys(const unsigned int PointNumb
     // -->Invert metric in (total) reference configuration
     double det_metric_tot = metric_reference_tot(0)*metric_reference_tot(1)-metric_reference_tot(2)*metric_reference_tot(2);
     array_1d<double, 3> inv_metric_tot;
+    #ifdef KRATOS_DEBUG
+        KRATOS_ERROR_IF(det_metric_tot < std::numeric_limits<double>::epsilon() && det_metric_tot > -std::numeric_limits<double>::epsilon()) << "division by zero!" << std::endl;
+    #endif
     inv_metric_tot(0) = 1.0/det_metric_tot * metric_reference_tot(1);
     inv_metric_tot(1) = 1.0/det_metric_tot * metric_reference_tot(0);
     inv_metric_tot(2) = -1.0/det_metric_tot * metric_reference_tot(2);
@@ -1352,7 +1360,7 @@ void PrestressMembraneElement::ModifyPrestress(const unsigned int PointNumber,
 
     // compute lambda_mod
     double lambda_mod_1, lambda_mod_2;
-    double lambda_max = 1.2;
+    double lambda_max = this->GetValue(LAMBDA_MAX);
     if(Lambda1 > lambda_max)
         lambda_mod_1 = lambda_max;
     else if(Lambda1 < 1.0/lambda_max)

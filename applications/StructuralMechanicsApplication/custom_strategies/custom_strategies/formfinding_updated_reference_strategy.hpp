@@ -599,8 +599,8 @@ namespace Kratos
             //***************************************************
             // Update reference configuration for formfinding
             // Initialize the Elements
-            for(auto it_ele = BaseType::GetModelPart().ElementsBegin(); it_ele != BaseType::GetModelPart().ElementsEnd(); it_ele++){
-                it_ele->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+            for(auto& elem : BaseType::GetModelPart().Elements()){
+                elem.InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
             }
             KRATOS_CATCH("");
         }

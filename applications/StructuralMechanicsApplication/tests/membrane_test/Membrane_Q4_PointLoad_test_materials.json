@@ -11,7 +11,7 @@
                             "KratosMultiphysics.YOUNG_MODULUS": 1.00000E+002 ,
                             "KratosMultiphysics.POISSON_RATIO": 3.00000E-001,
                             "KratosMultiphysics.THICKNESS": 1.00000E+000,
-                            "KratosMultiphysics.StructuralMechanicsApplication.MEMBRANE_PRESTRESS": [100.0,100.0,0.0]
+                            "KratosMultiphysics.StructuralMechanicsApplication.MEMBRANE_PRESTRESS": [[100.0,100.0,0.0]]
                     },
                     "Tables": {}
             }
