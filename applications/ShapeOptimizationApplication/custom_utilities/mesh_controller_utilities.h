@@ -31,6 +31,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
+#include "utilities/variable_utils.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -125,6 +126,14 @@ public:
             node_i.Y() = node_i.Y0();
             node_i.Z() = node_i.Z0();
         }
+    }
+
+    // --------------------------------------------------------------------------
+    void ResetDeformationDofsToZero()
+    {
+        VariableUtils().SetToZero_VectorVar(DISPLACEMENT,mrModelPart.Nodes());
+        if(mrModelPart.GetNodalSolutionStepVariablesList().Has(ROTATION))
+            VariableUtils().SetToZero_VectorVar(DISPLACEMENT,mrModelPart.Nodes());
     }
 
     // ==============================================================================

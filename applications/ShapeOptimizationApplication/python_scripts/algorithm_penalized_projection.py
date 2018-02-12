@@ -112,7 +112,9 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
+        self.Analyzer.initializeBeforeOptimizationLoop()        
         self.DataLogger.FinalizeDataLogging()
+        self.Analyzer.finalizeAfterOptimizationLoop()              
 
     # --------------------------------------------------------------------------
     def __initializeModelPartForNewSolutionStep( self ):

@@ -57,7 +57,8 @@ class ModelPartController:
 
     # --------------------------------------------------------------------------    
     def ResetMeshToReferenceMesh( self ):
-        MeshControllerUtilities( self.OptimizationModelPart ).ResetMeshToReferenceMesh()    
+        MeshControllerUtilities( self.OptimizationModelPart ).ResetMeshToReferenceMesh()
+        MeshControllerUtilities( self.OptimizationModelPart ).ResetDeformationDofsToZero()
 
     # --------------------------------------------------------------------------
     def GetOptimizationModelPart( self ):
