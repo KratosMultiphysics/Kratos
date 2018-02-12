@@ -62,6 +62,7 @@
 #include "custom_elements/herschel_bulkley_fluid.h"
 #include "custom_elements/stokes_3D.h"
 #include "custom_elements/stokes_3D_twofluid.h"
+#include "custom_elements/stokes_3D_weakly_compressible.h"
 #include "custom_elements/navier_stokes.h"
 #include "custom_elements/embedded_navier_stokes.h"
 #include "custom_elements/embedded_ausas_navier_stokes.h"
@@ -319,6 +320,7 @@ private:
 
     const Stokes3D mStokes3D;
     const Stokes3DTwoFluid mStokes3DTwoFluid;
+    const Stokes3DWeaklyCompressible mStokesWeaklyCompressible3D4N;
 
     /// Navier-Stokes symbolic element
     const NavierStokes<2> mNavierStokes2D;
