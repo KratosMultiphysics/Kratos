@@ -258,7 +258,7 @@ class GiDDamOutputProcess(Process):
                 msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_control_type,"output_control_type")
                 raise Exception(msg)
 
-            self.multifilelists = []            
+            self.multifilelists = []
             self.__set_multifile_lists(self.multifiles)
             
             self.__print_inital_step_in_multifile_lists(label)
@@ -724,7 +724,7 @@ class GiDDamOutputProcess(Process):
         for mfilelist in self.multifilelists:
                 
             if (self.post_mode == GiDPostMode.GiD_PostBinary):
-                text_to_print = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"                     
+                text_to_print = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"
                 mfilelist.file.write(text_to_print)
             else:
                 text_to_print1 = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.msh\n"
