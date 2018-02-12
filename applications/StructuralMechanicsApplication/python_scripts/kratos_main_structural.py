@@ -58,10 +58,8 @@ StructureModel.AddModelPart(main_model_part)
 ## Print model_part and properties
 if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
     Logger.PrintInfo("ModelPart", main_model_part)
-    count = 0
     for properties in main_model_part.Properties:
-        count += 1
-        Logger.PrintInfo("Property " + str(count), properties)
+        Logger.PrintInfo("Property " + str(properties.Id), properties)
 
 ## Processes construction
 import process_factory
@@ -117,8 +115,8 @@ while(time <= end_time):
     main_model_part.CloneTimeStep(time)
 
     if (parallel_type == "OpenMP") or (mpi.rank == 0):
-        Logger.PrintInfo("STEP", str(main_model_part.ProcessInfo[STEP]))
-        Logger.PrintInfo("TIME", str(time))
+        Logger.PrintInfo("STEP: ", main_model_part.ProcessInfo[STEP])
+        Logger.PrintInfo("TIME: ", time)
 
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
