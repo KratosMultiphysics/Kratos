@@ -729,6 +729,22 @@ namespace Kratos
 		const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;	
+
+		bounded_vector<double,msLocalSize> damping_residual_contribution = ZeroVector(msLocalSize);
+		// calculate damping contribution to residual -->
+		if((this->GetProperties().Has(RAYLEIGH_ALPHA) || this->GetProperties().Has(RAYLEIGH_BETA)) && (rDestinationVariable != NODAL_INERTIA))
+		{
+			Vector current_nodal_velocities = ZeroVector(msLocalSize);
+			this->GetFirstDerivativesVector(current_nodal_velocities);
+			Matrix damping_matrix = ZeroMatrix(msLocalSize,msLocalSize);
+			ProcessInfo temp_process_information; // cant pass const ProcessInfo
+			this->CalculateDampingMatrix(damping_matrix,temp_process_information);
+			// current residual contribution due to damping
+			damping_residual_contribution = prod(damping_matrix,current_nodal_velocities);
+		}
+
+
+
 		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
 		{
 
@@ -740,7 +756,7 @@ namespace Kratos
 				for (size_t j=0;j<msDimension;++j)
 				{
 					#pragma omp atomic
-					r_force_residual[j] += rRHSVector[index + j];
+					r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
 				}
 			}
 		}

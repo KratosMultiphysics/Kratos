@@ -374,7 +374,7 @@ namespace Kratos
       {
         //Current step information "N+1" (before step update).
 
-        const double nodal_mass                       = (i_begin+i)->GetValue(NODAL_MASS);
+        const double& nodal_mass                       = (i_begin+i)->GetValue(NODAL_MASS);
         array_1d<double,3>& r_current_residual        = (i_begin+i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
 
         array_1d<double,3>& r_current_velocity        = (i_begin+i)->FastGetSolutionStepValue(VELOCITY);
@@ -418,7 +418,7 @@ namespace Kratos
         ////// ROTATION DEGRESS OF FREEDOM
         if (has_dof_for_rot_z)
         {
-          array_1d<double,3> nodal_inertia     = (i_begin+i)->GetValue(NODAL_INERTIA);
+          const array_1d<double,3>& nodal_inertia     = (i_begin+i)->GetValue(NODAL_INERTIA);
           array_1d<double,3>& r_current_residual_moment          = (i_begin+i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
           array_1d<double,3>& r_current_angular_velocity         = (i_begin+i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
           array_1d<double,3>& r_current_rotation                 = (i_begin+i)->FastGetSolutionStepValue(ROTATION);
@@ -512,7 +512,7 @@ namespace Kratos
         if (has_dof_for_rot_z)
         {
 
-          array_1d<double,3> nodal_inertia                       = (i_begin+i)->GetValue(NODAL_INERTIA);
+          const array_1d<double,3>& nodal_inertia                       = (i_begin+i)->GetValue(NODAL_INERTIA);
           array_1d<double,3>& r_current_residual_moment          = (i_begin+i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
           array_1d<double,3>& r_current_angular_velocity         = (i_begin+i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
           //array_1d<double,3>& current_rotation                 = i_begin->FastGetSolutionStepValue(ROTATION);
@@ -574,7 +574,6 @@ namespace Kratos
     (pCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
     (pCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
 
-
     KRATOS_CATCH( "" )
   }
 
@@ -597,6 +596,8 @@ namespace Kratos
 
     KRATOS_CATCH( "" )
   }
+
+
 
   //***************************************************************************
   //***************************************************************************

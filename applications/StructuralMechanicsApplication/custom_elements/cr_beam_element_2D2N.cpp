@@ -252,6 +252,22 @@ namespace Kratos
 
 		//FORCE- & Moment- Residual is 3D vector
 		KRATOS_TRY;
+
+		bounded_vector<double,msElementSize> damping_residual_contribution = ZeroVector(msElementSize);
+		// calculate damping contribution to residual -->
+		if((this->GetProperties().Has(RAYLEIGH_ALPHA) || this->GetProperties().Has(RAYLEIGH_BETA)) && (rDestinationVariable != NODAL_INERTIA))
+		{
+			Vector current_nodal_velocities = ZeroVector(msElementSize);
+			this->GetFirstDerivativesVector(current_nodal_velocities);
+			Matrix damping_matrix = ZeroMatrix(msElementSize,msElementSize);
+			ProcessInfo temp_process_information; // cant pass const ProcessInfo
+			this->CalculateDampingMatrix(damping_matrix,temp_process_information);
+			// current residual contribution due to damping
+			damping_residual_contribution = prod(damping_matrix,current_nodal_velocities);
+		}
+
+
+
 		if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL)
 		{
 
@@ -266,7 +282,7 @@ namespace Kratos
 
 				for (SizeType j = 0; j< msDimension; ++j)
 				{
-					r_force_residual[j] += rRHSVector[index + j];
+					r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
 				}
 
 				r_force_residual[msDimension] = 0.00;
@@ -291,7 +307,7 @@ namespace Kratos
 				{
 					r_moment_residual[j] = 0.00;
 				}			
-				r_moment_residual[msDimension] += rRHSVector[index];
+				r_moment_residual[msDimension] += rRHSVector[index] - damping_residual_contribution[index];
 				GetGeometry()[i].UnSetLock();
 			}
 		}
