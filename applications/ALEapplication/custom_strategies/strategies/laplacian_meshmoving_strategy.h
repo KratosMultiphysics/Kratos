@@ -82,10 +82,10 @@ public:
 
     KRATOS_TRY;
 
-    m_reform_dof_set_at_each_step = ReformDofSetAtEachStep;
-    m_echo_level = EchoLevel;
-    m_compute_reactions = ComputeReactions;
-    m_time_order = TimeOrder;
+    mreform_dof_set_at_each_step = ReformDofSetAtEachStep;
+    mecho_level = EchoLevel;
+    mcompute_reactions = ComputeReactions;
+    mtime_order = TimeOrder;
     bool calculate_norm_dx_flag = false;
 
 
@@ -94,53 +94,53 @@ public:
                                                        TDenseSpace>());
 
     std::string element_type = "LaplacianMeshMovingElement";
-    mp_mesh_model_part = MoveMeshUtilities::GenerateMeshPart(BaseType::GetModelPart(), element_type);
+    mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(BaseType::GetModelPart(), element_type);
 
     typedef typename Kratos::VariableComponent<
         Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>
         VarComponent;
 
-    mp_builder_and_solver_x = typename TBuilderAndSolverType::Pointer(
+    mpbuilder_and_solver_x = typename TBuilderAndSolverType::Pointer(
         new ResidualBasedEliminationBuilderAndSolverComponentwise<
             TSparseSpace, TDenseSpace, TLinearSolver, VarComponent>(
             pNewLinearSolver, MESH_DISPLACEMENT_X));
 
-    mp_builder_and_solver_y = typename TBuilderAndSolverType::Pointer(
+    mpbuilder_and_solver_y = typename TBuilderAndSolverType::Pointer(
         new ResidualBasedEliminationBuilderAndSolverComponentwise<
             TSparseSpace, TDenseSpace, TLinearSolver, VarComponent>(
             pNewLinearSolver, MESH_DISPLACEMENT_Y));
 
-    mp_builder_and_solver_z = typename TBuilderAndSolverType::Pointer(
+    mpbuilder_and_solver_z = typename TBuilderAndSolverType::Pointer(
         new ResidualBasedEliminationBuilderAndSolverComponentwise<
             TSparseSpace, TDenseSpace, TLinearSolver, VarComponent>(
             pNewLinearSolver, MESH_DISPLACEMENT_Z));
 
-    m_strategy_x = typename BaseType::Pointer(
+    mstrategy_x = typename BaseType::Pointer(
         new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,
                                         TLinearSolver>(
-            *mp_mesh_model_part, pscheme, pNewLinearSolver,
-            mp_builder_and_solver_x, ComputeReactions,
-            m_reform_dof_set_at_each_step, calculate_norm_dx_flag));
+            *mpmesh_model_part, pscheme, pNewLinearSolver,
+            mpbuilder_and_solver_x, ComputeReactions,
+            mreform_dof_set_at_each_step, calculate_norm_dx_flag));
 
-    m_strategy_x->SetEchoLevel(m_echo_level);
+    mstrategy_x->SetEchoLevel(mecho_level);
 
-    m_strategy_y = typename BaseType::Pointer(
+    mstrategy_y = typename BaseType::Pointer(
         new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,
                                         TLinearSolver>(
-            *mp_mesh_model_part, pscheme, pNewLinearSolver,
-            mp_builder_and_solver_y, ComputeReactions,
-            m_reform_dof_set_at_each_step, calculate_norm_dx_flag));
+            *mpmesh_model_part, pscheme, pNewLinearSolver,
+            mpbuilder_and_solver_y, ComputeReactions,
+            mreform_dof_set_at_each_step, calculate_norm_dx_flag));
 
-    m_strategy_y->SetEchoLevel(m_echo_level);
+    mstrategy_y->SetEchoLevel(mecho_level);
 
-    m_strategy_z = typename BaseType::Pointer(
+    mstrategy_z = typename BaseType::Pointer(
         new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,
                                         TLinearSolver>(
-            *mp_mesh_model_part, pscheme, pNewLinearSolver,
-            mp_builder_and_solver_z, ComputeReactions,
-            m_reform_dof_set_at_each_step, calculate_norm_dx_flag));
+            *mpmesh_model_part, pscheme, pNewLinearSolver,
+            mpbuilder_and_solver_z, ComputeReactions,
+            mreform_dof_set_at_each_step, calculate_norm_dx_flag));
 
-    m_strategy_z->SetEchoLevel(m_echo_level);
+    mstrategy_z->SetEchoLevel(mecho_level);
 
     KRATOS_CATCH("")
   }
@@ -153,7 +153,7 @@ public:
     unsigned int n_average_elements = 10;
     unsigned int n_average_nodes = 10;
     FindNodalNeighboursProcess find_nodal_neighbours_process =
-        FindNodalNeighboursProcess(*mp_mesh_model_part, n_average_elements,
+        FindNodalNeighboursProcess(*mpmesh_model_part, n_average_elements,
                                    n_average_nodes);
     find_nodal_neighbours_process.Execute();
   }
@@ -161,9 +161,9 @@ public:
   double Solve() override {
     KRATOS_TRY;
 
-    ProcessInfo &rCurrentProcessInfo = (mp_mesh_model_part)->GetProcessInfo();
+    ProcessInfo &rCurrentProcessInfo = (mpmesh_model_part)->GetProcessInfo();
 
-    MoveMeshUtilities::SetMeshToInitialConfiguration(mp_mesh_model_part->GetCommunicator().LocalMesh().Nodes());
+    MoveMeshUtilities::SetMeshToInitialConfiguration(mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     unsigned int dimension =
         BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE];
@@ -171,31 +171,31 @@ public:
     if (dimension == 2) {
       // X DIRECTION
       rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 1;
-      m_strategy_x->Solve();
+      mstrategy_x->Solve();
       // Y DIRECTION
       rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 2;
-      m_strategy_y->Solve();
+      mstrategy_y->Solve();
     } else {
       // X DIRECTION
       rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 1;
-      m_strategy_x->Solve();
+      mstrategy_x->Solve();
       // Y DIRECTION
       rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 2;
-      m_strategy_y->Solve();
+      mstrategy_y->Solve();
       // Z DIRECTION
       rCurrentProcessInfo[LAPLACIAN_DIRECTION] = 3;
-      m_strategy_z->Solve();
+      mstrategy_z->Solve();
     }
     // Update FEM-base
     const double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
-    MoveMeshUtilities::CalculateMeshVelocities(mp_mesh_model_part, m_time_order, delta_time);
-    MoveMeshUtilities::MoveMesh(mp_mesh_model_part->GetCommunicator().LocalMesh().Nodes());
+    MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order, delta_time);
+    MoveMeshUtilities::MoveMesh(mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
-    if (m_reform_dof_set_at_each_step == true)
-      m_strategy_x->Clear();
-      m_strategy_y->Clear();
-      m_strategy_z->Clear();
+    if (mreform_dof_set_at_each_step == true)
+      mstrategy_x->Clear();
+      mstrategy_y->Clear();
+      mstrategy_z->Clear();
 
     return 0.0;
 
@@ -262,19 +262,19 @@ private:
   /*@} */
   /**@name Member Variables */
   /*@{ */
-  ModelPart::Pointer mp_mesh_model_part;
+  ModelPart::Pointer mpmesh_model_part;
 
-  typename BaseType::Pointer m_strategy_x;
-  typename BaseType::Pointer m_strategy_y;
-  typename BaseType::Pointer m_strategy_z;
-  typename TBuilderAndSolverType::Pointer mp_builder_and_solver_x;
-  typename TBuilderAndSolverType::Pointer mp_builder_and_solver_y;
-  typename TBuilderAndSolverType::Pointer mp_builder_and_solver_z;
+  typename BaseType::Pointer mstrategy_x;
+  typename BaseType::Pointer mstrategy_y;
+  typename BaseType::Pointer mstrategy_z;
+  typename TBuilderAndSolverType::Pointer mpbuilder_and_solver_x;
+  typename TBuilderAndSolverType::Pointer mpbuilder_and_solver_y;
+  typename TBuilderAndSolverType::Pointer mpbuilder_and_solver_z;
 
-  bool m_reform_dof_set_at_each_step;
-  bool m_compute_reactions;
-  int m_time_order;
-  int m_echo_level;
+  bool mreform_dof_set_at_each_step;
+  bool mcompute_reactions;
+  int mtime_order;
+  int mecho_level;
   /*@} */
   /**@name Private Operators*/
   /*@{ */

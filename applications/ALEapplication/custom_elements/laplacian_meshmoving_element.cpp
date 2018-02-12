@@ -84,10 +84,10 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
     ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
-  GeometryType &r_geom = this->GetGeometry();
-  const SizeType num_nodes = r_geom.PointsNumber();
+  GeometryType &rgeom = this->GetGeometry();
+  const SizeType num_nodes = rgeom.PointsNumber();
   const IntegrationMethod this_integration_method =
-      r_geom.GetDefaultIntegrationMethod();
+      rgeom.GetDefaultIntegrationMethod();
   const GeometryType::IntegrationPointsArrayType &integration_points =
       GetGeometry().IntegrationPoints(this_integration_method);
   VectorType delta_displacement = ZeroVector(num_nodes);
@@ -96,7 +96,7 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
   GeometryType::JacobiansType invJ0;
   VectorType detJ0;
 
-  MoveMeshUtilities::CheckJacobianDimension(invJ0, detJ0, r_geom);
+  MoveMeshUtilities::CheckJacobianDimension(invJ0, detJ0, rgeom);
 
   CheckElementMatrixDimension(rLeftHandSideMatrix, rRightHandSideVector);
 
@@ -115,9 +115,6 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
     double integration_weight = integration_points[point_number].Weight();
 
     // Compute LHS
-    // MatrixType DN_DX =
-    // MoveMeshUtilities::CalculateShapeFunctionDerivatives(dimension,
-    // point_number, r_geom);
     Matrix DN_DX = prod(DN_De[point_number], invJ0[point_number]);
     noalias(rLeftHandSideMatrix) +=
         integration_weight * prod(DN_DX, trans(DN_DX));
@@ -133,8 +130,8 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
 
 void LaplacianMeshMovingElement::EquationIdVector(
     EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo) {
-  GeometryType &r_geom = this->GetGeometry();
-  const SizeType num_nodes = r_geom.size();
+  GeometryType &rgeom = this->GetGeometry();
+  const SizeType num_nodes = rgeom.size();
   unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
   if (rResult.size() != num_nodes)
@@ -146,31 +143,31 @@ void LaplacianMeshMovingElement::EquationIdVector(
     for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
       if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 1)
         rResult[i_node] =
-            r_geom[i_node].GetDof(MESH_DISPLACEMENT_X, pos).EquationId();
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_X, pos).EquationId();
 
       else if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 2)
         rResult[i_node] =
-            r_geom[i_node].GetDof(MESH_DISPLACEMENT_Y, pos + 1).EquationId();
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_Y, pos + 1).EquationId();
     }
   } else {
     for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
       if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 1)
         rResult[i_node] =
-            r_geom[i_node].GetDof(MESH_DISPLACEMENT_X, pos).EquationId();
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_X, pos).EquationId();
       else if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 2)
         rResult[i_node] =
-            r_geom[i_node].GetDof(MESH_DISPLACEMENT_Y, pos + 1).EquationId();
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_Y, pos + 1).EquationId();
       else if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 3)
         rResult[i_node] =
-            r_geom[i_node].GetDof(MESH_DISPLACEMENT_Z, pos + 2).EquationId();
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_Z, pos + 2).EquationId();
     }
   }
 }
 
 void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
                                             ProcessInfo &rCurrentProcessInfo) {
-  GeometryType &r_geom = this->GetGeometry();
-  const SizeType num_nodes = r_geom.size();
+  GeometryType &rgeom = this->GetGeometry();
+  const SizeType num_nodes = rgeom.size();
   unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
   if (rElementalDofList.size() != num_nodes)
@@ -179,18 +176,18 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
   if (dimension == 2)
     for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
       if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 1)
-        rElementalDofList[i_node] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_X);
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_X);
       else if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 2)
-        rElementalDofList[i_node] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
     }
   else
     for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
       if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 1)
-        rElementalDofList[i_node] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_X);
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_X);
       if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 2)
-        rElementalDofList[i_node] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
       if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 3)
-        rElementalDofList[i_node] = r_geom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
     }
 }
 
