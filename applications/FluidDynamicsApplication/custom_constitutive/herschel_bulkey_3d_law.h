@@ -18,12 +18,12 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "fluid_constitutive_law.h"
 
 namespace Kratos
 {
 /**
- * Defines a Herschel-Bulkey non-newtonian constitutive law
+ * Defines a 3D Herschel-Bulkey non-Newtonian constitutive law
  * This material law is defined by the parameters:
  * 1) YIELD_STRESS
  * 2) REGULARIZATION_COEFFICIENT
@@ -31,7 +31,7 @@ namespace Kratos
  * 4) POWER_LAW_N
  */
 
-class HerschelBulkey3DLaw : public ConstitutiveLaw
+class HerschelBulkey3DLaw : public FluidConstitutiveLaw
 {
 public:
     /**
@@ -92,12 +92,6 @@ public:
 
     void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
-    /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures
-     */
-    void GetLawFeatures(Features& rFeatures) override;
-
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -116,15 +110,7 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
-    /**
-     * Print information about this object.
-     */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    virtual std::string Info() const;
 
 protected:
 
@@ -172,15 +158,9 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    void load(Serializer& rSerializer) override;
 
 
 }; // Class HerschelBulkey3DLaw
