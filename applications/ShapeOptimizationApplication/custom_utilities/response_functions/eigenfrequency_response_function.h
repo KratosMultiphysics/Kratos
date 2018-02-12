@@ -319,15 +319,12 @@ protected:
 			const VariableDenseMatrixType& rEIGENVECTOR_MATRIX =
            	      KratosComponents<VariableDenseMatrixType>::Get("EIGENVECTOR_MATRIX");
 
-			int k = 0;
 			// Get eigenvector of element
+			int k = 0;
+			const int NumNodeDofs = num_dofs_element/elem_i.GetGeometry().size();
 			for (auto& node_i : elem_i.GetGeometry())
 			{
 				Matrix& rNodeEigenvectors = node_i.GetValue(rEIGENVECTOR_MATRIX);
-
-				ModelPart::NodeType::DofsContainerType& NodeDofs = node_i.GetDofs();
-
-				int NumNodeDofs = NodeDofs.size();
 
 				for (int i = 0; i < NumNodeDofs; i++)
                 {
