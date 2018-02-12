@@ -86,10 +86,6 @@ class ResponseFunctionCreator:
             self.OptimizationModelPart.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
             self.listOfResponseFunctions["mass"] = MassResponseFunction( self.OptimizationModelPart, solverSettings )
         elif responseId == "eigenfrequency":
-                # "traced_eigenfrequency": 1,
-                # "weighting_method": "none",
-                # "KS_parameter": 1,
-                # "weighting_factors": [1.0,1.0,1.0]
             self.OptimizationModelPart.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
             if not solverSettings.Has("weighting_method") or solverSettings["weighting_method"].GetString() == "none":
                 self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunction( self.OptimizationModelPart, solverSettings )
