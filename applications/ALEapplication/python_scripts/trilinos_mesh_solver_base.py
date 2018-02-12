@@ -1,10 +1,17 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ALEApplication as ALEApplication
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("ALEApplication", "TrilinosApplication")
+
+# Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+
+# Other imports
 from KratosMultiphysics.mpi import *
-KratosMultiphysics.CheckForPreviousImport()
+import os
 import mesh_solver_base
 
 

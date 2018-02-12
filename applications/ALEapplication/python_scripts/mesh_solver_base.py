@@ -1,8 +1,13 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("ALEApplication")
+
+# Import applications
 import KratosMultiphysics.ALEApplication as KratosALE
-KratosMultiphysics.CheckForPreviousImport()
 
 # Other imports
 import os
@@ -14,12 +19,12 @@ def CreateSolver(mesh_model_part, custom_settings):
 
 class MeshSolverBase(object):
     """The base class for mesh motion solvers.
-    
+
     This class defines the user interface to mesh motion solvers.
 
     Derived classes must override the function _create_mesh_motion_solver()
     to customize the mesh motion algorithm. The mesh motion solver and linear
-    solver should always be retrieved using the getter functions. Only the 
+    solver should always be retrieved using the getter functions. Only the
     member variables listed below should be accessed directly.
 
     Public member variables:
@@ -34,7 +39,7 @@ class MeshSolverBase(object):
             "echo_level": 0,
             "model_import_settings" : {
                 "input_type"     : "mdpa",
-                "input_filename" : "unknown_name"           
+                "input_filename" : "unknown_name"
             },
             "ale_linear_solver_settings" : {
                 "solver_type" : "AMGCL",
@@ -116,7 +121,7 @@ class MeshSolverBase(object):
         self.get_mesh_motion_solver().MoveMesh()
 
     def ImportModelPart(self):
-        
+
         print("::[ALESolver]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
@@ -131,7 +136,7 @@ class MeshSolverBase(object):
             self._set_and_fill_buffer()
         else:
             raise Exception("::[MeshSolverBase]:: ImportModelPart() only implemnted for mdpa format.")
-            
+
 
     def GetComputingModelPart(self):
         return self.mesh_model_part
@@ -149,7 +154,7 @@ class MeshSolverBase(object):
         return self._mesh_motion_solver
 
     #### Private functions ####
-    
+
     def _create_linear_solver(self):
         import linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["ale_linear_solver_settings"])
@@ -157,7 +162,7 @@ class MeshSolverBase(object):
 
     def _create_mesh_motion_solver(self):
         """Create the mesh motion solver.
-        
+
         The mesh motion solver must provide the functions defined in SolutionStrategy.
         """
         raise Exception("Mesh motion solver must be created by the derived class.")

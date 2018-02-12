@@ -1,10 +1,20 @@
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("ALEApplication", "FluidDynamicsApplication","ExternalSolversApplication")
+
+# Import applications
 import KratosMultiphysics.ALEApplication as ALEApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-KratosMultiphysics.CheckForPreviousImport()
+
+# Other imports
+import os
 import navier_stokes_solver_fractionalstep
+
 
 
 def CreateSolver(model_part, custom_settings):

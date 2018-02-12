@@ -1,9 +1,18 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ALEApplication as ALEApplication
-KratosMultiphysics.CheckForPreviousImport()
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("ALEApplication")
+
+# Import applications
+import KratosMultiphysics.ALEApplication as KratosALE
+
+# Other imports
+import os
 import mesh_solver_base
+
 
 
 def CreateSolver(mesh_model_part, custom_settings):
@@ -21,7 +30,7 @@ class MeshSolverLaplacian(mesh_solver_base.MeshSolverBase):
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
         echo_level = self.settings["echo_level"].GetInt()
-        solver = ALEApplication.LaplacianMeshMovingStrategy(self.mesh_model_part,
+        solver = KratosALE.LaplacianMeshMovingStrategy(self.mesh_model_part,
                                                             linear_solver,
                                                             time_order,
                                                             reform_dofs_each_step,

@@ -1,10 +1,19 @@
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("ALEApplication", "FluidDynamicsApplication","TrilinosApplication")
+
+# Import applications
 import KratosMultiphysics.ALEApplication as ALEApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 from KratosMultiphysics.mpi import *
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-KratosMultiphysics.CheckForPreviousImport()
+
+# Other imports
+import os
 import trilinos_navier_stokes_solver_vmsmonolithic
 import mesh_solver_base
 
