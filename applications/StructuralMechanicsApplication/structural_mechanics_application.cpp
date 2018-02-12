@@ -242,7 +242,7 @@ void KratosStructuralMechanicsApplication::Register() {
 
     // Formfinding
     KRATOS_REGISTER_VARIABLE(LAMBDA_MAX)
-    KRATOS_REGISTER_VARIABLE(FORMFINDING)
+    KRATOS_REGISTER_VARIABLE(IS_FORMFINDING)
     
 
     // Cross section

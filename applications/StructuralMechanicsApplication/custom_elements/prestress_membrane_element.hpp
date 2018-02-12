@@ -112,29 +112,23 @@ namespace Kratos
   private:
     ///@name Static Member Variables
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-
     Vector mDetJ0;
-
     double mTotalDomainInitialSize;
 
-    std::vector< array_1d<double, 3> > mStrainsVector;	//container of Strain
-    std::vector< array_1d<double, 6> > mStressesVector;	//container of Stress
+    std::vector< array_1d<double, 3> > mStrainsVector;	      //container of Strain
+    std::vector< array_1d<double, 6> > mStressesVector;	      //container of Stress
     std::vector< array_1d<double, 6> > mCauchyStressesVector;	//container of Stress
 
-
-    std::vector< array_1d<double, 3> >  mV1;
-    std::vector< array_1d<double, 3> >  mV2;
-    std::vector< Matrix >               mGVector;
-
+    std::vector< Matrix >              mGVector;
     std::vector< array_1d<double, 3> > mGab0;
-    std::vector< array_1d<double, 3> > mG1; // Base vector 1 in updated reference configuration
-    std::vector< array_1d<double, 3> > mG2; // Base vector 2 in updated reference configuration
-    unsigned int mStep;                     // Simulation step for formfinding
+    std::vector< array_1d<double, 3> > mG1;                   // Base vector 1 in updated reference configuration
+    std::vector< array_1d<double, 3> > mG2;                   // Base vector 2 in updated reference configuration
+    unsigned int mStep;                                       // Simulation step for formfinding
 
-    bool mAnisotropicPrestress;             // determines if isotropic or anisotropic prestress is applied
-    std::vector< array_1d<double, 3> > mG1Initial; // Base vector 1 in initial reference configuration
-    std::vector< array_1d<double, 3> > mG2Initial; // Base vector 2 in initial reference configuration
-    std::vector< array_1d<double, 3> > mG3Initial; // Base vector 2 in initial reference configuration
+    bool mAnisotropicPrestress;                               // determines if isotropic or anisotropic prestress is applied
+    std::vector< array_1d<double, 3> > mG1Initial;            // Base vector 1 in initial reference configuration
+    std::vector< array_1d<double, 3> > mG2Initial;            // Base vector 2 in initial reference configuration
+    std::vector< array_1d<double, 3> > mG3Initial;            // Base vector 2 in initial reference configuration
 
 
 
@@ -305,8 +299,9 @@ namespace Kratos
       rSerializer.save("StrainsVector", mStrainsVector);
       rSerializer.save("StressesVector", mStressesVector);
       rSerializer.save("CauchyStressesVector", mCauchyStressesVector);
-      rSerializer.save("V1", mV1);
-      rSerializer.save("V2", mV2);
+      rSerializer.save("G1", mG1);
+      rSerializer.save("G2", mG2);
+      rSerializer.save("G_ab", mGab0);
       rSerializer.save("G_Vector", mGVector);
     }
 
@@ -319,8 +314,9 @@ namespace Kratos
       rSerializer.load("StrainsVector", mStrainsVector);
       rSerializer.load("StressesVector", mStressesVector);
       rSerializer.load("CauchyStressesVector", mCauchyStressesVector);
-      rSerializer.load("V1", mV1);
-      rSerializer.load("V2", mV2);
+      rSerializer.load("G1", mG1);
+      rSerializer.load("G2", mG2);
+      rSerializer.save("G_ab", mGab0);
       rSerializer.load("G_Vector", mGVector);
     }
 
