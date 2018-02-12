@@ -30,7 +30,7 @@ class FluidHDF5LoaderPID(BaseLoader):
             pass
 
     def GetTimeIndicesAndWeights(self, current_time):
-        return 0.0, 1.0, 1, 1
+        return 0, 0.0, 1, 1.0
 
     def GetDatasetName(self, time_index_future):
         return self.dataset_name
