@@ -26,14 +26,14 @@ from algorithm_base import OptimizationAlgorithm
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self, 
-                  ModelPartController, 
-                  Analyzer, 
-                  Communicator, 
-                  Mapper, 
-                  DataLogger, 
+    def __init__( self,
+                  ModelPartController,
+                  Analyzer,
+                  Communicator,
+                  Mapper,
+                  DataLogger,
                   OptimizationSettings ):
-                  
+
         self.ModelPartController = ModelPartController
         self.Analyzer = Analyzer
         self.Communicator = Communicator
@@ -48,13 +48,16 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.onlyObjective = OptimizationSettings["objectives"][0]["identifier"].GetString()
         self.initialStepSize = OptimizationSettings["line_search"]["step_size"].GetDouble()
         self.performDamping = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
+        self.performProjectionOnNormals = True
+        if OptimizationSettings["optimization_algorithm"].Has("project_gradients_on_normals"):
+            self.performProjectionOnNormals = OptimizationSettings["optimization_algorithm"]["project_gradients_on_normals"].GetBool()
 
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
         if self.performDamping:
             damping_regions = self.ModelPartController.GetDampingRegions()
             self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
-            
+
     # --------------------------------------------------------------------------
     def execute( self ):
         self.__initializeOptimizationLoop()
@@ -85,7 +88,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
             self.__storeResultOfSensitivityAnalysisOnNodes()
 
-            self.__alignSensitivitiesToLocalSurfaceNormal()
+            if self.performProjectionOnNormals:
+                self.__alignSensitivitiesToLocalSurfaceNormal()
 
             if self.performDamping:
                 self.__dampSensitivities()
@@ -114,7 +118,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __updateMeshAccordingCurrentShapeUpdate( self ):
-        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE ) 
+        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
     def __callCommunicatorToRequestNewAnalyses( self ):
@@ -199,11 +203,11 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             # Check if value of objective increases
             if relativeChangeOfObjectiveValue > 0:
                 print("\n> Value of objective function increased!")
-                return False          
+                return False
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges( self ):
-        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )        
+        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )
         self.OptimizationUtilities.AddFirstVariableToSecondVariable( SHAPE_UPDATE, SHAPE_CHANGE )
 
 

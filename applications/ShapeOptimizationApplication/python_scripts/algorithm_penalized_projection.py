@@ -29,14 +29,14 @@ import timer_factory as timer_factory
 class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self, 
-                  ModelPartController, 
-                  Analyzer, 
-                  Communicator, 
-                  Mapper, 
-                  DataLogger, 
+    def __init__( self,
+                  ModelPartController,
+                  Analyzer,
+                  Communicator,
+                  Mapper,
+                  DataLogger,
                   OptimizationSettings ):
-                  
+
         self.ModelPartController = ModelPartController
         self.Analyzer = Analyzer
         self.Communicator = Communicator
@@ -54,12 +54,15 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.initialCorrectionScaling = OptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble()
         self.initialStepSize = OptimizationSettings["line_search"]["step_size"].GetDouble()
         self.performDamping = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
+        self.performProjectionOnNormals = True
+        if OptimizationSettings["optimization_algorithm"].Has("project_gradients_on_normals"):
+            self.performProjectionOnNormals = OptimizationSettings["optimization_algorithm"]["project_gradients_on_normals"].GetBool()
 
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
         if self.performDamping:
             damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )    
+            self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
     def execute( self ):
@@ -69,7 +72,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
-        self.ModelPartController.InitializeMeshController()        
+        self.ModelPartController.InitializeMeshController()
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
 
@@ -91,7 +94,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
             self.__storeResultOfSensitivityAnalysisOnNodes()
 
-            self.__alignSensitivitiesToLocalSurfaceNormal()
+            if self.performProjectionOnNormals:
+                self.__alignSensitivitiesToLocalSurfaceNormal()
 
             if self.performDamping:
                 self.__dampSensitivities()
@@ -120,7 +124,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __updateMeshAccordingCurrentShapeUpdate( self ):
-        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE ) 
+        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
     def __callCoumminicatorToCreateNewRequests( self ):
@@ -236,7 +240,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges( self ):
-        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )        
+        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )
         self.OptimizationUtilities.AddFirstVariableToSecondVariable( SHAPE_UPDATE, SHAPE_CHANGE )
 
 # ==============================================================================

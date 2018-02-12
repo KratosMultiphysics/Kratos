@@ -167,7 +167,8 @@
             "correction_scaling"      : 0.1,
             "use_adaptive_correction" : true,
             "max_iterations"          : 100,
-            "relative_tolerance"      : 1e-04
+            "relative_tolerance"      : 1e-04,
+            "project_gradients_on_normals": false
         },
         "line_search" : {
             "line_search_type"           : "manual_stepping",
