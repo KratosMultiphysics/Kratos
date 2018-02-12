@@ -227,6 +227,13 @@ protected:
                                      double& rIntegrationWeight
                                     );
     /**
+     * Calculation of the stabilization at the matrix
+     */
+    virtual void CalculateAndAddKPPStab(MatrixType& rK,
+                                     ElementVariables & rVariables,
+                                     double& rIntegrationWeight
+                                     );
+    /**
      * Calculation and addition of the vectors of the RHS
      */
 
@@ -266,6 +273,28 @@ protected:
           double& rIntegrationWeight
           );
 
+    /**
+     * Calculation of the Internal Forces due to stabilization
+     */
+    virtual void CalculateAndAddStabilizationRHS(VectorType& rRightHandSideVector,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+    /**
+     * Part of the mass matrix due to the stabilization
+     */
+    virtual void CalculateAndAddMassStabilizationMatrix(MatrixType& rMassMatrix,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
+    /**
+     * Part of the damping matrix due to the stabilization
+     */
+    virtual void CalculateAndAddDampingStabilizationMatrix(MatrixType& rDampingMatrix,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
 
 
     /**
