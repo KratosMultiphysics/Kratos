@@ -111,7 +111,10 @@ public:
      * InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
      */
     
-    TreeContactSearch( ModelPart& rMainModelPart, Parameters ThisParameters =  Parameters(R"({})") ); 
+    TreeContactSearch( 
+        ModelPart& rMainModelPart, 
+        Parameters ThisParameters =  Parameters(R"({})") 
+        ); 
     
     virtual ~TreeContactSearch()= default;;
 

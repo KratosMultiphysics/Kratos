@@ -86,8 +86,6 @@ elif (DEM_parameters["IntegrationScheme"].GetString() == 'Symplectic_Euler'):
     scheme = SymplecticEulerScheme()
 elif (DEM_parameters["IntegrationScheme"].GetString() == 'Taylor_Scheme'):
     scheme = TaylorScheme()
-elif (DEM_parameters["IntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-    scheme = NewmarkBetaScheme(0.5, 0.25)
 elif (DEM_parameters["IntegrationScheme"].GetString() == 'Velocity_Verlet'):
     scheme = VelocityVerletScheme()
 else:

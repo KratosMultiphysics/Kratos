@@ -100,6 +100,21 @@ public:
     ///@{
 
     /**
+     * Returns the member vector containing the edges node I ids.
+     */
+    const std::vector<int>& GetEdgeIdsI() const override;
+
+    /**
+     * Returns the member vector containing the edges node J ids.
+     */
+    const std::vector<int>& GetEdgeIdsJ() const override;
+
+    /**
+     * Returns the member vector containing the split edges member vector.
+     */
+    std::vector<int>& GetSplitEdges() override;
+
+    /**
      * Divides the input geometry according to the provided distance data.
      */
     void GenerateDivision() override;
