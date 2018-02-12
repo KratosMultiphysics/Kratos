@@ -115,7 +115,6 @@ namespace MoveMeshUtilities {
     ModelPart::ElementsContainerType& r_mesh_elements =
         p_mesh_model_part->Elements();
 
-
     const Element& r_reference_element = KratosComponents<Element>::Get(ElementName);
 
         for(int i=0; i< (int)rModelPart.Elements().size(); i++){
