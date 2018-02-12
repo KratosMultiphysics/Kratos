@@ -63,6 +63,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
+        self.Analyzer.initializeBeforeOptimizationLoop()
         self.ModelPartController.InitializeMeshController()
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
@@ -107,6 +108,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
+        self.Analyzer.finalizeAfterOptimizationLoop()       
 
     # --------------------------------------------------------------------------
     def __initializeModelPartForNewSolutionStep( self ):
