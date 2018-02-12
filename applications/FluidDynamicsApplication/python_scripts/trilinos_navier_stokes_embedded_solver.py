@@ -28,7 +28,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "trilinos_navier_stokes_embedded_solver",
+            "solver_type": "Embedded",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -37,21 +37,21 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "import_mode"         : "from_GID_file",
                 "distance_file_name"  : "distance_file"
             },
-            "maximum_iterations": 10,
+            "maximum_iterations": 7,
             "dynamic_tau": 1.0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": true,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
+            "relative_velocity_tolerance": 1e-3,
+            "absolute_velocity_tolerance": 1e-5,
+            "relative_pressure_tolerance": 1e-3,
+            "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"       : {
                 "solver_type"                        : "MultiLevelSolver",
                 "max_iteration"                      : 200,
-                "tolerance"                          : 1e-8,
+                "tolerance"                          : 1e-6,
                 "max_levels"                         : 3,
                 "symmetric"                          : false,
                 "reform_preconditioner_at_each_step" : true,

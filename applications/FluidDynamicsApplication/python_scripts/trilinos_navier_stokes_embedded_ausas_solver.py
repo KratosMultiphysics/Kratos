@@ -10,12 +10,12 @@ KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
 # Import base class file
-import navier_stokes_embedded_solver
+import trilinos_navier_stokes_embedded_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesEmbeddedAusasMonolithicSolver(main_model_part, custom_settings)
+    return NavierStokesMPIEmbeddedAusasMonolithicSolver(main_model_part, custom_settings)
 
-class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.NavierStokesEmbeddedMonolithicSolver):
+class NavierStokesMPIEmbeddedAusasMonolithicSolver(trilinos_navier_stokes_embedded_solver.NavierStokesMPIEmbeddedMonolithicSolver):
 
     def __init__(self, main_model_part, custom_settings):
 
@@ -31,12 +31,13 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
                 "input_filename": "unknown_name"
             },
             "distance_reading_settings"    : {
-                "import_mode"         : "from_mdpa",
-                "distance_file_name"  : "no_distance_file"
+                "import_mode"         : "from_GID_file",
+                "distance_file_name"  : "distance_file"
             },
             "maximum_iterations": 7,
             "dynamic_tau": 1.0,
             "echo_level": 0,
+            "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": true,
@@ -45,20 +46,25 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
             "relative_pressure_tolerance": 1e-3,
             "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"       : {
-                "solver_type"         : "AMGCL_NS_Solver"
+                "solver_type"                        : "MultiLevelSolver",
+                "max_iteration"                      : 200,
+                "tolerance"                          : 1e-6,
+                "max_levels"                         : 3,
+                "symmetric"                          : false,
+                "reform_preconditioner_at_each_step" : true,
+                "scaling"                            : true
             },
             "volume_model_part_name" : "volume_model_part",
             "skin_parts": [""],
             "no_skin_parts":[""],
-            "time_stepping"                : {
+            "time_stepping": {
                 "automatic_time_step" : true,
                 "CFL_number"          : 1,
-                "minimum_delta_time"  : 1e-2,
-                "maximum_delta_time"  : 1.0
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 0.01
             },
             "periodic": "periodic",
-            "move_mesh_flag": false,
-            "reorder": false
+            "move_mesh_flag": false
         }""")
 
         ## Overwrite the default settings with user-provided parameters
@@ -83,7 +89,7 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
 
     def Initialize(self):
         # Initialize the solver as in the base embedded solver
-        super(NavierStokesEmbeddedAusasMonolithicSolver, self).Initialize()
+        super(NavierStokesMPIEmbeddedAusasMonolithicSolver, self).Initialize()
         
         # Set the find nodal neighbours process used in the embedded Ausas formulation condition
         if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):

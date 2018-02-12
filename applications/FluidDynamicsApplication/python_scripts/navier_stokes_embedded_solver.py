@@ -34,7 +34,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
                 "import_mode"         : "from_mdpa",
                 "distance_file_name"  : "no_distance_file"
             },
-            "maximum_iterations": 10,
+            "maximum_iterations": 7,
             "dynamic_tau": 1.0,
             "echo_level": 0,
             "time_order": 2,
