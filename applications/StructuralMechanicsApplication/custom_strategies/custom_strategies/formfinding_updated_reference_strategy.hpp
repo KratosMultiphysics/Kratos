@@ -26,7 +26,6 @@
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-//#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
 namespace Kratos
 {
@@ -205,8 +204,8 @@ namespace Kratos
             : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
         {
             KRATOS_TRY;
-
-            std::cout << "Formfinding strategy created!" << std::endl;
+            if (this->GetEchoLevel() > 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+                std::cout << "Formfinding strategy created!" << std::endl;
 
             mKeepSystemConstantDuringIterations = false;
 
@@ -618,9 +617,9 @@ namespace Kratos
             KRATOS_CATCH("");
 
         }
-        
+
         void UpdateReferenceConfiguration(){
-            
+
         }
 
         /**

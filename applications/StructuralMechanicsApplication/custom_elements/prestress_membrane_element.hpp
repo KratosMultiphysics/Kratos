@@ -20,7 +20,6 @@
 
 // Project includes
 #include "includes/element.h"
-//#include "spaces/ublas_space.h"
 #include "custom_utilities/structural_mechanics_math_utilities.hpp"
 
 namespace Kratos
@@ -109,23 +108,17 @@ namespace Kratos
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
       std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    
-
-
   protected:
 
 
   private:
     ///@name Static Member Variables
-
-
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     Geometry< Point >::Pointer  mpReferenceGeometry;
 
     Vector mDetJ0;
 
     double mTotalDomainInitialSize;
-    double mThickness;									// thickness in actual configuration
 
     std::vector< array_1d<double, 3> > mStrainsVector;	//container of Strain
     std::vector< array_1d<double, 6> > mStressesVector;	//container of Stress
@@ -164,7 +157,7 @@ namespace Kratos
 
 
     void InitializeNonLinearIteration();
-    
+
     void CalculateAndAddNonlinearKm(
         Matrix& K,
         Matrix& B11,
@@ -284,7 +277,7 @@ namespace Kratos
                     double& rLambda1, double& rLambda2);
 
     void ComputeEigenvectorsDeformationGradient(const unsigned int PointNumber,
-                                bounded_matrix<double,3,3>& rTensor, bounded_matrix<double,3,3>& rOrigin, 
+                                bounded_matrix<double,3,3>& rTensor, bounded_matrix<double,3,3>& rOrigin,
                                 const bounded_matrix<double,3,3>& rDeformationGradientTotal,
                                 const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot,
                                 const double Lambda1, const double Lambda2,
@@ -314,8 +307,6 @@ namespace Kratos
       rSerializer.save("ReferenceGeometry", mpReferenceGeometry);
       rSerializer.save("DetJ0", mDetJ0);
       rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
-      //rSerializer.save("density", mdensity);
-      //rSerializer.save("Thickness", mThickness);
       rSerializer.save("StrainsVector", mStrainsVector);
       rSerializer.save("StressesVector", mStressesVector);
       rSerializer.save("CauchyStressesVector", mCauchyStressesVector);
@@ -331,8 +322,6 @@ namespace Kratos
       rSerializer.load("ReferenceGeometry", mpReferenceGeometry);
       rSerializer.load("DetJ0", mDetJ0);
       rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
-      //rSerializer.load("density", mdensity);
-      //rSerializer.load("Thickness", mThickness);
       rSerializer.load("StrainsVector", mStrainsVector);
       rSerializer.load("StressesVector", mStressesVector);
       rSerializer.load("CauchyStressesVector", mCauchyStressesVector);
@@ -347,4 +336,4 @@ namespace Kratos
 
 }	// namespace Kratos.
 
-#endif // KRATOS_MEMBRANE_ELEMENT_3D_H_INCLUDED  defined 
+#endif // KRATOS_MEMBRANE_ELEMENT_3D_H_INCLUDED  defined
