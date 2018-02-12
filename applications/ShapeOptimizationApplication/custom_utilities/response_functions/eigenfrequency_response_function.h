@@ -182,7 +182,7 @@ public:
 		// First gradients are initialized
 		array_3d zeros_array(3, 0.0);
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			noalias(node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT) )= zeros_array;
+			noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT) )= zeros_array;
 
 		// Gradient calculation is done by a semi-analytic approaches
 		// The gradient is computed in one step
@@ -232,8 +232,8 @@ public:
 		boost::python::dict dFdX;
 
 		// Fill dictionary with gradient information
-		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
+		for (auto& node_i = mr_model_part.Nodes())
+			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
 
 		return dFdX;
 
@@ -303,8 +303,7 @@ protected:
 
 		// Computation of: \frac{dF}{dx} = eigenvector^T\cdot (frac{\partial RHS}{\partial x} -
 		//				                   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
-		for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-		//for (auto& i_elem : mr_model_part.Elements())
+		for (auto& i_elem : mr_model_part.Elements())
 		{
 
 
@@ -313,8 +312,8 @@ protected:
 			Matrix LHS_org;
 			Vector eigenvector_of_element = Vector(0);
 			Vector dummy;
-			elem_i->CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
-			elem_i->CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
+			elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
+			elem_i.CalculateLocalSystem(LHS_org, dummy ,CurrentProcessInfo);
 
 			// Get size of element eigenvector and initialize eigenvector
 			int num_dofs_element = mass_matrix_org.size1();
@@ -328,7 +327,7 @@ protected:
 			const int NumNodeDofs = num_dofs_element/elem_i.GetGeometry().size();
 			for (auto& node_i : elem_i.GetGeometry())
 			{
-				Matrix& rNodeEigenvectors = node_i->GetValue(rEIGENVECTOR_MATRIX);
+				Matrix& rNodeEigenvectors = node_i.GetValue(rEIGENVECTOR_MATRIX);
 
 				for (int i = 0; i < NumNodeDofs; i++)
                 {
@@ -338,7 +337,7 @@ protected:
 			}
 
 			// Semi-analytic computation of partial derivative of state equation w.r.t. node coordinates
-			for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
+			for (auto& node_i : elem_i.GetGeometry())
 			{
 
 				array_3d gradient_contribution(3, 0.0);
@@ -347,13 +346,13 @@ protected:
 				Vector aux = Vector(0);
 
 				// Derivative of response w.r.t. x-coord ------------------------
-				node_i->X0() += mDelta;
+				node_i.X0() += mDelta;
 
-				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
+				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
 				perturbed_mass_matrix *= m_eigenvalue;
 
-				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
+				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
 				perturbed_LHS -= perturbed_mass_matrix;
@@ -361,7 +360,7 @@ protected:
 				aux = prod(perturbed_LHS , eigenvector_of_element);
 				gradient_contribution[0] = inner_prod(eigenvector_of_element , aux);
 
-				node_i->X0() -= mDelta;
+				node_i.X0() -= mDelta;
 				// End derivative of response w.r.t. x-coord --------------------
 
 				// Reset pertubed RHS and mass matrix
@@ -370,14 +369,14 @@ protected:
 				aux = Vector(0);
 
 				// Derivative of response w.r.t. y-coord ------------------------
-				node_i->Y0() += mDelta;
+				node_i.Y0() += mDelta;
 
-				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
+				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
 				perturbed_mass_matrix *= m_eigenvalue;
 
-				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
+				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
@@ -385,7 +384,7 @@ protected:
 
 				aux = prod(perturbed_LHS , eigenvector_of_element);
 				gradient_contribution[1] = inner_prod(eigenvector_of_element , aux);
-				node_i->Y0() -= mDelta;
+				node_i.Y0() -= mDelta;
 				// End derivative of response w.r.t. y-coord --------------------
 
 				// Reset pertubed RHS and mass matrix
@@ -394,20 +393,20 @@ protected:
 				aux = Vector(0);
 
 				// Derivative of response w.r.t. z-coord ------------------------
-				node_i->Z0() += mDelta;
+				node_i.Z0() += mDelta;
 
-				elem_i->CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
+				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
 				perturbed_mass_matrix *= m_eigenvalue;
 
-				elem_i->CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
+				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
 
 				perturbed_LHS -= perturbed_mass_matrix;
 
 				aux = prod(perturbed_LHS , eigenvector_of_element);
 				gradient_contribution[2] =  inner_prod(eigenvector_of_element , aux);
-				node_i->Z0() -= mDelta;
+				node_i.Z0() -= mDelta;
 				// End derivative of response w.r.t. z-coord --------------------
 
 				// Change sign of gradient: only maximization makes sense in case of eigenfrequency optimization
@@ -416,7 +415,7 @@ protected:
 				gradient_contribution[2] *= (-1.0);
 
 				// Assemble sensitivity to node
-				noalias(node_i->FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT)) += gradient_contribution;
+				noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT)) += gradient_contribution;
 
 			}
 		}
