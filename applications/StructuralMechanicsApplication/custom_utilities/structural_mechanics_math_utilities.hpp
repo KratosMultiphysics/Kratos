@@ -419,7 +419,7 @@ public:
         }
 
         // Tensor transformation
-        Matrix transformed_tensor = Matrix(TDim,TDim,0);
+        bounded_matrix<double, TDim, TDim> transformed_tensor = ZeroMatrix(TDim, TDim);
         for(int k=0;k<TDim;k++){
             for(int l=0;l<TDim;l++){
                 for(int i=0;i<TDim;i++){
