@@ -37,13 +37,15 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
 
+        KratosMultiphysics.Logger.PrintInfo("::Reading materials process:: ", "Started")
+
         with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
             materials = KratosMultiphysics.Parameters(parameter_file.read())
         
         for i in range(materials["properties"].size()):
             self._AssignPropertyBlock(materials["properties"][i])
         
-        print("finished reading materials")
+        KratosMultiphysics.Logger.PrintInfo("::Reading materials process:: ", "Finished")
         
     def _GetVariable(self,my_string):
         """Return the python object of a Variable named by the string argument.
