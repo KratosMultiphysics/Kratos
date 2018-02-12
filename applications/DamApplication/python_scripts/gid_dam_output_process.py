@@ -109,16 +109,19 @@ class GiDDamOutputProcess(Process):
         self.next_output = 0.0
 
         self.multifiles = (            
-            MultifileList(self.DEM_parameters["problem_name"].GetString(), 1),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(), 2),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(), 5),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(),10),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(),20),
-            MultifileList(self.DEM_parameters["problem_name"].GetString(),50),
+            MultifileList(self.base_file_name, 1),
+            MultifileList(self.base_file_name, 2),
+            MultifileList(self.base_file_name, 5),
+            MultifileList(self.base_file_name,10),
+            MultifileList(self.base_file_name,20),
+            MultifileList(self.base_file_name,50),
             )
-            
-        self.SetMultifileLists(self.multifiles)
 
+        self.multifilelists = []            
+        self.SetMultifileLists(self.multifiles)
+        
+    def Flush(self,a):
+        a.flush()
 
     def ExecuteInitialize(self):
 
@@ -696,7 +699,7 @@ class GiDDamOutputProcess(Process):
 
             if mfilelist.index == mfilelist.step:
                 
-                if (self.encoding == GiDPostMode.GiD_PostBinary):
+                if (self.post_mode == GiDPostMode.GiD_PostBinary):
                     text_to_print = self.GetMultiFileListName(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"                     
                     mfilelist.file.write(text_to_print)
                 else:
@@ -708,8 +711,16 @@ class GiDDamOutputProcess(Process):
                 mfilelist.index = 0
 
             mfilelist.index += 1
+            
+    def GetMultiFileListName(self, name):
+        return name
+
+    def CloseMultifiles(self):
+        for mfilelist in self.multifilelists:
+            mfilelist.file.close()
+            
     #
-# NOTE (PR): 'Codacy' suggest to change the following method, from a standard method to a 'classmethod' or 'staticmethod' as it does not refer to any of the class attributes
+    # NOTE (PR): 'Codacy' suggest to change the following method, from a standard method to a 'classmethod' or 'staticmethod' as it does not refer to any of the class attributes
     @classmethod
     def __remove_list_files(cls):
 
@@ -771,3 +782,12 @@ class GiDDamOutputProcess(Process):
                         os.remove(f)
                     except WindowsError:
                         pass
+
+class MultifileList(object):
+
+    def __init__(self, name, step):
+        self.index = 0
+        self.step = step
+        self.name = name
+        absolute_path_to_file = os.path.join("_list_" + self.name + "_" + str(step) + ".post.lst")
+        self.file = open(absolute_path_to_file,"w")
