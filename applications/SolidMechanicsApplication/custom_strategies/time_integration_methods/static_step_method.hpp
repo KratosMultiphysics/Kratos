@@ -91,7 +91,7 @@ namespace Kratos
     }
 
     /// Clone.
-    BaseTypePointer Clone()
+    BaseTypePointer Clone() override
     {
       return BaseTypePointer( new StaticStepMethod(*this) );
     }

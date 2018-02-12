@@ -152,9 +152,9 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new QSVMS element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
@@ -164,9 +164,9 @@ public:
     /// Create a new element of this type using given geometry
     /**
      * Returns a pointer to a new FluidElement element, created using given input
-     * @param NewId: the ID of the new element
-     * @param pGeom: a pointer to the geomerty to be used to create the element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
@@ -287,10 +287,16 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
-
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
+
+    // This function integrates the traction over a cut. It is only required to implement embedded formulations
+    void AddBoundaryIntegral(
+        TElementData& rData,
+        const Vector& rUnitNormal,
+        MatrixType& rLHS,
+        VectorType& rRHS) override;
 
     /**
      * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
@@ -299,7 +305,7 @@ protected:
      * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
      * @return Kinematic viscosity at the integration point.
      */
-    virtual double EffectiveViscosity(
+    KRATOS_DEPRECATED virtual double EffectiveViscosity(
         TElementData& rData,
         double ElementSize);
 

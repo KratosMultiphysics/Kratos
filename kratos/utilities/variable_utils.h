@@ -496,7 +496,7 @@ public:
 
         KRATOS_ERROR_IF(rVar.Key() == 0) << "ERROR:: Variable : " << rVar << " has a 0 key. Check if the application was correctly registered.";
         if(rModelPart.NumberOfNodes() != 0)
-            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Soluttion step data ";
+            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data ";
 
         #pragma omp parallel for 
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {

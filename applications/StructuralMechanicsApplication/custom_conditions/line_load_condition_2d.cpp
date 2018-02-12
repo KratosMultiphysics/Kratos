@@ -50,7 +50,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const
     {
-        return boost::make_shared<LineLoadCondition2D>(NewId, pGeom, pProperties);
+        return Kratos::make_shared<LineLoadCondition2D>(NewId, pGeom, pProperties);
     }
 
     //************************************************************************************
@@ -62,7 +62,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties 
         ) const
     {
-        return boost::make_shared<LineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+        return Kratos::make_shared<LineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
     }
 
     //******************************* DESTRUCTOR *****************************************

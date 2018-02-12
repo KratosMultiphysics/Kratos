@@ -45,28 +45,6 @@ Element::Pointer SymbolicNavierStokes<TElementData>::Create(IndexType NewId,Geom
     return Kratos::make_shared<SymbolicNavierStokes>(NewId, pGeom, pProperties);
 }
 
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::Initialize() {
-    KRATOS_TRY
-
-    // If we are restarting, the constitutive law will be already defined
-    if (mpConstitutiveLaw == nullptr) {
-        const Properties& r_properties = this->GetProperties();
-        if (r_properties.Has(CONSTITUTIVE_LAW)) {
-            mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
-            mpConstitutiveLaw->InitializeMaterial(r_properties,
-            this->GetGeometry(),
-            row(this->GetGeometry().ShapeFunctionsValues(), 0));
-        }
-        else {
-            KRATOS_ERROR << "No constitutive law provided in the element's properties for " << this->Info();
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
@@ -78,11 +56,6 @@ int SymbolicNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcess
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
-
-    // Check constitutive law
-    KRATOS_ERROR_IF( mpConstitutiveLaw == nullptr ) << "No consitutive law defined. Please call the element's Initialize() method before attempting the check." << std::endl;
-
-    mpConstitutiveLaw->Check(this->GetProperties(), this->GetGeometry(), rCurrentProcessInfo);
 
     return 0;
 
@@ -104,9 +77,9 @@ void SymbolicNavierStokes<TElementData>::PrintInfo(
     std::ostream& rOStream) const {
     rOStream << this->Info() << std::endl;
 
-    if (this->mpConstitutiveLaw != nullptr) {
+    if (this->GetConstitutiveLaw() != nullptr) {
         rOStream << "with constitutive law " << std::endl;
-        this->mpConstitutiveLaw->PrintInfo(rOStream);
+        this->GetConstitutiveLaw()->PrintInfo(rOStream);
     }
 }
 
@@ -117,7 +90,6 @@ void SymbolicNavierStokes<TElementData>::PrintInfo(
 template <class TElementData>
 void SymbolicNavierStokes<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
-    this->ComputeConstitutiveResponse(rData);
     this->ComputeGaussPointLHSContribution(rData, rLHS);
     this->ComputeGaussPointRHSContribution(rData, rRHS);
 }
@@ -125,14 +97,12 @@ void SymbolicNavierStokes<TElementData>::AddTimeIntegratedSystem(
 template <class TElementData>
 void SymbolicNavierStokes<TElementData>::AddTimeIntegratedLHS(
     TElementData& rData, MatrixType& rLHS) {
-    this->ComputeConstitutiveResponse(rData);
     this->ComputeGaussPointLHSContribution(rData, rLHS);
 }
 
 template <class TElementData>
 void SymbolicNavierStokes<TElementData>::AddTimeIntegratedRHS(
     TElementData& rData, VectorType& rRHS) {
-    this->ComputeConstitutiveResponse(rData);
     this->ComputeGaussPointRHSContribution(rData, rRHS);
 }
 
@@ -142,19 +112,19 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     VectorType& rRHS) {
 
     // Set the current Gauss pt. Voigt notation normal projection matrix
-    bounded_matrix<double, Dim, (Dim-1)*3> voigt_normal_projection_matrix = ZeroMatrix(Dim, (Dim-1)*3);
-    this->SetVoigtNormalProjectionMatrix(rUnitNormal, voigt_normal_projection_matrix);
+    bounded_matrix<double, Dim, StrainSize> voigt_normal_projection_matrix = ZeroMatrix(Dim, StrainSize);
+    FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal, voigt_normal_projection_matrix);
 
     // Set the current Gauss pt. strain matrix
-    bounded_matrix<double, (Dim-1)*3, LocalSize> B_matrix = ZeroMatrix((Dim-1)*3, LocalSize);
-    this->SetInterfaceStrainMatrix(rData.DN_DX, B_matrix);
+    bounded_matrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
+    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX, B_matrix);
     
     // Compute some Gauss pt. auxiliar matrices
-    const bounded_matrix<double, Dim, (Dim-1)*3> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
-    const bounded_matrix<double, (Dim-1)*3, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
+    const bounded_matrix<double, Dim, StrainSize> aux_matrix_AC = prod(voigt_normal_projection_matrix, rData.C);
+    const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_ACB = prod(aux_matrix_AC, B_matrix);
 
     // Fill the pressure to Voigt notation operator matrix
-    bounded_matrix<double, (Dim-1)*3, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix((Dim-1)*3, LocalSize);
+    bounded_matrix<double, StrainSize, LocalSize> pres_to_voigt_matrix_op = ZeroMatrix(StrainSize, LocalSize);
     for (unsigned int i=0; i<NumNodes; ++i) {
         for (unsigned int comp=0; comp<Dim; ++comp) {
             pres_to_voigt_matrix_op(comp, i*BlockSize+Dim) = rData.N[i];
@@ -173,7 +143,7 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     noalias(rData.lhs) = prod(N_aux_trans, aux_matrix_ACB);
 
     // Contribution coming from the pressure terms
-    const bounded_matrix<double, LocalSize, (Dim-1)*3> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
+    const bounded_matrix<double, LocalSize, StrainSize> N_voigt_proj_matrix = prod(N_aux_trans, voigt_normal_projection_matrix);
     noalias(rData.lhs) -= prod(N_voigt_proj_matrix, pres_to_voigt_matrix_op);
 
     array_1d<double,LocalSize> values;
@@ -184,75 +154,12 @@ void SymbolicNavierStokes<TElementData>::AddBoundaryIntegral(
     noalias(rRHS) += prod(rData.lhs,values);
 }
 
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::SetVoigtNormalProjectionMatrix(
-    const array_1d<double, 3>& rUnitNormal,
-    bounded_matrix<double, 2, 3>& rVoigtNormProjMatrix) const {
-
-    rVoigtNormProjMatrix.clear();
-    
-    rVoigtNormProjMatrix(0,0) = rUnitNormal(0);
-    rVoigtNormProjMatrix(0,2) = rUnitNormal(1);
-    rVoigtNormProjMatrix(1,1) = rUnitNormal(1);
-    rVoigtNormProjMatrix(1,2) = rUnitNormal(0);
-}
-
-
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::SetVoigtNormalProjectionMatrix(
-    const array_1d<double, 3>& rUnitNormal,
-    bounded_matrix<double, 3, 6>& rVoigtNormProjMatrix) const {
-
-    rVoigtNormProjMatrix.clear();
-    rVoigtNormProjMatrix(0,0) = rUnitNormal(0);
-    rVoigtNormProjMatrix(0,3) = rUnitNormal(1);
-    rVoigtNormProjMatrix(0,5) = rUnitNormal(2);
-    rVoigtNormProjMatrix(1,1) = rUnitNormal(1);
-    rVoigtNormProjMatrix(1,3) = rUnitNormal(0);
-    rVoigtNormProjMatrix(1,4) = rUnitNormal(2);
-    rVoigtNormProjMatrix(2,2) = rUnitNormal(2);
-    rVoigtNormProjMatrix(2,4) = rUnitNormal(1);
-    rVoigtNormProjMatrix(2,5) = rUnitNormal(0);
-}
-
-
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::SetInterfaceStrainMatrix(
-    const bounded_matrix<double, NumNodes, 2>& rDN_DX,
-    bounded_matrix<double, 3, NumNodes*3>& rB_matrix) const {
-    rB_matrix.clear();
-    for (unsigned int i=0; i<NumNodes; i++) {
-        rB_matrix(0,i*BlockSize)   = rDN_DX(i,0);
-        rB_matrix(1,i*BlockSize+1) = rDN_DX(i,1);
-        rB_matrix(2,i*BlockSize)   = rDN_DX(i,1);
-        rB_matrix(2,i*BlockSize+1) = rDN_DX(i,0);
-    }
-}
-
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::SetInterfaceStrainMatrix(
-    const bounded_matrix<double, NumNodes, 3>& rDN_DX,
-    bounded_matrix<double, 6, NumNodes*4>& rB_matrix) const {
-    rB_matrix.clear();
-    for (unsigned int i=0; i<NumNodes; i++) {
-        rB_matrix(0,i*BlockSize)   = rDN_DX(i,0);
-        rB_matrix(1,i*BlockSize+1) = rDN_DX(i,1);
-        rB_matrix(2,i*BlockSize+2) = rDN_DX(i,2);
-        rB_matrix(3,i*BlockSize)   = rDN_DX(i,1);
-        rB_matrix(3,i*BlockSize+1) = rDN_DX(i,0);
-        rB_matrix(4,i*BlockSize+1) = rDN_DX(i,2);
-        rB_matrix(4,i*BlockSize+2) = rDN_DX(i,1);
-        rB_matrix(5,i*BlockSize)   = rDN_DX(i,2);
-        rB_matrix(5,i*BlockSize+2) = rDN_DX(i,0);
-    }
-}
-
 template <>
 void SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >::ComputeGaussPointLHSContribution(
     SymbolicNavierStokesData<2,3>& rData, MatrixType& rLHS) {
 
-    const double rho = this->Interpolate(rData.Density,rData.N);
-    const double mu = this->Interpolate(rData.DynamicViscosity,rData.N);
+    const double rho = rData.Density;
+    const double mu = rData.DynamicViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -499,8 +406,8 @@ template <>
 void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSContribution(
     SymbolicNavierStokesData<3,4>& rData, MatrixType& rLHS) {
 
-    const double rho = this->Interpolate(rData.Density,rData.N);
-    const double mu = this->Interpolate(rData.DynamicViscosity,rData.N);
+    const double rho = rData.Density;
+    const double mu = rData.DynamicViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -1128,8 +1035,8 @@ template <>
 void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSContribution(
     SymbolicNavierStokesData<2,3>& rData, VectorType& rRHS) {
 
-    const double rho = this->Interpolate(rData.Density,rData.N);
-    const double mu = this->Interpolate(rData.DynamicViscosity,rData.N);
+    const double rho = rData.Density;
+    const double mu = rData.DynamicViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -1204,8 +1111,8 @@ template <>
 void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSContribution(
     SymbolicNavierStokesData<3,4>& rData, VectorType& rRHS) {
 
-    const double rho = this->Interpolate(rData.Density,rData.N);
-    const double mu = this->Interpolate(rData.DynamicViscosity,rData.N);
+    const double rho = rData.Density;
+    const double mu = rData.DynamicViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -1297,61 +1204,6 @@ const double crhs38 =             rho*(DN(3,0)*crhs7 + DN(3,1)*crhs8 + DN(3,2)*c
     noalias(rRHS) += rData.Weight * rhs;
 }
 
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::ComputeConstitutiveResponse(TElementData& rData) {
-
-    if(rData.C.size1() != StrainSize)
-        rData.C.resize(StrainSize,StrainSize,false);
-    if(rData.Stress.size() != StrainSize)
-        rData.Stress.resize(StrainSize,false);
-    if(rData.Strain.size() != StrainSize)
-        rData.Strain.resize(StrainSize,false);
-
-    this->ComputeStrain(rData);
-
-    auto& Values = rData.ConstitutiveLawValues;
-
-    const Vector Nvec(rData.N);
-    Values.SetShapeFunctionsValues(Nvec);
-
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-    Values.SetStrainVector(rData.Strain);       //this is the input parameter
-    Values.SetStressVector(rData.Stress);       //this is an ouput parameter
-    Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
-
-    //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
-    //this is ok under the hypothesis that no history dependent behaviour is employed
-    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
-}
-
-template <class TElementData>
-void SymbolicNavierStokes<TElementData>::ComputeStrain(TElementData& rData) {
-    
-    const auto& v = rData.Velocity;
-    const auto& DN = rData.DN_DX;
-    
-    // Compute strain (B*v)
-    // 3D strain computation
-    if ( StrainSize == 6) {
-        rData.Strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0) + DN(3,0)*v(3,0);
-        rData.Strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1) + DN(3,1)*v(3,1);
-        rData.Strain[2] = DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
-        rData.Strain[3] = DN(0,0)*v(0,1) + DN(0,1)*v(0,0) + DN(1,0)*v(1,1) + DN(1,1)*v(1,0) + DN(2,0)*v(2,1) + DN(2,1)*v(2,0) + DN(3,0)*v(3,1) + DN(3,1)*v(3,0);
-        rData.Strain[4] = DN(0,1)*v(0,2) + DN(0,2)*v(0,1) + DN(1,1)*v(1,2) + DN(1,2)*v(1,1) + DN(2,1)*v(2,2) + DN(2,2)*v(2,1) + DN(3,1)*v(3,2) + DN(3,2)*v(3,1);
-        rData.Strain[5] = DN(0,0)*v(0,2) + DN(0,2)*v(0,0) + DN(1,0)*v(1,2) + DN(1,2)*v(1,0) + DN(2,0)*v(2,2) + DN(2,2)*v(2,0) + DN(3,0)*v(3,2) + DN(3,2)*v(3,0);
-    }
-    // 2D strain computation
-    else if (StrainSize == 3) {
-        rData.Strain[0] = DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0);
-        rData.Strain[1] = DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
-        rData.Strain[2] = DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(0,0)*v(0,1) + DN(1,0)*v(1,1) + DN(2,0)*v(2,1);
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private serialization
 
@@ -1360,7 +1212,6 @@ void SymbolicNavierStokes<TElementData>::save(Serializer& rSerializer) const
 {
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
-    rSerializer.save("mpConstitutiveLaw",mpConstitutiveLaw);
 }
 
 
@@ -1369,7 +1220,6 @@ void SymbolicNavierStokes<TElementData>::load(Serializer& rSerializer)
 {
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
-    rSerializer.load("mpConstitutiveLaw",mpConstitutiveLaw);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

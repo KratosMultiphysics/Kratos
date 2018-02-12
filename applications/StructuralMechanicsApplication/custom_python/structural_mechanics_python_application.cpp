@@ -21,6 +21,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "structural_mechanics_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_cross_sections_to_python.h"
@@ -44,6 +45,7 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
             ;
 
     AddCustomStrategiesToPython();
+    AddCustomProcessesToPython();
     AddCustomUtilitiesToPython();
     AddCustomConstitutiveLawsToPython();
     AddCrossSectionsToPython();

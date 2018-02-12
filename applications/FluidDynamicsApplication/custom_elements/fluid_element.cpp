@@ -17,6 +17,7 @@
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/element_size_calculator.h"
 
 namespace Kratos
 {
@@ -70,6 +71,28 @@ Element::Pointer FluidElement<TElementData>::Create(IndexType NewId, GeometryTyp
     KRATOS_CATCH("");
 }
 
+template< class TElementData >
+void FluidElement<TElementData>::Initialize() {
+    KRATOS_TRY;
+
+    // If we are restarting, the constitutive law will be already defined
+    if (mpConstitutiveLaw == nullptr) {
+        const Properties& r_properties = this->GetProperties();
+        KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
+            << "In initialization of Element " << this->Info()
+            << ": No CONSTITUTIVE_LAW defined for property "
+            << r_properties.Id() << "." << std::endl;
+
+        mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
+
+        const GeometryType& r_geometry = this->GetGeometry();
+        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+        mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
+    }
+
+    KRATOS_CATCH("");
+}
+
 template <class TElementData>
 void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                       VectorType& rRightHandSideVector,
@@ -99,8 +122,11 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
+
+            this->CalculateMaterialResponse(data);
 
             this->AddTimeIntegratedSystem(
                 data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -135,6 +161,8 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
+            this->CalculateMaterialResponse(data);
+
             this->AddTimeIntegratedLHS(data, rLeftHandSideMatrix);
         }
     }
@@ -165,6 +193,8 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
+
+            this->CalculateMaterialResponse(data);
 
             this->AddTimeIntegratedRHS(data, rRightHandSideVector);
         }
@@ -202,6 +232,8 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
             const auto& r_dndx = shape_derivatives[g];
             data.UpdateGeometryValues(
                 gauss_weights[g], row(shape_functions, g), r_dndx);
+            
+            this->CalculateMaterialResponse(data);
 
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
         }
@@ -240,6 +272,8 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
+
+            this->CalculateMaterialResponse(data);
 
             this->AddMassLHS(data, rMassMatrix);
         }
@@ -356,9 +390,11 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     // Extra variables used in computing projections
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
 
+    const GeometryType& r_geometry = this->GetGeometry();
+
     for(unsigned int i=0; i<NumNodes; ++i)
     {
-        Node<3>& rNode = this->GetGeometry()[i];
+        const Node<3>& rNode = r_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
 
         // Check that required dofs exist
@@ -372,10 +408,16 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     if ( Dim == 2)
     {
         for (unsigned int i=0; i<NumNodes; ++i) {
-            if (this->GetGeometry()[i].Z() != 0.0)
-                KRATOS_ERROR << "Node " << this->GetGeometry()[i].Id() << "has non-zero Z coordinate." << std::endl;
+            if (r_geometry[i].Z() != 0.0)
+                KRATOS_ERROR << "Node " << r_geometry[i].Id() << "has non-zero Z coordinate." << std::endl;
         }
     }
+
+    // Check the constitutive law
+    KRATOS_ERROR_IF(mpConstitutiveLaw == nullptr) << "Constitutive Law not initialized for Element " << this->Info() << std::endl;
+
+    out = mpConstitutiveLaw->Check(this->GetProperties(),r_geometry,rCurrentProcessInfo);
+    KRATOS_ERROR_IF_NOT( out == 0) << "The Constitutive Law provided for Element " << this->Info() << " is not correct." << std::endl;
 
     return out;
 }
@@ -432,24 +474,48 @@ array_1d<double, 3> FluidElement<TElementData>::Interpolate(
     return result;
 }
 
+template <class TElementData>
+void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const {
+
+    Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(rData.StrainRate,rData.Velocity,rData.DN_DX);
+
+    auto& Values = rData.ConstitutiveLawValues;
+
+    const Vector Nvec(rData.N);
+    Values.SetShapeFunctionsValues(Nvec);
+
+    // Set constitutive law flags:
+    Flags& ConstitutiveLawOptions=Values.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    Values.SetStrainVector(rData.StrainRate);   //this is the input parameter
+    Values.SetStressVector(rData.Stress);       //this is an ouput parameter
+    Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
+
+    //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
+    //this is ok under the hypothesis that no history dependent behaviour is employed
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+}
+
 template< class TElementData >
 void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
                                       Matrix &rNContainer,
                                       ShapeFunctionDerivativesArrayType &rDN_DX) const
 {
-    const GeometryData::IntegrationMethod IntMethod = this->GetIntegrationMethod();
+    const GeometryData::IntegrationMethod integration_method = this->GetIntegrationMethod();
     const GeometryType& r_geometry = this->GetGeometry();
-    const unsigned int number_of_gauss_points = r_geometry.IntegrationPointsNumber(IntMethod);
+    const unsigned int number_of_gauss_points = r_geometry.IntegrationPointsNumber(integration_method);
 
     Vector DetJ;
-    r_geometry.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,IntMethod);
+    r_geometry.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,integration_method);
 
     if (rNContainer.size1() != number_of_gauss_points || rNContainer.size2() != NumNodes) {
         rNContainer.resize(number_of_gauss_points,NumNodes,false);
     }
-    rNContainer = r_geometry.ShapeFunctionsValues(IntMethod);
+    rNContainer = r_geometry.ShapeFunctionsValues(integration_method);
 
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = r_geometry.IntegrationPoints(IntMethod);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = r_geometry.IntegrationPoints(integration_method);
 
     if (rGaussWeights.size() != number_of_gauss_points) {
         rGaussWeights.resize(number_of_gauss_points,false);
@@ -465,170 +531,7 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
 template< class TElementData >
 double FluidElement<TElementData>::ElementSize() const
 {
-    KRATOS_TRY;
-    const GeometryType& rGeom = this->GetGeometry();
-    GeometryData::KratosGeometryFamily GeoFamily = rGeom.GetGeometryFamily();
-
-    switch (GeoFamily)
-    {
-    case GeometryData::Kratos_Triangle:
-    {
-        /* Calculate node-edge distances */
-        double x10 = rGeom[1].X() - rGeom[0].X();
-        double y10 = rGeom[1].Y() - rGeom[0].Y();
-
-        double x20 = rGeom[2].X() - rGeom[0].X();
-        double y20 = rGeom[2].Y() - rGeom[0].Y();
-
-        // node 0, edge 12
-        double nx = -(y20-y10);
-        double ny = x20-x10;
-        double Hsq = x10*nx + y10*ny;
-        Hsq *= Hsq / (nx*nx + ny*ny);
-
-        // node 1, edge 20
-        nx = -y20;
-        ny = x20;
-        double hsq = x10*nx + y10*ny;
-        hsq *= hsq / (nx*nx + ny*ny);
-        Hsq = ( hsq < Hsq ) ? hsq : Hsq;
-
-        // node 2, edge 10
-        nx = -y10;
-        ny = x10;
-        hsq = x20*nx + y20*ny;
-        hsq *= hsq / (nx*nx + ny*ny);
-        Hsq = ( hsq < Hsq ) ? hsq : Hsq;
-        return std::sqrt(Hsq);
-    }
-    case GeometryData::Kratos_Quadrilateral:
-    {
-        /* Calculate node-edge distances, assuming parallel faces */
-        double x10 = rGeom[1].X() - rGeom[0].X();
-        double y10 = rGeom[1].Y() - rGeom[0].Y();
-
-        double x20 = rGeom[2].X() - rGeom[0].X();
-        double y20 = rGeom[2].Y() - rGeom[0].Y();
-
-        double x30 = rGeom[3].X() - rGeom[0].X();
-        double y30 = rGeom[3].Y() - rGeom[0].Y();
-
-        // node 0, edge 12
-        double nx = -(y20-y10);
-        double ny = x20-y10;
-        double Hsq = x10*nx + y10*ny;
-        Hsq *= Hsq / std::sqrt(nx*nx + ny*ny);
-
-        // node 0, edge 23
-        nx = -(y30-y20);
-        ny = x30-y20;
-        double hsq = x20*nx + y20*ny;
-        hsq *= hsq / (nx*nx + ny*ny);
-        Hsq = ( hsq < Hsq ) ? hsq : Hsq;
-        return std::sqrt(Hsq);
-    }
-    case GeometryData::Kratos_Tetrahedra:
-    {
-        /* Calculate distances between each node and the opposite face */
-        double x10 = rGeom[1].X() - rGeom[0].X();
-        double y10 = rGeom[1].Y() - rGeom[0].Y();
-        double z10 = rGeom[1].Z() - rGeom[0].Z();
-
-        double x20 = rGeom[2].X() - rGeom[0].X();
-        double y20 = rGeom[2].Y() - rGeom[0].Y();
-        double z20 = rGeom[2].Z() - rGeom[0].Z();
-
-        double x30 = rGeom[3].X() - rGeom[0].X();
-        double y30 = rGeom[3].Y() - rGeom[0].Y();
-        double z30 = rGeom[3].Z() - rGeom[0].Z();
-
-        // face 123
-        double nx = (y30-y10)*(z20-z10) - (z30-z10)*(y20-y10);
-        double ny = (z30-z10)*(x20-x10) - (x30-x10)*(z20-z10);
-        double nz = (x30-x10)*(y20-y10) - (y30-y10)*(x20-x10);
-        double Hsq = x10*nx + y10*ny + z10*nz; // scalar product x10*n
-        Hsq *= Hsq / (nx*nx + ny*ny + nz*nz); // H^2 = (x10*n)^2 / ||n||^2
-
-        // face 230
-        nx = y30*z20 - z30*y20;
-        ny = z30*x20 - x30*z20;
-        nz = x30*y20 - y30*x20;
-        double hsq = x10*nx + y10*ny + z10*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-
-        // face 301
-        nx = y10*z30 - z10*y30;
-        ny = z10*x30 - x10*z30;
-        nz = x10*y30 - y10*x30;
-        hsq = x20*nx + y20*ny + z20*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-
-        // face 012
-        nx = y10*z20 - z10*y20;
-        ny = z10*x20 - x10*z20;
-        nz = x10*y20 - y10*x20;
-        hsq = x30*nx + y30*ny + z30*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-        return std::sqrt(Hsq);
-    }
-    case GeometryData::Kratos_Hexahedra:
-    {
-        /* Numbering assumes bottom face nodes 0123, top nodes 4567
-         * considering the distance between a few face--node pairs:
-         * face node
-         *  034  1
-         *  014  3
-         *  013  4
-         * This assumes parallel faces!
-         * (otherwise all nodes should be checked against opposite faces)
-         */
-        double x10 = rGeom[1].X() - rGeom[0].X();
-        double y10 = rGeom[1].Y() - rGeom[0].Y();
-        double z10 = rGeom[1].Z() - rGeom[0].Z();
-
-        double x30 = rGeom[3].X() - rGeom[0].X();
-        double y30 = rGeom[3].Y() - rGeom[0].Y();
-        double z30 = rGeom[3].Z() - rGeom[0].Z();
-
-        double x40 = rGeom[4].X() - rGeom[0].X();
-        double y40 = rGeom[4].Y() - rGeom[0].Y();
-        double z40 = rGeom[4].Z() - rGeom[0].Z();
-
-
-        // Face 034
-        double nx = y30*z40 - z30*y40;
-        double ny = z30*x40 - x30*z40;
-        double nz = x30*y40 - y30*x40;
-        double Hsq = x10*nx + y10*ny + z10*nz; // scalar product x10*n
-        Hsq *= Hsq / (nx*nx + ny*ny + nz*nz); // H^2 = (x10*n)^2 / ||n||^2
-
-        // face 014
-        nx = y10*z40 - z10*y40;
-        ny = z10*x40 - x10*z40;
-        nz = x10*y40 - y10*x40;
-        double hsq = x30*nx + y30*ny + z30*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-
-        // face 013
-        nx = y10*z30 - z10*y30;
-        ny = z10*x30 - x10*z30;
-        nz = x10*y30 - y10*x30;
-        hsq = x40*nx + y40*ny + z40*nz;
-        hsq *= hsq / (nx*nx + ny*ny + nz*nz);
-        Hsq = (hsq < Hsq) ? hsq : Hsq;
-        return std::sqrt(Hsq);
-    }
-    default:
-    {
-        KRATOS_ERROR << "FluidElement::ElementSize not implemented for this geometry type" << std::endl;
-        return 0;
-    }
-    }
-    KRATOS_CATCH("");
+    return ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -714,6 +617,20 @@ void FluidElement<TElementData>::AddMassLHS(
 }
 
 template <class TElementData>
+void FluidElement<TElementData>::AddBoundaryIntegral(TElementData& rData,
+    const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
+
+    KRATOS_TRY;
+
+    KRATOS_ERROR << "Calling base FluidElement::AddBoundaryIntegral "
+                    "implementation. This method is not supported by your "
+                    "element."
+                 << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+template <class TElementData>
 void FluidElement<TElementData>::GetCurrentValuesVector(
     const TElementData& rData,
     array_1d<double,LocalSize>& rValues) const {
@@ -758,6 +675,17 @@ void FluidElement<TElementData>::IntegrationPointVorticity(
     }
 }
 
+template< class TElementData >
+ConstitutiveLaw::Pointer FluidElement<TElementData>::GetConstitutiveLaw() {
+    return this->mpConstitutiveLaw;
+}
+
+template< class TElementData >
+const ConstitutiveLaw::Pointer FluidElement<TElementData>::GetConstitutiveLaw() const {
+    return this->mpConstitutiveLaw;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -768,6 +696,7 @@ template< class TElementData >
 void FluidElement<TElementData>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+    rSerializer.save("mpConstitutiveLaw",this->mpConstitutiveLaw);
 }
 
 
@@ -775,7 +704,45 @@ template< class TElementData >
 void FluidElement<TElementData>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    rSerializer.load("mpConstitutiveLaw",this->mpConstitutiveLaw);
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace Internals {
+
+template< class TElementData >
+void StrainRateSpecialization<TElementData,2>::Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX) {
+
+    noalias(rStrainRate) = ZeroVector(3);
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
+        rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
+        rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
+        rStrainRate[2] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
+    }
+}
+
+template< class TElementData >
+void StrainRateSpecialization<TElementData,3>::Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX) {
+
+    noalias(rStrainRate) = ZeroVector(6);
+    for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
+        rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
+        rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
+        rStrainRate[2] += rDNDX(i,2)*rVelocities(i,2);
+        rStrainRate[4] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
+        rStrainRate[5] += rDNDX(i,1)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,1);
+        rStrainRate[6] += rDNDX(i,0)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,0);
+    }
+}
+
+} // namespace Internals
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
@@ -785,6 +752,9 @@ template class FluidElement< SymbolicNavierStokesData<3,4> >;
 
 template class FluidElement< QSVMSData<2,3> >;
 template class FluidElement< QSVMSData<3,4> >;
+
+template class FluidElement< QSVMSData<2,4> >;
+template class FluidElement< QSVMSData<3,8> >;
 
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;

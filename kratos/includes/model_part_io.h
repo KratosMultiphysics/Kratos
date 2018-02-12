@@ -78,6 +78,9 @@ public:
     typedef std::vector<std::ostream*>            OutputFilesContainerType;
     typedef std::size_t                           SizeType;
 
+    // Prevents this class from hidding IO::WriteProperties(Properties)
+    using BaseType::WriteProperties;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -86,7 +89,7 @@ public:
     ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
     /// Constructor with stream.
-    ModelPartIO(boost::shared_ptr<std::iostream> Stream);
+    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream);
 
 
     /// Constructor with filenames.
@@ -135,7 +138,7 @@ public:
 
     std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
-    virtual void WriteConditions(ConditionsContainerType const& rThisConditions);
+    virtual void WriteConditions(ConditionsContainerType const& rThisConditions) override;
 
     void ReadInitialValues(ModelPart& rThisModelPart) override;
 
@@ -174,7 +177,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
-    void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
+    void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * Streams,
                                          SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,
@@ -183,7 +186,7 @@ public:
                                          PartitionIndicesContainerType const& ElementsAllPartitions,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions) override;
 
-    void SwapStreamSource(boost::shared_ptr<std::iostream> newStream);
+    void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
 
 
     ///@}
@@ -281,7 +284,7 @@ protected:
     std::string mFilename;
     Flags mOptions;
 
-    boost::shared_ptr<std::iostream> mpStream;
+    Kratos::shared_ptr<std::iostream> mpStream;
 
 
     ///@}

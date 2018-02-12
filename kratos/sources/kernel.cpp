@@ -16,7 +16,7 @@
 #include "input_output/logger.h"
 
 namespace Kratos {
-Kernel::Kernel() : mpKratosCoreApplication(boost::make_shared<KratosApplication>(
+Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))) {
     std::cout << " |  /           |             " << std::endl;
     std::cout << " ' /   __| _` | __|  _ \\   __|" << std::endl;

@@ -7,7 +7,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import Kratos_Execute_Structural_Test as Execute_Test
 
-# This utiltiy will control the execution scope in case we need to acces files or we depend
+# This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
 # TODO: Should we move this to KratosUnittest?
@@ -51,3 +51,39 @@ class PendulusTLTest(StructuralMechanichsTestFactory):
     
 class PendulusULTest(StructuralMechanichsTestFactory):
     file_name = "pendulus_test/pendulus_UL_test"
+
+class ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_scordelis_lo_roof"
+
+class ShellT3AndQ4LinearStaticUnstructUnstructPinchedCylinderTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_pinched_cylinder"
+
+class ShellT3AndQ4LinearStaticUnstructPinchedHemisphereTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_pinched_hemisphere"
+
+class ShellT3AndQ4LinearStaticUnstructClampedCylinderOrthotropicTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_clamped_cylinder_orthotropic"
+
+class ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough"
+
+class ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnapthroughOrthotropicTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_static_unstruct_hinged_cyl_roof_snapthrough_orthotropic"
+
+class ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_oscillating_plate"
+
+class ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_oscillating_plate_lumped"
+
+class ShellT3AndQ4NonLinearDynamicStructPendulusTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_pendulus"
+
+class ShellT3AndQ4NonLinearDynamicStructPendulusLumpedTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_struct_pendulus_lumped"
+
+class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus"
+
+class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanichsTestFactory):
+    file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
