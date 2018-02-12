@@ -16,9 +16,9 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 import navier_stokes_solver_fractionalstep
 
 def CreateSolver(main_model_part, custom_settings):
-    return Trilinos_NavierStokesSolver_FractionalStep(main_model_part, custom_settings)
+    return TrilinosNavierStokesSolverFractionalStep(main_model_part, custom_settings)
 
-class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolver_FractionalStep):
+class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolverFractionalStep):
 
     def __init__(self, main_model_part, custom_settings):
 
@@ -28,7 +28,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         ## Default settings string in Json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "trilinos_navier_stokes_solver_fractionalstep",
+            "solver_type": "FractionalStep",
             "model_import_settings": {
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
@@ -91,18 +91,21 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         self.element_name = "FractionalStep"
         self.condition_name = "WallCondition"
 
-        print("Construction of Trilinos_NavierStokesSolver_FractionalStep finished")
+        if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            print("Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
 
 
     def AddVariables(self):
         ## Add variables from the base class
-        super(Trilinos_NavierStokesSolver_FractionalStep, self).AddVariables()
+        super(TrilinosNavierStokesSolverFractionalStep, self).AddVariables()
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         KratosMPI.mpi.world.barrier()
 
         if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             print("variables for the trilinos fractional step solver added correctly")
 
 
@@ -115,23 +118,26 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
 
         ## Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(Trilinos_NavierStokesSolver_FractionalStep, self)._execute_after_reading()
+        super(TrilinosNavierStokesSolverFractionalStep, self)._execute_after_reading()
 
         ## Call the base class set buffer size
-        super(Trilinos_NavierStokesSolver_FractionalStep, self)._set_buffer_size()
+        super(TrilinosNavierStokesSolverFractionalStep, self)._set_buffer_size()
 
         ## Construct the communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
-        print ("MPI model reading finished.")
+        if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            print ("MPI model reading finished.")
 
 
     def AddDofs(self):
         ## Base class DOFs addition
-        super(Trilinos_NavierStokesSolver_FractionalStep, self).AddDofs()
+        super(TrilinosNavierStokesSolverFractionalStep, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
         if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             print("DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
 
@@ -189,4 +195,6 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         (self.solver).Initialize()
         (self.solver).Check()
 
-        print ("Initialization Trilinos_NavierStokesSolver_FractionalStep Finished")
+        if (KratosMPI.mpi.rank == 0):
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            print ("Initialization TrilinosNavierStokesSolverFractionalStep finished")

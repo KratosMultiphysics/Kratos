@@ -13,9 +13,9 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import navier_stokes_base_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesSolver_VMSMonolithic(main_model_part, custom_settings)
+    return NavierStokesSolverMonolithic(main_model_part, custom_settings)
 
-class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBaseSolver):
+class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSolver):
 
     def __init__(self, main_model_part, custom_settings):
 
@@ -73,7 +73,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
         self.element_name = "VMS"
         self.condition_name = "MonolithicWallCondition"
 
-        print("Construction of NavierStokesSolver_VMSMonolithic finished")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Construction of NavierStokesSolverMonolithic finished.")
 
 
     def AddVariables(self):
@@ -98,8 +98,7 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
-        print("Monolithic fluid solver variables added correctly")
-
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
 
     def Initialize(self):
 
@@ -155,11 +154,11 @@ class NavierStokesSolver_VMSMonolithic(navier_stokes_base_solver.NavierStokesBas
 
         (self.solver).Initialize()
 
-        print ("Monolithic solver initialization finished.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished.")
 
 
     def _execute_after_reading(self):
-        super(NavierStokesSolver_VMSMonolithic, self)._execute_after_reading()
+        super(NavierStokesSolverMonolithic, self)._execute_after_reading()
 
         # Read the KINEMATIC VISCOSITY
         for el in self.main_model_part.Elements:

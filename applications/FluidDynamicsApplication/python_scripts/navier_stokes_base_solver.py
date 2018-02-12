@@ -19,7 +19,7 @@ class NavierStokesBaseSolver(object):
         self.element_name = None
         self.condition_name = None
 
-        print("Construction of NavierStokesBaseSolver finished")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Construction of NavierStokesBaseSolver finished.")
 
     def AddVariables(self):
         raise Exception("Trying to add Navier-Stokes base solver variables. Implement the AddVariables() method in the specific derived solver.")
@@ -32,14 +32,14 @@ class NavierStokesBaseSolver(object):
         ## Set buffer size
         self._set_buffer_size()
 
-        print ("Base class model reading finished.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model reading finished.")
 
     def ExportModelPart(self):
         ## Model part writing
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
-        print ("Base class model export finished.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model export finished.")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.REACTION_X,self.main_model_part)
@@ -47,7 +47,7 @@ class NavierStokesBaseSolver(object):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
-        print("Base class fluid solver DOFs added correctly.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Fluid solver DOFs added correctly.")
 
     def AdaptMesh(self):
         pass
@@ -113,7 +113,7 @@ class NavierStokesBaseSolver(object):
                 tmp = KratosMultiphysics.Parameters("{}")
                 KratosMultiphysics.ReorderAndOptimizeModelPartProcess(self.main_model_part, tmp).Execute()
         else:
-            raise Exception("Other input options are not yet implemented.")
+            raise Exception("Other input options are not implemented yet.")
 
     def _execute_after_reading(self):
         ## Replace element and conditions

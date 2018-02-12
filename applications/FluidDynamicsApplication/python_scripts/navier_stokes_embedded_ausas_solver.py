@@ -78,7 +78,7 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
             self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
-        print("Construction of NavierStokesEmbeddedAusasSolver finished.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedAusasMonolithicSolver", "Construction of NavierStokesEmbeddedAusasMonolithicSolver finished.")
 
 
     def Initialize(self):
@@ -92,7 +92,8 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
             self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part,
                                                                                                number_of_avg_elems,
                                                                                                number_of_avg_nodes)
-        print ("Monolithic embedded Ausas fluid solver initialization finished.")
+
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedAusasMonolithicSolver", "Solver initialization finished.")
 
 
     def InitializeSolutionStep(self):

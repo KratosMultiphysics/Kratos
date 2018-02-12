@@ -13,9 +13,9 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import navier_stokes_base_solver
 
 def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesSolver_FractionalStep(main_model_part, custom_settings)
+    return NavierStokesSolverFractionalStep(main_model_part, custom_settings)
 
-class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBaseSolver):
+class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBaseSolver):
 
     def __init__(self, main_model_part, custom_settings):
 
@@ -25,7 +25,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "navier_stokes_solver_fractionalstep",
+            "solver_type": "FractionalStep",
             "model_import_settings": {
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
@@ -97,7 +97,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
         self.element_name = "FractionalStep"
         self.condition_name = "WallCondition"
 
-        print("Construction of NavierStokesSolver_FractionalStep finished.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Construction of NavierStokesSolverFractionalStep solver finished.")
 
 
     def AddVariables(self):
@@ -126,7 +126,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONV_PROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
-        print("Fractional step fluid solver variables added correctly")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
 
 
     def Initialize(self):
@@ -184,7 +184,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
 
         (self.solver).Initialize()
 
-        print ("Initialization NavierStokesSolver_FractionalStep finished.")
+        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished."))
 
 
     def FinalizeSolutionStep(self):
@@ -203,7 +203,7 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
 
 
     def _execute_after_reading(self):
-        super(NavierStokesSolver_FractionalStep, self)._execute_after_reading()
+        super(NavierStokesSolverFractionalStep, self)._execute_after_reading()
 
         # Read the KINEMATIC VISCOSITY
         for el in self.main_model_part.Elements:

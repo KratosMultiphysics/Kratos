@@ -16,9 +16,9 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosCFD     # Fluid dyna
 import navier_stokes_solver_vmsmonolithic
 
 def CreateSolver(main_model_part, custom_settings):
-    return NavierStokesMPISolver_VMSMonolithic(main_model_part, custom_settings)
+    return TrilinosNavierStokesSolverMonolithic(main_model_part, custom_settings)
 
-class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolver_VMSMonolithic):
+class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
     def __init__(self, main_model_part, custom_settings):
 
@@ -83,18 +83,21 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
         self.element_name = "VMS"
         self.condition_name = "MonolithicWallCondition"
 
-        print("Construction of NavierStokesMPISolver_VMSMonolithic finished.")
+        if (KratosMPI.mpi.rank == 0):
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            print("Construction of TrilinosNavierStokesSolverMonolithic finished.")
 
 
     def AddVariables(self):
         ## Add variables from the base class
-        super(NavierStokesMPISolver_VMSMonolithic, self).AddVariables()
+        super(TrilinosNavierStokesSolverMonolithic, self).AddVariables()
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         KratosMPI.mpi.world.barrier()
 
         if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             print("Variables for the VMS fluid Trilinos solver added correctly in each processor.")
 
 
@@ -107,23 +110,26 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
 
         # Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(NavierStokesMPISolver_VMSMonolithic, self)._execute_after_reading()
+        super(TrilinosNavierStokesSolverMonolithic, self)._execute_after_reading()
 
         # Call the base class set buffer size
-        super(NavierStokesMPISolver_VMSMonolithic, self)._set_buffer_size()
+        super(TrilinosNavierStokesSolverMonolithic, self)._set_buffer_size()
 
         # Construct the communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
-        print ("MPI model reading finished.")
+        if (KratosMPI.mpi.rank == 0):
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            print ("MPI model reading finished.")
 
 
     def AddDofs(self):
         ## Base class DOFs addition
-        super(NavierStokesMPISolver_VMSMonolithic, self).AddDofs()
+        super(TrilinosNavierStokesSolverMonolithic, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
         if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             print("DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
 
@@ -193,4 +199,6 @@ class NavierStokesMPISolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.Nav
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
-        print ("Monolithic MPI solver initialization finished.")
+        if (KratosMPI.mpi.rank == 0):
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            print ("Monolithic MPI solver initialization finished.")
