@@ -29,16 +29,18 @@ class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolv
         return linear_solver
 
     def _create_mesh_motion_solver(self):
-        domain_size = self.model_part.ProcessInfo[DOMAIN_SIZE]
         linear_solver = self.get_linear_solver()
-        time_order = self.settings("time_order").GetInt()
-        reform_dofs_each_step = self.settings("reform_dofs_each_step").GetBool()
-        comm = self.get_communicator()
+        time_order = self.settings["time_order"].GetInt()
+        reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
+        compute_reactions = self.settings["compute_reactions"].GetBool()
+        echo_level = self.settings["echo_level"].GetInt()
+        communicator = self.get_communicator()
         solver = TrilinosApplication.TrilinosLaplacianMeshMovingStrategy(
-            comm,
-            self.model_part, 
-            linear_solver, 
-            domain_size,
-            time_order, 
-            reform_dof_at_every_step)
+            communicator,
+            self.mesh_model_part,
+            linear_solver,
+            time_order,
+            reform_dofs_each_step,
+            compute_reactions,
+            echo_level)
         return solver

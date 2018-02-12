@@ -40,7 +40,7 @@ class MainKratos:
         #    self.gid_output = GiDOutputProcessMPI(self.solver.GetComputingModelPart(),
         #                                          self.ProjectParameters["problem_data"]["problem_name"].GetString(),
         #                                          self.ProjectParameters["output_configuration"])
-        #self.gid_output.ExecuteInitialize() 
+        #self.gid_output.ExecuteInitialize()
 ##---------------------
 
         self.Model = Model()
