@@ -43,17 +43,17 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(ImplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        print("::[ImplicitMechanicalSolver]:: Construction finished")
+        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         super(ImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
-        print("::[ImplicitMechanicalSolver]:: Variables ADDED")
+        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "Variables ADDED")
     
     def AddDofs(self):
         super(ImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
-        print("::[ImplicitMechanicalSolver]:: DOF's ADDED")
+        self.print_on_rank_zero("::[ImplicitMechanicalSolver]:: ", "DOF's ADDED")
 
     #### Private functions ####
 

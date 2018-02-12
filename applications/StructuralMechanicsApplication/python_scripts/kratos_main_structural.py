@@ -57,9 +57,11 @@ StructureModel.AddModelPart(main_model_part)
 
 ## Print model_part and properties
 if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
-    Logger.PrintInfo(main_model_part)
+    Logger.PrintInfo("ModelPart", main_model_part)
+    count = 0
     for properties in main_model_part.Properties:
-        Logger.PrintInfo(properties)
+        count += 1
+        Logger.PrintInfo("Property " + str(count), properties)
 
 ## Processes construction
 import process_factory
@@ -71,8 +73,10 @@ if (ProjectParameters.Has("json_output_process") == True):
     list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["json_output_process"])
 
 if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
+    count = 0
     for process in list_of_processes:
-        Logger.PrintInfo(process)
+        count += 1
+        Logger.PrintInfo("Process " + str(count), process)
 
 ## Processes initialization
 for process in list_of_processes:
@@ -102,6 +106,9 @@ end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 time = start_time
 main_model_part.ProcessInfo[STEP] = 0
 
+if (parallel_type == "OpenMP") or (mpi.rank == 0):
+    Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
+
 # Solving the problem (time integration)
 while(time <= end_time):
 
@@ -110,9 +117,8 @@ while(time <= end_time):
     main_model_part.CloneTimeStep(time)
 
     if (parallel_type == "OpenMP") or (mpi.rank == 0):
-        Logger.PrintInfo("")
-        Logger.PrintInfo("STEP = "+str(main_model_part.ProcessInfo[STEP]))
-        Logger.PrintInfo("TIME = "+str(time))
+        Logger.PrintInfo("STEP", str(main_model_part.ProcessInfo[STEP]))
+        Logger.PrintInfo("TIME", str(time))
 
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
@@ -144,4 +150,4 @@ if (output_post == True):
     gid_output.ExecuteFinalize()
 
 if (parallel_type == "OpenMP") or (mpi.rank == 0):
-    Logger.PrintInfo("::[KSM Simulation]:: Analysis -END- ")
+    Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")

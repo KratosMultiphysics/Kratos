@@ -45,7 +45,7 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, structural_settings)
-        print("::[EigenSolver]:: Construction finished")
+        self.print_on_rank_zero("::[EigenSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
