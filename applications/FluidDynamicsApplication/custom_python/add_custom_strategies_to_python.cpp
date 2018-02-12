@@ -37,6 +37,8 @@
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent_no_reaction.h"
 #include "custom_strategies/strategies/gear_scheme.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "custom_strategies/strategies/incrementalupdate_static_scheme_tait.h"
 
 // convergence criteria
 #include "custom_strategies/convergence_criteria/vel_pr_criteria.h"
@@ -120,6 +122,12 @@ void  AddCustomStrategiesToPython()
             .def(init< Process::Pointer >()) // constructor passing a turbulence model
             ;
 
+    class_< IncrementalUpdateStaticSchemeTait< SparseSpaceType, LocalSpaceType >,
+            bases< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType > >,  boost::noncopyable >
+            ("IncrementalUpdateStaticSchemeTait",init<int>()) 
+            ;
+
+            
 	// Convergence criteria
     class_< VelPrCriteria< SparseSpaceType, LocalSpaceType >,
             bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
