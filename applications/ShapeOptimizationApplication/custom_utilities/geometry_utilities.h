@@ -171,20 +171,6 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void UpdateShapeChangeByInputVariable( const Variable<array_3d> &rNodalVariable )
-    {
-        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
-        {
-            array_3d& variable_update = node_i->FastGetSolutionStepValue(rNodalVariable);                
-           
-            node_i->X() += variable_update[0];
-            node_i->Y() += variable_update[1];
-            node_i->Z() += variable_update[2];
-            noalias(node_i->FastGetSolutionStepValue(SHAPE_CHANGE)) += variable_update;
-        }
-    }
-
-    // --------------------------------------------------------------------------
     void ExtractSurfaceNodes( std::string const& NewSubModelPartName )
     {
     	KRATOS_TRY;

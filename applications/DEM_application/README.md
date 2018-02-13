@@ -75,7 +75,6 @@ The standard translational and rotational equations for the motion of rigid bodi
 * Forward Euler Scheme
 * Taylor scheme
 * Verlet Velocity Scheme
-* Newmark Beta Method Scheme
 
 ### Contact search
 

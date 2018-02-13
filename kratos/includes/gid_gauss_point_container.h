@@ -299,7 +299,8 @@ public:
         {
             //WriteGaussPoints(ResultFile);
             GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), (char *)("Kratos"), SolutionTag,
-                             GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+                             GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
+
             std::vector<Vector> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
             {
@@ -313,9 +314,12 @@ public:
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
-                            if( ValuesOnIntPoint[0].size() == 3 )
-                                GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                                 ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
+                            const auto& values = ValuesOnIntPoint[index];
+                            if (values.size() ==3 )
+                                GiD_fWrite2DMatrix(ResultFile, it->Id(), values[0], values[1], values[2]);
+                            else if (values.size() == 6 )
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), values[0], values[1], values[2],
+                                    values[3], values[4], values[5] );
                         }
                     }
                 }
@@ -332,9 +336,12 @@ public:
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
-                            if( ValuesOnIntPoint[0].size() == 3 )
-                                GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
-                                                 ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
+                            const auto& values = ValuesOnIntPoint[index];
+                            if (values.size() ==3 )
+                                GiD_fWrite2DMatrix(ResultFile, it->Id(), values[0], values[1], values[2]);
+                            else if (values.size() == 6 )
+                                GiD_fWrite3DMatrix( ResultFile, it->Id(), values[0], values[1], values[2],
+                                    values[3], values[4], values[5] );
                         }
                     }                 
                 }

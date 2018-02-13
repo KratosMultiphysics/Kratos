@@ -22,6 +22,8 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/kratos_components.h"
+#include "includes/geometrical_object.h"
 
 namespace Kratos
 {
@@ -37,28 +39,42 @@ public:
     ///@name Operations
     ///@{
 
-    inline static bool IsSame(const Element& rLHS, const Element& rRHS)
-    {
-        return (typeid(rLHS) == typeid(rRHS) &&
-            rLHS.GetGeometry().GetGeometryType() == rRHS.GetGeometry().GetGeometryType());
+    static void GetRegisteredName(const Element& rElement, std::string& rName) {
+        KRATOS_TRY;
+
+        for(auto const& component: KratosComponents<Element>::GetComponents()) {
+            if (GeometricalObject::IsSame(*(component.second), rElement)) {
+                rName = component.first;
+                return;
+            }
+        }
+
+        KRATOS_ERROR << "Element \"" << typeid(rElement).name() << "\" not found!" << std::endl;
+
+        KRATOS_CATCH("");
     }
 
-    inline static bool IsSame(const Condition& rLHS, const Condition& rRHS)
-    {
-        return (typeid(rLHS) == typeid(rRHS) &&
-            rLHS.GetGeometry().GetGeometryType() == rRHS.GetGeometry().GetGeometryType());
+    static void GetRegisteredName(const Element* rElement, std::string& rName) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*rElement, rName);
     }
 
-    inline static bool IsSame(const Element* pLHS, const Element* pRHS)
-    {
-        return (typeid(*pLHS) == typeid(*pRHS) &&
-            pLHS->GetGeometry().GetGeometryType() == pRHS->GetGeometry().GetGeometryType());
+    static void GetRegisteredName(const Condition& rCondition, std::string& rName) {
+        KRATOS_TRY;
+
+        for(auto const& component: KratosComponents<Condition>::GetComponents()) {
+            if (GeometricalObject::IsSame(*(component.second), rCondition)) {
+                rName = component.first;
+                return;
+            }
+        }
+
+        KRATOS_ERROR << "Condition \"" << typeid(rCondition).name() << "\" not found!" << std::endl;
+
+        KRATOS_CATCH("");
     }
 
-    inline static bool IsSame(const Condition* pLHS, const Condition* pRHS)
-    {
-        return (typeid(*pLHS) == typeid(*pRHS) &&
-            pLHS->GetGeometry().GetGeometryType() == pRHS->GetGeometry().GetGeometryType());
+    static void GetRegisteredName(const Condition* rCondition, std::string& rName) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(*rCondition, rName);
     }
 
     ///@}

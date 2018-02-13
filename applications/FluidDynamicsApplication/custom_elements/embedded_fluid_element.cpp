@@ -1,8 +1,11 @@
+#include "includes/kratos_flags.h"
+
 #include "custom_elements/embedded_fluid_element.h"
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/symbolic_navier_stokes.h"
 
 #include "custom_utilities/embedded_data.h"
+#include "custom_utilities/element_size_calculator.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 
@@ -102,12 +105,20 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
                 rLeftHandSideMatrix, rRightHandSideVector);
         }
 
-        // First, compute and assemble the penalty level set BC imposition contribution
-        // Secondly, compute and assemble the modified Nitche method level set BC imposition contribution (Codina and Baiges, 2009)
-        // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous constributions
-        AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-        DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-        AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+        if (this->Is(SLIP)){
+            // Nitsche Navier-Slip boundary condition implementation (Winter, 2018)
+            AddSlipNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddSlipNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+            AddSlipTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddSlipTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+        } else {
+            // First, compute and assemble the penalty level set BC imposition contribution
+            // Secondly, compute and assemble the modified Nitsche method level set BC imposition contribution (Codina and Baiges, 2009)
+            // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous constributions
+            AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+        }
     }
 }
 
@@ -231,14 +242,396 @@ void EmbeddedFluidElement<TBaseElement>::NormalizeInterfaceNormals(
 }
 
 template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const EmbeddedElementData& rData) const {
+
+    // Obtain the previous iteration velocity solution
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData,values);
+
+    // If there is embedded velocity, substract it to the previous iteration solution
+    if (this->Has(EMBEDDED_VELOCITY)) {
+        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+        array_1d<double, LocalSize> embedded_vel_exp(LocalSize, 0.0);
+
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            for (unsigned int comp = 0; comp < Dim; ++comp) {
+                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
+            }
+        }
+
+        noalias(values) -= embedded_vel_exp;
+    }
+
+    // Compute the Nitsche normal imposition penalty coefficient
+    const double pen_coef = this->ComputeSlipNormalPenaltyCoefficient(rData);
+
+    // Compute LHS contribution
+    // bounded_matrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
+    const unsigned int number_of_integration_points = rData.PositiveInterfaceWeights.size();
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        // Get the Gauss pt. data
+        const double weight = rData.PositiveInterfaceWeights[g];
+        const auto aux_N = row(rData.PositiveInterfaceN, g);
+        const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
+
+        // Compute the Gauss pt. LHS contribution
+        for (unsigned int i = 0; i < NumNodes; ++i){
+            for (unsigned int j = 0; j < NumNodes; ++j){
+                for (unsigned int m = 0; m < Dim; ++m){
+                    const unsigned int row = i * BlockSize + m;
+                    for (unsigned int n = 0; n < Dim; ++n){
+                        const unsigned int col = j * BlockSize + n;
+                        rLHS(row, col) += pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j);
+                        rRHS(row) -= pen_coef*weight*aux_N(i)*aux_unit_normal(m)*aux_unit_normal(n)*aux_N(j)*values(col);
+                    }
+                }
+            }
+        }
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContribution(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const EmbeddedElementData& rData) const {
+    
+    // Obtain the previous iteration velocity solution
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData,values);
+
+    // If there is embedded velocity, substract it to the previous iteration solution
+    if (this->Has(EMBEDDED_VELOCITY)) {
+        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            for (unsigned int comp = 0; comp < Dim; ++comp) {
+                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
+            }
+        }
+
+        noalias(values) -= embedded_vel_exp;
+    }
+
+    // Set if the shear stress term is adjoint consistent (1.0) or not (-1.0)
+    const double adjoint_consistency = -1.0;
+
+    // Compute LHS contribution
+    bounded_matrix<double, LocalSize, LocalSize> aux_LHS = ZeroMatrix(LocalSize, LocalSize);
+    const unsigned int number_of_integration_points = rData.PositiveInterfaceWeights.size();
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        // Get the Gauss pt. data
+        const double weight = rData.PositiveInterfaceWeights[g];
+        const auto aux_N = row(rData.PositiveInterfaceN, g);
+        const bounded_matrix<double, NumNodes, Dim> &aux_DN_DX = rData.PositiveInterfaceDNDX[g];
+        const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
+
+        // Fill the pressure to Voigt notation operator normal projected matrix
+        bounded_matrix<double, LocalSize, Dim> trans_pres_to_voigt_matrix_normal_op = ZeroMatrix(LocalSize, Dim);
+        for (unsigned int i = 0; i < NumNodes; ++i){
+            for (unsigned int comp = 0; comp < Dim; ++comp){
+                trans_pres_to_voigt_matrix_normal_op(i*BlockSize + Dim, comp) = aux_N(i)*aux_unit_normal(comp);
+            }
+        }
+
+        // Set the shape functions auxiliar matrix
+        bounded_matrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
+        for (unsigned int i = 0; i < NumNodes; ++i){
+            for (unsigned int comp = 0; comp < Dim; ++comp){
+                N_mat(comp, i*BlockSize + comp) = aux_N(i);
+            }
+        }
+
+        // Set the current Gauss pt. strain matrix
+        bounded_matrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
+        FluidElementUtilities<NumNodes>::GetStrainMatrix(aux_DN_DX, B_matrix);
+
+        // Set the normal projection matrix (n x n)
+        bounded_matrix<double, Dim, Dim> normal_proj_matrix;
+        FluidElementUtilities<NumNodes>::SetNormalProjectionMatrix(aux_unit_normal, normal_proj_matrix);
+
+        // Get the normal projection matrix in Voigt notation
+        bounded_matrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+        FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+        // Compute some Gauss pt. auxiliar matrices
+        const bounded_matrix<double, LocalSize, StrainSize> aux_matrix_BC = prod(trans(B_matrix), trans(rData.C));
+        const bounded_matrix<double, StrainSize, Dim> aux_matrix_APnorm = prod(trans(voigt_normal_proj_matrix), normal_proj_matrix);
+        const bounded_matrix<double, LocalSize, Dim> aux_matrix_BCAPnorm = prod(aux_matrix_BC, aux_matrix_APnorm);
+
+        // Contribution coming fron the shear stress operator
+        noalias(aux_LHS) -= adjoint_consistency*weight*prod(aux_matrix_BCAPnorm, N_mat);
+
+        // Contribution coming from the pressure terms
+        const bounded_matrix<double, LocalSize, Dim> aux_matrix_VPnorm = prod(trans_pres_to_voigt_matrix_normal_op, normal_proj_matrix);
+        noalias(aux_LHS) -= weight*prod(aux_matrix_VPnorm, N_mat);
+    }
+
+    // LHS outside Nitsche contribution assembly
+    noalias(rLHS) += aux_LHS;
+
+    // RHS outside Nitsche contribution assembly
+    // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
+    noalias(rRHS) -= prod(aux_LHS, values);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const EmbeddedElementData& rData) const {
+    
+    // Obtain the previous iteration velocity solution
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData, values);
+
+    // Compute the Nitsche tangential imposition penalty coefficients
+    std::pair<const double, const double> pen_coefs = this->ComputeSlipTangentialPenaltyCoefficients(rData);
+
+    // Declare auxiliar arrays
+    bounded_matrix<double, LocalSize, LocalSize> aux_LHS_1 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution coming from the tangential component of the Cauchy stress vector
+    bounded_matrix<double, LocalSize, LocalSize> aux_LHS_2 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution generated by the viscous shear force generated by the velocity
+    const unsigned int number_of_integration_points = rData.PositiveInterfaceWeights.size();
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        // Get the Gauss pt. data
+        const double weight = rData.PositiveInterfaceWeights[g];
+        const auto aux_N = row(rData.PositiveInterfaceN, g);
+        const bounded_matrix<double, NumNodes, Dim> aux_DN_DX = rData.PositiveInterfaceDNDX[g];
+        const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
+
+        // Set the shape functions auxiliar matrices
+        bounded_matrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
+        for (unsigned int i = 0; i < NumNodes; ++i){
+            for (unsigned int comp = 0; comp < Dim; ++comp){
+                N_mat(comp, i*BlockSize + comp) = aux_N(i);
+            }
+        }
+        bounded_matrix<double, LocalSize, Dim> N_mat_trans = trans(N_mat);
+
+        // Set the tangential projection matrix (I - n x n)
+        bounded_matrix<double, Dim, Dim> tang_proj_matrix;
+        FluidElementUtilities<NumNodes>::SetTangentialProjectionMatrix(aux_unit_normal, tang_proj_matrix);
+
+        // Set the current Gauss pt. strain matrix
+        bounded_matrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
+        FluidElementUtilities<NumNodes>::GetStrainMatrix(aux_DN_DX, B_matrix);
+
+        // Get the normal projection matrix in Voigt notation
+        bounded_matrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+        FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+        // Compute some Gauss pt. auxiliar matrices
+        const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(rData.C, B_matrix);
+        const bounded_matrix<double, StrainSize, Dim> aux_matrix_PtangA = prod(tang_proj_matrix, voigt_normal_proj_matrix);
+        const bounded_matrix<double, LocalSize, Dim> aux_matrix_PtangACB = prod(aux_matrix_PtangA, aux_matrix_CB);
+
+        // Contribution coming from the traction vector tangencial component
+        noalias(aux_LHS_1) += pen_coefs.first*weight*prod(N_mat_trans, aux_matrix_PtangACB);
+
+        // Contribution coming from the shear force generated by the velocity jump
+        const bounded_matrix<double, LocalSize, Dim> aux_matrix_N_trans_tang = prod(N_mat_trans, tang_proj_matrix);
+        noalias(aux_LHS_2) += pen_coefs.second*weight*prod(aux_matrix_N_trans_tang, N_mat);
+    }
+
+    // LHS outside Nitsche contribution assembly
+    noalias(rLHS) += aux_LHS_1;
+    noalias(rLHS) += aux_LHS_2;
+
+    // RHS outside Nitsche contribution assembly
+    // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
+    noalias(rRHS) -= prod(aux_LHS_1, values);
+    noalias(rRHS) -= prod(aux_LHS_2, values);
+
+    // If level set velocity is not 0, add its contribution to the RHS
+    if (this->Has(EMBEDDED_VELOCITY)) {
+        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            for (unsigned int comp = 0; comp < Dim; ++comp) {
+                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
+            }
+        }
+        noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartContribution(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const EmbeddedElementData& rData) const {
+    
+    // Obtain the previous iteration velocity solution
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData, values);
+
+    // Set if the shear stress term is adjoint consistent (1.0) or not (-1.0)
+    const double adjoint_consistency = -1.0;
+
+    // Compute the coefficients
+    std::pair<const double, const double> nitsche_coefs = this->ComputeSlipTangentialNitscheCoefficients(rData);
+
+    // Declare auxiliar arrays
+    bounded_matrix<double, LocalSize, LocalSize> aux_LHS_1 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution coming from the tangential component of the Cauchy stress vector
+    bounded_matrix<double, LocalSize, LocalSize> aux_LHS_2 = ZeroMatrix(LocalSize, LocalSize); // Adds the contribution generated by the viscous shear force generated by the velocity
+
+    const unsigned int number_of_integration_points = rData.PositiveInterfaceWeights.size();
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        // Get the Gauss pt. data
+        const double weight = rData.PositiveInterfaceWeights[g];
+        const auto aux_N = row(rData.PositiveInterfaceN, g);
+        const bounded_matrix<double, NumNodes, Dim> aux_DN_DX = rData.PositiveInterfaceDNDX[g];
+        const auto &aux_unit_normal = rData.PositiveInterfaceUnitNormals[g];
+
+        // Set the shape functions auxiliar matrices
+        bounded_matrix<double, Dim, LocalSize> N_mat = ZeroMatrix(Dim, LocalSize);
+        for (unsigned int i = 0; i < NumNodes; ++i){
+            for (unsigned int comp = 0; comp < Dim; ++comp){
+                N_mat(comp, i*BlockSize + comp) = aux_N(i);
+            }
+        }
+
+        // Set the current Gauss pt. strain matrix
+        bounded_matrix<double, StrainSize, LocalSize> B_matrix = ZeroMatrix(StrainSize, LocalSize);
+        FluidElementUtilities<NumNodes>::GetStrainMatrix(aux_DN_DX, B_matrix);
+
+        // Set the tangential projection matrix (I - n x n)
+        bounded_matrix<double, Dim, Dim> tang_proj_matrix;
+        FluidElementUtilities<NumNodes>::SetTangentialProjectionMatrix(aux_unit_normal, tang_proj_matrix);
+
+        // Get the normal projection matrix in Voigt notation
+        bounded_matrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+        FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+        // Compute some Gauss pt. auxiliar matrices
+        const bounded_matrix<double, LocalSize, Dim> aux_matrix_BtransAtrans = prod(trans(B_matrix), trans(voigt_normal_proj_matrix));
+        const bounded_matrix<double, LocalSize, Dim> aux_matrix_BtransAtransPtan = prod(aux_matrix_BtransAtrans, tang_proj_matrix);
+        const bounded_matrix<double, StrainSize, LocalSize> aux_matrix_CB = prod(rData.C, B_matrix);
+        const bounded_matrix<double, Dim, LocalSize> aux_matrix_ACB = prod(voigt_normal_proj_matrix, aux_matrix_CB);
+        const bounded_matrix<double, LocalSize, LocalSize> aux_matrix_BtransAtransPtanACB = prod(aux_matrix_BtransAtransPtan, aux_matrix_ACB);
+
+        // Contribution coming from the traction vector tangencial component
+        noalias(aux_LHS_1) -= adjoint_consistency*nitsche_coefs.first*weight*aux_matrix_BtransAtransPtanACB;
+
+        // Contribution coming from the shear force generated by the velocity jump
+        noalias(aux_LHS_2) -= adjoint_consistency*nitsche_coefs.second*weight*prod(aux_matrix_BtransAtransPtan, N_mat);
+
+    }
+
+    // LHS outside Nitsche contribution assembly
+    noalias(rLHS) += aux_LHS_1;
+    noalias(rLHS) += aux_LHS_2;
+
+    // RHS outside Nitsche contribution assembly
+    // If level set velocity is not 0, add its contribution to the RHS
+    if (this->Has(EMBEDDED_VELOCITY)) {
+        const array_1d<double, 3 >& embedded_vel = this->GetValue(EMBEDDED_VELOCITY);
+        array_1d<double, LocalSize> embedded_vel_exp = ZeroVector(LocalSize);
+
+        for (unsigned int i = 0; i < NumNodes; ++i) {
+            for (unsigned int comp = 0; comp < Dim; ++comp) {
+                embedded_vel_exp(i*BlockSize + comp) = embedded_vel(comp);
+            }
+        }
+
+        noalias(rRHS) += prod(aux_LHS_2, embedded_vel_exp);
+    }
+
+    // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
+    noalias(rRHS) -= prod(aux_LHS_1, values);
+    noalias(rRHS) -= prod(aux_LHS_2, values);
+
+}
+
+template <class TBaseElement>
+double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
+    const EmbeddedElementData& rData) const {
+
+    // Compute the effective viscosity as the average of the lower diagonal constitutive tensor
+    // TODO: TO BE OBTAINED FROM THE CLAW ONCE JORDI FINISHES HIS IMPLEMENTATION
+    double eff_mu = rData.DynamicViscosity;
+
+    // Compute the element average velocity norm
+    double v_norm = 0.0;
+    for (unsigned int comp = 0; comp < Dim; ++comp){
+        double aux_vel = 0.0;
+        for (unsigned int j = 0; j < NumNodes; ++j){
+            aux_vel += rData.Velocity(j,comp);
+        }
+        aux_vel /= NumNodes;
+        v_norm += aux_vel*aux_vel;
+    }
+    v_norm = std::sqrt(v_norm);
+
+    // Compute the element average density
+    double avg_rho = rData.Density;
+
+    // Compute the Nitsche coefficient (including the Winter stabilization term)
+    const double h = ElementSizeCalculator<Dim,NumNodes>::GradientsElementSize(rData.DN_DX);
+    const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE
+    const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
+
+    return cons_coef;
+}
+
+template <class TBaseElement>
+std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialPenaltyCoefficients(
+    const EmbeddedElementData& rData) const {
+    
+    // Compute the effective viscosity as the average of the lower diagonal constitutive tensor
+    // TODO: TO BE OBTAINED FROM THE CLAW ONCE JORDI FINISHES HIS IMPLEMENTATION
+    double eff_mu = rData.DynamicViscosity;
+
+    const double penalty = 1.0/10.0;
+    const double slip_length = 1.0e+08;
+
+    const double h = ElementSizeCalculator<Dim, NumNodes>::GradientsElementSize(rData.DN_DX);
+    const double coeff_1 = slip_length / (slip_length + penalty*h);
+    const double coeff_2 = eff_mu / (slip_length + penalty*h);
+
+    std::pair<const double, const double> pen_coeffs(coeff_1, coeff_2);
+
+    return pen_coeffs;
+}
+
+template <class TBaseElement>
+std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialNitscheCoefficients(
+    const EmbeddedElementData& rData) const {
+    
+    // Compute the effective viscosity as the average of the lower diagonal constitutive tensor
+    // TODO: TO BE OBTAINED FROM THE CLAW ONCE JORDI FINISHES HIS IMPLEMENTATION
+    double eff_mu = rData.DynamicViscosity;
+
+    const double penalty = 1.0/10.0;
+    const double slip_length = 1.0e+08;
+
+    const double h = ElementSizeCalculator<Dim, NumNodes>::GradientsElementSize(rData.DN_DX);
+    const double coeff_1 = slip_length*penalty*h / (slip_length + penalty*h);
+    const double coeff_2 = eff_mu*penalty*h / (slip_length + penalty*h);
+
+    std::pair<const double, const double> pen_coeffs(coeff_1, coeff_2);
+
+    return pen_coeffs;
+}
+
+template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
     const EmbeddedElementData& rData) const {
     
+    // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
-    // Obtain the previous iteration velocity solution
 
     // Set the penalty matrix
     bounded_matrix<double,NumNodes,NumNodes> p_gamma = ZeroMatrix(NumNodes, NumNodes);
@@ -291,7 +684,6 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
 
     noalias(rRHS) -= prod(penalty_lhs, values); // Residual contribution assembly
 }
-
 
 template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
@@ -350,7 +742,6 @@ void EmbeddedFluidElement<TBaseElement>::DropOuterNodesVelocityContribution(
         }
     }
 }
-
 
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheContribution(
@@ -421,10 +812,10 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
         }
     }
 
-    // LHS outside Nitche contribution assembly
+    // LHS outside Nitsche contribution assembly
     noalias(rLHS) += nitsche_lhs;
 
-    // RHS outside Nitche contribution assembly
+    // RHS outside Nitsche contribution assembly
     // Note that since we work with a residualbased formulation, the RHS is f_gamma - LHS*prev_sol
     noalias(rRHS) -= prod(nitsche_lhs, values);
 
