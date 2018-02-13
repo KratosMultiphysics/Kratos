@@ -6,7 +6,6 @@ See http://www.xdmf.org/index.php/XDMF_Model_and_Format.
 """
 from abc import ABCMeta, abstractmethod
 import xml.etree.ElementTree as ET
-import h5py
 
 class XdmfItem(metaclass=ABCMeta):
     """An abc for creating the XML hierarchy of an XDMF model."""
@@ -25,7 +24,7 @@ class DataItem(XdmfItem):
         return "DataItem"
 
     @abstractmethod
-    def dimensions(): pass
+    def dimensions(self): pass
 
 
 class Attribute(XdmfItem):
@@ -67,7 +66,7 @@ class Time(XdmfItem):
     def __init__(self, time):
         try:
             self._time = str(time)
-        except:
+        except Exception:
             print('Invalid input argument!')
 
     def xml_tag(self):
