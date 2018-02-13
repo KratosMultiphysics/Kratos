@@ -29,31 +29,31 @@ void ConnectivitiesData::WriteData(File& rFile, const std::string& rPath, WriteI
     rFile.WriteDataSet(rPath + "/Ids", mIds, rInfo);
     rFile.WriteDataSet(rPath + "/PropertiesIds", mPropertiesIds, rInfo);
     rFile.WriteDataSet(rPath + "/Connectivities", mConnectivities, rInfo);
-    int ws_dim, dim, nnodes;
+    int ws_dim, dim, num_nodes;
     if (KratosComponents<ElementType>::Has(mName))
     {
         const auto& r_elem = KratosComponents<ElementType>::Get(mName);
         ws_dim = r_elem.WorkingSpaceDimension();
         dim = r_elem.GetGeometry().Dimension();
-        nnodes = r_elem.GetGeometry().size();
+        num_nodes = r_elem.GetGeometry().size();
     }
     else
     {
         const auto& r_cond = KratosComponents<ConditionType>::Get(mName);
         ws_dim = r_cond.WorkingSpaceDimension();
         dim = r_cond.GetGeometry().Dimension();
-        nnodes = r_cond.GetGeometry().size();
+        num_nodes = r_cond.GetGeometry().size();
     }
     rFile.WriteAttribute(rPath, "Name", mName);
     rFile.WriteAttribute(rPath, "WorkingSpaceDimension", ws_dim);
     rFile.WriteAttribute(rPath, "Dimension", dim);
-    rFile.WriteAttribute(rPath, "NumberOfNodes", nnodes);
+    rFile.WriteAttribute(rPath, "NumberOfNodes", num_nodes);
     KRATOS_CATCH("");
 }
 
 void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
                                         PropertiesContainerType& rProperties,
-                                        ElementsContainerType& rElements)
+                                        ElementsContainerType& rElements) const
 {
     KRATOS_TRY;
     const ElementType& r_elem = KratosComponents<ElementType>::Get(mName);
@@ -80,7 +80,7 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
 
 void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
                                         PropertiesContainerType& rProperties,
-                                        ConditionsContainerType& rConditions)
+                                        ConditionsContainerType& rConditions) const
 {
     KRATOS_TRY;
     const ConditionType& r_cond = KratosComponents<ConditionType>::Get(mName);
@@ -110,7 +110,7 @@ void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
 
-    const unsigned num_elems = rElements.size();
+    const int num_elems = rElements.size();
     if (num_elems == 0)
     {
         Clear();
@@ -124,7 +124,7 @@ void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
 
     // Fill arrays and perform checks.
     #pragma omp parallel for
-    for (unsigned i = 0; i < num_elems; ++i)
+    for (int i = 0; i < num_elems; ++i)
     {
         ElementsContainerType::const_iterator it = rElements.begin() + i;
         // Check that the element and geometry types are the same.
@@ -147,7 +147,7 @@ void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
 {
     KRATOS_TRY;
 
-    const unsigned num_conds = rConditions.size();
+    const int num_conds = rConditions.size();
     if (num_conds == 0)
     {
         Clear();
@@ -161,7 +161,7 @@ void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
 
     // Fill arrays and perform checks.
     #pragma omp parallel for
-    for (unsigned i = 0; i < num_conds; ++i)
+    for (int i = 0; i < num_conds; ++i)
     {
         ConditionsContainerType::const_iterator it = rConditions.begin() + i;
         // Check that the condition and geometry types are the same.

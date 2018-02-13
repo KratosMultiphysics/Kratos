@@ -82,11 +82,11 @@ public:
 
     void CreateEntities(NodesContainerType& rNodes,
                         PropertiesContainerType& rProperties,
-                        ElementsContainerType& rElements);
+                        ElementsContainerType& rElements) const;
 
     void CreateEntities(NodesContainerType& rNodes,
                         PropertiesContainerType& rProperties,
-                        ConditionsContainerType& rConditions);
+                        ConditionsContainerType& rConditions) const;
 
     // Fill data from elements of a single element type.
     void SetData(ElementsContainerType const& rElements);
