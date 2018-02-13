@@ -16,6 +16,7 @@
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 namespace Kratos
 {
@@ -26,7 +27,7 @@ namespace Kratos
       , mFilename(Filename + ".mdpa")
       , mOptions(Options)
     {
-        boost::shared_ptr<std::fstream> pFile = boost::make_shared<std::fstream>();
+        Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
         std::fstream::openmode OpenMode;
 
         // Set the mode
@@ -63,7 +64,7 @@ namespace Kratos
     }
 
     /// Constructor with stream
-    ModelPartIO::ModelPartIO(boost::shared_ptr<std::iostream> Stream)
+    ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream)
       : mNumberOfLines(1)
     {
         // nullptr test can be confusing with boost::shared_ptr. Commented until we move to std::shared_ptr
@@ -71,7 +72,7 @@ namespace Kratos
         //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         // Check if the pointer was .reset() or never initialized and if its a NULL pointer)
-        // if (Stream == NULL || Stream == boost::shared_ptr<std::iostream>(NULL))
+        // if (Stream == NULL || Stream == Kratos::shared_ptr<std::iostream>(NULL))
         //    KRATOS_THROW_ERROR(std::invalid_argument, "Error: ModelPartIO Stream is invalid ", "");
 
         mpStream = Stream;
@@ -240,28 +241,21 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
     
+    /***********************************************************************************/
+    /***********************************************************************************/
+
     void ModelPartIO::WriteElements(ElementsContainerType const& rThisElements)
     {        
         // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
-                
         if (rThisElements.size() > 0) {
             std::string element_name;
+
+            auto it_element = rThisElements.begin();
             auto elements_components = KratosComponents<Element>::GetComponents();
             
-            auto element_type = rThisElements.begin()->GetGeometry().GetGeometryType();
-            
             // Fisrt we do the first element
-            for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                if (std::is_same<decltype(*(rThisElements.begin())), decltype(*(it_comp->second))>::value &&
-                    (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
-                    element_name = it_comp->first;
-                    break;
-                }
-            }
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it_element, element_name);
             
             (*mpStream) << "Begin Elements\t" << element_name << std::endl;
             (*mpStream) << "\t" << rThisElements.begin()->Id() << "\t" << (rThisElements.begin()->pGetProperties())->Id() << "\t";
@@ -273,11 +267,8 @@ namespace Kratos
             for(std::size_t i = 1; i < rThisElements.size(); i++) {
                 auto it_elem_previous = rThisElements.begin() + i - 1;
                 auto it_elem_current = rThisElements.begin() + i;
-                
-                const auto previous_element_geometry_type = it_elem_previous->GetGeometry().GetGeometryType();
-                const auto current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
-                
-                if (std::is_same<decltype(*it_elem_previous), decltype(*it_elem_current)>::value && (previous_element_geometry_type == current_element_geometry_type)) {
+
+                if(GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                     (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
                         (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
@@ -285,15 +276,7 @@ namespace Kratos
                 } else {
                     (*mpStream) << "End Elements" << std::endl << std::endl;;
                     
-                    element_type = it_elem_current->GetGeometry().GetGeometryType();
-                        
-                    for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                        if (std::is_same<decltype(*it_elem_current), decltype(*(it_comp->second))>::value &&
-                            (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
-                            element_name = it_comp->first;
-                            break;
-                        }
-                    }
+                    CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
                     
                     (*mpStream) << "Begin Elements\t" << element_name << std::endl;
                     (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
@@ -356,19 +339,13 @@ namespace Kratos
         
         if (rThisConditions.size() > 0) {
             std::string condition_name;
+
+            auto it_condition = rThisConditions.begin();
             auto conditions_components = KratosComponents<Condition>::GetComponents();
             
-            auto condition_type = rThisConditions.begin()->GetGeometry().GetGeometryType();
-            
             // Fisrt we do the first condition
-            for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                if (std::is_same<decltype(*(rThisConditions.begin())), decltype(*(it_comp->second))>::value &&
-                    (condition_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
-                    condition_name = it_comp->first;
-                    break;
-                }
-            }
-            
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it_condition, condition_name);
+
             (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
             (*mpStream) << "\t" << rThisConditions.begin()->Id() << "\t" << (rThisConditions.begin()->pGetProperties())->Id() << "\t";
             for (std::size_t i_node = 0; i_node < rThisConditions.begin()->GetGeometry().size(); i_node++)
@@ -379,27 +356,16 @@ namespace Kratos
             for(std::size_t i = 1; i < rThisConditions.size(); i++) {
                 auto it_cond_previous = rThisConditions.begin() + i - 1;
                 auto it_cond_current = rThisConditions.begin() + i;
-                
-                const auto previous_condition_geometry_type = it_cond_previous->GetGeometry().GetGeometryType();
-                const auto current_condition_geometry_type = it_cond_current->GetGeometry().GetGeometryType();
-                
-                if (std::is_same<decltype(*it_cond_previous), decltype(*it_cond_current)>::value && (previous_condition_geometry_type == current_condition_geometry_type)) {
+
+                if(GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                     (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
                         (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
                 } else {
                     (*mpStream) << "End Conditions" << std::endl << std::endl;;
-                    
-                    condition_type = it_cond_current->GetGeometry().GetGeometryType();
-                        
-                    for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                        if (std::is_same<decltype(*it_cond_current), decltype(*(it_comp->second))>::value &&
-                            (condition_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
-                            condition_name = it_comp->first;
-                            break;
-                        }
-                    }
+
+                    CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
                     
                     (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
                     (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
@@ -678,7 +644,7 @@ namespace Kratos
     }
 
     void ModelPartIO::DivideInputToPartitions(
-        boost::shared_ptr<std::iostream> * Streams,
+        Kratos::shared_ptr<std::iostream> * Streams,
         SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
         PartitionIndicesType const& NodesPartitions,
         PartitionIndicesType const& ElementsPartitions,
@@ -1096,7 +1062,7 @@ namespace Kratos
             ExtractValue(word, y);
             ReadWord(word);
             ExtractValue(word, z);
-            NodeType::Pointer temp_node = boost::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
+            NodeType::Pointer temp_node = Kratos::make_shared< NodeType >( ReorderedNodeId(temp_id), x, y, z);
             temp_node->X0() = temp_node->X();
             temp_node->Y0() = temp_node->Y();
             temp_node->Z0() = temp_node->Z();
@@ -1282,7 +1248,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties::Pointer props = Kratos::make_shared<Properties>();
         Properties& temp_properties = *props;
         //Properties temp_properties;
 
@@ -2657,7 +2623,7 @@ namespace Kratos
         // adding necessary meshes to the model part.
         MeshType empty_mesh;
         for(SizeType i = number_of_meshes ; i < mesh_id + 1 ; i++)
-            rModelPart.GetMeshes().push_back(boost::make_shared<MeshType>(empty_mesh.Clone()));
+            rModelPart.GetMeshes().push_back(Kratos::make_shared<MeshType>(empty_mesh.Clone()));
 
         MeshType& mesh = rModelPart.GetMesh(mesh_id);
 
@@ -2863,7 +2829,7 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        Properties::Pointer props = boost::make_shared<Properties>();
+        Properties::Pointer props = Kratos::make_shared<Properties>();
         Properties& temp_properties = *props;
 //         Properties temp_properties;
 
@@ -4642,7 +4608,7 @@ namespace Kratos
         mNumberOfLines = 1;
     }
 
-    void ModelPartIO::SwapStreamSource(boost::shared_ptr<std::iostream> newStream)
+    void ModelPartIO::SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream)
     {
         mpStream.swap(newStream);
     }

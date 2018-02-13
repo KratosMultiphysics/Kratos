@@ -58,7 +58,7 @@ public:
 
     typedef typename BaseType::VectorPointerType VectorPointerType;
 
-    typedef typename boost::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
+    typedef typename Kratos::shared_ptr< ML_Epetra::MultiLevelPreconditioner > MLPreconditionerPointerType;
 
     MultiLevelSolver(Parameters settings)
     {

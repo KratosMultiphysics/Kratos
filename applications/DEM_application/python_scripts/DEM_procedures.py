@@ -358,8 +358,6 @@ class Procedures(object):
             translational_scheme = SymplecticEulerScheme()
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
             translational_scheme = TaylorScheme()
-        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-            translational_scheme = NewmarkBetaScheme(0.5, 0.25)
         elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             translational_scheme = VelocityVerletScheme()
         else:
@@ -375,8 +373,6 @@ class Procedures(object):
                 rotational_scheme = SymplecticEulerScheme()
             elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme'):
                 rotational_scheme = TaylorScheme()
-            elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Newmark_Beta_Method'):
-                rotational_scheme = NewmarkBetaScheme(0.5, 0.25)
             elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
                 rotational_scheme = VelocityVerletScheme()
         elif (self.DEM_parameters["RotationalIntegrationScheme"].GetString() == 'Runge_Kutta'):

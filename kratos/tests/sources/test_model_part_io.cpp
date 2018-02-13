@@ -26,7 +26,7 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(
     ModelPartIOSubModelPartsDivision, KratosCoreFastSuite) {
-    boost::shared_ptr<std::iostream> p_input(new std::stringstream(
+    Kratos::shared_ptr<std::iostream> p_input(new std::stringstream(
         R"input(
 				Begin ModelPartData
                                  DENSITY 2700.000000
@@ -98,9 +98,9 @@ KRATOS_TEST_CASE_IN_SUITE(
 
     ModelPartIO model_part_io(p_input);
 
-    boost::shared_ptr<std::stringstream> p_output_0(new std::stringstream);
-    boost::shared_ptr<std::stringstream> p_output_1(new std::stringstream);
-    boost::shared_ptr<std::iostream> streams[2] = {p_output_0, p_output_1};
+    Kratos::shared_ptr<std::stringstream> p_output_0(new std::stringstream);
+    Kratos::shared_ptr<std::stringstream> p_output_1(new std::stringstream);
+    Kratos::shared_ptr<std::iostream> streams[2] = {p_output_0, p_output_1};
 
     std::size_t number_of_partitions = 2;
     std::size_t number_of_colors = 1;

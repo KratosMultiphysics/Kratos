@@ -164,7 +164,7 @@ Element::Pointer SprismElement3D6N::Create(
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SprismElement3D6N(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<SprismElement3D6N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 /*********************************** CLONE ******************************************/
@@ -210,7 +210,7 @@ Element::Pointer SprismElement3D6N::Clone(
 
     NewElement.mid_vec = mid_vec;
 
-    return Element::Pointer( new SprismElement3D6N(NewElement));
+    return Kratos::make_shared<SprismElement3D6N>(NewElement);
 }
 
 //******************************* GETTING METHODS *********************************//
