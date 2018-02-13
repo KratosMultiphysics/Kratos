@@ -24,7 +24,7 @@
 #include "spaces/ublas_space.h"
 
 /* Element include */
-#include "elements/test_element.h"
+#include "tests/test_element.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
