@@ -128,14 +128,28 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
 
     if (mSetVisualizationMesh){
 
-        const unsigned int n_nodes = mrModelPart.NumberOfNodes();
-        const unsigned int n_elems = mrModelPart.NumberOfElements();
-        const unsigned int n_conds = mrModelPart.NumberOfConditions();
+        int n_nodes = mrModelPart.NumberOfNodes();
+        int n_elems = mrModelPart.NumberOfElements();
+        int n_conds = mrModelPart.NumberOfConditions();
+
+        int n_nodes_scansum, n_elems_scansum, n_conds_scansum;
+        mrModelPart.GetCommunicator().ScanSum(n_nodes, n_nodes_scansum);
+        mrModelPart.GetCommunicator().ScanSum(n_elems, n_elems_scansum);
+        mrModelPart.GetCommunicator().ScanSum(n_conds, n_conds_scansum);
+
+        int n_nodes_sumall(n_nodes);
+        int n_elems_sumall(n_elems);
+        int n_conds_sumall(n_conds);
+        mrModelPart.GetCommunicator().SumAll(n_nodes_sumall);
+        mrModelPart.GetCommunicator().SumAll(n_elems_sumall);
+        mrModelPart.GetCommunicator().SumAll(n_conds_sumall);
 
         // Initialize the ids. for the new entries
-        unsigned int temp_node_id = n_nodes + 1;
-        unsigned int temp_elem_id = n_elems + 1;
-        unsigned int temp_cond_id = n_conds + 1;
+        // For the temporal ids. we assume that all the partition
+        // nodes will be added to the visualization model part.
+        unsigned int temp_node_id = n_nodes_sumall + n_nodes_scansum + 1;
+        unsigned int temp_elem_id = n_elems_sumall + n_elems_scansum + 1;
+        unsigned int temp_cond_id = n_conds_sumall + n_conds_scansum + 1;
 
         // Auxiliar vectors to store pointers to the new entities
         // These vectors will be use when renumbering the entities ids.
@@ -145,23 +159,28 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
         // Set the properties for the new elements depending if the 
         // element is in the positive or negative side of the cut.
         // In this way, two layers will appear in GiD.
-        const unsigned int last_prop = (mrModelPart.GetRootModelPart().NumberOfProperties() != 0) ? ((*(mrModelPart.GetRootModelPart().pProperties())).end()-1)->Id() : 0;
-        Properties::Pointer p_pos_prop = Kratos::make_shared<Properties>(last_prop + 1);
-        Properties::Pointer p_neg_prop = Kratos::make_shared<Properties>(last_prop + 2);
+        unsigned int max_prop_id = 0;
+        for (auto it_prop = mrModelPart.GetRootModelPart().PropertiesBegin(); it_prop < mrModelPart.GetRootModelPart().PropertiesEnd(); ++it_prop){
+            if (max_prop_id < it_prop->Id()){
+                max_prop_id = it_prop->Id();
+            }
+        }
+        Properties::Pointer p_pos_prop = Kratos::make_shared<Properties>(max_prop_id + 1);
+        Properties::Pointer p_neg_prop = Kratos::make_shared<Properties>(max_prop_id + 2);
         mrVisualizationModelPart.AddProperties(p_pos_prop, p_pos_prop->Id());
         mrVisualizationModelPart.AddProperties(p_neg_prop, p_neg_prop->Id());
 
         // Create a copy of all the origin model part nodes to the visualization model part
         // Note that the original nodes will be reused when creating the splitting geometries
         ModelPart::NodeIterator orig_nodes_begin = mrModelPart.NodesBegin();
-        for (int i_node = 0; i_node < static_cast<int>(n_nodes); ++i_node){
+        for (int i_node = 0; i_node < n_nodes; ++i_node){
             auto it_node = orig_nodes_begin + i_node;
-            auto pnode = mrVisualizationModelPart.CreateNewNode(it_node->Id(), it_node->X(), it_node->Y(), it_node->Z());
+            auto p_node = mrVisualizationModelPart.CreateNewNode(it_node->Id(), it_node->X(), it_node->Y(), it_node->Z());
         }
 
         // Add the elements to the visualization model part
         ModelPart::ElementIterator elems_begin = mrModelPart.ElementsBegin();
-        for (unsigned int i_elem = 0; i_elem < n_elems; ++i_elem){
+        for (int i_elem = 0; i_elem < n_elems; ++i_elem){
             ModelPart::ElementIterator it_elem = elems_begin + i_elem;
 
             // Get element geometry
@@ -341,10 +360,10 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
         int n_nodes_local = new_nodes_vect.size();
         int n_conds_local = new_conds_vect.size();
         int n_elems_local = mNewElementsPointers.size();
-        int n_nodes_scansum, n_elems_scansum, n_conds_scansum;
-        mrModelPart.GetCommunicator().ScanSum(n_nodes_local, n_nodes_scansum);
-        mrModelPart.GetCommunicator().ScanSum(n_elems_local, n_elems_scansum);
-        mrModelPart.GetCommunicator().ScanSum(n_conds_local, n_conds_scansum);
+        int n_nodes_local_scansum, n_elems_local_scansum, n_conds_local_scansum;
+        mrModelPart.GetCommunicator().ScanSum(n_nodes_local, n_nodes_local_scansum);
+        mrModelPart.GetCommunicator().ScanSum(n_elems_local, n_elems_local_scansum);
+        mrModelPart.GetCommunicator().ScanSum(n_conds_local, n_conds_local_scansum);
 
         // Origin model part number of entities
         int n_nodes_orig = mrModelPart.NumberOfNodes();
@@ -355,9 +374,9 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
         mrModelPart.GetCommunicator().SumAll(n_conds_orig);
 
         // Initialize the new ids. values
-        std::size_t new_node_id(n_nodes_orig + n_nodes_scansum - n_nodes_local + 1);
-        std::size_t new_elem_id(n_elems_orig + n_elems_scansum - n_elems_local + 1);
-        std::size_t new_cond_id(n_conds_orig + n_conds_scansum - n_conds_local + 1);
+        std::size_t new_node_id(n_nodes_orig + n_nodes_local_scansum - n_nodes_local + 1);
+        std::size_t new_elem_id(n_elems_orig + n_elems_local_scansum - n_elems_local + 1);
+        std::size_t new_cond_id(n_conds_orig + n_conds_local_scansum - n_conds_local + 1);
 
         // Set the new entities ids. values
         auto new_nodes_begin = new_nodes_vect.begin();
