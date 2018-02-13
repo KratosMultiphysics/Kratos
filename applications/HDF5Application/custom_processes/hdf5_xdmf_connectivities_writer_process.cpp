@@ -25,22 +25,16 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
         << "Path \"" << node_ids_path << "\" was not found." << std::endl;
 
     Vector<int> node_ids;
-    const unsigned num_points = mpFile->GetDataDimensions(node_ids_path)[0];
+    const int num_points = mpFile->GetDataDimensions(node_ids_path)[0];
     mpFile->ReadDataSet(node_ids_path, node_ids, 0, num_points);
 
     // Set the parametric coordinate ids.
     mKratosToXdmfIdTable.resize(num_points);
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(num_points, num_threads, partition);
-#pragma omp parallel
+#pragma omp parallel for
+    for (int i = 0; i < num_points; ++i)
     {
-        const int thread_id = OpenMPUtils::ThisThread();
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-        {
-            // Here we expect the ids are one-based indices.
-            mKratosToXdmfIdTable(node_ids[i] - 1) = i;
-        }
+        // Here we expect the ids are one-based indices.
+        mKratosToXdmfIdTable(node_ids[i] - 1) = i;
     }
 
     KRATOS_CATCH("");
@@ -51,7 +45,6 @@ void XdmfConnectivitiesWriterProcess::Execute()
     KRATOS_TRY;
 
     std::vector<std::string> labels;
-    Matrix<int> connectivities;
     KRATOS_ERROR_IF(mpFile->HasPath(mPrefix + "/Xdmf/Elements")) << "Path \"" << mPrefix + "/Xdmf/Elements\" exists." << std::endl;
     mpFile->GetGroupNames(mPrefix + "/Elements", labels);
     for (unsigned i = 0; i < labels.size(); ++i)
@@ -71,25 +64,19 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string
 
     Matrix<int> kratos_connectivities, xdmf_connectivities;
 
-    const unsigned block_size = mpFile->GetDataDimensions(rKratosConnectivitiesPath + "/Connectivities")[0];
+    const int block_size = mpFile->GetDataDimensions(rKratosConnectivitiesPath + "/Connectivities")[0];
     mpFile->ReadDataSet(rKratosConnectivitiesPath + "/Connectivities", kratos_connectivities, 0, block_size);
 
     xdmf_connectivities.resize(kratos_connectivities.size1(), kratos_connectivities.size2(), false);
 
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(block_size, num_threads, partition);
-#pragma omp parallel
+#pragma omp parallel for
+    for (int i = 0; i < block_size; ++i)
     {
-        const int thread_id = OpenMPUtils::ThisThread();
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
+        for (unsigned j = 0; j < kratos_connectivities.size2(); ++j)
         {
-            for (unsigned j = 0; j < kratos_connectivities.size2(); ++j)
-            {
-                int kratos_id = kratos_connectivities(i, j);
-                // Here we expect the ids are one-based indices.
-                xdmf_connectivities(i, j) = mKratosToXdmfIdTable(kratos_id - 1);
-            }
+            const int kratos_id = kratos_connectivities(i, j);
+            // Here we expect the ids are one-based indices.
+            xdmf_connectivities(i, j) = mKratosToXdmfIdTable(kratos_id - 1);
         }
     }
 
