@@ -81,6 +81,12 @@ void AddCustomSolversToPython()
     	.def("Solve", &EigensystemSolverType::Solve)
     	.def("GetEigenValue", &EigensystemSolverType::GetEigenValue)
 	;
+
+	using SparseQR = EigenDirectSolver<SparseQR, SparseSpaceType, LocalSpaceType>;
+	class_<SparseQR, bases<DirectSolverType>, boost::noncopyable>
+		("SparseQR", init<>())
+		.def(init<Parameters>())
+	;	
 ;
 }
 
