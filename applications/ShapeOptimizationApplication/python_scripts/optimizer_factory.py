@@ -21,7 +21,6 @@ CheckForPreviousImport()
 # Additional imports
 import timer_factory
 import algorithm_factory
-# import analyzer_factory
 import communicator_factory
 import model_part_controller_factory
 
