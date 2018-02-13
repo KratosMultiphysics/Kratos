@@ -61,6 +61,8 @@ public:
     {
         KRATOS_DEBUG_ERROR_IF(bm.size() != 10) << "expected size for TAIT_PARAMETERS_MOLTEN_STATE is 10. Got instead a size of " << bm.size() << " provided vector is " << bm << std::endl;
         KRATOS_DEBUG_ERROR_IF(bs.size() != 10) << "expected size for TAIT_PARAMETERS_SOLID_STATE  is 10. Got instead a size of " << bs.size() << " provided vector is " << bs << std::endl;
+        KRATOS_DEBUG_ERROR_IF(T < 0.0) << "absolute temperature cannot be below the absolute zero. Current value of T = " << T << std::endl;
+//         KRATOS_DEBUG_ERROR_IF(P < 0.0) << "absolute pressure cannot be below zero. Current value of P =  " << P << std::endl;
 
         const double Tt = bm[5] + bm[6]*P; //glass transition gradient 
         
@@ -108,10 +110,10 @@ public:
     */
     static double CalculateBulkModulus(const Vector& bm, const Vector& bs, const double T, const double P, const double dP)
     {
-        const double V = CalculateV(bm,bs,T,P);
-        const double Vperturbed = CalculateV(bm,bs,T,P+dP);
+        const double rho1 = CalculateRho(bm,bs,T,P);
+        const double rho2 = CalculateRho(bm,bs,T,P+dP);
         
-        const double bulk_modulus = -(V*dP)/(Vperturbed-V); //note that we define the bulk modulus as k=Dp/Drho (that is, the inverse of what is on the paper)
+        const double bulk_modulus = dP/(rho2-rho1); //-(V*dP)/(Vperturbed-V); //note that we define the bulk modulus as k=Dp/Drho (that is, the inverse of what is on the paper)
         return bulk_modulus;
     }
     ///@} // Operators

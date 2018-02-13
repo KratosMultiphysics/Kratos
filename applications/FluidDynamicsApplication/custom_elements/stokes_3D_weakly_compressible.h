@@ -72,7 +72,8 @@ public:
 
         bounded_matrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
-
+        
+        
         double k;
         Matrix C;
         Vector stress;
@@ -169,45 +170,41 @@ public:
                 data.vn(i,k)  = vel_n[k];
                 data.vnn(i,k) = vel_nn[k];
                 data.f(i,k)   = body_force[k];
-
-                data.p[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-                data.pn[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
-                data.pnn[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
-
-                data.r[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-                data.rn[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY,1);
-                data.rnn[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY,2);
             }
+            data.p[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+            data.pn[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
+            data.pnn[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
+
+            data.r[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+            data.rn[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY,1);
+            data.rnn[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY,2);
+        
         }
 
         //allocate memory needed
         bounded_matrix<double,MatrixSize, MatrixSize> lhs_local;
         array_1d<double,MatrixSize> rhs_local;
+        
+        bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
+        GetShapeFunctionsOnGauss(Ncontainer);
+        const double weight = Volume/static_cast<double>(Ncontainer.size1());
 
         //loop on gauss points
-//         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
-//         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        for(unsigned int igauss = 0; igauss<1; igauss++) //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize,MatrixSize);
+        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
+        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++) 
         {
-//             noalias(data.N) = row(Ncontainer, igauss); //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
+            noalias(data.N) = row(Ncontainer, igauss); 
 
             ComputeConstitutiveResponse(data, rCurrentProcessInfo);
-
 
             ComputeGaussPointRHSContribution(rhs_local, data);
             ComputeGaussPointLHSContribution(lhs_local, data);
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-            noalias(rLeftHandSideMatrix) = lhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
-            noalias(rRightHandSideVector) = rhs_local; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
+            noalias(rLeftHandSideMatrix) += weight*lhs_local; 
+            noalias(rRightHandSideVector) += weight*rhs_local; 
         }
-
-        rLeftHandSideMatrix  *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
-        rRightHandSideVector *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
-
-//         rLeftHandSideMatrix  *= Volume/static_cast<double>(NumNodes);
-//         rRightHandSideVector *= Volume/static_cast<double>(NumNodes);
-
 
 
         KRATOS_CATCH("Error in Stokes Element Symbolic")
@@ -258,35 +255,34 @@ public:
                 data.vnn(i,k) = vel_nn[k];
                 data.f(i,k)   = body_force[k];
 
-                data.p[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-                data.pn[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
-                data.pnn[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
-
-                data.r[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
-                data.rn[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY,1);
-                data.rnn[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY,2);
+                
             }
+            data.p[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
+            data.pn[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,1);
+            data.pnn[i] = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE,2);
+
+            data.r[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+            data.rn[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY,1);
+            data.rnn[i] = GetGeometry()[i].FastGetSolutionStepValue(DENSITY,2);
         }
 
         //allocate memory needed
         array_1d<double,MatrixSize> rhs_local;
-
-        //loop on gauss points - ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
-        noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
-        for(unsigned int igauss = 0; igauss<1; igauss++) //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
+        bounded_matrix<double,NumNodes, NumNodes> Ncontainer;
+        GetShapeFunctionsOnGauss(Ncontainer);
+        const double weight = Volume/static_cast<double>(Ncontainer.size1());
+        for(unsigned int igauss = 0; igauss<Ncontainer.size1(); igauss++) 
+            
         {
-//             noalias(data.N) = row(Ncontainer, igauss);
+             noalias(data.N) = row(Ncontainer, igauss);
 
             ComputeConstitutiveResponse(data, rCurrentProcessInfo);
 
             ComputeGaussPointRHSContribution(rhs_local, data);
 
             //here we assume that all the weights of the gauss points are the same so we multiply at the end by Volume/NumNodes
-            noalias(rRightHandSideVector) += rhs_local;
+            noalias(rRightHandSideVector) += weight*rhs_local;
         }
-
-        rRightHandSideVector *= Volume; //ATTENTION DELIBERATELY USING ONE SINGLE GAUSS POINT!!
-//         rRightHandSideVector *= Volume/static_cast<double>(NumNodes);
 
         KRATOS_CATCH("")
 
@@ -647,8 +643,8 @@ protected:
         //this is ok under the hypothesis that no history dependent behaviour is employed
         mp_constitutive_law->CalculateMaterialResponseCauchy(Values);
 
-
-        data.k = 1.0; //TODO: use the Calculate method to get the correct value of the bulk modulus
+        
+        data.k = mp_constitutive_law->CalculateValue(Values, BULK_MODULUS, data.k); 
 
     }
 
