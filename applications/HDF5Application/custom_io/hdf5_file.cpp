@@ -216,7 +216,7 @@ void File::GetGroupNames(const std::string& rGroupPath, std::vector<std::string>
 
 void File::AddPath(const std::string& rPath)
 {
-    KRATOS_ERROR_IF(Internals::IsPath(rPath) == false) << "Invalid path: " <<rPath << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: " <<rPath << std::endl;
 
     std::vector<std::string> splitted_path = Internals::Split(rPath, '/');
     std::string sub_path;
