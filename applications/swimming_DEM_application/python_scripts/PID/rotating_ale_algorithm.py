@@ -21,6 +21,7 @@ class Algorithm(BaseAlgorithm):
         Add = self.pp.CFD_DEM.AddEmptyValue
         Add("steps_per_average_step").SetInt(1)
         Add("initial_averaging_time").SetDouble(0.0)
+        Add("rotated_stationary_flow_option").SetBool(False)
         Add("averaging_has_already_been_done").SetBool(False)
         Add("stationary_start_time").SetDouble(0.0)
 
@@ -65,11 +66,14 @@ class Algorithm(BaseAlgorithm):
                                                                  averager)
 
     def FluidSolve(self, time='None', solve_system=True):
-        if not self.pp.CFD_DEM["averaging_has_already_been_done"].GetBool():
+        rotated_stationary_flow_option = self.pp.CFD_DEM["rotated_stationary_flow_option"].GetBool()
+        averaging_has_already_been_done = self.pp.CFD_DEM["averaging_has_already_been_done"].GetBool()
+
+        if rotated_stationary_flow_option and not averaging_has_already_been_done:
             self.fluid_loader.averager.PerformAverage(reference_time = time)
             self.pp.CFD_DEM["averaging_has_already_been_done"].SetBool(True)
 
         BaseAlgorithm.FluidSolve(self, time, solve_system)
 
-        if not solve_system:
+        if rotated_stationary_flow_option and not solve_system:
             self.rotator.RotateFluidVelocities(time)
