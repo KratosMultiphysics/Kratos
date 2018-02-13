@@ -139,8 +139,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __ResetPossibleShapeModificationsDuringAnalysis( self ):
-        self.ModelPartController.ResetMeshToReferenceMesh()
-        self.ModelPartController.ResetDeformationVariablesToZero()
+        self.ModelPartController.SetMeshToReferenceMesh()
+        self.ModelPartController.SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
