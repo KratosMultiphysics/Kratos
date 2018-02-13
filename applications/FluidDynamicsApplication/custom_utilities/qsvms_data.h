@@ -78,8 +78,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromNodalData(MassProjection,DIVPROJ,r_geometry);
     this->FillFromProperties(Density,DENSITY,r_properties);
-    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
-    this->FillFromElementData(CSmagorinsky,C_SMAGORINSKY,rElement);
+    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties); //TODO: remove once we have a Smagorinky constitutive law
+    this->FillFromElementData(CSmagorinsky,C_SMAGORINSKY,rElement); //TODO: remove once we have a Smagorinky constitutive law
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(UseOSS,OSS_SWITCH,rProcessInfo);
