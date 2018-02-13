@@ -495,7 +495,7 @@ public:
                 //check if inside and eventually interpolate
                 for( auto it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
                 {
-                    bool is_inside = false;
+                    bool is_inside(false);
                     is_inside = CalculatePosition(x1[0], x1[1],
                                                   x2[0], x2[1],
                                                   x3[0], x3[1],
