@@ -39,11 +39,24 @@ KRATOS_TEST_CASE_IN_SUITE(VariablesKeyUniqueness, KratosCoreFastSuite) {
 }
 
 KRATOS_TEST_CASE_IN_SUITE(VariablesKeyOrder, KratosCoreFastSuite) {
-    KRATOS_CHECK_EQUAL(VELOCITY_X.Key() + 1, VELOCITY_Y.Key()) << VELOCITY_X << " , " << VELOCITY_Y;
-    KRATOS_CHECK_EQUAL(VELOCITY_Y.Key() + 1, VELOCITY_Z.Key()); 
+    for(auto const& key_variable_pair : KratosComponents<VariableData>::GetComponents()){
+        auto variable = key_variable_pair.second;
+        if(variable->IsNotComponent()){
+            if(KratosComponents<VariableData>::Has(variable->Name() + "_X") && 
+               KratosComponents<VariableData>::Has(variable->Name() + "_Y") && 
+               KratosComponents<VariableData>::Has(variable->Name() + "_Z")){
+                   
+                auto const& variable_x = KratosComponents<VariableData>::Get(variable->Name() + "_X");
+                auto const& variable_y = KratosComponents<VariableData>::Get(variable->Name() + "_Y");
+                auto const& variable_z = KratosComponents<VariableData>::Get(variable->Name() + "_Z");
+                if(variable_x.IsComponent() && variable_y.IsComponent() && variable_z.IsComponent()){
+                    KRATOS_CHECK_EQUAL(variable_x.Key() + 1, variable_y.Key()) << " for " << variable_x << " and " << variable_y << std::endl;
+                    KRATOS_CHECK_EQUAL(variable_y.Key() + 1, variable_z.Key()) << " for " << variable_y << " and " << variable_z << std::endl;
+                }          
+           }
+        }
+    }
 
-    KRATOS_CHECK_EQUAL(DISPLACEMENT_X.Key() + 1, DISPLACEMENT_Y.Key());
-    KRATOS_CHECK_EQUAL(DISPLACEMENT_Y.Key() + 1, DISPLACEMENT_Z.Key()); 
 }
 
 
