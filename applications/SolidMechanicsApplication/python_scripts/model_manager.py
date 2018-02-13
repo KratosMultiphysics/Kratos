@@ -108,6 +108,16 @@ class ModelManager(object):
             load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1;
             self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
             # print("   Finished loading model part from restart file ")
+            # Get the list of the model_part's in the object Model
+            for i in range(self.settings["domain_parts_list"].size()):
+                part_name = self.settings["domain_parts_list"][i].GetString()
+                if( self.main_model_part.HasSubModelPart(part_name) ):
+                    self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+
+            for i in range(self.settings["processes_parts_list"].size()):
+                part_name = self.settings["processes_parts_list"][i].GetString()
+                if( self.main_model_part.HasSubModelPart(part_name) ):
+                    self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
 
         else:
             raise Exception("Other input options are not yet implemented.")
