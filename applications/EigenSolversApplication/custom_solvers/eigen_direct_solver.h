@@ -15,6 +15,8 @@
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
+#include <Eigen/SparseQR>
+#include <Eigen/OrderingMethods>
 #if defined EIGEN_USE_MKL_ALL
 #include <Eigen/PardisoSupport>
 #endif
@@ -38,6 +40,13 @@ struct SparseLU : SolverType
     using TSolver = Eigen::SparseLU<TSparseMatrix>;
 
     static constexpr auto Name = "SparseLU";
+};
+
+struct SparseQR : SolverType
+{
+    using TSolver = Eigen::SparseQR<TSparseMatrix, Eigen::COLAMDOrdering<int>>;
+
+    static constexpr auto Name = "SparseQR";
 };
 
 #if defined EIGEN_USE_MKL_ALL

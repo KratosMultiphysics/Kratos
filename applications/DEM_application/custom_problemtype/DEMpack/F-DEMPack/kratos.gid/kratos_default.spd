@@ -654,7 +654,7 @@
 	    </Container>
 	</Container>
     <Container id="DEM-SolutionStrategy" pid="Solution strategy" class="Tab" help="Options and parameters that change the numerical strategy" icon="gear.gif" open="0">
-        <Item id="DEM-TimeTranslationalIntegrationScheme" pid="Translational integration scheme" dv="Symplectic_Euler" ivalues="Symplectic_Euler,Forward_Euler,Taylor_Scheme,Newmark_Beta_Method,Velocity_Verlet" values="Symplectic Euler,Forward Euler,Taylor Scheme,Newmark Beta Method,Velocity Verlet" help="Time Integration Scheme for translational motion"/>
+        <Item id="DEM-TimeTranslationalIntegrationScheme" pid="Translational integration scheme" dv="Symplectic_Euler" ivalues="Symplectic_Euler,Forward_Euler,Taylor_Scheme,Velocity_Verlet" values="Symplectic Euler,Forward Euler,Taylor Scheme,Velocity Verlet" help="Time Integration Scheme for translational motion"/>
         <Item id="DEM-TimeRotationalIntegrationScheme" pid="Rotational integration scheme" dv="Direct_Integration" ivalues="Direct_Integration,Runge_Kutta,Quaternion_Integration" values="Direct Integration,Runge Kutta,Quaternion Integration" help="Time Integration Scheme for rotational motion"/>
         <Container id="DEM-ParallelType" pid="Parallel type" state="hiddenAll" help="Locked to OpenMP (MPI will be available in the future)" class="Tab">
             <Item id="ParallelType" pid="Parallel type" state="disabled" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help="Locked to OpenMP (MPI will be available in the future)"/>
