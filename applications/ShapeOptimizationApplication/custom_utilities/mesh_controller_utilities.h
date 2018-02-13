@@ -118,7 +118,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ResetMeshToReferenceMesh()
+    void SetMeshToReferenceMesh()
     {
         for(auto & node_i: mrModelPart.Nodes())
         {
@@ -129,7 +129,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void ResetDeformationDofsToZero()
+    void SetDeformationVariablesToZero()
     {
         VariableUtils().SetToZero_VectorVar(DISPLACEMENT,mrModelPart.Nodes());
         if(mrModelPart.GetNodalSolutionStepVariablesList().Has(ROTATION))

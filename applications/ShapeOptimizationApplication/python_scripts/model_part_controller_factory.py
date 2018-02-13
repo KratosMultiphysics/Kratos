@@ -56,9 +56,12 @@ class ModelPartController:
         self.MeshController.UpdateMeshAccordingInputVariable( InputVariable )
 
     # --------------------------------------------------------------------------    
-    def ResetMeshToReferenceMesh( self ):
-        MeshControllerUtilities( self.OptimizationModelPart ).ResetMeshToReferenceMesh()
-        MeshControllerUtilities( self.OptimizationModelPart ).ResetDeformationDofsToZero()
+    def SetMeshToReferenceMesh( self ):
+        MeshControllerUtilities( self.OptimizationModelPart ).SetMeshToReferenceMesh()
+
+    # --------------------------------------------------------------------------    
+    def SetDeformationVariablesToZero( self ):        
+        MeshControllerUtilities( self.OptimizationModelPart ).SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def GetOptimizationModelPart( self ):
