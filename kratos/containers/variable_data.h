@@ -186,12 +186,12 @@ public:
         return mSize;
     }
 
-    bool IsComponent()
+    bool IsComponent() const
     {
         return mIsComponent;
     }
 
-    bool IsNotComponent()
+    bool IsNotComponent() const
     {
         return !mIsComponent;
     }
