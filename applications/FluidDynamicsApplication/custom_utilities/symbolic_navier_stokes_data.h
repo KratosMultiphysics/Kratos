@@ -101,7 +101,6 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 }
 
 void UpdateGeometryValues(
@@ -110,7 +109,7 @@ void UpdateGeometryValues(
     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX) override
 {
     FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(NewWeight,rN,rDN_DX);
-    //ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
+    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
