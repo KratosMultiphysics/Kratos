@@ -34,7 +34,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetSolutionStepValue(DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetSolutionStepValue(VISCOSITY), viscosity)
-            
+
     def test_set_nonhistorical_variable(self):
         ##set the model part
         model_part = ModelPart("Main")
