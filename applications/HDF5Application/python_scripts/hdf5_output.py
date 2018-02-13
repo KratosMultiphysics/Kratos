@@ -58,7 +58,7 @@ class HDF5ParallelFileFactory(FileFactory):
 
 
 class ModelPartOutput(OutputObject):
-    """A class for writing a model part."""
+    """Provides the interface for writing a model part to a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
@@ -74,7 +74,7 @@ class ModelPartOutput(OutputObject):
 
 
 class NodalResultsOutput(OutputObject):
-    """A class for writing nodal results of a model part."""
+    """Provides the interface for writing nodal results to a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
@@ -93,7 +93,7 @@ class NodalResultsOutput(OutputObject):
 
 
 class PartitionedModelPartOutput(OutputObject):
-    """A class for writing a partitioned model part."""
+    """Provides the interface for writing a partitioned model part to a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
@@ -109,7 +109,7 @@ class PartitionedModelPartOutput(OutputObject):
 
 
 class PartitionedNodalResultsOutput(OutputObject):
-    """A class for writing nodal results of a partitioned model part."""
+    """Provides the interface for writing partitioned nodal results to a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters("""
@@ -127,10 +127,32 @@ class PartitionedNodalResultsOutput(OutputObject):
         KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
 
 
-class TemporalOutputProcess(KratosMultiphysics.Process):
-    """A process for writing temporal simulation results."""
+class StaticOutputProcess(KratosMultiphysics.Process):
+    """A process for writing static simulation results."""
 
-    def __init__(self, model_part, hdf5_file_factory, settings):
+    def __init__(self, model_part, hdf5_file_factory):
+        KratosMultiphysics.Process.__init__(self)
+        self._model_part = model_part
+        self._hdf5_file_factory = hdf5_file_factory
+        self._list_of_outputs = []
+
+    def AddOutput(self, output):
+        self._list_of_outputs.append(output)
+
+    def Execute(self):
+        hdf5_file = self._hdf5_file_factory.Open(self._model_part.Name + ".h5")
+        for output in self._list_of_outputs:
+            output.Execute(self._model_part, hdf5_file)
+
+
+class TemporalOutputProcess(KratosMultiphysics.Process):
+    """A process for writing temporal simulation results.
+    
+    Responsible for the output step control logic. Output objects to be executed
+    at regular time intervals are attached using AddOutput().
+    """
+
+    def __init__(self, model_part, hdf5_file_factory, settings, list_of_initial_outputs=[]):
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
             {
@@ -142,6 +164,9 @@ class TemporalOutputProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self._model_part = model_part
         self._hdf5_file_factory = hdf5_file_factory
+        self._initial_output = StaticOutputProcess(model_part, hdf5_file_factory)
+        for output in list_of_initial_outputs:
+            self._initial_output.AddOutput(output)
         self._output_time_frequency = settings["output_time_frequency"].GetDouble()
         self._output_step_frequency = settings["output_step_frequency"].GetInt()
         self._time_tag_precision = settings["time_tag_precision"].GetInt()
@@ -150,11 +175,13 @@ class TemporalOutputProcess(KratosMultiphysics.Process):
         self._output_step = 0
 
     def AddOutput(self, output):
+        # assert isinstance(output, OutputObject)
         self._list_of_outputs.append(output)
 
     def ExecuteBeforeSolutionLoop(self):
         self._output_time = 0.0
         self._output_step = 0
+        self._initial_output.Execute()
 
     def ExecuteFinalizeSolutionStep(self):
         delta_time = self._model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
@@ -172,19 +199,3 @@ class TemporalOutputProcess(KratosMultiphysics.Process):
         time_tag = "-" + fmt.format(self._model_part.ProcessInfo[KratosMultiphysics.TIME])
         return self._model_part.Name + time_tag + ".h5"
 
-class StaticOutputProcess(KratosMultiphysics.Process):
-    """A process for writing static simulation results."""
-
-    def __init__(self, model_part, hdf5_file_factory):
-        KratosMultiphysics.Process.__init__(self)
-        self._model_part = model_part
-        self._hdf5_file_factory = hdf5_file_factory
-        self._list_of_outputs = []
-
-    def AddOutput(self, output):
-        self._list_of_outputs.append(output)
-
-    def Execute(self):
-        hdf5_file = self._hdf5_file_factory.Open(self._model_part.Name + ".h5")
-        for output in self._list_of_outputs:
-            output.Execute(self._model_part, hdf5_file)
