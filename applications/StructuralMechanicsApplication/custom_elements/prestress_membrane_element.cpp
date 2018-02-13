@@ -1528,11 +1528,11 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
 
 //***********************************************************************************
 //***********************************************************************************
-int  PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const unsigned int number_of_nodes = this->GetGeometry().size();
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+    // const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
     // Verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
@@ -1602,6 +1602,46 @@ int  PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 
     KRATOS_CATCH("");
 }
+
+void PrestressMembraneElement::save(Serializer& rSerializer) const
+    {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+      rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+      rSerializer.save("DetJ0", mDetJ0);
+      rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
+      rSerializer.save("StrainsVector", mStrainsVector);
+      rSerializer.save("StressesVector", mStressesVector);
+      rSerializer.save("CauchyStressesVector", mCauchyStressesVector);
+      rSerializer.save("G1", mG1);
+      rSerializer.save("G2", mG2);
+      rSerializer.save("G_ab", mGab0);
+      rSerializer.save("G_Vector", mGVector);
+      rSerializer.save("Step", mStep);
+      rSerializer.save("AnisotropicPrestress", mAnisotropicPrestress);
+      rSerializer.save("G1Initial", mG1Initial);
+      rSerializer.save("G2Initial", mG2Initial);
+      rSerializer.save("G3Initial", mG3Initial);
+    }
+
+    void PrestressMembraneElement::load(Serializer& rSerializer)
+    {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+      rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+      rSerializer.load("DetJ0", mDetJ0);
+      rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
+      rSerializer.load("StrainsVector", mStrainsVector);
+      rSerializer.load("StressesVector", mStressesVector);
+      rSerializer.load("CauchyStressesVector", mCauchyStressesVector);
+      rSerializer.load("G1", mG1);
+      rSerializer.load("G2", mG2);
+      rSerializer.load("G_ab", mGab0);
+      rSerializer.load("G_Vector", mGVector);
+      rSerializer.load("Step", mStep);
+      rSerializer.load("AnisotropicPrestress", mAnisotropicPrestress);
+      rSerializer.load("G1Initial", mG1Initial);
+      rSerializer.load("G2Initial", mG2Initial);
+      rSerializer.load("G3Initial", mG3Initial);
+    }
 
 
 

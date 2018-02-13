@@ -115,14 +115,19 @@ namespace Kratos
     Vector mDetJ0;
     double mTotalDomainInitialSize;
 
-    std::vector< array_1d<double, 3> > mStrainsVector;	      //container of Strain
-    std::vector< array_1d<double, 6> > mStressesVector;	      //container of Stress
-    std::vector< array_1d<double, 6> > mCauchyStressesVector;	//container of Stress
+    std::vector< array_1d<double, 3> > mStrainsVector;	      //container of Strain // TODO is this needed?
+    std::vector< array_1d<double, 6> > mStressesVector;	      //container of Stress // TODO is this needed?
+    std::vector< array_1d<double, 6> > mCauchyStressesVector;	//container of Stress // TODO is this needed?
 
     std::vector< Matrix >              mGVector;
     std::vector< array_1d<double, 3> > mGab0;
     std::vector< array_1d<double, 3> > mG1;                   // Base vector 1 in updated reference configuration
     std::vector< array_1d<double, 3> > mG2;                   // Base vector 2 in updated reference configuration
+
+    // Using this variable is a potential bug if the element is not used in formfinding!
+    // In the future this should be a Processinfo Variable (e.g. FROMFINDING_STEP), which
+    // is set by the Fromfinding Strategy
+    // The element can then check if this Var is set and use it accordingly
     unsigned int mStep;                                       // Simulation step for formfinding
 
     bool mAnisotropicPrestress;                               // determines if isotropic or anisotropic prestress is applied
@@ -290,35 +295,9 @@ namespace Kratos
     // A private default constructor necessary for serialization
     PrestressMembraneElement() {}
 
-    void save(Serializer& rSerializer) const override
-    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-      rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
-      rSerializer.save("DetJ0", mDetJ0);
-      rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
-      rSerializer.save("StrainsVector", mStrainsVector);
-      rSerializer.save("StressesVector", mStressesVector);
-      rSerializer.save("CauchyStressesVector", mCauchyStressesVector);
-      rSerializer.save("G1", mG1);
-      rSerializer.save("G2", mG2);
-      rSerializer.save("G_ab", mGab0);
-      rSerializer.save("G_Vector", mGVector);
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-      rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
-      rSerializer.load("DetJ0", mDetJ0);
-      rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
-      rSerializer.load("StrainsVector", mStrainsVector);
-      rSerializer.load("StressesVector", mStressesVector);
-      rSerializer.load("CauchyStressesVector", mCauchyStressesVector);
-      rSerializer.load("G1", mG1);
-      rSerializer.load("G2", mG2);
-      rSerializer.save("G_ab", mGab0);
-      rSerializer.load("G_Vector", mGVector);
-    }
+    void load(Serializer& rSerializer) override;
 
     ///@}
 
