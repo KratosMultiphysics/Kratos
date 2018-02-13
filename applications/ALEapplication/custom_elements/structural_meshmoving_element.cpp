@@ -29,6 +29,8 @@ StructuralMeshMovingElement::StructuralMeshMovingElement(
     PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties) {}
 
+//******************************************************************************
+//******************************************************************************
 Element::Pointer
 StructuralMeshMovingElement::Create(IndexType NewId,
                                     NodesArrayType const &rThisNodes,
@@ -39,6 +41,8 @@ StructuralMeshMovingElement::Create(IndexType NewId,
       NewId, rgeom.Create(rThisNodes), pProperties);
 }
 
+//******************************************************************************
+//******************************************************************************
 Element::Pointer
 StructuralMeshMovingElement::Create(IndexType NewId,
                                     GeometryType::Pointer pGeom,
@@ -46,6 +50,8 @@ StructuralMeshMovingElement::Create(IndexType NewId,
   return Kratos::make_shared<StructuralMeshMovingElement>(NewId, pGeom, pProperties);
 }
 
+//******************************************************************************
+//******************************************************************************
 void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
                                                         int Step) {
   GeometryType &rgeom = this->GetGeometry();
@@ -77,6 +83,8 @@ void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
   }
 }
 
+//******************************************************************************
+//******************************************************************************
 StructuralMeshMovingElement::MatrixType
 StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
     const int &Dimension, const double &rPointNumber) {
@@ -109,9 +117,9 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
 
   // The ratio between lambda and mu affects relative stiffening against
   // volume or shape change.
-  double lambda = weighting_factor * poisson_coefficient /
+  const double lambda = weighting_factor * poisson_coefficient /
                   ((1 + poisson_coefficient) * (1 - 2 * poisson_coefficient));
-  double mu = weighting_factor / (2 * (1 + poisson_coefficient));
+  const double mu = weighting_factor / (2 * (1 + poisson_coefficient));
 
   MatrixType constitutive_matrix;
 
@@ -146,6 +154,8 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
   KRATOS_CATCH("");
 }
 
+//******************************************************************************
+//******************************************************************************
 StructuralMeshMovingElement::MatrixType
 StructuralMeshMovingElement::CalculateBMatrix(const int &Dimension,
                                               const double &rPointNumber) {
@@ -210,6 +220,8 @@ StructuralMeshMovingElement::CalculateBMatrix(const int &Dimension,
   KRATOS_CATCH("");
 }
 
+//******************************************************************************
+//******************************************************************************
 void StructuralMeshMovingElement::CheckElementMatrixDimension(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) {
   GeometryType &rgeom = this->GetGeometry();
@@ -220,12 +232,14 @@ void StructuralMeshMovingElement::CheckElementMatrixDimension(
   if (rLeftHandSideMatrix.size1() != local_size)
     rLeftHandSideMatrix.resize(local_size, local_size, false);
 
-  rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
+  noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
   if (rRightHandSideVector.size() != local_size)
     rRightHandSideVector.resize(local_size, false);
 }
 
+//******************************************************************************
+//******************************************************************************
 void StructuralMeshMovingElement::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
     ProcessInfo &rCurrentProcessInfo) {
@@ -260,12 +274,16 @@ void StructuralMeshMovingElement::CalculateLocalSystem(
   KRATOS_CATCH("");
 }
 
+//******************************************************************************
+//******************************************************************************
 void StructuralMeshMovingElement::EquationIdVector(
     EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
+
   GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
-  unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-  unsigned int local_size = num_nodes * dimension;
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const unsigned int local_size = num_nodes * dimension;
 
   if (rResult.size() != local_size)
     rResult.resize(local_size, false);
@@ -289,14 +307,20 @@ void StructuralMeshMovingElement::EquationIdVector(
       rResult[index + 2] =
           rgeom[i_node].GetDof(MESH_DISPLACEMENT_Z, pos + 2).EquationId();
     }
+
+  KRATOS_CATCH("");
 }
 
+//******************************************************************************
+//******************************************************************************
 void StructuralMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
                                              ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
+
   GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
-  unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-  unsigned int local_size = num_nodes * dimension;
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const unsigned int local_size = num_nodes * dimension;
 
   if (rElementalDofList.size() != local_size)
     rElementalDofList.resize(local_size);
@@ -317,13 +341,21 @@ void StructuralMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
       rElementalDofList[index + 2] =
           rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
     }
+
+  KRATOS_CATCH("");
 }
 
+//******************************************************************************
+//******************************************************************************
 // Called in function "CalculateReactions" within the block builder and solver
 void StructuralMeshMovingElement::CalculateRightHandSide(
     VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
+
   MatrixType LHS;
   CalculateLocalSystem(LHS, rRightHandSideVector, rCurrentProcessInfo);
+
+  KRATOS_CATCH("");
 }
 
 } // Namespace Kratos

@@ -10,9 +10,7 @@ KratosMultiphysics.CheckRegisteredApplications("ALEApplication")
 import KratosMultiphysics.ALEApplication as KratosALE
 
 # Other imports
-import os
 import mesh_solver_base
-
 
 
 def CreateSolver(mesh_model_part, custom_settings):

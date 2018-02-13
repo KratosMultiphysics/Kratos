@@ -10,8 +10,6 @@ KratosMultiphysics.CheckRegisteredApplications("ALEApplication", "TrilinosApplic
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Other imports
-from KratosMultiphysics.mpi import *
-import os
 import trilinos_mesh_solver_base
 
 
@@ -22,9 +20,7 @@ def CreateSolver(mesh_model_part, custom_settings):
 class TrilinosMeshSolverStructuralSimilarity(trilinos_mesh_solver_base.TrilinosMeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         super(TrilinosMeshSolverStructuralSimilarity, self).__init__(mesh_model_part, custom_settings)
-        mpi.world.barrier()
-        if mpi.rank == 0:
-            print("::[TrilinosMeshSolverStructuralSimilarity]:: Construction finished")
+        self.print_on_rank_zero("::[TrilinosMeshSolverStructuralSimilarity]:: Construction finished")
 
     #### Private functions ####
 

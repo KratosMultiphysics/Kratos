@@ -93,7 +93,7 @@ public:
         new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,
                                                        TDenseSpace>());
 
-    std::string element_type = "LaplacianMeshMovingElement";
+    const std::string element_type = "LaplacianMeshMovingElement";
     mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(BaseType::GetModelPart(), element_type);
 
     typedef typename Kratos::VariableComponent<

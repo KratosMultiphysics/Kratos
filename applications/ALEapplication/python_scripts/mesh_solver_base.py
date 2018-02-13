@@ -70,7 +70,7 @@ class MeshSolverBase(object):
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.mesh_model_part = mesh_model_part
-        print("::[MeshSolverBase]:: Construction finished")
+        self.print_on_rank_zero("::[MeshSolverBase]:: Construction finished")
 
     #### Public user interface functions ####
 
@@ -79,7 +79,7 @@ class MeshSolverBase(object):
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_RHS)
-        print("::[MeshSolverBase]:: Variables ADDED.")
+        self.print_on_rank_zero("::[MeshSolverBase]:: Variables ADDED.")
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, self.mesh_model_part)
@@ -88,13 +88,13 @@ class MeshSolverBase(object):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, KratosMultiphysics.MESH_REACTION_X, self.mesh_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, KratosMultiphysics.MESH_REACTION_Y, self.mesh_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, KratosMultiphysics.MESH_REACTION_Z, self.mesh_model_part)
-        print("::[MeshSolverBase]:: DOFs ADDED.")
+        self.print_on_rank_zero("::[MeshSolverBase]:: DOFs ADDED.")
 
 
     def Initialize(self):
         self.get_mesh_motion_solver().Initialize()
         #self.neighbour_search.Execute()
-        print("::[MeshSolverBase]:: Finished initialization.")
+        self.print_on_rank_zero("::[MeshSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self):
         self.get_mesh_motion_solver().InitializeSolutionStep()
@@ -122,15 +122,15 @@ class MeshSolverBase(object):
 
     def ImportModelPart(self):
 
-        print("::[ALESolver]:: Importing model part.")
+        self.print_on_rank_zero("::[ALESolver]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
 
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
-            print("    Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            self.print_on_rank_zero("    Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.mesh_model_part)
-            print("    Finished reading model part from mdpa file.")
+            self.print_on_rank_zero("    Finished reading model part from mdpa file.")
             # Check and prepare computing model part and import constitutive laws.
             #self._execute_after_reading()
             self._set_and_fill_buffer()
@@ -152,6 +152,10 @@ class MeshSolverBase(object):
         if not hasattr(self, '_mesh_motion_solver'):
             self._mesh_motion_solver = self._create_mesh_motion_solver()
         return self._mesh_motion_solver
+
+    def print_on_rank_zero(self, *args):
+        # This function will be overridden in the trilinos-solvers
+        print(" ".join(map(str,args)))
 
     #### Private functions ####
 

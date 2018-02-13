@@ -93,7 +93,7 @@ public:
         new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,
                                                        TDenseSpace>());
 
-    std::string element_type = "StructuralMeshMovingElement";
+    const std::string element_type = "StructuralMeshMovingElement";
     mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(BaseType::GetModelPart(), element_type);
 
     mpbulider_and_solver = typename TBuilderAndSolverType::Pointer(

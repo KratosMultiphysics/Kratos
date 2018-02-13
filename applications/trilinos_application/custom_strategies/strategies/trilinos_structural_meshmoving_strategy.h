@@ -324,11 +324,6 @@ private:
         // Initializing mesh nodes
         mpmesh_model_part->Nodes() = BaseType::GetModelPart().Nodes();
 
-        // Setup new auxiliary model part
-        mpmesh_model_part->GetNodalSolutionStepVariablesList() =
-            BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
-        mpmesh_model_part->SetBufferSize(BaseType::GetModelPart().GetBufferSize());
-
         // Creating mesh elements
         ModelPart::ElementsContainerType& MeshElems = mpmesh_model_part->Elements();
         // this works for multiple geometries because we use the

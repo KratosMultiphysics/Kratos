@@ -31,6 +31,8 @@ LaplacianMeshMovingElement::LaplacianMeshMovingElement(
     PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties) {}
 
+//******************************************************************************
+//******************************************************************************
 Element::Pointer
 LaplacianMeshMovingElement::Create(IndexType NewId,
                                    NodesArrayType const &rThisNodes,
@@ -39,12 +41,16 @@ LaplacianMeshMovingElement::Create(IndexType NewId,
       NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
+//******************************************************************************
+//******************************************************************************
 Element::Pointer
 LaplacianMeshMovingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
                                    PropertiesType::Pointer pProperties) const {
   return Kratos::make_shared<LaplacianMeshMovingElement>(NewId, pGeom, pProperties);
 }
 
+//******************************************************************************
+//******************************************************************************
 void LaplacianMeshMovingElement::CalculateDeltaPosition(
     VectorType &rIntermediateDisplacements, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
@@ -63,6 +69,8 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(
   KRATOS_CATCH("");
 }
 
+//******************************************************************************
+//******************************************************************************
 void LaplacianMeshMovingElement::CheckElementMatrixDimension(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) {
   const SizeType num_nodes = this->GetGeometry().PointsNumber();
@@ -70,7 +78,6 @@ void LaplacianMeshMovingElement::CheckElementMatrixDimension(
   if (rLeftHandSideMatrix.size1() != num_nodes)
     rLeftHandSideMatrix.resize(num_nodes, num_nodes, false);
 
-  rLeftHandSideMatrix = ZeroMatrix(num_nodes, num_nodes);
 
   if (rRightHandSideVector.size() != num_nodes)
     rRightHandSideVector.resize(num_nodes, false);
@@ -79,6 +86,8 @@ void LaplacianMeshMovingElement::CheckElementMatrixDimension(
   noalias(rRightHandSideVector) = ZeroVector(num_nodes);
 }
 
+//******************************************************************************
+//******************************************************************************
 void LaplacianMeshMovingElement::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
     ProcessInfo &rCurrentProcessInfo) {
@@ -128,11 +137,15 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
   KRATOS_CATCH("");
 }
 
+//******************************************************************************
+//******************************************************************************
 void LaplacianMeshMovingElement::EquationIdVector(
     EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
+
   GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
-  unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
   if (rResult.size() != num_nodes)
     rResult.resize(num_nodes, false);
@@ -162,13 +175,18 @@ void LaplacianMeshMovingElement::EquationIdVector(
             rgeom[i_node].GetDof(MESH_DISPLACEMENT_Z, pos + 2).EquationId();
     }
   }
+  KRATOS_CATCH("");
 }
 
+//******************************************************************************
+//******************************************************************************
 void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
                                             ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
+
   GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
-  unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
   if (rElementalDofList.size() != num_nodes)
     rElementalDofList.resize(num_nodes);
@@ -189,13 +207,21 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
       if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 3)
         rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
     }
+
+    KRATOS_CATCH("");
 }
 
-// Called in function "CalculateReactions" within the block builder and solver
+//******************************************************************************
+//******************************************************************************
+// Called in function "CalculateReactions" within the component wise builder and solver
 void LaplacianMeshMovingElement::CalculateRightHandSide(
     VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
+
   MatrixType LHS;
   CalculateLocalSystem(LHS, rRightHandSideVector, rCurrentProcessInfo);
+
+  KRATOS_CATCH("");
 }
 
 } // Namespace Kratos

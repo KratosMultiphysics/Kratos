@@ -10,8 +10,7 @@ KratosMultiphysics.CheckRegisteredApplications("ALEApplication", "TrilinosApplic
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Other imports
-from KratosMultiphysics.mpi import *
-import os
+import KratosMultiphysics.mpi as KratosMPI
 import mesh_solver_base
 
 
@@ -22,24 +21,18 @@ def CreateSolver(mesh_model_part, custom_settings):
 class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         super(TrilinosMeshSolverBase, self).__init__(mesh_model_part, custom_settings)
-        mpi.world.barrier()
-        if mpi.rank == 0:
-            print("::[TrilinosMeshSolverBase]:: Construction finished")
+        self.print_on_rank_zero("::[TrilinosMeshSolverBase]:: Construction finished")
 
     #### Public user interface functions ####
 
     def AddVariables(self):
         super(TrilinosMeshSolverBase, self).AddVariables()
         self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        mpi.world.barrier()
-        if mpi.rank == 0:
-            print("::[MeshSolverBase]:: Variables ADDED.")
+        self.print_on_rank_zero("::[MeshSolverBase]:: Variables ADDED.")
 
     def AddDofs(self):
         super(TrilinosMeshSolverBase, self).AddDofs()
-        mpi.world.barrier()
-        if mpi.rank == 0:
-            print("::[MeshSolverBase]:: DOFs ADDED.")
+        self.print_on_rank_zero("::[MeshSolverBase]:: DOFs ADDED.")
 
     #### Specific internal functions ####
 
@@ -47,6 +40,11 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
         if not hasattr(self, '_communicator'):
             self._communicator = TrilinosApplication.CreateCommunicator()
         return self._communicator
+
+    def print_on_rank_zero(self, *args):
+        KratosMPI.mpi.world.barrier()
+        if KratosMPI.mpi.rank == 0:
+            print(" ".join(map(str,args)))
 
     #### Private functions ####
 

@@ -20,6 +20,9 @@
 
 namespace Kratos {
 namespace MoveMeshUtilities {
+
+    //**************************************************************************
+    //**************************************************************************
     void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
                                 VectorType &rDetJ0, GeometryType &rGeometry) {
         KRATOS_TRY;
@@ -37,7 +40,8 @@ namespace MoveMeshUtilities {
         KRATOS_CATCH("");
     }
 
-
+    //**************************************************************************
+    //**************************************************************************
     void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart, const int TimeOrder, const double DeltaTime) {
     KRATOS_TRY;
 
@@ -82,60 +86,61 @@ namespace MoveMeshUtilities {
     KRATOS_CATCH("");
   }
 
+    //**************************************************************************
+    //**************************************************************************
+    void MoveMesh(const ModelPart::NodesContainerType& rNodes){
+        KRATOS_TRY;
 
-  void MoveMesh(const ModelPart::NodesContainerType& rNodes){
-    KRATOS_TRY;
-
-    for (auto& rnode : rNodes) {
-      (rnode).X() = (rnode).X0() + rnode.GetSolutionStepValue(MESH_DISPLACEMENT_X);
-      (rnode).Y() = (rnode).Y0() + rnode.GetSolutionStepValue(MESH_DISPLACEMENT_Y);
-      (rnode).Z() = (rnode).Z0() + rnode.GetSolutionStepValue(MESH_DISPLACEMENT_Z);
-    }
-
-    KRATOS_CATCH("");
-  }
-
-  void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType& rNodes) {
-    KRATOS_TRY;
-
-    for (auto& rnode : rNodes) {
-      (rnode).X() = (rnode).X0();
-      (rnode).Y() = (rnode).Y0();
-      (rnode).Z() = (rnode).Z0();
-    }
-
-    KRATOS_CATCH("");
-  }
-
-  ModelPart::Pointer GenerateMeshPart(ModelPart& rModelPart, std::string ElementName) {
-    KRATOS_TRY;
-
-    ModelPart::Pointer pmesh_model_part;
-    pmesh_model_part = Kratos::make_shared<ModelPart>("MeshPart", 1);
-
-    // initializing mesh nodes and variables
-    pmesh_model_part->Nodes() = rModelPart.Nodes();
-
-    pmesh_model_part->GetNodalSolutionStepVariablesList() =
-        rModelPart.GetNodalSolutionStepVariablesList();
-    pmesh_model_part->SetBufferSize(rModelPart.GetBufferSize());
-
-    // creating mesh elements
-    ModelPart::ElementsContainerType& rmesh_elements =
-        pmesh_model_part->Elements();
-
-    const Element& r_reference_element = KratosComponents<Element>::Get(ElementName);
-
-        for(int i=0; i< (int)rModelPart.Elements().size(); i++){
-        ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin() + i;
-        Element::Pointer p_element = r_reference_element.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
-        rmesh_elements.push_back(p_element);
+        for (auto& rnode : rNodes) {
+        (rnode).X() = (rnode).X0() + rnode.GetSolutionStepValue(MESH_DISPLACEMENT_X);
+        (rnode).Y() = (rnode).Y0() + rnode.GetSolutionStepValue(MESH_DISPLACEMENT_Y);
+        (rnode).Z() = (rnode).Z0() + rnode.GetSolutionStepValue(MESH_DISPLACEMENT_Z);
         }
 
-    return pmesh_model_part;
+        KRATOS_CATCH("");
+    }
 
-    KRATOS_CATCH("");
-  }
+    //**************************************************************************
+    //**************************************************************************
+    void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType& rNodes) {
+        KRATOS_TRY;
+
+        for (auto& rnode : rNodes) {
+        (rnode).X() = (rnode).X0();
+        (rnode).Y() = (rnode).Y0();
+        (rnode).Z() = (rnode).Z0();
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    //**************************************************************************
+    //**************************************************************************
+    ModelPart::Pointer GenerateMeshPart(ModelPart& rModelPart, const std::string ElementName) {
+        KRATOS_TRY;
+
+        ModelPart::Pointer pmesh_model_part;
+        pmesh_model_part = Kratos::make_shared<ModelPart>("MeshPart", 1);
+
+        // initializing mesh nodes and variables
+        pmesh_model_part->Nodes() = rModelPart.Nodes();
+
+        // creating mesh elements
+        ModelPart::ElementsContainerType& rmesh_elements =
+            pmesh_model_part->Elements();
+
+        const Element& r_reference_element = KratosComponents<Element>::Get(ElementName);
+
+            for(int i=0; i< (int)rModelPart.Elements().size(); i++){
+            ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin() + i;
+            Element::Pointer p_element = r_reference_element.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+            rmesh_elements.push_back(p_element);
+            }
+
+        return pmesh_model_part;
+
+        KRATOS_CATCH("");
+    }
 
 } // namespace Move Mesh Utilities.
 

@@ -15,7 +15,7 @@ def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should populate the suites:
-    "small", "nightly" and "all"
+    "mpi_small", "mpi_nightly" and "mpi_all"
 
     Return
     ------
@@ -26,23 +26,26 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # Create a test suite with the selected tests (Small tests):
-    smallSuite = suites['small']
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseStructural2D]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseStructural3D]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseLaplacian2D]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseLaplacian3D]))
+    smallMPISuite = suites['mpi_small']
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseStructural2D]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseStructural3D]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseLaplacian2D]))
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCaseLaplacian3D]))
 
     # Create a test suite with the selected tests plus all small tests
-    nightSuite = suites['nightly']
-    nightSuite.addTests(smallSuite)
+    nightlyMPISuite = suites['mpi_nightly']
+    nightlyMPISuite.addTests(smallMPISuite)
 
     # For very long tests that should not be in nightly and you can use to validate
-    validationSuite = suites['validation']
+    validationMPISuite = suites['mpi_validation']
 
     # Create a test suite that contains all the tests:
+    allMPISuite = suites['mpi_all']
+    allMPISuite.addTests([nightlyMPISuite]) # already contains the smallSuite
+    allMPISuite.addTests([validationMPISuite])
+
     allSuite = suites['all']
-    allSuite.addTests([nightSuite]) # already contains the smallSuite
-    allSuite.addTests([validationSuite])
+    allSuite.addTests(allMPISuite)
 
     return suites
 
