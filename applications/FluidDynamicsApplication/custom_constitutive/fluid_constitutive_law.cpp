@@ -17,12 +17,10 @@ namespace Kratos {
 // Life cycle /////////////////////////////////////////////////////////////////
 
 FluidConstitutiveLaw::FluidConstitutiveLaw():
-    ConstitutiveLaw(),
-    mEffectiveViscosity(0.0) {}
+    ConstitutiveLaw() {}
 
 FluidConstitutiveLaw::FluidConstitutiveLaw(const FluidConstitutiveLaw& rOther):
-    ConstitutiveLaw(rOther),
-    mEffectiveViscosity(rOther.mEffectiveViscosity) {}
+    ConstitutiveLaw(rOther) {}
 
 FluidConstitutiveLaw::~FluidConstitutiveLaw() {}
 
@@ -62,7 +60,7 @@ int& FluidConstitutiveLaw::CalculateValue(ConstitutiveLaw::Parameters& rParamete
 }
 
 double& FluidConstitutiveLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) {
-    rValue = this->GetEffectiveViscosity();
+    rValue = this->GetEffectiveViscosity(rParameters);
     return rValue;
 }
 
@@ -165,12 +163,9 @@ void FluidConstitutiveLaw::NewtonianConstitutiveMatrix3D(
 
 // Protected access ///////////////////////////////////////////////////////////
 
-double FluidConstitutiveLaw::GetEffectiveViscosity() const {
-    return mEffectiveViscosity;
-}
-
-void FluidConstitutiveLaw::SetEffectiveViscosity(double EffectiveViscosity) {
-    mEffectiveViscosity = EffectiveViscosity;
+double FluidConstitutiveLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+    KRATOS_ERROR << "Accessing base class FluidConstitutiveLaw::GetEffectiveViscosity." << std::endl;
+    return 0.0;
 }
 
 // Serialization //////////////////////////////////////////////////////////////

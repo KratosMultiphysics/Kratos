@@ -114,8 +114,6 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     StressVector[4] = mu_effective*S[4];
     StressVector[5] = mu_effective*S[5];
 
-    this->SetEffectiveViscosity(mu_effective);
-
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 //         if(gamma_dot < min_gamma_dot)
@@ -243,6 +241,12 @@ int Bingham3DLaw::Check(const Properties& rMaterialProperties,
 
     return 0;
 
+}
+
+
+double Bingham3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+    // We are abusing the fact that C(5,5) = mu_effective
+    return rParameters.GetConstitutiveMatrix()(5,5);
 }
 
 void Bingham3DLaw::save(Serializer& rSerializer) const {

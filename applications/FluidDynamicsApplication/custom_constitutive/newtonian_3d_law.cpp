@@ -82,8 +82,6 @@ void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
     {
         this->NewtonianConstitutiveMatrix3D(mu,rValues.GetConstitutiveMatrix());
     }
-
-    this->SetEffectiveViscosity(mu);
 }
 
 int Newtonian3DLaw::Check(
@@ -101,6 +99,11 @@ int Newtonian3DLaw::Check(
 
 std::string Newtonian3DLaw::Info() const {
     return "Newtonian3DLaw";
+}
+
+double Newtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+    // We are abusing the fact that C(5,5) = mu
+    return rParameters.GetConstitutiveMatrix()(5,5);
 }
 
 void Newtonian3DLaw::save(Serializer& rSerializer) const {

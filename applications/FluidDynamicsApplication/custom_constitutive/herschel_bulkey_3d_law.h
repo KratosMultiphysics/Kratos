@@ -125,6 +125,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+
     ///@}
 
 

@@ -110,8 +110,6 @@ void  HerschelBulkey3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     StressVector[4] = mu_effective*S[4];
     StressVector[5] = mu_effective*S[5];
 
-    this->SetEffectiveViscosity(mu_effective);
-
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 //         if(gamma_dot < min_gamma_dot)
@@ -242,6 +240,11 @@ int HerschelBulkey3DLaw::Check(const Properties& rMaterialProperties,
 
 std::string HerschelBulkey3DLaw::Info() const {
     return "HerschelBulkey3DLaw";
+}
+
+double HerschelBulkey3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+    // We are abusing the fact that C(5,5) = mu_effective
+    return rParameters.GetConstitutiveMatrix()(5,5);
 }
 
 void HerschelBulkey3DLaw::save(Serializer& rSerializer) const {

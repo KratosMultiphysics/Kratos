@@ -79,8 +79,6 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues) {
     {
         this->NewtonianConstitutiveMatrix2D(mu,rValues.GetConstitutiveMatrix());
     }
-
-    this->SetEffectiveViscosity(mu);
 }
 
 int Newtonian2DLaw::Check(
@@ -98,6 +96,11 @@ int Newtonian2DLaw::Check(
 
 std::string Newtonian2DLaw::Info() const {
     return "Newtonian2DLaw";
+}
+
+double Newtonian2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+    // We are abusing the fact that C(2,2) = mu
+    return rParameters.GetConstitutiveMatrix()(2,2);
 }
 
 void Newtonian2DLaw::save(Serializer& rSerializer) const {

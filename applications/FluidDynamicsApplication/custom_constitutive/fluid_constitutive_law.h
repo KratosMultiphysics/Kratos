@@ -158,11 +158,8 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    /// Get the effective viscosity for the law.
-    double GetEffectiveViscosity() const;
-
-    /// Set the effective viscosity for the law.
-    void SetEffectiveViscosity(double EffectiveViscosity);
+    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
+    virtual double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const;
 
     ///@}
 
@@ -171,8 +168,6 @@ protected:
     ///@name Member Variables
     ///@{
 
-    /// The effective viscosity (in dynamic units -- Pa s) for the fluid.
-    double mEffectiveViscosity;
 
     ///@}
     ///@name Serialization

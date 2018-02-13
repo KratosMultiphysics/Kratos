@@ -84,6 +84,10 @@ namespace Kratos
         return 0;
     }
 
+    double Euler2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+        return 0.0;
+    }
+
     void Euler2DLaw::save(Serializer& rSerializer) const {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
     }
