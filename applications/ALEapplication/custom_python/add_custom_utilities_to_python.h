@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //

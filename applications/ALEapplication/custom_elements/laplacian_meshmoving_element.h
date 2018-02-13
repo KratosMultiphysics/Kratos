@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -23,7 +23,6 @@
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
-
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -106,11 +105,8 @@ public:
   void GetDofList(DofsVectorType &rElementalDofList,
                   ProcessInfo &rCurrentProcessInfo) override;
 
-
-
   void CalculateRightHandSide(VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override;
-
 
   ///@{
 

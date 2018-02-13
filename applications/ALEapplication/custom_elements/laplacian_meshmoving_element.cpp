@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -46,7 +46,8 @@ LaplacianMeshMovingElement::Create(IndexType NewId,
 Element::Pointer
 LaplacianMeshMovingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
                                    PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<LaplacianMeshMovingElement>(NewId, pGeom, pProperties);
+  return Kratos::make_shared<LaplacianMeshMovingElement>(NewId, pGeom,
+                                                         pProperties);
 }
 
 //******************************************************************************
@@ -77,7 +78,6 @@ void LaplacianMeshMovingElement::CheckElementMatrixDimension(
 
   if (rLeftHandSideMatrix.size1() != num_nodes)
     rLeftHandSideMatrix.resize(num_nodes, num_nodes, false);
-
 
   if (rRightHandSideVector.size() != num_nodes)
     rRightHandSideVector.resize(num_nodes, false);
@@ -208,12 +208,13 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
         rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
     }
 
-    KRATOS_CATCH("");
+  KRATOS_CATCH("");
 }
 
 //******************************************************************************
 //******************************************************************************
-// Called in function "CalculateReactions" within the component wise builder and solver
+// Called in function "CalculateReactions" within the component wise builder and
+// solver
 void LaplacianMeshMovingElement::CalculateRightHandSide(
     VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;

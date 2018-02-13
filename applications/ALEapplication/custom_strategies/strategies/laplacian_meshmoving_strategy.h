@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -21,12 +21,12 @@
 /* Project includes */
 #include "ale_application.h"
 #include "custom_elements/laplacian_meshmoving_element.h"
+#include "custom_utilities/move_mesh_utilities.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_utilities/move_mesh_utilities.h"
 
 namespace Kratos {
 
@@ -88,13 +88,13 @@ public:
     mtime_order = TimeOrder;
     bool calculate_norm_dx_flag = false;
 
-
     typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(
         new ResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,
                                                        TDenseSpace>());
 
     const std::string element_type = "LaplacianMeshMovingElement";
-    mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(BaseType::GetModelPart(), element_type);
+    mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(
+        BaseType::GetModelPart(), element_type);
 
     typedef typename Kratos::VariableComponent<
         Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3>>>
@@ -163,7 +163,8 @@ public:
 
     ProcessInfo &rCurrentProcessInfo = (mpmesh_model_part)->GetProcessInfo();
 
-    MoveMeshUtilities::SetMeshToInitialConfiguration(mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
+    MoveMeshUtilities::SetMeshToInitialConfiguration(
+        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     unsigned int dimension =
         BaseType::GetModelPart().GetProcessInfo()[DOMAIN_SIZE];
@@ -187,15 +188,18 @@ public:
       mstrategy_z->Solve();
     }
     // Update FEM-base
-    const double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+    const double delta_time =
+        BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
-    MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order, delta_time);
-    MoveMeshUtilities::MoveMesh(mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
+    MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
+                                               delta_time);
+    MoveMeshUtilities::MoveMesh(
+        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     if (mreform_dof_set_at_each_step == true)
       mstrategy_x->Clear();
-      mstrategy_y->Clear();
-      mstrategy_z->Clear();
+    mstrategy_y->Clear();
+    mstrategy_z->Clear();
 
     return 0.0;
 

@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -34,14 +34,15 @@ typedef BaseType::VectorType VectorType;
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
                             VectorType &rDetJ0, GeometryType &rGeometry);
 
+void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart,
+                             const int TimeOrder, const double DeltaTime);
 
-void CalculateMeshVelocities(ModelPart::Pointer pMeshModelPart, const int TimeOrder, const double DeltaTime);
+void MoveMesh(const ModelPart::NodesContainerType &rNodes);
 
-void MoveMesh(const ModelPart::NodesContainerType& rNodes);
+void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType &rNodes);
 
-void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType& rNodes);
-
-ModelPart::Pointer GenerateMeshPart(ModelPart& rModelPart, const std::string ElementName);
+ModelPart::Pointer GenerateMeshPart(ModelPart &rModelPart,
+                                    const std::string ElementName);
 
 } // namespace Move Mesh Utilities.
 

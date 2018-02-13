@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -62,10 +62,12 @@ KratosALEApplication::KratosALEApplication()
       mStructuralMeshMovingElement3D15N(
           0, Element::GeometryType::Pointer(new Prism3D15<Node<3>>(
                  Element::GeometryType::PointsArrayType(15)))),
-      //Elements with empty geometry for automatic element generation by GenerateMeshPart function
-      mLaplacianMeshMovingElement(0, Element::GeometryType::Pointer (new Geometry<Node<3>>())),
-      mStructuralMeshMovingElement(0, Element::GeometryType::Pointer (new Geometry<Node<3>>()))
-      {}
+      // Elements with empty geometry for automatic element generation by
+      // GenerateMeshPart function
+      mLaplacianMeshMovingElement(
+          0, Element::GeometryType::Pointer(new Geometry<Node<3>>())),
+      mStructuralMeshMovingElement(
+          0, Element::GeometryType::Pointer(new Geometry<Node<3>>())) {}
 
 void KratosALEApplication::Register() {
   // calling base class register to register Kratos components

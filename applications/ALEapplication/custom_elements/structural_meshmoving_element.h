@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -122,7 +122,6 @@ public:
   void GetDofList(DofsVectorType &rElementalDofList,
                   ProcessInfo &rCurrentProcessInfo) override;
 
-
   void CalculateRightHandSide(VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override;
 
@@ -164,7 +163,7 @@ protected:
    * Gets displacement values at nodes
    * @param rValues: reference to vector of nodal displacements
    */
-  
+
   ///@}
   ///@name Protected  Access
   ///@{

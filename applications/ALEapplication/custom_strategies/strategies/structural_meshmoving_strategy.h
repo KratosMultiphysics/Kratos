@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -20,12 +20,12 @@
 
 /* Project includes */
 #include "custom_elements/structural_meshmoving_element.h"
+#include "custom_utilities/move_mesh_utilities.h"
 #include "includes/model_part.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_utilities/move_mesh_utilities.h"
 
 #include "ale_application.h"
 
@@ -94,7 +94,8 @@ public:
                                                        TDenseSpace>());
 
     const std::string element_type = "StructuralMeshMovingElement";
-    mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(BaseType::GetModelPart(), element_type);
+    mpmesh_model_part = MoveMeshUtilities::GenerateMeshPart(
+        BaseType::GetModelPart(), element_type);
 
     mpbulider_and_solver = typename TBuilderAndSolverType::Pointer(
         new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace,
@@ -104,9 +105,9 @@ public:
     mstrategy = typename BaseType::Pointer(
         new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace,
                                         TLinearSolver>(
-            *mpmesh_model_part, pscheme, pNewLinearSolver,
-            mpbulider_and_solver, mcompute_reactions,
-            mreform_dof_set_at_each_step, calculate_norm_dx_flag));
+            *mpmesh_model_part, pscheme, pNewLinearSolver, mpbulider_and_solver,
+            mcompute_reactions, mreform_dof_set_at_each_step,
+            calculate_norm_dx_flag));
 
     mstrategy->SetEchoLevel(mecho_level);
 
@@ -120,15 +121,19 @@ public:
   double Solve() override {
     KRATOS_TRY;
 
-    MoveMeshUtilities::SetMeshToInitialConfiguration(mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
+    MoveMeshUtilities::SetMeshToInitialConfiguration(
+        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     // Solve for the mesh movement
     mstrategy->Solve();
 
     // Update FEM-base
-    const double delta_time = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
-    MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order, delta_time);
-    MoveMeshUtilities::MoveMesh(mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
+    const double delta_time =
+        BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+    MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
+                                               delta_time);
+    MoveMeshUtilities::MoveMesh(
+        mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
     // Clearing the system if needed
     if (mreform_dof_set_at_each_step == true)
@@ -138,7 +143,6 @@ public:
 
     KRATOS_CATCH("");
   }
-
 
   /*@} */
   /**@name Operators

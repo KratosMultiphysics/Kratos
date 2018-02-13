@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -43,16 +43,13 @@ void AddCustomStrategiesToPython() {
                                      LinearSolverType>,
          bases<BaseSolvingStrategyType>, boost::noncopyable>(
       "LaplacianMeshMovingStrategy",
-      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
-;
-
+      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>());
 
   class_<StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,
                                       LinearSolverType>,
          bases<BaseSolvingStrategyType>, boost::noncopyable>(
       "StructuralMeshMovingStrategy",
-      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
-;
+      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>());
 }
 
 } // namespace Python.

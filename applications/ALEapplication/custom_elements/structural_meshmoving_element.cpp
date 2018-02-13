@@ -6,7 +6,7 @@
 //
 //  License:		 BSD License
 //					 Kratos default license:
-//kratos/license.txt
+// kratos/license.txt
 //
 //  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
 //
@@ -47,13 +47,14 @@ Element::Pointer
 StructuralMeshMovingElement::Create(IndexType NewId,
                                     GeometryType::Pointer pGeom,
                                     PropertiesType::Pointer pProperties) const {
-  return Kratos::make_shared<StructuralMeshMovingElement>(NewId, pGeom, pProperties);
+  return Kratos::make_shared<StructuralMeshMovingElement>(NewId, pGeom,
+                                                          pProperties);
 }
 
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
-                                                        int Step) {
+                                                  int Step) {
   GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -117,8 +118,9 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
 
   // The ratio between lambda and mu affects relative stiffening against
   // volume or shape change.
-  const double lambda = weighting_factor * poisson_coefficient /
-                  ((1 + poisson_coefficient) * (1 - 2 * poisson_coefficient));
+  const double lambda =
+      weighting_factor * poisson_coefficient /
+      ((1 + poisson_coefficient) * (1 - 2 * poisson_coefficient));
   const double mu = weighting_factor / (2 * (1 + poisson_coefficient));
 
   MatrixType constitutive_matrix;
@@ -329,17 +331,14 @@ void StructuralMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
     for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
       SizeType index = i_node * dimension;
       rElementalDofList[index] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_X);
-      rElementalDofList[index + 1] =
-          rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
+      rElementalDofList[index + 1] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
     }
   else
     for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
       SizeType index = i_node * dimension;
       rElementalDofList[index] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_X);
-      rElementalDofList[index + 1] =
-          rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
-      rElementalDofList[index + 2] =
-          rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
+      rElementalDofList[index + 1] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
+      rElementalDofList[index + 2] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
     }
 
   KRATOS_CATCH("");
