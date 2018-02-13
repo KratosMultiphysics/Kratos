@@ -44,6 +44,20 @@ class ModelPartController:
             self.MeshController = MeshControllerBasicUpdating( self.OptimizationModelPart )
 
     # --------------------------------------------------------------------------
+    def IsOptimizationModelPartAlreadyImported( self ):
+        if self.OptimizationModelPart.NumberOfNodes()>0:
+            return True
+        else:
+            return False
+
+    # --------------------------------------------------------------------------
+    def ImportOptimizationModelPart( self ):
+        model_part_io = ModelPartIO( self.OptimizationSettings["design_variables"]["optimization_model_part_name"].GetString() )
+        model_part_io.ReadModelPart( self.OptimizationModelPart )
+        self.OptimizationModelPart.SetBufferSize( 1 )
+        self.OptimizationModelPart.ProcessInfo.SetValue( DOMAIN_SIZE, self.OptimizationSettings["design_variables"]["domain_size"].GetInt() )
+        
+    # --------------------------------------------------------------------------
     def InitializeMeshController( self ):
         self.MeshController.Initialize()
 
