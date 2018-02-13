@@ -1,6 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-from math import pi, sin
+# from math import pi, sin
 
 # This test example is from M. Hojjat, E. Stavropoulou, 
 # K.-U. Bletzinger, The Vertex Morphing method for node-based
@@ -47,10 +47,10 @@ class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     def ObjectiveFunction( self, currentDesign ):
         """ Returns the objective function to be minimized """
         objective = 0.0
-        for node in currentDesign.Nodes:
-            x = node.X
-            z = node.Z
-            objective = objective + abs(self.TargetCurveOne(x) - z) * abs(self.TargetCurveTwo(x) - z)
+        # for node in currentDesign.Nodes:
+        #     x = node.X
+        #     z = node.Z
+        #     objective = objective + abs(self.TargetCurveOne(x) - z) * abs(self.TargetCurveTwo(x) - z)
         return objective
 
     # --------------------------------------------------------------------------        
@@ -58,36 +58,36 @@ class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         """ Returns the gradient of the objective function """
         sensitivity = {}
         for node in currentDesign.Nodes:
-            x = node.X
-            z = node.Z
-            delta_one = z - self.TargetCurveOne(x)
-            delta_two = z - self.TargetCurveTwo(x)
-            if abs(delta_one) == 0.0 or abs(delta_two) == 0.0:
-                sz = 0.0
-            else:
-                sz = abs(delta_two) * delta_one / abs(delta_one) + abs(delta_one) * delta_two / abs(delta_two)
-            sensitivity[node.Id] = [0.0, 0.0, sz]
+            # x = node.X
+            # z = node.Z
+            # delta_one = z - self.TargetCurveOne(x)
+            # delta_two = z - self.TargetCurveTwo(x)
+            # if abs(delta_one) == 0.0 or abs(delta_two) == 0.0:
+            #     sz = 0.0
+            # else:
+            #     sz = abs(delta_two) * delta_one / abs(delta_one) + abs(delta_one) * delta_two / abs(delta_two)
+            sensitivity[node.Id] = [0.0, 0.0, 0.0]
         return sensitivity  
 
-    # --------------------------------------------------------------------------        
-    def TargetCurveOne( self, x ):
-        """ Defines target curve 1 as z=TargetCurveOne(x) """
-        if x <= 10.0:
-            return 0.0
-        elif x<= 30.0:
-            return sin(2.0 * pi * (x-10.0) / 40.0)
-        else:
-            return 0.0
+    # # --------------------------------------------------------------------------        
+    # def TargetCurveOne( self, x ):
+    #     """ Defines target curve 1 as z=TargetCurveOne(x) """
+    #     if x <= 10.0:
+    #         return 0.0
+    #     elif x<= 30.0:
+    #         return sin(2.0 * pi * (x-10.0) / 40.0)
+    #     else:
+    #         return 0.0
 
-    # --------------------------------------------------------------------------        
-    def TargetCurveTwo( self, x ):
-        """ Defines target curve 2 as z=TargetCurveTwo(x) """
-        if x <= 10.0:
-            return 0.0
-        elif x<= 30.0:
-            return abs(sin(2.0 * pi * (x-10.0) / 20.0))
-        else:
-            return 0.0       
+    # # --------------------------------------------------------------------------        
+    # def TargetCurveTwo( self, x ):
+    #     """ Defines target curve 2 as z=TargetCurveTwo(x) """
+    #     if x <= 10.0:
+    #         return 0.0
+    #     elif x<= 30.0:
+    #         return abs(sin(2.0 * pi * (x-10.0) / 20.0))
+    #     else:
+    #         return 0.0       
 
     # --------------------------------------------------------------------------        
 
@@ -98,7 +98,6 @@ newAnalyzer = externalAnalyzer()
 # ======================================================================================================================================
 
 Optimizer.importAnalyzer( newAnalyzer )
-Optimizer.importModelPart()
 Optimizer.optimize()
 
 # ======================================================================================================================================
