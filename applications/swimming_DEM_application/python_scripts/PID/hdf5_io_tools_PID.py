@@ -12,7 +12,6 @@ class FluidHDF5LoaderPID(BaseLoader):
                  main_path,
                  averager):
         BaseLoader.__init__(self, fluid_model_part, particles_model_part, pp, main_path)
-        self.original_file_name = 'mesh_142752_nodes.hdf5'
         self.dataset_name = 'stationary_field'
         self.averager = averager
 
