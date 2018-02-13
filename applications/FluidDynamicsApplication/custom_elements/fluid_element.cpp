@@ -520,15 +520,6 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 }
 
-/** Calculate characteristic element length.
- * @return Minimum element height
- */
-template< class TElementData >
-double FluidElement<TElementData>::ElementSize() const
-{
-    return ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >

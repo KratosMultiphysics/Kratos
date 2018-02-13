@@ -431,7 +431,7 @@ void QSVMS<TElementData>::AddVelocitySystem(
     LHS.clear();
 
     // Interpolate nodal data on the integration point
-    double ElemSize = this->ElementSize();
+    double ElemSize = rData.ElementSize;
 
     double density = rData.Density;
     double dynamic_viscosity = rData.EffectiveViscosity; // TODO: this must go through the constitutive law (JC)
@@ -571,7 +571,7 @@ void QSVMS<TElementData>::AddMassStabilization(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
-    double ElemSize = this->ElementSize();
+    double h = rData.ElementSize;
 
     double density = rData.Density;
     double dynamic_viscosity = rData.EffectiveViscosity; //TODO this must go through the constitutive law (JC)
@@ -579,7 +579,7 @@ void QSVMS<TElementData>::AddMassStabilization(
     double TauOne;
     double TauTwo;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,h,TauOne,TauTwo);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
@@ -800,14 +800,14 @@ void QSVMS<TElementData>::SubscaleVelocity(
     const ProcessInfo &rProcessInfo,
     array_1d<double,3> &rVelocitySubscale)
 {
-    double ElemSize = this->ElementSize();
+    double h = rData.ElementSize;
     double dynamic_viscosity = rData.EffectiveViscosity;
 
     double TauOne;
     double TauTwo;
     double density = rData.Density;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,h,TauOne,TauTwo);
 
     array_1d<double,3> Residual(3,0.0);
 
@@ -825,8 +825,7 @@ void QSVMS<TElementData>::SubscalePressure(
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale)
 {
-    //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
-    double ElemSize = this->ElementSize();
+    double ElemSize = rData.ElementSize;
     double dynamic_viscosity = rData.EffectiveViscosity;
 
     double TauOne;

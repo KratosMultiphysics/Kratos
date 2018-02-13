@@ -227,7 +227,7 @@ void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
         rData.PositiveInterfaceUnitNormals, GeometryData::GI_GAUSS_2);
 
     // Normalize the normals
-    const double tolerance = std::pow(1e-3 * this->ElementSize(),Dim-1);
+    const double tolerance = std::pow(1e-3 * rData.ElementSize,Dim-1);
     this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
 }
 
@@ -571,7 +571,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
     // Compute the Nitsche coefficient (including the Winter stabilization term)
     const double avg_rho = rData.Density;
     const double eff_mu = rData.EffectiveViscosity;
-    const double h = ElementSizeCalculator<Dim,NumNodes>::GradientsElementSize(rData.DN_DX);
+    const double h = rData.ElementSize;
     const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE
     const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
 
@@ -586,7 +586,7 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
     const double slip_length = 1.0e+08;
 
     const double eff_mu = rData.EffectiveViscosity;
-    const double h = ElementSizeCalculator<Dim, NumNodes>::GradientsElementSize(rData.DN_DX);
+    const double h = rData.ElementSize;
     const double coeff_1 = slip_length / (slip_length + penalty*h);
     const double coeff_2 = eff_mu / (slip_length + penalty*h);
 
@@ -603,7 +603,7 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
     const double slip_length = 1.0e+08;
 
     const double eff_mu = rData.EffectiveViscosity;
-    const double h = ElementSizeCalculator<Dim, NumNodes>::GradientsElementSize(rData.DN_DX);
+    const double h = rData.ElementSize;
     const double coeff_1 = slip_length*penalty*h / (slip_length + penalty*h);
     const double coeff_2 = eff_mu*penalty*h / (slip_length + penalty*h);
 
@@ -697,7 +697,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
     const double v_norm = norm_2(avg_vel);
 
     // Compute the penalty constant
-    double h = this->ElementSize();
+    double h = rData.ElementSize;
     const double rho = rData.Density;
     const double eff_mu = rData.EffectiveViscosity;
     const double pen_cons = rho*std::pow(h, Dim)/rData.DeltaTime +
