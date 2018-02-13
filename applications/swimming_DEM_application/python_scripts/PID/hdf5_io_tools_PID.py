@@ -19,7 +19,7 @@ class FluidHDF5LoaderPID(BaseLoader):
         rotated_stationary_flow_option = self.pp.CFD_DEM["rotated_stationary_flow_option"].GetBool()
         averaging_has_already_been_done = self.pp.CFD_DEM["averaging_has_already_been_done"].GetBool()
 
-        if rotated_stationary_flow_option and not averaging_has_already_been_done:
+        if not rotated_stationary_flow_option and not averaging_has_already_been_done:
             return BaseLoader.GetFileName(self)
         else:
             original_file_name = self.pp.CFD_DEM.AddEmptyValue("prerun_fluid_file_name").GetString()
@@ -29,7 +29,7 @@ class FluidHDF5LoaderPID(BaseLoader):
         rotated_stationary_flow_option = self.pp.CFD_DEM["rotated_stationary_flow_option"].GetBool()
         averaging_has_already_been_done = self.pp.CFD_DEM["averaging_has_already_been_done"].GetBool()
 
-        if rotated_stationary_flow_option and not averaging_has_already_been_done:
+        if not rotated_stationary_flow_option and not averaging_has_already_been_done:
             BaseLoader.CheckTimes(self, hdf5_file)
         else:
             pass
