@@ -3,7 +3,7 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 import hdf5_output
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
+    if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return PartitionedMultipleMeshTemporalOutputProcess(Model, settings["Parameters"])
 
@@ -23,12 +23,15 @@ class PartitionedMultipleMeshTemporalOutputProcess(KratosMultiphysics.Process):
             """)
         settings.ValidateAndAssignDefaults(default_settings)
         model_part = Model[settings["model_part_name"].GetString()]
+
         hdf5_file_factory = hdf5_output.HDF5ParallelFileFactory(settings["file_output_settings"])
         model_part_output = hdf5_output.PartitionedModelPartOutput(settings["model_part_output_settings"])
         results_output = hdf5_output.PartitionedNodalResultsOutput(settings["results_settings"])
+
         self._static_output = hdf5_output.StaticOutputProcess(model_part, hdf5_file_factory)
         self._static_output.AddOutput(model_part_output)
         self._static_output.AddOutput(results_output)
+        
         self._temporal_output = hdf5_output.TemporalOutputProcess(
             model_part, hdf5_file_factory, settings["output_time_settings"])
         self._temporal_output.AddOutput(model_part_output)
