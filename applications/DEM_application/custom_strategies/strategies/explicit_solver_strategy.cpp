@@ -329,7 +329,7 @@ namespace Kratos {
         ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
         const int number_of_clusters = pElements.size();
 
-        #pragma omp parallel for 
+        #pragma omp parallel for schedule(dynamic, 50)
         for (int k = 0; k < number_of_clusters; k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -352,6 +352,7 @@ namespace Kratos {
         ElementsArrayType& pElements = fem_model_part.GetCommunicator().LocalMesh().Elements();
         const int number_of_rigid_body_elements = pElements.size();
         
+        //DO NOT PARALLELIZE THIS LOOP, IT IS PARALLELIZED INSIDE
         for (int k = 0; k < number_of_rigid_body_elements; k++) {
 
             ElementsArrayType::iterator it = pElements.ptr_begin() + k;
@@ -573,31 +574,31 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            #pragma omp for
+            #pragma omp for nowait
             for (int i = 0; i < number_of_particles; i++) {
                 mListOfSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
             
-            #pragma omp for
+            #pragma omp for nowait
             for (int i = 0; i < number_of_ghost_particles; i++) {
                 mListOfGhostSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
 
-            #pragma omp for
+            #pragma omp for nowait
             for (int k = 0; k < (int) pLocalClusters.size(); k++) {
                 ElementsArrayType::iterator it = pLocalClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
 
-            #pragma omp for
+            #pragma omp for nowait
             for (int k = 0; k < (int) pGhostClusters.size(); k++) {
                  ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
                 Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
                 cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
             }
 
-            #pragma omp for
+            #pragma omp for nowait
             for (int k = 0; k < (int) pFemElements.size(); k++) {
                 ElementsArrayType::iterator it = pFemElements.ptr_begin() + k;
                 RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
@@ -616,21 +617,24 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        #pragma omp parallel for
-        for (int k = 0; k < (int) pElements.size(); k++) {
-            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-            (it)->InitializeSolutionStep(r_process_info);
-        }
-
+        
         ModelPart& r_fem_model_part = GetFemModelPart();
         ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
         ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
 
-        #pragma omp parallel for
-        for (int k = 0; k < (int) pConditions.size(); k++) {
-            ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
-            (it)->InitializeSolutionStep(r_fem_process_info);
+        #pragma omp parallel
+        {
+            #pragma omp for nowait
+            for (int k = 0; k < (int) pElements.size(); k++) {
+                ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+                (it)->InitializeSolutionStep(r_process_info);
+            }
+
+            #pragma omp for nowait
+            for (int k = 0; k < (int) pConditions.size(); k++) {
+                ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
+                (it)->InitializeSolutionStep(r_fem_process_info);
+            }
         }
 
         ApplyPrescribedBoundaryConditions();
