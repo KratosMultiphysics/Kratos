@@ -108,7 +108,7 @@ class GiDDamOutputProcess(Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
-    @classmethod        
+    @classmethod
     def Flush(cls,a):
         a.flush()
 
