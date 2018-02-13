@@ -101,8 +101,7 @@ public:
 		if (gradientMode.compare("semi_analytic") == 0)
 		{
 			mGradientMode = 1;
-			double delta = responseSettings["step_size"].GetDouble();
-			mDelta = delta;
+			mDelta = responseSettings["step_size"].GetDouble();
 		}
 		else
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
@@ -142,8 +141,6 @@ public:
 		m_initial_value = 0.0;
 		m_initial_value_defined = false;
 		m_resp_function_value = 0.0;
-
-
 	}
 
 	/// Destructor.
@@ -176,9 +173,6 @@ public:
 		for(int i = 0; i < m_num_eigenvalues; i++)
 			m_resp_function_value += m_vector_weight_fac[i] * get_single_eigenvalue(m_vector_ev[i]);
 
-		// Change sign of response: only maximization makes sense in case of eigenfrequency optimization
-		m_resp_function_value *= (-1.0);
-
 		// Set initial value if not done yet
 		if(!m_initial_value_defined)
 		{
@@ -186,17 +180,13 @@ public:
 			m_initial_value_defined = true;
 		}
 
-
 		KRATOS_CATCH("");
 	}
 
 	// --------------------------------------------------------------------------
 	double get_single_eigenvalue(int id_eigenvalue)
 	{
-
 		KRATOS_TRY;
-
-		double current_eigenvalue = 0.0;
 
 		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
             KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
@@ -206,18 +196,14 @@ public:
 		if(num_of_computed_eigenvalues < id_eigenvalue)
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
-		current_eigenvalue = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1];
-
-		return current_eigenvalue;
+		return (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1];
 
 		KRATOS_CATCH("");
-
 	}
 
 	// --------------------------------------------------------------------------
 	Vector get_eigenvector_of_element(ModelPart::ElementType& traced_element, int id_eigenvalue, int size_of_eigenvector)
 	{
-
 		KRATOS_TRY;
 
 		Vector eigenvector_of_element;
@@ -234,16 +220,14 @@ public:
 			Matrix& rNodeEigenvectors = node_i.GetValue(rEIGENVECTOR_MATRIX);
 
 			for (int i = 0; i < NumNodeDofs; i++)
-			{
 				eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((id_eigenvalue-1),i);
-			}
+				
 			k++;
 		}
 
 		return eigenvector_of_element;
 
 		KRATOS_CATCH("");
-
 	}
 
 	// --------------------------------------------------------------------------
@@ -489,11 +473,6 @@ protected:
 
 				node_i.Z0() -= mDelta;
 				// End derivative of response w.r.t. z-coord --------------------
-
-				// Change sign of gradient: only maximization makes sense in case of eigenfrequency optimization
-				gradient_contribution[0] *= (-1.0);
-				gradient_contribution[1] *= (-1.0);
-				gradient_contribution[2] *= (-1.0);
 
 				// Assemble sensitivity to node
 				noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT)) += gradient_contribution;
