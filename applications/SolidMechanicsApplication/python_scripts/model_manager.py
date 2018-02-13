@@ -91,7 +91,7 @@ class ModelManager(object):
 
         elif(self.settings["input_file_settings"]["type"].GetString() == "rest"):
             # Import model part from restart file.
-            restart_path = os.path.join(problem_path, self.settings["input_file_settings"]["name"].GetString() + "__" + self.settings["input_file_settings"]["label"].GetString() )
+            restart_path = os.path.join(problem_path, self.settings["input_file_settings"]["name"].GetString() + "__" + str(self.settings["input_file_settings"]["label"].GetInt() ) )
             if(os.path.exists(restart_path+".rest") == False):
                 raise Exception("Restart file not found: " + restart_path + ".rest")
             print("   Loading Restart file: ", restart_path + ".rest ")
