@@ -119,7 +119,7 @@ void FluidConstitutiveLaw::PrintData(std::ostream& rOStream) const {
 
 // Protected operations ///////////////////////////////////////////////////////
 
-void FluidConstitutiveLaw::NewtoninanConstitutiveMatrix2D(
+void FluidConstitutiveLaw::NewtonianConstitutiveMatrix2D(
     double EffectiveViscosity,
     Matrix& rC) {
 
@@ -137,7 +137,7 @@ void FluidConstitutiveLaw::NewtoninanConstitutiveMatrix2D(
     rC(2,2) = EffectiveViscosity;
 }
 
-void FluidConstitutiveLaw::NewtoninanConstitutiveMatrix3D(
+void FluidConstitutiveLaw::NewtonianConstitutiveMatrix3D(
     double EffectiveViscosity,
     Matrix& rC) {
 

@@ -80,7 +80,7 @@ void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
 
     if( options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        this->NewtoninanConstitutiveMatrix3D(mu,rValues.GetConstitutiveMatrix());
+        this->NewtonianConstitutiveMatrix3D(mu,rValues.GetConstitutiveMatrix());
     }
 
     this->SetEffectiveViscosity(mu);

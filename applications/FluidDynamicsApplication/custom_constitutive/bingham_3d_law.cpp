@@ -120,7 +120,7 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
     {
 //         if(gamma_dot < min_gamma_dot)
 //         {
-        this->NewtoninanConstitutiveMatrix3D(mu_effective,rValues.GetConstitutiveMatrix());
+        this->NewtonianConstitutiveMatrix3D(mu_effective,rValues.GetConstitutiveMatrix());
 //         }
 //         else
 //         {

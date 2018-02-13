@@ -77,7 +77,7 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues) {
 
     if( options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        this->NewtoninanConstitutiveMatrix2D(mu,rValues.GetConstitutiveMatrix());
+        this->NewtonianConstitutiveMatrix2D(mu,rValues.GetConstitutiveMatrix());
     }
 
     this->SetEffectiveViscosity(mu);
