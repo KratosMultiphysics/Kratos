@@ -665,14 +665,12 @@ class Procedures(object):
 
         Total_Particles = len(spheres_model_part.Nodes)
 
-        Total_Contacts = 0
-
         if solver.continuum_type:
             Coordination_Number = 0.0
 
             if self.contact_mesh_OPTION:
-                for i_bar in contact_model_part.Elements:
-                    Total_Contacts += 1
+                Total_Contacts = contact_model_part.NumberOfElements(0)
+
                 if Total_Particles:
                     Coordination_Number = 2.0 * Total_Contacts / Total_Particles
 
