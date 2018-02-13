@@ -178,6 +178,36 @@ double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& 
     return std::sqrt(h2);
 }
 
+// Triangle2D3 version. 
+template<>
+double ElementSizeCalculator<2,3>::GradientsElementSize(const bounded_matrix<double,3,2>& rDN_DX) {
+
+    double h = 0.0;
+    for(unsigned int i = 0; i < 3; ++i){
+        double h_inv = 0.0;
+        for(unsigned int k = 0; k < 2; ++k){
+            h_inv += rDN_DX(i,k)*rDN_DX(i,k);
+        }
+        h += 1.0/h_inv;
+    }
+    return sqrt(h)/3.0;
+}
+
+// Tetrahedra3D4 version. 
+template<>
+double ElementSizeCalculator<3,4>::GradientsElementSize(const bounded_matrix<double,4,3>& rDN_DX) {
+
+    double h = 0.0;
+    for(unsigned int i = 0; i < 4; ++i){
+        double h_inv = 0.0;
+        for(unsigned int k = 0; k < 3; ++k){
+            h_inv += rDN_DX(i,k)*rDN_DX(i,k);
+        }
+        h += 1.0/h_inv;
+    }
+    return sqrt(h)/4.0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
 
