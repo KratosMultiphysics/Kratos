@@ -69,6 +69,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
+        self.Analyzer.initializeBeforeOptimizationLoop()                
         self.ModelPartController.InitializeMeshController()        
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
@@ -112,7 +113,6 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
-        self.Analyzer.initializeBeforeOptimizationLoop()        
         self.DataLogger.FinalizeDataLogging()
         self.Analyzer.finalizeAfterOptimizationLoop()              
 
@@ -135,11 +135,12 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __callAnalyzerToPerformRequestedAnalyses( self ):
         self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
-        self.__ResetPossibleMeshModificationDuringAnalysis()
+        self.__ResetPossibleShapeModificationsDuringAnalysis()
 
     # --------------------------------------------------------------------------
-    def __ResetPossibleMeshModificationDuringAnalysis( self ):
+    def __ResetPossibleShapeModificationsDuringAnalysis( self ):
         self.ModelPartController.ResetMeshToReferenceMesh()
+        self.ModelPartController.ResetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
