@@ -101,8 +101,7 @@ public:
 		if (gradientMode.compare("semi_analytic") == 0)
 		{
 			mGradientMode = 1;
-			double delta = responseSettings["step_size"].GetDouble();
-			mDelta = delta;
+			mDelta = responseSettings["step_size"].GetDouble();
 		}
 		else
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
@@ -123,7 +122,6 @@ public:
 		m_initial_value_defined = false;
 		m_resp_function_value = 0.0;
 		m_scal_fac_computed = false;
-
 
   		// Check validity of KS-Parameter
   		if (m_KS_parameter <= 0)
@@ -184,10 +182,7 @@ public:
 	// --------------------------------------------------------------------------
 	double get_single_eigenvalue(int id_eigenvalue)
 	{
-
 		KRATOS_TRY;
-
-		double current_eigenvalue = 0.0;
 
 		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
             KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
@@ -197,18 +192,14 @@ public:
 		if(num_of_computed_eigenvalues < id_eigenvalue)
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
-		current_eigenvalue = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1];
-
-		return current_eigenvalue;
+		return (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[id_eigenvalue-1];
 
 		KRATOS_CATCH("");
-
 	}
 
 	// --------------------------------------------------------------------------
 	double compute_single_ks_value(int id_eigenvalue_in_vector)
 	{
-
 		KRATOS_TRY;
 
 		double lower_bound_mapping = 0.1;
@@ -258,7 +249,6 @@ public:
 	// --------------------------------------------------------------------------
 	Vector get_eigenvector_of_element(ModelPart::ElementType& traced_element, int id_eigenvalue, int size_of_eigenvector)
 	{
-
 		KRATOS_TRY;
 
 		Vector eigenvector_of_element;
@@ -275,16 +265,14 @@ public:
 			Matrix& rNodeEigenvectors = node_i.GetValue(rEIGENVECTOR_MATRIX);
 
 			for (int i = 0; i < NumNodeDofs; i++)
-			{
 				eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((id_eigenvalue-1),i);
-			}
+
 			k++;
 		}
 
 		return eigenvector_of_element;
 
 		KRATOS_CATCH("");
-
 	}
 
 	// --------------------------------------------------------------------------
