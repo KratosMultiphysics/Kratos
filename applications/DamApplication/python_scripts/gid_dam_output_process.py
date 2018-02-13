@@ -107,8 +107,9 @@ class GiDDamOutputProcess(Process):
         self.step_count = 0
         self.printed_step_count = 0
         self.next_output = 0.0
-        
-    def Flush(self,a):
+
+    @classmethod        
+    def Flush(cls,a):
         a.flush()
 
     def ExecuteInitialize(self):
@@ -739,7 +740,7 @@ class GiDDamOutputProcess(Process):
             if (label % mfilelist.step) == 0:
                 
                 if (self.post_mode == GiDPostMode.GiD_PostBinary):
-                    text_to_print = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"                     
+                    text_to_print = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"
                     mfilelist.file.write(text_to_print)
                 else:
                     text_to_print1 = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.msh\n"
@@ -747,8 +748,9 @@ class GiDDamOutputProcess(Process):
                     mfilelist.file.write(text_to_print1)
                     mfilelist.file.write(text_to_print2)
                 self.Flush(mfilelist.file)
-            
-    def __get_multifile_list_name(self, name):
+
+    @classmethod            
+    def __get_multifile_list_name(cls, name):
         return name
 
     def __close_multifiles(self):
