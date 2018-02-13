@@ -431,8 +431,6 @@ void QSVMS<TElementData>::AddVelocitySystem(
     LHS.clear();
 
     // Interpolate nodal data on the integration point
-    double ElemSize = rData.ElementSize;
-
     double density = rData.Density;
     double dynamic_viscosity = rData.EffectiveViscosity; // TODO: this must go through the constitutive law (JC)
     array_1d<double,3> body_force = this->Interpolate(rData.BodyForce,rData.N);
@@ -445,7 +443,7 @@ void QSVMS<TElementData>::AddVelocitySystem(
         this->Interpolate(rData.Velocity, rData.N) -
         this->Interpolate(rData.MeshVelocity, rData.N);
         
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
@@ -571,15 +569,13 @@ void QSVMS<TElementData>::AddMassStabilization(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
-    double h = rData.ElementSize;
-
     double density = rData.Density;
     double dynamic_viscosity = rData.EffectiveViscosity; //TODO this must go through the constitutive law (JC)
 
     double TauOne;
     double TauTwo;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,h,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
@@ -721,21 +717,22 @@ void QSVMS<TElementData>::CalculateStaticTau(
     double Density,
     double DynamicViscosity,
     const array_1d<double,3> &Velocity,
-    double ElemSize,
     double &TauOne,
     double &TauTwo)
 {
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
 
+    const double h = rData.ElementSize;
+
     double velocity_norm = Velocity[0]*Velocity[0];
     for (unsigned int d = 1; d < Dim; d++)
         velocity_norm += Velocity[d]*Velocity[d];
     velocity_norm = std::sqrt(velocity_norm);
 
-    double InvTau = c1 * DynamicViscosity / (ElemSize*ElemSize) + Density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / ElemSize );
-    TauOne = 1.0/InvTau;
-    TauTwo = DynamicViscosity + c2 * Density * velocity_norm * ElemSize / c1;
+    double inv_tau = c1 * DynamicViscosity / (h*h) + Density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h );
+    TauOne = 1.0/inv_tau;
+    TauTwo = DynamicViscosity + c2 * Density * velocity_norm * h / c1;
 }
 
 
@@ -800,14 +797,13 @@ void QSVMS<TElementData>::SubscaleVelocity(
     const ProcessInfo &rProcessInfo,
     array_1d<double,3> &rVelocitySubscale)
 {
-    double h = rData.ElementSize;
     double dynamic_viscosity = rData.EffectiveViscosity;
 
     double TauOne;
     double TauTwo;
     double density = rData.Density;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,h,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
 
     array_1d<double,3> Residual(3,0.0);
 
@@ -825,7 +821,6 @@ void QSVMS<TElementData>::SubscalePressure(
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale)
 {
-    double ElemSize = rData.ElementSize;
     double dynamic_viscosity = rData.EffectiveViscosity;
 
     double TauOne;
@@ -834,8 +829,7 @@ void QSVMS<TElementData>::SubscalePressure(
     array_1d<double, 3> convective_velocity =
         this->Interpolate(rData.Velocity, rData.N) -
         this->Interpolate(rData.MeshVelocity, rData.N);
-    this->CalculateStaticTau(rData, density, dynamic_viscosity, convective_velocity, ElemSize,
-                             TauOne, TauTwo);
+    this->CalculateStaticTau(rData, density, dynamic_viscosity, convective_velocity, TauOne, TauTwo);
 
     double Residual = 0.0;
 

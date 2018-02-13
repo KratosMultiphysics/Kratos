@@ -321,7 +321,6 @@ protected:
         double Density,
         double DynamicViscosity,
         const array_1d<double,3> &Velocity,
-        double ElemSize,
         double &TauOne,
         double &TauTwo);    
 
