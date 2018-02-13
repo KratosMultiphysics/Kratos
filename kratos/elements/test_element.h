@@ -24,22 +24,19 @@ namespace Kratos
 {
 ///@name Kratos Globals
 ///@{
+    
 ///@}
 ///@name Type Definitions
 ///@{
+    
 ///@}
 ///@name  Enum's
 ///@{
     
-    /**
-     * @brief This enum is used in order of differentiante 
-     * @details If more implementations are added, add the corresponding enum
-     */
-    enum class ResidualType {LINEAR = 0, NON_LINEAR = 1, ARC_LENGTH = 2};
-    
 ///@}
 ///@name  Functions
 ///@{
+    
 ///@}
 ///@name Kratos Classes
 ///@{
@@ -62,8 +59,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( TestElement);
     ///@}
 
-public:
-
+    ///@name  Enum's
+    ///@{
+    
+    /**
+     * @brief This enum is used in order of differentiante 
+     * @details If more implementations are added, add the corresponding enum
+     */
+    enum class ResidualType {LINEAR = 0, NON_LINEAR = 1, ARC_LENGTH = 2};
+    
+    ///@}
     ///@name Life Cycle
     ///@{
 
