@@ -132,24 +132,11 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
         int n_elems = mrModelPart.NumberOfElements();
         int n_conds = mrModelPart.NumberOfConditions();
 
-        int n_nodes_scansum, n_elems_scansum, n_conds_scansum;
-        mrModelPart.GetCommunicator().ScanSum(n_nodes, n_nodes_scansum);
-        mrModelPart.GetCommunicator().ScanSum(n_elems, n_elems_scansum);
-        mrModelPart.GetCommunicator().ScanSum(n_conds, n_conds_scansum);
-
-        int n_nodes_sumall(n_nodes);
-        int n_elems_sumall(n_elems);
-        int n_conds_sumall(n_conds);
-        mrModelPart.GetCommunicator().SumAll(n_nodes_sumall);
-        mrModelPart.GetCommunicator().SumAll(n_elems_sumall);
-        mrModelPart.GetCommunicator().SumAll(n_conds_sumall);
-
         // Initialize the ids. for the new entries
-        // For the temporal ids. we assume that all the partition
-        // nodes will be added to the visualization model part.
-        unsigned int temp_node_id = n_nodes_sumall + n_nodes_scansum + 1;
-        unsigned int temp_elem_id = n_elems_sumall + n_elems_scansum + 1;
-        unsigned int temp_cond_id = n_conds_sumall + n_conds_scansum + 1;
+        // For the temporal ids. there is no necessity of synchronizing between processors
+        unsigned int temp_node_id = (n_nodes > 0) ? ((mrModelPart.NodesEnd()-1)->Id()) + 1 : 1;
+        unsigned int temp_elem_id = (n_elems > 0) ? ((mrModelPart.ElementsEnd()-1)->Id()) + 1 : 1;
+        unsigned int temp_cond_id = (n_conds > 0) ? ((mrModelPart.ConditionsEnd()-1)->Id()) + 1 : 1;
 
         // Auxiliar vectors to store pointers to the new entities
         // These vectors will be use when renumbering the entities ids.
