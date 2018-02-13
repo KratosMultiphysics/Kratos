@@ -33,6 +33,7 @@ from test_patch_test_cr_beam import TestCrBeam3D2N as TTestCrBeam3D2N
 from test_patch_test_cr_beam import TestCrBeam2D2N as TTestCrBeam2D2N
 from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
 from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
+from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTestFormfinding
 # Test loading conditions
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
 from test_loading_conditions_line import TestLoadingConditionsLine as TTestLoadingConditionsLine
@@ -196,6 +197,8 @@ def AssambleTestSuites():
     # Beams
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N])) # TODO should be in smallSuite but is too slow
+    # Membranes
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
     # Loading Conditions
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsLine]))
@@ -204,10 +207,10 @@ def AssambleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Multipoint Constraint
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
-    
+
     ### Adding Small Tests
     # Dynamic basic tests (leave these in the smallSuite to have the Exection script tested)
-    smallSuite.addTest(TDynamicBossakTests('test_execution')) 
+    smallSuite.addTest(TDynamicBossakTests('test_execution'))
     smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
 
     ### Adding Nightly Tests
@@ -248,7 +251,7 @@ def AssambleTestSuites():
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     nightSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     nightSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
-    # 2Node Element tests    
+    # 2Node Element tests
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
     nightSuite.addTest(T3D2NTrussTest('test_execution'))
@@ -284,7 +287,7 @@ def AssambleTestSuites():
     nightSuite.addTests(smallSuite)
 
     ### Adding Validation Tests
-    # For very long tests that should not be in nighly and you can use to validate 
+    # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
@@ -327,7 +330,7 @@ def AssambleTestSuites():
     validationSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
     validationSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
     ### ---| OLD Shell Tests End
-    
+
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite) # already contains the smallSuite
