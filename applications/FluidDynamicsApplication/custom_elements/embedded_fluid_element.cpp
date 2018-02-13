@@ -556,10 +556,6 @@ template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
     const EmbeddedElementData& rData) const {
 
-    // Compute the effective viscosity as the average of the lower diagonal constitutive tensor
-    // TODO: TO BE OBTAINED FROM THE CLAW ONCE JORDI FINISHES HIS IMPLEMENTATION
-    double eff_mu = rData.DynamicViscosity;
-
     // Compute the element average velocity norm
     double v_norm = 0.0;
     for (unsigned int comp = 0; comp < Dim; ++comp){
@@ -572,10 +568,9 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
     }
     v_norm = std::sqrt(v_norm);
 
-    // Compute the element average density
-    double avg_rho = rData.Density;
-
     // Compute the Nitsche coefficient (including the Winter stabilization term)
+    const double avg_rho = rData.Density;
+    const double eff_mu = rData.EffectiveViscosity;
     const double h = ElementSizeCalculator<Dim,NumNodes>::GradientsElementSize(rData.DN_DX);
     const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE
     const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
@@ -587,13 +582,10 @@ template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialPenaltyCoefficients(
     const EmbeddedElementData& rData) const {
     
-    // Compute the effective viscosity as the average of the lower diagonal constitutive tensor
-    // TODO: TO BE OBTAINED FROM THE CLAW ONCE JORDI FINISHES HIS IMPLEMENTATION
-    double eff_mu = rData.DynamicViscosity;
-
     const double penalty = 1.0/10.0;
     const double slip_length = 1.0e+08;
 
+    const double eff_mu = rData.EffectiveViscosity;
     const double h = ElementSizeCalculator<Dim, NumNodes>::GradientsElementSize(rData.DN_DX);
     const double coeff_1 = slip_length / (slip_length + penalty*h);
     const double coeff_2 = eff_mu / (slip_length + penalty*h);
@@ -607,13 +599,10 @@ template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialNitscheCoefficients(
     const EmbeddedElementData& rData) const {
     
-    // Compute the effective viscosity as the average of the lower diagonal constitutive tensor
-    // TODO: TO BE OBTAINED FROM THE CLAW ONCE JORDI FINISHES HIS IMPLEMENTATION
-    double eff_mu = rData.DynamicViscosity;
-
     const double penalty = 1.0/10.0;
     const double slip_length = 1.0e+08;
 
+    const double eff_mu = rData.EffectiveViscosity;
     const double h = ElementSizeCalculator<Dim, NumNodes>::GradientsElementSize(rData.DN_DX);
     const double coeff_1 = slip_length*penalty*h / (slip_length + penalty*h);
     const double coeff_2 = eff_mu*penalty*h / (slip_length + penalty*h);
@@ -695,9 +684,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
         intersection_area += rData.PositiveInterfaceWeights[g];
     }
 
-    // Compute the element average values
-    double rho = rData.Density;
-    double mu = rData.DynamicViscosity;
+    // Compute the element average velocity value
     array_1d<double, Dim> avg_vel(Dim,0.0);
 
     for (unsigned int i = 0; i < NumNodes; ++i) {
@@ -711,8 +698,10 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
 
     // Compute the penalty constant
     double h = this->ElementSize();
+    const double rho = rData.Density;
+    const double eff_mu = rData.EffectiveViscosity;
     const double pen_cons = rho*std::pow(h, Dim)/rData.DeltaTime +
-                                rho*mu*std::pow(h,Dim-2) +
+                                rho*eff_mu*std::pow(h,Dim-2) +
                                 rho*v_norm*std::pow(h, Dim-1);
 
     // Return the penalty coefficient

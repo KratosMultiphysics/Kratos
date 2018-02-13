@@ -159,7 +159,7 @@ void SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >::ComputeGaussPointLHS
     SymbolicNavierStokesData<2,3>& rData, MatrixType& rLHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -407,7 +407,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSCo
     SymbolicNavierStokesData<3,4>& rData, MatrixType& rLHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -1036,7 +1036,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSCo
     SymbolicNavierStokesData<2,3>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
@@ -1112,7 +1112,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSCo
     SymbolicNavierStokesData<3,4>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
     const double h = this->ElementSize();
     const double c = rData.SoundVelocity;
