@@ -75,7 +75,6 @@ std::vector<std::string> GetComponentNames(const TContainerType& rElements)
 {
     KRATOS_TRY;
 
-    const int max_size = 1000;
     std::vector<std::string> local_component_names =
         GetLocalComponentNames<TContainerType>(rElements);
 
@@ -88,6 +87,7 @@ std::vector<std::string> GetComponentNames(const TContainerType& rElements)
 
     if (mpi_is_initialized)
     {
+        constexpr std::size_t max_size = 1000;
         const int root = 0;
         int comm_rank, comm_size, ierr;
         MPI_Comm_rank(MPI_COMM_WORLD, &comm_rank);
@@ -132,10 +132,11 @@ std::vector<std::string> GetComponentNames(const TContainerType& rElements)
         if (comm_rank == root)
         {
             std::string send_components = ss.str();
-            int ssize = send_components.size();
-            KRATOS_ERROR_IF(ssize > max_size) << "Max string size exceeded." << std::endl;
             char send_buf[max_size];
-            send_components.copy(send_buf, ssize);
+            const std::size_t length = send_components.copy(send_buf, max_size);
+            KRATOS_ERROR_IF(length == max_size) << "Max string size exceeded." << std::endl;
+            send_buf[length] = '\0';
+            int ssize = length + 1;
             ierr = MPI_Bcast(&ssize, 1, MPI_INT, root, MPI_COMM_WORLD);
             KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Bcast failed." << std::endl;
             ierr = MPI_Bcast(send_buf, ssize, MPI_CHAR, root, MPI_COMM_WORLD);
@@ -149,13 +150,11 @@ std::vector<std::string> GetComponentNames(const TContainerType& rElements)
         {
             std::stringstream recv_components;
             char recv_buf[max_size];
-            int ssize;
+            int ssize = 0;
             ierr = MPI_Bcast(&ssize, 1, MPI_INT, root, MPI_COMM_WORLD);
             KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Bcast failed." << std::endl;
-            KRATOS_ERROR_IF(ssize + 1 > max_size) << "Max string size exceeded." << std::endl;
             ierr = MPI_Bcast(recv_buf, ssize, MPI_CHAR, root, MPI_COMM_WORLD);
             KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Bcast failed." << std::endl;
-            recv_buf[ssize] = '\0';
             recv_components.str(recv_buf);
 
             std::string name;

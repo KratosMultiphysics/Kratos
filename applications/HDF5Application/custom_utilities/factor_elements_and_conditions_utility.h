@@ -31,6 +31,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/// A utility to factor a collection of elements into uniform containers.
+/**
+ * Each container consists of all elements of a single type. In MPI,
+ * the sequence of element containers is global (i.e., the ith container on
+ * each process corresponds to the same element type), but the contents of
+ * each container on a process are local. If a process has no local elements 
+ * corresponding to the ith container, it is empty.
+ */
 class FactorElementsUtility
 {
 public:
