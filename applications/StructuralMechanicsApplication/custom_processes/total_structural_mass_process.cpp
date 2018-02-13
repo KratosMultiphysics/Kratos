@@ -56,7 +56,7 @@ void TotalStructuralMassProcess::Execute()
         }
     }
 
-    KRATOS_INFO("Total Mass") << total_mass/1000.0 << " Tn" << std::endl;
+    KRATOS_INFO("Total Mass") << total_mass << std::endl;
     KRATOS_INFO("Hint")  << "Check variable NODAL_MASS in the process info in order to access to it in any moment" << std::endl;
     
     mrThisModelPart.GetProcessInfo()[NODAL_MASS] = total_mass;
