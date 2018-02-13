@@ -749,7 +749,7 @@ class GiDDamOutputProcess(Process):
                     mfilelist.file.write(text_to_print2)
                 self.Flush(mfilelist.file)
 
-    @classmethod            
+    @classmethod
     def __get_multifile_list_name(cls, name):
         return name
 
