@@ -39,7 +39,7 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
             "echo_level": 0,
             "time_order": 2,
             "compute_reactions": false,
-            "reform_dofs_at_each_step": true,
+            "reform_dofs_at_each_step": false,
             "relative_velocity_tolerance": 1e-3,
             "absolute_velocity_tolerance": 1e-5,
             "relative_pressure_tolerance": 1e-3,
