@@ -765,7 +765,7 @@ ModelPart::ElementType::Pointer ModelPart::CreateNewElement(std::string ElementN
 
     auto existing_element_iterator = GetMesh(ThisIndex).Elements().find(Id);
     if(existing_element_iterator != GetMesh(ThisIndex).ElementsEnd() )
-        KRATOS_ERROR << "trying to construct aen element with ID " << Id << " however an element with the same Id already exists";
+        KRATOS_ERROR << "trying to construct an element with ID " << Id << " however an element with the same Id already exists";
 
 
     //create the new element
