@@ -202,7 +202,7 @@ namespace Kratos
         noalias(rRightHandSideVector) += variables.dt_inv * prod(mass_matrix, variables.proj_unk);
 
         // Substracting the botton diffusion due to stabilization (eta = h + H)
-        noalias(rRightHandSideVector) += (k_dc + tau_h) * prod(aux_h_diffus, variables.depth);
+        noalias(rRightHandSideVector) -= (k_dc + tau_h) * prod(aux_h_diffus, variables.depth);
 
         // Substracting the Dirichlet term (since we use a residualbased approach)
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, variables.unknown);
