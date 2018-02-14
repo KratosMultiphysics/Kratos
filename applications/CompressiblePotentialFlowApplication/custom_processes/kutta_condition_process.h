@@ -31,6 +31,9 @@
 #include <unordered_map> //TODO: remove this dependence when Kratos has en internal one
 #include <utility>
 
+#include "compressible_potential_flow_application.h"
+#include "compressible_potential_flow_application_variables.h"
+
 namespace Kratos
 {
 
@@ -109,85 +112,81 @@ public:
             for(unsigned int i=0; i<geom.size(); ++i)
             {
                 if(geom[i].Is(STRUCTURE))
-                {
+                {                    
                     kutta_elements.push_back(*(it.base()));
                     break;
                 }
             }
         }
-        
-        //compute one normal per each kutta node
-        normal_map_type normal_map;
-        for(auto it=kutta_elements.begin(); it!=kutta_elements.end(); ++it)
-        {
-            if(it->Is(MARKER))
-            {
-                //compute normal
-                const Vector& elemental_distances = it->GetValue(ELEMENTAL_DISTANCES);
-                
-                double vol;
-                array_1d<double,4> N;
-                bounded_matrix<double,4,3> DN_DX;
-                GeometryUtils::CalculateGeometryData(it->GetGeometry(), DN_DX, N, vol);
-                
-                //get a relevant norm
-                array_1d<double,3> n = prod(trans(DN_DX),elemental_distances);
-                n/=(norm_2(n)+1e-30);
 
-                //
-                auto geom = it->GetGeometry();
-                for(unsigned int i=0; i<geom.size(); ++i)
-                {
-                    if(geom[i].Is(STRUCTURE))
-                    {
-                        geom[i].Set(VISITED,true);
-                        normal_map[geom[i].Id()] = n;;
-                    }
-                }
-            }
-        }
         
-        //now compute one elemntal distance per each element in the kutta list
+        // //loop over kutta elements
+        // for(auto it=kutta_elements.begin(); it!=kutta_elements.end(); ++it)
+        // {
+        //     int kutta_id = -1;
+        //     auto geom = it->GetGeometry();
+        //     for(unsigned int i=0; i<geom.size(); ++i)
+        //     {
+        //         if(geom[i].Is(STRUCTURE) && geom[i])
+        //         {
+        //             kutta_id = i;
+        //             break;
+        //         }
+        //     }
+
+        // }
+
+        const array_1d<double,3> wake_normal = mrModelPart.GetProcessInfo()[WAKE_NORMAL];
+        std::cout << "wake_normal =" << wake_normal << std::endl;
+
+        //loop over kutta elements
         for(auto it=kutta_elements.begin(); it!=kutta_elements.end(); ++it)
         {
             it->Set(MARKER,false);
-            Vector& elemental_distances = it->GetValue(ELEMENTAL_DISTANCES);
-            
-            array_1d<double,3> n;
-            auto geom = it->GetGeometry();
             int kutta_id = -1;
+            auto geom = it->GetGeometry();
+            Vector& elemental_distances = it->GetValue(ELEMENTAL_DISTANCES);
+
+            //selecting one node at the trailing edge to be the kutta reference node
             for(unsigned int i=0; i<geom.size(); ++i)
             {
-                if(geom[i].Is(STRUCTURE) && geom[i].Is(VISITED))
+                if(geom[i].Is(STRUCTURE))
                 {
                     kutta_id = i;
-                    n = normal_map[geom[i].Id()];
                     break;
                 }
             }
-            
-            if(kutta_id == -1) //no node was found with the normal correctly calculated
+
+            if(kutta_id == -1)
             {
-                it->Set(ACTIVE,false);
+                KRATOS_ERROR << "No node from the trailing edge was found";
             }
             else
-            {
-                   
-                
+            {    
                 array_1d<double,3> x0 = geom[kutta_id].Coordinates();
                 double dkutta = -1e-3;
                 for(int i=0; i<static_cast<int>(geom.size()); ++i)
                 {
-                    if(kutta_id != i)
+                    if(geom[i].IsNot(STRUCTURE) && geom[i].GetSolutionStepValue(LOWER_SURFACE)==0)
                     {
-                        
                         array_1d<double,3> v = geom[i].Coordinates() - x0;
-                        elemental_distances[i] = inner_prod(n,v);
+                        //std::cout << "v =" << v << std::endl;
+                        elemental_distances[i] = inner_prod(wake_normal,v);
+                        //std::cout << "elemental_distances =" << elemental_distances[i] << std::endl;
+                        //geom[i].GetSolutionStepValue(WATER_PRESSURE) = elemental_distances[i];
+                        // if(elemental_distances[i]>0)
+                        //     geom[i].GetSolutionStepValue(WATER_PRESSURE) = 200;
+                        // else    
+                        //     geom[i].GetSolutionStepValue(WATER_PRESSURE) = -200;
                     }
                     else
+                    {
                         elemental_distances[i] = dkutta;
-                }
-                
+                        //geom[i].GetSolutionStepValue(WATER_PRESSURE) = elemental_distances[i];
+                    }
+                        
+                    //geom[i].GetSolutionStepValue(WATER_PRESSURE) = elemental_distances[i];
+                }             
                 
                 unsigned int npos = 0;
                 unsigned int nneg = 0;
@@ -201,7 +200,104 @@ public:
                     it->Set(MARKER,true);
             }
             
-        }       
+
+            // for(unsigned int i=0; i<geom.size(); ++i)
+            // {
+            //     //geom[i].GetSolutionStepValue(WATER_PRESSURE) = 7;
+            //     if(geom[i].GetSolutionStepValue(UPPER_SURFACE)==1  && elemental_distances[i]>0)//&& geom[i].IsNot(STRUCTURE)
+            //     {
+            //         geom[i].GetSolutionStepValue(WATER_PRESSURE) = 14;
+            //     }
+            // }
+        }        
+        
+        
+        //compute one normal per each kutta node
+        // normal_map_type normal_map;
+        // for(auto it=kutta_elements.begin(); it!=kutta_elements.end(); ++it)
+        // {
+        //     if(it->Is(MARKER))
+        //     {
+        //         //compute normal
+        //         const Vector& elemental_distances = it->GetValue(ELEMENTAL_DISTANCES);
+                
+        //         double vol;
+        //         array_1d<double,4> N;
+        //         bounded_matrix<double,4,3> DN_DX;
+        //         GeometryUtils::CalculateGeometryData(it->GetGeometry(), DN_DX, N, vol);
+                
+        //         //get a relevant norm
+        //         array_1d<double,3> n = prod(trans(DN_DX),elemental_distances);
+        //         n/=(norm_2(n)+1e-30);
+
+        //         //
+        //         auto geom = it->GetGeometry();
+        //         for(unsigned int i=0; i<geom.size(); ++i)
+        //         {
+        //             if(geom[i].Is(STRUCTURE))
+        //             {
+        //                 geom[i].Set(VISITED,true);
+        //                 normal_map[geom[i].Id()] = n;;
+        //             }
+        //         }
+        //     }
+        // }
+        
+        // //now compute one elemntal distance per each element in the kutta list
+        // for(auto it=kutta_elements.begin(); it!=kutta_elements.end(); ++it)
+        // {
+        //     it->Set(MARKER,false);
+        //     Vector& elemental_distances = it->GetValue(ELEMENTAL_DISTANCES);
+            
+        //     array_1d<double,3> n;
+        //     auto geom = it->GetGeometry();
+        //     int kutta_id = -1;
+        //     for(unsigned int i=0; i<geom.size(); ++i)
+        //     {
+        //         if(geom[i].Is(STRUCTURE) && geom[i].Is(VISITED))
+        //         {
+        //             kutta_id = i;
+        //             n = normal_map[geom[i].Id()];
+        //             break;
+        //         }
+        //     }
+            
+        //     if(kutta_id == -1) //no node was found with the normal correctly calculated
+        //     {
+        //         it->Set(ACTIVE,false);
+        //     }
+        //     else
+        //     {
+                   
+                
+        //         array_1d<double,3> x0 = geom[kutta_id].Coordinates();
+        //         double dkutta = -1e-3;
+        //         for(int i=0; i<static_cast<int>(geom.size()); ++i)
+        //         {
+        //             if(kutta_id != i)
+        //             {
+                        
+        //                 array_1d<double,3> v = geom[i].Coordinates() - x0;
+        //                 elemental_distances[i] = inner_prod(n,v);
+        //             }
+        //             else
+        //                 elemental_distances[i] = dkutta;
+        //         }
+                
+                
+        //         unsigned int npos = 0;
+        //         unsigned int nneg = 0;
+        //         for(unsigned int i=0; i<geom.size(); ++i)
+        //             if(elemental_distances[i] >= 0)
+        //                 npos++;
+        //             else
+        //                 nneg++;
+                    
+        //         if(nneg > 0 && npos >0)
+        //             it->Set(MARKER,true);
+        //     }
+            
+        // }       
         
         KRATOS_CATCH("");
     }

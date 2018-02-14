@@ -16,13 +16,15 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"                   : 0,
-                "model_part_name"           : "please specify the model part that contains the kutta nodes",
-                "fluid_part_name"           : "MainModelPart",
-                "direction"                 : [1.0,0.0,0.0],
-                "stl_filename"              : "please specify name of stl file",
+                "mesh_id"                       : 0,
+                "model_part_name"               : "please specify the model part that contains the kutta nodes",
+                "upper_surface_model_part_name" : "please specify the model part that contains the upper surface nodes",
+                "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
+                "fluid_part_name"               : "MainModelPart",
+                "direction"                     : [1.0,0.0,0.0],
+                "stl_filename"                  : "please specify name of stl file",
                 "epsilon"    : 1e-9,
-                "AOAdeg" : 3
+                "AOAdeg" : 5
             }
             """)
 
@@ -39,6 +41,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.direction[1] = settings["direction"][0].GetDouble()*sin(self.AOArad)
         self.direction[2] = settings["direction"][2].GetDouble()
         
+        
         '''
         self.direction = KratosMultiphysics.Vector(3)
         self.direction[0] = settings["direction"][0].GetDouble()
@@ -51,10 +54,23 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.direction[2] /= dnorm
         print('wake direction =', self.direction)
         
+        self.wake_normal = KratosMultiphysics.Vector(3)
+        self.wake_normal[0] = -self.direction[1]
+        self.wake_normal[1] = 0.0
+        self.wake_normal[2] = self.direction[0]
+        print('wake normal =', self.wake_normal)    
+        
+        
         self.epsilon = settings["epsilon"].GetDouble()
 
-        self.kutta_model_part = Model[settings["model_part_name"].GetString()]
-        self.fluid_model_part = Model[settings["fluid_part_name"].GetString()]
+        self.kutta_model_part =         Model[settings["model_part_name"].GetString()]
+        self.fluid_model_part =         Model[settings["fluid_part_name"].GetString()]
+        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
+        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
+        
+        
+        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE_NORMAL,self.wake_normal)
+        
         
         # Neigbour search tool instance
         AvgElemNum = 10
@@ -73,6 +89,13 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             y1 = node.Y
             z1 = node.Z
             
+        #print('Selecting upper surface nodes...')
+        #for node in self.upper_surface_model_part.Nodes:
+        #    node.SetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_SURFACE, 1)
+        print('Selecting lower surface nodes...')
+        for node in self.lower_surface_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.LOWER_SURFACE, 1)
+        print('Finishied selecting lower surface nodes...')    
         
             
 
@@ -126,7 +149,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             if(abs(d) < self.epsilon):
                                 d = self.epsilon
                             #if(xn[0] < 0 and xn[1] > 0 and xn[1] < 0.0001):#for high angles of attack
-                            if(xn[0] < 0 and d > 0 and d < 0.0001):#for high angles of attack
+                            if(xn[0] < 0 and d > 0 and d < 0.0001):#for high angles of attack (selecting nodes in the lower surface)
                                 d = -self.epsilon
                             #    print(elnode)
                             #    print(elnode.X - x0)
@@ -145,14 +168,21 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                             elem.Set(KratosMultiphysics.MARKER,True)
                             counter = 0
                             for elnode in elem.GetNodes():
+                                #test to check whether the value of the distance affects the solution. IT DOES!
+                                '''
+                                if(distances[counter]>0):
+                                    distances[counter] = 1.0
+                                else:
+                                    distances[counter] = -1.0
+                                '''
                                 elnode.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,distances[counter])
                                 counter+=1
-                                dx = elnode.X - x1
-                                dy = elnode.Y - y1
-                                dz = elnode.Z - z1
-                                tmp = dx*self.direction[0] + dy*self.direction[1] + dz*self.direction[2]
-                                if(tmp > pos):
-                                    pos = tmp                               
+                                #dx = elnode.X - x1
+                                #dy = elnode.Y - y1
+                                #dz = elnode.Z - z1
+                                #tmp = dx*self.direction[0] + dy*self.direction[1] + dz*self.direction[2]
+                                #if(tmp > pos):
+                                #    pos = tmp                               
                             
                             elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,distances)
                             
@@ -161,7 +191,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                                     #elem.Set(KratosMultiphysics.ACTIVE,False)
                                     #elem.Set(KratosMultiphysics.MARKER,False)
             
-            
+            '''
             #find the wake elements at the outflow boundary
             for elem in self.fluid_model_part.Elements:
                 if(elem.Is(KratosMultiphysics.MARKER)):
@@ -174,10 +204,10 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                         
                         if(tmp > pos-1e-9):
                             counter +=1
-                    #if(counter > 0):
-                    #    elem.Set(KratosMultiphysics.BOUNDARY,True)
+                    if(counter > 0):
+                        elem.Set(KratosMultiphysics.BOUNDARY,True)
                         
-
+            '''
                             
         else: #3D case
             import numpy
@@ -200,7 +230,18 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             wake_mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
             wake_mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
             prop = wake_mp.Properties[0]
+            
+            for node in self.fluid_model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 2)#DOES NOT WORK BECAUSE IT IS INITIALIZE AFTERWARDS
+                node.SetSolutionStepValue(KratosMultiphysics.WATER_PRESSURE, 0, 0)
+                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, 0, 0)
 
+            '''
+            for node in self.fluid_model_part.Nodes:
+                        if(node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_SURFACE)==1):
+                            node.SetSolutionStepValue(KratosMultiphysics.WATER_PRESSURE,0,5)
+            '''
+            
             node_id = 1
             elem_id = 1
 
@@ -233,6 +274,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             for elem in self.fluid_model_part.Elements:
                 if(elem.Is(KratosMultiphysics.TO_SPLIT)):
                     elem.Set(KratosMultiphysics.MARKER,True)
+                    #for node in elem.GetNodes():
+                    #    node.SetSolutionStepValue(KratosMultiphysics.WATER_PRESSURE,0,5)
             
             #the following MORE OR LESS WORKS
             #for elem in self.fluid_model_part.Elements:
@@ -262,13 +305,33 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     #elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, d)
                     #elem.Set(KratosMultiphysics.MARKER,True)
                     
-            '''
+            
             print('\nExecuiting Kutta Condition Process')
             KratosMultiphysics.CompressiblePotentialFlowApplication.KuttaConditionProcess(self.fluid_model_part).Execute()            
             print('\nKutta Condition Process ended')
             
+            
+            for node in self.fluid_model_part.Nodes:
+                node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, 0)#DOES WORK
+                
+                       
+                
+            #for node in self.upper_surface_model_part.Nodes:
+            #    node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0,3)
+            
+            
+            
             for elem in self.fluid_model_part.Elements:
                 d = elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
+                '''
+                counter = 0
+                for node in elem.GetNodes():                    
+                    if(node.Is(KratosMultiphysics.STRUCTURE)):
+                        d[counter] = -0.0001
+                    node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0,d[counter])
+                    counter +=1
+                '''
+                '''
                 for i in range(len(d)):
                     if(abs(d[i]) < self.epsilon ):
                         d[i] = self.epsilon
@@ -276,8 +339,19 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                         #    d[i] = -self.epsilon
                         #else:
                         #    d[i] = self.epsilon
-                elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
-            '''           
+                '''
+                #elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,d)
+                if(elem.Is(KratosMultiphysics.MARKER)):
+                    counter = 0
+                    for node in elem.GetNodes():
+                        node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,0,d[counter])
+                        if(d[counter]>0):
+                            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,1)
+                        else:
+                            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0,-1)
+                        counter+=1
+                
+                     
 
                 #if(len(d) == 4):
                     #npos = 0

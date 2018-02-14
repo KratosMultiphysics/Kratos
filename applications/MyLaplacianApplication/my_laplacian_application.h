@@ -7,12 +7,12 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    @{KRATOS_APP_AUTHOR}
 //
 
 
-#if !defined(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_H_INCLUDED )
-#define  KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_H_INCLUDED
+#if !defined(KRATOS_MY_LAPLACIAN_APPLICATION_H_INCLUDED )
+#define  KRATOS_MY_LAPLACIAN_APPLICATION_H_INCLUDED
 
 
 // System includes
@@ -27,8 +27,7 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
-#include "custom_elements/compressible_potential_flow_element.h"
-#include "custom_conditions/potential_wall_condition.h"
+
 
 namespace Kratos {
 
@@ -54,27 +53,24 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosCompressiblePotentialFlowApplication : public KratosApplication {
+class KratosMyLaplacianApplication : public KratosApplication {
 public:
-
-
-	//KRATOS_DEFINE_LOCAL_FLAG(UPPER_SURFACE);
 	///@name Type Definitions
 	///@{
 
 
-	/// Pointer definition of KratosCompressiblePotentialFlowApplication
-	KRATOS_CLASS_POINTER_DEFINITION(KratosCompressiblePotentialFlowApplication);
+	/// Pointer definition of KratosMyLaplacianApplication
+	KRATOS_CLASS_POINTER_DEFINITION(KratosMyLaplacianApplication);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	KratosCompressiblePotentialFlowApplication();
+	KratosMyLaplacianApplication();
 
 	/// Destructor.
-	~KratosCompressiblePotentialFlowApplication() override{}
+	virtual ~KratosMyLaplacianApplication(){}
 
 
 	///@}
@@ -86,7 +82,7 @@ public:
 	///@name Operations
 	///@{
 
-	void Register() override;
+	virtual void Register();
 
 
 
@@ -105,18 +101,18 @@ public:
 	///@{
 
 	/// Turn back information as a string.
-	std::string Info() const override {
-		return "KratosCompressiblePotentialFlowApplication";
+	virtual std::string Info() const {
+		return "KratosMyLaplacianApplication";
 	}
 
 	/// Print information about this object.
-	void PrintInfo(std::ostream& rOStream) const override {
+	virtual void PrintInfo(std::ostream& rOStream) const {
 		rOStream << Info();
 		PrintData(rOStream);
 	}
 
 	///// Print object's data.
-	void PrintData(std::ostream& rOStream) const override {
+	virtual void PrintData(std::ostream& rOStream) const {
   		KRATOS_WATCH("in my application");
   		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
 
@@ -184,11 +180,9 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-        const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
-        const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
-        const PotentialWallCondition<2,2> mPotentialWallCondition2D2N;
-        const PotentialWallCondition<3,3> mPotentialWallCondition3D3N;
 
+	// const Elem2D   mElem2D;
+	// const Elem3D   mElem3D;
 
 	///@}
 	///@name Private Operators
@@ -215,15 +209,15 @@ private:
 	///@{
 
 	/// Assignment operator.
-	KratosCompressiblePotentialFlowApplication& operator=(KratosCompressiblePotentialFlowApplication const& rOther);
+	KratosMyLaplacianApplication& operator=(KratosMyLaplacianApplication const& rOther);
 
 	/// Copy constructor.
-	KratosCompressiblePotentialFlowApplication(KratosCompressiblePotentialFlowApplication const& rOther);
+	KratosMyLaplacianApplication(KratosMyLaplacianApplication const& rOther);
 
 
 	///@}
 
-}; // Class KratosCompressiblePotentialFlowApplication
+}; // Class KratosMyLaplacianApplication
 
 ///@}
 
@@ -241,4 +235,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_H_INCLUDED  defined
+#endif // KRATOS_MY_LAPLACIAN_APPLICATION_H_INCLUDED  defined

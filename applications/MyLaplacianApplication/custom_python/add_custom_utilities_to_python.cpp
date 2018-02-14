@@ -2,13 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Author1 Fullname
+//                   Author2 Fullname 
 //
+
 
 // System includes
 
@@ -24,9 +26,6 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-#include "compressible_potential_flow_application.h"
-#include "compressible_potential_flow_application_variables.h"
-
 
 
 namespace Kratos
@@ -41,12 +40,10 @@ namespace Python
 	using namespace boost::python;
 
 
-// 		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-// 		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-// 		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE( UPPER_SURFACE )
-  KRATOS_REGISTER_IN_PYTHON_VARIABLE( LOWER_SURFACE )
-  KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( WAKE_NORMAL )
+		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
 
   }
 

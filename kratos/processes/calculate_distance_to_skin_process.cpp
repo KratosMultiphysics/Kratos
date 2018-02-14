@@ -35,6 +35,7 @@ namespace Kratos
 
 	void CalculateDistanceToSkinProcess::Initialize()
 	{
+		std::cout << "\tCalculateDistanceToSkinProcess::Initialize" << std::endl;
 		CalculateDiscontinuousDistanceToSkinProcess::Initialize();
 		this->InitializeNodalDistances();
 	}
@@ -51,6 +52,7 @@ namespace Kratos
 
 	void CalculateDistanceToSkinProcess::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
+		std::cout << "\tCalculateDistanceToSkinProcess::CalculateDistances" << std::endl;
 		CalculateDiscontinuousDistanceToSkinProcess::CalculateDistances(rIntersectedObjects);
 		this->CalculateNodalDistances();
 		this->CalculateNodesDistances();
@@ -344,8 +346,11 @@ namespace Kratos
 	void CalculateDistanceToSkinProcess::Execute()
 	{
 		std::cout << "Entering CalculateDistanceToSkinProcess 2" << std::endl;
+		std::cout << "\tInitialize:" << std::endl;
 		this->Initialize();
+		std::cout << "\n\tFindIntersections:" << std::endl;
 		this->FindIntersections();
+		std::cout << "\n\tCalculateDistances:" << std::endl;
 		this->CalculateDistances(this->GetIntersections());
 	}
 

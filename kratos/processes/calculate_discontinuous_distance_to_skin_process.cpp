@@ -68,16 +68,19 @@ namespace Kratos
 
 	void CalculateDiscontinuousDistanceToSkinProcess::FindIntersections()
 	{
+		std::cout << "\tCalculateDiscontinuousDistanceToSkinProcess::FindIntersections" << std::endl;
 		mFindIntersectedObjectsProcess.FindIntersections();
 	}
 
 	std::vector<PointerVector<GeometricalObject>>& CalculateDiscontinuousDistanceToSkinProcess::GetIntersections()
 	{
+		std::cout << "\tGetIntersections" << std::endl;
 		return mFindIntersectedObjectsProcess.GetIntersections();
 	}
 
 	void CalculateDiscontinuousDistanceToSkinProcess::CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects)
 	{
+		std::cout << "\t\tCalculateDiscontinuousDistanceToSkinProcess::CalculateDistances" << std::endl;
 		const int number_of_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).NumberOfElements();
 		auto& r_elements = (mFindIntersectedObjectsProcess.GetModelPart1()).ElementsArray();
 
@@ -118,6 +121,7 @@ namespace Kratos
 
 	void CalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances(Element& rElement1, PointerVector<GeometricalObject>& rIntersectedObjects)
 	{
+		//std::cout << "\t\t\tCalculateDiscontinuousDistanceToSkinProcess::CalculateElementalDistances" << std::endl;
 		if (rIntersectedObjects.empty()) {
 			rElement1.Set(TO_SPLIT, false);
 			return;
@@ -149,21 +153,60 @@ namespace Kratos
 	double CalculateDiscontinuousDistanceToSkinProcess::CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon)
 	{
 		double result_distance = std::numeric_limits<double>::max();
+		int counter = 0;
+		// if(	rElement1.GetGeometry()[NodeIndex].X() < 45    && rElement1.GetGeometry()[NodeIndex].X() > 44 &&
+		// 	rElement1.GetGeometry()[NodeIndex].Y() < 20.01 && rElement1.GetGeometry()[NodeIndex].Y() > 0  &&
+		// 	rElement1.GetGeometry()[NodeIndex].Z() < 13    && rElement1.GetGeometry()[NodeIndex].Z() > 5)
+		// std::cout << "\n\t\t\t NODE = "<< rElement1.GetGeometry()[NodeIndex] << std::endl;
+		
 		for (auto triangle : rIntersectedObjects.GetContainer()) {
 			auto distance = GeometryUtils::PointDistanceToTriangle3D(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2], rElement1.GetGeometry()[NodeIndex]);
+			// if(		rElement1.GetGeometry()[NodeIndex].X() < 45    && rElement1.GetGeometry()[NodeIndex].X() > 44 &&
+			// 		rElement1.GetGeometry()[NodeIndex].Y() < 20.01 && rElement1.GetGeometry()[NodeIndex].Y() > 0  &&
+			// 		rElement1.GetGeometry()[NodeIndex].Z() < 13    && rElement1.GetGeometry()[NodeIndex].Z() > 5)
+			// {
+			// std::cout << "\n\t\t\t distance = "<< distance << std::endl;
+			// std::cout << "\t\t\t result_distance = "<< result_distance << std::endl;
+			// }
 			if (fabs(result_distance) > distance)
 			{
 				if (distance < Epsilon) {
 					result_distance = -Epsilon;
+					// if(	rElement1.GetGeometry()[NodeIndex].X() < 45    && rElement1.GetGeometry()[NodeIndex].X() > 44 &&
+					// 	rElement1.GetGeometry()[NodeIndex].Y() < 20.01 && rElement1.GetGeometry()[NodeIndex].Y() > 0  &&
+					// 	rElement1.GetGeometry()[NodeIndex].Z() < 13    && rElement1.GetGeometry()[NodeIndex].Z() > 5)
+					// std::cout << "\t\t\t distance first = "<< distance << std::endl;
 				}
 				else {
 					result_distance = distance;
 					Plane3D plane(triangle->GetGeometry()[0], triangle->GetGeometry()[1], triangle->GetGeometry()[2]);
+					// if(	rElement1.GetGeometry()[NodeIndex].X() < 45    && rElement1.GetGeometry()[NodeIndex].X() > 44 &&
+					// 	rElement1.GetGeometry()[NodeIndex].Y() < 20.01 && rElement1.GetGeometry()[NodeIndex].Y() > 0  &&
+					// 	rElement1.GetGeometry()[NodeIndex].Z() < 13    && rElement1.GetGeometry()[NodeIndex].Z() > 5)
+					// std::cout << "\t\t\t distance second = "<< distance << std::endl;
+					// if(	rElement1.GetGeometry()[NodeIndex].X() < 45    && rElement1.GetGeometry()[NodeIndex].X() > 44 &&
+					// 	rElement1.GetGeometry()[NodeIndex].Y() < 20.01 && rElement1.GetGeometry()[NodeIndex].Y() > 0  &&
+					// 	rElement1.GetGeometry()[NodeIndex].Z() < 13    && rElement1.GetGeometry()[NodeIndex].Z() > 5)
+					// std::cout << "\t\t\t other distance = "<< plane.CalculateSignedDistance(rElement1.GetGeometry()[NodeIndex]) << std::endl;
+					// if(	rElement1.GetGeometry()[NodeIndex].X() < 45   && rElement1.GetGeometry()[NodeIndex].X() > 44 &&
+					// 	rElement1.GetGeometry()[NodeIndex].Y() < 20.01 && rElement1.GetGeometry()[NodeIndex].Y() > 0  &&
+					// 	rElement1.GetGeometry()[NodeIndex].Z() < 13    && rElement1.GetGeometry()[NodeIndex].Z() > 5)
+					//std::cout << "\t\t\t normal = "<< plane.GetNormal() << std::endl;
 					if (plane.CalculateSignedDistance(rElement1.GetGeometry()[NodeIndex]) < 0)
 						result_distance = -result_distance;
 				}
 			}
+			counter +=1;
+			// if(	rElement1.GetGeometry()[NodeIndex].X() < 45    && rElement1.GetGeometry()[NodeIndex].X() > 44 &&
+			// 	rElement1.GetGeometry()[NodeIndex].Y() < 20.01 && rElement1.GetGeometry()[NodeIndex].Y() > 0  &&
+			// 	rElement1.GetGeometry()[NodeIndex].Z() < 13    && rElement1.GetGeometry()[NodeIndex].Z() > 5)
+			// std::cout << "\t\t\t counter = "<< counter << std::endl;
+
 		}
+		// if(	rElement1.GetGeometry()[NodeIndex].X() < 45    && rElement1.GetGeometry()[NodeIndex].X() > 44 &&
+		// 	rElement1.GetGeometry()[NodeIndex].Y() < 20.01 && rElement1.GetGeometry()[NodeIndex].Y() > 0  &&
+		// 	rElement1.GetGeometry()[NodeIndex].Z() < 13    && rElement1.GetGeometry()[NodeIndex].Z() > 5)
+		// std::cout << "\t\t\t result_distance final = "<< result_distance << std::endl;
 		return result_distance;
 	}
 

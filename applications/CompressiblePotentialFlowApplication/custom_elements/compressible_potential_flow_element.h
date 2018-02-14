@@ -644,11 +644,11 @@ public:
 
                 const double exponent = gamma/(gamma -1);
 
-                //cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
+                cp = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
                 //double cp1 = (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
 
                 // double cp1 = 2*a*a*(pow(base,exponent)-1)/(gamma*vinfinity_norm2);
-                cp =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+                //cp =  (vinfinity_norm2 - inner_prod(v,v))/vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
 
                 // std::cout << "cp =" << cp << std::endl;
                 // std::cout << "Mach =" << vinfinity_norm2/(a*a) << std::endl;

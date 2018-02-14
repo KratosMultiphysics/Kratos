@@ -35,6 +35,7 @@ namespace Kratos
 
 	void FindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects(std::vector<PointerVector<GeometricalObject>>& rResults)
 	{
+		std::cout << "\t\t\tFindIntersectedGeometricalObjectsProcess::FindIntersectedSkinObjects" << std::endl;
 		const std::size_t number_of_elements = mrModelPart1.NumberOfElements();
 		auto& r_elements = mrModelPart1.ElementsArray();
 		std::vector<OctreeType::cell_type*> leaves;
@@ -50,11 +51,13 @@ namespace Kratos
 
 	void FindIntersectedGeometricalObjectsProcess::FindIntersections()
 	{
+		std::cout << "\t\tFindIntersectedGeometricalObjectsProcess::FindIntersections" << std::endl;
 		this->FindIntersectedSkinObjects(mIntersectedObjects);
 	}
 
 	std::vector<PointerVector<GeometricalObject>>& FindIntersectedGeometricalObjectsProcess::GetIntersections()
 	{
+		std::cout << "\t\tFindIntersectedGeometricalObjectsProcess::GetIntersections" << std::endl;
 		return mIntersectedObjects;
 	}
 

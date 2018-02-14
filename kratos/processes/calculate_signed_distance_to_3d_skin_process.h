@@ -324,16 +324,20 @@ public:
     {
         KRATOS_TRY;
 
-        std::cout << "I enter this function execute!" << std::endl;
+        std::cout << "I enter this function execute!\n" << std::endl;
 
+
+        std::cout << "\nGenerateOctree\n" << std::endl;
         GenerateOctree();
 
         //DistanceFluidStructure();
 
+        std::cout << "\nCalculateDistanceToSkinProcess\n" << std::endl;
 		CalculateDistanceToSkinProcess(mrFluidModelPart, mrBodyModelPart).Execute();
 
         //          ------------------------------------------------------------------
         //          GenerateNodes();
+        std::cout << "\nCalculateDistance2\n" << std::endl;
         CalculateDistance2(); // I have to change this. Pooyan.
         //mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
         //          std::ofstream mesh_file1("octree1.post.msh");

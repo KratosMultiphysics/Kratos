@@ -44,6 +44,9 @@ void KratosCompressiblePotentialFlowApplication::Register()
         KRATOS_REGISTER_ELEMENT("CompressiblePotentialFlowElement3D4N",mCompressiblePotentialFlowElement3D4N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_CONDITION("PotentialWallCondition2D2N",mPotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_CONDITION("PotentialWallCondition3D3N",mPotentialWallCondition3D3N); //this is the name the element should have according to the naming convention
+        KRATOS_REGISTER_VARIABLE( UPPER_SURFACE )
+        KRATOS_REGISTER_VARIABLE( LOWER_SURFACE )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WAKE_NORMAL )
 }
 
 }  // namespace Kratos.

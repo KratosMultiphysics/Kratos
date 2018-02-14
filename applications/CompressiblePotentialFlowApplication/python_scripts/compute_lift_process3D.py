@@ -13,33 +13,46 @@ import numpy as np
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ComputeLiftProcess(Model, settings["Parameters"])
+    return ComputeLiftProcess3D(Model, settings["Parameters"])
 
 ##all the processes python processes should be derived from "python_process"
-class ComputeLiftProcess(KratosMultiphysics.Process):
+class ComputeLiftProcess3D(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self) 
         
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
-                "velocity_infinity": [1.0,0.0,0]
+                "model_part_name"   : "PLEASE_CHOOSE_MODEL_PART_NAME",
+                "skin_parts"        :["UpperSurface","LowerSurface","Fuselage"],
+                "mesh_id"           : 0,
+                "velocity_infinity" : [1.0,0.0,0]
             }  """ );
         
         settings.ValidateAndAssignDefaults(default_parameters);
         
         
         self.model_part = Model[settings["model_part_name"].GetString()]
+        print('Creating aircraft modelpart...')
+        self.aircraft_modelpart = self.model_part.CreateSubModelPart("aircraft_modelpart")
+        for i in range(settings["skin_parts"].size()):
+            mp = Model[settings["skin_parts"][i].GetString()]
+            for node in mp.Nodes:
+                self.aircraft_modelpart.Nodes.append(node)
+            for cond in mp.Conditions:
+                self.aircraft_modelpart.Conditions.append(cond)
+        print('Finished creating aircraft modelpart')
+        
+        #KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.aircraft_modelpart,self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])  
+        
         #self.model_part = Model.get('model_part_name',None)
         self.velocity_infinity = [0,0,0]#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         
-        self.reference_area =  383 #m² # WRONG 489.89 m²   
+        self.reference_area =  8#383 #m² # WRONG 489.89 m²   
         
-        self.AOAdeg                 = 3#°
+        self.AOAdeg                 = 5#°
         
         #convert angle from degrees to radians
         self.AOArad = self.AOAdeg*pi/180  
@@ -51,8 +64,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          rx = 0.0
          ry = 0.0
          rz = 0.0
-
-         for cond in self.model_part.Conditions:
+         
+         counter = 1        
+         for cond in self.aircraft_modelpart.Conditions:
            n = cond.GetValue(NORMAL)
            cp = cond.GetValue(PRESSURE)
            #print(cp)
@@ -60,7 +74,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
            rx += n[0]*cp
            ry += n[1]*cp
            rz += n[2]*cp
+           counter +=1
 
+         
+         print('Looped over ', counter, ' lifting conditions.')
          Lift = rz/self.reference_area
          Drag = rx/self.reference_area
          Side = ry/self.reference_area
