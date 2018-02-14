@@ -356,6 +356,9 @@ protected:
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
     
     void WriteElementalDataBlock(ElementsContainerType& rThisElements);
+    
+    template<class TVariableType>
+    void WriteElementalDataBlock(ElementsContainerType& rThisElements, TVariableType& rVariable);
 
     template<class TVariableType>
     void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable);
