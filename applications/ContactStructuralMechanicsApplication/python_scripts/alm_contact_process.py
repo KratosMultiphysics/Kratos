@@ -130,9 +130,8 @@ class ALMContactProcess(python_process.PythonProcess):
         for prop in computing_model_part.GetProperties():
             prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = self.params["integration_order"].GetInt()
             
-        for node in self.contact_model_part.Nodes:
-            node.Set(KratosMultiphysics.INTERFACE, True)
-        del(node)
+        # We set the interface flag
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, self.contact_model_part.Nodes)
         
         #If the conditions doesn't exist we create them
         if (preprocess == True):
@@ -213,21 +212,15 @@ class ALMContactProcess(python_process.PythonProcess):
 
     def _assign_slave_conditions(self):
         if (self.params["assume_master_slave"].GetString() == ""):
-            for cond in self.contact_model_part.Conditions:
-                cond.Set(KratosMultiphysics.SLAVE, True)
-            del(cond)
-            
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, True, self.contact_model_part.Conditions)
+
     def _assign_slave_nodes(self):
         if (self.params["assume_master_slave"].GetString() != ""):
-            for node in self.contact_model_part.Nodes:
-                node.Set(KratosMultiphysics.SLAVE, False)
-                node.Set(KratosMultiphysics.MASTER, True)
-            del(node)
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, False, self.contact_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, True, self.contact_model_part.Nodes)
             model_part_slave = self.main_model_part.GetSubModelPart(self.params["assume_master_slave"].GetString())
-            for node in model_part_slave.Nodes:
-                node.Set(KratosMultiphysics.SLAVE, True)
-                node.Set(KratosMultiphysics.MASTER, False)
-            del(node)
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, True, model_part_slave.Nodes)
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, False, model_part_slave.Nodes)
             
     def _interface_preprocess(self, computing_model_part):
         self.interface_preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(computing_model_part)
@@ -253,6 +246,7 @@ class ALMContactProcess(python_process.PythonProcess):
             computing_model_part.Set(KratosMultiphysics.SLIP, False) 
             
         # We recompute the normal at each iteration (false by default)
+        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.DISTANCE_THRESHOLD] = 1.0e24
         self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.CONSIDER_NORMAL_VARIATION] = self.normal_variation
         # We set the max gap factor for the gap adaptation
         max_gap_factor = self.params["max_gap_factor"].GetDouble()
@@ -382,10 +376,7 @@ class ALMContactProcess(python_process.PythonProcess):
         mortar_mapping1.Execute()
         
         # Transfering the AUGMENTED_NORMAL_CONTACT_PRESSURE to NORMAL_CONTACT_STRESS
-        for node in interface_model_part.Nodes:
-            aug_press = node.GetValue(ContactStructuralMechanicsApplication.AUGMENTED_NORMAL_CONTACT_PRESSURE)
-            node.SetValue(KratosMultiphysics.NORMAL_CONTACT_STRESS, aug_press)
-        del(node)
+        KratosMultiphysics.VariableUtils().CopyScalarVar(ContactStructuralMechanicsApplication.AUGMENTED_NORMAL_CONTACT_PRESSURE, KratosMultiphysics.NORMAL_CONTACT_STRESS, interface_model_part.Nodes)
     
         self._reset_search()
     
@@ -406,6 +397,7 @@ class ALMContactProcess(python_process.PythonProcess):
         
         gid_io.WriteNodalFlags(KratosMultiphysics.INTERFACE, "INTERFACE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KratosMultiphysics.ACTIVE, "ACTIVE", self.main_model_part.Nodes, label)
+        gid_io.WriteNodalFlags(KratosMultiphysics.ISOLATED, "ISOLATED", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KratosMultiphysics.SLAVE, "SLAVE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KratosMultiphysics.NORMAL, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResultsNonHistorical(ContactStructuralMechanicsApplication.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes, label)

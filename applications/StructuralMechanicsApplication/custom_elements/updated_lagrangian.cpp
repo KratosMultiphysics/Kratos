@@ -306,8 +306,7 @@ void UpdatedLagrangian::CalculateConstitutiveVariables(
     ConstitutiveLaw::Parameters& rValues,
     const unsigned int PointNumber,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure,
-    const Vector Displacements
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure
     )
 {       
     // Here we essentially set the input parameters

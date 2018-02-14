@@ -17,6 +17,7 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
+#include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
 
 #include "includes/cfd_variables.h"
@@ -103,6 +104,8 @@ public:
 
     static constexpr unsigned int LocalSize = NumNodes * BlockSize;
 
+    static constexpr unsigned int StrainSize = TElementData::StrainSize;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -153,9 +156,9 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new FluidElement element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
@@ -165,14 +168,18 @@ public:
     /// Create a new element of this type using given geometry
     /**
      * Returns a pointer to a new FluidElement element, created using given input
-     * @param NewId: the ID of the new element
-     * @param pGeom: a pointer to the geomerty to be used to create the element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
                             GeometryType::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
+
+    /// Set up the element for solution.
+    //* For FluidElement, this initializes the constitutive law using the data in the element's properties.
+    void Initialize() override;
 
     /**
      * @brief CalculateLocalSystem Return empty matrices and vectors of appropriate size.
@@ -323,11 +330,13 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual double Interpolate(const typename TElementData::NodalScalarData& rHandler,
+    virtual double Interpolate(const typename TElementData::NodalScalarData& rValues,
                                const typename TElementData::ShapeFunctionsType& rN) const;
 
-    virtual array_1d<double, 3> Interpolate(const typename TElementData::NodalVectorData& rHandler,
+    virtual array_1d<double, 3> Interpolate(const typename TElementData::NodalVectorData& rValues,
                                             const typename TElementData::ShapeFunctionsType& rN) const;
+
+    virtual void CalculateMaterialResponse(TElementData& rData) const;
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
     virtual void CalculateGeometryData(Vector& rGaussWeights,
@@ -341,9 +350,9 @@ protected:
     /**
      * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
      * Evaluate the convective operator for each node's shape function at an arbitrary point
-     * @param rResult: Output vector
-     * @param rConvVel: Convective velocity evaluated at the integration point
-     * @param DN_DX: Derivatives of shape functions evaluated at the integration point
+     * @param rResult Output vector
+     * @param rConvVel Convective velocity evaluated at the integration point
+     * @param DN_DX Derivatives of shape functions evaluated at the integration point
      */
     void ConvectionOperator(Vector& rResult,
                             const array_1d<double,3>& rConvVel,
@@ -371,6 +380,12 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
+    virtual void AddBoundaryIntegral(
+        TElementData& rData,
+        const Vector& rUnitNormal,
+        MatrixType& rLHS,
+        VectorType& rRHS);
+
     void GetCurrentValuesVector(
         const TElementData& rData,
         array_1d<double,LocalSize>& rValues) const;
@@ -384,6 +399,9 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    const ConstitutiveLaw::Pointer GetConstitutiveLaw() const;
+
+    ConstitutiveLaw::Pointer GetConstitutiveLaw();
 
     ///@}
     ///@name Protected Inquiry
@@ -405,6 +423,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    //// Constitutive relation for the element
+    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     ///@}
     ///@name Serialization
@@ -450,6 +471,40 @@ private:
 
 
 }; // Class FluidElement
+
+namespace Internals {
+
+template< class TElementData, std::size_t TDim >
+struct StrainRateSpecialization {
+/// Compute the strain rate vector in Voigt notation, to use as input for the fluid constitutive law.
+/*  @param[out] rStrainRate The strain rate tensor (symmetric gradient of velocity) in Voigt notation.
+ *  @param[in] rVelocities Matrix of nodal velocities, as provided by TElementData.
+ *  @param[in] rDNDX Matrix of shape function gradients on the integration point, as provided by TElementData.
+ *  @see ConstitutiveLaw.
+ */
+static void Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX);
+};
+
+template< class TElementData >
+struct StrainRateSpecialization<TElementData,2> {
+static void Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX);
+};
+
+template< class TElementData >
+struct StrainRateSpecialization<TElementData,3> {
+static void Calculate(
+    Vector& rStrainRate,
+    const typename TElementData::NodalVectorData& rVelocities,
+    const typename TElementData::ShapeDerivativesType& rDNDX);
+};
+
+}
 
 ///@}
 

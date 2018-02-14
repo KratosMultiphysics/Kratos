@@ -330,7 +330,7 @@ class DEM_FEM_Search : public SpatialSearch
               rResults[p].reserve(NumberOfResults);
 
               for(GeometricalObjectType::ContainerType::iterator c_it = localResults.begin(); c_it != localResults.begin() + NumberOfResults; c_it++) {
-                  Condition::Pointer condition = boost::dynamic_pointer_cast<Condition>(*c_it);
+                  Condition::Pointer condition = Kratos::dynamic_pointer_cast<Condition>(*c_it);
                   rResults[p].push_back(condition);
               }
 
