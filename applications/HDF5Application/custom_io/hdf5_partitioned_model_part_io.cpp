@@ -120,18 +120,17 @@ void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElement
 {
     KRATOS_TRY;
 
-    FactorElementsUtility factored_elements(rElements);
+    std::vector<ElementsContainerType> factored_elements = FactorElements(rElements);
 
     WriteInfo info;
     for (const auto& r_elems : factored_elements)
     {
         Internals::ConnectivitiesData connectivities;
-        connectivities.SetData(r_elems.second);
-        connectivities.WriteData(*mpFile, mPrefix + "/Elements/" + r_elems.first, info);
+        connectivities.SetData(r_elems);
+        connectivities.WriteData(*mpFile, mPrefix + "/Elements/" + connectivities.Name(), info);
         const int size = info.TotalSize;
-        mpFile->WriteAttribute(mPrefix + "/Elements/" + r_elems.first, "Size", size);
-        WritePartitionTable(
-            *mpFile, mPrefix + "/Elements/" + r_elems.first, info);
+        mpFile->WriteAttribute(mPrefix + "/Elements/" + connectivities.Name(), "Size", size);
+        WritePartitionTable(*mpFile, mPrefix + "/Elements/" + connectivities.Name(), info);
     }
 
     KRATOS_CATCH("");
@@ -164,18 +163,17 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
 {
     KRATOS_TRY;
 
-    FactorConditionsUtility factored_conditions(rConditions);
+    std::vector<ConditionsContainerType> factored_conditions = FactorConditions(rConditions);
 
     WriteInfo info;
     for (const auto& r_conds : factored_conditions)
     {
         Internals::ConnectivitiesData connectivities;
-        connectivities.SetData(r_conds.second);
-        connectivities.WriteData(*mpFile, mPrefix + "/Conditions/" + r_conds.first, info);
+        connectivities.SetData(r_conds);
+        connectivities.WriteData(*mpFile, mPrefix + "/Conditions/" + connectivities.Name(), info);
         const int size = info.TotalSize;
-        mpFile->WriteAttribute(mPrefix + "/Conditions/" + r_conds.first, "Size", size);
-        WritePartitionTable(
-            *mpFile, mPrefix + "/Conditions/" + r_conds.first, info);
+        mpFile->WriteAttribute(mPrefix + "/Conditions/" + connectivities.Name(), "Size", size);
+        WritePartitionTable(*mpFile, mPrefix + "/Conditions/" + connectivities.Name(), info);
     }
 
     KRATOS_CATCH("");

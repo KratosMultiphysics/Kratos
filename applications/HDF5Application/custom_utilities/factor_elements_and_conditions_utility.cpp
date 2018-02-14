@@ -1,4 +1,5 @@
 // System includes
+#include <string>
 #include <sstream>
 
 // External includes
@@ -15,34 +16,34 @@
 namespace Kratos
 {
 
+namespace
+{
+
+// Return the set of element or condition names found in the container.
 template<class TContainerType>
 // ElementContainerType || ConditionContainerType
-std::vector<std::string> GetLocalComponentNames(const TContainerType& rElements)
+std::vector<std::string> GetLocalComponentNames(TContainerType const& rElements)
 {
     KRATOS_TRY;
 
     if (rElements.size() == 0)
-        return std::vector<std::string>();
+        return {};
 
-    std::vector<std::pair<std::string, const typename TContainerType::data_type *>> components(1);
-    std::string name;
+    std::vector<typename TContainerType::data_type const*> components(1);
     // Add first component.
-    CompareElementsAndConditionsUtility::GetRegisteredName(rElements.front(), name);
-    components[0] = std::pair<std::string, const typename TContainerType::data_type *>(
-        name, &rElements.front());
+    components[0] = &rElements.front();
 
     // Find all remaining components.
     components.reserve(5);
     unsigned pos = 0;
-    for (typename TContainerType::const_iterator it = rElements.begin() + 1;
-         it != rElements.end(); ++it)
+    for (auto it = rElements.begin() + 1; it != rElements.end(); ++it)
     {
-        if (GeometricalObject::IsSame(*it, *components[pos].second) == false)
+        if (GeometricalObject::IsSame(*it, *components[pos]) == false)
         {
             bool found = false;
             for (unsigned k = 0; k < components.size(); ++k)
             {
-                if (GeometricalObject::IsSame(*it, *components[k].second))
+                if (GeometricalObject::IsSame(*it, *components[k]))
                 {
                     found = true;
                     pos = k;
@@ -52,9 +53,7 @@ std::vector<std::string> GetLocalComponentNames(const TContainerType& rElements)
 
             if (!found)
             {
-                CompareElementsAndConditionsUtility::GetRegisteredName(*it, name);
-                components.push_back(std::pair<std::string, const typename TContainerType::data_type*>(
-                    name, &(*it)));
+                components.push_back(&(*it));
                 pos = components.size() - 1;
             }
         }
@@ -63,12 +62,13 @@ std::vector<std::string> GetLocalComponentNames(const TContainerType& rElements)
     // Return component names.
     std::vector<std::string> component_names(components.size());
     for (unsigned i = 0; i < components.size(); ++i)
-        component_names[i] = components[i].first;
+        CompareElementsAndConditionsUtility::GetRegisteredName(*components[i], component_names[i]);
     return component_names;
 
     KRATOS_CATCH("");
 }
 
+// Return the set of element or condition names found across all partitions.
 template<class TContainerType>
 // ElementContainerType || ConditionContainerType
 std::vector<std::string> GetComponentNames(const TContainerType& rElements)
@@ -176,26 +176,23 @@ std::vector<std::string> GetComponentNames(const TContainerType& rElements)
     KRATOS_CATCH("");
 }
 
-FactorElementsUtility::FactorElementsUtility(const ElementsContainerType& rElements)
+template <class TContainerType>
+std::vector<TContainerType> FactorEntities(TContainerType const& rElements)
 {
     KRATOS_TRY;
 
     if (rElements.size() == 0)
-        return;
+        return {};
 
     std::vector<std::string> component_names =
-        GetComponentNames<ElementsContainerType>(rElements);
+        GetComponentNames<TContainerType>(rElements);
 
-    std::vector<const Element*> components(
-        component_names.size());
-    mFactoredElements.resize(component_names.size());
+    std::vector<typename TContainerType::data_type const*> components(component_names.size());
 
     for (unsigned i = 0; i < component_names.size(); ++i)
-    {
-        mFactoredElements[i].first = component_names[i];
-        components[i] = &KratosComponents<Element>::Get(component_names[i]);
-    }
+        components[i] = &KratosComponents<typename TContainerType::data_type>::Get(component_names[i]);
 
+    std::vector<TContainerType> factored_elements(component_names.size());
     int pos = 0;
     for (auto it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
     {
@@ -213,59 +210,34 @@ FactorElementsUtility::FactorElementsUtility(const ElementsContainerType& rEleme
                 }
             }
 
-            KRATOS_ERROR_IF_NOT(found) << "Did not find element #" << (**it).Id()
+            KRATOS_ERROR_IF_NOT(found) << "Did not find entity with id #" << (**it).Id()
                                        << " in components." << std::endl;
         }
 
-        mFactoredElements[pos].second.push_back(*it);
+        factored_elements[pos].push_back(*it);
     }
+
+    return factored_elements;
 
     KRATOS_CATCH("");
 }
 
-FactorConditionsUtility::FactorConditionsUtility(const ConditionsContainerType& rConditions)
+} // unnamed namespace
+
+std::vector<ElementsContainerType> FactorElements(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
 
-    if (rConditions.size() == 0)
-        return;
+    return FactorEntities<ElementsContainerType>(rElements);
 
-    std::vector<std::string> component_names =
-        GetComponentNames<ConditionsContainerType>(rConditions);
+    KRATOS_CATCH("");
+}
 
-    std::vector<const Condition*> components(
-        component_names.size());
-    mFactoredConditions.resize(component_names.size());
+std::vector<ConditionsContainerType> FactorConditions(ConditionsContainerType const& rConditions)
+{
+    KRATOS_TRY;
 
-    for (unsigned i = 0; i < component_names.size(); ++i)
-    {
-        mFactoredConditions[i].first = component_names[i];
-        components[i] = &KratosComponents<Condition>::Get(component_names[i]);
-    }
-
-    int pos = 0;
-    for (auto it = rConditions.ptr_begin(); it != rConditions.ptr_end(); ++it)
-    {
-        if (GeometricalObject::IsSame(**it, *components[pos]) == false)
-        {
-            // Find the new position.
-            bool found = false;
-            for (unsigned k = 0; k < components.size(); ++k)
-            {
-                if (GeometricalObject::IsSame(**it, *components[k]))
-                {
-                    pos = k;
-                    found = true;
-                    break;
-                }
-            }
-
-            KRATOS_ERROR_IF_NOT(found) << "Did not find condition #" << (**it).Id()
-                                       << " in components." << std::endl;
-        }
-
-        mFactoredConditions[pos].second.push_back(*it);
-    }
+    return FactorEntities<ConditionsContainerType>(rConditions);
 
     KRATOS_CATCH("");
 }

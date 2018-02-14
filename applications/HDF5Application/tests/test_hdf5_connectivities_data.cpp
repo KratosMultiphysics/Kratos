@@ -239,8 +239,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData1, KratosHDF5TestSuite)
     CreateTestMesh(nodes, properties, elements, ids, pids, connectivities);
 
     HDF5::Internals::ConnectivitiesData data;
-    FactorElementsUtility factored_elements(elements);
-    data.SetData(factored_elements.begin()->second);
+    data.SetData(FactorElements(elements).front());
     KRATOS_CHECK(data.Name() == "Element2D3N");
     KRATOS_CHECK(data.size() == elements.size());
     for (unsigned i = 0; i < data.size(); ++i)
@@ -264,8 +263,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData2, KratosHDF5TestSuite)
     CreateTestMesh(nodes, properties, conditions, ids, pids, connectivities);
 
     HDF5::Internals::ConnectivitiesData data;
-    FactorConditionsUtility factored_conditions(conditions);
-    data.SetData(factored_conditions.begin()->second);
+    data.SetData(FactorConditions(conditions).front());
     // A set of deprecated "do nothing" conditions in the core is causing the
     // wrong condition name to be assigned here because they have the same type
     // as the non-deprecated conditions but are registered in a different name.
@@ -302,8 +300,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_WriteData, KratosHDF5TestSuite)
 
     HDF5::Internals::ConnectivitiesData data;
 
-    FactorElementsUtility factored_elements(elements);
-    data.SetData(factored_elements.begin()->second);
+    data.SetData(FactorElements(elements).front());
     HDF5::WriteInfo info;
     data.WriteData(test_file, "/Elements", info);
 
