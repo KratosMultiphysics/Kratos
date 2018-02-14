@@ -78,7 +78,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
             const Variable<array_1d<double, 3>>& rVARIABLE =
                 KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
             Vector<array_1d<double, 3>> data;
-            Internals::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
+            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
             mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
         }
         else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
@@ -88,7 +88,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
                 KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
                     r_variable_name);
             Vector<double> data;
-            Internals::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
+            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
             mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
         }
         else if (KratosComponents<Variable<double>>::Has(r_variable_name))
@@ -96,7 +96,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
             const Variable<double>& rVARIABLE =
                 KratosComponents<Variable<double>>::Get(r_variable_name);
             Vector<double> data;
-            Internals::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
+            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
             mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
         }
         else if (KratosComponents<Variable<int>>::Has(r_variable_name))
@@ -104,7 +104,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
             const Variable<int>& rVARIABLE =
                 KratosComponents<Variable<int>>::Get(r_variable_name);
             Vector<int> data;
-            Internals::SetDataBuffer(rVARIABLE, local_nodes, data, Step);
+            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
             mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
         }
         else
@@ -141,7 +141,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
                                 data, start_index, block_size);
             const Variable<array_1d<double, 3>>& rVARIABLE =
                 KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
-            Internals::SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
+            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
         }
         else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
                      r_variable_name))
@@ -152,7 +152,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
             const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& rVARIABLE =
                 KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
                     r_variable_name);
-            Internals::SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
+            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
         }
         else if (KratosComponents<Variable<double>>::Has(r_variable_name))
         {
@@ -161,7 +161,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
                                 data, start_index, block_size);
             const Variable<double>& rVARIABLE =
                 KratosComponents<Variable<double>>::Get(r_variable_name);
-            Internals::SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
+            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
         }
         else if (KratosComponents<Variable<int>>::Has(r_variable_name))
         {
@@ -170,7 +170,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
                                 data, start_index, block_size);
             const Variable<int>& rVARIABLE =
                 KratosComponents<Variable<int>>::Get(r_variable_name);
-            Internals::SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
+            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
         }
         else
         {
