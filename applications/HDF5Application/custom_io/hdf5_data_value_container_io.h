@@ -19,11 +19,9 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "containers/data_value_container.h"
 
 // Application includes
-#include "hdf5_application_define.h"
 #include "custom_io/hdf5_file.h"
 
 namespace Kratos

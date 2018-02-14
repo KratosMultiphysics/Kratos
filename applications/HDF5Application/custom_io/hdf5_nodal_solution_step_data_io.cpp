@@ -8,7 +8,7 @@ namespace Kratos
 {
 namespace HDF5
 {
-namespace Internals
+namespace
 {
 template <class TVariableType, class TFileDataType>
 void SetDataBuffer(TVariableType const& rVariable,
@@ -21,7 +21,7 @@ void SetNodalSolutionStepData(TVariableType const& rVariable,
                               Vector<TFileDataType> const& rData,
                               std::vector<NodeType*>& rNodes,
                               unsigned Step);
-} // namespace Internals.
+} // unnamed namespace
 
 NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters Settings, File::Pointer pFile)
 : mpFile(pFile)
@@ -236,7 +236,7 @@ void NodalSolutionStepDataIO::GetLocalNodes(NodesContainerType const& rNodes,
     KRATOS_CATCH("");
 }
 
-namespace Internals
+namespace
 {
 template <class TVariableType, class TFileDataType>
 void SetDataBuffer(TVariableType const& rVariable,
@@ -284,6 +284,6 @@ void SetNodalSolutionStepData(TVariableType const& rVariable,
 
     KRATOS_CATCH("");
 }
-} // namespace Internals.
+} // unnamed namespace.
 } // namespace HDF5.
 } // namespace Kratos.

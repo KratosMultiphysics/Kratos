@@ -56,6 +56,7 @@ hid_t GetScalarDataType();
 ///@name Kratos Classes
 ///@{
 
+/// Stores information about a data set written to HDF5.
 struct WriteInfo
 {
     std::size_t StartIndex = -1;
@@ -138,6 +139,8 @@ public:
     /**
      *  Performs collective write in MPI. The data is written blockwise according to
      *  processor rank.
+     * 
+     * @param[out] rInfo Information about the written data set.
      */
     virtual void WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
 
@@ -153,6 +156,8 @@ public:
     /**
      * Performs independent write in MPI. Must be called collectively. Throws 
      * if more than one process has non-empty data.
+     * 
+     * @param[out] rInfo Information about the written data set.
      */
     virtual void WriteDataSetIndependent(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
 
