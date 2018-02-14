@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+#include "utilities/builtin_timer.h"
 
 // Application includes
 #include "custom_io/hdf5_file.h"
@@ -154,7 +155,7 @@ private:
     void WriteDataSetVectorImpl(const std::string& rPath, const Vector<T>& rData, WriteInfo& rInfo)
     {
         KRATOS_TRY;
-        boost::timer timer;
+        BuiltinTimer timer;
         // Expects a valid free path.
         KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " <<rPath << std::endl;
 
@@ -203,8 +204,8 @@ private:
         rInfo.StartIndex = 0;
         rInfo.TotalSize = rInfo.BlockSize = rData.size();
 
-        if (GetEchoLevel() == 1)
-            std::cout << "Write time \"" << rPath << "\": " << timer.elapsed() << std::endl;
+        if (GetEchoLevel() == 2)
+            std::cout << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
         KRATOS_CATCH("Path: \"" + rPath + "\".");
     }
 
@@ -212,7 +213,7 @@ private:
     void WriteDataSetMatrixImpl(const std::string& rPath, const Matrix<T>& rData, WriteInfo& rInfo)
     {
         KRATOS_TRY;
-        boost::timer timer;
+        BuiltinTimer timer;
         // Check that full path does not exist before trying to write data.
         KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
 
@@ -248,8 +249,8 @@ private:
         rInfo.StartIndex = 0;
         rInfo.TotalSize = rInfo.BlockSize = rData.size1();
 
-        if (GetEchoLevel() == 1)
-            std::cout << "Write time \"" << rPath << "\": " << timer.elapsed() << std::endl;
+        if (GetEchoLevel() == 2)
+            std::cout << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
         KRATOS_CATCH("Path: \"" + rPath + "\".");
     }
 
@@ -257,7 +258,7 @@ private:
     void ReadDataSetVectorImpl(const std::string& rPath, Vector<T>& rData, unsigned StartIndex, unsigned BlockSize)
     {
         KRATOS_TRY;
-        boost::timer timer;
+        BuiltinTimer timer;
         // Check that full path exists.
         KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
             << "Path is not a data set: " << rPath << std::endl;
@@ -326,8 +327,8 @@ private:
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
 
-        if (GetEchoLevel() == 1)
-            std::cout << "Read time \"" << rPath << "\": " << timer.elapsed() << std::endl;
+        if (GetEchoLevel() == 2)
+            std::cout << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
         KRATOS_CATCH("Path: \"" + rPath + "\".");
     }
 
@@ -335,7 +336,7 @@ private:
     void ReadDataSetMatrixImpl(const std::string& rPath, Matrix<T>& rData, unsigned StartIndex, unsigned BlockSize)
     {
         KRATOS_TRY;
-        boost::timer timer;
+        BuiltinTimer timer;
         // Check that full path exists.
         KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
             << "Path is not a data set: " << rPath << std::endl;
@@ -386,8 +387,8 @@ private:
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
 
-        if (GetEchoLevel() == 1)
-            std::cout << "Read time \"" << rPath << "\": " << timer.elapsed() << std::endl;
+        if (GetEchoLevel() == 2)
+            std::cout << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
         KRATOS_CATCH("Path: \"" + rPath + "\".");
     }
     ///@}

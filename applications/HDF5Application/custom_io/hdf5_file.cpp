@@ -234,7 +234,7 @@ void File::AddPath(const std::string& rPath)
 void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::string& rValue)
 {
     KRATOS_TRY;
-    boost::timer timer;
+    BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
 
     type_id = H5T_NATIVE_CHAR;
@@ -249,8 +249,8 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, rValue.c_str()) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    if (GetEchoLevel() == 1 && GetPID() == 0)
-        std::cout << "Write time \"" << rObjectPath << '/' << rName << "\": " << timer.elapsed() << std::endl;
+    if (GetEchoLevel() == 2 && GetPID() == 0)
+        std::cout << "Write time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 
@@ -425,7 +425,7 @@ unsigned File::GetTotalProcesses() const
 void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::string& rValue)
 {
     KRATOS_TRY;
-    boost::timer timer;
+    BuiltinTimer timer;
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
     hsize_t dims[2];
@@ -459,8 +459,8 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     KRATOS_ERROR_IF(H5Aread(attr_id, mem_type_id, buffer) < 0) << "H5Aread failed." << std::endl; 
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     rValue = std::string(buffer, dims[0]);
-    if (GetEchoLevel() == 1 && GetPID() == 0)
-        std::cout << "Read time \"" << rObjectPath << '/' << rName << "\": " << timer.elapsed() << std::endl;
+    if (GetEchoLevel() == 2 && GetPID() == 0)
+        std::cout << "Read time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 

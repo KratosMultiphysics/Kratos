@@ -3,6 +3,7 @@
 #include "custom_io/hdf5_properties_io.h"
 #include "custom_io/hdf5_nodal_solution_step_variables_io.h"
 #include "custom_io/hdf5_data_value_container_io.h"
+#include "utilities/builtin_timer.h"
 
 namespace Kratos
 {
@@ -38,6 +39,7 @@ void ModelPartIOBase::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
+    BuiltinTimer timer;
     Internals::WriteVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::WriteBufferSize(*mpFile, mPrefix, rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
@@ -48,6 +50,9 @@ void ModelPartIOBase::WriteModelPart(ModelPart& rModelPart)
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());
 
+     if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
+        std::cout << "Time to write model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
+
     KRATOS_CATCH("");
 }
 
@@ -55,6 +60,7 @@ void ModelPartIOBase::ReadModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
+    BuiltinTimer timer;
     ReadProperties(rModelPart.rProperties());
     Internals::ReadDataValueContainer(*mpFile, mPrefix + "/ProcessInfo", rModelPart.GetProcessInfo());
     ReadNodes(rModelPart.Nodes());
@@ -62,6 +68,9 @@ void ModelPartIOBase::ReadModelPart(ModelPart& rModelPart)
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
     Internals::ReadAndAssignVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
+
+    if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
+        std::cout << "Time to read model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
     KRATOS_CATCH("");
 }
