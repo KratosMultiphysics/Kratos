@@ -168,11 +168,11 @@ class GiDDamOutputProcess(Process):
 
             self.__remove_post_results_files(label)
 
-            # Restart .post.lst files
-            self.__restart_list_files(additional_list_files)
-        else:
-            # Create .post.lst files
-            self.__initialize_list_files(additional_list_files)
+            ## Restart .post.lst files
+            #self.__restart_list_files(additional_list_files)
+        #else:
+            ## Create .post.lst files
+            #self.__initialize_list_files(additional_list_files)
 
         # Process point recording data
         if self.point_output_process is not None:
@@ -252,7 +252,6 @@ class GiDDamOutputProcess(Process):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteInitializeSolutionStep()
 
-
     def ExecuteFinalizeSolutionStep(self):
 
         if self.point_output_process is not None:
@@ -272,7 +271,6 @@ class GiDDamOutputProcess(Process):
             time = time/604800.0
 
         return ( time >= self.next_output )
-
 
     def PrintOutput(self):
         
@@ -311,7 +309,7 @@ class GiDDamOutputProcess(Process):
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
-            self.__write_step_to_list(label)
+            #self.__write_step_to_list(label)
             self.__print_multifile_lists(label)
 
         # Schedule next output
@@ -321,7 +319,6 @@ class GiDDamOutputProcess(Process):
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
-
 
     def ExecuteFinalize(self):
         '''Finalize files and free resources.'''
@@ -348,7 +345,6 @@ class GiDDamOutputProcess(Process):
         # a better solution yet (jcotela 12/V/2016)
         del self.body_io
         del self.cut_io
-
 
     def __initialize_gidio(self,gidpost_flags,param):
         '''Initialize GidIO objects (for volume and cut outputs) and related data.'''
@@ -384,7 +380,6 @@ class GiDDamOutputProcess(Process):
             raise Exception(msg)
 
         return value
-
 
     def __initialize_cut_output(self,plane_output_configuration):
         '''Set up tools used to produce output in skin and cut planes.'''
@@ -469,7 +464,6 @@ class GiDDamOutputProcess(Process):
                     list_file.write("Multiple\n")
 
                     self.cut_list_files.append( [freq,list_file] )
-
 
     def __define_output_plane(self,cut_data):
         '''Add a plane to the output plane list.'''
@@ -561,7 +555,6 @@ class GiDDamOutputProcess(Process):
         # Gauss point results depend on the type of element!
         # they are not implemented for cuts (which are generic Condition3D)
 
-
     def __write_nonhistorical_nodal_results(self, label):
 
         if self.body_io is not None:
@@ -591,7 +584,6 @@ class GiDDamOutputProcess(Process):
         if self.cut_io is not None:
             self.cut_io.FinalizeResults()
 
-
     def __write_step_to_list(self,step_label=None):
         if self.post_mode == GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
@@ -601,7 +593,6 @@ class GiDDamOutputProcess(Process):
             ext = ".post.res"  # ??? CHECK!
         else:
             return # No support for list_files in this format
-
 
     def __restart_list_files(self,additional_frequencies):
 
@@ -684,7 +675,6 @@ class GiDDamOutputProcess(Process):
         for mfilelist in self.multifilelists:
             mfilelist.file.close()
             
-    #
     # NOTE (PR): 'Codacy' suggest to change the following method, from a standard method to a 'classmethod' or 'staticmethod' as it does not refer to any of the class attributes
     @classmethod
     def __remove_list_files(cls):
@@ -702,7 +692,6 @@ class GiDDamOutputProcess(Process):
                         os.remove(f)
                     except WindowsError:
                         pass
-
 
     def __remove_post_results_files(self, step_label):
 
