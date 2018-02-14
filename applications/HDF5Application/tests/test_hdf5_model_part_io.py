@@ -102,8 +102,7 @@ class TestCase(KratosUnittest.TestCase):
         {
             "file_name" : "test_hdf5_model_part_io.h5",
             "file_access_mode" : "exclusive",
-            "file_driver" : "core",
-            "echo_level" : 1
+            "file_driver" : "core"
         }""")
         return HDF5FileSerial(params)
 
