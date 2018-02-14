@@ -20,7 +20,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/io.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -34,52 +33,13 @@ namespace Internals
 {
 ///@addtogroup HDF5Application
 ///@{
-///@name Kratos Classes
-///@{
 
-/// A class for properties IO of a model part in HDF5.
-class PropertiesIO : public IO
-{
-public:
-    ///@name Type Definitions
-    ///@{
+void ReadProperties(File& rFile, std::string const& rPrefix, PropertiesContainerType& rProperties);
 
-    /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(PropertiesIO);
+void WriteProperties(File& rFile, std::string const& rPrefix, Properties const& rProperties);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+void WriteProperties(File& rFile, std::string const& rPrefix, PropertiesContainerType const& rProperties);
 
-    /// Constructor.
-    PropertiesIO(const std::string& rPrefix, File::Pointer pFile);
-
-    ///@}
-    ///@name Operations
-    ///@{
-    void ReadProperties(PropertiesContainerType& rProperties) override;
-
-    void WriteProperties(Properties const& rProperties) override;
-
-    void WriteProperties(PropertiesContainerType const& rProperties) override;
-    ///@}
-
-protected:
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-    std::string mPrefix;
-    File::Pointer mpFile;
-    ///@}
-
-};
-
-///@} // Kratos Classes
 ///@} addtogroup
 } // namespace Internals.
 } // namespace HDF5.

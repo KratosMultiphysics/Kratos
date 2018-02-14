@@ -34,43 +34,11 @@ namespace Internals
 {
 ///@addtogroup HDF5Application
 ///@{
-///@name Kratos Classes
-///@{
 
-/// A class for IO of a data value container in HDF5.
-class DataValueContainerIO
-{
-public:
-    ///@name Type Definitions
-    ///@{
+void ReadDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer& rData);
 
-    /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(DataValueContainerIO);
+void WriteDataValueContainer(File& rFile, std::string const& rPrefix, DataValueContainer const& rData);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Constructor.
-    DataValueContainerIO(std::string Prefix, File::Pointer pFile);
-
-    ///@}
-    ///@name Operations
-    ///@{
-    void ReadDataValueContainer(DataValueContainer& rData);
-
-    void WriteDataValueContainer(DataValueContainer const& rData);
-    ///@}
-
-private:
-    ///@name Member Variables
-    ///@{
-    std::string mPrefix;
-    File::Pointer mpFile;
-    ///@}
-};
-
-///@} // Kratos Classes
 ///@} addtogroup
 } // namespace Internals.
 } // namespace HDF5.

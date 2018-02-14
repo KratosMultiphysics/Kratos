@@ -21,8 +21,6 @@ ModelPartIOBase::ModelPartIOBase(Parameters Settings, File::Pointer pFile)
     Settings.ValidateAndAssignDefaults(default_params);
 
     mPrefix = Settings["prefix"].GetString();
-    if (mPrefix == "/")
-        mPrefix = "";
 
     KRATOS_CATCH("");
 }
@@ -35,32 +33,27 @@ std::size_t ModelPartIOBase::ReadNodesNumber()
 
 void ModelPartIOBase::ReadProperties(PropertiesContainerType& rProperties)
 {
-    Internals::PropertiesIO prop_io(mPrefix, mpFile);
-    prop_io.ReadProperties(rProperties);
+    Internals::ReadProperties(*mpFile, mPrefix, rProperties);
 }
 
 void ModelPartIOBase::WriteProperties(Properties const& rProperties)
 {
-    Internals::PropertiesIO prop_io(mPrefix, mpFile);
-    prop_io.WriteProperties(rProperties);
+    Internals::WriteProperties(*mpFile, mPrefix, rProperties);
 }
 
 void ModelPartIOBase::WriteProperties(PropertiesContainerType const& rProperties)
 {
-    Internals::PropertiesIO prop_io(mPrefix, mpFile);
-    prop_io.WriteProperties(rProperties);
+    Internals::WriteProperties(*mpFile, mPrefix, rProperties);
 }
 
 void ModelPartIOBase::WriteModelPart(ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
-    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
-    nodal_variables_io.WriteVariablesList(rModelPart);
-    nodal_variables_io.WriteBufferSize(rModelPart.GetBufferSize());
+    Internals::WriteVariablesList(*mpFile, mPrefix, rModelPart);
+    Internals::WriteBufferSize(*mpFile, mPrefix, rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
-    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
-    process_info_io.WriteDataValueContainer(rModelPart.GetProcessInfo());
+    Internals::WriteDataValueContainer(*mpFile, mPrefix + "/ProcessInfo", rModelPart.GetProcessInfo());
     rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
                                // the writing process.
     WriteNodes(rModelPart.Nodes());
@@ -75,14 +68,12 @@ void ModelPartIOBase::ReadModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     ReadProperties(rModelPart.rProperties());
-    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
-    process_info_io.ReadDataValueContainer(rModelPart.GetProcessInfo());
+    Internals::ReadDataValueContainer(*mpFile, mPrefix + "/ProcessInfo", rModelPart.GetProcessInfo());
     ReadNodes(rModelPart.Nodes());
     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
-    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
-    nodal_variables_io.ReadAndAssignVariablesList(rModelPart);
-    nodal_variables_io.ReadAndAssignBufferSize(rModelPart);
+    Internals::ReadAndAssignVariablesList(*mpFile, mPrefix, rModelPart);
+    Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
 
     KRATOS_CATCH("");
 }
