@@ -45,16 +45,13 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.DesignSurface = ModelPartController.GetDesignSurface()
 
         self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
+        self.projectionOnNormalsIsSpecified = OptimizationSettings["optimization_algorithm"]["project_gradients_on_surface_normals"].GetBool()
         self.onlyObjective = OptimizationSettings["objectives"][0]["identifier"].GetString()
-        self.initialStepSize = OptimizationSettings["line_search"]["step_size"].GetDouble()
-        self.performDamping = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
-        self.performProjectionOnNormals = True
-        if OptimizationSettings["optimization_algorithm"].Has("project_gradients_on_normals"):
-            self.performProjectionOnNormals = OptimizationSettings["optimization_algorithm"]["project_gradients_on_normals"].GetBool()
+        self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
-        if self.performDamping:
+        if self.dampingIsSpecified:
             damping_regions = self.ModelPartController.GetDampingRegions()
             self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
 
@@ -89,15 +86,15 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
             self.__storeResultOfSensitivityAnalysisOnNodes()
 
-            if self.performProjectionOnNormals:
-                self.__alignSensitivitiesToLocalSurfaceNormal()
+            if self.projectionOnNormalsIsSpecified:
+                self.__projectSensitivitiesOnLocalSurfaceNormal()
 
-            if self.performDamping:
+            if self.dampingIsSpecified:
                 self.__dampSensitivities()
 
             self.__computeShapeUpdate()
 
-            if self.performDamping:
+            if self.dampingIsSpecified:
                 self.__dampShapeUpdate()
 
             self.__logCurrentOptimizationStep()
@@ -112,7 +109,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
-        self.Analyzer.finalizeAfterOptimizationLoop()       
+        self.Analyzer.finalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def __initializeModelPartForNewSolutionStep( self ):
@@ -149,7 +146,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,gradient)
 
     # --------------------------------------------------------------------------
-    def __alignSensitivitiesToLocalSurfaceNormal( self ):
+    def __projectSensitivitiesOnLocalSurfaceNormal( self ):
             self.GeometryUtilities.ComputeUnitSurfaceNormals()
             self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
 
