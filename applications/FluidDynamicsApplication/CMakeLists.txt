@@ -14,6 +14,11 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/fluid_dynamics_python_application.cpp
 
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_data.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/drag_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/element_size_calculator.cpp
+
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/qs_vms.cpp
@@ -48,11 +53,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_force_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_modification_process.cpp
-
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_data.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_element_utilities.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/drag_utilities.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/element_size_calculator.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/embedded_skin_visualization_process.cpp
+ 
 )
 
 ## fluid dynamics testing sources

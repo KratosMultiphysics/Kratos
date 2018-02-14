@@ -373,6 +373,64 @@ public:
             return ReferencePosition[0];
         }
     }
+
+    /**
+     * Transforms a 2-point tensor from an origin system to a target system
+     * M=M_ij origin_left x origin_right = M_lk target_left X target_right
+     * @return rOriginLeft: matrix with the basis vectors of basis origin left as columns
+     * @return rOriginRight: matrix with the basis vectors of basis origin right as columns
+     * @return rTargetLeft: matrix with the basis vectors of basis target left as columns
+     * @return rTsargetRight: matrix with the basis vectors of basis target right as columns
+     * @return rTensor: the tensor to be tranformed
+     */
+    template<int TDim>
+    static inline void TensorTransformation(
+        bounded_matrix<double,TDim,TDim>& rOriginLeft,
+        bounded_matrix<double,TDim,TDim>& rOriginRight,
+        bounded_matrix<double,TDim,TDim>& rTargetLeft,
+        bounded_matrix<double,TDim,TDim>& rTargetRight,
+        bounded_matrix<double,TDim,TDim>& rTensor)
+    {
+        // metric computation (of the target systems)
+        bounded_matrix<double,TDim,TDim> metric_left = ZeroMatrix(TDim,TDim);
+        bounded_matrix<double,TDim,TDim> metric_right = ZeroMatrix(TDim,TDim);
+        for(int i=0;i<TDim;i++){
+            for(int j=0;j<TDim;j++){
+                metric_left(i,j) += inner_prod(column(rTargetLeft,i),column(rTargetLeft,j));
+                metric_right(i,j) += inner_prod(column(rTargetRight,i),column(rTargetRight,j));
+            }        
+        }
+
+        // invert metric
+        double det;
+        Matrix inv_metric_left = Matrix(TDim,TDim);
+        Matrix inv_metric_right = Matrix(TDim,TDim);
+        MathUtils<double>::InvertMatrix(Matrix(metric_left),inv_metric_left,det);
+        MathUtils<double>::InvertMatrix(metric_right,inv_metric_right,det);
+
+        // Compute dual target base vectors
+        bounded_matrix<double,TDim,TDim> target_left_dual = ZeroMatrix(TDim,TDim);
+        bounded_matrix<double,TDim,TDim> target_right_dual = ZeroMatrix(TDim,TDim);
+        for(int i=0;i<TDim;i++){
+            for(int j=0;j<TDim;j++){            
+                column(target_left_dual,i) += inv_metric_left(i,j)*column(rTargetLeft,j);
+                column(target_right_dual,i) += inv_metric_right(i,j)*column(rTargetRight,j);
+            }        
+        }
+
+        // Tensor transformation
+        bounded_matrix<double, TDim, TDim> transformed_tensor = ZeroMatrix(TDim, TDim);
+        for(int k=0;k<TDim;k++){
+            for(int l=0;l<TDim;l++){
+                for(int i=0;i<TDim;i++){
+                    for(int j=0;j<TDim;j++){
+                        transformed_tensor(k,l) += rTensor(i,j)*inner_prod(column(target_left_dual,k),column(rOriginLeft,i))*inner_prod(column(target_right_dual,l),column(rOriginRight,j));
+                    }
+                }
+            }
+        }
+        rTensor = transformed_tensor;
+    }
     
 private:
 };// class StructuralMechanicsMathUtilities

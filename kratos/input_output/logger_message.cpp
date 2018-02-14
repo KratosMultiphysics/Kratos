@@ -56,6 +56,13 @@ namespace Kratos
 		mMessage.append(buffer.str());
 
 		return *this;
+    }
+    
+    LoggerMessage& LoggerMessage::operator << (CodeLocation const& TheLocation)
+	{
+		mLocation = TheLocation;
+
+		return *this;
 	}
 
 	LoggerMessage& LoggerMessage::operator << (Severity const& TheSeverity)

@@ -371,32 +371,24 @@ namespace Kratos
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("DisplacementCriteria", init< double, double>())
-                    .def("SetEchoLevel",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
-                    .def("SetActualizeRHSFlag",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetActualizeRHSFlag)
                     ;
 
             class_<ResidualCriteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("ResidualCriteria", init< double, double>())
-					.def("SetEchoLevel",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
-					.def("SetActualizeRHSFlag",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetActualizeRHSFlag)
-					;
+                    ;
 
             class_<And_Criteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("AndCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
-                    .def("SetEchoLevel",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
-                    .def("SetActualizeRHSFlag",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetActualizeRHSFlag)
                     ;
 
             class_<Or_Criteria<SparseSpaceType, LocalSpaceType >,
                     bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,
                     boost::noncopyable >
                     ("OrCriteria", init<TConvergenceCriteriaPointer, TConvergenceCriteriaPointer > ())
-                    .def("SetEchoLevel",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetEchoLevel)
-                    .def("SetActualizeRHSFlag",&ResidualCriteria<SparseSpaceType, LocalSpaceType >::SetActualizeRHSFlag)
                     ;
 
             //********************************************************************
