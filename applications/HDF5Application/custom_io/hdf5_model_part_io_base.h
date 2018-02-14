@@ -47,7 +47,7 @@ public:
     ///@{
 
     /// Constructor.
-    ModelPartIOBase(Parameters Settings, File::Pointer pFile);
+    ModelPartIOBase(File::Pointer pFile, std::string const& rPrefix);
 
     ///@}
     ///@name Operations
@@ -77,7 +77,7 @@ protected:
     ///@{
 
     File::Pointer mpFile;
-    std::string mPrefix;
+    const std::string mPrefix;
 
     ///@}
 

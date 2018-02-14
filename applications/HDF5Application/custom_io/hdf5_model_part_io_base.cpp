@@ -8,21 +8,9 @@ namespace Kratos
 {
 namespace HDF5
 {
-ModelPartIOBase::ModelPartIOBase(Parameters Settings, File::Pointer pFile)
-: mpFile(pFile)
+ModelPartIOBase::ModelPartIOBase(File::Pointer pFile, std::string const& rPrefix)
+: mpFile(pFile), mPrefix(rPrefix)
 {
-    KRATOS_TRY;
-
-    Parameters default_params(R"(
-        {
-            "prefix": ""
-        })");
-
-    Settings.ValidateAndAssignDefaults(default_params);
-
-    mPrefix = Settings["prefix"].GetString();
-
-    KRATOS_CATCH("");
 }
 
 std::size_t ModelPartIOBase::ReadNodesNumber()

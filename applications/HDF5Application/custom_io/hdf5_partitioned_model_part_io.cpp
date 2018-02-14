@@ -10,8 +10,8 @@ namespace Kratos
 {
 namespace HDF5
 {
-PartitionedModelPartIO::PartitionedModelPartIO(Parameters Settings, File::Pointer pFile)
-: ModelPartIOBase(Settings, pFile)
+PartitionedModelPartIO::PartitionedModelPartIO(File::Pointer pFile, std::string const& rPrefix)
+: ModelPartIOBase(pFile, rPrefix)
 {
     KRATOS_TRY;
 

@@ -14,13 +14,11 @@
 #define KRATOS_HDF5_PARTITIONED_MODEL_PART_IO_H_INCLUDED
 
 // System includes
-#include <tuple>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/io.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -52,7 +50,7 @@ public:
     ///@{
 
     /// Constructor.
-    PartitionedModelPartIO(Parameters Settings, File::Pointer pFile);
+    PartitionedModelPartIO(File::Pointer pFile, std::string const& rPrefix);
 
     ///@}
     ///@name Operations

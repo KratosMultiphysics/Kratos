@@ -8,8 +8,8 @@ namespace Kratos
 {
 namespace HDF5
 {
-ModelPartIO::ModelPartIO(Parameters Settings, File::Pointer pFile)
-: ModelPartIOBase(Settings, pFile)
+ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix)
+: ModelPartIOBase(pFile, rPrefix)
 {
     KRATOS_TRY;
 

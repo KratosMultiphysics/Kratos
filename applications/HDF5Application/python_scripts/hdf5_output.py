@@ -70,7 +70,7 @@ class ModelPartOutput(OutputObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5ModelPartIO(self.settings, hdf5_file).WriteModelPart(model_part)
+        KratosHDF5.HDF5ModelPartIO(hdf5_file, self.settings["prefix"].GetString()).WriteModelPart(model_part)
 
 
 class NodalResultsOutput(OutputObject):
@@ -105,7 +105,7 @@ class PartitionedModelPartOutput(OutputObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5PartitionedModelPartIO(self.settings, hdf5_file).WriteModelPart(model_part)
+        KratosHDF5.HDF5PartitionedModelPartIO(hdf5_file, self.settings["prefix"].GetString()).WriteModelPart(model_part)
 
 
 class PartitionedNodalResultsOutput(OutputObject):

@@ -107,11 +107,7 @@ class TestCase(KratosUnittest.TestCase):
         return HDF5FileSerial(params)
 
     def _get_model_part_io(self, hdf5_file):
-        params = Parameters("""
-        {
-            "prefix" : "/ModelData"
-        }""")
-        return HDF5ModelPartIO(params, hdf5_file)
+        return HDF5ModelPartIO(hdf5_file, "/ModelData")
 
     def _get_nodal_solution_step_data_io(self, hdf5_file):
         params = Parameters("""
