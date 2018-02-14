@@ -11,7 +11,7 @@ namespace HDF5
 namespace Internals
 {
 
-void WriteVariablesList(File& rFile, std::string& rPrefix, ModelPart const& rModelPart)
+void WriteVariablesList(File& rFile, std::string const& rPrefix, ModelPart const& rModelPart)
 {
     KRATOS_TRY;
 
@@ -24,7 +24,7 @@ void WriteVariablesList(File& rFile, std::string& rPrefix, ModelPart const& rMod
     KRATOS_CATCH("");
 }
 
-void ReadAndAssignVariablesList(File& rFile, std::string& rPrefix, ModelPart& rModelPart)
+void ReadAndAssignVariablesList(File& rFile, std::string const& rPrefix, ModelPart& rModelPart)
 {
     KRATOS_TRY;
 
@@ -68,7 +68,7 @@ void ReadAndAssignVariablesList(File& rFile, std::string& rPrefix, ModelPart& rM
     KRATOS_CATCH("");
 }
 
-void WriteBufferSize(File& rFile, std::string& rPrefix, int BufferSize)
+void WriteBufferSize(File& rFile, std::string const& rPrefix, int BufferSize)
 {
     KRATOS_TRY;
 
@@ -78,7 +78,7 @@ void WriteBufferSize(File& rFile, std::string& rPrefix, int BufferSize)
     KRATOS_CATCH("");
 }
 
-void ReadAndAssignBufferSize(File& rFile, std::string& rPrefix, ModelPart& rModelPart)
+void ReadAndAssignBufferSize(File& rFile, std::string const& rPrefix, ModelPart& rModelPart)
 {
     KRATOS_TRY;
 

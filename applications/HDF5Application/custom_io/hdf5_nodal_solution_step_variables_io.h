@@ -36,13 +36,13 @@ namespace Internals
 ///@addtogroup HDF5Application
 ///@{
 
-void WriteVariablesList(File& rFile, std::string& rPrefix, ModelPart const& rModelPart);
+void WriteVariablesList(File& rFile, std::string const& rPrefix, ModelPart const& rModelPart);
 
-void ReadAndAssignVariablesList(File& rFile, std::string& rPrefix, ModelPart& rModelPart);
+void ReadAndAssignVariablesList(File& rFile, std::string const& rPrefix, ModelPart& rModelPart);
 
-void WriteBufferSize(File& rFile, std::string& rPrefix, int BufferSize);
+void WriteBufferSize(File& rFile, std::string const& rPrefix, int BufferSize);
 
-void ReadAndAssignBufferSize(File& rFile, std::string& rPrefix, ModelPart& rModelPart);
+void ReadAndAssignBufferSize(File& rFile, std::string const& rPrefix, ModelPart& rModelPart);
 
 ///@} addtogroup
 } // namespace Internals.
