@@ -21,7 +21,6 @@ CheckForPreviousImport()
 # Additional imports
 import timer_factory
 import algorithm_factory
-# import analyzer_factory
 import communicator_factory
 import model_part_controller_factory
 
@@ -63,30 +62,24 @@ class VertexMorphingMethod:
         self.OptimizationModelPart.AddNodalSolutionStepVariable(MESH_CHANGE)   
 
     # --------------------------------------------------------------------------
-    def importModelPart( self ):
-        model_part_io = ModelPartIO( self.OptimizationSettings["design_variables"]["optimization_model_part_name"].GetString() )
-        model_part_io.ReadModelPart( self.OptimizationModelPart )
-        self.OptimizationModelPart.SetBufferSize( 1 )
-        self.OptimizationModelPart.ProcessInfo.SetValue( DOMAIN_SIZE, self.OptimizationSettings["design_variables"]["domain_size"].GetInt() )
-
-    # --------------------------------------------------------------------------
     def importAnalyzer( self, newAnalyzer ): 
         self.Analyzer = newAnalyzer
 
     # --------------------------------------------------------------------------
     def optimize( self ):
         timer = timer_factory.CreateTimer()
-        algorithmName = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
+        algorithm_name = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
 
         print("\n> ==============================================================================================================")
-        print("> ",timer.GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithmName)
+        print("> ",timer.GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
         print("> ==============================================================================================================\n")
 
-        algorithm = algorithm_factory.CreateAlgorithm( self.ModelPartController,
-                                                       self.Analyzer, 
-                                                       self.Communicator,
-                                                       self.OptimizationSettings )
+        if self.ModelPartController.IsOptimizationModelPartAlreadyImported():
+            print("> Skipping import of optimization model part as already done by another application. ")
+        else:
+            self.ModelPartController.ImportOptimizationModelPart()           
 
+        algorithm = algorithm_factory.CreateAlgorithm( self.ModelPartController, self.Analyzer, self.Communicator, self.OptimizationSettings )
         algorithm.execute()       
 
         print("\n> ==============================================================================================================")
