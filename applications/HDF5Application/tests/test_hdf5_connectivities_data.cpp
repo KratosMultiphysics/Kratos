@@ -139,13 +139,13 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_ReadData, KratosHDF5TestSuite)
     data.ReadData(test_file, "/Elements", info.StartIndex, info.BlockSize);
     KRATOS_CHECK(data.Name() == "Element2D3N");
     KRATOS_CHECK(data.size() == ids.size());
-    KRATOS_CHECK(data.GetConnectivities().size2() == connectivities.size2());
+    KRATOS_CHECK(data.Connectivities().size2() == connectivities.size2());
     for (unsigned i = 0; i < data.size(); ++i)
     {
-        KRATOS_CHECK(data.GetIds()[i] == ids[i]);
-        KRATOS_CHECK(data.GetPropertiesIds()[i] == pids[i]);
+        KRATOS_CHECK(data.Ids()[i] == ids[i]);
+        KRATOS_CHECK(data.PropertiesIds()[i] == pids[i]);
         for (unsigned j = 0; j < connectivities.size2(); ++j)
-            KRATOS_CHECK(data.GetConnectivities()(i,j) == connectivities(i,j));
+            KRATOS_CHECK(data.Connectivities()(i,j) == connectivities(i,j));
     }
 }
 
@@ -245,12 +245,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData1, KratosHDF5TestSuite)
     KRATOS_CHECK(data.size() == elements.size());
     for (unsigned i = 0; i < data.size(); ++i)
     {
-        const unsigned id = data.GetIds()[i];
+        const unsigned id = data.Ids()[i];
         Element const& r_elem = elements[id];
-        KRATOS_CHECK(r_elem.GetProperties().Id() == static_cast<unsigned>(data.GetPropertiesIds()[i]));
-        KRATOS_CHECK(r_elem.GetGeometry().size() == static_cast<unsigned>(data.GetConnectivities().size2()));
-        for (unsigned j = 0; j < data.GetConnectivities().size2(); ++j)
-            KRATOS_CHECK(r_elem.GetGeometry()[j].Id() == static_cast<unsigned>(data.GetConnectivities()(i, j)));
+        KRATOS_CHECK(r_elem.GetProperties().Id() == static_cast<unsigned>(data.PropertiesIds()[i]));
+        KRATOS_CHECK(r_elem.GetGeometry().size() == static_cast<unsigned>(data.Connectivities().size2()));
+        for (unsigned j = 0; j < data.Connectivities().size2(); ++j)
+            KRATOS_CHECK(r_elem.GetGeometry()[j].Id() == static_cast<unsigned>(data.Connectivities()(i, j)));
     }
 }
 
@@ -274,12 +274,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ConnectivitiesData_SetData2, KratosHDF5TestSuite)
     KRATOS_CHECK(data.size() == conditions.size());
     for (unsigned i = 0; i < data.size(); ++i)
     {
-        const unsigned id = data.GetIds()[i];
+        const unsigned id = data.Ids()[i];
         Condition const& r_cond = conditions[id];
-        KRATOS_CHECK(r_cond.GetProperties().Id() == static_cast<unsigned>(data.GetPropertiesIds()[i]));
-        KRATOS_CHECK(r_cond.GetGeometry().size() == static_cast<unsigned>(data.GetConnectivities().size2()));
-        for (unsigned j = 0; j < data.GetConnectivities().size2(); ++j)
-            KRATOS_CHECK(r_cond.GetGeometry()[j].Id() == static_cast<unsigned>(data.GetConnectivities()(i, j)));
+        KRATOS_CHECK(r_cond.GetProperties().Id() == static_cast<unsigned>(data.PropertiesIds()[i]));
+        KRATOS_CHECK(r_cond.GetGeometry().size() == static_cast<unsigned>(data.Connectivities().size2()));
+        for (unsigned j = 0; j < data.Connectivities().size2(); ++j)
+            KRATOS_CHECK(r_cond.GetGeometry()[j].Id() == static_cast<unsigned>(data.Connectivities()(i, j)));
     }
 }
 

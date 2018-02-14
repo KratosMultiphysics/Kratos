@@ -56,17 +56,17 @@ public:
         return mName;
     }
 
-    inline Vector<int> const& GetIds() const
+    inline Vector<int> const& Ids() const
     {
         return mIds;
     }
 
-    inline Vector<int> const& GetPropertiesIds() const
+    inline Vector<int> const& PropertiesIds() const
     {
         return mPropertiesIds;
     }
 
-    inline Matrix<int> const& GetConnectivities() const
+    inline Matrix<int> const& Connectivities() const
     {
         return mConnectivities;
     }
