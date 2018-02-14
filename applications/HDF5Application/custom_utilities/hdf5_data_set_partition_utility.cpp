@@ -5,11 +5,16 @@ namespace Kratos
 namespace HDF5
 {
 
-void DataSetPartitionUtility::WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo)
+namespace
+{
+const std::string PartitionSuffix = "_partition";
+}
+
+void WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo)
 {
     KRATOS_TRY;
 
-    const std::string partition_path = rPath + DataSetPartitionUtility::PartitionSuffix;
+    const std::string partition_path = rPath + PartitionSuffix;
     Vector<int> data;
     if (rFile.GetPID() == rFile.GetTotalProcesses() - 1)
     {
@@ -29,32 +34,32 @@ void DataSetPartitionUtility::WritePartitionTable(File& rFile, std::string const
     KRATOS_CATCH("");
 }
 
-void DataSetPartitionUtility::WritePartitionTableIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition)
+void WritePartitionTableIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition)
 {
     KRATOS_TRY;
 
-    const std::string partition_path = rPath + DataSetPartitionUtility::PartitionSuffix;
+    const std::string partition_path = rPath + PartitionSuffix;
     WriteInfo info;
     rFile.WriteDataSetIndependent(partition_path, rPartition, info);
 
     KRATOS_CATCH("");
 }
 
-bool DataSetPartitionUtility::HasPartitionTable(File& rFile, std::string const& rPath)
+bool HasPartitionTable(File& rFile, std::string const& rPath)
 {
     KRATOS_TRY;
 
-    const std::string partition_path = rPath + DataSetPartitionUtility::PartitionSuffix;
+    const std::string partition_path = rPath + PartitionSuffix;
     return rFile.IsDataSet(partition_path);
 
     KRATOS_CATCH("");
 }
 
-std::tuple<unsigned, unsigned> DataSetPartitionUtility::StartIndexAndBlockSize(File& rFile, std::string const& rPath)
+std::tuple<unsigned, unsigned> StartIndexAndBlockSize(File& rFile, std::string const& rPath)
 {
     KRATOS_TRY;
 
-    const std::string partition_path = rPath + DataSetPartitionUtility::PartitionSuffix;
+    const std::string partition_path = rPath + PartitionSuffix;
     const unsigned my_pid = rFile.GetPID();
     Vector<int> my_partition;
     rFile.ReadDataSet(partition_path, my_partition, my_pid, 2);
@@ -65,7 +70,6 @@ std::tuple<unsigned, unsigned> DataSetPartitionUtility::StartIndexAndBlockSize(F
     KRATOS_CATCH("");
 }
 
-const std::string DataSetPartitionUtility::PartitionSuffix = "_partition";
 
 } // namespace HDF5.
 } // namespace Kratos.

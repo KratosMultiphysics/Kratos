@@ -31,8 +31,8 @@ bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
 
     File& r_file = *mpFile;
 
-    std::tie(local_start_index, local_block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Local");
-    std::tie(ghost_start_index, ghost_block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Ghost");
+    std::tie(local_start_index, local_block_size) = StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Local");
+    std::tie(ghost_start_index, ghost_block_size) = StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Ghost");
     rNodes.reserve(local_block_size + ghost_block_size);
 
     // Read local nodes.
@@ -79,14 +79,14 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     local_points.SetData(local_nodes);
     WriteInfo info;
     local_points.WriteData(r_file, mPrefix + "/Nodes/Local", info);
-    DataSetPartitionUtility::WritePartitionTable(r_file, mPrefix + "/Nodes/Local", info);
+    WritePartitionTable(r_file, mPrefix + "/Nodes/Local", info);
     local_points.Clear();
 
     // Write ghost nodes.
     Internals::PointsData ghost_points;
     ghost_points.SetData(ghost_nodes);
     ghost_points.WriteData(r_file, mPrefix + "/Nodes/Ghost", info);
-    DataSetPartitionUtility::WritePartitionTable(r_file, mPrefix + "/Nodes/Ghost", info);
+    WritePartitionTable(r_file, mPrefix + "/Nodes/Ghost", info);
     WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
     ghost_points.Clear();
 
@@ -107,7 +107,7 @@ void PartitionedModelPartIO::ReadElements(NodesContainerType& rNodes,
     for (const auto& r_name : group_names)
     {
         Internals::ConnectivitiesData connectivities;
-        std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(
+        std::tie(start_index, block_size) = StartIndexAndBlockSize(
             *mpFile, mPrefix + "/Elements/" + r_name);
         connectivities.ReadData(*mpFile, mPrefix + "/Elements/" + r_name, start_index, block_size);
         connectivities.CreateEntities(rNodes, rProperties, rElements);
@@ -130,7 +130,7 @@ void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElement
         connectivities.WriteData(*mpFile, mPrefix + "/Elements/" + r_elems.first, info);
         const int size = info.TotalSize;
         mpFile->WriteAttribute(mPrefix + "/Elements/" + r_elems.first, "Size", size);
-        DataSetPartitionUtility::WritePartitionTable(
+        WritePartitionTable(
             *mpFile, mPrefix + "/Elements/" + r_elems.first, info);
     }
 
@@ -151,7 +151,7 @@ void PartitionedModelPartIO::ReadConditions(NodesContainerType& rNodes,
     for (const auto& r_name : group_names)
     {
         Internals::ConnectivitiesData connectivities;
-        std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(
+        std::tie(start_index, block_size) = StartIndexAndBlockSize(
             *mpFile, mPrefix + "/Conditions/" + r_name);
         connectivities.ReadData(*mpFile, mPrefix + "/Conditions/" + r_name, start_index, block_size);
         connectivities.CreateEntities(rNodes, rProperties, rConditions);
@@ -174,7 +174,7 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
         connectivities.WriteData(*mpFile, mPrefix + "/Conditions/" + r_conds.first, info);
         const int size = info.TotalSize;
         mpFile->WriteAttribute(mPrefix + "/Conditions/" + r_conds.first, "Size", size);
-        DataSetPartitionUtility::WritePartitionTable(
+        WritePartitionTable(
             *mpFile, mPrefix + "/Conditions/" + r_conds.first, info);
     }
 
@@ -248,7 +248,7 @@ void PartitionedModelPartIO::ReadAndAssignPartitionIndex(const std::string& rPat
     // local nodes are read. Then copy it to the solution step data after the buffer
     // is initialized.
     unsigned start_index, block_size;
-    std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(*mpFile, rPath);
+    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, rPath);
     Vector<int> partition_ids, node_ids;
     mpFile->ReadDataSet(rPath + "/PARTITION_INDEX", partition_ids, start_index, block_size);
     mpFile->ReadDataSet(rPath + "/Ids", node_ids, start_index, block_size);

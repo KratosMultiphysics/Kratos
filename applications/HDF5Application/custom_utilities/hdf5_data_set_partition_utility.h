@@ -32,54 +32,25 @@ namespace HDF5
 {
 ///@addtogroup HDF5Application
 ///@{
-///@name Kratos Classes
-///@{
 
-/// The utility for working with data set partitions.
-class DataSetPartitionUtility
-{
-public:
-    ///@name Type Definitions
-    ///@{
-    ///@}
-    ///@name Life Cycle
-    ///@{
-    ///@}
-    ///@name Operations
-    ///@{
+/// Write the start and end indices of data blocks (by process rank).
+/**
+ * Performs collective write.
+ */
+void WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
 
-    /// Write the start and end indices of data blocks (by process rank).
-    /**
-     * Performs collective write.
-     */
-    static void WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
+/// Write a user-defined partition table of start and end indices (by process rank).
+/**
+ * Performs independent write.
+ */
+void WritePartitionTableIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition);
 
-    /// Write a user-defined partition table of start and end indices (by process rank).
-    /**
-     * Performs independent write.
-     */
-    static void WritePartitionTableIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition);
+// Check if a path has a data set partition.
+bool HasPartitionTable(File& rFile, std::string const& rPath);
 
-    // Check if a path has a data set partition.
-    static bool HasPartitionTable(File& rFile, std::string const& rPath);
+// Get the start index and block size from an existing partition for this PID.
+std::tuple<unsigned, unsigned> StartIndexAndBlockSize(File& rFile, std::string const& rPath);
 
-    // Get the start index and block size from an existing partition for this PID.
-    static std::tuple<unsigned, unsigned> StartIndexAndBlockSize(File& rFile, std::string const& rPath);
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-    
-    static const std::string PartitionSuffix;
-    
-    ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
-};
-
-///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.

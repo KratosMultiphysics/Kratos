@@ -114,7 +114,7 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
     }
 
     // Write block partition.
-    DataSetPartitionUtility::WritePartitionTable(*mpFile, mPrefix + "/NodalResults", info);
+    WritePartitionTable(*mpFile, mPrefix + "/NodalResults", info);
 
     KRATOS_CATCH("");
 }
@@ -129,7 +129,7 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
     std::vector<NodeType*> local_nodes;
     GetLocalNodes(rNodes, local_nodes);
     unsigned start_index, block_size;
-    std::tie(start_index, block_size) = DataSetPartitionUtility::StartIndexAndBlockSize(*mpFile, mPrefix + "/NodalResults");
+    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mPrefix + "/NodalResults");
 
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
