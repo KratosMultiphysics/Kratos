@@ -240,7 +240,7 @@ class GiDDamOutputProcess(Process):
             self.__set_multifile_lists(self.multifiles)
             
             if self.start_output_results == 0:
-                self.__print_inital_step_in_multifile_lists(label)
+                self.__write_inital_step_in_multifile_lists(label)
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
@@ -310,7 +310,7 @@ class GiDDamOutputProcess(Process):
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
             #self.__write_step_to_list(label)
-            self.__print_multifile_lists(label)
+            self.__write_multifile_lists(label)
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -639,7 +639,7 @@ class GiDDamOutputProcess(Process):
             mfilelist.file.write("Multiple\n")
             mfilelist.index = 1
             
-    def __print_inital_step_in_multifile_lists(self, label):
+    def __write_inital_step_in_multifile_lists(self, label):
         for mfilelist in self.multifilelists:
                 
             if (self.post_mode == GiDPostMode.GiD_PostBinary):
@@ -652,7 +652,7 @@ class GiDDamOutputProcess(Process):
                 mfilelist.file.write(text_to_print2)
             self.Flush(mfilelist.file)
 
-    def __print_multifile_lists(self, label):
+    def __write_multifile_lists(self, label):
         
         for mfilelist in self.multifilelists:
             if (label % mfilelist.step) == 0:
