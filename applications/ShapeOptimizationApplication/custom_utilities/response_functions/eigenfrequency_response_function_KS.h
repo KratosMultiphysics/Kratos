@@ -168,6 +168,7 @@ public:
 
 		m_resp_function_value  = log( m_resp_function_value );
 		m_resp_function_value /= m_KS_parameter;
+		m_resp_function_value *= -1.0;
 
 		// Set initial value if not done yet
 		if(!m_initial_value_defined)
@@ -465,7 +466,6 @@ protected:
 				}
 
 				gradient_contribution[0] /= ks_values_sum;
-				gradient_contribution[0] *= -1.0;
 
 				node_i.X0() -= mDelta;
 
@@ -504,7 +504,6 @@ protected:
 				}
 
 				gradient_contribution[1] /= ks_values_sum;
-				gradient_contribution[1] *= -1.0;
 
 				node_i.Y0() -= mDelta;
 				// End derivative of response w.r.t. y-coord --------------------
@@ -542,7 +541,6 @@ protected:
 				}
 
 				gradient_contribution[2] /= ks_values_sum;
-				gradient_contribution[2] *= -1.0;
 
 				node_i.Z0() -= mDelta;
 				// End derivative of response w.r.t. z-coord --------------------

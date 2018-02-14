@@ -127,6 +127,8 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     # --------------------------------------------------------------------------
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
+        eigenfrequency_factor = -1.0 # maximization of eigenvalues -> negative factor
+
         # Calculation of value of objective function
         if communicator.isRequestingFunctionValueOf("eigenfrequency"):
 
@@ -137,26 +139,26 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             self.solveStructure( optimizationIteration )
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
 
-            print("\n> Starting calculation of strain energy")
+            print("\n> Starting calculation of eigenfrequency")
             startTime = timer.time()
             listOfResponseFunctions["eigenfrequency"].CalculateValue()
-            print("> Time needed for calculation of strain energy = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculation of eigenfrequency = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("eigenfrequency", -listOfResponseFunctions["eigenfrequency"].GetValue())
+            communicator.reportFunctionValue("eigenfrequency", eigenfrequency_factor * listOfResponseFunctions["eigenfrequency"].GetValue())
 
         # Calculation of gradient of objective function
         if communicator.isRequestingGradientOf("eigenfrequency"):
 
-            print("\n> Starting calculation of gradients of strain energy")
+            print("\n> Starting calculation of gradients of eigenfrequency")
             startTime = timer.time()
             listOfResponseFunctions["eigenfrequency"].CalculateGradient()
-            print("> Time needed for calculating gradients of strain energy = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculating gradients of eigenfrequency = ",round(timer.time() - startTime,2),"s")
 
             gradientForCompleteModelPart = listOfResponseFunctions["eigenfrequency"].GetGradient()
             gradientOnDesignSurface = {}
             for node in currentDesign.Nodes:
                 gradient = gradientForCompleteModelPart[node.Id]
-                gradientOnDesignSurface[node.Id] = [-gradient[0],-gradient[1],-gradient[2]]
+                gradientOnDesignSurface[node.Id] = [eigenfrequency_factor * gradient[0],eigenfrequency_factor * gradient[1],eigenfrequency_factor * gradient[2]]
 
             communicator.reportGradient("eigenfrequency", gradientOnDesignSurface)
 
