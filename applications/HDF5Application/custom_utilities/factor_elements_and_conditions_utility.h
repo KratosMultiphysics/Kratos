@@ -10,6 +10,10 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
+/** @file factor_elements_and_conditions_utility.h
+ *  @brief Methods for sorting elements and conditions into homogeneous containers by their type.
+ */
+
 #if !defined(KRATOS_FACTOR_ELEMENTS_AND_CONDITIONS_UTILITY_H_INCLUDED)
 #define KRATOS_FACTOR_ELEMENTS_AND_CONDITIONS_UTILITY_H_INCLUDED
 

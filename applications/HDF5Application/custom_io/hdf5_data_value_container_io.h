@@ -10,6 +10,10 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
+/** @file hdf5_data_value_container_io.h
+ *  @brief Methods for storing and retrieving a data value container in an HDF5 file.
+ */
+
 #if !defined(KRATOS_HDF5_DATA_VALUE_CONTAINER_IO_H_INCLUDED)
 #define KRATOS_HDF5_DATA_VALUE_CONTAINER_IO_H_INCLUDED
 

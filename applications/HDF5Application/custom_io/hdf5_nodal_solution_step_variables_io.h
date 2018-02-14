@@ -10,6 +10,10 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
+/** @file hdf5_nodal_solution_step_variables_io.h
+ *  @brief Methods for storing and retrieving the storage layout for nodal variables in an HDF5 file.
+ */
+
 #if !defined(KRATOS_HDF5_NODAL_SOLUTION_STEP_VARIABLES_IO_H_INCLUDED)
 #define KRATOS_HDF5_NODAL_SOLUTION_STEP_VARIABLES_IO_H_INCLUDED
 

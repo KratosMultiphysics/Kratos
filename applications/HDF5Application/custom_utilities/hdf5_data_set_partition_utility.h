@@ -10,6 +10,12 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
+/** @file hdf5_data_set_partition_utility.h
+ *  @brief Methods for setting and retrieving information about a partition table.
+ *   
+ *   The partition table describes how a data set is divided across partitions.
+ */
+
 #if !defined(KRATOS_HDF5_DATA_SET_PARTITION_UTILITY_H_INCLUDED)
 #define KRATOS_HDF5_DATA_SET_PARTITION_UTILITY_H_INCLUDED
 
@@ -36,6 +42,8 @@ namespace HDF5
 /// Write the start and end indices of data blocks (by process rank).
 /**
  * Performs collective write.
+ * 
+ * @param[in] rInfo Information returned by file after writing a data set.
  */
 void WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
 

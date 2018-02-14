@@ -36,6 +36,10 @@ namespace HDF5
 ///@name Kratos Classes
 ///@{
 
+/// Implements common functionality of HDF5 model part IO classes.
+/**
+ * This class cannot be instantiated through its public interface and may be removed in the future.
+ */
 class ModelPartIOBase : public IO
 {
 public:

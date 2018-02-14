@@ -10,6 +10,10 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
+/** @file hdf5_properties_io.h
+ *  @brief Methods for storing and retrieving a properties in an HDF5 file.
+ */
+
 #if !defined(KRATOS_HDF5_PROPERTIES_IO_H_INCLUDED)
 #define KRATOS_HDF5_PROPERTIES_IO_H_INCLUDED
 
