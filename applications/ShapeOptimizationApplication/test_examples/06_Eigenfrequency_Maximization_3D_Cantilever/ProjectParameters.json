@@ -27,32 +27,20 @@
             "tolerance": 1e-6,
             "echo_level": 1
         },
-            "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-            "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"],
+            "problem_domain_sub_model_part_list" : ["structure"],
+            "processes_sub_model_part_list"      : ["DISPLACEMENT_fixed_support"],
             "rotation_dofs"                      : false
     },
     "constraints_process_list" : [{
-        "implemented_in_file"   : "assign_vector_variable_process",
-        "implemented_in_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
+        "python_module"       : "assign_vector_variable_process",
+        "kratos_module"       : "KratosMultiphysics",
+        "help"                : "This process fixes the selected components of a given vector variable",
+        "process_name"        : "AssignVectorVariableProcess",
+        "Parameters"          : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+            "model_part_name" : "DISPLACEMENT_fixed_support",
             "variable_name"   : "DISPLACEMENT",
             "constrained"     : [true,true,true],
-            "value"           : [0.0,0.0,0.0]
-        }
-    },{
-        "implemented_in_file"   : "assign_vector_variable_process",
-        "implemented_in_module" : "KratosMultiphysics",
-        "help"                  : "This process fixes the selected components of a given vector variable",
-        "process_name"          : "AssignVectorVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0]
         }
     }],
@@ -147,13 +135,20 @@
             "damping" : {
                 "perform_damping" : true,
                 "damping_regions" : [{
-                        "sub_model_part_name"   : "DISPLACEMENT_Displacement_Auto2",
-                        "damp_X"                : true,
-                        "damp_Y"                : false,
-                        "damp_Z"                : false,
-                        "damping_function_type" : "cosine",
-                        "damping_radius"        : 1.0
-                    }]
+                    "sub_model_part_name"   : "tip_face",
+                    "damp_X"                : true,
+                    "damp_Y"                : false,
+                    "damp_Z"                : false,
+                    "damping_function_type" : "cosine",
+                    "damping_radius"        : 0.06
+                },{
+                    "sub_model_part_name"   : "DISPLACEMENT_fixed_support",
+                    "damp_X"                : true,
+                    "damp_Y"                : false,
+                    "damp_Z"                : false,
+                    "damping_function_type" : "cosine",
+                    "damping_radius"        : 0.06
+                }]
             }
         },
         "optimization_algorithm" : {
@@ -162,7 +157,7 @@
             "use_adaptive_correction"              : true,
             "max_iterations"                       : 100,
             "relative_tolerance"                   : 1e-04,
-            "project_gradients_on_surface_normals" : false
+            "project_gradients_on_surface_normals" : true
         },
         "line_search" : {
             "line_search_type"           : "manual_stepping",
@@ -173,12 +168,10 @@
             "output_directory"        : "Optimization_Results",
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
-            "design_output_mode"      : "WriteDesignSurface",
+            "design_output_mode"      : "WriteOptimizationModelPart",
             "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
                                           "OBJECTIVE_SENSITIVITY",
                                           "CONSTRAINT_SENSITIVITY",
-                                          "MAPPED_OBJECTIVE_SENSITIVITY",
-                                          "MAPPED_CONSTRAINT_SENSITIVITY",
                                           "SEARCH_DIRECTION",
                                           "SHAPE_UPDATE",
                                           "SHAPE_CHANGE" ],

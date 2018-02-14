@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-useMeshMotion = False
-if useMeshMotion:
-    from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # For time measures
@@ -26,9 +23,6 @@ echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
 #defining the model_part
 main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-###TODO replace this "model" for real one once available in kratos core
-#Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
 
 # Create an optimizer
 # Note that internally variables related to the optimizer are added to the model part
@@ -65,14 +59,75 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
 class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
     # --------------------------------------------------------------------------
-    def __init__( self ):
-
-        self.initializeGIDOutput()
-        self.initializeProcesses()
-        self.initializeSolutionLoop()
+    def initializeBeforeOptimizationLoop( self ):
+        self.__initializeGIDOutput()
+        self.__initializeProcesses()
+        self.__initializeSolutionLoop()
 
     # --------------------------------------------------------------------------
-    def initializeProcesses( self ):
+    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
+
+        eigenfrequency_factor = -1.0 # maximization of eigenvalues -> negative factor
+
+        # Calculation of value of objective function
+        if communicator.isRequestingFunctionValueOf("eigenfrequency"):
+
+            print("\n> Starting StructuralMechanicsApplication to solve structure")
+            startTime = timer.time()
+            self.__solveStructure( optimizationIteration )
+            print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
+
+            print("\n> Starting calculation of eigenfrequency")
+            startTime = timer.time()
+            listOfResponseFunctions["eigenfrequency"].CalculateValue()
+            print("> Time needed for calculation of eigenfrequency = ",round(timer.time() - startTime,2),"s")
+
+            communicator.reportFunctionValue("eigenfrequency", eigenfrequency_factor * listOfResponseFunctions["eigenfrequency"].GetValue())
+
+        # Calculation of gradient of objective function
+        if communicator.isRequestingGradientOf("eigenfrequency"):
+
+            print("\n> Starting calculation of gradients of eigenfrequency")
+            startTime = timer.time()
+            listOfResponseFunctions["eigenfrequency"].CalculateGradient()
+            print("> Time needed for calculating gradients of eigenfrequency = ",round(timer.time() - startTime,2),"s")
+
+            gradientForCompleteModelPart = listOfResponseFunctions["eigenfrequency"].GetGradient()
+            for node_id in gradientForCompleteModelPart:
+                gradient = gradientForCompleteModelPart[node_id]
+                gradientForCompleteModelPart[node_id] = [eigenfrequency_factor*gradient[0], eigenfrequency_factor*gradient[1], eigenfrequency_factor*gradient[2]]
+            communicator.reportGradient("eigenfrequency", gradientForCompleteModelPart)
+
+        # Calculation of value of constraint function
+        if communicator.isRequestingFunctionValueOf("mass"):
+
+            print("\n> Starting calculation of mass")
+            listOfResponseFunctions["mass"].CalculateValue()
+            constraintFunctionValue = listOfResponseFunctions["mass"].GetValue() - listOfResponseFunctions["mass"].GetInitialValue()
+            print("> Time needed for calculation of mass = ",round(timer.time() - startTime,2),"s")
+
+            communicator.reportFunctionValue("mass", constraintFunctionValue)
+            communicator.setFunctionReferenceValue("mass", listOfResponseFunctions["mass"].GetInitialValue())
+
+        # Calculation of gradients of constraint function
+        if communicator.isRequestingGradientOf("mass"):
+
+            print("\n> Starting calculation of gradient of mass")
+            startTime = timer.time()
+            listOfResponseFunctions["mass"].CalculateGradient()
+            print("> Time needed for calculating gradient of mass = ",round(timer.time() - startTime,2),"s")
+
+            gradientForCompleteModelPart = listOfResponseFunctions["mass"].GetGradient()
+            communicator.reportGradient("mass", gradientForCompleteModelPart)
+
+    # --------------------------------------------------------------------------
+    def finalizeAfterOptimizationLoop( self ):
+        for process in self.list_of_processes:
+            process.ExecuteFinalize()
+        self.gid_output.ExecuteFinalize()
+
+    # --------------------------------------------------------------------------
+    def __initializeProcesses( self ):
 
         import process_factory
         #the process order of execution is important
@@ -96,7 +151,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             process.ExecuteInitialize()
 
     # --------------------------------------------------------------------------
-    def initializeGIDOutput( self ):
+    def __initializeGIDOutput( self ):
 
         computing_model_part = CSM_solver.GetComputingModelPart()
         problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
@@ -108,7 +163,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         self.gid_output.ExecuteInitialize()
 
     # --------------------------------------------------------------------------
-    def initializeSolutionLoop( self ):
+    def __initializeSolutionLoop( self ):
 
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         CSM_solver.Initialize()
@@ -125,106 +180,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         self.gid_output.ExecuteBeforeSolutionLoop()
 
     # --------------------------------------------------------------------------
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
-
-        eigenfrequency_factor = -1.0 # maximization of eigenvalues -> negative factor
-
-        # Calculation of value of objective function
-        if communicator.isRequestingFunctionValueOf("eigenfrequency"):
-
-            self.initializeNewSolutionStep( optimizationIteration )
-
-            print("\n> Starting StructuralMechanicsApplication to solve structure")
-            startTime = timer.time()
-            self.solveStructure( optimizationIteration )
-            print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
-
-            print("\n> Starting calculation of eigenfrequency")
-            startTime = timer.time()
-            listOfResponseFunctions["eigenfrequency"].CalculateValue()
-            print("> Time needed for calculation of eigenfrequency = ",round(timer.time() - startTime,2),"s")
-
-            communicator.reportFunctionValue("eigenfrequency", eigenfrequency_factor * listOfResponseFunctions["eigenfrequency"].GetValue())
-
-        # Calculation of gradient of objective function
-        if communicator.isRequestingGradientOf("eigenfrequency"):
-
-            print("\n> Starting calculation of gradients of eigenfrequency")
-            startTime = timer.time()
-            listOfResponseFunctions["eigenfrequency"].CalculateGradient()
-            print("> Time needed for calculating gradients of eigenfrequency = ",round(timer.time() - startTime,2),"s")
-
-            gradientForCompleteModelPart = listOfResponseFunctions["eigenfrequency"].GetGradient()
-            gradientOnDesignSurface = {}
-            for node in currentDesign.Nodes:
-                gradient = gradientForCompleteModelPart[node.Id]
-                gradientOnDesignSurface[node.Id] = [eigenfrequency_factor * gradient[0],eigenfrequency_factor * gradient[1],eigenfrequency_factor * gradient[2]]
-
-            communicator.reportGradient("eigenfrequency", gradientOnDesignSurface)
-
-        # Calculation of value of constraint function
-        if communicator.isRequestingFunctionValueOf("mass"):
-
-            print("\n> Starting calculation of mass")
-            listOfResponseFunctions["mass"].CalculateValue()
-            constraintFunctionValue = listOfResponseFunctions["mass"].GetValue() - listOfResponseFunctions["mass"].GetInitialValue()
-            print("> Time needed for calculation of mass = ",round(timer.time() - startTime,2),"s")
-
-            communicator.reportFunctionValue("mass", constraintFunctionValue)
-            communicator.setFunctionReferenceValue("mass", listOfResponseFunctions["mass"].GetInitialValue())
-
-        # Calculation of gradients of constraint function
-        if communicator.isRequestingGradientOf("mass"):
-
-            print("\n> Starting calculation of gradient of mass")
-            startTime = timer.time()
-            listOfResponseFunctions["mass"].CalculateGradient()
-            print("> Time needed for calculating gradient of mass = ",round(timer.time() - startTime,2),"s")
-
-            gradientForCompleteModelPart = listOfResponseFunctions["mass"].GetGradient()
-            gradientOnDesignSurface = {}
-            for node in currentDesign.Nodes:
-                gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
-
-            communicator.reportGradient("mass", gradientOnDesignSurface)
-
-    # --------------------------------------------------------------------------
-    def initializeNewSolutionStep( self, optimizationIteration ):
-        main_model_part.CloneTimeStep( optimizationIteration )
-
-    # --------------------------------------------------------------------------
-    def updateMeshForAnalysis( self, currentDesign ):
-
-        # Extract surface nodes
-        sub_model_part_name = "surface_nodes"
-        GeometryUtilities(main_model_part).ExtractSurfaceNodes(sub_model_part_name)
-
-
-        if (useMeshMotion):
-            # Apply shape update as boundary condition for computation of mesh displacement
-            for node in main_model_part.GetSubModelPart(sub_model_part_name).Nodes:
-                node.Fix(MESH_DISPLACEMENT_X)
-                node.Fix(MESH_DISPLACEMENT_Y)
-                node.Fix(MESH_DISPLACEMENT_Z)
-                disp = Vector(3)
-                disp[0] = node.GetSolutionStepValue(SHAPE_UPDATE_X)
-                disp[1] = node.GetSolutionStepValue(SHAPE_UPDATE_Y)
-                disp[2] = node.GetSolutionStepValue(SHAPE_UPDATE_Z)
-                node.SetSolutionStepValue(MESH_DISPLACEMENT,0,disp)
-
-            # Solve for mesh-update
-            mesh_solver.Solve()
-
-            # Update reference mesh (Since shape updates are imposed as incremental quantities)
-            mesh_solver.get_mesh_motion_solver().UpdateReferenceMesh()
-        else:
-            for node in currentDesign.Nodes:
-                node.X0 = node.X0 + node.GetSolutionStepValue(SHAPE_UPDATE_X)
-                node.Y0 = node.Y0 + node.GetSolutionStepValue(SHAPE_UPDATE_Y)
-                node.Z0 = node.Z0 + node.GetSolutionStepValue(SHAPE_UPDATE_Z)
-
-    # --------------------------------------------------------------------------
-    def solveStructure( self, optimizationIteration ):
+    def __solveStructure( self, optimizationIteration ):
 
         # processes to be executed at the begining of the solution step
         for process in self.list_of_processes:
@@ -272,6 +228,5 @@ structureAnalyzer = kratosCSMAnalyzer()
 
 optimizer.importAnalyzer( structureAnalyzer )
 optimizer.optimize()
-structureAnalyzer.finalizeSolutionLoop()
 
 # ======================================================================================================================================
