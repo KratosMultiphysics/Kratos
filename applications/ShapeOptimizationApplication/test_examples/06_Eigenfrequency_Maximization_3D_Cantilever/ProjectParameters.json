@@ -128,7 +128,7 @@
             "domain_size"               : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
-                "filter_radius"              : 0.1,
+                "filter_radius"              : 0.2,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : true
             },
@@ -137,15 +137,9 @@
                 "mesh_solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
                     "ale_linear_solver_settings"  : {
-                        "solver_type"         : "AMGCL",
-                        "max_iteration"       : 500,
-                        "tolerance"           : 1e-7,
-                        "provide_coordinates" : false,
-                        "smoother_type"       : "ilu0",
-                        "krylov_type"         : "bicgstab",
-                        "coarsening_type"     : "aggregation",
-                        "scaling"             : false,
-                        "verbosity"           : 1
+                        "solver_type" : "Super_LU",
+                        "scaling"     : false,
+                        "verbosity"   : 0
                     },
                     "compute_reactions"     : true
                 }

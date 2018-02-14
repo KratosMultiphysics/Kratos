@@ -132,40 +132,41 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             self.initializeNewSolutionStep( optimizationIteration )
 
-            print("\n> Starting SolidMechanicsApplication to solve structure")
+            print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
             self.solveStructure( optimizationIteration )
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
 
-            print("\n> Starting calculation of response value")
+            print("\n> Starting calculation of strain energy")
             startTime = timer.time()
             listOfResponseFunctions["eigenfrequency"].CalculateValue()
-            print("> Time needed for calculation of response value = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculation of strain energy = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("eigenfrequency", listOfResponseFunctions["eigenfrequency"].GetValue())
+            communicator.reportFunctionValue("eigenfrequency", -listOfResponseFunctions["eigenfrequency"].GetValue())
 
         # Calculation of gradient of objective function
         if communicator.isRequestingGradientOf("eigenfrequency"):
 
-            print("\n> Starting calculation of gradients")
+            print("\n> Starting calculation of gradients of strain energy")
             startTime = timer.time()
             listOfResponseFunctions["eigenfrequency"].CalculateGradient()
-            print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculating gradients of strain energy = ",round(timer.time() - startTime,2),"s")
 
             gradientForCompleteModelPart = listOfResponseFunctions["eigenfrequency"].GetGradient()
             gradientOnDesignSurface = {}
             for node in currentDesign.Nodes:
-                gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
+                gradient = gradientForCompleteModelPart[node.Id]
+                gradientOnDesignSurface[node.Id] = [-gradient[0],-gradient[1],-gradient[2]]
 
             communicator.reportGradient("eigenfrequency", gradientOnDesignSurface)
 
         # Calculation of value of constraint function
         if communicator.isRequestingFunctionValueOf("mass"):
 
-            print("\n> Starting calculation of value of mass constraint")
+            print("\n> Starting calculation of mass")
             listOfResponseFunctions["mass"].CalculateValue()
             constraintFunctionValue = listOfResponseFunctions["mass"].GetValue() - listOfResponseFunctions["mass"].GetInitialValue()
-            print("> Time needed for calculation of value of mass constraint = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculation of mass = ",round(timer.time() - startTime,2),"s")
 
             communicator.reportFunctionValue("mass", constraintFunctionValue)
             communicator.setFunctionReferenceValue("mass", listOfResponseFunctions["mass"].GetInitialValue())
@@ -173,10 +174,10 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         # Calculation of gradients of constraint function
         if communicator.isRequestingGradientOf("mass"):
 
-            print("\n> Starting calculation of gradient of constraint function")
+            print("\n> Starting calculation of gradient of mass")
             startTime = timer.time()
             listOfResponseFunctions["mass"].CalculateGradient()
-            print("> Time needed for calculating gradient of constraint function = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculating gradient of mass = ",round(timer.time() - startTime,2),"s")
 
             gradientForCompleteModelPart = listOfResponseFunctions["mass"].GetGradient()
             gradientOnDesignSurface = {}

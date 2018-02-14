@@ -101,8 +101,7 @@ public:
 		if (gradientMode.compare("semi_analytic") == 0)
 		{
 			mGradientMode = 1;
-			double delta = responseSettings["step_size"].GetDouble();
-			mDelta = delta;
+			mDelta = responseSettings["step_size"].GetDouble();
 		}
 		else
 			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
@@ -110,12 +109,10 @@ public:
 		// Get number of eigenfrequency for which the structure has to be optimized
 		m_traced_eigenvalue = responseSettings["traced_eigenfrequency"].GetInt();
 
-
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
 		m_initial_value_defined = false;
 		m_eigenvalue = 0.0;
-
 	}
 
 	/// Destructor.
@@ -153,11 +150,6 @@ public:
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
 		m_eigenvalue = 	(mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1];
-
-		// Change sign of response: only maximization makes sense in case of eigenfrequency optimization
-		m_eigenvalue *= (-1.0);
-
-		std::cout << ("I use eigenvalue: ") << m_eigenvalue << std::endl;
 
 		// Set initial value if not done yet
 		if(!m_initial_value_defined)
@@ -327,9 +319,8 @@ protected:
 				Matrix& rNodeEigenvectors = node_i.GetValue(rEIGENVECTOR_MATRIX);
 
 				for (int i = 0; i < NumNodeDofs; i++)
-                {
                     eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((m_traced_eigenvalue-1),i);
-                }
+					
 				k++;
 			}
 
@@ -406,20 +397,15 @@ protected:
 				node_i.Z0() -= mDelta;
 				// End derivative of response w.r.t. z-coord --------------------
 
-				// Change sign of gradient: only maximization makes sense in case of eigenfrequency optimization
-				gradient_contribution[0] *= (-1.0);
-				gradient_contribution[1] *= (-1.0);
-				gradient_contribution[2] *= (-1.0);
-
 				// Assemble sensitivity to node
 				noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT)) += gradient_contribution;
-
 			}
 		}
 		KRATOS_CATCH("");
 	}
 
-	virtual void ConsiderDiscretization(){
+	virtual void ConsiderDiscretization()
+	{
 	}
 
 	// ==============================================================================
