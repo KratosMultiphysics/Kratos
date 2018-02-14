@@ -1,6 +1,6 @@
-import KratosMultiphysics  
+import KratosMultiphysics
 import sys
-        
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -26,7 +26,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         See _AssignPropertyBlock for detail on how properties are imported.
         """
-        KratosMultiphysics.Process.__init__(self) 
+        KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
             {
             "materials_filename" : "please specify the file to be opened"
@@ -39,12 +39,43 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
             materials = KratosMultiphysics.Parameters(parameter_file.read())
-        
+
         for i in range(materials["properties"].size()):
             self._AssignPropertyBlock(materials["properties"][i])
-        
+
         print("finished reading materials")
-        
+
+    def _get_attribute(self, my_string, function_pointer, attribute_type):
+        """Return the python object named by the string argument.
+
+        To be used with functions from KratosGlobals
+
+        Examples:
+        variable = self._get_attribute("DISPLACEMENT",
+                                       KratosMultiphysics.KratosGlobals.GetVariable,
+                                       "Variable")
+
+        constitutive_law = self._get_attribute("LinearElastic3DLaw",
+                                               KratosMultiphysics.KratosGlobals.GetConstitutiveLaw,
+                                               "Constitutive Law")
+        """
+        splitted = my_string.split(".")
+
+        if len(splitted) == 0:
+            raise Exception("Something wrong. Trying to split the string " + my_string)
+        if len(splitted) > 3:
+            raise Exception("Something wrong. String " + my_string + " has too many arguments")
+
+        attribute_name = splitted[-1]
+
+        if len(splitted) == 2 or len(splitted) == 3:
+            warning_msg =  "Ignoring \"" +  my_string.rsplit(".",1)[0]
+            warning_msg += "\" for " + attribute_type +" \"" + attribute_name + "\""
+            KratosMultiphysics.Logger.PrintInfo("Warning in reading materials", warning_msg)
+
+        return function_pointer(attribute_name) # This also checks if the application has been imported
+
+
     def _GetVariable(self, my_string):
         """Return the python object of a Variable named by the string argument.
 
@@ -55,14 +86,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         variable = self._GetVariable("FluidDynamicsApplication.SUBSCALE_PRESSURE")
         variable = self._GetVariable("KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE")
         """
-        splitted = my_string.split(".")
-
-        if len(splitted) == 0:
-            raise Exception("Something wrong. Trying to split the string " + my_string)
-        if len(splitted) > 3:
-            raise Exception("Something wrong. String " + my_string + " has too many arguments")
-
-        return KratosMultiphysics.KratosGlobals.GetVariable(splitted[-1]) # This also checks if the application has been imported
+        return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
 
     def _GetConstitutiveLaw(self, my_string):
         """Return the python object of a Constitutive Law named by the string argument.
@@ -74,14 +98,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
         """
-        splitted = my_string.split(".")
-
-        if(len(splitted) == 0):
-            raise Exception("something wrong. Trying to split the string " + my_string)
-        if len(splitted) > 3:
-            raise Exception("Something wrong. String " + my_string + " has too many arguments")
-
-        return KratosMultiphysics.KratosGlobals.GetConstitutiveLaw(splitted[-1]) # This also checks if the application has been imported
+        return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
 
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
@@ -112,25 +129,21 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         property_id = data["properties_id"].GetInt()
         mesh_id = 0
         prop = model_part.GetProperties(property_id, mesh_id)
-        
+
         # Assign the properties to the model part's elements and conditions.
         for elem in model_part.Elements:
             elem.Properties = prop
-            
+
         for cond in model_part.Conditions:
             cond.Properties = prop
-        
+
         mat = data["Material"]
 
         # Set the CONSTITUTIVE_LAW for the current properties.
-        if "Variables" in mat["constitutive_law"].keys(): #pass the list of variables when constructing the constitutive law
-            # I think this can be removed, since COnstitutiveLaw does not take arguments in the Constructor, so this would fail anyway
-            constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString())(mat["constitutive_law"]["Variables"])
-        else:
-            constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString())
-           
+        constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString())
+
         prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law)
-        
+
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():
             var = self._GetVariable(key)
