@@ -41,6 +41,8 @@ class FluidHDF5LoaderPID(BaseLoader):
         return self.dataset_name
 
     def LoadFluid(self, fluid_time):
-        self.file_path = self.averager.GetFilePath()
+        rotated_stationary_flow_option = self.pp.CFD_DEM["rotated_stationary_flow_option"].GetBool()
+        if rotated_stationary_flow_option:
+            self.file_path = self.averager.GetFilePath()
         BaseLoader.LoadFluid(self, fluid_time)
 
