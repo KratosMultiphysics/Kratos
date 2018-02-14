@@ -134,7 +134,7 @@ public:
         if(mrModelPart.GetNodalSolutionStepVariablesList().Has(DISPLACEMENT))
             VariableUtils().SetToZero_VectorVar(DISPLACEMENT,mrModelPart.Nodes());
         if(mrModelPart.GetNodalSolutionStepVariablesList().Has(ROTATION))
-            VariableUtils().SetToZero_VectorVar(DISPLACEMENT,mrModelPart.Nodes());
+            VariableUtils().SetToZero_VectorVar(ROTATION,mrModelPart.Nodes());
     }
 
     // ==============================================================================
