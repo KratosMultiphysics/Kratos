@@ -36,8 +36,16 @@ void TotalStructuralMassProcess::Execute()
         const auto it_elem = elements_array.begin() + i;
         
         // We get the condition geometry
-        const GeometryType& r_this_geometry = it_elem->GetGeometry();
+        GeometryType& r_this_geometry = it_elem->GetGeometry();
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_this_geometry.size();
+        
+        // We copy the current coordinates and move the coordinates to the initial configuration
+        std::vector<array_1d<double, 3>> current_coordinates(number_of_nodes);
+        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node) {
+            current_coordinates[i_node] = r_this_geometry[i_node].Coordinates();
+            r_this_geometry[i_node].Coordinates() = r_this_geometry[i_node].GetInitialPosition().Coordinates();
+        }
         
         // We get the values from the condition
         const Properties& this_properties = it_elem->GetProperties();
@@ -54,6 +62,10 @@ void TotalStructuralMassProcess::Execute()
             const double volume = (dimension == 2) ? r_this_geometry.Area() : r_this_geometry.Volume();
             total_mass += density * thickness * volume;
         }
+        
+        // We restore the current configuration
+        for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
+             r_this_geometry[i_node].Coordinates() = current_coordinates[i_node];
     }
     
     std::cout << "The total mass of the system is :" << total_mass/1000.0 << " Tn\n" << "Check variable NODAL_MASS in the process info in order to access to it in any moment" << std::endl;

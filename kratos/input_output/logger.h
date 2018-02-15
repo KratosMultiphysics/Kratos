@@ -251,6 +251,23 @@ namespace Kratos
 #define KRATOS_WARNING_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == __COUNT__) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
 #define KRATOS_WARNING_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::WARNING
 
+#define KRATOS_DETAIL(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
+#define KRATOS_DETAIL_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
+#define KRATOS_DETAIL_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == __COUNT__) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
+#define KRATOS_DETAIL_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::DETAIL
+
+#ifdef KRATOS_DEBUG
+#define KRATOS_TRACE(label) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
+#define KRATOS_TRACE_IF(label, conditional) if(conditional) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
+#define KRATOS_TRACE_ONCE(label) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES == __COUNT__) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
+#define KRATOS_TRACE_FIRST_N(label, logger_count) static int KRATOS_LOG_OCCURRENCES = -1; if (++KRATOS_LOG_OCCURRENCES < logger_count) Logger(label) << KRATOS_CODE_LOCATION << Logger::Severity::TRACE
+#else
+#define KRATOS_TRACE(label) if(false) KRATOS_WARNING(label)
+#define KRATOS_TRACE_IF(label, conditional) if(false) KRATOS_WARNING(label)
+#define KRATOS_TRACE_ONCE(label) if(false) KRATOS_WARNING(label)
+#define KRATOS_TRACE_FIRST_N(label, logger_count) if(false) KRATOS_WARNING(label)
+#endif
+
 #if defined(KRATOS_ENABLE_CHECK_POINT)
 #define KRATOS_CHECK_POINT(label) Logger(label) << Logger::Category::CHECKING
 #else
