@@ -6,9 +6,6 @@ CheckForPreviousImport()
 class GiDDamOutputProcess(Process):
 
     defaults = Parameters('''{
-        "problem_data": {
-            "start_time": 0
-        },
         "result_file_configuration": {
             "gidpost_flags": {
                 "GiDPostMode": "GiD_PostBinary",
@@ -77,7 +74,7 @@ class GiDDamOutputProcess(Process):
                     "Single":               MultiFileFlag.SingleFile,
                     }
 
-    def __init__(self,model_part,file_name,param = None):
+    def __init__(self,model_part,file_name,start_time,param = None):
 
         if param is None:
             param = self.defaults
@@ -106,7 +103,8 @@ class GiDDamOutputProcess(Process):
             self.point_output_process = point_output_process.PointOutputProcess(self.model_part,point_data_configuration)
         else:
             self.point_output_process = None
-
+        
+        self.start_time = start_time
         self.step_count = 0
         self.printed_step_count = 0
         self.next_output = 0.0
@@ -115,11 +113,7 @@ class GiDDamOutputProcess(Process):
     def Flush(cls,a):
         a.flush()
 
-    def ExecuteInitialize(self):
-
-        problem_data = self.param["problem_data"]
-        problem_data.ValidateAndAssignDefaults(self.defaults["problem_data"])
-        
+    def ExecuteInitialize(self):       
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
 
@@ -151,7 +145,6 @@ class GiDDamOutputProcess(Process):
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
 
-        self.start_time = problem_data["start_time"].GetDouble()
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
         self.start_output_results = result_file_configuration["start_output_results"].GetDouble()
         
@@ -161,6 +154,7 @@ class GiDDamOutputProcess(Process):
         if self.start_output_results == 0:
             self.next_output += self.output_frequency
         else:
+            print(self.start_output_results)
             self.next_output += self.start_output_results
 
         # get .post.lst files
@@ -191,12 +185,12 @@ class GiDDamOutputProcess(Process):
 
     def ExecuteBeforeSolutionLoop(self):
         '''Initialize output meshes.'''
-        label = 0
+        label = max(self.start_output_results, self.start_time)
         if self.multifile_flag == MultiFileFlag.SingleFile:
             mesh_name = 0
             self.__write_mesh(mesh_name)
             self.__initialize_results(mesh_name)
-            if self.start_output_results == 0:
+            if (self.start_output_results == 0) or (not self.start_time == 0):
                 self.__write_nodal_results(label)
                 self.__write_gp_results(label)
                 self.__write_nonhistorical_nodal_results(label)
@@ -208,7 +202,7 @@ class GiDDamOutputProcess(Process):
                 self.__write_step_to_list(0)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
-            if self.start_output_results == 0:
+            if (self.start_output_results == 0) or (not self.start_time == 0):
                 self.__write_mesh(label)
                 self.__initialize_results(label)
                 self.__write_nodal_results(label)
