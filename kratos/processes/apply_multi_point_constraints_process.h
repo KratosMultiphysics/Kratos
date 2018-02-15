@@ -104,10 +104,10 @@ class ApplyMultipointConstraintsProcess : public Process
 
         // IMPORTANT : This constructor is not to be used when using this process in the normal KRATOS process_list of python script
         ProcessInfoPointerType info = mr_model_part.pGetProcessInfo();
-        if (info->GetValue(CONSTRAINTS_CONTAINER) == nullptr)
-            info->SetValue(CONSTRAINTS_CONTAINER, ConstraintSharedPointerVectorType(new std::vector<ConstraintPointerType>()));
+        if (!info->Has(CONSTRAINTS_CONTAINER))
+             info->SetValue(CONSTRAINTS_CONTAINER, Kratos::make_shared<std::vector<ConstraintPointerType>>());
 
-        pMpc = MpcPointerType(new MultipointConstraint<SparseSpaceType, LocalSpaceType>());
+        pMpc = Kratos::make_shared<MultipointConstraint<SparseSpaceType,LocalSpaceType>>();
         pMpc->SetName(name);
         pMpc->SetActive(true);
 
