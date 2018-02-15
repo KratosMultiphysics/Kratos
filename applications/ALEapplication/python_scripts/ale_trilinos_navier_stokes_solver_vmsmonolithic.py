@@ -13,7 +13,7 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Other imports
 import trilinos_navier_stokes_solver_vmsmonolithic
-import trilinos_mesh_solver_base
+#import trilinos_mesh_solver_base
 
 
 def CreateSolver(model_part, custom_settings):

@@ -103,7 +103,7 @@ public:
         work_array.push_back(index_i);
         work_array.push_back(index_j);
         for (WeakPointerVector<Node<3>>::iterator i = neighb_nodes.begin();
-             i != neighb_nodes.end(); i++) {
+             i != neighb_nodes.end(); ++i) {
           unsigned int index_l = i->GetDof(DISPLACEMENT_X).EquationId();
           unsigned int index_r = i->GetDof(DISPLACEMENT_Y).EquationId();
           if (index_l < mEquationSystemSize && index_r < mEquationSystemSize) {
@@ -164,7 +164,7 @@ public:
     array_1d<double, 3> vg;
     for (ModelPart::ElementsContainerType::iterator i =
              model_part.ElementsBegin();
-         i != model_part.ElementsEnd(); i++) {
+         i != model_part.ElementsEnd(); ++i) {
 
       Geometry<Node<3>> &geom = i->GetGeometry();
 
@@ -249,7 +249,7 @@ public:
 
     // update nodal coordinates
     for (ModelPart::NodesContainerType::iterator i = model_part.NodesBegin();
-         i != model_part.NodesEnd(); i++) {
+         i != model_part.NodesEnd(); ++i) {
       const array_1d<double, 3> &disp =
           i->FastGetSolutionStepValue(DISPLACEMENT);
       i->X() = i->X0() + disp[0];

@@ -37,12 +37,6 @@ BOOST_PYTHON_MODULE(KratosALEApplication) {
   AddCustomStrategiesToPython();
   AddCustomUtilitiesToPython();
 
-  // variables moved to core
-  // MESH_VELOCITY currently put to the core since used in other applications
-  // KRATOS_REGISTER_IN_PYTHON_VARIABLE(MESH_VELOCITY)
-  // KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_DISPLACEMENT);
-  // KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_REACTION);
-  // KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_RHS);
 }
 
 } // namespace Python.

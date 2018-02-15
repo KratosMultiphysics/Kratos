@@ -257,12 +257,12 @@ void StructuralMeshMovingElement::CalculateLocalSystem(
 
   CheckElementMatrixDimension(rLeftHandSideMatrix, rRightHandSideVector);
 
-  for (unsigned int g = 0; g < integration_points.size(); ++g) {
-    double weight = integration_points[g].Weight();
+  for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number) {
+    double weight = integration_points[point_number].Weight();
 
-    MatrixType B = CalculateBMatrix(dimension, g);
+    MatrixType B = CalculateBMatrix(dimension, point_number);
 
-    MatrixType constitutive_matrix = SetAndModifyConstitutiveLaw(dimension, g);
+    MatrixType constitutive_matrix = SetAndModifyConstitutiveLaw(dimension, point_number);
     // Compute LHS
     noalias(rLeftHandSideMatrix) +=
         prod(trans(B), weight * Matrix(prod(constitutive_matrix, B)));

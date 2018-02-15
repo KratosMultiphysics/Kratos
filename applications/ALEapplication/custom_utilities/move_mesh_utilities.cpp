@@ -95,12 +95,8 @@ void MoveMesh(const ModelPart::NodesContainerType &rNodes) {
   KRATOS_TRY;
 
   for (auto &rnode : rNodes) {
-    (rnode).X() =
-        (rnode).X0() + rnode.GetSolutionStepValue(MESH_DISPLACEMENT_X);
-    (rnode).Y() =
-        (rnode).Y0() + rnode.GetSolutionStepValue(MESH_DISPLACEMENT_Y);
-    (rnode).Z() =
-        (rnode).Z0() + rnode.GetSolutionStepValue(MESH_DISPLACEMENT_Z);
+    noalias(rnode.Coordinates()) = rnode.GetInitialPosition() 
+                     + rnode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
   }
 
   KRATOS_CATCH("");
@@ -113,9 +109,7 @@ void SetMeshToInitialConfiguration(
   KRATOS_TRY;
 
   for (auto &rnode : rNodes) {
-    (rnode).X() = (rnode).X0();
-    (rnode).Y() = (rnode).Y0();
-    (rnode).Z() = (rnode).Z0();
+    noalias(rnode.Coordinates()) = rnode.GetInitialPosition();
   }
 
   KRATOS_CATCH("");
@@ -124,7 +118,7 @@ void SetMeshToInitialConfiguration(
 //******************************************************************************
 //******************************************************************************
 ModelPart::Pointer GenerateMeshPart(ModelPart &rModelPart,
-                                    const std::string ElementName) {
+                                    const std::string &rElementName) {
   KRATOS_TRY;
 
   ModelPart::Pointer pmesh_model_part;
@@ -138,7 +132,7 @@ ModelPart::Pointer GenerateMeshPart(ModelPart &rModelPart,
       pmesh_model_part->Elements();
 
   const Element &r_reference_element =
-      KratosComponents<Element>::Get(ElementName);
+      KratosComponents<Element>::Get(rElementName);
 
   for (int i = 0; i < (int)rModelPart.Elements().size(); i++) {
     ModelPart::ElementsContainerType::iterator it =

@@ -13,7 +13,7 @@ import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplicati
 
 # Other imports
 import navier_stokes_solver_vmsmonolithic
-import mesh_solver_base
+#import mesh_solver_base
 
 
 def CreateSolver(model_part, custom_settings):

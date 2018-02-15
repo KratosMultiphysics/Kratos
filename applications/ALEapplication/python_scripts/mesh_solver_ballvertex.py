@@ -7,10 +7,10 @@ import KratosMultiphysics
 KratosMultiphysics.CheckRegisteredApplications("ALEApplication")
 
 # Import applications
-import KratosMultiphysics.ALEApplication as KratosALE
+#import KratosMultiphysics.ALEApplication as KratosALE
 
 # Other imports
-import os
+#import os
 import mesh_solver_base
 
 

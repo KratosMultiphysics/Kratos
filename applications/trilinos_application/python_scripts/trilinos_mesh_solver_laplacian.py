@@ -21,13 +21,6 @@ class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolv
 
     #### Private functions ####
 
-    def _create_linear_solver(self):
-        import PressureMultiLevelSolver
-        pressure_nit_max = 1000
-        pressure_linear_tol = 1e-6
-        linear_solver = PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol, pressure_nit_max)
-        return linear_solver
-
     def _create_mesh_motion_solver(self):
         linear_solver = self.get_linear_solver()
         time_order = self.settings["time_order"].GetInt()

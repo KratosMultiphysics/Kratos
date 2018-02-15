@@ -40,9 +40,9 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
         if not hasattr(self, '_communicator'):
             self._communicator = TrilinosApplication.CreateCommunicator()
         return self._communicator
-        
+
     #### Private functions ####
-    
+
     def _create_linear_solver(self):
         import trilinos_linear_elastic_ml_solver
         nit_max = 10000

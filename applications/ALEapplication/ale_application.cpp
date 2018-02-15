@@ -85,7 +85,7 @@ void KratosALEApplication::Register() {
                           mLaplacianMeshMovingElement3D4N);
   KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement2D4N",
                           mLaplacianMeshMovingElement2D4N);
-  KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElemtent3D8N",
+  KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement3D8N",
                           mLaplacianMeshMovingElement3D8N);
   KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement",
                           mLaplacianMeshMovingElement);
@@ -104,12 +104,6 @@ void KratosALEApplication::Register() {
   KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement",
                           mStructuralMeshMovingElement);
 
-  // variables moved to core
-  // MESH_VELOCITY currently put to the core since used in other applications
-  // KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MESH_VELOCITY);
-  // KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MESH_DISPLACEMENT);
-  // KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MESH_REACTION);
-  // KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MESH_RHS);
 }
 
 } // namespace Kratos.

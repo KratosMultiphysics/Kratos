@@ -153,6 +153,7 @@ class MeshSolverBase(object):
             self._mesh_motion_solver = self._create_mesh_motion_solver()
         return self._mesh_motion_solver
 
+    @classmethod
     def print_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
         print(" ".join(map(str,args)))
@@ -171,6 +172,7 @@ class MeshSolverBase(object):
         """
         raise Exception("Mesh motion solver must be created by the derived class.")
 
+    @classmethod
     def GetMinimumBufferSize(self):
         return 2
 
