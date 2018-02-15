@@ -159,9 +159,9 @@ void SymbolicNavierStokes< SymbolicNavierStokesData<2,3> >::ComputeGaussPointLHS
     SymbolicNavierStokesData<2,3>& rData, MatrixType& rLHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
-    const double h = this->ElementSize();
+    const double h = rData.ElementSize;
     const double c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
@@ -407,9 +407,9 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointLHSCo
     SymbolicNavierStokesData<3,4>& rData, MatrixType& rLHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
-    const double h = this->ElementSize();
+    const double h = rData.ElementSize;
     const double c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
@@ -1036,9 +1036,9 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSCo
     SymbolicNavierStokesData<2,3>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
-    const double h = this->ElementSize();
+    const double h = rData.ElementSize;
     const double c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
@@ -1057,7 +1057,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<2,3>>::ComputeGaussPointRHSCo
     const auto& p = rData.Pressure;
     const auto& pn = rData.Pressure_OldStep1;
     const auto& pnn = rData.Pressure_OldStep2;
-    const auto& stress = rData.Stress;
+    const auto& stress = rData.ShearStress;
 
     // Get shape function values
     const auto& N = rData.N;
@@ -1112,9 +1112,9 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSCo
     SymbolicNavierStokesData<3,4>& rData, VectorType& rRHS) {
 
     const double rho = rData.Density;
-    const double mu = rData.DynamicViscosity;
+    const double mu = rData.EffectiveViscosity;
 
-    const double h = this->ElementSize();
+    const double h = rData.ElementSize;
     const double c = rData.SoundVelocity;
 
     const double dt = rData.DeltaTime;
@@ -1133,7 +1133,7 @@ void SymbolicNavierStokes<SymbolicNavierStokesData<3,4>>::ComputeGaussPointRHSCo
     const auto& p = rData.Pressure;
     const auto& pn = rData.Pressure_OldStep1;
     const auto& pnn = rData.Pressure_OldStep2;
-    const auto& stress = rData.Stress;
+    const auto& stress = rData.ShearStress;
 
     // Get shape function values
     const auto& N = rData.N;

@@ -237,12 +237,6 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
 
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
         }
-
-        // Rewrite local contribution into residual form (A*dx = b - A*x)
-        array_1d<double,LocalSize> values;
-        this->GetCurrentValuesVector(data,values);
-
-        noalias(rRightHandSideVector) -= prod(rDampMatrix, values);
     }
 }
 
@@ -416,6 +410,14 @@ int FluidElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
     // Check the constitutive law
     KRATOS_ERROR_IF(mpConstitutiveLaw == nullptr) << "Constitutive Law not initialized for Element " << this->Info() << std::endl;
 
+    constexpr auto dimension = Dim;  // I need to set this here otherwise it gives me a linking error when attempting to '<<' Dim.
+
+    KRATOS_ERROR_IF(mpConstitutiveLaw->WorkingSpaceDimension() != Dim)
+        << "Wrong dimension: The " << mpConstitutiveLaw->WorkingSpaceDimension()
+        << "D constitutive law " << mpConstitutiveLaw->Info()
+        << " is not compatible with " << dimension << "D element " << this->Info()
+        << "." << std::endl;
+
     out = mpConstitutiveLaw->Check(this->GetProperties(),r_geometry,rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT( out == 0) << "The Constitutive Law provided for Element " << this->Info() << " is not correct." << std::endl;
 
@@ -481,21 +483,14 @@ void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) 
 
     auto& Values = rData.ConstitutiveLawValues;
 
-    const Vector Nvec(rData.N);
-    Values.SetShapeFunctionsValues(Nvec);
-
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-    Values.SetStrainVector(rData.StrainRate);   //this is the input parameter
-    Values.SetStressVector(rData.Stress);       //this is an ouput parameter
-    Values.SetConstitutiveMatrix(rData.C);      //this is an ouput parameter
+    const Vector shape_functions_vector(rData.N);
+    Values.SetShapeFunctionsValues(shape_functions_vector);
 
     //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
-    //this is ok under the hypothesis that no history dependent behaviour is employed
+    //this is ok under the hypothesis that no history dependent behavior is employed
     mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+
+    mpConstitutiveLaw->CalculateValue(Values,EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
 }
 
 template< class TElementData >
@@ -523,15 +518,6 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
 
     for (unsigned int g = 0; g < number_of_gauss_points; g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
-}
-
-/** Calculate characteristic element length.
- * @return Minimum element height
- */
-template< class TElementData >
-double FluidElement<TElementData>::ElementSize() const
-{
-    return ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -592,7 +578,9 @@ void FluidElement<TElementData>::AddTimeIntegratedRHS(
 
 template <class TElementData>
 void FluidElement<TElementData>::AddVelocitySystem(
-    TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
+    TElementData& rData,
+    MatrixType& rLocalLHS,
+    VectorType& rLocalRHS) {
     KRATOS_TRY;
 
     KRATOS_ERROR << "Calling base FluidElement::AddVelocitySystem "
