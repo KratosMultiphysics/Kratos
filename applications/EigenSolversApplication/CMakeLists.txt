@@ -49,7 +49,9 @@ add_library( KratosEigenSolversApplication SHARED ${KRATOS_EIGENSOLVERS_APPLICAT
 target_link_libraries( KratosEigenSolversApplication KratosCore )
 
 if( DEFINED ENV{MKLROOT} )
-	target_link_libraries( KratosEigenSolversApplication mkl_rt )
+	find_library(MKL_RT_LIB mkl_rt)
+	message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
+	target_link_libraries( KratosEigenSolversApplication ${MKL_RT_LIB} )
 endif()
 	
 set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "" )

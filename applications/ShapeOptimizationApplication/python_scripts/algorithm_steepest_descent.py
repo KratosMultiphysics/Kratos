@@ -63,6 +63,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
+        self.Analyzer.initializeBeforeOptimizationLoop()
         self.ModelPartController.InitializeMeshController()
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
@@ -107,6 +108,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
+        self.Analyzer.finalizeAfterOptimizationLoop()       
 
     # --------------------------------------------------------------------------
     def __initializeModelPartForNewSolutionStep( self ):
@@ -125,11 +127,12 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __callAnalyzerToPerformRequestedAnalyses( self ):
         self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
-        self.__ResetPossibleMeshModificationDuringAnalysis()
+        self.__ResetPossibleShapeModificationsDuringAnalysis()
 
     # --------------------------------------------------------------------------
-    def __ResetPossibleMeshModificationDuringAnalysis( self ):
-        self.ModelPartController.ResetMeshToReferenceMesh()
+    def __ResetPossibleShapeModificationsDuringAnalysis( self ):
+        self.ModelPartController.SetMeshToReferenceMesh()
+        self.ModelPartController.SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
