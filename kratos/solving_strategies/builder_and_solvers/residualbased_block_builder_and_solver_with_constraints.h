@@ -24,7 +24,6 @@
 
 #include "utilities/timer.h"
 #include "utilities/constraint.h"
-#include "utilities/multipoint_constraint.h"
 
 /* Project includes */
 #include "includes/define.h"
