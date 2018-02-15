@@ -36,9 +36,6 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mapping_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/beadcluster3D.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/capsulecluster3D.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cubecluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/cuboidcluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/pillcluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/ellipsoidcluster3D.cpp
