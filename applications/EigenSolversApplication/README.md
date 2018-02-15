@@ -6,12 +6,13 @@ The *EigenSolversApplication* is a thin wrapper for the [Eigen linear algebra li
 
 The application provides the following direct sparse solvers:
 
-| solver_type          | Matrix kind | Dependencies |
-|----------------------|:-----------:|:------------:|
-| `eigen_sparse_lu`    | Square      | None         |
-| `eigen_pardiso_llt`  | SPD         | Intel® MKL   |
-| `eigen_pardiso_ldlt` | SPD         | Intel® MKL   |
-| `eigen_pardiso_lu`   | Square      | Intel® MKL   |
+| Python class      | solver_type          | Matrix kind | Dependencies |
+|-------------------|----------------------|:-----------:|:------------:|
+| SparseLUSolver    | `eigen_sparse_lu`    | Square      | None         |
+| SparseQRSolver    | *not available*      | Rectangular | None         |
+| PardisoLLTSolver  | `eigen_pardiso_llt`  | SPD         | Intel® MKL   |
+| PardisoLDLTSolver | `eigen_pardiso_ldlt` | SPD         | Intel® MKL   |
+| PardisoLUSolver   | `eigen_pardiso_lu`   | Square      | Intel® MKL   |
 
 SPD = symmetric positive definite
 
