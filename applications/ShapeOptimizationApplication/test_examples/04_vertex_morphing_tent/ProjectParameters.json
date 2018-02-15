@@ -22,12 +22,13 @@
             },
             "mesh_motion" : {
                 "apply_ale_mesh_solver" : false
-            } 
+            }
         },
         "optimization_algorithm" : {
-            "name"               : "steepest_descent",
-            "max_iterations"     : 300,
-            "relative_tolerance" : 1e-2
+            "name"                                 : "steepest_descent",
+            "max_iterations"                       : 300,
+            "relative_tolerance"                   : 1e-2,
+            "project_gradients_on_surface_normals" : true
         },
         "line_search" : {
             "line_search_type"           : "manual_stepping",
@@ -38,13 +39,13 @@
             "output_directory"        : "Optimization_Results",
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
-            "design_output_mode"      : "WriteDesignSurface",            
+            "design_output_mode"      : "WriteDesignSurface",
             "nodal_results"           : [ "OBJECTIVE_SENSITIVITY",
                                           "MAPPED_OBJECTIVE_SENSITIVITY",
                                           "CONTROL_POINT_UPDATE",
-                                          "CONTROL_POINT_CHANGE", 
+                                          "CONTROL_POINT_CHANGE",
                                           "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE" ], 
+                                          "SHAPE_CHANGE" ],
             "output_format" : {
                 "name"              : "gid",
                 "gid_configuration" : {

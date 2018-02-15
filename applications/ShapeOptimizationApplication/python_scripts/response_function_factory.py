@@ -27,7 +27,7 @@ def CreateListOfResponseFunctions( OptimizationModelPart, OptimizationSettings )
     return listOfResponseFunctions
 
 # ==============================================================================
-class ResponseFunctionCreator: 
+class ResponseFunctionCreator:
 
     # --------------------------------------------------------------------------
     def __init__( self, OptimizationModelPart, OptimizationSettings ):
@@ -35,11 +35,11 @@ class ResponseFunctionCreator:
         self.OptimizationSettings = OptimizationSettings
 
      # --------------------------------------------------------------------------
-    def AddSpecifiedKratosResponseFunctionsToList( self, listOfResponseFunctions ):        
+    def AddSpecifiedKratosResponseFunctionsToList( self, listOfResponseFunctions ):
         self.listOfResponseFunctions = listOfResponseFunctions
         self.__addObjectivesToListOfResponseFunctions()
         self.__addConstraintsToListOfResponseFunctions()
-        
+
     # --------------------------------------------------------------------------
     def __addObjectivesToListOfResponseFunctions( self ):
 
@@ -69,7 +69,7 @@ class ResponseFunctionCreator:
 
             if useKratos:
                 self.__checkIfGivenResponseFunctionIsAlreadyDefined( constraintId )
-                self.__createAndAddGivenResponse( constraintId, self.OptimizationSettings["constraints"][constraintNumber] )         
+                self.__createAndAddGivenResponse( constraintId, self.OptimizationSettings["constraints"][constraintNumber] )
 
     # --------------------------------------------------------------------------
     def __checkIfGivenResponseFunctionIsAlreadyDefined( self, responseId ):
@@ -80,13 +80,21 @@ class ResponseFunctionCreator:
     def __createAndAddGivenResponse( self, responseId, solverSettings ):
 
         if responseId == "strain_energy":
-            responseFunctionSolverIsNotImplemented = False
             self.OptimizationModelPart.AddNodalSolutionStepVariable(STRAIN_ENERGY_SHAPE_GRADIENT)
             self.listOfResponseFunctions["strain_energy"] = StrainEnergyResponseFunction( self.OptimizationModelPart, solverSettings )
         elif responseId == "mass":
-            responseFunctionSolverIsNotImplemented = False
             self.OptimizationModelPart.AddNodalSolutionStepVariable(MASS_SHAPE_GRADIENT)
-            self.listOfResponseFunctions["mass"] = MassResponseFunction( self.OptimizationModelPart, solverSettings )   
+            self.listOfResponseFunctions["mass"] = MassResponseFunction( self.OptimizationModelPart, solverSettings )
+        elif responseId == "eigenfrequency":
+            self.OptimizationModelPart.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
+            if not solverSettings.Has("weighting_method") or solverSettings["weighting_method"].GetString() == "none":
+                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunction( self.OptimizationModelPart, solverSettings )
+            elif solverSettings["weighting_method"].GetString() == "KS":
+                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunctionKS( self.OptimizationModelPart, solverSettings )
+            elif solverSettings["weighting_method"].GetString() == "linear_scaling":
+                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunctionLinScal( self.OptimizationModelPart, solverSettings )
+            else:
+                raise NameError("The following weighting_method is not valid for eigenfrequency response: " + solverSettings["weighting_method"].GetString())
         else:
             raise NameError("The following response function is not specified: " + responseId)
 

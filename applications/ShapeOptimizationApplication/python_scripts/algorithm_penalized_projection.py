@@ -29,14 +29,14 @@ import timer_factory as timer_factory
 class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self, 
-                  ModelPartController, 
-                  Analyzer, 
-                  Communicator, 
-                  Mapper, 
-                  DataLogger, 
+    def __init__( self,
+                  ModelPartController,
+                  Analyzer,
+                  Communicator,
+                  Mapper,
+                  DataLogger,
                   OptimizationSettings ):
-                  
+
         self.ModelPartController = ModelPartController
         self.Analyzer = Analyzer
         self.Communicator = Communicator
@@ -47,19 +47,18 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
 
+        self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
+        self.projectionOnNormalsIsSpecified = OptimizationSettings["optimization_algorithm"]["project_gradients_on_surface_normals"].GetBool()
         self.onlyObjective = OptimizationSettings["objectives"][0]["identifier"].GetString()
         self.onlyConstraint = OptimizationSettings["constraints"][0]["identifier"].GetString()
         self.typeOfOnlyConstraint = OptimizationSettings["constraints"][0]["type"].GetString()
-        self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
-        self.initialCorrectionScaling = OptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble()
-        self.initialStepSize = OptimizationSettings["line_search"]["step_size"].GetDouble()
-        self.performDamping = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
+        self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
-        if self.performDamping:
+        if self.dampingIsSpecified:
             damping_regions = self.ModelPartController.GetDampingRegions()
-            self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )    
+            self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
     def execute( self ):
@@ -69,8 +68,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeOptimizationLoop( self ):
-        self.Analyzer.initializeBeforeOptimizationLoop()                
-        self.ModelPartController.InitializeMeshController()        
+        self.Analyzer.initializeBeforeOptimizationLoop()
+        self.ModelPartController.InitializeMeshController()
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
 
@@ -92,14 +91,15 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
             self.__storeResultOfSensitivityAnalysisOnNodes()
 
-            self.__alignSensitivitiesToLocalSurfaceNormal()
+            if self.projectionOnNormalsIsSpecified:
+                self.__projectSensitivitiesOnLocalSurfaceNormal()
 
-            if self.performDamping:
+            if self.dampingIsSpecified:
                 self.__dampSensitivities()
 
             self.__computeShapeUpdate()
 
-            if self.performDamping:
+            if self.dampingIsSpecified:
                 self.__dampShapeUpdate()
 
             self.__logCurrentOptimizationStep()
@@ -114,7 +114,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
-        self.Analyzer.finalizeAfterOptimizationLoop()              
+        self.Analyzer.finalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def __initializeModelPartForNewSolutionStep( self ):
@@ -122,7 +122,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __updateMeshAccordingCurrentShapeUpdate( self ):
-        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE ) 
+        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
 
     # --------------------------------------------------------------------------
     def __callCoumminicatorToCreateNewRequests( self ):
@@ -159,7 +159,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
 
     # --------------------------------------------------------------------------
-    def __alignSensitivitiesToLocalSurfaceNormal( self ):
+    def __projectSensitivitiesOnLocalSurfaceNormal( self ):
             self.GeometryUtilities.ComputeUnitSurfaceNormals()
             self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
             self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( CONSTRAINT_SENSITIVITY )
@@ -239,7 +239,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges( self ):
-        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )        
+        self.OptimizationUtilities.AddFirstVariableToSecondVariable( CONTROL_POINT_UPDATE, CONTROL_POINT_CHANGE )
         self.OptimizationUtilities.AddFirstVariableToSecondVariable( SHAPE_UPDATE, SHAPE_CHANGE )
 
 # ==============================================================================
