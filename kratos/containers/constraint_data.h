@@ -102,7 +102,7 @@ class ConstraintEquation
     void SetSlaveEquationId(size_t iId) { equationId = iId; }
 
     // Add a master to this slave given are the masterDofId, masterDofKey, weight
-    void AddMasterData(DofType const &iMasterDof, double iWeight)
+    void AddMaster(DofType const &iMasterDof, double iWeight)
     {
         MasterDataPointerType masterData = MasterDataPointerType(new MasterData(iMasterDof, iWeight));
         auto it = std::find(mMasterDataVector.begin(), mMasterDataVector.end(), iMasterDof);
@@ -263,12 +263,12 @@ class ConstraintEquationContainer
         auto pos = std::find(mDataContainer.begin(), mDataContainer.end(), iSlaveDof);
         if (pos != mDataContainer.end())
         { // Equation already exists
-            (*pos)->AddMasterData(iMasterDof, iWeight);
+            (*pos)->AddMaster(iMasterDof, iWeight);
         }
         else
         { // Equation does not exist
             ConstraintEquationPointerType newEq = ConstraintEquationPointerType(new ConstraintEquation(iSlaveDof));
-            newEq->AddMasterData(iMasterDof, iWeight);
+            newEq->AddMaster(iMasterDof, iWeight);
             mDataContainer.push_back(newEq);
         }
     }
