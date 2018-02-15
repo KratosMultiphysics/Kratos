@@ -168,39 +168,6 @@ namespace Kratos
         */
         void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
-        //************* STARTING - ENDING  METHODS
-
-        /**
-        * @brief Called to initialize the element.
-        * @details Must be called before any calculation is done
-        */
-        void Initialize() override;
-
-        /**
-        * @brief Called at the beginning of each solution step
-        * @param rCurrentProcessInfo The current process info instance
-        */
-        void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-        /**
-        * @brief This is called for non-linear analysis at the beginning of the iteration process
-        * @param rCurrentProcessInfo The current process info instance
-        */
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-        /**
-        * @brief This is called for non-linear analysis at the beginning of the iteration process
-        * @param rCurrentProcessInfo The current process info instance
-        */
-        void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
-
-        /**
-        * @brief Called at the end of eahc solution step
-        * @param rCurrentProcessInfo The current process info instance
-        */
-        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-
-
         //************* COMPUTING  METHODS
 
         /**
