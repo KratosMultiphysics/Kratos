@@ -192,9 +192,12 @@ class MeshSolverBase(object):
         step =-buffer_size
         time = time - delta_time * buffer_size
         self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for i in range(0, buffer_size):
+        #for i in range(0, buffer_size):
+        i = 0
+        while(i <= buffer_size):
             step = step + 1
             time = time + delta_time
             self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.mesh_model_part.CloneTimeStep(time)
+            i += 1
         self.mesh_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False

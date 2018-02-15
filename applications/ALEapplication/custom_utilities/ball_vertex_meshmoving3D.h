@@ -108,7 +108,7 @@ public:
         work_array.push_back(index_j);
         work_array.push_back(index_k);
         for (WeakPointerVector<Node<3>>::iterator i = neighb_nodes.begin();
-             i != neighb_nodes.end(); i++) {
+             i != neighb_nodes.end(); ++i) {
           unsigned int index_l = i->GetDof(DISPLACEMENT_X).EquationId();
           unsigned int index_r = i->GetDof(DISPLACEMENT_Y).EquationId();
           unsigned int index_s = i->GetDof(DISPLACEMENT_Z).EquationId();
@@ -175,7 +175,7 @@ public:
     array_1d<double, 3> vg;
     for (ModelPart::ElementsContainerType::iterator i =
              model_part.ElementsBegin();
-         i != model_part.ElementsEnd(); i++) {
+         i != model_part.ElementsEnd(); ++i) {
 
       Geometry<Node<3>> &geom = i->GetGeometry();
 

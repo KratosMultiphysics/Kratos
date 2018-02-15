@@ -1,4 +1,3 @@
-import KratosMultiphysics 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from test_structural_mesh_motion_2d import TestCase as TTestCaseStructural2D
@@ -35,15 +34,15 @@ def AssembleTestSuites():
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    
-    # For very long tests that should not be in nightly and you can use to validate 
+
+    # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests([nightSuite]) # already contains the smallSuite
     allSuite.addTests([validationSuite])
-    
+
     return suites
 
 if __name__ == '__main__':

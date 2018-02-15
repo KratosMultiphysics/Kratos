@@ -1,4 +1,3 @@
-import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from mpi_test_structural_mesh_motion_2d import TestCase as TTestCaseStructural2D
