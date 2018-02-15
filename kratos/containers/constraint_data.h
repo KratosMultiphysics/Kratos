@@ -85,7 +85,6 @@ class ConstraintEquation
   public:
     KRATOS_CLASS_POINTER_DEFINITION(ConstraintEquation);
     typedef std::vector<MasterDataPointerType>::iterator iterator;
-    friend class ConstraintEquationContainer;
 
     ConstraintEquation(DofType const &iSlaveDof) : id(iSlaveDof.Id()), key(iSlaveDof.GetVariable().Key())
     {
