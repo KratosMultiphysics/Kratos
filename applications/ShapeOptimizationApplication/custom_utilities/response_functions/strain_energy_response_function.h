@@ -221,7 +221,7 @@ public:
 		// analytic sensitivities
 		case 1:
 		{
-			std::cout << "WARNING: in StrainEnergyResponseFunction::calculate_gradient()!!!! No variation of external force considerd yet in analytical sensitivity analysis" << std::endl;
+			std::cout << "WARNING: in StrainEnergyResponseFunction::CalculateGradient()!!!! No variation of external force considerd yet in analytical sensitivity analysis" << std::endl;
 
 			// calculate_response_derivative_part_analytically();
 			CalculateAdjointField();
@@ -249,8 +249,8 @@ public:
 		KRATOS_TRY;
 
 		if(!m_initial_value_defined)
-		KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"calculate_value()\"!" << std::endl;
-		
+		KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"CalculateValue()\"!" << std::endl;
+
 		return m_initial_value;
 
 		KRATOS_CATCH("");
