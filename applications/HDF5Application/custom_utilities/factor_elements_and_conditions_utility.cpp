@@ -1,6 +1,6 @@
 // System includes
-#include <string>
 #include <sstream>
+#include <utility>
 
 // External includes
 #ifdef KRATOS_USING_MPI
@@ -101,8 +101,11 @@ std::vector<std::string> GetComponentNames(const TContainerType& rElements)
 
         // Gather components from each process and construct the global set of
         // component names.
-        for (int pid = 0; pid != root && pid < comm_size; ++pid)
+        for (int pid = 0; pid < comm_size; ++pid)
         {
+            if (pid == root)
+                continue;
+
             if (comm_rank == pid)
             {
                 const int send_size = send_buf.size() + 1; // Include '\0'.
@@ -114,7 +117,7 @@ std::vector<std::string> GetComponentNames(const TContainerType& rElements)
                 std::stringstream recv_components;
                 char recv_buf[max_size];
                 MPI_Status status;
-                ierr = MPI_Recv(recv_buf, max_size, MPI_CHAR, root, 0,
+                ierr = MPI_Recv(recv_buf, max_size, MPI_CHAR, pid, 0,
                                 MPI_COMM_WORLD, &status);
                 KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Recv failed." << std::endl;
                 recv_components.str(recv_buf);
@@ -164,11 +167,11 @@ std::vector<std::string> GetComponentNames(const TContainerType& rElements)
     }
     else
     {
-        component_names = local_component_names;
+        component_names = std::move(local_component_names);
     }
 
 #else /* KRATOS_USING_MPI */
-    component_names = local_component_names;
+    component_names = std::move(local_component_names);
 #endif
 
     return component_names;
@@ -177,24 +180,25 @@ std::vector<std::string> GetComponentNames(const TContainerType& rElements)
 }
 
 template <class TContainerType>
-std::vector<TContainerType> FactorEntities(TContainerType const& rElements)
+void FactorEntities(TContainerType const& rEntities,
+                    std::vector<std::string>& rNames,
+                    std::vector<TContainerType>& rFactoredEntities)
 {
     KRATOS_TRY;
 
-    if (rElements.size() == 0)
-        return {};
+    rNames = GetComponentNames<TContainerType>(rEntities);
 
-    std::vector<std::string> component_names =
-        GetComponentNames<TContainerType>(rElements);
+    rFactoredEntities.resize(rNames.size());
+    if (rEntities.empty())
+        return;
 
-    std::vector<typename TContainerType::data_type const*> components(component_names.size());
+    std::vector<typename TContainerType::data_type const*> components(rNames.size());
 
-    for (unsigned i = 0; i < component_names.size(); ++i)
-        components[i] = &KratosComponents<typename TContainerType::data_type>::Get(component_names[i]);
+    for (unsigned i = 0; i < rNames.size(); ++i)
+        components[i] = &KratosComponents<typename TContainerType::data_type>::Get(rNames[i]);
 
-    std::vector<TContainerType> factored_elements(component_names.size());
-    int pos = 0;
-    for (auto it = rElements.ptr_begin(); it != rElements.ptr_end(); ++it)
+    int pos = 0; // If !rEntities.empty(), then components.size() > 0.
+    for (auto it = rEntities.ptr_begin(); it != rEntities.ptr_end(); ++it)
     {
         if (GeometricalObject::IsSame(**it, *components[pos]) == false)
         {
@@ -214,10 +218,8 @@ std::vector<TContainerType> FactorEntities(TContainerType const& rElements)
                                        << " in components." << std::endl;
         }
 
-        factored_elements[pos].push_back(*it);
+        rFactoredEntities[pos].push_back(*it);
     }
-
-    return factored_elements;
 
     KRATOS_CATCH("");
 }
@@ -228,7 +230,21 @@ std::vector<ElementsContainerType> FactorElements(ElementsContainerType const& r
 {
     KRATOS_TRY;
 
-    return FactorEntities<ElementsContainerType>(rElements);
+    std::vector<std::string> names;
+    std::vector<ElementsContainerType> factored_elements;
+    FactorElements(rElements, names, factored_elements);
+    return factored_elements;
+
+    KRATOS_CATCH("");
+}
+
+void FactorElements(ElementsContainerType const& rElements,
+                    std::vector<std::string>& rNames,
+                    std::vector<ElementsContainerType>& rFactoredElements)
+{
+    KRATOS_TRY;
+
+    FactorEntities(rElements, rNames, rFactoredElements);
 
     KRATOS_CATCH("");
 }
@@ -237,7 +253,21 @@ std::vector<ConditionsContainerType> FactorConditions(ConditionsContainerType co
 {
     KRATOS_TRY;
 
-    return FactorEntities<ConditionsContainerType>(rConditions);
+    std::vector<std::string> names;
+    std::vector<ConditionsContainerType> factored_conditions;
+    FactorConditions(rConditions, names, factored_conditions);
+    return factored_conditions;
+
+    KRATOS_CATCH("");
+}
+
+void FactorConditions(ConditionsContainerType const& rConditions,
+                      std::vector<std::string>& rNames,
+                      std::vector<ConditionsContainerType>& rFactoredConditions)
+{
+    KRATOS_TRY;
+
+    FactorEntities(rConditions, rNames, rFactoredConditions);
 
     KRATOS_CATCH("");
 }

@@ -120,13 +120,17 @@ void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElement
 {
     KRATOS_TRY;
 
-    std::vector<ElementsContainerType> factored_elements = FactorElements(rElements);
+    std::vector<std::string> names;
+    std::vector<ElementsContainerType> factored_elements;
+    FactorElements(rElements, names, factored_elements);
 
     WriteInfo info;
-    for (const auto& r_elems : factored_elements)
+    for (unsigned int i = 0; i < names.size(); ++i)
     {
         Internals::ConnectivitiesData connectivities;
-        connectivities.SetData(r_elems);
+        // For partitioned elements, the local container may be empty. Therefore,
+        // we explicitly provide the element name here.
+        connectivities.SetData(names[i], factored_elements[i]);
         connectivities.WriteData(*mpFile, mPrefix + "/Elements/" + connectivities.Name(), info);
         const int size = info.TotalSize;
         mpFile->WriteAttribute(mPrefix + "/Elements/" + connectivities.Name(), "Size", size);
@@ -163,13 +167,17 @@ void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rCon
 {
     KRATOS_TRY;
 
-    std::vector<ConditionsContainerType> factored_conditions = FactorConditions(rConditions);
+    std::vector<std::string> names;
+    std::vector<ConditionsContainerType> factored_conditions;
+    FactorConditions(rConditions, names, factored_conditions);
 
     WriteInfo info;
-    for (const auto& r_conds : factored_conditions)
+    for (unsigned i = 0; i < names.size();  ++i)
     {
         Internals::ConnectivitiesData connectivities;
-        connectivities.SetData(r_conds);
+        // For partitioned conditions, the local container may be empty. Therefore,
+        // we explicitly provide the condition name here.
+        connectivities.SetData(names[i], factored_conditions[i]);
         connectivities.WriteData(*mpFile, mPrefix + "/Conditions/" + connectivities.Name(), info);
         const int size = info.TotalSize;
         mpFile->WriteAttribute(mPrefix + "/Conditions/" + connectivities.Name(), "Size", size);
