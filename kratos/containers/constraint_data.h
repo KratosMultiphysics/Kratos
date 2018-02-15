@@ -104,7 +104,7 @@ class ConstraintEquation
     // Add a master to this slave given are the masterDofId, masterDofKey, weight
     void AddMaster(DofType const &iMasterDof, double iWeight)
     {
-        MasterDataPointerType masterData = MasterDataPointerType(new MasterData(iMasterDof, iWeight));
+        MasterDataPointerType masterData =Kratos::make_shared<MasterData>(iMasterDof, iWeight);
         auto it = std::find(mMasterDataVector.begin(), mMasterDataVector.end(), iMasterDof);
         if (it != mMasterDataVector.end()) // This master is already present so we add up the weight
         {
@@ -267,7 +267,7 @@ class ConstraintEquationContainer
         }
         else
         { // Equation does not exist
-            ConstraintEquationPointerType newEq = ConstraintEquationPointerType(new ConstraintEquation(iSlaveDof));
+            ConstraintEquationPointerType newEq = Kratos::make_shared<ConstraintEquation>(iSlaveDof);
             newEq->AddMaster(iMasterDof, iWeight);
             mDataContainer.push_back(newEq);
         }
