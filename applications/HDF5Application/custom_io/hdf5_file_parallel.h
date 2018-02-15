@@ -232,8 +232,16 @@ private:
             H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
                                 local_dims, nullptr);
             hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, &rData[0]) < 0)
-                << "H5Dwrite failed. Please ensure global data set is non-empty." << std::endl;
+            if (local_dims[0] > 0)
+            {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, &rData[0]) < 0)
+                    << "H5Dwrite failed." << std::endl;
+            }
+            else
+            {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0)
+                    << "H5Dwrite failed. Please ensure global data set is non-empty." << std::endl;
+            }
             KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
         }
@@ -314,9 +322,17 @@ private:
             H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
                                 local_dims, nullptr);
             hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
-                                     dxpl_id, &rData(0, 0)) < 0)
-                << "H5Dwrite failed. Please ensure global data set is non-empty." << std::endl;
+            if (local_dims[0] > 0)
+            {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
+                    dxpl_id, &rData(0, 0)) < 0) << "H5Dwrite failed." << std::endl;
+            }
+            else
+            {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0)
+                    << "H5Dwrite failed. Please ensure global data set is non-empty"
+                    << " and the second matrix dimension is consistent across all processes." << std::endl;
+            }
             KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
             KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
         }
@@ -412,9 +428,18 @@ private:
         KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_start,
                                             nullptr, local_mem_dims, nullptr) < 0)
             << "H5Sselect_hyperslab failed." << std::endl;
-        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
-                                dxpl_id, &rData[0]) < 0)
-            << "H5Dread failed." << std::endl;
+        if (local_mem_dims[0] > 0)
+        {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
+                                    dxpl_id, &rData[0]) < 0)
+                << "H5Dread failed." << std::endl;
+        }
+        else
+        {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
+                                    dxpl_id, nullptr) < 0)
+                << "H5Dread failed." << std::endl;
+        }
         KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
@@ -483,9 +508,18 @@ private:
         KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_start,
                                             nullptr, local_mem_dims, nullptr) < 0)
             << "H5Sselect_hyperslab failed." << std::endl;
-        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
-                                dxpl_id, &rData(0,0)) < 0)
-            << "H5Dread failed." << std::endl;
+        if (local_mem_dims[0] > 0)
+        {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
+                                    dxpl_id, &rData(0,0)) < 0)
+                << "H5Dread failed." << std::endl;
+        }
+        else
+        {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
+                                    dxpl_id, nullptr) < 0)
+                << "H5Dread failed." << std::endl;
+        }
         KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
