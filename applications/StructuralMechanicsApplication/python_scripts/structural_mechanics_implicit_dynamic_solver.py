@@ -47,15 +47,15 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Setting minimum buffer
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
-        if("bdf" in scheme_type):
-            order = int(scheme_type.replace("bdf",""))
+        if("bdf" in scheme_type or scheme_type == "backward_euler"):
+            order = self._bdf_integration_order()
             self.settings["buffer_size"].SetInt(order + 1)
 
     def AddVariables(self):
         super(ImplicitMechanicalSolver, self).AddVariables()
         self._add_dynamic_variables()
         print("::[ImplicitMechanicalSolver]:: Variables ADDED")
-    
+
     def AddDofs(self):
         super(ImplicitMechanicalSolver, self).AddDofs()
         self._add_dynamic_dofs()
@@ -74,14 +74,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
         elif("bdf" in scheme_type or scheme_type == "backward_euler"):
-            if (scheme_type == "backward_euler"):
-                order = 1
-            else:
-                order = int(scheme_type.replace("bdf",""))
-            
-            # Warning
-            if (order > 2):
-                KratosMultiphysics.Logger.PrintWarning("WARNING:: BDF Order: ", str(order) + " constant time step must be considered")
+            order = self._bdf_integration_order()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(order)
         elif(scheme_type == "relaxation"):
             damp_factor_f =-0.3
@@ -89,7 +82,21 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             mechanical_scheme = StructuralMechanicsApplication.ResidualBasedRelaxationScheme(
                                                                        damp_factor_f, dynamic_factor_m)
         else:
-            err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"newmark\", \"bossak\", \"backward_euler\", \"bdf2\", \"relaxation\""
+            err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
+            err_msg += "Available options are: \"newmark\", \"bossak\", \"backward_euler\", \"bdf1\", \"bdf2\", \"bdf3\", \"bdf4\", \"bdf5\", \"relaxation\""
             raise Exception(err_msg)
         return mechanical_scheme
+
+    def _bdf_integration_order(self):
+        scheme_type = self.dynamic_settings["scheme_type"].GetString()
+        if (scheme_type == "backward_euler"):
+            order = 1
+        else:
+            # BDF schemes can be from 1 to 5 order, so in order to detect the integration order from the scheme_type we remove the "bdf" string
+            order = int(scheme_type.replace("bdf", ""))
+
+        # Warning
+        if (order > 2):
+            KratosMultiphysics.Logger.PrintWarning("WARNING:: BDF Order: ", str(order) + " constant time step must be considered")
+
+        return order
