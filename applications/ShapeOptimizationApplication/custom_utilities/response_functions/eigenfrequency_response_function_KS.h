@@ -203,24 +203,26 @@ public:
 	{
 		KRATOS_TRY;
 
-		double lower_bound_mapping = 0.1;
-    	double upper_bound_mapping = 0.5;
     	double shift= 80.0;
 
 		// Perform tranformation of eigenvalues into [0.1 , 0.5] (only performed once)
     	if (!m_scal_fac_computed)
 		{
 
+
         	m_scaling_factors_eigenvalues.resize(m_num_eigenvalues);
         	double smallest_ev = get_single_eigenvalue(m_vector_ev[0]);
         	double largest_ev =  get_single_eigenvalue(m_vector_ev[m_num_eigenvalues - 1]);
-        	double lambda_scaled;
-			double current_eigenvalue = 0.0;
+			double lower_bound_mapping = 0.1;
+			double upper_bound_mapping = 0.5;
 
         	if (m_num_eigenvalues == 1)
             	m_scaling_factors_eigenvalues[0] = upper_bound_mapping / smallest_ev;
         	else
         	{
+                double lambda_scaled;
+				double current_eigenvalue = 0.0;
+
           		// Loop over traced eigenvalues
           		for (int i = 0; i < m_num_eigenvalues; ++i)
           		{
