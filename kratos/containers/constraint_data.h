@@ -171,7 +171,6 @@ class ConstraintEquationContainer
     typedef Dof<double> DofType;
     typedef unsigned int IndexType;
     typedef Node<3> NodeType;
-    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     typedef ConstraintEquation::Pointer ConstraintEquationPointerType;
     typedef std::vector<ConstraintEquationPointerType> ConstraintEquationVectorType;
 
