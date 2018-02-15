@@ -20,6 +20,12 @@ def CreateSolver(mesh_model_part, custom_settings):
 
 class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
+        if not custom_settings.Has("ale_linear_solver_settings"): # Override defaults in the base class.
+            linear_solver_settings = KratosMultiphysics.Parameters("""{
+                "solver_type" : "Klu",
+                "scaling" : false
+            }""")
+            custom_settings.AddValue("ale_linear_solver_settings", linear_solver_settings)
         super(TrilinosMeshSolverBase, self).__init__(mesh_model_part, custom_settings)
         self.print_on_rank_zero("::[TrilinosMeshSolverBase]:: Construction finished")
 
@@ -49,10 +55,8 @@ class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
     #### Private functions ####
 
     def _create_linear_solver(self):
-        import trilinos_linear_elastic_ml_solver
-        nit_max = 10000
-        linear_tol = 1e-5
-        linear_solver = trilinos_linear_elastic_ml_solver.MultilevelLinearSolver(linear_tol, nit_max)
+        import trilinos_linear_solver_factory
+        linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["ale_linear_solver_settings"])
         return linear_solver
 
     def _create_mesh_motion_solver(self):
