@@ -65,14 +65,6 @@ class Constraint
     ///@name Life Cycle
     ///@{
 
-    /**
-	* Creates a Constraint object
-	*/
-    Constraint(std::string iName = "default", bool iIsActive = true) : mActive(iIsActive), mName(iName)
-    {
-    }
-    /// Destructor.
-    virtual ~Constraint(){};
 
     ///@}
 
