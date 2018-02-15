@@ -13,9 +13,9 @@ class GiDDamOutputProcess(Process):
                 "WriteConditionsFlag": "WriteElementsOnly",
                 "MultiFileFlag": "SingleFile"
             },
-            "file_label": "time",
             "output_control_type": "time_s",
             "output_frequency": 1.0,
+            "start_output_results": 0,
             "body_output": true,
             "node_output": false,
             "skin_output": false,
@@ -108,7 +108,9 @@ class GiDDamOutputProcess(Process):
         self.printed_step_count = 0
         self.next_output = 0.0
 
-
+    @classmethod
+    def Flush(cls,a):
+        a.flush()
 
     def ExecuteInitialize(self):
 
@@ -143,33 +145,12 @@ class GiDDamOutputProcess(Process):
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
 
-        # Set up output frequency and format
-        output_file_label = result_file_configuration["file_label"].GetString()
-        if output_file_label == "time":
-            self.output_label_is_time = True
-        elif output_file_label == "step":
-            self.output_label_is_time = False
-        else:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_file_label,"file_label")
-            raise Exception(msg)
-
-        output_control_type = result_file_configuration["output_control_type"].GetString()
-        if output_control_type == "time_s":
-            self.output_control_is_time = True
-        elif output_control_type == "time_h":
-            self.output_control_is_time = True
-        elif output_control_type == "time_d":
-            self.output_control_is_time = True
-        elif output_control_type == "time_w":
-            self.output_control_is_time = True
-        elif output_control_type == "step":
-            self.output_control_is_time = False
-        else:
-            msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_control_type,"output_control_type")
-            raise Exception(msg)
-
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
-        self.next_output += self.output_frequency
+        self.start_output_results = result_file_configuration["start_output_results"].GetDouble()
+        if self.start_output_results == 0:
+            self.next_output += self.output_frequency
+        else:
+            self.next_output += self.start_output_results
 
         # get .post.lst files
         additional_list_file_data = result_file_configuration["additional_list_files"]
@@ -181,24 +162,17 @@ class GiDDamOutputProcess(Process):
             self.step_count = self.model_part.ProcessInfo[STEP]
             self.printed_step_count = self.model_part.ProcessInfo[PRINTED_STEP]
 
-            if self.output_control_is_time:
-                self.next_output = self.model_part.ProcessInfo[TIME]
-            else:
-                self.next_output = self.model_part.ProcessInfo[STEP]
+            self.next_output = self.model_part.ProcessInfo[TIME]
 
-                # Remove post results
-            if self.output_label_is_time:
-                label = self.model_part.ProcessInfo[TIME]
-            else:
-                label = self.printed_step_count
+            label = self.model_part.ProcessInfo[TIME]
 
             self.__remove_post_results_files(label)
 
-            # Restart .post.lst files
-            self.__restart_list_files(additional_list_files)
-        else:
-            # Create .post.lst files
-            self.__initialize_list_files(additional_list_files)
+            ## Restart .post.lst files
+            #self.__restart_list_files(additional_list_files)
+        #else:
+            ## Create .post.lst files
+            #self.__initialize_list_files(additional_list_files)
 
         # Process point recording data
         if self.point_output_process is not None:
@@ -206,11 +180,16 @@ class GiDDamOutputProcess(Process):
 
     def ExecuteBeforeSolutionLoop(self):
         '''Initialize output meshes.'''
-
+        label = 0
         if self.multifile_flag == MultiFileFlag.SingleFile:
-            mesh_name = 0.0
+            mesh_name = 0
             self.__write_mesh(mesh_name)
             self.__initialize_results(mesh_name)
+            if self.start_output_results == 0:
+                self.__write_nodal_results(label)
+                self.__write_gp_results(label)
+                self.__write_nonhistorical_nodal_results(label)
+                self.__write_nodal_flags(label)
 
             if self.post_mode == GiDPostMode.GiD_PostBinary:
                 self.__write_step_to_list()
@@ -218,13 +197,50 @@ class GiDDamOutputProcess(Process):
                 self.__write_step_to_list(0)
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
-            label = 0.0
-            self.__write_mesh(label)
-            self.__initialize_results(label)
-            self.__write_nodal_results(label)
-            self.__write_nonhistorical_nodal_results(label)
-            self.__write_nodal_flags(label)
-            self.__finalize_results()
+            if self.start_output_results == 0:
+                self.__write_mesh(label)
+                self.__initialize_results(label)
+                self.__write_nodal_results(label)
+                self.__write_nonhistorical_nodal_results(label)
+                self.__write_nodal_flags(label)
+                self.__finalize_results()
+            
+            result_file_configuration = self.param["result_file_configuration"]
+            output_control_type = result_file_configuration["output_control_type"].GetString()
+            if output_control_type == "time_s":
+                self.multifiles = (
+                    MultifileList(self.base_file_name, 1),
+                    MultifileList(self.base_file_name, 60),
+                    MultifileList(self.base_file_name, 3600),
+                )
+            elif output_control_type == "time_h":
+                self.multifiles = (
+                    MultifileList(self.base_file_name, 1),
+                    MultifileList(self.base_file_name, 12),
+                    MultifileList(self.base_file_name, 24),
+                )
+            elif output_control_type == "time_d":
+                self.multifiles = (
+                    MultifileList(self.base_file_name, 1),
+                    MultifileList(self.base_file_name, 7),
+                )
+            elif output_control_type == "time_w":
+                self.multifiles = (
+                    MultifileList(self.base_file_name, 1),
+                )
+            elif output_control_type == "step":
+                self.multifiles = (
+                    MultifileList(self.base_file_name, 1),
+                )
+            else:
+                msg = "{0} Error: Unknown value \"{1}\" read for parameter \"{2}\"".format(self.__class__.__name__,output_control_type,"output_control_type")
+                raise Exception(msg)
+
+            self.multifilelists = []
+            self.__set_multifile_lists(self.multifiles)
+            
+            if self.start_output_results == 0:
+                self.__write_inital_step_in_multifile_lists(label)
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeSolutionLoop()
@@ -236,7 +252,6 @@ class GiDDamOutputProcess(Process):
         if self.point_output_process is not None:
             self.point_output_process.ExecuteInitializeSolutionStep()
 
-
     def ExecuteFinalizeSolutionStep(self):
 
         if self.point_output_process is not None:
@@ -244,21 +259,18 @@ class GiDDamOutputProcess(Process):
 
     def IsOutputStep(self):
 
-        if self.output_control_is_time:
-            result_file_configuration = self.param["result_file_configuration"]
-            time = self.model_part.ProcessInfo[TIME]
-            if result_file_configuration["output_control_type"].GetString() == "time_s":
-                time = time
-            elif result_file_configuration["output_control_type"].GetString() == "time_h":
-                time = time/3600.0
-            elif result_file_configuration["output_control_type"].GetString() == "time_d":
-                time = time/86400.0
-            elif result_file_configuration["output_control_type"].GetString() == "time_w":
-                time = time/604800.0
-            #print( str(self.model_part.ProcessInfo[TIME])+">"+ str(self.next_output) )
-            return ( time >= self.next_output )
-        else:
-            return ( self.step_count >= self.next_output )
+        result_file_configuration = self.param["result_file_configuration"]
+        time = self.model_part.ProcessInfo[TIME]
+        if result_file_configuration["output_control_type"].GetString() == "time_s":
+            time = time
+        elif result_file_configuration["output_control_type"].GetString() == "time_h":
+            time = time/3600.0
+        elif result_file_configuration["output_control_type"].GetString() == "time_d":
+            time = time/86400.0
+        elif result_file_configuration["output_control_type"].GetString() == "time_w":
+            time = time/604800.0
+
+        return ( time >= self.next_output )
 
     def PrintOutput(self):
         
@@ -272,22 +284,19 @@ class GiDDamOutputProcess(Process):
         time = self.model_part.ProcessInfo[TIME]
         self.printed_step_count += 1
         self.model_part.ProcessInfo[PRINTED_STEP] = self.printed_step_count
-        if self.output_label_is_time:
-            if result_file_configuration["output_control_type"].GetString() == "time_s":         
-                label = time
-                time = time
-            elif result_file_configuration["output_control_type"].GetString() == "time_h":
-                label = time/3600
-                time = time/3600.0
-            elif result_file_configuration["output_control_type"].GetString() == "time_d":
-                label = time/86400
-                time = time/86400.0
-            elif result_file_configuration["output_control_type"].GetString() == "time_w":
-                label = time/604800
-                time = time/604800.0
 
-        else:
-            label = self.printed_step_count
+        if result_file_configuration["output_control_type"].GetString() == "time_s":         
+            label = time
+            time = time
+        elif result_file_configuration["output_control_type"].GetString() == "time_h":
+            label = time/3600
+            time = time/3600.0
+        elif result_file_configuration["output_control_type"].GetString() == "time_d":
+            label = time/86400
+            time = time/86400.0
+        elif result_file_configuration["output_control_type"].GetString() == "time_w":
+            label = time/604800
+            time = time/604800.0
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__write_mesh(label)
@@ -300,31 +309,30 @@ class GiDDamOutputProcess(Process):
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()
-            self.__write_step_to_list(label)
+            #self.__write_step_to_list(label)
+            self.__write_multifile_lists(label)
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control_is_time:
-                while self.next_output <= time:
-                    self.next_output += self.output_frequency
-            else:
-                while self.next_output <= self.step_count:
-                    self.next_output += self.output_frequency
+            while self.next_output <= time:
+                self.next_output += self.output_frequency
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
-
 
     def ExecuteFinalize(self):
         '''Finalize files and free resources.'''
 
         if self.multifile_flag == MultiFileFlag.SingleFile:
             self.__finalize_results()
+            
+        if self.multifile_flag == MultiFileFlag.MultipleFiles:
+            self.__close_multifiles()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteFinalize()
 
-# NOTE (PR): The followin lines were commented due to a warnign from 'codacy' while doing a PR. In the original 'gid_outpu_process.py these lines are uncommented.'
+        # NOTE (PR): The followin lines were commented due to a warnign from 'codacy' while doing a PR. In the original 'gid_outpu_process.py these lines are uncommented.'
         #~ for freq,f in self.volume_list_files:
             #~ f.close()
         #~ for freq,f in self.cut_list_files:
@@ -337,7 +345,6 @@ class GiDDamOutputProcess(Process):
         # a better solution yet (jcotela 12/V/2016)
         del self.body_io
         del self.cut_io
-
 
     def __initialize_gidio(self,gidpost_flags,param):
         '''Initialize GidIO objects (for volume and cut outputs) and related data.'''
@@ -374,7 +381,6 @@ class GiDDamOutputProcess(Process):
 
         return value
 
-
     def __initialize_cut_output(self,plane_output_configuration):
         '''Set up tools used to produce output in skin and cut planes.'''
 
@@ -406,7 +412,7 @@ class GiDDamOutputProcess(Process):
         # Get a name for the GiD list file
         # if the model folder is model.gid, the list file should be called
         # model.post.lst
-# NOTE (PR): In the followin lines, two variables were removed (path and ext). See 'gid_output_process.py'. They were put only because the functions have two output arguments. We can call just the one we need.
+        # NOTE (PR): In the followin lines, two variables were removed (path and ext). See 'gid_output_process.py'. They were put only because the functions have two output arguments. We can call just the one we need.
         folder_name = os.path.split(os.getcwd())[1]
         model_name = os.path.splitext(folder_name)[0]
         name_base = model_name
@@ -458,7 +464,6 @@ class GiDDamOutputProcess(Process):
                     list_file.write("Multiple\n")
 
                     self.cut_list_files.append( [freq,list_file] )
-
 
     def __define_output_plane(self,cut_data):
         '''Add a plane to the output plane list.'''
@@ -550,7 +555,6 @@ class GiDDamOutputProcess(Process):
         # Gauss point results depend on the type of element!
         # they are not implemented for cuts (which are generic Condition3D)
 
-
     def __write_nonhistorical_nodal_results(self, label):
 
         if self.body_io is not None:
@@ -580,7 +584,6 @@ class GiDDamOutputProcess(Process):
         if self.cut_io is not None:
             self.cut_io.FinalizeResults()
 
-
     def __write_step_to_list(self,step_label=None):
         if self.post_mode == GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
@@ -591,26 +594,6 @@ class GiDDamOutputProcess(Process):
         else:
             return # No support for list_files in this format
 
-        if step_label is None:
-            pretty_label = ""
-        elif self.output_label_is_time:
-            pretty_label = "_{0:.12g}".format(step_label) # floating point format
-        else:
-            pretty_label = "_{0}".format(step_label) # int format
-
-        if self.body_io is not None:
-            for freq,f in self.volume_list_files:
-                if (self.printed_step_count % freq) == 0:
-                    f.write("{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext))
-                    f.flush()
-
-        if self.cut_io is not None:
-            for freq,f in self.cut_list_files:
-                if (self.printed_step_count % freq) == 0:
-                    f.write("{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext))
-                    f.flush()
-
-    #
     def __restart_list_files(self,additional_frequencies):
 
         self.__remove_list_files()
@@ -648,31 +631,51 @@ class GiDDamOutputProcess(Process):
 
             file_id.sort()
 
-        for step_label in file_id:
+    def __set_multifile_lists(self,multifile_list):
+        for mfilelist in multifile_list:
+            self.multifilelists.append(mfilelist)
 
-            if step_label is None:
-                pretty_label = ""
-            elif self.output_label_is_time:
-                pretty_label = "_{0:.12g}".format(step_label) # floating point format
+        for mfilelist in self.multifilelists:
+            mfilelist.file.write("Multiple\n")
+            mfilelist.index = 1
+            
+    def __write_inital_step_in_multifile_lists(self, label):
+        for mfilelist in self.multifilelists:
+                
+            if (self.post_mode == GiDPostMode.GiD_PostBinary):
+                text_to_print = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"
+                mfilelist.file.write(text_to_print)
             else:
-                pretty_label = "_{0}".format(step_label) # int format
+                text_to_print1 = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.msh\n"
+                text_to_print2 = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.res\n"
+                mfilelist.file.write(text_to_print1)
+                mfilelist.file.write(text_to_print2)
+            self.Flush(mfilelist.file)
 
-            if self.body_io is not None:
-                for freq,f in self.volume_list_files:
-                    list_file_name = "{0}{1}{2}\n".format(self.volume_file_name,pretty_label,ext)
-                    if (step_label % freq) == 0:
-                        f.write(list_file_name)
-                        f.flush()
+    def __write_multifile_lists(self, label):
+        
+        for mfilelist in self.multifilelists:
+            if (label % mfilelist.step) == 0:
+                
+                if (self.post_mode == GiDPostMode.GiD_PostBinary):
+                    text_to_print = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.bin\n"
+                    mfilelist.file.write(text_to_print)
+                else:
+                    text_to_print1 = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.msh\n"
+                    text_to_print2 = self.__get_multifile_list_name(mfilelist.name)+"_"+"%.12g"%label+".post.res\n"
+                    mfilelist.file.write(text_to_print1)
+                    mfilelist.file.write(text_to_print2)
+                self.Flush(mfilelist.file)
 
-            if self.cut_io is not None:
-                for freq,f in self.cut_list_files:
-                    list_file_name = "{0}{1}{2}\n".format(self.cut_file_name,pretty_label,ext)
-                    if (step_label % freq) == 0:
-                        f.write(list_file_name)
-                        f.flush()
+    @classmethod
+    def __get_multifile_list_name(cls, name):
+        return name
 
-    #
-# NOTE (PR): 'Codacy' suggest to change the following method, from a standard method to a 'classmethod' or 'staticmethod' as it does not refer to any of the class attributes
+    def __close_multifiles(self):
+        for mfilelist in self.multifilelists:
+            mfilelist.file.close()
+            
+    # NOTE (PR): 'Codacy' suggest to change the following method, from a standard method to a 'classmethod' or 'staticmethod' as it does not refer to any of the class attributes
     @classmethod
     def __remove_list_files(cls):
 
@@ -690,7 +693,6 @@ class GiDDamOutputProcess(Process):
                     except WindowsError:
                         pass
 
-    #
     def __remove_post_results_files(self, step_label):
 
         path = os.getcwd()
@@ -734,3 +736,13 @@ class GiDDamOutputProcess(Process):
                         os.remove(f)
                     except WindowsError:
                         pass
+
+
+class MultifileList(object):
+
+    def __init__(self, name, step):
+        self.index = 0
+        self.step = step
+        self.name = name
+        absolute_path_to_file = os.path.join("_list_" + self.name + "_" + str(step) + ".post.lst")
+        self.file = open(absolute_path_to_file,"w")
