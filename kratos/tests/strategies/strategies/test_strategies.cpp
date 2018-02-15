@@ -85,7 +85,7 @@ namespace Kratos
         
         typedef TestElement::ResidualType ResidualType;
         
-        static inline void BasicTestStrategyDisplacement(
+        static inline DofsArrayType BasicTestStrategyDisplacement(
             ModelPart& ModelPart,
             const ResidualType ThisResidualType
             )
@@ -93,6 +93,7 @@ namespace Kratos
             ModelPart.SetBufferSize(3);
             
             ModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+            ModelPart.AddNodalSolutionStepVariable(REACTION);
             ModelPart.AddNodalSolutionStepVariable(VELOCITY);
             ModelPart.AddNodalSolutionStepVariable(ACCELERATION);
             
@@ -103,14 +104,29 @@ namespace Kratos
             Element::Pointer pelem = Kratos::make_shared<TestElement>(1, pgeom, ThisResidualType);
             ModelPart.AddElement(pelem);
             
-            pnode->AddDof(DISPLACEMENT_X);
-            pnode->AddDof(DISPLACEMENT_Y);
-            pnode->AddDof(DISPLACEMENT_Z);
+            pnode->AddDof(DISPLACEMENT_X, REACTION_X);
+            pnode->AddDof(DISPLACEMENT_Y, REACTION_Y);
+            pnode->AddDof(DISPLACEMENT_Z, REACTION_Z);
+            
+            std::vector< Dof<double>::Pointer > DoF;
+            DoF.reserve(3);
+            DoF.push_back(pnode->pGetDof(DISPLACEMENT_X));
+            DoF.push_back(pnode->pGetDof(DISPLACEMENT_Y));
+            DoF.push_back(pnode->pGetDof(DISPLACEMENT_Z));
             
             // Set initial solution
             (pnode->FastGetSolutionStepValue(DISPLACEMENT)).clear();
             (pnode->FastGetSolutionStepValue(DISPLACEMENT, 1)).clear();
             (pnode->FastGetSolutionStepValue(DISPLACEMENT, 2)).clear();
+            
+            DofsArrayType Doftemp;
+            Doftemp.reserve(DoF.size());
+            for (auto it= DoF.begin(); it!= DoF.end(); it++)
+                Doftemp.push_back( it->get() );
+            
+            Doftemp.Sort();
+            
+            return Doftemp;
         }
      
         /** 
@@ -127,9 +143,9 @@ namespace Kratos
             typename LinearSolverType::Pointer psolver = typename LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             typename BuilderAndSolverType::Pointer pbuildandsolve = typename BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
             
-            typename SolvingStrategyType::Pointer pstrategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, pscheme, psolver, pbuildandsolve));
+            typename SolvingStrategyType::Pointer pstrategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, pscheme, psolver, pbuildandsolve, true));
 
-            BasicTestStrategyDisplacement(model_part, ResidualType::LINEAR);
+            DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::LINEAR);
             
             NodeType::Pointer pnode = model_part.pGetNode(1);
             
@@ -143,18 +159,11 @@ namespace Kratos
                
                 pstrategy->SetEchoLevel(0);
                 pstrategy->Solve();
-
-                const array_1d<double, 3>& solution = pnode->FastGetSolutionStepValue(DISPLACEMENT);
            
-//                 // Debug
-//                 KRATOS_WATCH(solution)
-                
-                array_1d<double, 3> ref_solution;
-                ref_solution[0] = 1.0;
-                ref_solution[1] = 1.0;
-                ref_solution[2] = 1.0;
-                
-                KRATOS_CHECK_LESS_EQUAL(norm_2(solution - ref_solution), tolerance);
+                for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                }
             }
         }
 
@@ -173,9 +182,9 @@ namespace Kratos
             typename ConvergenceCriteriaType::Pointer pcriteria = typename ConvergenceCriteriaType::Pointer( new ResidualCriteriaType(1.0e-4, 1.0e-9) );
             typename BuilderAndSolverType::Pointer pbuildandsolve = typename BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
             
-            typename SolvingStrategyType::Pointer pstrategy = typename SolvingStrategyType::Pointer( new ResidualBasedNewtonRaphsonStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve));
+            typename SolvingStrategyType::Pointer pstrategy = typename SolvingStrategyType::Pointer( new ResidualBasedNewtonRaphsonStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, 10, true));
 
-            BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
+            DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
             
             NodeType::Pointer pnode = model_part.pGetNode(1);
             
@@ -197,17 +206,10 @@ namespace Kratos
                 pstrategy->SetEchoLevel(0);
                 pstrategy->Solve();
 
-                const array_1d<double, 3>& solution = pnode->FastGetSolutionStepValue(DISPLACEMENT);
-           
-//                 // Debug
-//                 KRATOS_WATCH(solution)
-                
-                array_1d<double, 3> ref_solution;
-                ref_solution[0] = 1.0;
-                ref_solution[1] = 1.0;
-                ref_solution[2] = 1.0;
-                
-                KRATOS_CHECK_LESS_EQUAL(norm_2(solution - ref_solution), tolerance);
+                for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                }
             }
         }
         
