@@ -68,9 +68,9 @@ void AddCustomSolversToPython()
 	;	
 	#endif // defined EIGEN_USE_MKL
 
-	using SparseQR = EigenDirectSolver<SparseQR, SparseSpaceType, LocalSpaceType>;
-	class_<SparseQR, bases<DirectSolverType>, boost::noncopyable>
-		("SparseQR", init<>())
+	using SparseQRSolver = EigenDirectSolver<SparseQR, SparseSpaceType, LocalSpaceType>;
+	class_<SparseQRSolver, bases<DirectSolverType>, boost::noncopyable>
+		("SparseQRSolver", init<>())
 		.def(init<Parameters>())
 	;
 
