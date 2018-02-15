@@ -546,38 +546,40 @@ public:
 //
 
 
-        std::vector<set_type> dofs_aux_list(nthreads);
-// 		std::vector<allocator_type> allocators(nthreads);
-
+        set_type dof_global_set;
+        #ifdef USE_GOOGLE_HASH
+            dof_global_set.set_empty_key(Node<3>::DofType::Pointer());
+        #else
+            dof_global_set.reserve(nelements*20);
+        #endif     
+            
         if( this->GetEchoLevel() > 2)
         {
             std::cout << "Number of threads" << nthreads << "\n" << std::endl;
         }
-        for (int i = 0; i < static_cast<int>(nthreads); i++)
-        {
-#ifdef USE_GOOGLE_HASH
-            dofs_aux_list[i].set_empty_key(Node<3>::DofType::Pointer());
-#else
-// 			dofs_aux_list[i] = set_type( allocators[i]);
-            dofs_aux_list[i].reserve(nelements);
-#endif
-        }
+
         if( this->GetEchoLevel() > 2)
         {
             KRATOS_WATCH("Initializing element loop")
         }
         #pragma omp parallel firstprivate(nelements, ElementalDofList)
         {
+            set_type dofs_tmp_set;
+#ifdef USE_GOOGLE_HASH
+            dofs_tmp_set.set_empty_key(Node<3>::DofType::Pointer());
+#else
+            dofs_tmp_set.reserve(20000);
+#endif            
+            
             #pragma omp for schedule(guided, 512) nowait
             for (int i = 0; i < nelements; i++)
             {
                 typename ElementsArrayType::iterator it = pElements.begin() + i;
-                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
                 // gets list of Dof involved on every element
                 pScheme->GetElementalDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
 
-                dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
+                dofs_tmp_set.insert(ElementalDofList.begin(), ElementalDofList.end());
             }
             if( this->GetEchoLevel() > 2)
             {
@@ -589,51 +591,16 @@ public:
             for (int i = 0; i < nconditions; i++)
             {
                 typename ConditionsArrayType::iterator it = pConditions.begin() + i;
-                const unsigned int this_thread_id = OpenMPUtils::ThisThread();
 
                 // gets list of Dof involved on every element
                 pScheme->GetConditionDofList(*(it.base()), ElementalDofList, CurrentProcessInfo);
-                dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
-
+                dofs_tmp_set.insert(ElementalDofList.begin(), ElementalDofList.end());
             }
-        }
-
-        if( this->GetEchoLevel() > 2)
-        {
-            std::cout << "Initializing tree reduction\n" << std::endl;
-        }
-        // Here we do a reduction in a tree so to have everything on thread 0
-        unsigned int old_max = nthreads;
-        unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
-        while (new_max>=1 && new_max != old_max)
-        {
-            if( this->GetEchoLevel() > 2)
+            
+            #pragma omp critical
             {
-                //just for debugging
-                std::cout << "old_max" << old_max << " new_max:" << new_max << std::endl;
-                for (int i = 0; i < static_cast<int>(new_max); i++)
-                {
-                    if (i + new_max < old_max)
-                    {
-                        std::cout << i << " - " << i+new_max << std::endl;
-                    }
-                }
-                std::cout << "********************" << std::endl;
+                dof_global_set.insert(dofs_tmp_set.begin(), dofs_tmp_set.end());
             }
-
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(new_max); i++)
-            {
-                if (i + new_max < old_max)
-                {
-                    dofs_aux_list[i].insert(dofs_aux_list[i+new_max].begin(), dofs_aux_list[i+new_max].end());
-                    dofs_aux_list[i+new_max].clear();
-                }
-            }
-
-            old_max = new_max;
-            new_max = ceil(0.5*static_cast<double>(old_max));
-
         }
 
         if( this->GetEchoLevel() > 2)
@@ -644,8 +611,8 @@ public:
         DofsArrayType Doftemp;
         BaseType::mDofSet = DofsArrayType();
 
-        Doftemp.reserve(dofs_aux_list[0].size());
-        for (auto it= dofs_aux_list[0].begin(); it!= dofs_aux_list[0].end(); it++)
+        Doftemp.reserve(dof_global_set.size());
+        for (auto it= dof_global_set.begin(); it!= dof_global_set.end(); it++)
         {
             Doftemp.push_back( it->get() );
         }
