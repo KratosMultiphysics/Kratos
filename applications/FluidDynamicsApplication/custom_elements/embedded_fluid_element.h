@@ -95,6 +95,7 @@ public:
     constexpr static unsigned int NumNodes = TBaseElement::NumNodes;
     constexpr static unsigned int BlockSize = TBaseElement::BlockSize;
     constexpr static unsigned int LocalSize = TBaseElement::LocalSize;
+    constexpr static unsigned int StrainSize = TBaseElement::StrainSize;
 
     using BaseElementData = typename TBaseElement::ElementData;
     using EmbeddedElementData = EmbeddedData< BaseElementData >;
@@ -225,6 +226,70 @@ protected:
     void DefineCutGeometryData(EmbeddedElementData& rData) const;
 
     void NormalizeInterfaceNormals(typename EmbeddedElementData::InterfaceNormalsType& rNormals, double Tolerance) const;
+
+    /**
+    * This functions adds the no-penetration condition penalty level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddSlipNormalPenaltyContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+    * This functions adds the no-penetration condition adjoint term level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddSlipNormalSymmetricCounterpartContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+    * This functions adds the tangential stress condition penalty level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddSlipTangentialPenaltyContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+    * This functions adds the tangential stress condition adjoint term level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddSlipTangentialSymmetricCounterpartContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+     * This function computes the penalty coefficient for the Nitsche normal imposition
+     * @param rData reference to element data structure
+     */
+    double ComputeSlipNormalPenaltyCoefficient(const EmbeddedElementData& rData) const;
+
+    /**
+     * This function computes the Nitsche coefficients for the Nitsche normal imposition
+     * @param rData reference to element data structure
+     * @return a pair of double containing the two coefficients
+     */
+    std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(const EmbeddedElementData& rData) const;
+
+    /**
+     * This function computes the Nitsche coefficients for the Nitsche tangential imposition
+     * @param rData reference to element data structure
+     * @return a pair of double containing the two coefficients
+     */
+    std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(const EmbeddedElementData& rData) const;
 
     /**
     * This functions adds the penalty extra term level set contribution.
