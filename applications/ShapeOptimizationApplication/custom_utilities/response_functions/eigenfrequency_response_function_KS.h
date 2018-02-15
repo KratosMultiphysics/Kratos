@@ -208,8 +208,6 @@ public:
 		// Perform tranformation of eigenvalues into [0.1 , 0.5] (only performed once)
     	if (!m_scal_fac_computed)
 		{
-
-
         	m_scaling_factors_eigenvalues.resize(m_num_eigenvalues);
         	double smallest_ev = get_single_eigenvalue(m_vector_ev[0]);
         	double largest_ev =  get_single_eigenvalue(m_vector_ev[m_num_eigenvalues - 1]);
@@ -220,15 +218,12 @@ public:
             	m_scaling_factors_eigenvalues[0] = upper_bound_mapping / smallest_ev;
         	else
         	{
-                double lambda_scaled;
-				double current_eigenvalue = 0.0;
-
           		// Loop over traced eigenvalues
           		for (int i = 0; i < m_num_eigenvalues; ++i)
           		{
-					current_eigenvalue = get_single_eigenvalue(m_vector_ev[i]);
-					lambda_scaled = lower_bound_mapping  + (current_eigenvalue - smallest_ev) *
-                	(upper_bound_mapping - lower_bound_mapping ) / (largest_ev - smallest_ev);
+					const double current_eigenvalue = get_single_eigenvalue(m_vector_ev[i]);
+					const double lambda_scaled = lower_bound_mapping  + (current_eigenvalue - smallest_ev) *
+                		(upper_bound_mapping - lower_bound_mapping ) / (largest_ev - smallest_ev);
 					m_scaling_factors_eigenvalues[i] = lambda_scaled / current_eigenvalue;
           		}
 			}

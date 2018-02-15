@@ -44,14 +44,14 @@ CSM_solver.ImportModelPart()
 CSM_solver.AddDofs()
 
 # Create Model
-Model = Model()
-Model.AddModelPart(main_model_part)
+model = Model()
+model.AddModelPart(main_model_part)
 
 # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
 ## Get the list of the submodel part in the object Model
 for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
     part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    Model.AddModelPart(main_model_part.GetSubModelPart(part_name))
+    model.AddModelPart(main_model_part.GetSubModelPart(part_name))
 
 # ======================================================================================================================================
 # Analyzer
@@ -132,16 +132,16 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
         import process_factory
         #the process order of execution is important
-        self.list_of_processes  = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+        self.list_of_processes  = process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
+        self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
         if (ProjectParameters.Has("list_other_processes")):
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(ProjectParameters["list_other_processes"])
+            self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses(ProjectParameters["list_other_processes"])
         if(ProjectParameters.Has("problem_process_list")):
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
         if (ProjectParameters.Has("json_output_process")):
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses(ProjectParameters["json_output_process"])
+            self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses(ProjectParameters["json_output_process"])
         if(ProjectParameters.Has("output_process_list")):
-            self.list_of_processes += process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
+            self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
 
         #print list of constructed processes
         if(echo_level>1):
