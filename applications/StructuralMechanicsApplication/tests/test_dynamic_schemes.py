@@ -141,10 +141,7 @@ class DynamicSchemesTests(KratosUnittest.TestCase):
             current_analytical_displacement_y += current_analytical_velocity_y * dt + 0.25 * (current_analytical_acceleration_y + gravity) * dt**2
             current_analytical_velocity_y += dt * 0.5 * (current_analytical_acceleration_y + gravity)
             current_analytical_acceleration_y = gravity
-            ### DEBUG
-            #print("DISPLACEMENT_Y:\t", node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0), "\t", current_analytical_displacement_y)
-            #print("VELOCITY_Y:\t",node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), "\t", current_analytical_velocity_y)
-            #print("ACCELERATION_Y:\t",node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), "\t", current_analytical_acceleration_y )
+
             # ASSERT
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.ACCELERATION_Y,0), current_analytical_acceleration_y, delta=1e-3)
             self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,0), current_analytical_velocity_y, delta=1e-3)
