@@ -82,6 +82,11 @@ class TestCase(KratosUnittest.TestCase):
             nids = [node_ids[i + 1], node_ids[i + 2], node_ids[i + 5], node_ids[i + 4]]
             model_part.CreateNewElement("Element2D4N", eid, nids, prop)
             model_part.CreateNewCondition("SurfaceCondition3D4N", eid, nids, prop)
+        if my_pid == 0:
+            # Here we create a special condition that only exists on the first
+            # process. This is to test the collective write when at least one
+            # process has an empty set.
+            model_part.CreateNewCondition("LineCondition2D2N", eid + 1, [node_ids[i + 1], node_ids[i + 2]], prop)
         model_part.SetBufferSize(2)
         # Write some data to the nodal solution steps variables.
         for node in model_part.Nodes:
