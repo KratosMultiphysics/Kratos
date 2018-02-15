@@ -15,17 +15,34 @@ void ConnectivitiesData::ReadData(File& rFile, const std::string& rPath, unsigne
     KRATOS_TRY;
     Clear();
     rFile.ReadAttribute(rPath, "Name", mName);
-    if (KratosComponents<ElementType>::Has(mName) == false && KratosComponents<ConditionType>::Has(mName) == false)
-        KRATOS_ERROR << "Invalid name \"" << mName << "\"!" << std::endl;
     rFile.ReadDataSet(rPath + "/Ids", mIds, StartIndex, BlockSize);
     rFile.ReadDataSet(rPath + "/PropertiesIds", mPropertiesIds, StartIndex, BlockSize);
     rFile.ReadDataSet(rPath + "/Connectivities", mConnectivities, StartIndex, BlockSize);
+    if (KratosComponents<ElementType>::Has(mName))
+    {
+        const ElementType& r_elem = KratosComponents<ElementType>::Get(mName);
+        KRATOS_ERROR_IF(r_elem.GetGeometry().size() != mConnectivities.size2())
+            << "Element \"" << mName << "\""
+            << " has a different connectivities size than the file data." << std::endl;
+    }
+    else if (KratosComponents<ConditionType>::Has(mName))
+    {
+        const ConditionType& r_cond = KratosComponents<ConditionType>::Get(mName);
+        KRATOS_ERROR_IF(r_cond.GetGeometry().size() != mConnectivities.size2())
+            << "Condition \"" << mName << "\""
+            << " has a different connectivities size than the file data." << std::endl;
+    }
+    else
+    {
+        KRATOS_ERROR << "Invalid name \"" << mName << "\"!" << std::endl;
+    }
     KRATOS_CATCH("");
 }
 
 void ConnectivitiesData::WriteData(File& rFile, const std::string& rPath, WriteInfo& rInfo)
 {
     KRATOS_TRY;
+    KRATOS_ERROR_IF(mName == "") << "Cannot write an empty data." << std::endl;
     rFile.WriteDataSet(rPath + "/Ids", mIds, rInfo);
     rFile.WriteDataSet(rPath + "/PropertiesIds", mPropertiesIds, rInfo);
     rFile.WriteDataSet(rPath + "/Connectivities", mConnectivities, rInfo);
@@ -56,6 +73,8 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
                                         ElementsContainerType& rElements) const
 {
     KRATOS_TRY;
+    if (mName == "")
+        return; // Do not append any new elements.
     const ElementType& r_elem = KratosComponents<ElementType>::Get(mName);
     const unsigned num_new_elems = mIds.size();
     const unsigned geometry_size = r_elem.GetGeometry().size();
@@ -83,6 +102,8 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
                                         ConditionsContainerType& rConditions) const
 {
     KRATOS_TRY;
+    if (mName == "")
+        return; // Do not append any new conditions.
     const ConditionType& r_cond = KratosComponents<ConditionType>::Get(mName);
     const unsigned num_new_conds = mIds.size();
     const unsigned geometry_size = r_cond.GetGeometry().size();
@@ -105,22 +126,45 @@ void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
     KRATOS_CATCH("");
 }
 
-// Fill data from elements of a single element type.
 void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
 
-    const int num_elems = rElements.size();
-    if (num_elems == 0)
+    KRATOS_ERROR_IF(rElements.empty())
+        << "Must pass non-empty container to this function." << std::endl;
+
+    std::string name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(rElements.front(), name);
+    SetData(name, rElements);
+
+    KRATOS_CATCH("");
+}
+
+void ConnectivitiesData::SetData(const std::string& rName, ElementsContainerType const& rElements)
+{
+    KRATOS_TRY;
+
+    KRATOS_ERROR_IF_NOT(KratosComponents<ElementType>::Has(rName))
+        << "Name \"" << rName << "\" is not registered as an element." << std::endl;
+
+    if (rElements.empty())
     {
         Clear();
+        // Correctly set the name and array sizes. Otherwise, MPI collective write
+        // can fail due to inconsistent data across processes.
+        mName = rName;
+        const Element& r_elem = KratosComponents<ElementType>::Get(mName);
+        mConnectivities.resize(0, r_elem.GetGeometry().size());
         return;
     }
+
+    CompareElementsAndConditionsUtility::GetRegisteredName(rElements.front(), mName);
+    KRATOS_ERROR_IF(mName != rName) << "Name \"" << rName << "\" is not the same as \"" << mName << "\"." << std::endl;
+    const int num_elems = rElements.size();
     mIds.resize(num_elems, false);
     mPropertiesIds.resize(num_elems, false);
     const unsigned geometry_size = rElements.front().GetGeometry().size();
     mConnectivities.resize(num_elems, geometry_size, false);
-    CompareElementsAndConditionsUtility::GetRegisteredName(rElements.front(), mName);
 
     // Fill arrays and perform checks.
     #pragma omp parallel for
@@ -147,17 +191,41 @@ void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
 {
     KRATOS_TRY;
 
-    const int num_conds = rConditions.size();
-    if (num_conds == 0)
+    KRATOS_ERROR_IF(rConditions.empty())
+        << "Must pass non-empty container to this function." << std::endl;
+
+    std::string name;
+    CompareElementsAndConditionsUtility::GetRegisteredName(rConditions.front(), name);
+    SetData(name, rConditions);
+
+    KRATOS_CATCH("");
+}
+
+void ConnectivitiesData::SetData(const std::string& rName, ConditionsContainerType const& rConditions)
+{
+    KRATOS_TRY;
+
+    KRATOS_ERROR_IF_NOT(KratosComponents<ConditionType>::Has(rName))
+        << "Name \"" << rName << "\" is not registered as a condition." << std::endl;
+
+    if (rConditions.empty())
     {
         Clear();
+        // Correctly set the name and array sizes. Otherwise, MPI collective write
+        // can fail due to inconsistent data across processes.
+        mName = rName;
+        const Condition& r_cond = KratosComponents<ConditionType>::Get(mName);
+        mConnectivities.resize(0, r_cond.GetGeometry().size());
         return;
     }
+
+    CompareElementsAndConditionsUtility::GetRegisteredName(rConditions.front(), mName);
+    KRATOS_ERROR_IF(mName != rName) << "Name \"" << rName << "\" is not the same as \"" << mName << "\"." << std::endl;
+    const int num_conds = rConditions.size();
     mIds.resize(num_conds, false);
     mPropertiesIds.resize(num_conds, false);
     const unsigned geometry_size = rConditions.front().GetGeometry().size();
     mConnectivities.resize(num_conds, geometry_size, false);
-    CompareElementsAndConditionsUtility::GetRegisteredName(rConditions.front(), mName);
 
     // Fill arrays and perform checks.
     #pragma omp parallel for

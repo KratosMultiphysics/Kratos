@@ -37,6 +37,9 @@ namespace Internals
 ///@{
 
 /// Represents connectivities information of a single element or condition type in a mesh.
+/**
+ * Acts as the intermediary between the HDF5 file and the Kratos elements and conditions.
+ */
 class ConnectivitiesData
 {
 public:
@@ -76,23 +79,51 @@ public:
         return mIds.size();
     }
 
+    /// Read data from a file.
+    /**
+     * Ensures valid element or condition data is read from the given path on
+     * return. Previously stored data is replaced.
+     */
     void ReadData(File& rFile, const std::string& rPath, unsigned StartIndex, unsigned BlockSize);
 
+    /// Write data to a file.
     void WriteData(File& rFile, const std::string& rPath, WriteInfo& rInfo);
 
+    // Create and append new elements to the container.
     void CreateEntities(NodesContainerType& rNodes,
                         PropertiesContainerType& rProperties,
                         ElementsContainerType& rElements) const;
 
+    // Create and append new conditions to the container.
     void CreateEntities(NodesContainerType& rNodes,
                         PropertiesContainerType& rProperties,
                         ConditionsContainerType& rConditions) const;
 
     // Fill data from elements of a single element type.
+    /**
+     * Expects a uniform, non-empty container of a single element type.
+     */
     void SetData(ElementsContainerType const& rElements);
 
+    // Fill data from elements of a single element type.
+    /**
+     * Expects a registered element name and a uniform container of the
+     * corresponding element type. The container may be empty.
+     */
+    void SetData(const std::string& rName, ElementsContainerType const& rElements);
+
     // Fill data from conditions of a single condition type.
+    /**
+     * Expects a uniform, non-empty container of a single condition type.
+     */
     void SetData(ConditionsContainerType const& rConditions);
+
+    // Fill data from conditions of a single condition type.
+    /**
+     * Expects a registered condition name and a uniform container of the
+     * corresponding condition type. The container may be empty.
+     */
+    void SetData(const std::string& rName, ConditionsContainerType const& rConditions);
 
     void Clear();
     ///@}
