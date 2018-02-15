@@ -327,19 +327,14 @@ void EmbeddedSkinVisualizationProcess::ExecuteBeforeSolutionLoop() {
                 }
             // Otherwise add an element with the original geometry
             } else {
-                // Add the current element as it was in the origin model part
-                mrVisualizationModelPart.AddElement(*it_elem.base());
-
-                // Once the element has been added to the visualization model part
-                // modify its properties according to its distance sign.
+                // Copy the current element as it was in the origin model part according to its distance sign
                 const bool is_positive = this->ElementIsPositive(p_geometry);
-
                 if (is_positive){
-                    (mrVisualizationModelPart.ElementsEnd()-1)->SetProperties(p_pos_prop);
+                    mrVisualizationModelPart.AddElement(it_elem->Create(it_elem->Id(), p_geometry, p_pos_prop));
                 } else {
-                    (mrVisualizationModelPart.ElementsEnd()-1)->SetProperties(p_neg_prop);
+                    mrVisualizationModelPart.AddElement(it_elem->Create(it_elem->Id(), p_geometry, p_neg_prop));
                 }
-            } 
+            }
         }
 
         // Once all the entities have been created, renumber the ids.
