@@ -486,8 +486,8 @@ namespace Kratos
         WriteTableBlock(rThisModelPart.Tables());
         WriteMesh(rThisModelPart.GetMesh());
         WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
-        WriteElementalDataBlock(rThisModelPart.Elements());
-//         WriteConditionalDataBlock(rThisModelPart.Conditions()); // TODO: FINISH ME
+        WriteDataBlock(rThisModelPart.Elements(), "Element");
+        WriteDataBlock(rThisModelPart.Conditions(),"Condition"); 
 //         WriteCommunicatorDataBlock(); // TODO: FINISH ME
 //         WriteMeshBlock(rThisModelPart); // TODO: FINISH ME
         WriteSubModelPartBlock(rThisModelPart, "");
@@ -1775,48 +1775,40 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-
-    void ModelPartIO::WriteElementalDataBlock(ElementsContainerType& rThisElements){
+    template<class TDataType>
+    void ModelPartIO::WriteDataBlock(const TDataType& rThisData, const std::string& DataName){
         typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
         std::unordered_set<std::string> variables;
         
-        for(auto& elem :rThisElements){
-            for(auto& var:elem.GetData()){
-                auto is_included = variables.find(var.first->Name());
+        for(auto& data :rThisData){
+            for(auto& var:data.GetData()){
+                auto const& is_included = variables.find(var.first->Name());
                 if(is_included == variables.end()){
                     variables.insert(var.first->Name());
                     // determine variable type
                     if(KratosComponents<Variable<bool>>::Has(var.first->Name())){
-                        Variable<bool> variable = KratosComponents<Variable<bool>>::Get(var.first->Name());
-                        WriteElementalDataBlock<Variable<bool>>(rThisElements, variable);
+                        WriteDataBlock<Variable<bool>>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<int>>::Has(var.first->Name())){
-                        Variable<int> variable = KratosComponents<Variable<int>>::Get(var.first->Name());
-                        WriteElementalDataBlock<Variable<int>>(rThisElements, variable);
+                        WriteDataBlock<Variable<int>>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<double>>::Has(var.first->Name())){
-                        Variable<double> variable = KratosComponents<Variable<double>>::Get(var.first->Name());
-                        WriteElementalDataBlock<Variable<double>>(rThisElements, variable);
+                        WriteDataBlock<Variable<double>>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<array_1d_component_type>::Has(var.first->Name())){
-                        array_1d_component_type variable = KratosComponents<array_1d_component_type>::Get(var.first->Name());
-                        WriteElementalDataBlock<array_1d_component_type>(rThisElements, variable);
+                        WriteDataBlock<array_1d_component_type>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<array_1d<double,3>>>::Has(var.first->Name())){
-                        Variable<array_1d<double,3>> variable = KratosComponents<Variable<array_1d<double,3>>>::Get(var.first->Name());
-                        WriteElementalDataBlock<Variable<array_1d<double,3>>>(rThisElements, variable);
+                        WriteDataBlock<Variable<array_1d<double,3>>>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<Quaternion<double>>>::Has(var.first->Name())){
-                        Variable<Quaternion<double>> variable = KratosComponents<Variable<Quaternion<double>>>::Get(var.first->Name());
-                        WriteElementalDataBlock<Variable<Quaternion<double>>>(rThisElements, variable);
+                        WriteDataBlock<Variable<Quaternion<double>>>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<Vector>>::Has(var.first->Name())){
-                        Variable<Vector> variable = KratosComponents<Variable<Vector>>::Get(var.first->Name());
-                        WriteElementalDataBlock<Variable<Vector>>(rThisElements, variable);
+                        WriteDataBlock<Variable<Vector>>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<Matrix>>::Has(var.first->Name())){
-                        Variable<Matrix> variable = KratosComponents<Variable<Matrix>>::Get(var.first->Name());
-                        WriteElementalDataBlock<Variable<Matrix>>(rThisElements, variable);
+                        WriteDataBlock<Variable<Matrix>>(rThisData, var.first, DataName);
                     }
                     else
                         std::cout << var.first->Name() << " is not a valid variable for output!!!" << std::endl;
@@ -1826,15 +1818,16 @@ namespace Kratos
         }
     }
 
-    template<class TVariableType>
-    void ModelPartIO::WriteElementalDataBlock(ElementsContainerType& rThisElements, TVariableType& rVariable){
-        (*mpStream) << "Begin ElementalData "<<rVariable.Name()<<std::endl;
-        for(auto& elem : rThisElements){
-            if(elem.Has(rVariable)){
-                (*mpStream)<<elem.Id()<<"\t"<<elem.GetValue(rVariable)<<std::endl;
+    template<class TVariableType, class TDataType>
+    void ModelPartIO::WriteDataBlock(const TDataType& rThisData,const VariableData* rVariable, const std::string& DataName){
+        const TVariableType variable = KratosComponents<TVariableType>::Get(rVariable->Name());
+        (*mpStream) << "Begin "<<DataName<<"alData "<<variable.Name()<<std::endl;
+        for(auto& data : rThisData){
+            if(data.Has(variable)){
+                (*mpStream)<<data.Id()<<"\t"<<data.GetValue(variable)<<std::endl;
             }
         }
-        (*mpStream)<<"End ElementalData\n"<<std::endl;
+        (*mpStream)<<"End "<<DataName<<"alData\n"<<std::endl;
     }
 
     template<class TVariableType>

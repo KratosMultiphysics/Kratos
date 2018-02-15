@@ -354,11 +354,10 @@ protected:
     void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy);
 
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
-    
-    void WriteElementalDataBlock(ElementsContainerType& rThisElements);
-    
-    template<class TVariableType>
-    void WriteElementalDataBlock(ElementsContainerType& rThisElements, TVariableType& rVariable);
+    template<class TDataType>
+    void WriteDataBlock(const TDataType& rThisData, const std::string& DataName);
+    template<class TVariableType, class TDataType>
+    void WriteDataBlock(const TDataType& rThisData,const VariableData* rVariable, const std::string& DataName);
 
     template<class TVariableType>
     void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable);
@@ -369,6 +368,8 @@ protected:
     void ReadConditionalDataBlock(ConditionsContainerType& rThisConditions);
     
     void WriteConditionalDataBlock(ConditionsContainerType& rThisConditions);
+    template<class TVariableType>
+    void WriteConditionalDataBlock(ConditionsContainerType& rThisConditions,const VariableData* rVariable);
 
     template<class TVariableType>
     void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable);
