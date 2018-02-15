@@ -105,13 +105,16 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     **Windows:**
 
     Copy the required MKL libraries to the Kratos `lib`
-    
 
-    ```
+    ```batch
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_core.dll
     C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_rt.dll
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_intel_thread.dll
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\mkl\mkl_def.dll
+    C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\redist\intel64_win\compiler\libiomp5md.dll
     ```
 
-    or add the folder to your `PATH`/`LD_LIBRARY_PATH` variable.
+    or add the folders to your `PATH`/`LD_LIBRARY_PATH` variable.
 
     **Linux:**
     
