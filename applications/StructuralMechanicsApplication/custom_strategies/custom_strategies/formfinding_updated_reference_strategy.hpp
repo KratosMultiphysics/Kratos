@@ -26,7 +26,6 @@
 
 //default builder and solver
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-//#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
 namespace Kratos
 {
@@ -205,8 +204,8 @@ namespace Kratos
             : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
         {
             KRATOS_TRY;
-
-            std::cout << "Formfinding strategy created!" << std::endl;
+            if (this->GetEchoLevel() > 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+                std::cout << "Formfinding strategy created!" << std::endl;
 
             mKeepSystemConstantDuringIterations = false;
 
@@ -599,8 +598,9 @@ namespace Kratos
             //***************************************************
             // Update reference configuration for formfinding
             // Initialize the Elements
-            pScheme->InitializeElements(BaseType::GetModelPart());
-
+            for(auto& elem : BaseType::GetModelPart().Elements()){
+                elem.InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+            }
             KRATOS_CATCH("");
         }
 
@@ -615,8 +615,12 @@ namespace Kratos
             KRATOS_TRY;
 
             KRATOS_CATCH("");
+
         }
 
+        void UpdateReferenceConfiguration(){
+
+        }
 
         /**
          * Solves the current step. This function returns true if a solution has been found, false otherwise

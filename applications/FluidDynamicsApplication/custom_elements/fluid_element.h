@@ -343,10 +343,6 @@ protected:
                                        Matrix& rNContainer,
                                        ShapeFunctionDerivativesArrayType& rDN_DX) const;
 
-
-    /// Characteristic element size h to be used in stabilization parameters.
-    virtual double ElementSize() const;
-
     /**
      * @brief Write the convective operator evaluated at this point (for each nodal funciton) to an array
      * Evaluate the convective operator for each node's shape function at an arbitrary point
@@ -373,8 +369,8 @@ protected:
 
     virtual void AddVelocitySystem(
         TElementData& rData,
-        MatrixType& rLHS,
-        VectorType& rRHS);
+        MatrixType& rLocalLHS,
+        VectorType& rLocalRHS);
 
     virtual void AddMassLHS(
         TElementData& rData,
