@@ -6,6 +6,9 @@ CheckForPreviousImport()
 class GiDDamOutputProcess(Process):
 
     defaults = Parameters('''{
+        "problem_data": {
+            "start_time": 0
+        },
         "result_file_configuration": {
             "gidpost_flags": {
                 "GiDPostMode": "GiD_PostBinary",
@@ -114,6 +117,9 @@ class GiDDamOutputProcess(Process):
 
     def ExecuteInitialize(self):
 
+        problem_data = self.param["problem_data"]
+        problem_data.ValidateAndAssignDefaults(self.defaults["problem_data"])
+        
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
 
@@ -145,8 +151,13 @@ class GiDDamOutputProcess(Process):
         for i in range(result_file_configuration["nodal_flags_results"].size()):
             self.nodal_flags_names.append(result_file_configuration["nodal_flags_results"][i].GetString())
 
+        self.start_time = problem_data["start_time"].GetDouble()
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
         self.start_output_results = result_file_configuration["start_output_results"].GetDouble()
+        
+        if self.start_time > self.start_output_results:
+            self.start_output_results = self.start_time
+        
         if self.start_output_results == 0:
             self.next_output += self.output_frequency
         else:
