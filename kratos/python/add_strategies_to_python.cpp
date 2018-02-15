@@ -175,18 +175,6 @@ namespace Kratos
             return dummy.CreateEmptyVectorPointer();
         }
 
-        //     Kratos::shared_ptr< CompressedMatrix > CreateEmptyMatrixPointer()
-        //     {
-        //         Kratos::shared_ptr<CompressedMatrix> pNewMat = Kratos::shared_ptr<CompressedMatrix>(new CompressedMatrix() );
-        //         return pNewMat;
-        //     }
-        //
-        //     Kratos::shared_ptr< Vector > CreateEmptyVectorPointer()
-        //     {
-        //         Kratos::shared_ptr<Vector > pNewVec = Kratos::shared_ptr<Vector >(new Vector() );
-        //         return pNewVec;
-        //     }
-
         CompressedMatrix& GetMatRef(Kratos::shared_ptr<CompressedMatrix>& dummy)
         {
             return *dummy;
