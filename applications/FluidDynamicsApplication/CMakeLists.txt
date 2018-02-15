@@ -45,6 +45,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/navier_stokes_wall_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/embedded_ausas_navier_stokes_wall_condition.cpp
 
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/fluid_constitutive_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bingham_3d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/euler_2d_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/euler_3d_law.cpp
@@ -54,6 +55,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/boussinesq_force_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/distance_modification_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/embedded_skin_visualization_process.cpp
+ 
 )
 
 ## fluid dynamics testing sources

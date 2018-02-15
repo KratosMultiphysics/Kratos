@@ -17,12 +17,13 @@
 #define  KRATOS_VARIABLE_UTILS
 
 /* System includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
 
 /* External includes */
 
 /* Project includes */
+#include "includes/define.h"
+#include "includes/model_part.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -46,8 +47,17 @@ namespace Kratos
 ///@{
 
 /**
- * This class implements a set of auxiliar, already parallelized, methods to
+ * @class Serializer
+ *
+ * @ingroup KratosCore
+ * 
+ * @brief This class implements a set of auxiliar, already parallelized, methods to
  * perform some common tasks related with the variable values and fixity.
+ * @details The methods are exported to python in order to add this improvements to the python interface
+ * 
+ * @author Riccardo Rossi
+ * @author Ruben Zorrilla
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(KRATOS_CORE) VariableUtils
 {
@@ -55,16 +65,22 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// We create the Pointer related to VariableUtils
     KRATOS_CLASS_POINTER_DEFINITION(VariableUtils);
     
+    /// The nodes container
     typedef ModelPart::NodesContainerType NodesContainerType;
     
+    /// The conditions container
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
     
+    /// The elements container
     typedef ModelPart::ElementsContainerType ElementsContainerType;
     
+    /// A definition of the double variable
     typedef Variable< double > DoubleVarType;
     
+    /// A definition of the array variable
     typedef Variable< array_1d<double, 3 > > ArrayVarType;
     
     ///@}
@@ -86,7 +102,31 @@ public:
     ///@{
 
     /**
-     * Sets the nodal value of a vector variable
+     * @brief Sets the nodal value of a scalar variable
+     * @param rVariable reference to the scalar variable to be set
+     * @param Value Value to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TVarType >
+    void SetScalarVar(
+        TVarType& rVariable,
+        const double Value,
+        NodesContainerType& rNodes
+        )
+    {
+        KRATOS_TRY
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
+            NodesContainerType::iterator it_node = rNodes.begin() + k;
+            it_node->FastGetSolutionStepValue(rVariable) = Value;
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    /**
+     * @brief Sets the nodal value of a vector variable
      * @param rVariable reference to the vector variable to be set
      * @param Value array containing the Value to be set
      * @param rNodes reference to the objective node set
@@ -98,15 +138,15 @@ public:
         );
 
     /**
-     * Sets the nodal value of a scalar variable
+     * @brief Sets the nodal value of a scalar variable
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
      * @param rNodes reference to the objective node set
      */
-    template< class TVarType >
-    void SetScalarVar(
-        TVarType& rVariable,
-        const double& Value,
+    template< class TType >
+    void SetVariable(
+        Variable< TType >& rVariable,
+        const TType& Value,
         NodesContainerType& rNodes
         )
     {
@@ -114,15 +154,77 @@ public:
 
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
-            NodesContainerType::iterator i = rNodes.begin() + k;
-            i->FastGetSolutionStepValue(rVariable) = Value;
+            NodesContainerType::iterator it_node = rNodes.begin() + k;
+            it_node->FastGetSolutionStepValue(rVariable) = Value;
         }
         
         KRATOS_CATCH("")
     }
+    
+    /**
+     * @brief Sets the nodal value of a scalar variable non historical
+     * @param rVariable reference to the scalar variable to be set
+     * @param Value Value to be set
+     * @param rNodes reference to the objective node set
+     */
+    template< class TVarType >
+    void SetNonHistoricalScalarVar(
+        TVarType& rVariable,
+        const double Value,
+        NodesContainerType& rNodes
+        )
+    {
+        KRATOS_TRY
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
+            NodesContainerType::iterator it_node = rNodes.begin() + k;
+            it_node->SetValue(rVariable, Value);
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    /**
+     * @brief Sets the nodal value of a vector non historical variable 
+     * @param rVariable reference to the vector variable to be set
+     * @param Value array containing the Value to be set
+     * @param rNodes reference to the objective node set
+     */
+    void SetNonHistoricalVectorVar(
+        const ArrayVarType& rVariable,
+        const array_1d<double, 3 >& Value,
+        NodesContainerType& rNodes
+        );
 
     /**
-     * Sets a flag according to a given status over a given container
+     * @brief Sets the nodal value of any type of non historical variable 
+     * @param rVariable reference to the scalar variable to be set
+     * @param Value Value to be set
+     * @param rContainer reference 
+     */
+    template< class TType, class TContainerType >
+    void SetNonHistoricalVariable(
+        Variable< TType >& rVariable,
+        const TType& Value,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        typedef typename TContainerType::iterator TIteratorType;
+        
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
+            TIteratorType it_cont = rContainer.begin() + k;
+            it_cont->SetValue(rVariable, Value);
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    /**
+     * @brief Sets a flag according to a given status over a given container
      * @param rFlag flag to be set
      * @param rFlagValue flag value to be set
      * @param rContainer reference to the objective container
@@ -148,7 +250,7 @@ public:
     }
 
     /**
-     * Takes the value of a non-historical vector variable and sets it in other variable
+     * @brief Takes the value of a non-historical vector variable and sets it in other variable
      * @param OriginVariable reference to the origin vector variable
      * @param SavedVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
@@ -160,7 +262,7 @@ public:
         );
 
     /**
-     * Takes the value of a non-historical scalar variable and sets it in other variable
+     * @brief Takes the value of a non-historical scalar variable and sets it in other variable
      * @param OriginVariable reference to the origin scalar variable
      * @param SavedVariable reference to the destination scalar variable
      * @param rNodes reference to the objective node set
@@ -172,7 +274,7 @@ public:
         );
 
     /**
-     * Takes the value of an historical vector variable and sets it in other variable
+     * @brief Takes the value of an historical vector variable and sets it in other variable
      * @param OriginVariable reference to the origin vector variable
      * @param DestinationVariable reference to the destination vector variable
      * @param rNodes reference to the objective node set
@@ -184,7 +286,7 @@ public:
         );
 
     /**
-     * Takes the value of an historical double variable and sets it in other variable
+     * @brief Takes the value of an historical double variable and sets it in other variable
      * @param OriginVariable reference to the origin double variable
      * @param DestinationVariable reference to the destination double variable
      * @param rNodes reference to the objective node set
@@ -196,7 +298,7 @@ public:
         );
 
     /**
-     * In a node set, sets a vector variable to zero
+     * @brief In a node set, sets a vector variable to zero
      * @param Variable reference to the vector variable to be set to 0
      * @param rNodes reference to the objective node set
      */
@@ -206,7 +308,7 @@ public:
         );
 
     /**
-     * In a node set, sets a double variable to zero
+     * @brief In a node set, sets a double variable to zero
      * @param Variable reference to the double variable to be set to 0
      * @param rNodes reference to the objective node set
      */
@@ -216,7 +318,7 @@ public:
         );
 
     /**
-     * Returns a list of nodes filtered using the given double variable and value
+     * @brief Returns a list of nodes filtered using the given double variable and value
      * @param Variable reference to the double variable to be filtered
      * @param Value Filtering Value
      * @param rOriginNodes Reference to the objective node set
@@ -224,12 +326,12 @@ public:
      */
     NodesContainerType SelectNodeList(
         const DoubleVarType& Variable,
-        const double& Value,
+        const double Value,
         NodesContainerType& rOriginNodes
         );
 
     /**
-     * Checks if all the nodes of a node set has the specified variable
+     * @brief Checks if all the nodes of a node set has the specified variable
      * @param rVariable reference to a variable to be checked
      * @param rNodes reference to the nodes set to be checked
      * @return 0: if succeeds, return 0
@@ -242,9 +344,8 @@ public:
     {
         KRATOS_TRY
 
-        for (ModelPart::NodeIterator it_node = rNodes.begin(); it_node != rNodes.end(); ++it_node) {
-            KRATOS_ERROR_IF_NOT(it_node->SolutionStepsDataHas(rVariable)) << "Problem on node with Id " << it_node->Id() << "variable " << rVariable << " is not allocated!" << std::endl;
-        }
+        for (auto& i_node : rNodes)
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(rVariable, i_node);
 
         return 0;
 
@@ -252,7 +353,7 @@ public:
     }
 
     /**
-     * Fixes or frees a variable for all of the nodes in the list
+     * @brief Fixes or frees a variable for all of the nodes in the list
      * @param rVar reference to the variable to be fixed or freed
      * @param IsFixed if true fixes, if false frees
      * @param rNodes reference to the nodes set to be frixed or freed
@@ -265,9 +366,10 @@ public:
         )
     {
         KRATOS_TRY
-
+        
         if(rNodes.size() != 0) {
-            KRATOS_ERROR_IF_NOT(rNodes.begin()->SolutionStepsDataHas( rVar )) << "Trying to fix/free a variable that is not in the model_part - variable is " << rVar;
+            // First we do a check 
+            CheckVariableExists(rVar, rNodes);
 
             if(IsFixed == true) {
                 #pragma omp parallel for
@@ -288,8 +390,8 @@ public:
     }
     
     /**
-     * Loops along a vector data to set its values to the nodes contained in a node set.
-     * Note that this function is suitable for scalar historical variables, since each
+     * @brief Loops along a vector data to set its values to the nodes contained in a node set.
+     * @note This function is suitable for scalar historical variables, since each
      * one of the values in the data vector is set to its correspondent node. Besides,
      * the values must be sorted as the nodes are (value i corresponds to node i).
      * @param rVar reference to the variable to be fixed or freed
@@ -306,7 +408,8 @@ public:
         KRATOS_TRY
 
         if(rNodes.size() != 0 && rNodes.size() == rData.size()) {
-            KRATOS_ERROR_IF_NOT(rNodes.begin()->SolutionStepsDataHas( rVar )) << "Trying to set a variable that is not in the model_part - variable is " << rVar;
+            // First we do a check 
+            CheckVariableExists(rVar, rNodes);
 
             #pragma omp parallel for
             for (int k = 0; k< static_cast<int> (rNodes.size()); ++k) {
@@ -320,7 +423,7 @@ public:
     }
 
     /**
-     * Returns the nodal value summation of a non-historical vector variable.
+     * @brief Returns the nodal value summation of a non-historical vector variable.
      * @param rVar reference to the vector variable to summed
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value: summation vector result
@@ -331,7 +434,7 @@ public:
         );
 
     /**
-     * Returns the nodal value summation of a non-historical scalar variable.
+     * @brief Returns the nodal value summation of a non-historical scalar variable.
      * @param rVar reference to the scalar variable to be summed
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value: summation result
@@ -360,7 +463,7 @@ public:
     }
 
     /**
-     * Returns the nodal value summation of an historical vector variable.
+     * @brief Returns the nodal value summation of an historical vector variable.
      * @param rVar reference to the vector variable to summed
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value summation vector result
@@ -368,11 +471,11 @@ public:
     array_1d<double, 3> SumHistoricalNodeVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
         ModelPart& rModelPart,
-        const unsigned int& rBuffStep = 0
+        const unsigned int rBuffStep = 0
         );
     
     /**
-     * Returns the nodal value summation of an historical scalar variable.
+     * @brief Returns the nodal value summation of an historical scalar variable.
      * @param rVar reference to the scalar variable to be summed
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value: summation result
@@ -381,7 +484,7 @@ public:
     double SumHistoricalNodeScalarVariable(
         const TVarType& rVar,
         ModelPart& rModelPart,
-        const unsigned int& rBuffStep = 0
+        const unsigned int rBuffStep = 0
         )
     {
         KRATOS_TRY
@@ -402,7 +505,7 @@ public:
     }
 
     /**
-     * Returns the condition value summation of a historical vector variable
+     * @brief Returns the condition value summation of a historical vector variable
      * @param rVar reference to the vector variable to be summed
      * @param rModelPart reference to the model part that contains the objective condition set
      * @return sum_value: summation result
@@ -413,7 +516,7 @@ public:
         );
 
     /**
-     * Returns the condition value summation of a historical scalar variable
+     * @brief Returns the condition value summation of a historical scalar variable
      * @param rVar reference to the scalar variable to be summed
      * @param rModelPart reference to the model part that contains the objective condition set
      * @return sum_value: summation result
@@ -442,7 +545,7 @@ public:
     }
 
     /**
-     * Returns the element value summation of a historical vector variable
+     * @brief Returns the element value summation of a historical vector variable
      * @param rVar reference to the vector variable to be summed
      * @param rModelPart reference to the model part that contains the objective element set
      * @return sum_value: summation result
@@ -453,7 +556,7 @@ public:
         );
 
     /**
-     * Returns the element value summation of a historical scalar variable
+     * @brief Returns the element value summation of a historical scalar variable
      * @param rVar reference to the scalar variable to be summed
      * @param rModelPart reference to the model part that contains the objective element set
      * @return sum_value: summation result
@@ -482,7 +585,7 @@ public:
     }
     
     /** 
-     * This function add dofs to the nodes in a model part. It is useful since addition is done in parallel
+     * @brief This function add dofs to the nodes in a model part. It is useful since addition is done in parallel
      * @param rVar The variable to be added as DoF
      * @param rModelPart reference to the model part that contains the objective element set
      */
@@ -494,9 +597,10 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(rVar.Key() == 0) << "ERROR:: Variable : " << rVar << " has a 0 key. Check if the application was correctly registered.";
+        // First we do a chek
+        KRATOS_CHECK_VARIABLE_KEY(rVar)
         if(rModelPart.NumberOfNodes() != 0)
-            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Soluttion step data ";
+            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Solution step data ";
 
         #pragma omp parallel for 
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
@@ -508,7 +612,7 @@ public:
     }
     
     /** 
-     * This function add dofs to the nodes in a model part. It is useful since addition is done in parallel
+     * @brief This function add dofs to the nodes in a model part. It is useful since addition is done in parallel
      * @param rVar The variable to be added as DoF
      * @param rReactionVar The corresponding reaction to the added DoF
      * @param rModelPart reference to the model part that contains the objective element set
@@ -522,23 +626,23 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(rVar.Key() == 0) << "ERROR:: Variable : " << rVar << " has a 0 key. Check if the application was correctly registered.";
-        KRATOS_ERROR_IF(rReactionVar.Key() == 0) << "ERROR:: Variable : " << rReactionVar << " has a 0 key. Check if the application was correctly registered.";
-
+        KRATOS_CHECK_VARIABLE_KEY(rVar)
+        KRATOS_CHECK_VARIABLE_KEY(rReactionVar)
+        
         if(rModelPart.NumberOfNodes() != 0) {
-            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Soluttion step data ";
-            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rReactionVar)) << "ERROR:: Variable : " << rReactionVar << "not included in the Soluttion step data ";
+            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rVar)) << "ERROR:: DoF Variable : " << rVar << "not included in the Soluttion step data ";
+            KRATOS_ERROR_IF_NOT(rModelPart.NodesBegin()->SolutionStepsDataHas(rReactionVar)) << "ERROR:: Reaction Variable : " << rReactionVar << "not included in the Soluttion step data ";
         }
+        
+        // If in debug we do a check for all nodes
+    #ifdef KRATOS_DEBUG
+        CheckVariableExists(rVar, rModelPart.Nodes());
+        CheckVariableExists(rReactionVar, rModelPart.Nodes());
+    #endif
         
         #pragma omp parallel for 
         for (int k = 0; k < static_cast<int>(rModelPart.NumberOfNodes()); ++k) {
             auto it_node = rModelPart.NodesBegin() + k;
-
-        #ifdef KRATOS_DEBUG
-            KRATOS_ERROR_IF_NOT(it_node->SolutionStepsDataHas(rVar)) << "ERROR:: Variable : " << rVar << "not included in the Soluttion step data ";
-            KRATOS_ERROR_IF_NOT(it_node->SolutionStepsDataHas(rReactionVar)) << "ERROR:: Variable : " << rReactionVar << "not included in the Soluttion step data ";
-        #endif
-            
             it_node->AddDof(rVar,rReactionVar);
         }
 
@@ -546,13 +650,13 @@ public:
     }
     
     /** 
-     * This method checks the variable keys
+     * @brief This method checks the variable keys
      * @return True if all the keys are correct
      */
     bool CheckVariableKeys();
 
     /** 
-     * This method checks the dofs
+     * @brief This method checks the dofs
      * @param rModelPart reference to the model part that contains the objective element set
      * @return True if all the DoFs are correct
      */
@@ -585,7 +689,7 @@ private:
     ///@{
     
     /**
-     * This is auxiliar method to check the keys 
+     * @brief This is auxiliar method to check the keys 
      * @return True if all the keys are OK
      */
     template< class TVarType >
@@ -600,10 +704,9 @@ private:
                 std::cout << var.first << var.second << std::endl;
             if (var.first != var.second->Name()) //name of registration does not correspond to the var name
                 std::cout << "Registration Name = " << var.first << " Variable Name = " << std::endl;
-            if (var.second->Key() == 0) {
-                KRATOS_ERROR << "found a key of zero for the variable registered with the name : " << var.first << std::endl;
-                return false;
-            }
+            
+            KRATOS_ERROR_IF((var.second)->Key() == 0) << (var.second)->Name() << " Key is 0." << std::endl \
+            << "Check that Kratos variables have been correctly registered and all required applications have been imported." << std::endl;
         }
 
         return true;
