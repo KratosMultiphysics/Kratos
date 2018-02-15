@@ -7,7 +7,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import Kratos_Execute_Structural_Test as Execute_Test
 
-# This utiltiy will control the execution scope in case we need to acces files or we depend
+# This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
 # TODO: Should we move this to KratosUnittest?
@@ -44,5 +44,8 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
 # Do NOT remove these tests, they are there that the Execution script is being tested in the SmallTests 
 # (aka by the continuous integration tool before merging to master) !!!
-class SimpleMeshMovingTest(StructuralMechanichsTestFactory):
-    file_name = "mesh_moving_test/simple_mesh_moving_test"
+class DynamicBossakTests(StructuralMechanichsTestFactory):
+    file_name = "dynamic_test/dynamic_bossak_test"
+
+class DynamicNewmarkTests(StructuralMechanichsTestFactory):
+    file_name = "dynamic_test/dynamic_newmark_test"
