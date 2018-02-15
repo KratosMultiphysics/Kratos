@@ -55,7 +55,7 @@ namespace Kratos
  * @class ResidualBasedNewtonRaphsonStrategy
  * @ingroup KratosCore
  * @brief This is the base Newton Raphson strategy
- * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is suppased) using a Newton Raphson algorithm
+ * @details This strategy iterates until the convergence is achieved (or the maximum number of iterations is surpassed) using a Newton Raphson algorithm
  * @author Riccardo Rossi
  */
 template <class TSparseSpace,
@@ -110,6 +110,7 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param pScheme The integration scheme
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
      * @param CalculateReactions The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
@@ -179,7 +180,8 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param pNewLinearSolver The linear solver employed
      * @param pNewConvergenceCriteria The convergence criteria employed
      * @param pNewBuilderAndSolver The builder and solver employed
-     * @param CalculateReactionFlag The flag for the reaction calculation
+     * @param MaxIterations The maximum number of non-linear iterations to be considered when solving the problem
+     * @param CalculateReactions The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
@@ -1036,7 +1038,7 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief This method prints information after reach the max number of interations
+     * @brief This method prints information after reach the max number of iterations
      * @todo Replace by logger
      */
 
