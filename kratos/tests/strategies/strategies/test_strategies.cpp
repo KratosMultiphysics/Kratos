@@ -108,10 +108,9 @@ namespace Kratos
             pnode->AddDof(DISPLACEMENT_Z);
             
             // Set initial solution
-            const array_1d<double, 3> zero_vector = ZeroVector(3);
-            pnode->FastGetSolutionStepValue(DISPLACEMENT) = zero_vector;
-            pnode->FastGetSolutionStepValue(DISPLACEMENT, 1) = zero_vector;
-            pnode->FastGetSolutionStepValue(DISPLACEMENT, 2) = zero_vector;
+            (pnode->FastGetSolutionStepValue(DISPLACEMENT)).clear();
+            (pnode->FastGetSolutionStepValue(DISPLACEMENT, 1)).clear();
+            (pnode->FastGetSolutionStepValue(DISPLACEMENT, 2)).clear();
         }
      
         /** 
