@@ -92,7 +92,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         if (scheme_type == "backward_euler"):
             order = 1
         else:
-            # BDF schemes can be from 1 to 5 order, so in order to detect the integration order from the scheme_type we remove the "bdf" string
+            # BDF schemes can be from 1 to 5 order, so in order to detect the integration order from the scheme_type we remove the "bdf" string, that is, if the user tells bdf3 only 3 will remain when we remove bdf which corresponds to the method of choice
             order = int(scheme_type.replace("bdf", ""))
 
         # Warning
