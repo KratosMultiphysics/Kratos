@@ -290,7 +290,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                     //calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                     // Modifying the local contributions for MPC
-                    this->Element_ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo, mpConstraintVector);
+                    this->ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo, mpConstraintVector);
 //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
                     this->Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, BaseType::mlock_array);
@@ -320,7 +320,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
                     pScheme->Condition_CalculateSystemContributions(*(it.base()), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     // Modifying the local contributions for MPC
-                    this->Condition_ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo, mpConstraintVector);
+                    this->ApplyConstraints(*(*(it.base())), LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo, mpConstraintVector);
 
 //assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
@@ -404,7 +404,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             (i_element)->EquationIdVector(ids, CurrentProcessInfo);
 
             // Modifying the equation IDs of this element to suit MPCs
-            this->Element_ModifyEquationIdsForConstraints(*(*(i_element.base())), ids, CurrentProcessInfo, mpConstraintVector);
+            this->ModifyEquationIdsForConstraints(*(*(i_element.base())), ids, CurrentProcessInfo, mpConstraintVector);
 
             for (std::size_t i = 0; i < ids.size(); i++)
             {
@@ -426,7 +426,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
             typename ConditionsArrayType::iterator i_condition = rConditions.begin() + iii;
             (i_condition)->EquationIdVector(ids, CurrentProcessInfo);
             // Modifying the equation IDs of this element to suit MPCs
-            this->Condition_ModifyEquationIdsForConstraints(*(*(i_condition.base())), ids, CurrentProcessInfo, mpConstraintVector);
+            this->ModifyEquationIdsForConstraints(*(*(i_condition.base())), ids, CurrentProcessInfo, mpConstraintVector);
 
             for (std::size_t i = 0; i < ids.size(); i++)
             {
@@ -489,7 +489,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
      * This function changes/extends the element LHS and RHS to apply constraints
      */
 
-    void Element_ApplyConstraints(Element &rCurrentElement,
+    void ApplyConstraints(Element &rCurrentElement,
                                   LocalSystemMatrixType &LHS_Contribution,
                                   LocalSystemVectorType &RHS_Contribution,
                                   Element::EquationIdVectorType &EquationId,
@@ -500,7 +500,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             if (constraint->IsActive())
             {
-                constraint->Element_ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                constraint->ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
             }
         }
 
@@ -509,10 +509,10 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /*
      * This function changes/extends the condition LHS and RHS to apply constraints
      */
-    void Condition_ApplyConstraints(Condition &rCurrentElement,
+    void ApplyConstraints(Condition &rCurrentCondition,
                                     LocalSystemMatrixType &LHS_Contribution,
                                     LocalSystemVectorType &RHS_Contribution,
-                                    Element::EquationIdVectorType &EquationId,
+                                    Condition::EquationIdVectorType &EquationId,
                                     ProcessInfo &CurrentProcessInfo,
                                     ConstraintSharedPointerVectorType &constraintVector)
     {
@@ -520,7 +520,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             if (constraint->IsActive())
             {
-                constraint->Condition_ApplyConstraints(rCurrentElement, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                constraint->ApplyConstraints(rCurrentCondition, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
             }
         }
 
@@ -529,7 +529,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /*
      * This function Formulates the constraint data in equation ID terms for formulate the sparsity pattern of the sparse matrix
      */
-    void Element_ModifyEquationIdsForConstraints(Element &rCurrentElement,
+    void ModifyEquationIdsForConstraints(Element &rCurrentElement,
                                                  Element::EquationIdVectorType &EquationId,
                                                  ProcessInfo &CurrentProcessInfo,
                                                  ConstraintSharedPointerVectorType &constraintVector)
@@ -538,7 +538,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             if (constraint->IsActive())
             {
-                constraint->Element_ModifyEquationIdsForConstraints(rCurrentElement, EquationId, CurrentProcessInfo);
+                constraint->ModifyEquationIdsForConstraints(rCurrentElement, EquationId, CurrentProcessInfo);
             }
         }
     }
@@ -546,7 +546,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     /*
      * This function Formulates the constraint data in equation ID terms for formulate the sparsity pattern of the sparse matrix
      */
-    void Condition_ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
+    void ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
                                                    Condition::EquationIdVectorType &EquationId,
                                                    ProcessInfo &CurrentProcessInfo,
                                                    ConstraintSharedPointerVectorType &constraintVector)
@@ -555,7 +555,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         {
             if (constraint->IsActive())
             {
-                constraint->Condition_ModifyEquationIdsForConstraints(rCurrentCondition, EquationId, CurrentProcessInfo);
+                constraint->ModifyEquationIdsForConstraints(rCurrentCondition, EquationId, CurrentProcessInfo);
             }
         }
     }

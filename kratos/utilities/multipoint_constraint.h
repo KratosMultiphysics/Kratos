@@ -155,7 +155,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         }
     }
 
-    virtual void Element_ModifyEquationIdsForConstraints(Element &rCurrentElement,
+    virtual void ModifyEquationIdsForConstraints(Element &rCurrentElement,
                                                          EquationIdVectorType &EquationId,
                                                          ProcessInfo &CurrentProcessInfo) override
     {
@@ -185,7 +185,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         }    
     }
 
-    virtual void Condition_ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
+    virtual void ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
                                                            EquationIdVectorType &EquationId,
                                                            ProcessInfo &CurrentProcessInfo) override
     {
@@ -250,7 +250,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
      * 
      */
 
-    virtual void Element_ApplyConstraints(Element &rCurrentElement,
+    virtual void ApplyConstraints(Element &rCurrentElement,
                                           LocalSystemMatrixType &LHS_Contribution,
                                           LocalSystemVectorType &RHS_Contribution,
                                           EquationIdVectorType &EquationId,
@@ -403,7 +403,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         KRATOS_CATCH("Applying Multipoint constraints failed ..")
     }
 
-    void Condition_ApplyConstraints(Condition &rCurrentElement,
+    void ApplyConstraints(Condition &rCurrentElement,
                                     LocalSystemMatrixType &LHS_Contribution,
                                     LocalSystemVectorType &RHS_Contribution,
                                     EquationIdVectorType &EquationId,

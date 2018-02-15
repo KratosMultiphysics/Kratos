@@ -139,7 +139,7 @@ class Constraint
      *  Does necessary operations on the element freedom table so as to construct the global stiffness matrix.
      *  Mainly to build the sparsity pattern for the global stiffness matrix.
      */        
-    virtual void Element_ModifyEquationIdsForConstraints(Element &rCurrentElement,
+    virtual void ModifyEquationIdsForConstraints(Element &rCurrentElement,
                                                          EquationIdVectorType &EquationId,
                                                          ProcessInfo &CurrentProcessInfo)
     {
@@ -149,7 +149,7 @@ class Constraint
      *  Does necessary operations on the element freedom table of condition so as to construct the global stiffness matrix.
      *  Mainly to build the sparsity pattern for the global stiffness matrix.
      */            
-    virtual void Condition_ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
+    virtual void ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
                                                            EquationIdVectorType &EquationId,
                                                            ProcessInfo &CurrentProcessInfo)
     {
@@ -158,7 +158,7 @@ class Constraint
     /**
      *  Does necessary operations on the element stiffness matrix and element rhs to apply the constraints.
      */    
-    virtual void Element_ApplyConstraints(Element &rCurrentElement,
+    virtual void ApplyConstraints(Element &rCurrentElement,
                                           LocalSystemMatrixType &LHS_Contribution,
                                           LocalSystemVectorType &RHS_Contribution,
                                           EquationIdVectorType &EquationId,
@@ -169,7 +169,7 @@ class Constraint
     /**
      *  Does necessary operations on the condition stiffness matrix and element rhs to apply the constraints.
      */        
-    virtual void Condition_ApplyConstraints(Condition &rCurrentCondition,
+    virtual void ApplyConstraints(Condition &rCurrentCondition,
                                             LocalSystemMatrixType &LHS_Contribution,
                                             LocalSystemVectorType &RHS_Contribution,
                                             EquationIdVectorType &EquationId,
