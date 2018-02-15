@@ -3,6 +3,7 @@
 //   Author: Joaquin Irazabal
 //   Date:   2018-02-15
 //
+//   http://mathworld.wolfram.com/Ellipsoid.html
 
 Name
 ellipsoidcluster3D
@@ -194,8 +195,8 @@ Inertia per unit mass
 0.0625
 0.078125
 
-// This is the cuboid with a = 0.5, b = 0.375 and c= 0.25. To build another cuboid with different parameters, the python code is:
-
+// This is the ellipsoid with a = 0.5, b = 0.375 and c= 0.25. To build another cuboid with different parameters, the python code is: 
+//
 // import math
 // 
 // number_of_spheres_in_first_sector = 7
@@ -227,8 +228,14 @@ Inertia per unit mass
 // MomentOfInertiaY = 0.2 * (a * a + c * c)
 // MomentOfInertiaZ = 0.2 * (a * a + b * b)
 // 
-// aux = max((max(CoordX)-min(CoordX)), (max(CoordY)-min(CoordY)))
-// MaxDistance = max(aux, (max(CoordZ)-min(CoordZ))) + 2 * radius
+// MaxDistance = 0.0
+// 
+// for i in range(len(CoordX)):
+//     for j in range(len(CoordX)):
+//         if i < j:
+//             aux = round(math.sqrt((CoordX[i] - CoordX[j]) * (CoordX[i] - CoordX[j]) + (CoordY[i] - CoordY[j]) * (CoordY[i] - CoordY[j]) + (CoordZ[i] - CoordZ[j]) * (CoordZ[i] - CoordZ[j])) + 2.0 * 0.1, 6)
+//             if aux > MaxDistance:
+//                 MaxDistance = aux
 // 
 // ClusterFile = open("ellipsoidcluster3D.clu", 'w')
 // 
@@ -237,6 +244,7 @@ Inertia per unit mass
 // ClusterFile.write("//   Author: Joaquin Irazabal" + '\n')
 // ClusterFile.write("//   Date:   2018-02-15" + '\n')
 // ClusterFile.write("//" + '\n')
+// ClusterFile.write("//   http://mathworld.wolfram.com/Ellipsoid.html" + '\n')
 // ClusterFile.write('\n')
 // ClusterFile.write("Name" + '\n')
 // ClusterFile.write("ellipsoidcluster3D" + '\n')

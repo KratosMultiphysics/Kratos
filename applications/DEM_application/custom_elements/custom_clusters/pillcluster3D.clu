@@ -68,7 +68,7 @@ Begin centers_and_radii
 End centers_and_radii
 
 Particle_center_and_diameter
-0.0 0.0 0.0 1.0 
+0.0 0.0 0.0 1.000001 
 
 Size
 1.0
