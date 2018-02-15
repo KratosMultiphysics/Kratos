@@ -400,6 +400,8 @@ public:
     Node& operator=(const Node& rOther)
     {
         BaseType::operator=(rOther);
+        Flags::operator =(rOther);
+        IndexedObject::operator=(rOther);
 
         // Deep copying the dofs
         for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
