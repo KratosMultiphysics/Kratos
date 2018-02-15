@@ -132,8 +132,8 @@ public:
         KRATOS_TRY;
 
         const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
-        CalculateAreaNormalOnSimplex(mrModelPart.Conditions(),domain_size);
-        CalculateUnitNormalOnSimplex();
+        CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
+        CalculateUnitNormals();
 
         KRATOS_CATCH("");
     }
@@ -318,7 +318,7 @@ private:
     ///@{
 
     // --------------------------------------------------------------------------
-    void CalculateAreaNormalOnSimplex(ConditionsArrayType& rConditions, int dimension)
+    void CalculateAreaNormals(ConditionsArrayType& rConditions, int dimension)
     {
         KRATOS_TRY
 
@@ -426,7 +426,7 @@ private:
     }
 
     // --------------------------------------------------------------------------
-    void CalculateUnitNormalOnSimplex()
+    void CalculateUnitNormals()
     {
         for (auto& node_i : mrModelPart.Nodes())
         {

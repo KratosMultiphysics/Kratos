@@ -43,6 +43,7 @@ CSM_solver.ImportModelPart()
 # Add degrees of freedom
 CSM_solver.AddDofs()
 
+# Create Model
 Model = Model()
 Model.AddModelPart(main_model_part)
 
