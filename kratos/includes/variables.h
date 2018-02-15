@@ -430,52 +430,11 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, INTEGRATION_WEIGHT )
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( INTEGRATION_COORDINATES )
 
-    // for Vulcan application
-//     KRATOS_DEFINE_VARIABLE(double,  LAST_AIR)
-//     KRATOS_DEFINE_VARIABLE(double,  PRESSURES)
-//     KRATOS_DEFINE_VARIABLE(double,  TEMPERATURES)
-//     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VELOCITIES)
-  // for Vulcan application virtual mould properties
-//   KRATOS_DEFINE_VARIABLE(double,  MOULD_DENSITY)
-//   KRATOS_DEFINE_VARIABLE(double,  MOULD_SPECIFIC_HEAT)
-//   KRATOS_DEFINE_VARIABLE(double,  MOULD_THICKNESS)
-//   KRATOS_DEFINE_VARIABLE(double,  MOULD_SFACT)
-//   KRATOS_DEFINE_VARIABLE(double,  MOULD_VFACT)
-//   KRATOS_DEFINE_VARIABLE(double,  MOULD_CONDUCTIVITY)
-//   KRATOS_DEFINE_VARIABLE(double,  MOULD_HTC_ENVIRONMENT)
-//   KRATOS_DEFINE_VARIABLE(double,  MOULD_TEMPERATURE)
-//   KRATOS_DEFINE_VARIABLE(double,  MOULD_INNER_TEMPERATURE)
-
-//     // for Click2Cast application
-//     KRATOS_DEFINE_VARIABLE(int, NODE_PROPERTY_ID)
-//     KRATOS_DEFINE_VARIABLE(double,  HTC)
-//     KRATOS_DEFINE_VARIABLE(int, REF_ID)
-//     KRATOS_DEFINE_VARIABLE(double, PARTICLE_RADIUS)
-//     KRATOS_DEFINE_VARIABLE(double, POSETIVE_DISTANCE)
-//     KRATOS_DEFINE_VARIABLE(double, NAGATIVE_DISTANCE)
-//     KRATOS_DEFINE_VARIABLE(bool, IS_ESCAPED)
-//     KRATOS_DEFINE_VARIABLE(int, IS_SOLIDIFIED)
-//     KRATOS_DEFINE_VARIABLE(double, SOLIDFRACTION )
-//     KRATOS_DEFINE_VARIABLE(double, SOLIDIF_TIME  )
-//     KRATOS_DEFINE_VARIABLE(double, SOLIDIF_MODULUS  )
-//     KRATOS_DEFINE_VARIABLE(double, FILLTIME  )
-//     KRATOS_DEFINE_VARIABLE(double, MACRO_POROSITY  )
-//     KRATOS_DEFINE_VARIABLE(double, SHRINKAGE_POROSITY  )
-//     KRATOS_DEFINE_VARIABLE(double, MAX_VEL  )
-//     KRATOS_DEFINE_VARIABLE(int, IS_GRAVITY_FILLING)
-//     KRATOS_DEFINE_VARIABLE(double,VOLUME_FRACTION )
-//     KRATOS_DEFINE_VARIABLE(double,KAPPA )
-//     KRATOS_DEFINE_VARIABLE(double,EPSILON )
-//     KRATOS_DEFINE_VARIABLE(double,SHRINKAGE_POROSITY_US)
-//     KRATOS_DEFINE_VARIABLE(double,SOLIDIF_MODULUS_US)
-//     KRATOS_DEFINE_VARIABLE(double,TEMPERATURES_US)
-//     KRATOS_DEFINE_VARIABLE(double,FRONT_MEETING)
-
-typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-typedef Constraint<SparseSpaceType,LocalSpaceType>::Pointer ConstraintPointerType;
-typedef boost::shared_ptr<std::vector<ConstraintPointerType>>ConstraintSharedPointerVectorType;
-KRATOS_DEFINE_VARIABLE(ConstraintSharedPointerVectorType, CONSTRAINTS_CONTAINER)
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef Constraint<SparseSpaceType,LocalSpaceType>::Pointer ConstraintPointerType;
+    typedef boost::shared_ptr<std::vector<ConstraintPointerType>>ConstraintSharedPointerVectorType;
+    KRATOS_DEFINE_VARIABLE(ConstraintSharedPointerVectorType, CONSTRAINTS_CONTAINER)    
 
 }  // namespace Kratos.
 
