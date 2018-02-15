@@ -73,7 +73,7 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         elif(scheme_type == "bossak"):
             damp_factor_m = self.dynamic_settings["damp_factor_m"].GetDouble()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-        elif("bdf" in scheme_type or scheme_type == "backward_euler"):
+        elif(scheme_type.startswith("bdf") or scheme_type == "backward_euler"):
             order = self._bdf_integration_order()
             mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(order)
         elif(scheme_type == "relaxation"):
