@@ -80,7 +80,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         """Return the python object of a Variable named by the string argument.
 
         Examples:
+        recommended usage:
         variable = self._GetVariable("VELOCITY")
+        deprecated:
         variable = self._GetVariable("KratosMultiphysics.VELOCITY")
         variable = self._GetVariable("SUBSCALE_PRESSURE")
         variable = self._GetVariable("FluidDynamicsApplication.SUBSCALE_PRESSURE")
@@ -92,9 +94,11 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         """Return the python object of a Constitutive Law named by the string argument.
 
         Example:
+        recommended usage:
+        constitutive_law = self._GetConstitutiveLaw('LinearElastic3DLaw')
+        deprecated:
         constitutive_law = self._GetConstitutiveLaw('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
         constitutive_law = self._GetConstitutiveLaw('StructuralMechanicsApplication.LinearElastic3DLaw')
-        constitutive_law = self._GetConstitutiveLaw('LinearElastic3DLaw')
 
         model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
         """
