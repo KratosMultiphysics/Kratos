@@ -50,8 +50,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// ProcessInfo holds the current value of different solution parameters. 
+/** 
+ * ProcessInfo holds the current value of different solution parameters. 
+ * It can be used to keep variables like time, solution step, non linear step, or any other variable defined in Kratos. 
+ * Its variable base interface provides a clear and flexible access to these data. 
 */
 class ProcessInfo : public DataValueContainer, public Flags
 {

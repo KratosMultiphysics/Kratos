@@ -56,8 +56,6 @@ class DamReservoirConstantTemperatureProcess : public Process
                 "Water_temp_Table"                                 : 0,                
                 "Water_level"                                      : 0.0,
                 "Water_level_Table"                                : 0,
-                "Outer_temp"                                       : 0.0,
-                "Outer_temp_Table"                                 : 0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
@@ -76,12 +74,10 @@ class DamReservoirConstantTemperatureProcess : public Process
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
         mWaterTemp = rParameters["Water_temp"].GetDouble();
         mWaterLevel = rParameters["Water_level"].GetDouble();
-        mOuterTemp = rParameters["Outer_temp"].GetDouble();
 
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
         mTableIdWaterTemp = rParameters["Water_temp_Table"].GetInt();
         mTableIdWater = rParameters["Water_level_Table"].GetInt();
-        mTableIdOuter = rParameters["Outer_temp_Table"].GetInt();
 
         if (mTableIdWaterTemp != 0)
             mpTableWaterTemp = mrModelPart.pGetTable(mTableIdWaterTemp);
@@ -127,18 +123,15 @@ class DamReservoirConstantTemperatureProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
                 double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
+                    if (mIsFixed)
+                    {
+                        it->Fix(var);
+                    }
                     it->FastGetSolutionStepValue(var) = mWaterTemp;
                 }
-                else
-                    it->FastGetSolutionStepValue(var) = mOuterTemp;
             }
         }
 
@@ -196,18 +189,15 @@ class DamReservoirConstantTemperatureProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                if (mIsFixed)
-                {
-                    it->Fix(var);
-                }
-
                 double aux = (mReferenceCoordinate + mWaterLevel) - it->Coordinates()[direction];
                 if (aux >= 0.0)
                 {
+                    if (mIsFixed)
+                    {
+                        it->Fix(var);
+                    }
                     it->FastGetSolutionStepValue(var) = mWaterTemp;
                 }
-                else
-                    it->FastGetSolutionStepValue(var) = mOuterTemp;
             }
         }
 

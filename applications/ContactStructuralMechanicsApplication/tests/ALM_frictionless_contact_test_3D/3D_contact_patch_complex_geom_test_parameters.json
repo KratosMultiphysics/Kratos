@@ -24,14 +24,13 @@
         "contact_settings":
         {
             "mortar_type"                    : "ALMContactFrictionless",
-            "ensure_contact"                 : true,
-            "contact_tolerance"              : 0.0e0
+            "ensure_contact"                 : true
         },
         "block_builder"                      : false,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
-        "convergence_criterion"              : "contact_displacement_criterion",
+        "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
@@ -94,21 +93,20 @@
             "computing_model_part_name" : "computing_domain",
             "model_part_name"           : "Structure",
             "assume_master_slave"       : "Parts_Parts_Auto1",
-            "search_factor"             : 1.5,
+            "search_factor"             : 2.5,
             "contact_type"              : "Frictionless",
             "max_number_results"        : 1000,
-            "normal_variation"          : "NODERIVATIVESCOMPUTATION",
+            "normal_variation"          : "NO_DERIVATIVES_COMPUTATION",
             "type_search"               : "InRadius",
             "integration_order"         : 2,
             "active_check_factor"       : 1.0e-1,
-            "dual_search_check"         : true,
             "stiffness_factor"          : 10.0,
             "penalty_scale_factor"      : 1.0,
             "manual_ALM"                : false,
             "penalty"                   : 1.0e0,
             "scale_factor"              : 1.0e0,
-            "debug_mode"                : false,
-            "use_exact_integration"     : false
+            "check_gap"                 : "DirectCheck",
+            "debug_mode"                : false
         }
     }],
     "json_check_process" : [

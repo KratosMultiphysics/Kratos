@@ -184,9 +184,10 @@ class ManufacturedSolutionProblem:
         while(time <= end_time):
 
             Dt = self.solver.ComputeDeltaTime()
-            time = time + Dt
-            step = step + 1
+            step += 1
+            time += Dt
             self.main_model_part.CloneTimeStep(time)
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
 
             if (self.print_output):
                 self.gid_output.ExecuteInitializeSolutionStep()

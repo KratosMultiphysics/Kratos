@@ -19,50 +19,39 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-def CreateMapper( designSurface, optimizationSettings ):
-
-    # default settings string in json format
+def CreateMapper( ModelPartController, OptimizationSettings ):
     default_settings = Parameters("""
     {
-        "design_variables_type"              : "vertex_morphing",
-        "optimization_model_part_name"       : "optimization_model_part_name",
-        "design_surface_sub_model_part_name" : "design_surface",
-        "domain_size"                  : 3,
-        "filter" : {
-            "filter_function_type"       : "linear",
-            "filter_radius"              : 1.0,
-            "max_nodes_in_filter_radius" : 10000,
-            "matrix_free_filtering"      : false,
-            "integration": {
-                "integration_method": "node_sum",
-                "number_of_gauss_points": 0
-            }
+        "filter_function_type"       : "linear",
+        "filter_radius"              : 1.0,
+        "max_nodes_in_filter_radius" : 10000,
+        "matrix_free_filtering"      : false,
+        "integration": 
+        {
+            "integration_method": "node_sum",
+            "number_of_gauss_points": 0
         },
-        "consistent_mapping_to_geometry_space": false,
-        "damping" : {
-            "perform_damping" : false,
-            "damping_regions" : []
-        }
+        "consistent_mapping_to_geometry_space": false
     }""")
+    
+    mapper_settings = OptimizationSettings["design_variables"]["filter"]
+    mapper_settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
-    # overwrite the default settings with user-provided parameters
-    optimizationSettings["design_variables"].RecursivelyValidateAndAssignDefaults(default_settings)
+    design_surface = ModelPartController.GetDesignSurface()
 
-    isMatrixFreeMappingRequired = optimizationSettings["design_variables"]["filter"]["matrix_free_filtering"].GetBool()
-    integrationMethod = optimizationSettings["design_variables"]["filter"]["integration"]["integration_method"].GetString()
-    if isMatrixFreeMappingRequired:
-        if optimizationSettings["design_variables"]["consistent_mapping_to_geometry_space"].GetBool():
+    if mapper_settings["matrix_free_filtering"].GetBool():
+        if mapper_settings["consistent_mapping_to_geometry_space"].GetBool():
              raise ValueError ("Matrix free Mapper has no consistent_mapping_to_geometry_space option yet!")
-        if integrationMethod != "node_sum":
+        if mapper_settings["integration"]["integration_method"].GetString() != "node_sum":
              raise ValueError ("Matrix free Mapper can only be combined with 'node_sum' integration method!")
         else:
-            return MapperVertexMorphingMatrixFree( designSurface, optimizationSettings )
+            return MapperVertexMorphingMatrixFree( design_surface, mapper_settings )
     else:
-        if integrationMethod in ["gauss_integration", "area_weighted_sum"]:
-            return MapperVertexMorphingImprovedIntegration( designSurface, optimizationSettings )
-        elif integrationMethod == "node_sum":
-            return MapperVertexMorphing( designSurface, optimizationSettings )
+        if mapper_settings["integration"]["integration_method"].GetString() in ["gauss_integration", "area_weighted_sum"]:
+            return MapperVertexMorphingImprovedIntegration( design_surface, mapper_settings )
+        elif mapper_settings["integration"]["integration_method"].GetString() == "node_sum":
+            return MapperVertexMorphing( design_surface, mapper_settings )
         else:
-            raise ValueError ("CreateMapper: integration_method not known!")
+            raise ValueError ("CreateMapper: integration_method not known!")       
 
 # ==============================================================================

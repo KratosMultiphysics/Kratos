@@ -16,18 +16,10 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-
-//Processes
-#include "custom_processes/postprocess_eigenvalues_process.h"
 
 namespace Kratos
 {

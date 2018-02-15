@@ -213,7 +213,7 @@ namespace Kratos
 		PropertiesType::Pointer pProperties) const
 	{
 		GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
-		return boost::make_shared< ShellThickElement3D3N >(NewId, newGeom,
+		return Kratos::make_shared< ShellThickElement3D3N >(NewId, newGeom,
 			pProperties, mpCoordinateTransformation->Create(newGeom));
 	}
 

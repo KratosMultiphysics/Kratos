@@ -60,14 +60,48 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
 class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     
     # --------------------------------------------------------------------------    
-    def __init__( self ):
+    def initializeBeforeOptimizationLoop( self ):
+        self.__initializeGIDOutput()
+        self.__initializeProcesses()
+        self.__initializeSolutionLoop()
 
-        self.initializeGIDOutput()
-        self.initializeProcesses()
-        self.initializeSolutionLoop()
-        
     # --------------------------------------------------------------------------
-    def initializeProcesses( self ):
+    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
+
+        # Calculation of value of objective function
+        if communicator.isRequestingFunctionValueOf("strain_energy"):
+
+            print("\n> Starting StructuralMechanicsApplication to solve structure")
+            startTime = timer.time()
+            self.__solveStructure( optimizationIteration )
+            print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
+
+            print("\n> Starting calculation of response value")
+            startTime = timer.time()                    
+            listOfResponseFunctions["strain_energy"].CalculateValue()
+            print("> Time needed for calculation of response value = ",round(timer.time() - startTime,2),"s")
+
+            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())    
+
+        # Calculation of gradient of objective function
+        if communicator.isRequestingGradientOf("strain_energy"): 
+
+            print("\n> Starting calculation of gradients")
+            startTime = timer.time()               
+            listOfResponseFunctions["strain_energy"].CalculateGradient()
+            print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
+            
+            gradientOnDesignSurface = listOfResponseFunctions["strain_energy"].GetGradient()
+            communicator.reportGradient("strain_energy", gradientOnDesignSurface)
+
+    # --------------------------------------------------------------------------    
+    def finalizeAfterOptimizationLoop( self ):
+        for process in self.list_of_processes:
+            process.ExecuteFinalize()
+        self.gid_output.ExecuteFinalize()
+
+    # --------------------------------------------------------------------------
+    def __initializeProcesses( self ):
 
         import process_factory
         #the process order of execution is important
@@ -87,7 +121,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             process.ExecuteInitialize()
 
     # --------------------------------------------------------------------------
-    def initializeGIDOutput( self ):
+    def __initializeGIDOutput( self ):
 
         computing_model_part = CSM_solver.GetComputingModelPart()
         problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
@@ -99,7 +133,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         self.gid_output.ExecuteInitialize()
 
     # --------------------------------------------------------------------------
-    def initializeSolutionLoop( self ):
+    def __initializeSolutionLoop( self ):
 
         ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         CSM_solver.Initialize()
@@ -116,58 +150,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         self.gid_output.ExecuteBeforeSolutionLoop()
 
     # --------------------------------------------------------------------------
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
-
-        # Calculation of value of objective function
-        if communicator.isRequestingFunctionValueOf("strain_energy"):
-
-            self.initializeNewSolutionStep( optimizationIteration )
-
-            print("\n> Starting to update the mesh")
-            startTime = timer.time()
-            self.updateMeshForAnalysis( currentDesign )
-            print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
-
-            print("\n> Starting StructuralMechanicsApplication to solve structure")
-            startTime = timer.time()
-            self.solveStructure( optimizationIteration )
-            print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
-
-            print("\n> Starting calculation of response value")
-            startTime = timer.time()                    
-            listOfResponseFunctions["strain_energy"].CalculateValue()
-            print("> Time needed for calculation of response value = ",round(timer.time() - startTime,2),"s")
-
-            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())    
-
-        # Calculation of gradient of objective function
-        if communicator.isRequestingGradientOf("strain_energy"): 
-
-            print("\n> Starting calculation of gradients")
-            startTime = timer.time()               
-            listOfResponseFunctions["strain_energy"].CalculateGradient()
-            print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
-            
-            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].GetGradient()
-            gradientOnDesignSurface = {}
-            for node in currentDesign.Nodes:
-                gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
-
-            communicator.reportGradient("strain_energy", gradientOnDesignSurface)
-
-    # --------------------------------------------------------------------------
-    def initializeNewSolutionStep( self, optimizationIteration ):
-        main_model_part.CloneTimeStep( optimizationIteration )
-
-    # --------------------------------------------------------------------------
-    def updateMeshForAnalysis( self, currentDesign ):
-        for node in currentDesign.Nodes:
-            node.X0 = node.X0 + node.GetSolutionStepValue(SHAPE_UPDATE_X)
-            node.Y0 = node.Y0 + node.GetSolutionStepValue(SHAPE_UPDATE_Y)
-            node.Z0 = node.Z0 + node.GetSolutionStepValue(SHAPE_UPDATE_Z)
-
-    # --------------------------------------------------------------------------
-    def solveStructure( self, optimizationIteration ): 
+    def __solveStructure( self, optimizationIteration ): 
 
         # processes to be executed at the begining of the solution step
         for process in self.list_of_processes:
@@ -197,12 +180,6 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             process.ExecuteAfterOutputStep()            
 
     # --------------------------------------------------------------------------
-    def finalizeSolutionLoop( self ):
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
-        self.gid_output.ExecuteFinalize()
-
-    # --------------------------------------------------------------------------
 
 structureAnalyzer = kratosCSMAnalyzer()
 
@@ -212,6 +189,5 @@ structureAnalyzer = kratosCSMAnalyzer()
 
 optimizer.importAnalyzer( structureAnalyzer )
 optimizer.optimize()
-structureAnalyzer.finalizeSolutionLoop()
 
 # ======================================================================================================================================
