@@ -18,23 +18,22 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "fluid_constitutive_law.h"
 
 namespace Kratos
 {
+
 /**
- * Defines a bingham non-newtonian constitutive law
+ * Defines a Newtonian constitutive law in 3D.
  * This material law is defined by the parameters:
  * 1) DYNAMIC_VISCOSITY
  */
-
-class Newtonian3DLaw : public ConstitutiveLaw
+class Newtonian3DLaw : public FluidConstitutiveLaw
 {
 public:
     /**
      * Type Definitions
      */
-    typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
@@ -65,31 +64,26 @@ public:
 
 
     /**
-     * Assignment operator.
-     */
-
-    //Newtonian3DLaw& operator=(const Newtonian3DLaw& rOther);
-
-
-    /**
      * Destructor.
      */
     ~Newtonian3DLaw() override;
 
     /**
-     * Operators
-     */
-
-    /**
      * Operations needed by the base class:
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
     /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures
+     * @return Working space dimension constitutive law
      */
-    void GetLawFeatures(Features& rFeatures) override;
+    SizeType WorkingSpaceDimension() override;
+
+    /**
+     * @return Size of the strain vector (in Voigt notation) for the constitutive law
+     */
+    SizeType GetStrainSize() override;
+
+
+    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
 
     /**
@@ -106,18 +100,11 @@ public:
     /**
      * Input and output
      */
+
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
-    /**
-     * Print information about this object.
-     */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    virtual std::string Info() const;
 
 protected:
 
@@ -132,6 +119,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    
+    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+    
     ///@}
 
 
@@ -165,16 +156,9 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
-
+    void load(Serializer& rSerializer) override;
 
 }; // Class Newtonian3DLaw
 }  // namespace Kratos.

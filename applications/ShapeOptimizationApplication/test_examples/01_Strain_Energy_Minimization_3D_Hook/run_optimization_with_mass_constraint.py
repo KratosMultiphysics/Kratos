@@ -59,9 +59,8 @@ for i in range(ProjectParameters["structure_solver_settings"]["processes_sub_mod
 
 class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     
-    # --------------------------------------------------------------------------  
-    def __init__( self ):
-
+    # --------------------------------------------------------------------------    
+    def initializeBeforeOptimizationLoop( self ):
         self.__initializeGIDOutput()
         self.__initializeProcesses()
         self.__initializeSolutionLoop()
@@ -116,6 +115,12 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             gradientForCompleteModelPart = listOfResponseFunctions["mass"].GetGradient()
             communicator.reportGradient("mass", gradientForCompleteModelPart) 
+
+    # --------------------------------------------------------------------------    
+    def finalizeAfterOptimizationLoop( self ):
+        for process in self.list_of_processes:
+            process.ExecuteFinalize()
+        self.gid_output.ExecuteFinalize()
 
     # --------------------------------------------------------------------------
     def __initializeProcesses( self ):

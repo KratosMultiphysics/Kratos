@@ -14,7 +14,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosExecuteEmbeddedTest as ExecuteEmbeddedTest
 import KratosExecuteManufacturedSolutionTest as ExecuteManufacturedSolutionTest
 
-# This utiltiy will control the execution scope in case we need to acces files or we depend
+# This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
 # TODO: Should we move this to KratosUnittest?
