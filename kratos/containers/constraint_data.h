@@ -101,7 +101,7 @@ class ConstraintEquation
     size_t SlaveEquationId() { return equationId; }
     void SetSlaveEquationId(size_t iId) { equationId = iId; }
 
-    // Add a master to this slave given are the masterDofId, masterDofKey, weight
+    // Add a master or update a master(if already present) to this slave given are the masterDofId, masterDofKey, weight
     void AddMaster(DofType const &iMasterDof, double iWeight)
     {
         MasterDataPointerType masterData =Kratos::make_shared<MasterData>(iMasterDof, iWeight);
@@ -181,7 +181,7 @@ class ConstraintEquationContainer
     /**
 		Creates a MPC data object
 		*/
-    ConstraintEquationContainer() : mDataContainer()
+    ConstraintEquationContainer() : mConstraintEquationsVector()
     {
     }
     /// Destructor.
@@ -197,10 +197,10 @@ class ConstraintEquationContainer
 		*/
     void Clear()
     {
-        mDataContainer.clear();
+        mConstraintEquationsVector.clear();
     }
-    iterator begin() { return mDataContainer.begin(); }
-    iterator end() { return mDataContainer.end(); }
+    iterator begin() { return mConstraintEquationsVector.begin(); }
+    iterator end() { return mConstraintEquationsVector.end(); }
 
     /**
 		Get the Data for this slave
@@ -208,13 +208,13 @@ class ConstraintEquationContainer
 		*/
     ConstraintEquation &GetConstraintEquation(DofType &iSlaveDof)
     {
-        auto pos = std::find(mDataContainer.begin(), mDataContainer.end(), iSlaveDof);
+        auto pos = std::find(mConstraintEquationsVector.begin(), mConstraintEquationsVector.end(), iSlaveDof);
         return *(*pos);
     }
 
     ConstraintEquation &GetConstraintEquation(size_t iSlaveEqutionId)
     {
-        auto pos = std::find_if(mDataContainer.begin(), mDataContainer.end(), [&iSlaveEqutionId](ConstraintEquationPointerType &obj) { return obj->SlaveEquationId() == iSlaveEqutionId; });
+        auto pos = std::find_if(mConstraintEquationsVector.begin(), mConstraintEquationsVector.end(), [&iSlaveEqutionId](ConstraintEquationPointerType &obj) { return obj->SlaveEquationId() == iSlaveEqutionId; });
         return *(*pos);
     }
 
@@ -224,9 +224,9 @@ class ConstraintEquationContainer
 		 */
     int GetNumbeOfMasterDofsForSlave(DofType const &iSlaveDof)
     {
-        auto pos = std::find(mDataContainer.begin(), mDataContainer.end(), iSlaveDof);
+        auto pos = std::find(mConstraintEquationsVector.begin(), mConstraintEquationsVector.end(), iSlaveDof);
         int numMasters = -1;
-        if (pos != mDataContainer.end())
+        if (pos != mConstraintEquationsVector.end())
         {
             numMasters = (*pos)->NumberOfMasters();
         }
@@ -235,9 +235,9 @@ class ConstraintEquationContainer
     int GetNumbeOfMasterDofsForSlave(size_t iSlaveEqutionId)
     {
         // using find_if with a lambda to find the salve with its equation Id
-        auto pos = std::find_if(mDataContainer.begin(), mDataContainer.end(), [&iSlaveEqutionId](ConstraintEquationPointerType &obj) { return obj->SlaveEquationId() == iSlaveEqutionId; });
+        auto pos = std::find_if(mConstraintEquationsVector.begin(), mConstraintEquationsVector.end(), [&iSlaveEqutionId](ConstraintEquationPointerType &obj) { return obj->SlaveEquationId() == iSlaveEqutionId; });
         int numMasters = -1;
-        if (pos != mDataContainer.end())
+        if (pos != mConstraintEquationsVector.end())
         {
             numMasters = (*pos)->NumberOfMasters();
         }
@@ -250,7 +250,7 @@ class ConstraintEquationContainer
 		*/
     ConstraintEquationVectorType &GetData()
     {
-        return mDataContainer;
+        return mConstraintEquationsVector;
     }
 
     /**
@@ -260,8 +260,8 @@ class ConstraintEquationContainer
     // Takes in a slave dof and a master dof
     void AddConstraint(DofType const &iSlaveDof, DofType const &iMasterDof, double iWeight, double constant = 0.0)
     {
-        auto pos = std::find(mDataContainer.begin(), mDataContainer.end(), iSlaveDof);
-        if (pos != mDataContainer.end())
+        auto pos = std::find(mConstraintEquationsVector.begin(), mConstraintEquationsVector.end(), iSlaveDof);
+        if (pos != mConstraintEquationsVector.end())
         { // Equation already exists
             (*pos)->AddMaster(iMasterDof, iWeight);
         }
@@ -269,7 +269,7 @@ class ConstraintEquationContainer
         { // Equation does not exist
             ConstraintEquationPointerType newEq = Kratos::make_shared<ConstraintEquation>(iSlaveDof);
             newEq->AddMaster(iMasterDof, iWeight);
-            mDataContainer.push_back(newEq);
+            mConstraintEquationsVector.push_back(newEq);
         }
     }
     ///@
@@ -289,7 +289,7 @@ class ConstraintEquationContainer
     virtual void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << " ConstraintEquationContainer object " << std::endl;
-        rOStream << " Number of constraint equations : " << mDataContainer.size() << std::endl;
+        rOStream << " Number of constraint equations : " << mConstraintEquationsVector.size() << std::endl;
     }
 
     ///@name Serialization
@@ -307,7 +307,7 @@ class ConstraintEquationContainer
   private:
     ///@name Member Variables
     ///@{
-    ConstraintEquationVectorType mDataContainer;
+    ConstraintEquationVectorType mConstraintEquationsVector;
     ///@}
 };
 
