@@ -18,6 +18,7 @@ class NavierStokesBaseSolver(object):
         ## Set the element and condition names for the replace settings
         self.element_name = None
         self.condition_name = None
+        self.min_buffer_size = 3
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Construction of NavierStokesBaseSolver finished.")
 
@@ -27,6 +28,8 @@ class NavierStokesBaseSolver(object):
     def ImportModelPart(self):
         ## Read model part
         self._model_part_reading()
+
+        self._replace_elements_and_conditions()
         ## Replace elements and conditions, check the input reading and set KINEMATIC_VISCOSITY and DENSITY
         self._execute_after_reading()
         ## Set buffer size
@@ -51,9 +54,6 @@ class NavierStokesBaseSolver(object):
 
     def AdaptMesh(self):
         pass
-
-    def GetMinimumBufferSize(self):
-        return 3
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
@@ -100,8 +100,9 @@ class NavierStokesBaseSolver(object):
         (self.solver).FinalizeSolutionStep()
 
     def Solve(self):
-        # Note that the first time step in buffer is filled when reading the model part
-        (self.solver).Solve()
+        # We always have one extra old step (step 0, read from input)
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.min_buffer_size:
+            self.solver.Solve()
 
     def _model_part_reading(self):
         ## Model part reading
@@ -116,8 +117,6 @@ class NavierStokesBaseSolver(object):
             raise Exception("Other input options are not implemented yet.")
 
     def _execute_after_reading(self):
-        ## Replace element and conditions
-        self._replace_elements_and_conditions()
 
         ## Check that the input read has the shape we like
         prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
@@ -127,20 +126,11 @@ class NavierStokesBaseSolver(object):
         import check_and_prepare_model_process_fluid
         check_and_prepare_model_process_fluid.CheckAndPrepareModelProcess(self.main_model_part, prepare_model_part_settings).Execute()
 
-        # TODO: TO BE REMOVED ONCE THE NEW ELEMENTS MIGRATION IS FINISHED
-        # Read the KINEMATIC VISCOSITY and DENSITY and we apply it to the nodes
-        for el in self.main_model_part.Elements:
-            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            break
-
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-
 
     def _set_buffer_size(self):
-        ## Set the buffer size
         current_buffer_size = self.main_model_part.GetBufferSize()
-        if(self.GetMinimumBufferSize() > current_buffer_size):
-            self.main_model_part.SetBufferSize(self.GetMinimumBufferSize())
+        if self.min_buffer_size > current_buffer_size:
+            self.main_model_part.SetBufferSize(self.min_buffer_size)
 
     def _get_automatic_time_stepping_utility(self):
         if (self.computing_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):

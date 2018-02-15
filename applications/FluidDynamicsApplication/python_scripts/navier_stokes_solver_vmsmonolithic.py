@@ -18,6 +18,10 @@ def CreateSolver(main_model_part, custom_settings):
 class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSolver):
 
     def __init__(self, main_model_part, custom_settings):
+        
+        self.element_name = "VMS"
+        self.condition_name = "MonolithicWallCondition"
+        self.min_buffer_size = 2
 
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
@@ -69,36 +73,51 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        ## Set the element and condition names for the replace settings
-        self.element_name = "VMS"
-        self.condition_name = "MonolithicWallCondition"
-
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Construction of NavierStokesSolverMonolithic finished.")
 
 
     def AddVariables(self):
         ## Add base class variables
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)   # TODO: Now kinematic viscosity value, update once the element migration is finished
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.IS_STRUCTURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.BODY_FORCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADVPROJ)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DIVPROJ)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y_WALL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_TAU) # Variable stored in cfd_variables.h
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.OSS_SWITCH)  # Variable stored in cfd_variables.h
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
+        if self.settings["consider_periodic_conditions"].GetBool() == True:
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
+
+    def ImportModelPart(self):
+        super(NavierStokesSolverMonolithic, self).ImportModelPart()
+        
+        # Transfer density and (kinematic) viscostity to the nodes
+        for el in self.main_model_part.Elements:
+            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+            if rho <= 0.0:
+                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
+            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            if dyn_viscosity <= 0.0:
+                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
+            kin_viscosity = dyn_viscosity / rho
+            break
+
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
 
     def Initialize(self):
 
@@ -154,17 +173,6 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
 
         (self.solver).Initialize()
 
+        self.solver.Check()
+
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Solver initialization finished.")
-
-
-    def _execute_after_reading(self):
-        super(NavierStokesSolverMonolithic, self)._execute_after_reading()
-
-        # Read the KINEMATIC VISCOSITY
-        for el in self.main_model_part.Elements:
-            # rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            kin_viscosity = el.Properties.GetValue(KratosMultiphysics.VISCOSITY)
-            break
-
-        # KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
