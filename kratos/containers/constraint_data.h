@@ -309,7 +309,6 @@ class ConstraintEquationContainer
     ///@name Member Variables
     ///@{
     ConstraintEquationVectorType mDataContainer;
-    std::string mName;
     ///@}
 };
 
