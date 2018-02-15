@@ -51,9 +51,21 @@ const ConstitutiveLaw& GetConstitutiveLaw(
     if (KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) {
         return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
     }
+    else
+    {
+        const auto& available_constitutive_laws = KratosComponents<ConstitutiveLaw>::GetComponents();
 
-    KRATOS_ERROR << "ConstitutiveLaw \"" << constitutive_law_name
-                 << "\" not registered in KratosComponents" << std::endl;
+        std::stringstream err_msg;
+
+        err_msg << "The requested Constitutive Law \"" << constitutive_law_name
+                << "\" is unknown!\nMaybe you need to import the application where it is defined?\n"
+                << "The following Constitutive Laws are available:" << std::endl;
+
+        for (auto const& registered_constitutive_law : available_constitutive_laws)
+            err_msg << "\t" << registered_constitutive_law.first << "\n";
+
+        KRATOS_ERROR << err_msg.str() << std::endl;
+    }
 }
 
 template <class TVariableType>

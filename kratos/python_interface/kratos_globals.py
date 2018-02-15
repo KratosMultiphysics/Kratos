@@ -51,7 +51,7 @@ class KratosGlobals:
             raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is defined but is of unsupported type\n".format(VarName))
         else:
             raise ValueError("\nKernel.GetVariable() ERROR: Variable {0} is unknown. Maybe you need to import the application where it is defined?\n".format(VarName))
-        
+
     def HasVariable(self,VarName):
 
         kernel = self.Kernel
@@ -82,19 +82,12 @@ class KratosGlobals:
             return False
 
     def GetConstitutiveLaw(self, ConstitutiveLawName):
-
-        kernel = self.Kernel
-
-        if kernel.HasConstitutiveLaw(ConstitutiveLawName):
-            return kernel.GetConstitutiveLaw(ConstitutiveLawName)
-        else:
-            raise ValueError("\nKernel.GetConstitutiveLaw() ERROR: ConstitutiveLaw {0} is unknown. Maybe you need to import the application where it is defined?\n".format(ConstitutiveLawName))
+        # throws if the ConstitutiveLawName does not exist/is not registered in KratosComponenets
+        # also it prints the names of registered ConstLaws
+        return self.Kernel.GetConstitutiveLaw(ConstitutiveLawName)
 
     def HasConstitutiveLaw(self, ConstitutiveLawName):
-
-        kernel = self.Kernel
-
-        if kernel.HasConstitutiveLaw(ConstitutiveLawName):
+        if self.Kernel.HasConstitutiveLaw(ConstitutiveLawName):
             return True
         else:
             return False
