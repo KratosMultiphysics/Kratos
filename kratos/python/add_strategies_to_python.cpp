@@ -41,7 +41,6 @@
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
-#include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -292,7 +291,6 @@ namespace Kratos
         typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
         typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
         typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFDisplacementSchemeType;
-        typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFCustomSchemeType;
 
         class_< BaseSchemeType, boost::noncopyable >
                 ("Scheme", init< >())
@@ -346,15 +344,6 @@ namespace Kratos
             (
                 "ResidualBasedBDFDisplacementScheme", init<  >() )
                 .def(init <const std::size_t>())
-            ;
-            
-        // Residual Based BDF custom Scheme Type
-        class_< ResidualBasedBDFCustomSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedBDFCustomScheme", init<  >() )
-                .def(init <const std::size_t>())
-                .def(init <const std::size_t, Parameters>())
             ;
 
             //********************************************************************

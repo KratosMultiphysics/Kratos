@@ -81,21 +81,8 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             
             # Warning
             if (order > 2):
-                print("WARNING:: BDF Order: ", order, " constant time step must be considered")
-                
-            # In case of rotation dof we declare the dynamic variables
-            if self.settings["rotation_dofs"].GetBool():
-                dynamic_variables = KratosMultiphysics.Parameters("""
-                {
-                    "variable"              : ["DISPLACEMENT","ROTATION"],
-                    "first_derivative"      : ["VELOCITY","ANGULAR_VELOCITY"],
-                    "second_derivative"     : ["ACCELERATION","ANGULAR_ACCELERATION"]
-                }
-                """)
-            if self.settings["rotation_dofs"].GetBool():
-                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFCustomScheme(order, dynamic_variables)
-            else:
-                mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(order)
+                KratosMultiphysics.Logger.PrintWarning("WARNING:: BDF Order: ", str(order) + " constant time step must be considered")
+            mechanical_scheme = KratosMultiphysics.ResidualBasedBDFDisplacementScheme(order)
         elif(scheme_type == "relaxation"):
             damp_factor_f =-0.3
             dynamic_factor_m = 10.0
