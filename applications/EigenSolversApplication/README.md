@@ -92,13 +92,19 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     source ~/intel/mkl/bin/mklvars.sh intel64 lp64
     ```
 
-2. Build Kratos
+2. Add the following flag to CMake to your configure script:
+    
+    ```batch
+    -DEIGEN_USE_MKL=ON ^
+    ```
 
-3. Usage:
+3. Build Kratos
+
+4. Usage:
 
     **Windows:**
 
-    Copy the required MKL library to the Kratos `lib`
+    Copy the required MKL libraries to the Kratos `lib`
     
 
     ```
