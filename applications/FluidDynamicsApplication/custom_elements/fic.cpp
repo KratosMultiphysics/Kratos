@@ -228,7 +228,7 @@ void FIC<TElementData>::AddVelocitySystem(
     double ElemSize = this->ElementSize();
 
     double density = this->Interpolate(rData.Density,rData.N);
-    double dynamic_viscosity = this->EffectiveViscosity(rData,ElemSize);
+    double dynamic_viscosity = rData.EffectiveViscosity;
     array_1d<double,3> body_force = this->Interpolate(rData.BodyForce,rData.N);
 }
 
@@ -250,44 +250,6 @@ void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
 
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <class TElementData>
-double FIC<TElementData>::EffectiveViscosity(
-    TElementData& rData, double ElementSize) {
-    
-    double c_s = rData.CSmagorinsky;
-    double viscosity = this->Interpolate(rData.DynamicViscosity, rData.N);
-
-    if (c_s != 0.0) {
-        const double density = this->Interpolate(rData.Density, rData.N);
-        const auto& r_velocities = rData.Velocity;
-        const auto& r_dndx = rData.DN_DX;
-
-        // Calculate Symetric gradient
-        MatrixType strain_rate = ZeroMatrix(Dim, Dim);
-        for (unsigned int n = 0; n < NumNodes; ++n) {
-            for (unsigned int i = 0; i < Dim; ++i)
-                for (unsigned int j = 0; j < Dim; ++j)
-                    strain_rate(i, j) +=
-                        0.5 * (r_dndx(n, j) * r_velocities(n, i) +
-                                  r_dndx(n, i) * r_velocities(n, j));
-        }
-
-        // Norm of symetric gradient
-        double strain_rate_norm = 0.0;
-        for (unsigned int i = 0; i < Dim; ++i)
-            for (unsigned int j = 0; j < Dim; ++j)
-                strain_rate_norm += strain_rate(i, j) * strain_rate(i, j);
-        strain_rate_norm = sqrt(2.0 * strain_rate_norm);
-
-        // Nu_sgs = (c_s * Delta)^2 * (2*Sij*Sij)^(1/2)
-        viscosity +=
-            density * c_s * c_s * ElementSize * ElementSize * strain_rate_norm;
-    }
-
-    return viscosity;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

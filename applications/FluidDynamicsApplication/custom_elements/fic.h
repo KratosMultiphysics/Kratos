@@ -101,6 +101,7 @@ public:
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
     constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
+    constexpr static unsigned int StrainSize = FluidElement<TElementData>::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -293,17 +294,6 @@ protected:
         const Vector& rUnitNormal,
         MatrixType& rLHS,
         VectorType& rRHS) override;
-
-    /**
-     * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
-     * This function is used to implement Smagorinsky type LES or non-Newtonian dynamics in derived classes.
-     * @param rData TElementData instance with information about nodal values
-     * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
-     * @return Kinematic viscosity at the integration point.
-     */
-    virtual double EffectiveViscosity(
-        TElementData& rData,
-        double ElementSize);
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
