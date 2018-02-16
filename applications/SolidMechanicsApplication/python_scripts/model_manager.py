@@ -167,6 +167,7 @@ class ModelManager(object):
         self.nodal_variables = list(set(self.nodal_variables))
 
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
+        self.nodal_variables.sort() 
 
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
