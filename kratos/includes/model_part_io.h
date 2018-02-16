@@ -366,10 +366,6 @@ protected:
     template<class TVariableType, class TDataType>
     void ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable, TDataType Dummy);
     void ReadConditionalDataBlock(ConditionsContainerType& rThisConditions);
-    
-    void WriteConditionalDataBlock(ConditionsContainerType& rThisConditions);
-    template<class TVariableType>
-    void WriteConditionalDataBlock(ConditionsContainerType& rThisConditions,const VariableData* rVariable);
 
     template<class TVariableType>
     void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable);
