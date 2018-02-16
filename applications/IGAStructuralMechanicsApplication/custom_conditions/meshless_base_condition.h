@@ -135,11 +135,26 @@ protected:
 		array_1d<double, 3>& g2,
 		array_1d<double, 3>& g3);
 
+	void MeshlessBaseCondition::GetBasisVectors(
+		const Matrix& DN_De,
+		Vector& g1,
+		Vector& g2,
+		Vector& g3);
+
 	void GetInitialBasisVectors(
 		const Matrix& DN_De,
 		array_1d<double, 3>& g10,
 		array_1d<double, 3>& g20,
 		array_1d<double, 3>& g30);
+
+	void CrossProduct(
+		Vector& cross,
+		const Vector& a,
+		const Vector& b);
+
+	Vector CrossProduct(
+		const Vector& a,
+		const Vector& b);
 
 	void CrossProduct(
 		array_1d<double, 3>& cross,

@@ -186,6 +186,37 @@ void MeshlessBaseCondition::GetBasisVectors(
 }
 
 /**
+* GetBasisVectors calculates the basis vectors g1, g2 and the normalized basis g3
+* @param DN_De first order derivatives of shape functions.
+* @param g1, g2 basis vectors
+* @param g3 basis vectors
+*/
+void MeshlessBaseCondition::GetBasisVectors(
+	const Matrix& DN_De,
+	Vector& g1,
+	Vector& g2,
+	Vector& g3)
+{
+	Matrix J;
+	Jacobian(DN_De, J);
+
+	g1[0] = J(0, 0);
+	g2[0] = J(0, 1);
+	g1[1] = J(1, 0);
+	g2[1] = J(1, 1);
+	g1[2] = J(2, 0);
+	g2[2] = J(2, 1);
+
+	//basis vector g3
+	//CrossProduct(g3, g1, g2);
+	g3[0] = g1[1] * g2[2] - g1[2] * g2[1];
+	g3[1] = g1[2] * g2[0] - g1[0] * g2[2];
+	g3[2] = g1[0] * g2[1] - g1[1] * g2[0];
+
+	g3 = g3/norm_2(g3);
+}
+
+/**
 * GetInitialBasisVectors calculates the basis vectors g1, g2 and the normalized 
   basis g3 in the UNDEFORMED system.
 * @param DN_De first order derivatives of shape functions.
@@ -211,6 +242,34 @@ void MeshlessBaseCondition::GetInitialBasisVectors(
 	//basis vector g30
 	CrossProduct(g30, g10, g20);
 	g30 = g30 / norm_2(g30);
+}
+
+/**
+* CrossProduct calculates the cross product of two 3d vectors. a x b = cross
+*/
+void MeshlessBaseCondition::CrossProduct(
+	Vector& cross,
+	const Vector& a,
+	const Vector& b)
+{
+	cross[0] = a[1] * b[2] - a[2] * b[1];
+	cross[1] = a[2] * b[0] - a[0] * b[2];
+	cross[2] = a[0] * b[1] - a[1] * b[0];
+}
+
+/**
+* CrossProduct calculates the cross product of two 3d vectors. a x b = cross
+* @return cross = a x b
+*/
+Vector MeshlessBaseCondition::CrossProduct(
+	const Vector& a,
+	const Vector& b)
+{
+	Vector cross;
+	cross[0] = a[1] * b[2] - a[2] * b[1];
+	cross[1] = a[2] * b[0] - a[0] * b[2];
+	cross[2] = a[0] * b[1] - a[1] * b[0];
+	return cross;
 }
 
 /**

@@ -149,7 +149,7 @@ namespace Kratos
 			if (dispZ == 1)
 				Hcomplete(2, 3 * i + 2) = ShapeFunctions[i];
 		}
-
+		//KRATOS_WATCH(ShapeFunctions)
 		Vector TDisplacements(number_of_points * 3);
 		for (unsigned int i = 0; i < number_of_points; i++)
 		{

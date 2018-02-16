@@ -17,6 +17,7 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	## CUSTOM PYTHON
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/iga_structural_mechanics_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
 	
 	## UTILITIES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/NurbsShapeFunctionModeler.cpp		
@@ -24,6 +25,8 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	##ELEMENTS
 	# Adding the meshless base element
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_surface_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_shell_kl_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_membrane_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_laplace_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_shell_element.cpp
@@ -37,6 +40,11 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_lagrange_coupling_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_lagrange_coupling_condition_2.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_penalty_coupling_rotation_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_penalty_coupling_crack_condition.cpp
+
+
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/damage_tc_plane_stress_2d_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_stress_tc_damage_law.cpp
 )
 
 # define library Kratos which defines the basic python interface

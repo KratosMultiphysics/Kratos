@@ -57,24 +57,9 @@ public:
     /// Destructor.
     virtual ~MeshlessBaseElement();
     ///@}
-    ///@name Operators
-    ///@{
-    ///@}
     ///@name Operations
     ///@{
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
-    ///@}
-    ///@name Access
-    ///@{
-    ///@}
-    ///@name Inquiry
-    ///@{
-    ///@}
-    ///@name Input and output
-    ///@{
-    ///@}
-    ///@name Friends
-    ///@{
     ///@}
 
 protected:
@@ -82,16 +67,7 @@ protected:
 	// As this class is base class the constructor has to be protected.
 	MeshlessBaseElement() : Element()
 	{
-	}
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    ///@}
-    ///@name Protected Operators
-    ///@{
-    ///@}
+	};
     ///@name Protected Operations
     ///@{
 	void GetGeometryData(
@@ -116,27 +92,17 @@ protected:
 		const array_1d<double, 3>& a,
 		const array_1d<double, 3>& b);
 
+  void CrossProduct2(
+    Vector& cross,
+    const Vector& a,
+    const Vector& b);
+
 	array_1d<double, 3> CrossProduct(
 		const array_1d<double, 3>& a,
 		const array_1d<double, 3>& b);
     ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
 
 private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-    ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
@@ -150,55 +116,8 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     }
-    
     ///@}
-    ///@name Private Operators
-    ///@{
-    ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    //MeshlessBaseElement& operator=(const MeshlessBaseElement& rOther);
-
-    /// Copy constructor.
-    //MeshlessBaseElement(const MeshlessBaseElement& rOther);
-
-    ///@}
-
 }; // Class MeshlessBaseElement
-
-///@}
-///@name Type Definitions
-///@{MeshlessBaseElement
-///@}
-///@name Input and output
-///@{
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    MeshlessBaseElement& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const MeshlessBaseElement& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
-///@}
-
 }  // namespace Kratos.
 
 #endif // KRATOS_MESHLESS_BASE_ELEMENT_H_INCLUDED  defined 

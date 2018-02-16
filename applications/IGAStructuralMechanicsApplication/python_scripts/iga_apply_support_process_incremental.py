@@ -3,7 +3,7 @@ import python_process
 import math
 
 ##all the processes python processes should be derived from "python_process"
-class IGAApplySupport(python_process.PythonProcess):
+class IGAApplySupportIncremental(python_process.PythonProcess):
     def __init__(self, model_part, variables, mesh_id=0 ):
         python_process.PythonProcess.__init__(self) 
         self.model_part = model_part
@@ -11,7 +11,7 @@ class IGAApplySupport(python_process.PythonProcess):
             for variable_key in variables:
                 condition.SetValue(eval(variable_key), variables[variable_key])
 
-        print("Finished construction of IGAApplySupport Process")
+        print("Finished construction of IGAApplySupportIncremental Process")
         
     def ExecuteInitialize(self):
         pass
@@ -20,17 +20,18 @@ class IGAApplySupport(python_process.PythonProcess):
         pass
     
     def ExecuteInitializeSolutionStep(self):
-        pass
-		#current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        #for condition in self.model_part.Conditions:
-            #displacements = KratosMultiphysics.Vector(3)
-            #displacements = condition.GetValue(KratosMultiphysics.DISPLACEMENT)
+        #pass
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+        for condition in self.model_part.Conditions:
+            displacements = KratosMultiphysics.Vector(3)
+            displacements = condition.GetValue(KratosMultiphysics.DISPLACEMENT)
             #disp_y = condition.GetValue(KratosMultiphysics.DISPLACEMENT_Y)
             #disp_z = condition.GetValue(KratosMultiphysics.DISPLACEMENT_Z)
             #if (current_time<0.3):
-            #displacements[0] = math.sin(2*math.pi*current_time*4)
+            displacements[0] = current_time
+            #displacements[1] = -current_time
 
-            #condition.SetValue(KratosMultiphysics.DISPLACEMENT, displacements)		
+            condition.SetValue(KratosMultiphysics.DISPLACEMENT, displacements)		
             #condition.SetValue(KratosMultiphysics.DISPLACEMENT_Y, disp_y + current_time)		
             #condition.SetValue(KratosMultiphysics.DISPLACEMENT_Z, disp_z + current_time)	
 
@@ -85,4 +86,4 @@ def Factory(settings, Model):
 				variables.update({variable_name : displacements})
 
 	
-		return IGAApplySupport(model_part, variables)
+		return IGAApplySupportIncremental(model_part, variables)

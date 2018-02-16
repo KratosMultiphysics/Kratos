@@ -132,6 +132,14 @@ protected:
 		const Vector &Tangents,
 		const bool Master);
 
+	void CaculateRotation2(const Matrix &ShapeFunctionDerivatives,
+		Vector &Phi_r,
+		Matrix &Phi_rs,
+		array_1d<double, 2> &Phi,
+		array_1d<double, 3> &TrimTangent,
+		const Vector &Tangents,
+		const bool Master);
+
 	void JacobianElement(const Matrix& DN_De,
 		Matrix& Jacobian, const bool Master);
 

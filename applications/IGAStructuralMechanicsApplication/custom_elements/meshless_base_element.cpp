@@ -203,6 +203,12 @@ void MeshlessBaseElement::CrossProduct(
 	cross[1] = a[2] * b[0] - a[0] * b[2];
 	cross[2] = a[0] * b[1] - a[1] * b[0];
 }
+void MeshlessBaseElement::CrossProduct2(Vector & cross, const Vector & a, const Vector & b)
+{
+  cross[0] = a[1] * b[2] - a[2] * b[1];
+  cross[1] = a[2] * b[0] - a[0] * b[2];
+  cross[2] = a[0] * b[1] - a[1] * b[0];
+}
 //***********************************************************************************
 /**
 * CrossProduct calculates the cross product of two 3d vectors. a x b.
@@ -219,6 +225,7 @@ array_1d<double, 3> MeshlessBaseElement::CrossProduct(
 	cross[2] = a[0] * b[1] - a[1] * b[0];
 	return cross;
 }
+
 //***********************************************************************************
 //***********************************************************************************
 } // Namespace Kratos

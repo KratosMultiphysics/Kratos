@@ -244,7 +244,8 @@ void MeshlessBaseCouplingCondition::JacobianElement(const Matrix& DN_De,
 //************************************************************************************
 //************************************************************************************
 void MeshlessBaseCouplingCondition::CaculateRotation(const Matrix &ShapeFunctionDerivatives,
-	Vector &Phi_r, Matrix &Phi_rs, array_1d<double, 2> &Phi, array_1d<double, 3> &TrimTangent, const Vector &Tangents, const bool Master)
+	Vector &Phi_r, Matrix &Phi_rs, array_1d<double, 2> &Phi, array_1d<double, 3> &TrimTangent, 
+	const Vector &Tangents, const bool Master)
 {
 	KRATOS_TRY
 
@@ -370,7 +371,7 @@ void MeshlessBaseCouplingCondition::CaculateRotation(const Matrix &ShapeFunction
 					array_1d<double, 3> a1_r_m;
 					a1_r_m.clear();
 					array_1d<double, 3> a2_r_m;
-					a2_r_n.clear();
+					a2_r_m.clear();
 
 					a1_r_m(j) = ShapeFunctionDerivatives(m, 0);
 					a2_r_m(j) = ShapeFunctionDerivatives(m, 1);
@@ -391,6 +392,122 @@ void MeshlessBaseCouplingCondition::CaculateRotation(const Matrix &ShapeFunction
 					Phi_rs(n * 3 + i, m * 3 + j) = inner_prod(SinusOmega_rs, t2) / sqrt(1.0 - pow(SinusOmega(0), 2))
 						+ inner_prod(SinusOmega_r_m, t2)*inner_prod(SinusOmega_r_n, t2)*SinusOmega(0) / pow(1.0
 							- pow(SinusOmega(0), 2), 1.5);
+				}
+			}
+		}
+	}
+	KRATOS_CATCH("")
+}
+
+void MeshlessBaseCouplingCondition::CaculateRotation2(const Matrix &ShapeFunctionDerivatives,
+	Vector &Phi_r, Matrix &Phi_rs, array_1d<double, 2> &Phi, array_1d<double, 3> &TrimTangent, const Vector &Tangents, const bool Master)
+{
+	KRATOS_TRY
+
+	const unsigned int number_of_points = ShapeFunctionDerivatives.size1();
+	Vector g10, g20, g30;
+
+	if (Master)
+	{
+		g10 = mg1_0_master;
+		g20 = mg2_0_master;
+		g30 = mg3_0_master;
+	}
+	else
+	{
+		g10 = mg1_0_slave;
+		g20 = mg2_0_slave;
+		g30 = mg3_0_slave;
+	}
+
+	Matrix J;
+	JacobianElement(ShapeFunctionDerivatives, J, Master);
+
+	Vector g1, g2, t3;
+	GetBasisVectors(ShapeFunctionDerivatives, g1, g2, t3);
+
+	// t1 normal to trim, t2 tangential to trim
+	Vector T2 = Tangents(0)*g10 + Tangents(1)*g20;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	//TrimTangent = T2;
+	Vector T1 = ZeroVector(3);
+	CrossProduct(T1, T2, g30);
+	T2 = T2 / norm_2(T2);
+	T1 = T1 / norm_2(T1);
+
+	// computation of the a3 displacement
+	Vector w = t3 - g30;
+	Vector omega = CrossProduct(g30, w);
+
+	double omega_T2 = asin(inner_prod(omega, T2));
+	double omega_T1 = asin(inner_prod(omega, T1));
+
+	//array_1d<double, 2> Phi;
+	Phi(0) = omega_T2;
+	Phi(1) = omega_T1;
+
+	double Length_t3 = norm_2(CrossProduct(g1, g2));
+
+	for (unsigned int n = 0; n < number_of_points; n++)
+	{
+		for (unsigned int i = 0; i < 3; i++)
+		{
+			//variations of the basis vectors
+			Vector t1_r = ZeroVector(3);
+			Vector t2_r = ZeroVector(3);
+			t1_r(i) = ShapeFunctionDerivatives(n, 0);
+			t2_r(i) = ShapeFunctionDerivatives(n, 1);
+
+			//variation of the non normalized local vector
+			Vector t3_r_tilde = CrossProduct(t1_r, g2) + CrossProduct(g1, t2_r);
+			double t3_r_line = inner_prod(t3, t3_r_tilde);
+			Vector t3_r = t3_r_tilde / Length_t3 - t3_r_line*t3 / Length_t3;
+			Vector omega_r = CrossProduct(g30, t3_r);
+			Phi_r(n * 3 + i) = inner_prod(omega_r, T2) / sqrt(1.0 - pow(omega_T2, 2));
+			// if needed at some point:
+			//Phi_r_2(i * 3 + j) = inner_prod(omega_r, T1) / sqrt(1.0 - pow(omega_T1, 2));
+		}
+	}
+	for (unsigned int n = 0; n < number_of_points; n++)
+	{
+		for (unsigned int i = 0; i < 3; i++)
+		{
+			//variations of the basis vectors
+			Vector t1_r_n = ZeroVector(3);
+			Vector t2_r_n = ZeroVector(3);
+			t1_r_n(i) = ShapeFunctionDerivatives(n, 0);
+			t2_r_n(i) = ShapeFunctionDerivatives(n, 1);
+
+			//variation of the non normalized local vector
+			Vector t3_r_tilde_n = CrossProduct(t1_r_n, g2) + CrossProduct(g1, t2_r_n);
+			double t3_r_line_n = inner_prod(t3, t3_r_tilde_n);
+			Vector t3_r_n = t3_r_tilde_n / Length_t3 - t3_r_line_n*t3 / Length_t3;
+			Vector omega_r_n = CrossProduct(g30, t3_r_n);
+
+			for (unsigned int m = 0; m < number_of_points; m++)
+			{
+				for (unsigned int j = 0; j < 3; j++)
+				{
+					//variations of the basis vectors
+					Vector t1_r_m = ZeroVector(3);
+					Vector t2_r_m = ZeroVector(3);
+					t1_r_m(j) = ShapeFunctionDerivatives(m, 0);
+					t2_r_m(j) = ShapeFunctionDerivatives(m, 1);
+
+					//variation of the non normalized local vector
+					Vector t3_r_tilde_m = CrossProduct(t1_r_m, g2) + CrossProduct(g1, t2_r_m);
+					double t3_r_line_m = inner_prod(t3, t3_r_tilde_m);
+					Vector t3_r_m = t3_r_tilde_m / Length_t3 - t3_r_line_m*t3 / Length_t3;
+					Vector omega_r_m = CrossProduct(g30, t3_r_m);
+
+					Vector t3_rs_tilde = CrossProduct(t1_r_n, t2_r_m) + CrossProduct(t1_r_m, t2_r_n);
+					double t3_rs_line = inner_prod(t3_r_m, t3_r_tilde_n) + inner_prod(t3, t3_rs_tilde);
+					Vector t3_rs = (t3_rs_tilde*Length_t3 - t3_r_line_m * t3_r_tilde_n) / pow(Length_t3, 2)
+						- t3_rs_line*t3 / Length_t3 - t3_r_line_n * (t3_r_m * Length_t3 - t3_r_line_m * t3) / pow(Length_t3, 2);
+					Vector omega_rs = CrossProduct(g30, t3_rs);
+
+					Phi_rs(n * 3 + i, m * 3 + j) = inner_prod(omega_rs, T2) / sqrt(1.0 - pow(omega_T2, 2))
+						+ inner_prod(omega_r_m, T2)*inner_prod(omega_r_n, T2)*omega_T2 / pow(1.0
+							- pow(omega_T2, 2), 1.5);
 				}
 			}
 		}
