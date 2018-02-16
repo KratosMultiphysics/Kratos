@@ -83,55 +83,55 @@ class Constraint
 	* Get the MasterDOFs vector for this slave
 	* @return MasterDOFs vector for this slave
 	*/
-    virtual const ConstraintEquation &GetConstraintEquation (DofType &SlaveDof)
+    virtual const ConstraintEquation &GetConstraintEquation (DofType &rSlaveDof)
     {
-        return mConstraintEquationContainer.GetConstraintEquation(SlaveDof);
+        return mConstraintEquationContainer.GetConstraintEquation(rSlaveDof);
     }
 
     /**
     * Adds a constraints between the given slave and master with a weight. 		
 	*/
     // Takes in a slave dof equationId and a master dof equationId
-    virtual void AddConstraint(DofType &SlaveDof, DofType &MasterDof, double weight, double constant = 0.0)
+    virtual void AddConstraint(DofType &rSlaveDof, DofType &rMasterDof, double Weight, double Constant = 0.0)
     {
-        mConstraintEquationContainer.AddConstraint(SlaveDof, MasterDof, weight, constant);
+        mConstraintEquationContainer.AddConstraint(rSlaveDof, rMasterDof, Weight, Constant);
     }
 
     /**
      *  Does necessary operations to setup the constraint.
      */
-    virtual void SetUp(NodesContainerType &Nodes)
+    virtual void SetUp(NodesContainerType &rNodes)
     {
     }
 
     /**
      *  Does necessary operations on the constraint before the build of master stiffness matrix is commenced
      */
-    virtual void ExecuteBeforeBuilding(NodesContainerType &Nodes)
+    virtual void ExecuteBeforeBuilding(NodesContainerType &rNodes)
     {
     }
     /**
      *  Does necessary operations on the constraint after the build of master stiffness matrix is commenced
      */
-    virtual void ExecuteAfterBuilding(NodesContainerType &Nodes)
+    virtual void ExecuteAfterBuilding(NodesContainerType &rNodes)
     {
     }
 
     /**
      *  Does necessary operations on global symtem Ax=b on the constraint before they are solved.
      */    
-    virtual void ExecuteBeforeSolving(TSystemMatrixType &A,
-                                      TSystemVectorType &Dx,
-                                      TSystemVectorType &b)
+    virtual void ExecuteBeforeSolving(TSystemMatrixType &rA,
+                                      TSystemVectorType &rDx,
+                                      TSystemVectorType &rb)
     {
     }
 
     /**
      *  Does necessary operations on global symtem Ax=b on the constraint after they are solved.
      */    
-    virtual void ExecuteAfterSolving(TSystemMatrixType &A,
-                                     TSystemVectorType &Dx,
-                                     TSystemVectorType &b)
+    virtual void ExecuteAfterSolving(TSystemMatrixType &rA,
+                                     TSystemVectorType &rDx,
+                                     TSystemVectorType &rb)
     {
     }
 
@@ -140,8 +140,8 @@ class Constraint
      *  Mainly to build the sparsity pattern for the global stiffness matrix.
      */        
     virtual void ModifyEquationIdsForConstraints(Element &rCurrentElement,
-                                                         EquationIdVectorType &EquationId,
-                                                         ProcessInfo &CurrentProcessInfo)
+                                                         EquationIdVectorType &rEquationId,
+                                                         ProcessInfo &rCurrentProcessInfo)
     {
     }
 
@@ -150,8 +150,8 @@ class Constraint
      *  Mainly to build the sparsity pattern for the global stiffness matrix.
      */            
     virtual void ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
-                                                           EquationIdVectorType &EquationId,
-                                                           ProcessInfo &CurrentProcessInfo)
+                                                           EquationIdVectorType &rEquationId,
+                                                           ProcessInfo &rCurrentProcessInfo)
     {
     }
 
@@ -159,10 +159,10 @@ class Constraint
      *  Does necessary operations on the element stiffness matrix and element rhs to apply the constraints.
      */    
     virtual void ApplyConstraints(Element &rCurrentElement,
-                                          LocalSystemMatrixType &LHS_Contribution,
-                                          LocalSystemVectorType &RHS_Contribution,
-                                          EquationIdVectorType &EquationId,
-                                          ProcessInfo &CurrentProcessInfo)
+                                          LocalSystemMatrixType &rLHS_Contribution,
+                                          LocalSystemVectorType &rRHS_Contribution,
+                                          EquationIdVectorType &rEquationId,
+                                          ProcessInfo &rCurrentProcessInfo)
     {
     }
 
@@ -170,10 +170,10 @@ class Constraint
      *  Does necessary operations on the condition stiffness matrix and element rhs to apply the constraints.
      */        
     virtual void ApplyConstraints(Condition &rCurrentCondition,
-                                            LocalSystemMatrixType &LHS_Contribution,
-                                            LocalSystemVectorType &RHS_Contribution,
-                                            EquationIdVectorType &EquationId,
-                                            ProcessInfo &CurrentProcessInfo)
+                                            LocalSystemMatrixType &rLHS_Contribution,
+                                            LocalSystemVectorType &rRHS_Contribution,
+                                            EquationIdVectorType &rEquationId,
+                                            ProcessInfo &rCurrentProcessInfo)
     {
     }
 
@@ -181,17 +181,17 @@ class Constraint
 	* Get the Total number of MasterDOFs for a given slave dof
 	* @return Total number of MasterDOFs for a given slave dof
 	*/
-    virtual unsigned int GetNumbeOfMasterDofsForSlave(DofType &SlaveDof)
+    virtual unsigned int GetNumbeOfMasterDofsForSlave(DofType &rSlaveDof)
     {
-        return mConstraintEquationContainer.GetNumbeOfMasterDofsForSlave(SlaveDof);
+        return mConstraintEquationContainer.GetNumbeOfMasterDofsForSlave(rSlaveDof);
     }
 
     /**
 	* Set the name for the current set of constraints. 
 	*/
-    virtual void SetName(const std::string name)
+    virtual void SetName(const std::string Name)
     {
-        mName = name;
+        mName = Name;
     }
     /**
 	* Get the name for the current set of constraints. 
@@ -204,9 +204,9 @@ class Constraint
     /**
 	* Set the activeness for current set of constraints. 
 	*/
-    virtual void SetActive(const bool isActive)
+    virtual void SetActive(const bool IsActive)
     {
-        mActive = isActive;
+        mActive = IsActive;
     }
 
     /**

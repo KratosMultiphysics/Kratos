@@ -79,104 +79,100 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
     ///@name Access
     ///@{
 
-    void UpdateConstraintEquations(NodesContainerType &Nodes)
+    void UpdateConstraintEquations(NodesContainerType &rNodes)
     {
-        for (auto &constraintEqData : this->GetData())
+        for (auto &constraint_eq_data : this->GetData())
         {
-            size_t slaveNodeId = constraintEqData->SlaveDofId();
-            size_t slaveDofKey = constraintEqData->SlaveDofKey();
-            NodeType &node = Nodes[slaveNodeId];
-            Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
-            double slaveDofValue = it->GetSolutionStepValue();
-            double slaveDofValueCalc = 0.0;
-            double constant = constraintEqData->Constant();
+            size_t slave_node_id = constraint_eq_data->SlaveDofId();
+            size_t slave_dof_key = constraint_eq_data->SlaveDofKey();
+            NodeType &node = rNodes[slave_node_id];
+            Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slave_dof_key);
+            double slave_dof_value = it->GetSolutionStepValue();
+            double slave_dof_value_calc = 0.0;
+            double constant = constraint_eq_data->Constant();
 
-            for (auto &masterData : *constraintEqData)
+            for (auto &master_data : *constraint_eq_data)
             {
-                size_t masterDofKey = masterData->MasterKey();
-                double weight = masterData->MasterWeight();
-                NodeType &masterNode = Nodes[masterData->MasterDofId()]; // DofId and nodeId are same
-                Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
+                size_t master_dof_key = master_data->MasterKey();
+                double weight = master_data->MasterWeight();
+                NodeType &r_master_node = rNodes[master_data->MasterDofId()]; // DofId and nodeId are same
+                Node<3>::DofsContainerType::iterator it_master = r_master_node.GetDofs().find(master_dof_key);
 
-                slaveDofValueCalc += itMaster->GetSolutionStepValue() * weight;
+                slave_dof_value_calc += it_master->GetSolutionStepValue() * weight;
             }
-            slaveDofValueCalc += constant;
+            slave_dof_value_calc += constant;
 
-            double dConstant = slaveDofValueCalc - slaveDofValue;
-            constraintEqData->SetConstantUpdate(dConstant);
+            double d_constant = slave_dof_value_calc - slave_dof_value;
+            constraint_eq_data->SetConstantUpdate(d_constant);
         }
     }
 
-    virtual void ExecuteBeforeBuilding(NodesContainerType &Nodes) override
+    virtual void ExecuteBeforeBuilding(NodesContainerType &rNodes) override
     {
-        UpdateConstraintEquations(Nodes);
+        UpdateConstraintEquations(rNodes);
     }
 
-    virtual void SetUp(NodesContainerType &Nodes) override
+    virtual void SetUp(NodesContainerType &rNodes) override
     {
-        for (const auto &constraintEqData : this->GetData())
+        for (const auto &constraint_eq_data : this->GetData())
         {
-            size_t slaveNodeId = constraintEqData->SlaveDofId();
-            size_t slaveDofKey = constraintEqData->SlaveDofKey();
-            NodeType &node = Nodes[slaveNodeId];
-            Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
-            constraintEqData->SetSlaveEquationId(it->EquationId());
-            int index = 0;
-            for (auto &masterData : *constraintEqData)
+            size_t slave_node_id = constraint_eq_data->SlaveDofId();
+            size_t slave_dof_key = constraint_eq_data->SlaveDofKey();
+            NodeType &node = rNodes[slave_node_id];
+            Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slave_dof_key);
+            constraint_eq_data->SetSlaveEquationId(it->EquationId());
+            for (auto &master_data : *constraint_eq_data)
             {
-                size_t masterDofKey = masterData->MasterKey();
-                size_t masterDofId = masterData->MasterDofId();
+                size_t master_dof_key = master_data->MasterKey();
+                size_t master_dof_id = master_data->MasterDofId();
 
-                NodeType &masterNode = Nodes[masterDofId];
-                Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
-                masterData->SetEquationId(itMaster->EquationId());
-                index++;
+                NodeType &master_node = rNodes[master_dof_id];
+                Node<3>::DofsContainerType::iterator it_master = master_node.GetDofs().find(master_dof_key);
+                master_data->SetEquationId(it_master->EquationId());
             }
         } 
     }
 
-    virtual void ExecuteAfterSolving(TSystemMatrixType &A,
-                                     TSystemVectorType &Dx,
-                                     TSystemVectorType &b) override
+    virtual void ExecuteAfterSolving(TSystemMatrixType &rA,
+                                     TSystemVectorType &rDx,
+                                     TSystemVectorType &rb) override
     {
-        for (auto &constraintEqData : this->GetData())
+        for (auto &constraint_eq_data : this->GetData())
         {
-            size_t slaveEquationId = constraintEqData->SlaveEquationId();
-            int index = 0;
-            for (auto &masterData : *constraintEqData)
+            size_t slave_equation_id = constraint_eq_data->SlaveEquationId();
+            for (auto &master_data : *constraint_eq_data)
             {
-                Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + TSparseSpace::GetValue(Dx, masterData->MasterEqId()) * masterData->MasterWeight();
-                index++;
+                rDx[slave_equation_id] = TSparseSpace::GetValue(rDx, slave_equation_id) + TSparseSpace::GetValue(rDx, master_data->MasterEqId()) * master_data->MasterWeight();
             }
 
-            Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + constraintEqData->ConstantUpdate();
-            constraintEqData->SetConstantUpdate(0.0);
+            rDx[slave_equation_id] = TSparseSpace::GetValue(rDx, slave_equation_id) + constraint_eq_data->ConstantUpdate();
+            constraint_eq_data->SetConstantUpdate(0.0);
         }        
     }
 
     virtual void ModifyEquationIdsForConstraints(Element &rCurrentElement,
-                                                         EquationIdVectorType &EquationId,
-                                                         ProcessInfo &CurrentProcessInfo) override
+                                                         EquationIdVectorType &rEquationId,
+                                                         ProcessInfo &rCurrentProcessInfo) override
     {
         const size_t number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
         for (size_t j = 0; j < number_of_nodes; j++)
         {            
-            DofsVectorType elementDofs;
-            rCurrentElement.GetDofList(elementDofs, CurrentProcessInfo);
-            int numDofsPerNode = elementDofs.size() / number_of_nodes;
+            DofsVectorType element_dofs;
+            rCurrentElement.GetDofList(element_dofs, rCurrentProcessInfo);
+            int num_dofs_per_node = element_dofs.size() / number_of_nodes;
             if (rCurrentElement.GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
                 // Necessary data for iterating and modifying the matrix
-                int startPositionNodeDofs = numDofsPerNode * (j);
-                for (int i = 0; i < numDofsPerNode; i++)
+                int start_position_node_dofs = num_dofs_per_node * (j);
+                for (int i = 0; i < num_dofs_per_node; i++)
                 {
-                    if (this->GetData().GetNumbeOfMasterDofsForSlave(*(elementDofs[startPositionNodeDofs + i])) > 0)
+                    if (this->GetData().GetNumbeOfMasterDofsForSlave(*(element_dofs[start_position_node_dofs + i])) > 0)
                     {
-                        auto &constraintEqData = this->GetData().GetConstraintEquation(*(elementDofs[startPositionNodeDofs + i]));
-                        for (auto &masterData : constraintEqData)
+                        auto &constraint_eq_data = this->GetData().GetConstraintEquation(*(element_dofs[start_position_node_dofs + i]));
+                        for (auto &master_data : constraint_eq_data)
                         {
-                            EquationId.push_back(masterData->MasterEqId());
+                            rEquationId.push_back(master_data->MasterEqId());
                         }
                     }
                 }
@@ -185,29 +181,29 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
     }
 
     virtual void ModifyEquationIdsForConstraints(Condition &rCurrentCondition,
-                                                           EquationIdVectorType &EquationId,
-                                                           ProcessInfo &CurrentProcessInfo) override
+                                                           EquationIdVectorType &rEquationId,
+                                                           ProcessInfo &rCurrentProcessInfo) override
     {
         const size_t number_of_nodes = rCurrentCondition.GetGeometry().PointsNumber();
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
         for (size_t j = 0; j < number_of_nodes; j++)
         {
-            DofsVectorType elementDofs;
-            rCurrentCondition.GetDofList(elementDofs, CurrentProcessInfo);
-            int numDofsPerNode = elementDofs.size() / number_of_nodes;
+            DofsVectorType element_dofs;
+            rCurrentCondition.GetDofList(element_dofs, rCurrentProcessInfo);
+            int num_dofs_per_node = element_dofs.size() / number_of_nodes;
             if (rCurrentCondition.GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
                 // Necessary data for iterating and modifying the matrix
-                int startPositionNodeDofs = numDofsPerNode * (j);
-                for (int i = 0; i < numDofsPerNode; i++)
+                int start_position_node_dofs = num_dofs_per_node * (j);
+                for (int i = 0; i < num_dofs_per_node; i++)
                 {
-                    if (this->GetData().GetNumbeOfMasterDofsForSlave(*(elementDofs[startPositionNodeDofs + i])) > 0)
+                    if (this->GetData().GetNumbeOfMasterDofsForSlave(*(element_dofs[start_position_node_dofs + i])) > 0)
                     {
-                        auto &constraintEqData = this->GetData().GetConstraintEquation(*(elementDofs[startPositionNodeDofs + i]));
+                        auto &constraint_eq_data = this->GetData().GetConstraintEquation(*(element_dofs[start_position_node_dofs + i]));
 
-                        for (auto &masterData : constraintEqData)
+                        for (auto &master_data : constraint_eq_data)
                         {
-                            EquationId.push_back(masterData->MasterEqId());
+                            rEquationId.push_back(master_data->MasterEqId());
                         }
                     }
                 }
@@ -250,151 +246,148 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
      */
 
     virtual void ApplyConstraints(Element &rCurrentElement,
-                                          LocalSystemMatrixType &LHS_Contribution,
-                                          LocalSystemVectorType &RHS_Contribution,
-                                          EquationIdVectorType &EquationId,
-                                          ProcessInfo &CurrentProcessInfo) override
+                                          LocalSystemMatrixType &rLHS_Contribution,
+                                          LocalSystemVectorType &rRHS_Contribution,
+                                          EquationIdVectorType &rEquationId,
+                                          ProcessInfo &rCurrentProcessInfo) override
     {
         KRATOS_TRY
         ////
         //// Check if there exists a slave in the current element. If not return without any modifications
         //// NOTE : further in the comments indices (written in small) for matrix K and vector RHS : i -> internal, s -> slave, m -> master
         ////
-        bool slaveFound = false;
-        Element::NodesArrayType nodesArray = rCurrentElement.GetGeometry();
+        bool slave_found = false;
         const size_t number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
         for (size_t j = 0; j < number_of_nodes; j++)
         {
             if (rCurrentElement.GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
-                slaveFound = true;
+                slave_found = true;
                 break;
             }
         }
         // If no slave is found no need of going on
-        if (!slaveFound)
+        if (!slave_found)
         {
             return;
         }
         ////
         //// Formulate the list of uneffected  equations for this element. There will be some as all the DOFs cannot be slaves
         ////
-        DofsVectorType elementDofs;
-        rCurrentElement.GetDofList(elementDofs, CurrentProcessInfo);
+        DofsVectorType element_dofs;
+        rCurrentElement.GetDofList(element_dofs, rCurrentProcessInfo);
 
-        int totalNumberOfMasters = 0;
-        int localMasterIndex = 0;
-        std::vector<std::size_t> localIndices;
-        std::vector<std::size_t> localSlaveIndices;
-        std::vector<std::size_t> localInternIndices;
+        int total_number_of_masters = 0;
+        int local_master_index = 0;
+        std::vector<std::size_t> local_indices;
+        std::vector<std::size_t> local_slave_indices;
+        std::vector<std::size_t> local_intern_indices;
 
-        std::vector<std::size_t> localMasterIndices;
-        std::vector<double> localMasterWeights;
-        std::vector<std::size_t> slavesIndexToMasterIndex;
+        std::vector<std::size_t> local_master_indices;
+        std::vector<double> local_master_weights;
+        std::vector<std::size_t> slaves_index_to_master_index;
 
-        for (size_t i = 0; i < elementDofs.size(); ++i)
+        for (size_t i = 0; i < element_dofs.size(); ++i)
         {
-            localIndices.push_back(i);
-            int numMasters = this->GetData().GetNumbeOfMasterDofsForSlave(*elementDofs[i]);
+            local_indices.push_back(i);
+            int num_masters = this->GetData().GetNumbeOfMasterDofsForSlave(*element_dofs[i]);
 
-            if (numMasters > 0)
+            if (num_masters > 0)
             {
-                localSlaveIndices.push_back(i);
-                totalNumberOfMasters += numMasters;
+                local_slave_indices.push_back(i);
+                total_number_of_masters += num_masters;
             }
         }
-        std::sort(localIndices.begin(), localIndices.end());
-        std::sort(localSlaveIndices.begin(), localSlaveIndices.end());
-        // Get the NOT intersection between localIndices and localSlaveIndices to find the uneffected equations
-        std::set_difference(localIndices.begin(), localIndices.end(), localSlaveIndices.begin(), localSlaveIndices.end(), std::back_inserter(localInternIndices));
+        std::sort(local_indices.begin(), local_indices.end());
+        std::sort(local_slave_indices.begin(), local_slave_indices.end());
+        // Get the NOT intersection between local_indices and local_slave_indices to find the uneffected equations
+        std::set_difference(local_indices.begin(), local_indices.end(), local_slave_indices.begin(), local_slave_indices.end(), std::back_inserter(local_intern_indices));
         ////
         //// Once we know the final size of the modified element system, resizing the element matrix to accomodate the master dofs of the found slave dofs
         ////
-        int currentSysSize = LHS_Contribution.size1();
-        localMasterIndex = currentSysSize;
-        int lhsSize1 = currentSysSize + totalNumberOfMasters;
-        int lhsSize2 = currentSysSize + totalNumberOfMasters;
-        LHS_Contribution.resize(lhsSize1, lhsSize2, true); //true for Preserving the data and resizing the matrix
-        RHS_Contribution.resize(lhsSize1, true);
+        int current_system_size = rLHS_Contribution.size1();
+        local_master_index = current_system_size;
+        int lhs_size1 = current_system_size + total_number_of_masters;
+        int lhs_size2 = current_system_size + total_number_of_masters;
+        rLHS_Contribution.resize(lhs_size1, lhs_size2, true); //true for Preserving the data and resizing the matrix
+        rRHS_Contribution.resize(lhs_size1, true);
         // Making the newly added part of matrx, that is K(m,m), K(i,m), k(s,m), k(m,s)
-        for (int m = currentSysSize; m < lhsSize1; m++)
+        for (int m = current_system_size; m < lhs_size1; m++)
         {
-            for (int n = 0; n < lhsSize1; n++)
+            for (int n = 0; n < lhs_size1; n++)
             {
-                LHS_Contribution(m, n) = 0.0;
-                LHS_Contribution(n, m) = 0.0;
+                rLHS_Contribution(m, n) = 0.0;
+                rLHS_Contribution(n, m) = 0.0;
             }
-            RHS_Contribution(m) = 0.0;
+            rRHS_Contribution(m) = 0.0;
         }
         ////
         //// Now change the element matrix for each of the slave dof it has for corresponding master dofs
         ////
-        for (auto &slaveIndex : localSlaveIndices)
+        for (auto &slave_index : local_slave_indices)
         { // Loop over all the slaves DOFs for this element
-            auto &constraintEqData = this->GetData().GetConstraintEquation(*elementDofs[slaveIndex]);
+            auto &constraint_eq_data = this->GetData().GetConstraintEquation(*element_dofs[slave_index]);
 
-            int index = 0;
-            for (auto &masterData : constraintEqData)
+            for (auto &master_data : constraint_eq_data)
             { // Loop over all the masters the slave has
-                double weight = masterData->MasterWeight();
-                const double constant = constraintEqData.Constant();
-                for (auto &internIndex : localInternIndices)
+                double weight = master_data->MasterWeight();
+                const double constant = constraint_eq_data.Constant();
+                for (auto &intern_index : local_intern_indices)
                 {
-                    RHS_Contribution(internIndex) += -LHS_Contribution(internIndex, slaveIndex) * constant;
+                    rRHS_Contribution(intern_index) += -rLHS_Contribution(intern_index, slave_index) * constant;
                 }
 
                 // For K(m,i) and K(i,m)
-                for (auto &internIndex : localInternIndices)
+                for (auto &intern_index : local_intern_indices)
                 { // Loop over all the local equation ids
-                    LHS_Contribution(internIndex, localMasterIndex) += LHS_Contribution(internIndex, slaveIndex) * weight;
-                    LHS_Contribution(localMasterIndex, internIndex) += LHS_Contribution(slaveIndex, internIndex) * weight;
+                    rLHS_Contribution(intern_index, local_master_index) += rLHS_Contribution(intern_index, slave_index) * weight;
+                    rLHS_Contribution(local_master_index, intern_index) += rLHS_Contribution(slave_index, intern_index) * weight;
                 } // Loop over all the local equation ids
 
                 // For RHS(m) += A'*K(s,s)*B
-                for (auto &slaveIndexOther : localSlaveIndices)
+                for (auto &slave_index_other : local_slave_indices)
                 {
-                    auto& slaveDataOther = this->GetData().GetConstraintEquation(*elementDofs[slaveIndexOther]);
-                    double constantOther = slaveDataOther.Constant();
-                    RHS_Contribution(localMasterIndex) += LHS_Contribution(slaveIndex, slaveIndexOther) * weight * constantOther;
+                    auto& slave_data_other = this->GetData().GetConstraintEquation(*element_dofs[slave_index_other]);
+                    double constant_other = slave_data_other.Constant();
+                    rRHS_Contribution(local_master_index) += rLHS_Contribution(slave_index, slave_index_other) * weight * constant_other;
                 }
 
-                EquationId.push_back(masterData->MasterEqId());
+                rEquationId.push_back(master_data->MasterEqId());
                 // Changing the RHS side of the equation
-                RHS_Contribution(localMasterIndex) += weight * RHS_Contribution(slaveIndex);
+                rRHS_Contribution(local_master_index) += weight * rRHS_Contribution(slave_index);
 
-                localMasterIndices.push_back(localMasterIndex);
-                localMasterWeights.push_back(weight);
-                slavesIndexToMasterIndex.push_back(slaveIndex);
+                local_master_indices.push_back(local_master_index);
+                local_master_weights.push_back(weight);
+                slaves_index_to_master_index.push_back(slave_index);
 
-                index++;
-                localMasterIndex++;
+                local_master_index++;
             } // Loop over all the masters the slave has
 
-            RHS_Contribution(slaveIndex) = 0.0;
+            rRHS_Contribution(slave_index) = 0.0;
         } // Loop over all the slaves for this node
 
         // For K(m,m) = K(m,m) + A'*K(s,s)*A
         int index(0);
-        for (auto masterIndex : localMasterIndices)
+        for (auto masterIndex : local_master_indices)
         {
-            int indexOther(0);
-            for (auto masterIndexOther : localMasterIndices)
+            int index_other(0);
+            for (auto masterIndexOther : local_master_indices)
             {
-                LHS_Contribution(masterIndex, masterIndexOther) += localMasterWeights[index] *
-                                                                   LHS_Contribution(slavesIndexToMasterIndex[index], slavesIndexToMasterIndex[indexOther]) *
-                                                                   localMasterWeights[indexOther];
-                indexOther++;
+                rLHS_Contribution(masterIndex, masterIndexOther) += local_master_weights[index] *
+                                                                   rLHS_Contribution(slaves_index_to_master_index[index], slaves_index_to_master_index[index_other]) *
+                                                                   local_master_weights[index_other];
+                index_other++;
             }
             index++;
         }
 
         // For K(i,s) and K(s,i)
-        for (auto slaveIndex : localSlaveIndices)
+        for (auto slave_index : local_slave_indices)
         { // Loop over all the slaves for this node
-            for (auto &internIndex : localInternIndices)
+            for (auto &intern_index : local_intern_indices)
             { // Loop over all the local equation ids
-                LHS_Contribution(slaveIndex, internIndex) = 0.0;
-                LHS_Contribution(internIndex, slaveIndex) = 0.0;
+                rLHS_Contribution(slave_index, intern_index) = 0.0;
+                rLHS_Contribution(intern_index, slave_index) = 0.0;
             }
         } // Loop over all the slaves for this node
 
@@ -402,10 +395,10 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
     }
 
     void ApplyConstraints(Condition &rCurrentElement,
-                                    LocalSystemMatrixType &LHS_Contribution,
-                                    LocalSystemVectorType &RHS_Contribution,
-                                    EquationIdVectorType &EquationId,
-                                    ProcessInfo &CurrentProcessInfo) override
+                                    LocalSystemMatrixType &rLHS_Contribution,
+                                    LocalSystemVectorType &rRHS_Contribution,
+                                    EquationIdVectorType &rEquationId,
+                                    ProcessInfo &rCurrentProcessInfo) override
     {
         KRATOS_TRY
         ////
@@ -413,7 +406,6 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         //// NOTE : further in the comments indices (written in small) for matrix K and vector RHS : i -> internal, s -> slave, m -> master
         ////
         bool slaveFound = false;
-        Element::NodesArrayType nodesArray = rCurrentElement.GetGeometry();
         const size_t number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
         for (size_t j = 0; j < number_of_nodes; j++)
         {
@@ -431,122 +423,120 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         ////
         //// Formulate the list of uneffected  equations for this element. There will be some as all the DOFs cannot be slaves
         ////
-        DofsVectorType elementDofs;
-        rCurrentElement.GetDofList(elementDofs, CurrentProcessInfo);
+        DofsVectorType element_dofs;
+        rCurrentElement.GetDofList(element_dofs, rCurrentProcessInfo);
 
-        int totalNumberOfMasters = 0;
-        int localMasterIndex = 0;
-        std::vector<std::size_t> localIndices;
-        std::vector<std::size_t> localSlaveIndices;
-        std::vector<std::size_t> localInternIndices;
+        int total_number_of_masters = 0;
+        int local_master_index = 0;
+        std::vector<std::size_t> local_indices;
+        std::vector<std::size_t> local_slave_indices;
+        std::vector<std::size_t> local_intern_indices;
 
-        std::vector<std::size_t> localMasterIndices;
-        std::vector<double> localMasterWeights;
-        std::vector<std::size_t> slavesIndexToMasterIndex;
+        std::vector<std::size_t> local_master_indices;
+        std::vector<double> local_master_weights;
+        std::vector<std::size_t> slaves_index_to_master_index;
 
-        for (size_t i = 0; i < elementDofs.size(); ++i)
+        for (size_t i = 0; i < element_dofs.size(); ++i)
         {
-            localIndices.push_back(i);
-            int numMasters = this->GetData().GetNumbeOfMasterDofsForSlave(*elementDofs[i]);
+            local_indices.push_back(i);
+            int num_masters = this->GetData().GetNumbeOfMasterDofsForSlave(*element_dofs[i]);
 
-            if (numMasters > 0)
+            if (num_masters > 0)
             {
-                localSlaveIndices.push_back(i);
-                totalNumberOfMasters += numMasters;
+                local_slave_indices.push_back(i);
+                total_number_of_masters += num_masters;
             }
         }
-        std::sort(localIndices.begin(), localIndices.end());
-        std::sort(localSlaveIndices.begin(), localSlaveIndices.end());
-        // Get the NOT intersection between localIndices and localSlaveIndices to find the uneffected equations
-        std::set_difference(localIndices.begin(), localIndices.end(), localSlaveIndices.begin(), localSlaveIndices.end(), std::back_inserter(localInternIndices));
+        std::sort(local_indices.begin(), local_indices.end());
+        std::sort(local_slave_indices.begin(), local_slave_indices.end());
+        // Get the NOT intersection between local_indices and local_slave_indices to find the uneffected equations
+        std::set_difference(local_indices.begin(), local_indices.end(), local_slave_indices.begin(), local_slave_indices.end(), std::back_inserter(local_intern_indices));
         ////
         //// Once we know the final size of the modified element system, resizing the element matrix to accomodate the master dofs of the found slave dofs
         ////
-        int currentSysSize = LHS_Contribution.size1();
-        localMasterIndex = currentSysSize;
-        int lhsSize1 = currentSysSize + totalNumberOfMasters;
-        int lhsSize2 = currentSysSize + totalNumberOfMasters;
-        LHS_Contribution.resize(lhsSize1, lhsSize2, true); //true for Preserving the data and resizing the matrix
-        RHS_Contribution.resize(lhsSize1, true);
+        int current_system_size = rLHS_Contribution.size1();
+        local_master_index = current_system_size;
+        int lhsSize1 = current_system_size + total_number_of_masters;
+        int lhsSize2 = current_system_size + total_number_of_masters;
+        rLHS_Contribution.resize(lhsSize1, lhsSize2, true); //true for Preserving the data and resizing the matrix
+        rRHS_Contribution.resize(lhsSize1, true);
         // Making the newly added part of matrx, that is K(m,m), K(i,m), k(s,m), k(m,s)
-        for (int m = currentSysSize; m < lhsSize1; m++)
+        for (int m = current_system_size; m < lhsSize1; m++)
         {
             for (int n = 0; n < lhsSize1; n++)
             {
-                LHS_Contribution(m, n) = 0.0;
-                LHS_Contribution(n, m) = 0.0;
+                rLHS_Contribution(m, n) = 0.0;
+                rLHS_Contribution(n, m) = 0.0;
             }
-            RHS_Contribution(m) = 0.0;
+            rRHS_Contribution(m) = 0.0;
         }
         ////
         //// Now change the element matrix for each of the slave dof it has for corresponding master dofs
         ////
-        for (auto &slaveIndex : localSlaveIndices)
+        for (auto &slave_index : local_slave_indices)
         { // Loop over all the slaves DOFs for this element
-            auto &constraintEqData = this->GetData().GetConstraintEquation(*elementDofs[slaveIndex]);
+            auto &constraint_eq_data = this->GetData().GetConstraintEquation(*element_dofs[slave_index]);
 
-            int index = 0;
-            for (auto &masterData : constraintEqData)
+            for (auto &master_data : constraint_eq_data)
             { // Loop over all the masters the slave has
-                double weight = masterData->MasterWeight();
-                const double constant = constraintEqData.Constant();
-                for (auto &internIndex : localInternIndices)
+                double weight = master_data->MasterWeight();
+                const double constant = constraint_eq_data.Constant();
+                for (auto &intern_index : local_intern_indices)
                 {
-                    RHS_Contribution(internIndex) += -LHS_Contribution(internIndex, slaveIndex) * constant;
+                    rRHS_Contribution(intern_index) += -rLHS_Contribution(intern_index, slave_index) * constant;
                 }
 
                 // For K(m,i) and K(i,m)
-                for (auto &internIndex : localInternIndices)
+                for (auto &intern_index : local_intern_indices)
                 { // Loop over all the local equation ids
-                    LHS_Contribution(internIndex, localMasterIndex) += LHS_Contribution(internIndex, slaveIndex) * weight;
-                    LHS_Contribution(localMasterIndex, internIndex) += LHS_Contribution(slaveIndex, internIndex) * weight;
+                    rLHS_Contribution(intern_index, local_master_index) += rLHS_Contribution(intern_index, slave_index) * weight;
+                    rLHS_Contribution(local_master_index, intern_index) += rLHS_Contribution(slave_index, intern_index) * weight;
                 } // Loop over all the local equation ids
 
                 // For RHS(m) += A'*K(s,s)*B
-                for (auto &slaveIndexOther : localSlaveIndices)
+                for (auto &slave_index_other : local_slave_indices)
                 {
-                    auto slaveDataOther = this->GetData().GetConstraintEquation(*elementDofs[slaveIndexOther]);
-                    double constantOther = slaveDataOther.Constant();
-                    RHS_Contribution(localMasterIndex) += LHS_Contribution(slaveIndex, slaveIndexOther) * weight * constantOther;
+                    auto slave_data_other = this->GetData().GetConstraintEquation(*element_dofs[slave_index_other]);
+                    double constant_other = slave_data_other.Constant();
+                    rRHS_Contribution(local_master_index) += rLHS_Contribution(slave_index, slave_index_other) * weight * constant_other;
                 }
 
-                EquationId.push_back(masterData->MasterEqId());
+                rEquationId.push_back(master_data->MasterEqId());
                 // Changing the RHS side of the equation
-                RHS_Contribution(localMasterIndex) += weight * RHS_Contribution(slaveIndex);
+                rRHS_Contribution(local_master_index) += weight * rRHS_Contribution(slave_index);
 
-                localMasterIndices.push_back(localMasterIndex);
-                localMasterWeights.push_back(weight);
-                slavesIndexToMasterIndex.push_back(slaveIndex);
+                local_master_indices.push_back(local_master_index);
+                local_master_weights.push_back(weight);
+                slaves_index_to_master_index.push_back(slave_index);
 
-                index++;
-                localMasterIndex++;
+                local_master_index++;
             } // Loop over all the masters the slave has
 
-            RHS_Contribution(slaveIndex) = 0.0;
+            rRHS_Contribution(slave_index) = 0.0;
         } // Loop over all the slaves for this node
 
         // For K(m,m) = K(m,m) + A'*K(s,s)*A
         int index(0);
-        for (auto masterIndex : localMasterIndices)
+        for (auto masterIndex : local_master_indices)
         {
-            int indexOther(0);
-            for (auto masterIndexOther : localMasterIndices)
+            int index_other(0);
+            for (auto masterIndexOther : local_master_indices)
             {
-                LHS_Contribution(masterIndex, masterIndexOther) += localMasterWeights[index] *
-                                                                   LHS_Contribution(slavesIndexToMasterIndex[index], slavesIndexToMasterIndex[indexOther]) *
-                                                                   localMasterWeights[indexOther];
-                indexOther++;
+                rLHS_Contribution(masterIndex, masterIndexOther) += local_master_weights[index] *
+                                                                   rLHS_Contribution(slaves_index_to_master_index[index], slaves_index_to_master_index[index_other]) *
+                                                                   local_master_weights[index_other];
+                index_other++;
             }
             index++;
         }
 
         // For K(i,s) and K(s,i)
-        for (auto slaveIndex : localSlaveIndices)
+        for (auto slave_index : local_slave_indices)
         { // Loop over all the slaves for this node
-            for (auto &internIndex : localInternIndices)
+            for (auto &intern_index : local_intern_indices)
             { // Loop over all the local equation ids
-                LHS_Contribution(slaveIndex, internIndex) = 0.0;
-                LHS_Contribution(internIndex, slaveIndex) = 0.0;
+                rLHS_Contribution(slave_index, intern_index) = 0.0;
+                rLHS_Contribution(intern_index, slave_index) = 0.0;
             }
         } // Loop over all the slaves for this node
 
