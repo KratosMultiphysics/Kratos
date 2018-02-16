@@ -87,7 +87,13 @@ public:
      *  @return The computed size.
      */
     static double MinimumElementSize(const Geometry<Node<3> >& rGeometry);
-
+    
+    /// Element size based on the shape functions gradients.
+    /** @param rDN_DX The shape functions gradients.
+     *  @return The computed size.
+     */
+    static double GradientsElementSize(const bounded_matrix<double, TNumNodes, TDim>& rDN_DX);
+    
     ///@}
 
 };  // Class ElementSizeCalculator
