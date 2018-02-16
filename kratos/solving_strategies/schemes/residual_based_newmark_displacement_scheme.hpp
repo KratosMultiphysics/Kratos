@@ -5,10 +5,8 @@
 //                   Multi-Physics
 //
 //  License:          BSD License
-//  Original author:  Josep Maria Carbonell
-//  comming from      SolidMechanicsApplication
-//
-//  Co-author:        Vicente Mataix Ferrandiz
+//  Main authors:  Josep Maria Carbonell
+//                 Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_NEWMARK_DISPLACEMENT_SCHEME )
@@ -17,16 +15,9 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "includes/variables.h"
-#include "containers/array_1d.h"
-#include "includes/element.h"
-#include "residual_based_bossak_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 
 namespace Kratos
 {
@@ -45,11 +36,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Newmark integration scheme (for dynamic problems)
+/** 
+ * @class ResidualBasedNewmarkDisplacementScheme
+ * @ingroup KratosCore
+ * @brief Bossak integration scheme (for dynamic problems) for displacements
+ * @details This is a dynamic implicit scheme based of the Newmark algorithm for displacements
+ * @author Josep Maria Carbonell
+ * @author Vicente Mataix Ferrandiz
  */
-
 template<class TSparseSpace,  class TDenseSpace >
-class ResidualBasedNewmarkDisplacementScheme: public ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>
+class ResidualBasedNewmarkDisplacementScheme
+    : public ResidualBasedBossakDisplacementScheme<TSparseSpace,TDenseSpace>
 {
 public:
     ///@name Type Definitions
