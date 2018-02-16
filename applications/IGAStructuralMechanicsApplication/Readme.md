@@ -14,10 +14,23 @@ Please add following instructions to the configure file for the correct compilat
 ```
 It is recommended to use the *NurbsBrepApplication* for preparation of geometry and generation of the numerical integration domain.
 
+## Element formulations
+The application is optimized for the use of thin-walled structures, but can be enhanced with other formulations. Hence the conditions are formulated for Kirchhoff-Love shell (see [Kiendl2011]). The structure of the application is 
+
+
 ## Meshless formulations
 Meshless formulations require a precomputation of numerical data. This means in general, the definition of shape functions, shape function derivatives and the integration weight. Some conditions might need extra information. This information can be obtained by the use of the *NurbsBrepApplication*.
 
-## Element formulations
-The application is optimized for the use of thin-walled structures, but can be enhanced with other formulations. Hence the conditions are formulated for Kirchhoff-Love shell (see [#Kiendl2011]). The structure of the application is 
+To allow computations every element formulation has to have as minimum the following properties:
+```
+INTEGRATION_WEIGHT
+SHAPE_FUNTION_VALUES
+SHAPE_FUNCTION_LOCAL_DERIVATIVES
+```
+The Kirchhoff-Love Shell needs additionally the second derivatives of the shape functions:
+```
+SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES
+```
 
-[#Kiendl2011]: http://nbn-resolving.de/urn/resolver.pl?urn:nbn:de:bvb:91-diss-20110321-1002634-1-5   "Isogeometric Analysis and Shape Optimal Design of Shell Structures."
+
+[Kiendl2011]: http://nbn-resolving.de/urn/resolver.pl?urn:nbn:de:bvb:91-diss-20110321-1002634-1-5   "Isogeometric Analysis and Shape Optimal Design of Shell Structures."
