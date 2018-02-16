@@ -1787,28 +1787,28 @@ namespace Kratos
                     variables.insert(var.first->Name());
                     // determine variable type
                     if(KratosComponents<Variable<bool>>::Has(var.first->Name())){
-                        WriteDataBlock<Variable<bool>>(rThisData, var.first, DataName);
+                        WriteDataBlock<Variable<bool>, TDataType>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<int>>::Has(var.first->Name())){
-                        WriteDataBlock<Variable<int>>(rThisData, var.first, DataName);
+                        WriteDataBlock<Variable<int>, TDataType>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<double>>::Has(var.first->Name())){
-                        WriteDataBlock<Variable<double>>(rThisData, var.first, DataName);
+                        WriteDataBlock<Variable<double>, TDataType>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<array_1d_component_type>::Has(var.first->Name())){
                         WriteDataBlock<array_1d_component_type>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<array_1d<double,3>>>::Has(var.first->Name())){
-                        WriteDataBlock<Variable<array_1d<double,3>>>(rThisData, var.first, DataName);
+                        WriteDataBlock<Variable<array_1d<double,3>>, TDataType>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<Quaternion<double>>>::Has(var.first->Name())){
-                        WriteDataBlock<Variable<Quaternion<double>>>(rThisData, var.first, DataName);
+                        WriteDataBlock<Variable<Quaternion<double>>, TDataType>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<Vector>>::Has(var.first->Name())){
-                        WriteDataBlock<Variable<Vector>>(rThisData, var.first, DataName);
+                        WriteDataBlock<Variable<Vector>, TDataType>(rThisData, var.first, DataName);
                     }
                     else if(KratosComponents<Variable<Matrix>>::Has(var.first->Name())){
-                        WriteDataBlock<Variable<Matrix>>(rThisData, var.first, DataName);
+                        WriteDataBlock<Variable<Matrix>, TDataType>(rThisData, var.first, DataName);
                     }
                     else
                         std::cout << var.first->Name() << " is not a valid variable for output!!!" << std::endl;
@@ -4472,13 +4472,14 @@ namespace Kratos
 
 
 
-
-    // Basically it starts to read the character sequence until reaching a
-    // "(" and then goes until corresponding ")" which means the vector or
-    // matrix value is completely read. It can be used to read any kind of
-    // vector or matrix with operator >> defined and writtern in following
-    // format for a vector: [size] ( value1, value2,...., valueN )
-    // format for a matrix: [size1,size2] (( )( )...( )) //look props read
+    /**
+    * @note Basically it starts to read the character sequence until reaching a
+    *       "(" and then goes until corresponding ")" which means the vector or
+    *       matrix value is completely read. It can be used to read any kind of
+    *       vector or matrix with operator >> defined and writtern in following
+    *       format for a vector: [size] ( value1, value2,...., valueN )
+    *       format for a matrix: [size1,size2] (( )( )...( )) //look props read
+    */
     template<class TValueType>
     TValueType& ModelPartIO::ReadVectorialValue(TValueType& rValue)
     {
