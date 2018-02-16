@@ -89,8 +89,6 @@ class ResponseFunctionCreator:
             self.OptimizationModelPart.AddNodalSolutionStepVariable(EIGENFREQUENCY_SHAPE_GRADIENT)
             if not solverSettings.Has("weighting_method") or solverSettings["weighting_method"].GetString() == "none":
                 self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunction( self.OptimizationModelPart, solverSettings )
-            elif solverSettings["weighting_method"].GetString() == "KS":
-                self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunctionKS( self.OptimizationModelPart, solverSettings )
             elif solverSettings["weighting_method"].GetString() == "linear_scaling":
                 self.listOfResponseFunctions["eigenfrequency"] = EigenfrequencyResponseFunctionLinScal( self.OptimizationModelPart, solverSettings )
             else:
