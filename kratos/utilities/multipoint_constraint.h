@@ -83,8 +83,8 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
     {
         for (auto &constraintEqData : this->GetData())
         {
-            unsigned int slaveNodeId = constraintEqData->SlaveDofId();
-            unsigned int slaveDofKey = constraintEqData->SlaveDofKey();
+            size_t slaveNodeId = constraintEqData->SlaveDofId();
+            size_t slaveDofKey = constraintEqData->SlaveDofKey();
             NodeType &node = Nodes[slaveNodeId];
             Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
             double slaveDofValue = it->GetSolutionStepValue();
@@ -93,7 +93,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
 
             for (auto &masterData : *constraintEqData)
             {
-                unsigned int masterDofKey = masterData->MasterKey();
+                size_t masterDofKey = masterData->MasterKey();
                 double weight = masterData->MasterWeight();
                 NodeType &masterNode = Nodes[masterData->MasterDofId()]; // DofId and nodeId are same
                 Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
@@ -116,16 +116,16 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
     {
         for (const auto &constraintEqData : this->GetData())
         {
-            unsigned int slaveNodeId = constraintEqData->SlaveDofId();
-            unsigned int slaveDofKey = constraintEqData->SlaveDofKey();
+            size_t slaveNodeId = constraintEqData->SlaveDofId();
+            size_t slaveDofKey = constraintEqData->SlaveDofKey();
             NodeType &node = Nodes[slaveNodeId];
             Node<3>::DofsContainerType::iterator it = node.GetDofs().find(slaveDofKey);
             constraintEqData->SetSlaveEquationId(it->EquationId());
             int index = 0;
             for (auto &masterData : *constraintEqData)
             {
-                unsigned int masterDofKey = masterData->MasterKey();
-                unsigned int masterDofId = masterData->MasterDofId();
+                size_t masterDofKey = masterData->MasterKey();
+                size_t masterDofId = masterData->MasterDofId();
 
                 NodeType &masterNode = Nodes[masterDofId];
                 Node<3>::DofsContainerType::iterator itMaster = masterNode.GetDofs().find(masterDofKey);
@@ -141,8 +141,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
     {
         for (auto &constraintEqData : this->GetData())
         {
-            unsigned int slaveEquationId = constraintEqData->SlaveEquationId();
-
+            size_t slaveEquationId = constraintEqData->SlaveEquationId();
             int index = 0;
             for (auto &masterData : *constraintEqData)
             {
@@ -152,16 +151,16 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
 
             Dx[slaveEquationId] = TSparseSpace::GetValue(Dx, slaveEquationId) + constraintEqData->ConstantUpdate();
             constraintEqData->SetConstantUpdate(0.0);
-        }
+        }        
     }
 
     virtual void ModifyEquationIdsForConstraints(Element &rCurrentElement,
                                                          EquationIdVectorType &EquationId,
                                                          ProcessInfo &CurrentProcessInfo) override
     {
-        const unsigned int number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
+        const size_t number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
-        for (unsigned int j = 0; j < number_of_nodes; j++)
+        for (size_t j = 0; j < number_of_nodes; j++)
         {            
             DofsVectorType elementDofs;
             rCurrentElement.GetDofList(elementDofs, CurrentProcessInfo);
@@ -189,9 +188,9 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                                                            EquationIdVectorType &EquationId,
                                                            ProcessInfo &CurrentProcessInfo) override
     {
-        const unsigned int number_of_nodes = rCurrentCondition.GetGeometry().PointsNumber();
+        const size_t number_of_nodes = rCurrentCondition.GetGeometry().PointsNumber();
         // For each node check if it is a slave or not If it is .. we change the Transformation matrix
-        for (unsigned int j = 0; j < number_of_nodes; j++)
+        for (size_t j = 0; j < number_of_nodes; j++)
         {
             DofsVectorType elementDofs;
             rCurrentCondition.GetDofList(elementDofs, CurrentProcessInfo);
@@ -256,7 +255,6 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                                           EquationIdVectorType &EquationId,
                                           ProcessInfo &CurrentProcessInfo) override
     {
-
         KRATOS_TRY
         ////
         //// Check if there exists a slave in the current element. If not return without any modifications
@@ -264,8 +262,8 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         ////
         bool slaveFound = false;
         Element::NodesArrayType nodesArray = rCurrentElement.GetGeometry();
-        const unsigned int number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
-        for (unsigned int j = 0; j < number_of_nodes; j++)
+        const size_t number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
+        for (size_t j = 0; j < number_of_nodes; j++)
         {
             if (rCurrentElement.GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
@@ -294,7 +292,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         std::vector<double> localMasterWeights;
         std::vector<std::size_t> slavesIndexToMasterIndex;
 
-        for (unsigned int i = 0; i < elementDofs.size(); ++i)
+        for (size_t i = 0; i < elementDofs.size(); ++i)
         {
             localIndices.push_back(i);
             int numMasters = this->GetData().GetNumbeOfMasterDofsForSlave(*elementDofs[i]);
@@ -416,8 +414,8 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         ////
         bool slaveFound = false;
         Element::NodesArrayType nodesArray = rCurrentElement.GetGeometry();
-        const unsigned int number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
-        for (unsigned int j = 0; j < number_of_nodes; j++)
+        const size_t number_of_nodes = rCurrentElement.GetGeometry().PointsNumber();
+        for (size_t j = 0; j < number_of_nodes; j++)
         {
             if (rCurrentElement.GetGeometry()[j].Is(SLAVE))
             { //temporary, will be checked once at the beginning only
@@ -446,7 +444,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         std::vector<double> localMasterWeights;
         std::vector<std::size_t> slavesIndexToMasterIndex;
 
-        for (unsigned int i = 0; i < elementDofs.size(); ++i)
+        for (size_t i = 0; i < elementDofs.size(); ++i)
         {
             localIndices.push_back(i);
             int numMasters = this->GetData().GetNumbeOfMasterDofsForSlave(*elementDofs[i]);
