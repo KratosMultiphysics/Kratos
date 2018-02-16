@@ -241,7 +241,7 @@
             </Container>
         </Container>
         <Container id="DEM-SolutionStrategy" pid="Solution strategy" class="Tab" help="Options and parameters that change the numerical strategy" icon="gear.gif" open="0">
-            <Item id="DEM-TimeIntegrationScheme" pid="Time integration scheme" dv="Symplectic_Euler" ivalues="Symplectic_Euler,Forward_Euler,Taylor_Scheme,Newmark_Beta_Method,Verlet_Velocity" values="Symplectic Euler,Forward Euler,Taylor Scheme,Newmark Beta Method,Verlet Velocity" help="Time Integration Scheme"/>
+            <Item id="DEM-TimeIntegrationScheme" pid="Time integration scheme" dv="Symplectic_Euler" ivalues="Symplectic_Euler,Forward_Euler,Taylor_Scheme,Verlet_Velocity" values="Symplectic Euler,Forward Euler,Taylor Scheme,Verlet Velocity" help="Time Integration Scheme"/>
             <Container id="DEM-ParallelType" pid="Parallel type" help="Locked to OpenMP (MPI will be available in the future)" class="Tab">
                 <Item id="ParallelType" pid="Parallel type" state="disabled" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help="Locked to OpenMP (MPI will be available in the future)"/>
                 <Item id="NumberOfThreads" pid="Number of threads" dv="2" help="Set the number of threads you want to use for this computation. Do not choose more than the available threads on your computer or the computation will be slower"/>

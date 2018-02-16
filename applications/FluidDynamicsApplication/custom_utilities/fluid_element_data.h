@@ -97,13 +97,13 @@ public:
 
     ShapeDerivativesType DN_DX;
 
-    /// StrainRate vector in Voigt notation.
+    /// Strain rate (symmetric gradient of velocity) vector in Voigt notation.
     /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
     Vector StrainRate;
 
-    /// Stress vector in Voigt notation.
+    /// Shear stress vector in Voigt notation.
     /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
-    Vector Stress;
+    Vector ShearStress;
 
     /// Constitutive tensor C (expressed as a Matrix).
     /** It is calculated by the constitutive law in FluidElement::ComputeMaterialResponse.*/
@@ -111,6 +111,9 @@ public:
 
     /// Constitutive law configuration (stored here to avoid re-initialization within the element).
     ConstitutiveLaw::Parameters ConstitutiveLawValues;
+
+    /// Effective viscosity (in dynamic units) produced by the constitutive law
+    double EffectiveViscosity;
     
     ///@}
 protected:

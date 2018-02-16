@@ -35,7 +35,6 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
-#include "utilities/normal_calculation_utils.h"
 #include "shape_optimization_application.h"
 
 // ==============================================================================
@@ -74,10 +73,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    // ==========================================================================
-    // Type definitions for better reading later
-    // ==========================================================================
     typedef array_1d<double,3> array_3d;
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     /// Pointer definition of GeometryUtilities
     KRATOS_CLASS_POINTER_DEFINITION(GeometryUtilities);
@@ -129,24 +126,14 @@ public:
     ///@name Operations
     ///@{
 
-    // ==============================================================================
+    // --------------------------------------------------------------------------
     void ComputeUnitSurfaceNormals()
     {
         KRATOS_TRY;
 
-        // Compute nodal are normal using given Kratos utilities (sets the variable "NORMAL")
-        NormalCalculationUtils normal_util = NormalCalculationUtils();
         const unsigned int domain_size = mrModelPart.GetProcessInfo().GetValue(DOMAIN_SIZE);
-        normal_util.CalculateOnSimplex(mrModelPart,domain_size);
-
-        // Take into account boundary conditions, normalize area normal and store in respective variable
-        for (ModelPart::NodeIterator node_i = mrModelPart.NodesBegin(); node_i != mrModelPart.NodesEnd(); ++node_i)
-        {
-            // Normalize normal and assign to solution step value
-            array_3d& normalized_normal = node_i->FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-            const array_1d<double,3>& area_normal = node_i->FastGetSolutionStepValue(NORMAL);
-            noalias(normalized_normal) = area_normal/norm_2(area_normal);
-        }
+        CalculateAreaNormals(mrModelPart.Conditions(),domain_size);
+        CalculateUnitNormals();
 
         KRATOS_CATCH("");
     }
@@ -232,7 +219,7 @@ public:
     	KRATOS_CATCH("");
     }
 
-    // ==============================================================================
+    // --------------------------------------------------------------------------
 
     ///@}
     ///@name Access
@@ -319,9 +306,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    // ==============================================================================
-    // Initialized by class constructor
-    // ==============================================================================
     ModelPart& mrModelPart;
 
     ///@}
@@ -332,6 +316,127 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    // --------------------------------------------------------------------------
+    void CalculateAreaNormals(ConditionsArrayType& rConditions, int dimension)
+    {
+        KRATOS_TRY
+
+        //resetting the normals
+        array_1d<double,3> zero = Vector(3);
+        noalias(zero) = ZeroVector(3);
+
+        for(auto & cond_i : rConditions)
+        {
+            Element::GeometryType& rNodes = cond_i.GetGeometry();
+            for(unsigned int in = 0; in<rNodes.size(); in++)
+                noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
+        }
+
+        //calculating the normals and storing on the conditions
+        array_1d<double,3> An;
+        if(dimension == 2)
+        {
+            for(auto & cond_i : rConditions)
+            {
+                if (cond_i.GetGeometry().PointsNumber() == 2)
+                    CalculateNormal2D(cond_i,An);
+            }
+        }
+        else if(dimension == 3)
+        {
+            array_1d<double,3> v1;
+            array_1d<double,3> v2;
+            for(auto & cond_i : rConditions)
+            {
+                //calculate the normal on the given condition
+                if (cond_i.GetGeometry().PointsNumber() == 3)
+                    CalculateNormal3DTriangle(cond_i,An,v1,v2);
+                else if (cond_i.GetGeometry().PointsNumber() == 4)
+                    CalculateNormal3DQuad(cond_i,An,v1,v2);
+                else
+                    KRATOS_ERROR << "> Calculation of surface normal not implemented for the given surface conditions!";
+            }
+        }
+
+        //adding the normals to the nodes
+        for(auto & cond_i : rConditions)
+        {
+            Geometry<Node<3> >& pGeometry = cond_i.GetGeometry();
+            double coeff = 1.00/pGeometry.size();
+	        const array_1d<double,3>& normal = cond_i.GetValue(NORMAL);
+            for(unsigned int i = 0; i<pGeometry.size(); i++)
+                noalias(pGeometry[i].FastGetSolutionStepValue(NORMAL)) += coeff * normal;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    // --------------------------------------------------------------------------
+    static void CalculateNormal2D(Condition& cond, array_1d<double,3>& An)
+    {
+        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
+
+        An[0] =    pGeometry[1].Y() - pGeometry[0].Y();
+        An[1] = - (pGeometry[1].X() - pGeometry[0].X());
+        An[2] =    0.00;
+
+        array_1d<double,3>& normal = cond.GetValue(NORMAL);
+        noalias(normal) = An;
+    }
+
+    // --------------------------------------------------------------------------
+    static void CalculateNormal3DTriangle(Condition& cond, array_1d<double,3>& An, array_1d<double,3>& v1,array_1d<double,3>& v2 )
+    {
+        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
+
+        v1[0] = pGeometry[1].X() - pGeometry[0].X();
+        v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
+        v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
+
+        v2[0] = pGeometry[2].X() - pGeometry[0].X();
+        v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
+        v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+        MathUtils<double>::CrossProduct(An,v1,v2);
+        An *= 0.5;
+
+        array_1d<double,3>& normal = cond.GetValue(NORMAL);
+        noalias(normal) = An;
+    }
+
+    // --------------------------------------------------------------------------
+    static void CalculateNormal3DQuad(Condition& cond, array_1d<double,3>& An, array_1d<double,3>& v1,array_1d<double,3>& v2 )
+    {
+        Geometry<Node<3> >& pGeometry = cond.GetGeometry();
+
+        v1[0] = pGeometry[2].X() - pGeometry[0].X();
+        v1[1] = pGeometry[2].Y() - pGeometry[0].Y();
+        v1[2] = pGeometry[2].Z() - pGeometry[0].Z();
+
+        v2[0] = pGeometry[3].X() - pGeometry[1].X();
+        v2[1] = pGeometry[3].Y() - pGeometry[1].Y();
+        v2[2] = pGeometry[3].Z() - pGeometry[1].Z();
+
+        MathUtils<double>::CrossProduct(An,v1,v2);
+        An *= 0.5;
+
+        array_1d<double,3>& normal = cond.GetValue(NORMAL);
+        noalias(normal) = An;
+    }
+
+    // --------------------------------------------------------------------------
+    void CalculateUnitNormals()
+    {
+        for (auto& node_i : mrModelPart.Nodes())
+        {
+            const array_1d<double,3>& area_normal = node_i.FastGetSolutionStepValue(NORMAL);
+            array_3d& normalized_normal = node_i.FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+            noalias(normalized_normal) = area_normal/norm_2(area_normal);
+        }
+    }
+
+    // --------------------------------------------------------------------------
 
 
     ///@}
