@@ -424,14 +424,15 @@ void QSVMS<TElementData>::AddTimeIntegratedRHS(
 template< class TElementData >
 void QSVMS<TElementData>::AddVelocitySystem(
     TElementData& rData,
-    MatrixType &rLHS,
-    VectorType &rRHS)
+    MatrixType &rLocalLHS,
+    VectorType &rLocalRHS)
 {
-    // Interpolate nodal data on the integration point
-    double ElemSize = this->ElementSize();
+    auto& LHS = rData.LHS;
+    LHS.clear();
 
+    // Interpolate nodal data on the integration point
     double density = rData.Density;
-    double dynamic_viscosity = rData.DynamicViscosity; // TODO: this must go through the constitutive law (JC)
+    double dynamic_viscosity = rData.EffectiveViscosity; // TODO: this must go through the constitutive law (JC)
     array_1d<double,3> body_force = this->Interpolate(rData.BodyForce,rData.N);
     array_1d<double,3> momentum_projection = this->Interpolate(rData.MomentumProjection,rData.N);
     double mass_projection = this->Interpolate(rData.MassProjection,rData.N);
@@ -442,7 +443,7 @@ void QSVMS<TElementData>::AddVelocitySystem(
         this->Interpolate(rData.Velocity, rData.N) -
         this->Interpolate(rData.MeshVelocity, rData.N);
         
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
@@ -480,43 +481,52 @@ void QSVMS<TElementData>::AddVelocitySystem(
             for (unsigned int d = 0; d < Dim; d++)
             {
                 //K += GaussWeight * Density * Viscosity * rDN_DX(i, d) * rDN_DX(j, d);
-                rLHS(row+d,col+d) += K;
+                LHS(row+d,col+d) += K;
 
                 // v * Grad(p) block
                 G = TauOne * AGradN[i] * rData.DN_DX(j,d); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
                 PDivV = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
 
                 // Write v * Grad(p) component
-                rLHS(row+d,col+Dim) += rData.Weight * (G - PDivV);
+                LHS(row+d,col+Dim) += rData.Weight * (G - PDivV);
                 // Use symmetry to write the q * Div(u) component
-                rLHS(col+Dim,row+d) += rData.Weight * (G + PDivV);
+                LHS(col+Dim,row+d) += rData.Weight * (G + PDivV);
 
                 // q-p stabilization block
                 laplacian += rData.DN_DX(i,d) * rData.DN_DX(j,d); // Stabilization: Grad(q) * TauOne * Grad(p)
 
                 for (unsigned int e = 0; e < Dim; e++) // Stabilization: Div(v) * TauTwo * Div(u)
-                    rLHS(row+d,col+e) += rData.Weight*TauTwo*rData.DN_DX(i,d)*rData.DN_DX(j,e);
+                    LHS(row+d,col+e) += rData.Weight*TauTwo*rData.DN_DX(i,d)*rData.DN_DX(j,e);
             }
 
             // Write q-p term
-            rLHS(row+Dim,col+Dim) += rData.Weight*TauOne*laplacian;
+            LHS(row+Dim,col+Dim) += rData.Weight*TauOne*laplacian;
         }
 
         // RHS terms
         double forcing = 0.0;
         for (unsigned int d = 0; d < Dim; ++d)
         {
-            rRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
-            rRHS[row+d] += rData.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-            rRHS[row+d] -= rData.Weight * TauTwo * rData.DN_DX(i,d) * mass_projection;
+            rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
+            rLocalRHS[row+d] += rData.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+            rLocalRHS[row+d] -= rData.Weight * TauTwo * rData.DN_DX(i,d) * mass_projection;
             forcing += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
         }
-        rRHS[row + Dim] += rData.Weight * TauOne * forcing; // Grad(q) * TauOne * (Density * BodyForce)
+        rLocalRHS[row + Dim] += rData.Weight * TauOne * forcing; // Grad(q) * TauOne * (Density * BodyForce)
     }
 
-    // Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
-    // This could potentially be optimized, as it can be integrated exactly using one less integration order when compared to previous terms.
-    Internals::AddViscousTerm<Dim>(dynamic_viscosity,rData.Weight,rData.DN_DX,rLHS);
+    // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData,values);
+    noalias(rLocalRHS) -= prod(LHS, values);
+
+    /* Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
+     * For a generic (potentially non-linear) constitutive law, one cannot assume that RHS = F - LHS*current_values.
+     * Because of this, the AddViscousTerm function manages both the LHS and the RHS.
+     */ 
+    this->AddViscousTerm(rData,LHS,rLocalRHS);
+
+    noalias(rLocalLHS) += LHS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -559,15 +569,13 @@ void QSVMS<TElementData>::AddMassStabilization(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
-    double ElemSize = this->ElementSize();
-
     double density = rData.Density;
-    double dynamic_viscosity = rData.DynamicViscosity; //TODO this must go through the constitutive law (JC)
+    double dynamic_viscosity = rData.EffectiveViscosity; //TODO this must go through the constitutive law (JC)
 
     double TauOne;
     double TauTwo;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
@@ -603,21 +611,18 @@ template <class TElementData>
 void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
-    constexpr std::size_t StrainSize = (Dim-1)*3;
     boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
     FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
 
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,StrainSize> constitutive_matrix = ZeroMatrix(StrainSize,StrainSize);
-    const double dynamic_viscosity = rData.DynamicViscosity;
-    FluidElementUtilities<NumNodes>::GetNewtonianConstitutiveMatrix(dynamic_viscosity,constitutive_matrix);
+    const auto& constitutive_matrix = rData.C;
     
-    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
 
     boost::numeric::ublas::bounded_matrix<double,Dim,StrainSize> normal_projection = ZeroMatrix(Dim,StrainSize);
     FluidElementUtilities<NumNodes>::VoigtTransformForProduct(rUnitNormal,normal_projection);
     
     // Contribution to boundary stress from 2*mu*symmetric_gradient(velocity)*n
-    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,stress_matrix);
+    boost::numeric::ublas::bounded_matrix<double,Dim,LocalSize> normal_stress_operator = boost::numeric::ublas::prod(normal_projection,shear_stress_matrix);
 
     // Contribution to boundary stress from p*n
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -629,9 +634,8 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
     }
 
     // RHS: stress computed using current solution
-    array_1d<double,LocalSize> nodal_values(LocalSize,0.0);
-    this->GetCurrentValuesVector(rData,nodal_values);
-    array_1d<double,Dim> current_stress = boost::numeric::ublas::prod(normal_stress_operator,nodal_values);
+    array_1d<double,Dim> shear_stress = boost::numeric::ublas::prod(normal_projection,rData.ShearStress);
+    const double p_gauss = this->Interpolate(rData.Pressure,rData.N);
 
     // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -641,10 +645,30 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
             for (unsigned int col = 0; col < LocalSize; col++) {
                 rLHS(row,col) -= wni*normal_stress_operator(d,col);
             }
-            rRHS[row] += wni*current_stress[d];
+            rRHS[row] += wni*(shear_stress[d]-p_gauss*rUnitNormal[d]);
         }
     }
 }
+
+template <class TElementData>
+void QSVMS<TElementData>::AddViscousTerm(
+    const TElementData& rData,
+    boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+    VectorType& rRHS) {
+
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> strain_matrix = ZeroMatrix(StrainSize,LocalSize);
+    FluidElementUtilities<NumNodes>::GetStrainMatrix(rData.DN_DX,strain_matrix);
+
+    const auto& constitutive_matrix = rData.C;
+    boost::numeric::ublas::bounded_matrix<double,StrainSize,LocalSize> shear_stress_matrix = boost::numeric::ublas::prod(constitutive_matrix,strain_matrix);
+
+    // Multiply times integration point weight (I do this here to avoid a temporal in LHS += weight * Bt * C * B)
+    strain_matrix *= rData.Weight;
+
+    noalias(rLHS) += boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),shear_stress_matrix);
+    noalias(rRHS) -= boost::numeric::ublas::prod(boost::numeric::ublas::trans(strain_matrix),rData.ShearStress);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -693,21 +717,22 @@ void QSVMS<TElementData>::CalculateStaticTau(
     double Density,
     double DynamicViscosity,
     const array_1d<double,3> &Velocity,
-    double ElemSize,
     double &TauOne,
     double &TauTwo)
 {
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
 
+    const double h = rData.ElementSize;
+
     double velocity_norm = Velocity[0]*Velocity[0];
     for (unsigned int d = 1; d < Dim; d++)
         velocity_norm += Velocity[d]*Velocity[d];
     velocity_norm = std::sqrt(velocity_norm);
 
-    double InvTau = c1 * DynamicViscosity / (ElemSize*ElemSize) + Density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / ElemSize );
-    TauOne = 1.0/InvTau;
-    TauTwo = DynamicViscosity + c2 * Density * velocity_norm * ElemSize / c1;
+    double inv_tau = c1 * DynamicViscosity / (h*h) + Density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h );
+    TauOne = 1.0/inv_tau;
+    TauTwo = DynamicViscosity + c2 * Density * velocity_norm * h / c1;
 }
 
 
@@ -772,14 +797,13 @@ void QSVMS<TElementData>::SubscaleVelocity(
     const ProcessInfo &rProcessInfo,
     array_1d<double,3> &rVelocitySubscale)
 {
-    double ElemSize = this->ElementSize();
-    double dynamic_viscosity = rData.DynamicViscosity;
+    double dynamic_viscosity = rData.EffectiveViscosity;
 
     double TauOne;
     double TauTwo;
     double density = rData.Density;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,ElemSize,TauOne,TauTwo);
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
 
     array_1d<double,3> Residual(3,0.0);
 
@@ -797,9 +821,7 @@ void QSVMS<TElementData>::SubscalePressure(
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale)
 {
-    //double ElemSize = this->ElementSize(ConvVel,rDN_DX);
-    double ElemSize = this->ElementSize();
-    double dynamic_viscosity = rData.DynamicViscosity;
+    double dynamic_viscosity = rData.EffectiveViscosity;
 
     double TauOne;
     double TauTwo;
@@ -807,8 +829,7 @@ void QSVMS<TElementData>::SubscalePressure(
     array_1d<double, 3> convective_velocity =
         this->Interpolate(rData.Velocity, rData.N) -
         this->Interpolate(rData.MeshVelocity, rData.N);
-    this->CalculateStaticTau(rData, density, dynamic_viscosity, convective_velocity, ElemSize,
-                             TauOne, TauTwo);
+    this->CalculateStaticTau(rData, density, dynamic_viscosity, convective_velocity, TauOne, TauTwo);
 
     double Residual = 0.0;
 
@@ -849,90 +870,6 @@ void QSVMS<TElementData>::load(Serializer& rSerializer)
 namespace Internals {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Dim == 2
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <>
-void AddViscousTerm<2>(double DynamicViscosity,
-                       double GaussWeight,
-                       const Kratos::Matrix& rDN_DX,
-                       Kratos::Matrix& rLHS)
-{
-    double weight = GaussWeight * DynamicViscosity;
-
-    constexpr double four_thirds = 4.0 / 3.0;
-    constexpr double minus_two_thirds = -2.0 / 3.0;
-
-    const unsigned int num_nodes = rDN_DX.size1();
-    const unsigned int block_size = 3;
-
-    for (unsigned int a = 0; a < num_nodes; ++a)
-    {
-        unsigned int row = a*block_size;
-        for (unsigned int b = 0; b < num_nodes; ++b)
-        {
-            unsigned int col = b*block_size;
-
-            // First row
-            rLHS(row,col) += weight * ( four_thirds * rDN_DX(a,0) * rDN_DX(b,0) + rDN_DX(a,1) * rDN_DX(b,1) );
-            rLHS(row,col+1) += weight * ( minus_two_thirds * rDN_DX(a,0) * rDN_DX(b,1) + rDN_DX(a,1) * rDN_DX(b,0) );
-
-            // Second row
-            rLHS(row+1,col) += weight * ( minus_two_thirds * rDN_DX(a,1) * rDN_DX(b,0) + rDN_DX(a,0) * rDN_DX(b,1) );
-            rLHS(row+1,col+1) += weight * ( four_thirds * rDN_DX(a,1) * rDN_DX(b,1) + rDN_DX(a,0) * rDN_DX(b,0) );
-        }
-    }
-}
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// For Dim == 3
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <>
-void AddViscousTerm<3>(double DynamicViscosity,
-                       double GaussWeight,
-                       const Kratos::Matrix& rDN_DX,
-                       Kratos::Matrix& rLHS)
-{
-    double weight = GaussWeight * DynamicViscosity;
-
-    constexpr double one_third = 1.0 / 3.0;
-    constexpr double minus_two_thirds = -2.0 / 3.0;
-
-    const unsigned int num_nodes = rDN_DX.size1();
-    const unsigned int block_size = 4;
-
-    unsigned int row(0),col(0);
-
-    for (unsigned int i = 0; i < num_nodes; ++i)
-    {
-        row = i*block_size;
-        for (unsigned int j = 0; j < num_nodes; ++j)
-        {
-            col = j*block_size;
-            // (dN_i/dx_k dN_j/dx_k)
-            const double diag =  rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
-
-            // First row
-            rLHS(row,col) += weight * ( one_third * rDN_DX(i,0) * rDN_DX(j,0) + diag );
-            rLHS(row,col+1) += weight * ( minus_two_thirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
-            rLHS(row,col+2) += weight * ( minus_two_thirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0) );
-
-            // Second row
-            rLHS(row+1,col) += weight * ( minus_two_thirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
-            rLHS(row+1,col+1) += weight * ( one_third * rDN_DX(i,1) * rDN_DX(j,1) + diag );
-            rLHS(row+1,col+2) += weight * ( minus_two_thirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1) );
-
-            // Third row
-            rLHS(row+2,col) += weight * ( minus_two_thirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2) );
-            rLHS(row+2,col+1) += weight * ( minus_two_thirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2) );
-            rLHS(row+2,col+2) += weight * ( one_third * rDN_DX(i,2) * rDN_DX(j,2) + diag );
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // For Standard data: Time integration is not available
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -963,29 +900,24 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
 
         noalias(rLHS) += rData.bdf0*mass_matrix + velocity_lhs;
         
-        Vector values = ZeroVector(rRHS.size());
         Vector acceleration = ZeroVector(rRHS.size());
 
         int LocalIndex = 0;
         const auto& r_velocities = rData.Velocity;
         const auto& r_velocities_step1 = rData.Velocity_OldStep1;
         const auto& r_velocities_step2 = rData.Velocity_OldStep2;
-        const auto& r_pressures = rData.Pressure;
 
         for (unsigned int i = 0; i < TElementData::NumNodes; ++i) {
             for (unsigned int d = 0; d < TElementData::Dim; ++d)  {
-                values[LocalIndex] = r_velocities(i,d);
                 // Velocity Dofs
                 acceleration[LocalIndex] = rData.bdf0*r_velocities(i,d);
                 acceleration[LocalIndex] += rData.bdf1*r_velocities_step1(i,d);
                 acceleration[LocalIndex] += rData.bdf2*r_velocities_step2(i,d);
                 ++LocalIndex;
             }
-            values[LocalIndex] = r_pressures[i];
             ++LocalIndex;
         }
 
-        noalias(rRHS) -= prod(velocity_lhs,values);
         noalias(rRHS) -= prod(mass_matrix,acceleration);
 }
 
