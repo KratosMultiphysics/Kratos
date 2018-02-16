@@ -52,6 +52,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
 
     typedef Constraint<TSparseSpace, TDenseSpace> BaseType;
     typedef Node<3> NodeType;
+    typedef Dof<double> DofType;    
     typedef std::vector<Dof<double>::Pointer> DofsVectorType;
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     typedef typename BaseType::EquationIdVectorType EquationIdVectorType;
@@ -548,6 +549,25 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
     {
         rOStream << " MultipointConstraint object " << std::endl;
     }
+
+
+    /**
+	* Get the constraint equation for this slave
+	* @return MasterDOFs vector for this slave
+	*/
+    const ConstraintEquation &GetConstraintEquation (DofType &rSlaveDof)
+    {
+        return this->GetData().GetConstraintEquation(rSlaveDof);
+    } 
+
+    /**
+    * Adds a constraints between the given slave and master with a weight. 		
+	*/
+    // Takes in a slave dof equationId and a master dof equationId
+    void AddConstraint(DofType &rSlaveDof, DofType &rMasterDof, double Weight, double Constant = 0.0)
+    {
+        this->GetData().AddConstraint(rSlaveDof, rMasterDof, Weight, Constant);
+    }       
 
     ///@name Member Variables
     ///@{

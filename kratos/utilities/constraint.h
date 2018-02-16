@@ -80,24 +80,6 @@ class Constraint
     }
 
     /**
-	* Get the MasterDOFs vector for this slave
-	* @return MasterDOFs vector for this slave
-	*/
-    virtual const ConstraintEquation &GetConstraintEquation (DofType &rSlaveDof)
-    {
-        return mConstraintEquationContainer.GetConstraintEquation(rSlaveDof);
-    }
-
-    /**
-    * Adds a constraints between the given slave and master with a weight. 		
-	*/
-    // Takes in a slave dof equationId and a master dof equationId
-    virtual void AddConstraint(DofType &rSlaveDof, DofType &rMasterDof, double Weight, double Constant = 0.0)
-    {
-        mConstraintEquationContainer.AddConstraint(rSlaveDof, rMasterDof, Weight, Constant);
-    }
-
-    /**
      *  Does necessary operations to setup the constraint.
      */
     virtual void SetUp(NodesContainerType &rNodes)
