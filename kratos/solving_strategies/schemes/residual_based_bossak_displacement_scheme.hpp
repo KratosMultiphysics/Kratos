@@ -17,7 +17,7 @@
 /* External includes */
 
 /* Project includes */
-#include "solving_strategies/schemes/residual_implicit_time_scheme.h"
+#include "solving_strategies/schemes/residual_based_implicit_time_scheme.h"
 #include "includes/variables.h"
 #include "includes/checks.h" 
 
