@@ -22,6 +22,13 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
     def __init__(self, main_model_part, custom_settings):
 
+        self.element_name = "EmbeddedNavierStokes"
+        self.condition_name = "NavierStokesWallCondition"
+        self.min_buffer_size = 3
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
+            self.element_name = "EmbeddedSymbolicNavierStokes"
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -78,13 +85,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        ## Set the element and condition names for the replace settings
-        self.element_name = "EmbeddedNavierStokes"
-        self.condition_name = "NavierStokesWallCondition"
-        # TODO: Remove this once we finish the new implementations
-        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
-            self.element_name = "EmbeddedSymbolicNavierStokes"
-
         print("Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
 
 
@@ -106,11 +106,19 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
         # Execute the Metis partitioning and reading
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
-        # Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._execute_after_reading()
+        # Replace default elements and conditions
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._replace_elements_and_conditions()
+        # Executes the check and prepare model process
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._execute_check_and_prepare()
         # Call the base class set buffer size
         super(NavierStokesMPIEmbeddedMonolithicSolver, self)._set_buffer_size()
-        # Construct the communicators
+        # Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._set_physical_properties()
+        # Sets the constitutive law
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._set_constitutive_law()
+        # Sets the nodal distance
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._set_distance_function()
+        # Construct the Trilinos communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
         if KratosMPI.mpi.rank == 0:

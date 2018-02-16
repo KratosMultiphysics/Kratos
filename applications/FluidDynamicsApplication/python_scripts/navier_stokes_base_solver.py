@@ -28,10 +28,10 @@ class NavierStokesBaseSolver(object):
     def ImportModelPart(self):
         ## Read model part
         self._model_part_reading()
-
+        ## Replace default elements and conditions
         self._replace_elements_and_conditions()
-        ## Replace elements and conditions, check the input reading and set KINEMATIC_VISCOSITY and DENSITY
-        self._execute_after_reading()
+        ## Executes the check and prepare model process
+        self._execute_check_and_prepare()
         ## Set buffer size
         self._set_buffer_size()
 
@@ -116,8 +116,7 @@ class NavierStokesBaseSolver(object):
         else:
             raise Exception("Other input options are not implemented yet.")
 
-    def _execute_after_reading(self):
-
+    def _execute_check_and_prepare(self):
         ## Check that the input read has the shape we like
         prepare_model_part_settings = KratosMultiphysics.Parameters("{}")
         prepare_model_part_settings.AddValue("volume_model_part_name",self.settings["volume_model_part_name"])

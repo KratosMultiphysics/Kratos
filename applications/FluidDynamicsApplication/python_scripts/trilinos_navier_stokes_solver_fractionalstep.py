@@ -22,6 +22,10 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
 
     def __init__(self, main_model_part, custom_settings):
 
+        self.element_name = "FractionalStep"
+        self.condition_name = "WallCondition"
+        self.min_buffer_size = 3
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -87,10 +91,6 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
-        ## Set the element and condition names for the replace settings
-        self.element_name = "FractionalStep"
-        self.condition_name = "WallCondition"
-
         if KratosMPI.mpi.rank == 0:
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             print("Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
@@ -110,20 +110,21 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
 
 
     def ImportModelPart(self):
+
         ## Construct the Trilinos import model part utility
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-
         ## Execute the Metis partitioning and reading
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
-
-        ## Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(TrilinosNavierStokesSolverFractionalStep, self)._execute_after_reading()
-
+        ## Replace default elements and conditions
+        super(TrilinosNavierStokesSolverFractionalStep, self)._replace_elements_and_conditions()
+        ## Executes the check and prepare model process
+        super(TrilinosNavierStokesSolverFractionalStep, self)._execute_check_and_prepare()
         ## Call the base class set buffer size
         super(TrilinosNavierStokesSolverFractionalStep, self)._set_buffer_size()
-
-        ## Construct the communicators
+        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
+        super(TrilinosNavierStokesSolverFractionalStep, self)._set_physical_properties()
+        ## Construct Trilinos the communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
         if KratosMPI.mpi.rank == 0:

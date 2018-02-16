@@ -19,6 +19,10 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
 
     def __init__(self, main_model_part, custom_settings):
 
+        self.element_name = "FractionalStep"
+        self.condition_name = "WallCondition"
+        self.min_buffer_size = 3
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -93,11 +97,6 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
-        ## Set the element and condition names for the replace settings
-        self.element_name = "FractionalStep"
-        self.condition_name = "WallCondition"
-        self.min_buffer_size = 3
-
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Construction of NavierStokesSolverFractionalStep solver finished.")
 
 
@@ -132,20 +131,9 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
 
     def ImportModelPart(self):
         super(NavierStokesSolverFractionalStep, self).ImportModelPart()
-        
-        # Transfer density and (kinematic) viscostity to the nodes
-        for el in self.main_model_part.Elements:
-            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
-            if rho <= 0.0:
-                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
-            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-            if dyn_viscosity <= 0.0:
-                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
-            kin_viscosity = dyn_viscosity / rho
-            break
 
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
-        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)
+        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
+        self._set_physical_properties()
 
 
     def Initialize(self):
@@ -220,3 +208,18 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
         if(self.compute_reactions):
             self.solver.CalculateReactions()
 
+
+    def _set_physical_properties(self):
+        # Transfer density and (kinematic) viscostity to the nodes
+        for el in self.main_model_part.Elements:
+            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+            if rho <= 0.0:
+                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
+            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            if dyn_viscosity <= 0.0:
+                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
+            kin_viscosity = dyn_viscosity / rho
+            break
+
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.VISCOSITY, kin_viscosity, self.main_model_part.Nodes)

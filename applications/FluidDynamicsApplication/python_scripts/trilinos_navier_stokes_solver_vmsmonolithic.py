@@ -22,6 +22,10 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
     def __init__(self, main_model_part, custom_settings):
 
+        self.element_name = "VMS"
+        self.condition_name = "MonolithicWallCondition"
+        self.min_buffer_size = 2
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -79,10 +83,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        ## Set the element and condition names for the replace settings
-        self.element_name = "VMS"
-        self.condition_name = "MonolithicWallCondition"
-
         if (KratosMPI.mpi.rank == 0):
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             print("Construction of TrilinosNavierStokesSolverMonolithic finished.")
@@ -102,25 +102,25 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
 
 
     def ImportModelPart(self):
-        # Construct the Trilinos import model part utility
+        ## Construct the Trilinos import model part utility
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-
-        # Execute the Metis partitioning and reading
+        ## Execute the Metis partitioning and reading
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
-
-        # Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(TrilinosNavierStokesSolverMonolithic, self)._execute_after_reading()
-
-        # Call the base class set buffer size
+        ## Replace default elements and conditions
+        super(TrilinosNavierStokesSolverMonolithic, self)._replace_elements_and_conditions()
+        ## Executes the check and prepare model process
+        super(TrilinosNavierStokesSolverMonolithic, self)._execute_check_and_prepare()
+        ## Call the base class set buffer size
         super(TrilinosNavierStokesSolverMonolithic, self)._set_buffer_size()
-
-        # Construct the communicators
+        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
+        super(TrilinosNavierStokesSolverMonolithic, self)._set_physical_properties()
+        ## Construct Trilinos the communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
         if (KratosMPI.mpi.rank == 0):
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
-            print ("MPI model reading finished.")
+            print ("MPI model reading finished.")  
 
 
     def AddDofs(self):

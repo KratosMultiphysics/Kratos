@@ -19,6 +19,13 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
     def __init__(self, main_model_part, custom_settings):
 
+        self.element_name = "EmbeddedNavierStokes"
+        self.condition_name = "NavierStokesWallCondition"
+        self.min_buffer_size = 3
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
+            self.element_name = "EmbeddedSymbolicNavierStokes"
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -69,13 +76,6 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        ## Set the element and condition names for the replace settings
-        self.element_name = "EmbeddedNavierStokes"
-        self.condition_name = "NavierStokesWallCondition"
-        # TODO: Remove this once we finish the new implementations
-        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
-            self.element_name = "EmbeddedSymbolicNavierStokes"
-
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
@@ -105,6 +105,17 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.EMBEDDED_WET_VELOCITY)          # Post-process variable (stores the fluid nodes velocity and is set to 0 in the structure ones)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesEmbeddedMonolithicSolver", "Fluid solver variables added correctly.")
+
+
+    def ImportModelPart(self):
+        super(NavierStokesEmbeddedMonolithicSolver, self).ImportModelPart()
+
+        ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
+        self._set_physical_properties()
+        ## Sets the constitutive law
+        self._set_constitutive_law()
+        ## Setting the nodal distance
+        self._set_distance_function()
 
 
     def Initialize(self):
@@ -168,10 +179,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             (self.solver).Solve()
 
 
-    def _execute_after_reading(self):
-        ## Base class _execute_after_reading call
-        super(NavierStokesEmbeddedMonolithicSolver, self)._execute_after_reading()
-
+    def _set_physical_properties(self):
         ## Set the SOUND_VELOCITY value (wave velocity)
         if self.main_model_part.Properties[1].Has(KratosMultiphysics.SOUND_VELOCITY):
             self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = self.main_model_part.Properties[1][KratosMultiphysics.SOUND_VELOCITY]
@@ -179,23 +187,31 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             # If the wave velocity is not defined take a large enough value to consider the fluid as incompressible
             default_sound_velocity = 1e+12
             self.main_model_part.ProcessInfo[KratosMultiphysics.SOUND_VELOCITY] = default_sound_velocity
-            # Set the wave velocity in the model part nodes
-            KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.SOUND_VELOCITY, default_sound_velocity, self.main_model_part.Nodes)
 
-        ## Set the DYNAMIC_VISCOSITY variable needed for the embedded element
-        for element in self.main_model_part.Elements:
-            dyn_viscosity = element.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+        # Transfer density and (dynamic) viscostity to the nodes
+        for el in self.main_model_part.Elements:
+            rho = el.Properties.GetValue(KratosMultiphysics.DENSITY)
+            if rho <= 0.0:
+                raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho,el.Properties.Id))
+            dyn_viscosity = el.Properties.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
+            if dyn_viscosity <= 0.0:
+                raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(dyn_viscosity,el.Properties.Id))
             break
 
+        KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
 
+
+    def _set_constitutive_law(self):
         ## Construct the constitutive law needed for the embedded element
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian3DLaw()
         elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian2DLaw()
 
-        ## Setting the nodal distance
+
+    def _set_distance_function(self):
+        ## Set the nodal distance function
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
             import read_distance_from_file
             DistanceUtility = read_distance_from_file.DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])

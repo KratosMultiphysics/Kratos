@@ -19,6 +19,10 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
 
     def __init__(self, main_model_part, custom_settings):
 
+        self.element_name = "EmbeddedAusasNavierStokes"
+        self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
+        self.min_buffer_size = 3
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -68,10 +72,6 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
         ## Construct the linear solver
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-
-        ## Set the element and condition names for the replace settings
-        self.element_name = "EmbeddedAusasNavierStokes"
-        self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
