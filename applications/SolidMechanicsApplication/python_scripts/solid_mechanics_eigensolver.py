@@ -23,7 +23,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
 
     See solid_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, custom_settings):
         # Set defaults and validate custom settings.
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
