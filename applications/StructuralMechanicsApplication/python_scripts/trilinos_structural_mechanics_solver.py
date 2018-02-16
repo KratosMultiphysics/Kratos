@@ -34,15 +34,15 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(TrilinosMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Construction finished")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         super(TrilinosMechanicalSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Variables ADDED")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
 
     def ImportModelPart(self):
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Importing model part.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
         # Construct the Trilinos import model part utility.
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
@@ -54,7 +54,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         super(TrilinosMechanicalSolver, self)._set_and_fill_buffer()
         # Construct the communicators
         TrilinosModelPartImporter.CreateCommunicators()
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Finished importing model part.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
     #### Specific internal functions ####
 
@@ -66,7 +66,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def print_on_rank_zero(self, *args):
         KratosMPI.mpi.world.barrier()
         if KratosMPI.mpi.rank == 0:
-            print(" ".join(map(str,args)))
+            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Private functions ####
 
