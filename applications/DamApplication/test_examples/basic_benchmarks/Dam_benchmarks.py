@@ -16,45 +16,49 @@ start = timer.time()
 benchmark_number = int(sys.argv[1])
 benchmark = getattr(DBC, 'Benchmark' + str(benchmark_number))()
 
-list2D   = list(range(1,13))
-list3D   = list(range(13,19))
+list2D   = list(range(201,213))
+list3D   = list(range(301,307))
 
 class Solution(main_script.Solution):
 
     def LoadParametersFile(self):
         file_name = None
-        if benchmark_number == 1:
+        if benchmark_number == 201:
             file_name = "ProjectParameters2D01.json"
-        elif benchmark_number == 2:
+        elif benchmark_number == 202:
             file_name = "ProjectParameters2D02.json"
-        elif benchmark_number == 3:
+        elif benchmark_number == 203:
             file_name = "ProjectParameters2D03.json"
-        elif benchmark_number == 4:
+        elif benchmark_number == 204:
             file_name = "ProjectParameters2D04.json"
-        elif benchmark_number == 5:
+        elif benchmark_number == 205:
             file_name = "ProjectParameters2D05.json"
-        elif benchmark_number == 6:
+        elif benchmark_number == 206:
             file_name = "ProjectParameters2D06.json"
-        elif benchmark_number == 7:
+        elif benchmark_number == 207:
             file_name = "ProjectParameters2D07.json"
-        elif benchmark_number == 8:
+        elif benchmark_number == 208:
             file_name = "ProjectParameters2D08.json"
-        elif benchmark_number == 9:
+        elif benchmark_number == 209:
             file_name = "ProjectParameters2D09.json"
-        elif benchmark_number == 10:
+        elif benchmark_number == 210:
             file_name = "ProjectParameters2D10.json"
-        elif benchmark_number == 11:
+        elif benchmark_number == 211:
             file_name = "ProjectParameters2D11.json"
-        elif benchmark_number == 12:
+        elif benchmark_number == 212:
+            file_name = "ProjectParameters2D12.json"
+        elif benchmark_number == 301:
             file_name = "ProjectParameters3D01.json"
-        elif benchmark_number == 13:
+        elif benchmark_number == 302:
             file_name = "ProjectParameters3D02.json"
-        elif benchmark_number == 14:
+        elif benchmark_number == 303:
+            file_name = "ProjectParameters3D03.json"
+        elif benchmark_number == 304:
             file_name = "ProjectParameters3D04.json"
-        elif benchmark_number == 15:
-            file_name = "ProjectParameters3D05.json"
-        elif benchmark_number == 16:
-            file_name = "ProjectParameters3D06.json"
+        elif benchmark_number == 305:
+            file_name = "ProjectParameters3D03.json"
+        elif benchmark_number == 306:
+            file_name = "ProjectParameters3D04.json"
         else:
             print('Benchmark number does not exist')
             sys.exit()
