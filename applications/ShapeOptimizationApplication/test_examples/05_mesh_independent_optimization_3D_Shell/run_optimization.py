@@ -60,7 +60,7 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
 class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     
     # --------------------------------------------------------------------------    
-    def __init__( self ):
+    def initializeBeforeOptimizationLoop( self ):
 
         self.__initializeGIDOutput()
         self.__initializeProcesses()
@@ -92,12 +92,14 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             listOfResponseFunctions["strain_energy"].CalculateGradient()
             print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
             
-            gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].GetGradient()
-            gradientOnDesignSurface = {}
-            for node in currentDesign.Nodes:
-                gradientOnDesignSurface[node.Id] = gradientForCompleteModelPart[node.Id]
-
+            gradientOnDesignSurface = listOfResponseFunctions["strain_energy"].GetGradient()
             communicator.reportGradient("strain_energy", gradientOnDesignSurface)
+
+    # --------------------------------------------------------------------------    
+    def finalizeAfterOptimizationLoop( self ):
+        for process in self.list_of_processes:
+            process.ExecuteFinalize()
+        self.gid_output.ExecuteFinalize()
 
     # --------------------------------------------------------------------------
     def __initializeGIDOutput( self ):

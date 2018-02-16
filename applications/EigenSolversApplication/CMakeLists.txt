@@ -17,8 +17,8 @@ if( NOT DEFINED EIGEN_ROOT )
 	message( FATAL_ERROR "EIGEN_ROOT not defined" )
 endif()
 
-if( NOT MSVC )
-	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+if( EIGEN_USE_MKL MATCHES ON AND NOT DEFINED ENV{MKLROOT} )
+	message( FATAL_ERROR "MKLROOT not defined" )
 endif()
 
 add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
@@ -28,12 +28,15 @@ include_directories(
 	${EIGEN_ROOT}
 )
 
-if( DEFINED ENV{MKLROOT} )
+if( EIGEN_USE_MKL MATCHES ON )
 	message( "MKLROOT = $ENV{MKLROOT}" )
+
+	if( NOT MSVC )
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+	endif()
+	
 	include_directories( $ENV{MKLROOT}/include )
-	add_definitions( -DMKL -DEIGEN_USE_MKL_ALL )
-else()
-	message( "MKLROOT not defined" )
+	add_definitions( -DEIGEN_USE_MKL -DEIGEN_USE_MKL_ALL )
 endif()
 
 ## generate variables with the sources
@@ -49,7 +52,9 @@ add_library( KratosEigenSolversApplication SHARED ${KRATOS_EIGENSOLVERS_APPLICAT
 target_link_libraries( KratosEigenSolversApplication KratosCore )
 
 if( DEFINED ENV{MKLROOT} )
-	target_link_libraries( KratosEigenSolversApplication mkl_rt )
+	find_library(MKL_RT_LIB mkl_rt)
+	message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
+	target_link_libraries( KratosEigenSolversApplication ${MKL_RT_LIB} )
 endif()
 	
 set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "" )

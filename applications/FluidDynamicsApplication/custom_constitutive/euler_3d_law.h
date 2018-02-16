@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "fluid_constitutive_law.h"
 
 namespace Kratos
 {
@@ -27,7 +27,7 @@ namespace Kratos
      * Defines an Euler fluid constitutive law
      * This material law represents a null shear stress contribution.
      */
-    class Euler3DLaw : public ConstitutiveLaw
+    class Euler3DLaw : public FluidConstitutiveLaw
     {
     public:
         /**
@@ -61,12 +61,6 @@ namespace Kratos
 
 
         /**
-         * Assignment operator.
-         */
-
-        Euler3DLaw& operator = (const Euler3DLaw& rOther);
-
-        /**
          * Destructor.
          */
         ~Euler3DLaw() override;
@@ -78,13 +72,20 @@ namespace Kratos
         /**
          * Operations needed by the base class:
          */
-        void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
         /**
-         * This function is designed to be called once to check compatibility with element
-         * @param rFeatures
+         * @return Working space dimension constitutive law
          */
-        void GetLawFeatures(Features& rFeatures) override;
+        SizeType WorkingSpaceDimension() override;
+
+        /**
+         * @return Size of the strain vector (in Voigt notation) for the constitutive law
+         */
+        SizeType GetStrainSize() override;
+
+        void CalculateMaterialResponseCauchy (Parameters& rValues) override;
+
+        int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * Input and output
@@ -95,7 +96,7 @@ namespace Kratos
          */
         std::string Info() const override {
             std::stringstream buffer;
-            buffer << "Euler3DLaw #";
+            buffer << "Euler3DLaw";
             return buffer.str();
         };
 
@@ -112,6 +113,16 @@ namespace Kratos
         void PrintData(std::ostream& rOStream) const override {
             rOStream << Info();
         };
+
+    protected:
+
+        ///@name Protected Operations
+        ///@{
+
+        /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
+        double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+
+        ///@}
 
     private:
 
@@ -140,13 +151,9 @@ namespace Kratos
 
         friend class Serializer;
 
-        void save(Serializer& rSerializer) const override {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
-        }
+        void save(Serializer& rSerializer) const override;
 
-        void load(Serializer& rSerializer) override {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-        }
+        void load(Serializer& rSerializer) override;
 
     }; // Class Euler3DLaw
 }  // namespace Kratos.
