@@ -113,7 +113,7 @@ class GiDDamOutputProcess(Process):
     def Flush(cls,a):
         a.flush()
 
-    def ExecuteInitialize(self):       
+    def ExecuteInitialize(self):
         result_file_configuration = self.param["result_file_configuration"]
         result_file_configuration.ValidateAndAssignDefaults(self.defaults["result_file_configuration"])
 
