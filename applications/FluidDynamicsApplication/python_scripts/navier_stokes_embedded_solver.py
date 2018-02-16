@@ -67,6 +67,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
 
         ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
+        self.settings.ValidateAndAssignDefaults(default_settings)
         
         # TODO: Remove this once we finish the new implementations
         if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
