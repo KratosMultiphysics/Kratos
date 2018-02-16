@@ -148,13 +148,10 @@ class GiDDamOutputProcess(Process):
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
         self.start_output_results = result_file_configuration["start_output_results"].GetDouble()
         
-        if self.start_time > self.start_output_results:
+        if self.start_time >= self.start_output_results:
             self.start_output_results = self.start_time
-        
-        if self.start_output_results == 0:
-            self.next_output += self.output_frequency
+            self.next_output += self.start_output_results + self.output_frequency
         else:
-            print(self.start_output_results)
             self.next_output += self.start_output_results
 
         # get .post.lst files
