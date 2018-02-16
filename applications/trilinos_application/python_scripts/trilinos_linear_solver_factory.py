@@ -49,13 +49,9 @@ def ConstructSolver(configuration):
     #
     elif(solver_type == "PastixIterative"):
         raise Exception("not implemented within trilinos")
-
-
-    elif (solver_type == "Parallel MKL Pardiso"):
-        raise Exception("not implemented within trilinos")
     else:
         print("*****************************************************************")
-        print("Inexisting solver type. Specified::::::::::: ", solver_type) 
+        print("Inexisting solver type. Specified::::::::::: ", solver_type)
         print(" Possibilities are:")
         print("............")
         print("*****************************************************************")

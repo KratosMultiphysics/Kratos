@@ -52,13 +52,13 @@ def ConstructSolver(configuration):
     ###TODO: clean this up!!
     if(type(configuration) == Parameters):
         solver_type = configuration["solver_type"].GetString()
-        
+
         import json
         tmp = json.loads(configuration.PrettyPrintJsonString())
-        
+
         class aux(object):
-            pass 
-        
+            pass
+
         configuration = aux()
         configuration.__dict__.update(tmp)
     ##############################################################
@@ -132,10 +132,10 @@ def ConstructSolver(configuration):
             aztec_parameters.set("AZ_output", "AZ_none");
         else:
             aztec_parameters.set("AZ_output", verbosity);
-            
+
         linear_solver = AztecSolver(aztec_parameters, preconditioner_type, preconditioner_parameters, tol, max_it, overlap_level);
-        
-        
+
+
     #
     elif(solver_type == "Deflated Conjugate gradient"):
         raise Exception("not implemented within trilinos")
@@ -217,9 +217,6 @@ def ConstructSolver(configuration):
 
         linear_solver = MultiLevelSolver(aztec_parameters, MLList, tol, max_it);
         return linear_solver
-    #
-    elif (solver_type == "Parallel MKL Pardiso"):
-        raise Exception("not implemented within trilinos")
     else:
         print("*****************************************************************")
         print("Inexisting solver type. Possibilities are:")
