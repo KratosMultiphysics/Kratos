@@ -39,9 +39,7 @@ def Run():
 
     with open("errors.err", "w") as g:
         g.write("The complete list of benchmarks are included at the end of this message as a quick reference.\n")
-        g.write("\n========== DEM BENCHMARKING RESULTS ==========\n")
-        g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n")
-        g.write("\n==== TSUJI PAPER BENCHMARKS. SLIDING REGIME ==\n\n")
+        g.write("\n========== DAM BENCHMARKING RESULTS ==========\n\n")
     Text = ""
 
     #list_of_failed_tests = []
