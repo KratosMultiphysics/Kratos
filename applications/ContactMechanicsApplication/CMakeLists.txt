@@ -54,6 +54,9 @@ set( KRATOS_CONTACT_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/EP_point_rigid_contact_penalty_wP_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/EP_axisym_point_rigid_contact_penalty_2D_condition.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/hydraulic_rigid_contact_penalty_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/hydraulic_v2_rigid_contact_penalty_3D_condition.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/rigid_body_point_rigid_contact_condition.cpp
 
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/beam_point_rigid_contact_condition.cpp

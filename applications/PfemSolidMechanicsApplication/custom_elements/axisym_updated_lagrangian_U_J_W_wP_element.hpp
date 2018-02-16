@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_U_W_WP_ELEMENT_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_U_W_WP_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_J_W_WP_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_J_W_WP_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/solid_elements/updated_lagrangian_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_J_element.hpp"
 
 namespace Kratos
 {
@@ -37,8 +37,8 @@ namespace Kratos
 /// Updated Lagrangian Large Displacement Lagrangian U-W Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-class UpdatedLagrangianUWwPElement
-    : public UpdatedLagrangianElement
+class AxisymUpdatedLagrangianUJWwPElement
+    : public AxisymUpdatedLagrangianUJElement
 {
 public:
 
@@ -54,33 +54,33 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUWwPElement );
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymUpdatedLagrangianUJWwPElement );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangianUWwPElement();
+    AxisymUpdatedLagrangianUJWwPElement();
 
     /// Default constructors
-    UpdatedLagrangianUWwPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymUpdatedLagrangianUJWwPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangianUWwPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymUpdatedLagrangianUJWwPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    UpdatedLagrangianUWwPElement(UpdatedLagrangianUWwPElement const& rOther);
+    AxisymUpdatedLagrangianUJWwPElement(AxisymUpdatedLagrangianUJWwPElement const& rOther);
 
 
     /// Destructor.
-    virtual ~UpdatedLagrangianUWwPElement();
+    virtual ~AxisymUpdatedLagrangianUJWwPElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    UpdatedLagrangianUWwPElement& operator=(UpdatedLagrangianUWwPElement const& rOther);
+    AxisymUpdatedLagrangianUJWwPElement& operator=(AxisymUpdatedLagrangianUJWwPElement const& rOther);
 
 
     ///@}
@@ -212,13 +212,6 @@ protected:
                                     double& rIntegrationWeight) override;
 
     /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
-     */
-    virtual void CalculateAndAddKuum(MatrixType& rK,
-                                     ElementVariables & rVariables,
-                                     double& rIntegrationWeight
-                                    ) override;
-    /**
      * Calculation of the water Material Stiffness Matrix. 
      */
     virtual void CalculateAndAddKWwP(MatrixType& rK,
@@ -234,6 +227,13 @@ protected:
                                      double& rIntegrationWeight
                                     );
     /**
+     * Calculation of the stabilization at the matrix
+     */
+    virtual void CalculateAndAddKPPStab(MatrixType& rK,
+                                     ElementVariables & rVariables,
+                                     double& rIntegrationWeight
+                                     );
+    /**
      * Calculation and addition of the vectors of the RHS
      */
 
@@ -243,21 +243,21 @@ protected:
                                     double& rIntegrationWeight) override;
 
     /**
-     * Calculation of the Internal Forces due to sigma. Fi = B * sigma
+     * Calculation of the Internal Forces due to sigma. Fi = B * (-pW * I)
      */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+    virtual void CalculateAndAddInternalWaterForces(VectorType& rRightHandSideVector,
           ElementVariables & rVariables,
           double& rIntegrationWeight
-          ) override;
+          );
 
     /**
      * Volumetric loads
      */
-    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+    void CalculateAndAddExternalForcesUJWwP(VectorType& rRightHandSideVector,
           ElementVariables & rVariables,
           Vector & rVolumeForces,
           double& rIntegrationWeight
-          ) override;
+          );
     /**
      * Fluid Linear Momentum balance equation
      */
@@ -273,7 +273,13 @@ protected:
           double& rIntegrationWeight
           );
 
-
+    /**
+     * Calculation of the Internal Forces due to stabilization
+     */
+    virtual void CalculateAndAddStabilizationRHS(VectorType& rRightHandSideVector,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
     /**
      * Part of the mass matrix due to the stabilization
      */
@@ -286,6 +292,30 @@ protected:
      * Part of the damping matrix due to the stabilization
      */
     virtual void CalculateAndAddDampingStabilizationMatrix(MatrixType& rDampingMatrix,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
+    /**
+     * Part of the damping matrix due to the high order terms
+     */
+    virtual void CalculateAndAddHighOrderDampingMatrix(MatrixType& rDampingMatrix,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
+    /**
+     * Calculation and addition of the KPP due to high order terms
+     */
+    virtual void CalculateAndAddHighOrderKPP(MatrixType& rK,
+          ElementVariables & rVariables,
+          double& rIntegrationWeight
+          );
+
+    /**
+     * Calculation of the Internal Forces due to high order terms
+     */
+    virtual void CalculateAndAddHighOrderRHS(VectorType& rRightHandSideVector,
           ElementVariables & rVariables,
           double& rIntegrationWeight
           );
@@ -366,10 +396,10 @@ private:
     ///@}
 
 
-}; // Class UpdatedLagrangianUWwPElement
+}; // Class UpdatedLagrangianUJWwPElement
 
 
 
 } // namespace Kratos
-#endif // KRATOS_UPDATED_LAGRANGIAN_U_W_wP_ELEMENT_H_INCLUDED
+#endif // KRATOS_AXISYM_UPDATED_LAGRANGIAN_U_J_W_wP_ELEMENT_H_INCLUDED
 

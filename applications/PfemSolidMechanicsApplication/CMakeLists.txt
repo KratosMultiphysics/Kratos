@@ -54,8 +54,10 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_W_wP_DME_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_stab_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_HO_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_J_W_wP_DME_element.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_U_W_wP_element.cpp
 
@@ -68,6 +70,8 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_W_wP_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_J_W_wP_DME_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_Pressure_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian_U_P_wP_element.cpp
 

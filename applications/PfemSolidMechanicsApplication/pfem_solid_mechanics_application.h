@@ -47,8 +47,10 @@
 
 #include "custom_elements/updated_lagrangian_U_W_element.hpp"
 #include "custom_elements/updated_lagrangian_U_W_wP_element.hpp"
+#include "custom_elements/updated_lagrangian_U_W_wP_DME_element.hpp"
 #include "custom_elements/updated_lagrangian_U_J_W_wP_element.hpp"
-#include "custom_elements/updated_lagrangian_U_J_W_wP_stab_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_W_wP_HO_element.hpp"
+#include "custom_elements/updated_lagrangian_U_J_W_wP_DME_element.hpp"
 #include "custom_elements/small_displacement_U_W_wP_element.hpp"
 
 
@@ -61,6 +63,8 @@
 
 #include "custom_elements/axisym_updated_lagrangian_U_J_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_J_wP_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_J_W_wP_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_J_W_wP_DME_element.hpp"
 
 #include "custom_elements/axisym_updated_lagrangian_U_Pressure_element.hpp"
 #include "custom_elements/axisym_updated_lagrangian_U_P_wP_element.hpp"
@@ -280,8 +284,12 @@ namespace Kratos
 
     const UpdatedLagrangianUWElement                        mUpdatedLagrangianUWElement2D3N;
     const UpdatedLagrangianUWwPElement                    mUpdatedLagrangianUWwPElement2D3N;
+    const UpdatedLagrangianUWwPDMEElement        mUpdatedLagrangianUWwPDMEElement2D3N;
     const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement2D3N;
-    const UpdatedLagrangianUJWwPStabElement          mUpdatedLagrangianUJWwPStabElement2D3N;
+    const UpdatedLagrangianUJWwPHOElement              mUpdatedLagrangianUJWwPHOElement2D3N;
+    const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement2D3N;
+    const UpdatedLagrangianUJWwPElement                  mUpdatedLagrangianUJWwPElement3D4N;
+    const UpdatedLagrangianUJWwPDMEElement            mUpdatedLagrangianUJWwPDMEElement3D4N;
     const SmallDisplacementUWwPElement                    mSmallDisplacementUWwPElement2D3N;
 
     const AxisymUpdatedLagrangianUwPElement          mAxisymUpdatedLagrangianUwPElement2D3N;
@@ -297,8 +305,10 @@ namespace Kratos
     const UpdatedLagrangianUJwPElement   mUpdatedLagrangianUJwPElement3D4N;
     const UpdatedLagrangianUPwPElement mUpdatedLagrangianUPwPElement2D3N;
 
-    const AxisymUpdatedLagrangianUJElement      mAxisymUpdatedLagrangianUJElement2D3N; 
-    const AxisymUpdatedLagrangianUJwPElement    mAxisymUpdatedLagrangianUJwPElement2D3N; 
+    const AxisymUpdatedLagrangianUJElement                mAxisymUpdatedLagrangianUJElement2D3N; 
+    const AxisymUpdatedLagrangianUJwPElement            mAxisymUpdatedLagrangianUJwPElement2D3N; 
+    const AxisymUpdatedLagrangianUJWwPElement          mAxisymUpdatedLagrangianUJWwPElement2D3N; 
+    const AxisymUpdatedLagrangianUJWwPDMEElement    mAxisymUpdatedLagrangianUJWwPDMEElement2D3N; 
 
     const AxisymUpdatedLagrangianUPressureElement mAxisymUpdatedLagrangianUPressureElement2D3N; 
     const AxisymUpdatedLagrangianUPwPElement mAxisymUpdatedLagrangianUPwPElement2D3N; 

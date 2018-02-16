@@ -28,23 +28,22 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
          "top_water_pressure": 0.0
         }
         """)
-        
+       
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.model_part = Model
         self.model_part_name = self.settings["model_part_name"].GetString()
-        #self.restarted = self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
-        self.restarted = False
-        if ( self.restarted):
-            print(' HMInitialState, not finishing constructing beause is restarted')
-            return;
+        self.restarted = False;
+        self.the_process_has_been_executed = False;
 
 
         ## 
 
-    def ExecuteBeforeSolutionLoop(self):
+    ##def ExecuteBeforeSolutionLoop(self):
+    def ExecuteThisProcess(self):
+
         self.model_part = self.model_part[self.model_part_name]
         self.restarted = self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
         if ( self.restarted == True):
@@ -60,9 +59,11 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
         params.AddValue("top_water_pressure",self.settings["top_water_pressure"])
         initial_state_process = KratosPFEMSolid.SetMechanicalInitialStateProcess(self.model_part, self.settings)
         initial_state_process.Execute()
+        self.the_process_has_been_executed = True
 
-        for node in self.model_part.Nodes:
-            GG = node.GetSolutionStepValue( KratosMultiphysics.VOLUME_ACCELERATION)
-            GG[1] = -10;
-            node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION, GG)
+    def ExecuteInitializeSolutionStep(self):
+
+        if ( self.the_process_has_been_executed == False):
+            self.ExecuteThisProcess() 
+
 
