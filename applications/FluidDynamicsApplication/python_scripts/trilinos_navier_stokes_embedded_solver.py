@@ -25,9 +25,6 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.element_name = "EmbeddedNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.min_buffer_size = 3
-        # TODO: Remove this once we finish the new implementations
-        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
-            self.element_name = "EmbeddedSymbolicNavierStokes"
 
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
@@ -80,6 +77,10 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
+
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
+            self.element_name = "EmbeddedSymbolicNavierStokes"
 
         ## Construct the linear solver
         import trilinos_linear_solver_factory
