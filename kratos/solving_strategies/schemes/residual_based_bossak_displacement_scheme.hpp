@@ -268,7 +268,7 @@ public:
             if (it_node->HasDofFor(ACCELERATION_Y)) {
                 if (it_node->IsFixed(ACCELERATION_Y)) {
                     current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
-            } } else if (it_node->HasDofFor(ACCELERATION_Y)) {
+            } } else if (it_node->HasDofFor(VELOCITY_Y)) {
                 if (it_node->IsFixed(VELOCITY_Y)) {
                     current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
             } } else if (it_node->IsFixed(DISPLACEMENT_Y) == false) {
