@@ -37,6 +37,7 @@ namespace Internals
 ///@name Kratos Classes
 ///@{
 
+/// A class representing points in a mesh.
 class PointsData
 {
 public:
@@ -66,9 +67,9 @@ public:
         return mIds.size();
     }
 
-    void ReadData(File& rFile, std::string Path, unsigned StartIndex, unsigned BlockSize);
+    void ReadData(File& rFile, const std::string& rPath, unsigned StartIndex, unsigned BlockSize);
 
-    void WriteData(File& rFile, std::string Path);
+    void WriteData(File& rFile, const std::string& rPath, WriteInfo& rInfo);
 
     void CreateNodes(NodesContainerType& rNodes);
 
