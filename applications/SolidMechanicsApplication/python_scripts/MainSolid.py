@@ -46,6 +46,10 @@ class Solution(object):
 
         # Defining the number of threads
         num_threads =  self._get_parallel_size()
+        if( self.ProjectParameters.Has("problem_data") ):
+            if( self.ProjectParameters["problem_data"].Has("threads") ):
+                num_threads = self.ProjectParameters["problem_data"]["threads"].GetInt()
+        self._set_parallel_size(num_threads)
 
         print(" ")
         print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
