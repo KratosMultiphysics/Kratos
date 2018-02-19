@@ -90,7 +90,7 @@ public:
      * The bossak method
      * @rAlpham The Bossak parameter
      */
-    ResidualBasedBossakDisplacementScheme(const double rAlpham = 0.0)
+    explicit ResidualBasedBossakDisplacementScheme(const double rAlpham = 0.0)
         :ImplicitBaseType()
     {
         // For pure Newmark Scheme
