@@ -23,16 +23,12 @@
 #include "custom_elements/ice_continuum_particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 #include "custom_elements/cluster3D.h"
+#include "custom_elements/rigid_body_element.h"
+#include "custom_elements/ship_element.h"
 #include "custom_elements/thermal_spheric_particle.h"
 #include "custom_elements/sintering_spheric_continuum_particle.h"
 #include "custom_elements/bonding_spheric_continuum_particle.h"
-#include "custom_elements/custom_clusters/cubecluster3D.h"
-#include "custom_elements/custom_clusters/pillcluster3D.h"
-#include "custom_elements/custom_clusters/ellipsoidcluster3D.h"
-#include "custom_elements/custom_clusters/cuboidcluster3D.h"
-#include "custom_elements/custom_clusters/capsulecluster3D.h"
 #include "custom_elements/custom_clusters/singlespherecluster3D.h"
-#include "custom_elements/custom_clusters/beadcluster3D.h"
 #include "custom_conditions/mapping_condition.h"
 #include "custom_conditions/SolidFace.h"
 #include "custom_conditions/RigidFace.h"
@@ -105,14 +101,10 @@ private:
     const AnalyticRigidFace3D  mAnalyticRigidFace3D3N;
     const RigidFace3D  mRigidFace3D4N;
     const RigidEdge3D  mRigidEdge3D2N;
+    const RigidBodyElement3D mRigidBodyElement3D;
+    const ShipElement3D mShipElement3D;
     const Cluster3D  mCluster3D;
-    const CubeCluster3D  mCubeCluster3D;
-    const PillCluster3D  mPillCluster3D;
-    const EllipsoidCluster3D  mEllipsoidCluster3D;
-    const CuboidCluster3D  mCuboidCluster3D;
-    const CapsuleCluster3D  mCapsuleCluster3D;
     const SingleSphereCluster3D  mSingleSphereCluster3D;
-    const BeadCluster3D  mBeadCluster3D;
     const MAPcond    mMapCon3D3N;
 
     // static const ApplicationCondition  msApplicationCondition;

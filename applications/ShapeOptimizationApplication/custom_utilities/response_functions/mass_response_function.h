@@ -286,7 +286,7 @@ public:
 		KRATOS_TRY;
 
 		if(!m_initial_value_defined)
-			KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"calculate_value()\"!" << std::endl;
+			KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"CalculateValue()\"!" << std::endl;
 
 		return m_initial_value;
 

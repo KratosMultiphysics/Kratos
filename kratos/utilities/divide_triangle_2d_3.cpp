@@ -50,6 +50,21 @@ namespace Kratos
         rOStream << "   Distance values: " << distances_buffer.str();
     };
 
+    // Returns the mEdgeNodeI member vector
+    const std::vector<int>& DivideTriangle2D3::GetEdgeIdsI() const {
+        return mEdgeNodeI;
+    }
+
+    // Returns the mEdgeNodeJ member vector
+    const std::vector<int>& DivideTriangle2D3::GetEdgeIdsJ() const {
+        return mEdgeNodeJ;
+    }
+
+    // Returns the mSplitEdges member vector
+    std::vector<int>& DivideTriangle2D3::GetSplitEdges() {
+        return mSplitEdges;
+    }
+
     // Performs and saves the splitting pattern.
     void DivideTriangle2D3::GenerateDivision() {
 
@@ -76,7 +91,7 @@ namespace Kratos
             // Add the original geometry points
             for (unsigned int i = 0; i < n_nodes; ++i) {
                 const array_1d<double, 3> aux_point_coords = geometry[i].Coordinates();
-                IndexedPointPointerType paux_point = boost::make_shared<IndexedPoint>(aux_point_coords, i);
+                IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, i);
                 mAuxPointsContainer.push_back(paux_point);
             }
 
@@ -104,7 +119,7 @@ namespace Kratos
                     }
 
                     // Add the intersection point to the auxiliar points array
-                    IndexedPointPointerType paux_point = boost::make_shared<IndexedPoint>(aux_point_coords, aux_node_id);
+                    IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, aux_node_id);
                     mAuxPointsContainer.push_back(paux_point);
                 }
 
@@ -127,7 +142,7 @@ namespace Kratos
                 TriangleGetNewConnectivityGID(idivision, t.data(), mSplitEdges.data(), &i0, &i1, &i2);
 
                 // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
-                IndexedPointGeometryPointerType p_aux_partition = boost::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(i0),
+                IndexedPointGeometryPointerType p_aux_partition = Kratos::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(i0),
                                                                                                                mAuxPointsContainer(i1),
                                                                                                                mAuxPointsContainer(i2));
 
@@ -193,7 +208,7 @@ namespace Kratos
                     // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
-                        IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key),
+                        IndexedPointGeometryPointerType p_intersection_line = Kratos::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key),
                                                                                                                        mAuxPointsContainer(node_j_key));
                         mPositiveInterfaces.push_back(p_intersection_line);
                         mPositiveInterfacesParentIds.push_back(i_subdivision);
@@ -219,7 +234,7 @@ namespace Kratos
                     // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes)) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
-                        IndexedPointGeometryPointerType p_intersection_line = boost::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key),
+                        IndexedPointGeometryPointerType p_intersection_line = Kratos::make_shared<IndexedPointLineType>(mAuxPointsContainer(node_i_key),
                                                                                                                        mAuxPointsContainer(node_j_key));
                         mNegativeInterfaces.push_back(p_intersection_line);
                         mNegativeInterfacesParentIds.push_back(i_subdivision);
@@ -305,7 +320,7 @@ namespace Kratos
                     if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_i_key) != faces_edge_nodes.end()) {
                         if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_j_key) != faces_edge_nodes.end()) {
                             // If both nodes are in the candidate nodes list, the subface is exterior
-                            IndexedPointGeometryPointerType p_subface_line = boost::make_shared<IndexedPointLineType>(
+                            IndexedPointGeometryPointerType p_subface_line = Kratos::make_shared<IndexedPointLineType>(
                                 mAuxPointsContainer(node_i_key),
                                 mAuxPointsContainer(node_j_key));
 

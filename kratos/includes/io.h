@@ -53,9 +53,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/// IO provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
+/** IO provides different implementation of input output procedures which can be used to read and write with different formats and characteristics.
+ * An automatic configurable IO module is added to these components providing the complete set of solutions necessary for dealing with multi-disciplinary problems. 
+ * This IO module uses different component lists to adjust itself when reading and writing new concepts originating from different fields of analysis.
+ */
 class KRATOS_API(KRATOS_CORE) IO
 {
 public:
@@ -65,11 +67,11 @@ public:
     /// Pointer definition of IO
     KRATOS_CLASS_POINTER_DEFINITION(IO);
 
-	/// Local Flags
-	KRATOS_DEFINE_LOCAL_FLAG( READ );
-	KRATOS_DEFINE_LOCAL_FLAG( WRITE );
-	KRATOS_DEFINE_LOCAL_FLAG( APPEND );
-	KRATOS_DEFINE_LOCAL_FLAG( IGNORE_VARIABLES_ERROR );
+    /// Local Flags
+    KRATOS_DEFINE_LOCAL_FLAG( READ );
+    KRATOS_DEFINE_LOCAL_FLAG( WRITE );
+    KRATOS_DEFINE_LOCAL_FLAG( APPEND );
+    KRATOS_DEFINE_LOCAL_FLAG( IGNORE_VARIABLES_ERROR );
 
     typedef Node<3> NodeType;
 
@@ -232,7 +234,7 @@ public:
         KRATOS_ERROR <<  "Calling base class member. Please check the definition of derived class" << std::endl;
     }
 
-    virtual void DivideInputToPartitions(boost::shared_ptr<std::iostream> * Streams,
+    virtual void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * Streams,
                                          SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
                                          PartitionIndicesType const& NodesPartitions,
                                          PartitionIndicesType const& ElementsPartitions,

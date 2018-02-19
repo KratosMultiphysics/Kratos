@@ -41,25 +41,6 @@
         "processes_sub_model_part_list"      : ["support","SurfacePressure3D_load"],
         "rotation_dofs"                      : false
     },
-    "mesh_solver_settings"                  : {
-            "solver_type": "mesh_solver_structural_similarity",
-                "model_import_settings"           : {
-                "input_type"     : "mdpa",
-                "input_filename" : "3D_Hook"
-            },
-            "ale_linear_solver_settings"             : {
-                "solver_type"         : "AMGCL",
-                "max_iteration"       : 500,
-                "tolerance"           : 1e-7,
-                "provide_coordinates" : false,
-                "smoother_type"       : "ilu0",
-                "krylov_type"         : "bicgstab",
-                "coarsening_type"     : "aggregation",
-                "scaling"             : false,
-                "verbosity"           : 1
-            },             
-            "compute_reactions"     : true
-    },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -141,6 +122,24 @@
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : true
             },
+            "mesh_motion" : {
+                "apply_ale_mesh_solver" : true,
+                "mesh_solver_settings" : {
+                    "solver_type": "mesh_solver_structural_similarity",
+                    "ale_linear_solver_settings"  : {
+                        "solver_type"         : "AMGCL",
+                        "max_iteration"       : 500,
+                        "tolerance"           : 1e-7,
+                        "provide_coordinates" : false,
+                        "smoother_type"       : "ilu0",
+                        "krylov_type"         : "bicgstab",
+                        "coarsening_type"     : "aggregation",
+                        "scaling"             : false,
+                        "verbosity"           : 1
+                    },
+                    "compute_reactions"     : true
+                }
+            },
             "damping" : {
                 "perform_damping" : true,
                 "damping_regions" : [{
@@ -168,11 +167,12 @@
             }
         },
         "optimization_algorithm" : {
-            "name"                    : "penalized_projection",
-            "correction_scaling"      : 0.1,
-            "use_adaptive_correction" : true,
-            "max_iterations"          : 50,
-            "relative_tolerance"      : 1e-0
+            "name"                                 : "penalized_projection",
+            "correction_scaling"                   : 0.1,
+            "use_adaptive_correction"              : true,
+            "max_iterations"                       : 50,
+            "relative_tolerance"                   : 1e-0,
+            "project_gradients_on_surface_normals" : true
         },
         "line_search" : {
             "line_search_type"           : "manual_stepping",
@@ -183,14 +183,14 @@
             "output_directory"        : "Optimization_Results_With_Mass_Constraint",
             "response_log_filename"   : "response_log",
             "design_history_filename" : "design_history",
-            "design_output_mode"      : "WriteOptimizationModelPart",            
+            "design_output_mode"      : "WriteOptimizationModelPart",
             "nodal_results" : [ "NORMALIZED_SURFACE_NORMAL",
                                 "OBJECTIVE_SENSITIVITY",
                                 "CONSTRAINT_SENSITIVITY",
                                 "MAPPED_OBJECTIVE_SENSITIVITY",
                                 "MAPPED_CONSTRAINT_SENSITIVITY",
                                 "CONTROL_POINT_UPDATE",
-                                "CONTROL_POINT_CHANGE",                                                                                    
+                                "CONTROL_POINT_CHANGE",
                                 "SHAPE_UPDATE",
                                 "SHAPE_CHANGE",
                                 "MESH_CHANGE" ],

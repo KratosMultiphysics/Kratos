@@ -60,7 +60,6 @@ public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< DisplacementCriteria< TSparseSpace, TDenseSpace > > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ComponentWiseResidualConvergenceCriterion );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;

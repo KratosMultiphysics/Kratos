@@ -21,6 +21,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "structural_mechanics_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_cross_sections_to_python.h"
@@ -44,6 +45,7 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
             ;
 
     AddCustomStrategiesToPython();
+    AddCustomProcessesToPython();
     AddCustomUtilitiesToPython();
     AddCustomConstitutiveLawsToPython();
     AddCrossSectionsToPython();
@@ -116,6 +118,14 @@ BOOST_PYTHON_MODULE(KratosStructuralMechanicsApplication)
 
     // Membrane variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MEMBRANE_PRESTRESS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESTRESS_AXIS_1_GLOBAL )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESTRESS_AXIS_2_GLOBAL )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESTRESS_AXIS_1_LOCAL )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESTRESS_AXIS_2_LOCAL )
+
+    //Formfinding
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( LAMBDA_MAX )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_FORMFINDING )
     
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( NODAL_STIFFNESS )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( NODAL_DAMPING_RATIO )

@@ -40,7 +40,7 @@ namespace Kratos
 ///@name  Functions
 ///@{
     
-class KRATOS_API(KRATOS_CORE) TableStreamUtility
+class TableStreamUtility
 {
 public:
     ///@name Type Definitions
@@ -115,8 +115,8 @@ public:
     
     /**
      * It adds a column to the table
-     * @param ThisName: The name of the variable
-     * @param ThisSpaces: The number of spaces to consider
+     * @param ThisName The name of the variable
+     * @param ThisSpaces The number of spaces to consider
      */
         
     void AddColumn(std::string ThisName, unsigned int ThisSpaces)

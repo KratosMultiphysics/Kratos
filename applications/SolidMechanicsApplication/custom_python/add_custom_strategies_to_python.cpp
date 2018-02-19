@@ -422,6 +422,7 @@ namespace Kratos
       class_< IntegrationMethodType, IntegrationMethodType::Pointer, boost::noncopyable >
       	(
       	 "TimeIntegrationMethod", init<>())
+	.def("Clone", &IntegrationMethodType::Clone)
 	.def("SetVariable", &IntegrationMethodType::SetVariable)
 	.def("SetFirstDerivative", &IntegrationMethodType::SetFirstDerivative)
 	.def("SetSecondDerivative", &IntegrationMethodType::SetSecondDerivative)

@@ -251,5 +251,23 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             else:
                 raise Exception("Domain size is not 2 or 3!!")
 
+        elif (solver_type == "EmbeddedDevelopment"):
+            if(domain_size == 3):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                {
+                    "element_name":"EmbeddedSymbolicNavierStokes3D4N",
+                    "condition_name": "NavierStokesWallCondition3D3N"
+                }
+                """)
+            elif(domain_size == 2):
+                self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                {
+                    "element_name":"EmbeddedSymbolicNavierStokes2D3N",
+                    "condition_name": "NavierStokesWallCondition2D2N"
+                }
+                """)
+            else:
+                raise Exception("Domain size is not 2 or 3!!")
+
         else:
             raise Exception("Wrong embedded solver type!!")

@@ -277,6 +277,7 @@ void AddCustomUtilitiesToPython() {
         ("DEMFEMUtilities", init<>())
         .def("ChangeMeshVelocity", &DEMFEMUtilities::ChangeMeshVelocity)
         .def("MoveAllMeshes", &DEMFEMUtilities::MoveAllMeshes)
+        .def("MoveAllMeshesUsingATable", &DEMFEMUtilities::MoveAllMeshesUsingATable)
         .def("CreateRigidFacesFromAllElements", &DEMFEMUtilities::CreateRigidFacesFromAllElements)     
         ;
 

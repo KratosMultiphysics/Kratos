@@ -26,14 +26,24 @@ class SetInitialHeightProcess(KratosMultiphysics.Process):
             )
         settings.ValidateAndAssignDefaults(default_settings)
 
-        if settings["variable_name"].GetString() == "FREE_SURFACE_ELEVATION":
-            time_unit_converter = Model["main_model_part"].ProcessInfo.GetValue(KratosShallow.TIME_UNIT_CONVERTER)
-            free_surface = settings["value"].GetString()
-            settings["value"].SetString(free_surface + '-z*' + str(time_unit_converter))
-            settings["variable_name"].SetString("HEIGHT")
+        self.variable = settings["variable_name"].GetString()
+        self.model_part = Model[settings["model_part_name"].GetString()]
+        #~ if settings["variable_name"].GetString() == "FREE_SURFACE_ELEVATION":
+            #~ height_unit_converter = Model["main_model_part"].ProcessInfo.GetValue(KratosShallow.WATER_HEIGHT_UNIT_CONVERTER)
+            #~ free_surface = settings["value"].GetString()
+            #~ settings["value"].SetString(free_surface + '-z*' + str(height_unit_converter))
+            #~ settings["variable_name"].SetString("HEIGHT")
 
         import assign_scalar_variable_process
         self.process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, settings)
 
     def ExecuteInitialize(self):
         self.process.ExecuteInitializeSolutionStep()
+        if self.variable == "HEIGHT":
+            for node in self.model_part.Nodes:
+                free_surface = node.GetSolutionStepValue(KratosShallow.HEIGHT) + node.GetSolutionStepValue(KratosShallow.BATHYMETRY)
+                node.SetSolutionStepValue(KratosShallow.FREE_SURFACE_ELEVATION,0,free_surface)
+        elif self.variable == "FREE_SURFACE_ELEVATION":
+            for node in self.model_part.Nodes:
+                height = node.GetSolutionStepValue(KratosShallow.FREE_SURFACE_ELEVATION) - node.GetSolutionStepValue(KratosShallow.BATHYMETRY)
+                node.SetSolutionStepValue(KratosShallow.HEIGHT,0,height)
