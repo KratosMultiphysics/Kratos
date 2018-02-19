@@ -154,10 +154,10 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        const bool pFirstCriterionResult  = mpFirstCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
-        const bool pSecondCriterionResult = mpSecondCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool first_criterion_result  = mpFirstCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool second_criterion_result = mpSecondCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
 
-        return (FirstCriterionResult || SecondCriterionResult);
+        return (first_criterion_result || second_criterion_result);
     }
     
     /**
@@ -177,10 +177,10 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        const bool FirstCriterionResult  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
-        const bool SecondCriterionResult = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool first_criterion_result  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool second_criterion_result = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
 
-        return (FirstCriterionResult || SecondCriterionResult);
+        return (first_criterion_result || second_criterion_result);
     }
 
     /**
@@ -277,7 +277,7 @@ public:
      * @brief This function is designed to be called once to perform all the checks needed on the input provided. 
      * @details Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param rModelPart
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @return 0 all ok
      */
     int Check(ModelPart& rModelPart) override
