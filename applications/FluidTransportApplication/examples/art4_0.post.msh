@@ -1,0 +1,11 @@
+MESH "Kratos_Triangle2D3_Mesh_1" dimension 2 ElemType Triangle Nnode 3
+Coordinates
+1 0 0 0
+2 1 0 0
+3 1 1 0
+4 0 1 0
+End Coordinates
+Elements
+1 1 2 4 2
+2 3 4 2 2
+End Elements

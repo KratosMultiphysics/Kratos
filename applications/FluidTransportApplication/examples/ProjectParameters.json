@@ -1,0 +1,18 @@
+{
+	"model_import_settings"        : {
+		"input_type"          : "mdpa",
+		"input_filename"      : "unknown_name"
+	},
+	"echo_level"                   : 0,
+	"buffer_size"                  : 2,
+	"relative_tolerance"           : 1e-6,
+	"absolute_tolerance"           : 1e-9,
+	"maximum_iterations"           : 20,
+	"compute_reactions"            : false,
+	"reform_dofs_at_each_step"     : false,
+	"calculate_norm_dx"            : true,
+	"move_mesh_flag"               : false,
+	"linear_solver_settings"       : {
+			"solver_type"     : "SkylineLUFactorizationSolver"
+	}
+}

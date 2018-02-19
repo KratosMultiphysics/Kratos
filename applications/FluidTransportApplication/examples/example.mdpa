@@ -1,0 +1,32 @@
+Begin ModelPartData
+//  nothing here
+End ModelPartData
+
+
+Begin Properties 1            
+CONDUCTIVITY 10.0 // all the elements of the group 1 (second column in the list of elements) will have this property
+End Properties
+
+Begin Nodes
+       1        0.0        0.0         0.0     //node number, coord x, cord y, coord z
+       2        1.0        0.0         0.0     //node number, coord x, cord y, coord z
+       3        1.0        1.0         0.0     //node number, coord x, cord y, coord z
+       4        0.0        1.0         0.0     //node number, coord x, cord y, coord z
+End Nodes
+
+Begin Elements MyLaplacianElement //here we must write the name of the element that we created
+  1 1 1 2 4   //pos1:elem ID ; pos2:elem Property ( = 1 in this case) ; pos3 - pos5: node1-node3    
+  2 1 3 4 2   //pos1 and pos2 are always id and property. if the elem had 4 nodes, we woud add a 6th column for the last node    
+End Elements
+
+Begin NodalData TEMPERATURE          //be careful, variables are case sensitive!
+1 1 100.0                // pos1 is the node, pos2 (a 1) means that the DOF is fixed, then (position 3) we write the fixed displacement (in this case, temperature)  
+End NodalData
+
+Begin NodalData POINT_HEAT_SOURCE             
+3    0    5.0             //fixing it or not does not change anything since it is not a degree of freedom, it's just info that will be used by the condition  
+End NodalData
+
+Begin Conditions PointSourceCondition
+1 1 3     //pos1:condition ID(irrelevant) ; pos2:cond Property ( = 1 in this case) ; pos3:node to apply the condition. if it was a line condition, then we would have 4 numbers instead of 3, just like elements              
+End Conditions
