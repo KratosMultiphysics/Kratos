@@ -44,6 +44,8 @@ void SetMeshToInitialConfiguration(const ModelPart::NodesContainerType &rNodes);
 ModelPart::Pointer GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName);
 
+void UpdateReferenceMesh(ModelPart &rModelPart);
+
 } // namespace Move Mesh Utilities.
 
 } // namespace Kratos.

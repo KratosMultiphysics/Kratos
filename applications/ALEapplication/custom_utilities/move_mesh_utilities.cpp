@@ -95,7 +95,7 @@ void MoveMesh(const ModelPart::NodesContainerType &rNodes) {
   KRATOS_TRY;
 
   for (auto &rnode : rNodes) {
-    noalias(rnode.Coordinates()) = rnode.GetInitialPosition() 
+    noalias(rnode.Coordinates()) = rnode.GetInitialPosition()
                      + rnode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
   }
 
@@ -145,6 +145,21 @@ ModelPart::Pointer GenerateMeshPart(ModelPart &rModelPart,
   return pmesh_model_part;
 
   KRATOS_CATCH("");
+}
+
+//******************************************************************************
+//******************************************************************************
+  void UpdateReferenceMesh(ModelPart &rModelPart)
+{
+
+  for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
+          i != rModelPart.NodesEnd(); ++i){
+
+      (i)->X0() = (i)->X();
+      (i)->Y0() = (i)->Y();
+      (i)->Z0() = (i)->Z();
+
+  }
 }
 
 } // namespace Move Mesh Utilities.

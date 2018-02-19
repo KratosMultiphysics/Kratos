@@ -38,18 +38,25 @@ void AddCustomStrategiesToPython() {
   typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
   typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>
       BaseSolvingStrategyType;
+  using LaplacianMeshMovingStrategyType = LaplacianMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+  using StructuralMeshMovingStrategyType = StructuralMeshMovingStrategy < SparseSpaceType, LocalSpaceType, LinearSolverType >;
+
 
   class_<LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,
                                      LinearSolverType>,
          bases<BaseSolvingStrategyType>, boost::noncopyable>(
       "LaplacianMeshMovingStrategy",
-      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>());
+      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
+      .def("UpdateReferenceMesh",&LaplacianMeshMovingStrategyType::UpdateReferenceMesh)
+      ;
 
   class_<StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,
                                       LinearSolverType>,
          bases<BaseSolvingStrategyType>, boost::noncopyable>(
       "StructuralMeshMovingStrategy",
-      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>());
+      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
+      .def("UpdateReferenceMesh",&StructuralMeshMovingStrategyType::UpdateReferenceMesh)
+      ;
 }
 
 } // namespace Python.
