@@ -21,8 +21,8 @@
 #include "processes/process.h"
 #include "includes/model_part.h"
 #include "custom_python/add_base_classes_to_python.h"
-#include "base_classes/base_co_simulation_application_io.h"
-#include "base_classes/base_co_simulation_application.h"
+#include "base_classes/base_co_simulation_solver_io.h"
+#include "base_classes/base_co_simulation_solver.h"
 #include "base_classes/base_co_simulation_coupling_strategy.h"
 /*#include "custom_base_classes/base_co_simulation_convergence_acceleration_scheme.h"
 #include "custom_base_classes/base_co_simulation_convergence_criterion.h"*/
@@ -45,7 +45,7 @@ void AddCustomBaseClassesToPython()
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
     typedef CoSimulationBaseCouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseCouplingStrategyType;
-    typedef typename CoSimulationBaseApplication::Pointer CoSimBaseClassPointerType;
+    typedef typename CoSimulationBaseSolver::Pointer CoSimBaseClassPointerType;
     /*typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;*/
 
     //********************************************************************
@@ -62,22 +62,22 @@ void AddCustomBaseClassesToPython()
 
 
     //********************************************************************
-    //********************CoSimulationApplication*************************
+    //********************CoSimulationSolver*************************
     //********************************************************************
-    class_<CoSimulationBaseApplication,boost::noncopyable>("CoSimulationBaseApplication", init<std::string>())
-           .def("Name", &CoSimulationBaseApplication::Name)
-           .def("SetIo", &CoSimulationBaseApplication::SetIo)
-           .def("ImportData", &CoSimulationBaseApplication::ImportData)
-           .def("ExportData", &CoSimulationBaseApplication::ExportData)
-           .def("MakeDataAvailable", &CoSimulationBaseApplication::MakeDataAvailable)
-           .def("ExportMesh", &CoSimulationBaseApplication::ExportMesh)
-           .def("ImportMesh", &CoSimulationBaseApplication::ImportMesh) 
-           .def("MakeMeshAvailable", &CoSimulationBaseApplication::MakeDataAvailable)
-           .def("Initialize", &CoSimulationBaseApplication::ImportMesh) 
-           .def("InitializeTimeStep", &CoSimulationBaseApplication::ImportMesh) 
-           .def("SolveTimeStep", &CoSimulationBaseApplication::ImportMesh) 
-           .def("FinalizeTimeStep", &CoSimulationBaseApplication::ImportMesh)            
-           .def("Finalize", &CoSimulationBaseApplication::ImportMesh);
+    class_<CoSimulationBaseSolver,boost::noncopyable>("CoSimulationBaseSolver", init<std::string>())
+           .def("Name", &CoSimulationBaseSolver::Name)
+           .def("SetIo", &CoSimulationBaseSolver::SetIo)
+           .def("ImportData", &CoSimulationBaseSolver::ImportData)
+           .def("ExportData", &CoSimulationBaseSolver::ExportData)
+           .def("MakeDataAvailable", &CoSimulationBaseSolver::MakeDataAvailable)
+           .def("ExportMesh", &CoSimulationBaseSolver::ExportMesh)
+           .def("ImportMesh", &CoSimulationBaseSolver::ImportMesh) 
+           .def("MakeMeshAvailable", &CoSimulationBaseSolver::MakeDataAvailable)
+           .def("Initialize", &CoSimulationBaseSolver::ImportMesh) 
+           .def("InitializeTimeStep", &CoSimulationBaseSolver::ImportMesh) 
+           .def("SolveTimeStep", &CoSimulationBaseSolver::ImportMesh) 
+           .def("FinalizeTimeStep", &CoSimulationBaseSolver::ImportMesh)            
+           .def("Finalize", &CoSimulationBaseSolver::ImportMesh);
 
    //********************************************************************
     //********************CoSimulationCouplingStrategy********************

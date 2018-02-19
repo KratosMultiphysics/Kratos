@@ -25,24 +25,24 @@
 #include "base_classes/base_co_simulation_data.h"
 #include "base_classes/base_co_simulation_mesh.h"
 
-class CoSimulationBaseApplication
+class CoSimulationBaseSolver
 {
 
   public:
     ///@name Type Definitions
     ///@{
-    KRATOS_CLASS_POINTER_DEFINITION(CoSimulationBaseApplication);
+    KRATOS_CLASS_POINTER_DEFINITION(CoSimulationBaseSolver);
     typedef typename CoSimulationData<double>::Pointer DataPointerType;
     typedef typename CoSimulationBaseIo::Pointer BaseIoPointerType;
     typedef typename CoSimulationMesh::Pointer MeshPointerType;
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseApplication(std::string iName) : mName(iName)
+    CoSimulationBaseSolver(std::string iName) : mName(iName)
     {
     }
 
-    virtual ~CoSimulationBaseApplication()
+    virtual ~CoSimulationBaseSolver()
     {
     }
 

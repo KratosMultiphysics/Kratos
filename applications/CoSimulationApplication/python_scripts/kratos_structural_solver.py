@@ -2,11 +2,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.CoSimulationApplication as CoSimApp
 
 import os
 import process_factory
 
-class KratosStructuralCoSimulationSolver:
+class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseApplication):
 
     def __init__(self, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
@@ -27,7 +28,7 @@ class KratosStructuralCoSimulationSolver:
         self.project_parameters_file_name = self.settings['settings']['input_file'].GetString()
         self.geometry = {}
 
-'''         iOModule = __import__(self.settings['io'].GetString())
+        '''iOModule = __import__(self.settings['io'].GetString())
         self.io = iOModule.CreateIo(self.settings['io'])
         super(KratosDummySolver, self).SetIo(self.io) '''
 

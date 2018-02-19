@@ -15,31 +15,31 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCoupling
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
-       {
-	"problem_data": {
-		"problem_name": "CoupledProblem",
-		"domain_size": 3,
-		"time_step": 0.1,
-		"start_time": 0.0,
-		"end_time": 1.0,
-		"echo_level": 0
-	},
-	"solvers": [],
-	"co_simulation_solver_settings": {
-		"type": "gauss_seidel_iterative_strong_coupling_solver",
-		"echo_level": 1,
-		"convergence_acceleration": {
-			"type": "constant",
-			"settings": {
-				"factor": 0.1
-			}
-		},
-		"residual_relative_tolerance": 0.001,
-		"residual_absolute_tolerance": 1e-6,
-		"max_iteration_per_step": 10,
-		"participants": []
-	}
-}""")
+            {
+                    "problem_data": {
+                        "problem_name": "CoupledProblem",
+                        "domain_size": 3,
+                        "time_step": 0.1,
+                        "start_time": 0.0,
+                        "end_time": 1.0,
+                        "echo_level": 0
+                    },
+                    "solvers": [],
+                    "co_simulation_solver_settings": {
+                        "type": "gauss_seidel_iterative_strong_coupling_solver",
+                        "echo_level": 1,
+                        "convergence_acceleration": {
+                            "type": "constant",
+                            "settings": {
+                                "factor": 0.1
+                            }
+                        },
+                        "residual_relative_tolerance": 0.001,
+                        "residual_absolute_tolerance": 1e-6,
+                        "max_iteration_per_step": 10,
+                        "participants": []
+                    }
+            }""")
 
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -92,10 +92,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCoupling
             print('FinalizeTimeStep for solver :: ', solver_name)
             solver.FinalizeTimeStep()               
 
-    def SolveSolutionStep(self):
-        pass
-
-    def Solve(self):
+    def SolveTimeStep(self):
         max_iter = self.settings["co_simulation_solver_settings"]['max_iteration_per_step'].GetInt()
         iter = 0
         while(iter < max_iter):
@@ -110,7 +107,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCoupling
             
             iter = iter + 1
 
-
+    ###############################
     def SynchronizeInputData(self, solver):
         for solver_name, details in self.solver_cosim_details.items():
             input_data_list = details['input_data_list']

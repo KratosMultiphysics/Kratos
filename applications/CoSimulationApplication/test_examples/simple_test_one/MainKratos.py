@@ -5,7 +5,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
 import tools
 
-parameter_file = open("ProjectParametersModified.json", 'r')
+parameter_file = open("ProjectParameters.json", 'r')
 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
 participating_solvers = tools.GetSolvers(ProjectParameters["solvers"])
@@ -32,7 +32,7 @@ while (time <= end_time):
     print('Step :: ', step)
     print('Time :: ', time)
 
-    solver.Solve()
+    solver.SolveTimeStep()
     
     solver.FinalizeTimeStep()
 
