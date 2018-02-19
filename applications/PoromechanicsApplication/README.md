@@ -59,8 +59,9 @@ Make sure that the following lines are properly set in the configure.sh file:
 >
 > -DUSE_PORO_MPI=ON \\
 
-Uncomment the following line in 'PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_main.py and PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_fracture_main.py
+Uncomment the following line in 
+[poromechanics_main.py](https://github.com/KratosMultiphysics/Kratos/blob/documentation/adding-feature-lists/applications/PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_main.py) and [poromechanics_fracture_main.py](https://github.com/KratosMultiphysics/Kratos/blob/documentation/adding-feature-lists/applications/PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_fracture_main.py).
 
 > import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
-Note: For the moment, MPI only works in Linux and requires compiling METIS_APPLICATION and TRILINOS_APPLICATION. Non-local Damage and Fracture Propagation features do not work in MPI.
+*Note*: For the moment, MPI only works in Linux and requires compiling METIS_APPLICATION and TRILINOS_APPLICATION. Non-local Damage and Fracture Propagation features do not work in MPI.
