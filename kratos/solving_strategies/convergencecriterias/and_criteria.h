@@ -46,7 +46,7 @@ namespace Kratos
 ///@{
 
 /** 
- * @class MortarAndConvergenceCriteria 
+ * @class And_Criteria 
  * @ingroup KratosCore 
  * @brief This convergence criteria checks simultaneously two convergence criteria (both must be satisfied)
  * @details It takes two different convergence criteria in order to work
