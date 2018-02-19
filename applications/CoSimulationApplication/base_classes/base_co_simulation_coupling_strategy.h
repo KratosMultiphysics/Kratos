@@ -22,7 +22,7 @@
 #include "includes/model_part.h"
 
 // Application includes
-#include "base_classes/base_co_simulation_application.h"
+#include "base_classes/base_co_simulation_solver.h"
 #include "base_classes/base_co_simulation_convergence_acceleration_scheme.h"
 
 namespace Kratos
@@ -32,21 +32,25 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class CoSimulationBaseCouplingStrategy
+class CoSimulationBaseCouplingStrategy : public CoSimulationBaseSolver
 {
 
   public:
     ///@name Type Definitions
     ///@{
-    typedef typename CoSimulationBaseApplication::Pointer CoSimBaseClassPointerType;
+    typedef CoSimulationBaseSolver BaseType;
+    typedef typename CoSimulationBaseSolver::Pointer CoSimBaseClassPointerType;
     typedef typename CoSimulationBaseConvergenceAccelerationScheme::Pointer CoSimulationBaseConvergenceAccelerationSchemePointerType;
     KRATOS_CLASS_POINTER_DEFINITION(CoSimulationBaseCouplingStrategy);
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseCouplingStrategy(CoSimBaseClassPointerType app1, CoSimBaseClassPointerType app2, CoSimulationBaseConvergenceAccelerationSchemePointerType iConvAccelerator=nullptr) : mpApplicationOne(app1), 
-                                                                                                                                                                        mpApplicationTwo(app2),
-                                                                                                                                                                        mpConvAccelerator(iConvAccelerator)
+    CoSimulationBaseCouplingStrategy(std::string iName, CoSimBaseClassPointerType app1, 
+                                     CoSimBaseClassPointerType app2, 
+                                     CoSimulationBaseConvergenceAccelerationSchemePointerType iConvAccelerator=nullptr) 
+                                     : BaseType(iName), mpApplicationOne(app1), 
+                                       mpApplicationTwo(app2),
+                                       mpConvAccelerator(iConvAccelerator)
     {
     }
 
@@ -57,42 +61,6 @@ class CoSimulationBaseCouplingStrategy
     ///@name Operators
     ///@{
 
-    virtual void Initialize() 
-    {
-    }
-
-    virtual double Solve() 
-    {
-        return 0.0;
-    }
-
-    virtual void Clear()  
-    {
-    }
-
-    virtual bool IsConverged()  
-    {
-        return true;
-    }
-
-
-    virtual void InitializeSolutionStep() 
-    {
-    }
-
-    virtual void FinalizeSolutionStep()  
-    {
-    }
-
-    virtual bool SolveSolutionStep()  
-    {
-        return true;
-    }
-
-    virtual double GetResidualNorm()  
-    {
-        return 0.0;
-    }
 
     /// Methods specific for Co-Simulation
     

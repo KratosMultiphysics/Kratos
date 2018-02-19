@@ -83,7 +83,7 @@ void AddCustomBaseClassesToPython()
     //********************CoSimulationCouplingStrategy********************
     //******************************************************************** 
     class_<CoSimulationBaseCouplingStrategyType,
-           boost::noncopyable>("CoSimulationBaseCouplingStrategy", init<CoSimBaseClassPointerType , CoSimBaseClassPointerType>())
+           boost::noncopyable>("CoSimulationBaseCouplingStrategy", init<std::string, CoSimBaseClassPointerType , CoSimBaseClassPointerType>())
            ;
 
     //********************************************************************

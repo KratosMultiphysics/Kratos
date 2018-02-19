@@ -21,7 +21,7 @@
 // Project includes
 
 // Application includes
-#include "base_classes/base_co_simulation_application_io.h"
+#include "base_classes/base_co_simulation_solver_io.h"
 #include "base_classes/base_co_simulation_data.h"
 #include "base_classes/base_co_simulation_mesh.h"
 
