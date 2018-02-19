@@ -14,7 +14,6 @@
 #define KRATOS_HDF5_MODEL_PART_IO_BASE_H_INCLUDED
 
 // System includes
-#include <vector>
 #include <string>
 
 // External includes
@@ -27,7 +26,6 @@
 // Application includes
 #include "hdf5_application_define.h"
 #include "custom_io/hdf5_file.h"
-#include "custom_utilities/hdf5_connectivities_io.h"
 
 namespace Kratos
 {
@@ -38,6 +36,10 @@ namespace HDF5
 ///@name Kratos Classes
 ///@{
 
+/// Implements common functionality of HDF5 model part IO classes.
+/**
+ * This class cannot be instantiated through its public interface and may be removed in the future.
+ */
 class ModelPartIOBase : public IO
 {
 public:
@@ -49,7 +51,7 @@ public:
     ///@{
 
     /// Constructor.
-    ModelPartIOBase(Parameters Settings, File::Pointer pFile);
+    ModelPartIOBase(File::Pointer pFile, std::string const& rPrefix);
 
     ///@}
     ///@name Operations
@@ -64,6 +66,8 @@ public:
 
     void WriteModelPart(ModelPart& rModelPart) override;
 
+    void ReadModelPart(ModelPart& rModelPart) override;
+
     ///@}
 
 protected:
@@ -72,16 +76,12 @@ protected:
 
     ~ModelPartIOBase() = default;
 
-    File& GetFile() const;
-
     ///@}
     ///@name Member Variables
     ///@{
 
     File::Pointer mpFile;
-    std::string mPrefix;
-    std::vector<Internals::FileItem> mElementIO;
-    std::vector<Internals::FileItem> mConditionIO;
+    const std::string mPrefix;
 
     ///@}
 

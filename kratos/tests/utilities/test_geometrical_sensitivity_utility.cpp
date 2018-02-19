@@ -30,10 +30,10 @@ namespace Testing
 Geometry<Point>::Pointer CreateQuadrilateral2D4N()
 {
     Geometry<Point>::PointsArrayType points;
-    points.push_back(boost::make_shared<Point>(0.0, 0.0, 0.0));
-    points.push_back(boost::make_shared<Point>(1.2, 0.1, 0.0));
-    points.push_back(boost::make_shared<Point>(1.3, 1.02, 0.0));
-    points.push_back(boost::make_shared<Point>(0.1, 1.0, 0.0));
+    points.push_back(Kratos::make_shared<Point>(0.0, 0.0, 0.0));
+    points.push_back(Kratos::make_shared<Point>(1.2, 0.1, 0.0));
+    points.push_back(Kratos::make_shared<Point>(1.3, 1.02, 0.0));
+    points.push_back(Kratos::make_shared<Point>(0.1, 1.0, 0.0));
 
     return Geometry<Point>::Pointer(new Quadrilateral2D4<Point>(points));
 }
@@ -41,14 +41,14 @@ Geometry<Point>::Pointer CreateQuadrilateral2D4N()
 Geometry<Point>::Pointer CreateHexahedra3D8N()
 {
     Geometry<Point>::PointsArrayType points;
-    points.push_back(boost::make_shared<Point>(0.0, 0.0, 0.0));
-    points.push_back(boost::make_shared<Point>(1.02, 0.0, 0.0));
-    points.push_back(boost::make_shared<Point>(1.1, 1.03, 0.07));
-    points.push_back(boost::make_shared<Point>(0.01, 1.0, 0.0));
-    points.push_back(boost::make_shared<Point>(0.0, 0.0, 1.05));
-    points.push_back(boost::make_shared<Point>(1.08, 0.01, 1.0));
-    points.push_back(boost::make_shared<Point>(1.03, 1.09, 1.0));
-    points.push_back(boost::make_shared<Point>(0.0, 1.05, 1.04));
+    points.push_back(Kratos::make_shared<Point>(0.0, 0.0, 0.0));
+    points.push_back(Kratos::make_shared<Point>(1.02, 0.0, 0.0));
+    points.push_back(Kratos::make_shared<Point>(1.1, 1.03, 0.07));
+    points.push_back(Kratos::make_shared<Point>(0.01, 1.0, 0.0));
+    points.push_back(Kratos::make_shared<Point>(0.0, 0.0, 1.05));
+    points.push_back(Kratos::make_shared<Point>(1.08, 0.01, 1.0));
+    points.push_back(Kratos::make_shared<Point>(1.03, 1.09, 1.0));
+    points.push_back(Kratos::make_shared<Point>(0.0, 1.05, 1.04));
 
     return Geometry<Point>::Pointer(new Hexahedra3D8<Point>(points));
 }
@@ -56,9 +56,9 @@ Geometry<Point>::Pointer CreateHexahedra3D8N()
 Geometry<Point>::Pointer CreateTriangle2D3N()
 {
     Geometry<Point>::PointsArrayType points;
-    points.push_back(boost::make_shared<Point>(0.04, 0.02, 0.0));
-    points.push_back(boost::make_shared<Point>(1.1, 0.03, 0.0));
-    points.push_back(boost::make_shared<Point>(1.08, 1.0, 0.0));
+    points.push_back(Kratos::make_shared<Point>(0.04, 0.02, 0.0));
+    points.push_back(Kratos::make_shared<Point>(1.1, 0.03, 0.0));
+    points.push_back(Kratos::make_shared<Point>(1.08, 1.0, 0.0));
 
     return Geometry<Point>::Pointer(new Triangle2D3<Point>(points));
 }
@@ -66,10 +66,10 @@ Geometry<Point>::Pointer CreateTriangle2D3N()
 Geometry<Point>::Pointer CreateTetrahedra3D4N()
 {
     Geometry<Point>::PointsArrayType points;
-    points.push_back(boost::make_shared<Point>(0.0, 0.04, 0.0));
-    points.push_back(boost::make_shared<Point>(1.01, 0.0, 0.2));
-    points.push_back(boost::make_shared<Point>(1.05, 1.0, 0.0));
-    points.push_back(boost::make_shared<Point>(0.0, 0.03, 1.09));
+    points.push_back(Kratos::make_shared<Point>(0.0, 0.04, 0.0));
+    points.push_back(Kratos::make_shared<Point>(1.01, 0.0, 0.2));
+    points.push_back(Kratos::make_shared<Point>(1.05, 1.0, 0.0));
+    points.push_back(Kratos::make_shared<Point>(0.0, 0.03, 1.09));
 
     return Geometry<Point>::Pointer(new Tetrahedra3D4<Point>(points));
 }

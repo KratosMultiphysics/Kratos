@@ -20,7 +20,7 @@ public:
 
 KRATOS_CLASS_POINTER_DEFINITION(MeshRotationUtility);
 
-MeshRotationUtility(Parameters & r_parameters)
+MeshRotationUtility(Parameters & r_parameters): mpStationaryModelPart(NULL)
 {
     mOmega = r_parameters["angular_velocity_magnitude"].GetDouble();
     mAInit = r_parameters["frame_rotation_axis_initial_point"].GetVector();
@@ -56,7 +56,7 @@ void RotateMesh(ModelPart& r_model_part, double time)
     if (nnodes > 0){
         auto it_begin = r_model_part.NodesBegin();
         array_1d<double, 3> P0;
-        array_1d<double, 3> P;       
+        array_1d<double, 3> P;
 
         #pragma omp parallel for private(P0, P)
         for (int i = 0; i < nnodes; ++i){
@@ -77,7 +77,7 @@ void RotateDEMMesh(ModelPart& r_model_part, double time)
     if (nnodes > 0){
         auto it_begin = r_model_part.NodesBegin();
         array_1d<double, 3> P0;
-        array_1d<double, 3> P;       
+        array_1d<double, 3> P;
 
         #pragma omp parallel for private(P0, P)
         for (int i = 0; i < nnodes; ++i){
@@ -85,9 +85,9 @@ void RotateDEMMesh(ModelPart& r_model_part, double time)
             RotateNode(*(it.base()), P0, P);
             array_1d<double, 3>& displacement = it->FastGetSolutionStepValue(DISPLACEMENT);
             noalias(displacement) = P - P0;
-            it->Fix(DISPLACEMENT_X);       
-            it->Fix(DISPLACEMENT_Y); 
-            it->Fix(DISPLACEMENT_Z);      
+            it->Fix(DISPLACEMENT_X);
+            it->Fix(DISPLACEMENT_Y);
+            it->Fix(DISPLACEMENT_Z);
             array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
             noalias(velocity) = prod(mRp, P0 - mAInit);
             it->Fix(VELOCITY_X);
@@ -97,12 +97,49 @@ void RotateDEMMesh(ModelPart& r_model_part, double time)
     }
 }
 
+void SetStationaryField(ModelPart& r_model_part, const double time)
+{
+    mpStationaryModelPart = &r_model_part;
+    mStationaryTime = time;
+    const int nnodes = r_model_part.Nodes().size();
+    mStationaryVelocities.resize(nnodes);
+
+    if (nnodes > 0){
+        auto it_begin = r_model_part.NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < nnodes; ++i){
+            auto it = it_begin + i;
+            noalias(mStationaryVelocities[i]) = it->FastGetSolutionStepValue(VELOCITY);
+        }
+    }
+}
+
+void RotateFluidVelocities(const double time)
+{
+    CalculateRodriguesMatrices(time, mStationaryTime);
+
+    const int nnodes = mpStationaryModelPart->Nodes().size();
+
+    if (nnodes > 0){
+        auto it_begin = mpStationaryModelPart->NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < nnodes; ++i){
+            auto it = it_begin + i;
+            array_1d<double, 3>& velocity = it->FastGetSolutionStepValue(VELOCITY);
+            RotateVector(mStationaryVelocities[i], velocity);
+        }
+    }
+}
+
 private:
 
-void CalculateRodriguesMatrices(const double time)
+void CalculateRodriguesMatrices(const double time, const double initial_time=0.0)
 {
-    double sin_theta = std::sin(time * mOmega);
-    double cos_theta = std::cos(time * mOmega);
+    const double delta_time = time - initial_time;
+    double sin_theta = std::sin(delta_time * mOmega);
+    double cos_theta = std::cos(delta_time * mOmega);
 
     // Rotation matrix
     noalias(mR) = cos_theta * mI + sin_theta * mUx + (1.0 - cos_theta) * mUU;
@@ -122,6 +159,11 @@ void RotateNode(Kratos::Node<3>::Pointer p_node, array_1d<double, 3>& P0, array_
     p_node->Z() = P[2];
 }
 
+void RotateVector(const array_1d<double, 3>& initial_vector, array_1d<double, 3>& vector)
+{
+    noalias(vector) = mAInit + prod(mR, initial_vector - mAInit);
+}
+
 array_1d<double, 3> CalculateNormalized(array_1d<double, 3>&& vector)
 {
     const double norm = norm_2(vector);
@@ -134,6 +176,7 @@ array_1d<double, 3> CalculateNormalized(array_1d<double, 3>&& vector)
 }
 
 double mOmega;
+double mStationaryTime;
 array_1d<double, 3> mAInit;
 array_1d<double, 3> mAFinal;
 array_1d<double, 3> mAxisVersor;
@@ -142,6 +185,8 @@ boost::numeric::ublas::bounded_matrix<double, 3, 3> mUU;
 boost::numeric::ublas::bounded_matrix<double, 3, 3> mUx;
 boost::numeric::ublas::bounded_matrix<double, 3, 3> mR;
 boost::numeric::ublas::bounded_matrix<double, 3, 3> mRp;
+std::vector<array_1d<double, 3> > mStationaryVelocities;
+ModelPart* mpStationaryModelPart;
 
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************

@@ -152,6 +152,6 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 if __name__ == '__main__':
     test = TestGiDIOGaussPoints()
     test.setUp()
-    #test.writeActiveOnly()
-    test.writeDynamicDeactivation()
+    #test.test_write_active_only()
+    test.test_write_dynamic_deactivation()
     test.tearDown()

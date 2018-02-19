@@ -374,19 +374,19 @@ typedef array_1d<double,6> Vector6;
    const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D8N;
    const AxisymmetricUpdatedLagrangianElement mAxisymUpdatedLagrangianElement2D9N;
 
-   const UpdatedLagrangianUPElement                   mUpdatedLagrangianUPElement2D3N;
+   const UpdatedLagrangianUPElement         mUpdatedLagrangianUPElement2D3N;
    const AxisymmetricUpdatedLagrangianUPElement mAxisymUpdatedLagrangianUPElement2D3N;
-   const UpdatedLagrangianUPElement                   mUpdatedLagrangianUPElement3D4N;
+   const UpdatedLagrangianUPElement         mUpdatedLagrangianUPElement3D4N;
 
    //beams
    const SmallDisplacementBeamElement       mSmallDisplacementBeamElement3D2N;
-   //const SmallDisplacementBeamElement3D2N   mSmallDisplacementBeamElement3D2N;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D2N;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D3N;
    const LargeDisplacementBeamEMCElement    mLargeDisplacementBeamEMCElement3D2N;
    const LargeDisplacementBeamSEMCElement   mLargeDisplacementBeamSEMCElement3D2N;
    const GeometricallyExactRodElement       mGeometricallyExactRodElement3D2N;
-
+   const LargeDisplacementBeamElement       mLargeDisplacementBeamElement2D2N;
+   
    //shells
    const ShellThickElement3D4N              mShellThickElement3D4N;
    const ShellThickElement3D4N  mShellThickCorotationalElement3D4N;

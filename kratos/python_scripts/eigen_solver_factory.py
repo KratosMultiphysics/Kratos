@@ -8,9 +8,9 @@ def ConstructSolver(settings):
     
     solver_type = settings["solver_type"].GetString()
     
-    if solver_type == "eigen_sparse_eigensystem":
+    if solver_type == "eigen_eigensystem":
         import KratosMultiphysics.EigenSolversApplication
-        eigen_solver = KratosMultiphysics.EigenSolversApplication.SparseEigensystemSolver(settings)
+        eigen_solver = KratosMultiphysics.EigenSolversApplication.EigensystemSolver(settings)
         return eigen_solver
     
     import new_linear_solver_factory
