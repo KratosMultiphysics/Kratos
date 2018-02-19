@@ -14,13 +14,11 @@
 #define KRATOS_HDF5_PARTITIONED_MODEL_PART_IO_H_INCLUDED
 
 // System includes
-#include <tuple>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "includes/io.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -45,12 +43,14 @@ public:
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(PartitionedModelPartIO);
 
+    typedef ModelPartIOBase BaseType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    PartitionedModelPartIO(Parameters Settings, File::Pointer pFile);
+    PartitionedModelPartIO(File::Pointer pFile, std::string const& rPrefix);
 
     ///@}
     ///@name Operations
@@ -91,11 +91,9 @@ private:
 
     ///@name Private Operations
     ///@{
-    std::tuple<unsigned, unsigned> GetPartitionStartIndexAndBlockSize(std::string Path) const;
+    void WritePartitionIndex(const std::string& rPath, NodesContainerType const& rGhostNodes);
 
-    void WritePartitionIndex(std::string Path, NodesContainerType const& rGhostNodes);
-
-    void ReadAndAssignPartitionIndex(std::string Path, ModelPart& rModelPart) const;
+    void ReadAndAssignPartitionIndex(const std::string& rPath, ModelPart& rModelPart) const;
     ///@}
 };
 

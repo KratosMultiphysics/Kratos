@@ -144,6 +144,16 @@ public:
     virtual void Print(const void* pSource, std::ostream& rOStream) const;
 
     /**
+     * PrintData is an auxiliary method to produce output only the value of given variable 
+     * knowing its address. For example writing an heterogenous container 
+     * in an output stream can be done using this method. Point assumes 
+     * that the streaming operator is defined for the variable type.
+     * @param pSource The pointer of the variable to be printed
+     * @param rOStream The stream used to print the information
+     */
+    virtual void PrintData(const void* pSource, std::ostream& rOStream) const;
+
+    /**
      * This method allocates the data of the variable
      * @param pData A pointer to the data to be allocated
      */
