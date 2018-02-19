@@ -5,7 +5,7 @@ import KratosMultiphysics
 try:
     import KratosMultiphysics.mpi as KratosMPI
     rank = KratosMPI.mpi.rank
-except:
+except ImportError:
     rank = 0
 
 # Other imports
