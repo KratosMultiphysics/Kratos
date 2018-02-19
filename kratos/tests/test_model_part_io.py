@@ -3,12 +3,14 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
+import testing_utilities as test_utils
+
 import os
 import sys
 
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestModelPartIO(KratosUnittest.TestCase):
@@ -138,9 +140,9 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(value, True)
 
         # Clean up temporary files
-        os.remove(GetFilePath("test_model_part_io_write.out.mdpa"))
-        os.remove(GetFilePath("test_model_part_io_write.out.time"))
-        os.remove(GetFilePath("test_model_part_io_write.time"))
+        test_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
+        test_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
+        test_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):

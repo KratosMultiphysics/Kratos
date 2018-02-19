@@ -3,10 +3,12 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 from gid_output_process import GiDOutputProcess
+
+import testing_utilities as test_utils
+
 import os
 
 def GetFilePath(fileName):
-
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestGidIO(KratosUnittest.TestCase):
@@ -100,28 +102,28 @@ class TestGidIO(KratosUnittest.TestCase):
         self.__WriteOutput(model_part,"deactivated_out")
 
         self.__Check("deactivated_out_0.post.msh","deactivated_ref.ref")
-        
+
     def test_gid_io_results(self):
         model_part = self.__InitialRead()
 
         # Initialize flag
         for node in model_part.Nodes:
             node.Set(KratosMultiphysics.ISOLATED, False)
-            
+
         model_part.Nodes[1].Set(KratosMultiphysics.ISOLATED, True)
         model_part.Nodes[2].Set(KratosMultiphysics.ISOLATED, True)
         model_part.Nodes[973].Set(KratosMultiphysics.ISOLATED, True)
         model_part.Nodes[974].Set(KratosMultiphysics.ISOLATED, True)
-        
+
         # Initialize value
         for node in model_part.Nodes:
             node.SetValue(KratosMultiphysics.TEMPERATURE, 0.0)
-        
+
         model_part.Nodes[1].SetValue(KratosMultiphysics.TEMPERATURE, 100.0)
         model_part.Nodes[2].SetValue(KratosMultiphysics.TEMPERATURE, 200.0)
         model_part.Nodes[973].SetValue(KratosMultiphysics.TEMPERATURE, 300.0)
         model_part.Nodes[974].SetValue(KratosMultiphysics.TEMPERATURE, 400.0)
-        
+
         vector = KratosMultiphysics.Vector(3)
         vector[0] = 0.0
         vector[1] = 0.0
@@ -129,7 +131,7 @@ class TestGidIO(KratosUnittest.TestCase):
         # Initialize value
         for node in model_part.Nodes:
             node.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, vector)
-        
+
         vector[0] = 1.0
         vector[1] = 1.0
         model_part.Nodes[1].SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, vector)
@@ -145,7 +147,7 @@ class TestGidIO(KratosUnittest.TestCase):
         # Initialize value
         for node in model_part.Nodes:
             node.SetValue(KratosMultiphysics.INERTIA, matrix)
-        
+
         matrix[0, 0] = 1.0
         matrix[1, 1] = 1.0
         model_part.Nodes[1].SetValue(KratosMultiphysics.INERTIA, matrix)
@@ -177,20 +179,15 @@ class TestGidIO(KratosUnittest.TestCase):
         gid_io_2 = None
 
     def tearDown(self):
-        self.__DeleteIfExisting("all_active_out_0.post.msh")
-        self.__DeleteIfExisting("all_active_out_0.post.res")
-        self.__DeleteIfExisting("deactivated_out_0.post.msh")
-        self.__DeleteIfExisting("deactivated_out_0.post.res")
-        self.__DeleteIfExisting("results_out_0.post.msh")
-        self.__DeleteIfExisting("results_out_0.post.res")
-        self.__DeleteIfExisting("python_scripts.post.lst")
+        test_utils.DeleteFileIfExisting("all_active_out_0.post.msh")
+        test_utils.DeleteFileIfExisting("all_active_out_0.post.res")
+        test_utils.DeleteFileIfExisting("deactivated_out_0.post.msh")
+        test_utils.DeleteFileIfExisting("deactivated_out_0.post.res")
+        test_utils.DeleteFileIfExisting("results_out_0.post.msh")
+        test_utils.DeleteFileIfExisting("results_out_0.post.res")
+        test_utils.DeleteFileIfExisting("python_scripts.post.lst")
+        test_utils.DeleteFileIfExisting("tests.post.lst")
 
-    @staticmethod
-    def __DeleteIfExisting(filename):
-        try:
-            os.remove(filename)
-        except FileNotFoundError:
-            return
 
 if __name__ == '__main__':
     KratosUnittest.main()
