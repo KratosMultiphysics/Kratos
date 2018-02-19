@@ -454,7 +454,7 @@ namespace Kratos
 
 	ModelDataType Values = rVariables.GetModelData();
 	
-	double& TotalDeterminant           = Values.rConstitutiveLawData().TotalDeformationDet;
+	// double& TotalDeterminant           = Values.rConstitutiveLawData().TotalDeformationDet;
 	MatrixType& DeltaDeformationMatrix = Values.rConstitutiveLawData().DeltaDeformationMatrix;
 	MatrixType& TotalDeformationMatrix = Values.rConstitutiveLawData().TotalDeformationMatrix;
 
@@ -576,12 +576,8 @@ namespace Kratos
     KRATOS_TRY
 
     //Calculate Ogden main stress derivatives
-    const ModelDataType&  rModelData        = rVariables.GetModelData();
-    const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
-
     const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
 
-    const double& rBulkModulus = rMaterial.GetBulkModulus();
     const std::vector<double>& rModelParameters = rMaterial.GetModelParameters(); //nu values, lambda values
 
     unsigned int size = (rModelParameters.size()/2.0);
@@ -612,21 +608,16 @@ namespace Kratos
     KRATOS_TRY
 
     //Calculate Ogden main stress derivatives
-    const ModelDataType&  rModelData        = rVariables.GetModelData();
-    const StressMeasureType& rStressMeasure = rModelData.GetStressMeasure();
-
     const MaterialDataType& rMaterial = rVariables.GetMaterialParameters();
     const std::vector<double>& rModelParameters = rMaterial.GetModelParameters(); //nu values, lambda values
 
     unsigned int size = (rModelParameters.size()/2.0);
-    double athird = 1.0/3.0;
 
     rValue = 0;
     for(unsigned int p=0; p<size; p++)
     {
 	const double& mu_p = rModelParameters[p];
 	const double& alpha_p = rModelParameters[p+size];
-	double f = athird * ( std::pow(rVariables.Strain.Eigen.Values[0],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[1],alpha_p) + std::pow(rVariables.Strain.Eigen.Values[2],alpha_p) );
 
 	rValue += 0.5 * mu_p * alpha_p * std::pow(rVariables.Strain.Eigen.Values[i],alpha_p) * ( 1.0 - this->msIdentityMatrix(i,j) );
 
