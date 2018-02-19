@@ -134,7 +134,7 @@ class Thin_Shell3D3N_BendingRollUpTest(TF.TestFactory):
     file_name = "element_tests/shell_elements/Shell_T3_Thin__BendingRollUp"
     file_parameters = None
 
-class Thin_Shell3D3M_DrillingRollUpTest(TF.TestFactory):
+class Thin_Shell3D3N_DrillingRollUpTest(TF.TestFactory):
     file_name = "element_tests/shell_elements/Shell_T3_Thin__DrillingRollUp"
     file_parameters = None
     
@@ -188,7 +188,7 @@ def SetTestSuite(suites):
             Thick_Shell3D4N_BendingRollUpTest,
             Thick_Shell3D4N_DrillingRollUpTest,
             Thin_Shell3D3N_BendingRollUpTest,
-            Thin_Shell3D3M_DrillingRollUpTest
+            Thin_Shell3D3N_DrillingRollUpTest
         ])
     )
     
