@@ -103,9 +103,9 @@ public:
      * @param rOther The other And_Criteria to be copied
     */
     And_Criteria(And_Criteria const& rOther)
-      :BaseType(rOther),
-        mpFirstCriterion(rOther.mpFirstCriterion),
-        mpSecondCriterion(rOther.mpSecondCriterion)
+        :BaseType(rOther),
+         mpFirstCriterion(rOther.mpFirstCriterion),
+         mpSecondCriterion(rOther.mpSecondCriterion)
      {     
      }
 
@@ -321,5 +321,5 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_AND_CRITERIA  defined */
+#endif /* KRATOS_AND_CRITERIA_H  defined */
 
