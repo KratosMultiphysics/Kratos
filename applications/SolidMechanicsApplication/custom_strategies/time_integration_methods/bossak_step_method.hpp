@@ -270,19 +270,19 @@ namespace Kratos
     ///@}
     ///@name Serialization
     ///@{
-    // friend class Serializer;
+    friend class Serializer;
 
-    // virtual void save(Serializer& rSerializer) const override
-    // {
-    //   KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
-    //   rSerializer.save("BossakAlpha", mAlpha);
-    // };
+    virtual void save(Serializer& rSerializer) const override
+    {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
+      rSerializer.save("BossakAlpha", mAlpha);
+    };
 
-    // virtual void load(Serializer& rSerializer) override
-    // {
-    //   KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
-    //   rSerializer.load("BossakAlpha", mAlpha);
-    // };
+    virtual void load(Serializer& rSerializer) override
+    {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
+      rSerializer.load("BossakAlpha", mAlpha);
+    };
     
     ///@}
     ///@name Private Inquiry

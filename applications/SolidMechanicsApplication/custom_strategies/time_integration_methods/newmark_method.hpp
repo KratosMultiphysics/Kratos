@@ -86,33 +86,33 @@ namespace Kratos
 
     private:
       
-      // friend class Serializer;
+      friend class Serializer;
 
-      // void save(Serializer& rSerializer) const
-      // {
-      // 	rSerializer.save("beta", beta);
-      // 	rSerializer.save("gamma", gamma);
-      // 	rSerializer.save("delta_time", delta_time);
-      // 	rSerializer.save("c0", c0);
-      // 	rSerializer.save("c1", c1);
-      // 	rSerializer.save("c2", c2);
-      // 	rSerializer.save("c3", c3);
-      // 	rSerializer.save("c4", c4);
-      // 	rSerializer.save("c5", c5);						
-      // };
+      void save(Serializer& rSerializer) const
+      {
+	rSerializer.save("beta", beta);
+	rSerializer.save("gamma", gamma);
+	rSerializer.save("delta_time", delta_time);
+	rSerializer.save("c0", c0);
+	rSerializer.save("c1", c1);
+	rSerializer.save("c2", c2);
+	rSerializer.save("c3", c3);
+	rSerializer.save("c4", c4);
+	rSerializer.save("c5", c5);						
+      };
 
-      // void load(Serializer& rSerializer)
-      // {
-      // 	rSerializer.load("beta", beta);
-      // 	rSerializer.load("gamma", gamma);
-      // 	rSerializer.load("delta_time", delta_time);
-      // 	rSerializer.load("c0", c0);
-      // 	rSerializer.load("c1", c1);
-      // 	rSerializer.load("c2", c2);
-      // 	rSerializer.load("c3", c3);
-      // 	rSerializer.load("c4", c4);
-      // 	rSerializer.load("c5", c5);
-      // };
+      void load(Serializer& rSerializer)
+      {
+	rSerializer.load("beta", beta);
+	rSerializer.load("gamma", gamma);
+	rSerializer.load("delta_time", delta_time);
+	rSerializer.load("c0", c0);
+	rSerializer.load("c1", c1);
+	rSerializer.load("c2", c2);
+	rSerializer.load("c3", c3);
+	rSerializer.load("c4", c4);
+	rSerializer.load("c5", c5);
+      };
       
     };
     
