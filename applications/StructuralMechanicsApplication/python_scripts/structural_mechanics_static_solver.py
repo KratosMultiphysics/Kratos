@@ -54,21 +54,21 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        print("::[StaticMechanicalSolver]:: Construction finished")
+        self.print_on_rank_zero("::[StaticMechanicalSolver]:: ", "Construction finished")
 
     def Initialize(self):
-        print("::[StaticMechanicalSolver]:: Initializing ...")
+        self.print_on_rank_zero("::[StaticMechanicalSolver]:: ", "Initializing ...")
         if self.settings["analysis_type"].GetString() == "arc_length":
             self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA] = 0.0
         super(StaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
-        print("::[StaticMechanicalSolver]:: Finished initialization.")
+        self.print_on_rank_zero("::[StaticMechanicalSolver]:: ", "Finished initialization.")
     
     def Solve(self):
         super(StaticMechanicalSolver, self).Solve()
         if self.settings["analysis_type"].GetString() == "arc_length":
             lambda_value = self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA]
             if self.settings["echo_level"].GetInt() > 0:
-                print("LAMBDA: ", lambda_value)
+                self.print_on_rank_zero("LAMBDA: ", lambda_value)
             self._update_arc_length_point_load(lambda_value)
 
     #### Private functions ####
@@ -94,12 +94,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD, 0, new_load)
         
         if (self.settings["echo_level"].GetInt() > 0):
-            print("*********************** ")
-            print("The total load applied: ")
-            print("POINT_LOAD_X: ", force_x)
-            print("POINT_LOAD_Y: ", force_y)
-            print("POINT_LOAD_Z: ", force_z)
-            print("*********************** ")
+            self.print_on_rank_zero("Total Load Applied", "\nPOINT_LOAD_X: " + str(force_x) + "\nPOINT_LOAD_Y: " + str(force_y) + "\nPOINT_LOAD_Z: " + str(force_z))
 
     def _create_solution_scheme(self):
         return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()

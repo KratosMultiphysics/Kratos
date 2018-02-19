@@ -37,14 +37,16 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
 
+        KratosMultiphysics.Logger.PrintInfo("::Reading materials process:: ", "Started")
+
         with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
             materials = KratosMultiphysics.Parameters(parameter_file.read())
-        
+
         for i in range(materials["properties"].size()):
             self._AssignPropertyBlock(materials["properties"][i])
-        
-        print("finished reading materials")
-        
+
+        KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Finished")
+
     def _GetVariable(self,my_string):
         """Return the python object of a Variable named by the string argument.
 
@@ -120,14 +122,14 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         property_id = data["properties_id"].GetInt()
         mesh_id = 0
         prop = model_part.GetProperties(property_id, mesh_id)
-        
+
         # Assign the properties to the model part's elements and conditions.
         for elem in model_part.Elements:
             elem.Properties = prop
-            
+
         for cond in model_part.Conditions:
             cond.Properties = prop
-        
+
         mat = data["Material"]
 
         # Set the CONSTITUTIVE_LAW for the current properties.
@@ -135,9 +137,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
            constitutive_law = self._GetVariable( mat["constitutive_law"]["name"].GetString())(mat["constitutive_law"]["Variables"])
         else:
            constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString())()
-           
+
         prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law)
-        
+
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():
             var = self._GetVariable(key)
