@@ -6,7 +6,9 @@ from KratosMultiphysics import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suites
+import run_cpp_unit_tests_KratosCore
+
+# Import the tests or test_classes to create the suites
 import test_model_part
 import test_model_part_io
 import test_kratos_parameters
@@ -28,7 +30,7 @@ import test_restart
 import test_gid_io_gauss_points
 
 
-def AssambleTestSuites():
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
@@ -76,4 +78,9 @@ def AssambleTestSuites():
     return suites
 
 if __name__ == '__main__':
-    KratosUnittest.runTests(AssambleTestSuites())
+    print("\nRunning KratosCore cpp unit tests ...")
+    run_cpp_unit_tests_KratosCore.runTests()
+    print("Finished running KratosCore cpp unit tests!")
+    print("\nRunning KratosCore python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    print("Finished KratosCore python tests!")
