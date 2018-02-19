@@ -134,7 +134,11 @@ class MechanicalSolver(object):
         # Set time parameters
         time_settings = self.settings["time_settings"]
         self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_settings["time_step"].GetDouble())
-        self.process_info.SetValue(KratosMultiphysics.TIME, time_settings["start_time"].GetDouble())
+        initial_time = time_settings["start_time"].GetDouble()
+        if ( self.process_info.Has(KratosMultiphysics.IS_RESTARTED)):
+            if ( self.process_info[KratosMultiphysics.IS_RESTARTED] == True):
+                initial_time = self.process_info.GetValue(KratosMultiphysics.TIME)
+        self.process_info.SetValue(KratosMultiphysics.TIME, initial_time)
 
 
         if not self.solving_strategy_settings["stabilization_factor"].IsNull():
@@ -163,7 +167,7 @@ class MechanicalSolver(object):
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
-            if hasattr(mechanical_solver, SetInitializePerformedFlag):
+            if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
 
