@@ -20,6 +20,18 @@ import KratosMultiphysics.DamApplication as KratosDam
 
 class Solution(object):
 
+    def __init__(self):
+
+        self.LoadParametersFile()
+        self.DefineParallelType()
+        self.DefineVariables()
+        
+        if(self.consider_selfweight == True):
+           self.PreviousSelfweightProblem()
+
+        self.CreateModelPart()
+        self.SetSolver()
+
     def LoadParametersFile(self):
         parameter_file = open("ProjectParameters.json",'r')
         self.ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
@@ -35,18 +47,6 @@ class Solution(object):
         else:
             print("OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
 
-    def __init__(self):
-
-        self.LoadParametersFile()
-        self.DefineParallelType()
-        self.DefineVariables()
-        
-        if(self.consider_selfweight == True):
-           self.PreviousSelfweightProblem()
-
-        self.CreateModelPart()
-        self.SetSolver()
-
     def DefineVariables(self):
         self.domain_size = self.ProjectParameters["problem_data"]["domain_size"].GetInt()
         self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
@@ -54,6 +54,7 @@ class Solution(object):
         self.echo_level = self.ProjectParameters["solver_settings"]["echo_level"].GetInt()
         self.buffer_size = self.ProjectParameters["solver_settings"]["buffer_size"].GetInt()
         self.consider_selfweight = self.ProjectParameters["problem_data"]["consider_selfweight"].GetBool()
+        self.consider_construction = self.ProjectParameters["problem_data"]["consider_construction"].GetBool()
         self.use_streamline_utility = self.ProjectParameters["problem_data"]["streamlines_utility"].GetBool()
         self.delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
         self.end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
@@ -142,7 +143,7 @@ class Solution(object):
             process.ExecuteBeforeSolutionLoop()
 
         # Getting gravity direction
-        direction_selfweight = ProjectParameters["problem_data"]["selfweight_direction"].GetString()
+        direction_selfweight = self.ProjectParameters["problem_data"]["selfweight_direction"].GetString()
         if(direction_selfweight == "X"): 
             variable_name = KratosMultiphysics.VOLUME_ACCELERATION_X
         elif(direction_selfweight == "Y"):
@@ -209,6 +210,13 @@ class Solution(object):
 
         # Initialize GiD I/O
         computing_model_part = self.solver.GetComputingModelPart()
+        
+        if self.consider_construction:
+            thermal_computing_model_part = self.solver.GetComputingThermalModelPart()
+            import dam_construction_utility
+            self.construction_utilities = dam_construction_utility.DamConstructionUtility(computing_model_part, thermal_computing_model_part, self.ProjectParameters["construction_process"])
+            self.construction_utilities.Initialize()
+        
         output_settings = self.ProjectParameters["output_configuration"]
         if self.parallel_type == "OpenMP":
             import poromechanics_cleaning_utility
@@ -254,6 +262,10 @@ class Solution(object):
             self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
             self.time = self.time + self.delta_time
             self.main_model_part.CloneTimeStep(self.time)
+            
+            if self.consider_construction:
+                # Execute initialize solution
+                self.construction_utilities.InitializeSolutionStep()
 
             # Update imposed conditions
             for self.process in self.list_of_processes:
@@ -284,6 +296,10 @@ class Solution(object):
 
             for self.process in self.list_of_processes:
                 self.process.ExecuteAfterOutputStep()
+                
+            if self.consider_construction:
+                #  After initialize solution
+                self.construction_utilities.AfterOutputStep()
 
     def Finalize(self):
         self.gid_output.ExecuteFinalize() # Finalizing output files
@@ -297,7 +313,13 @@ class Solution(object):
 
         # Time control
         print("Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - initial_time)," seconds.")
-        print(timer.ctime())        
+        print(timer.ctime())
+        
+    def is_empty(self,a):
+        if a:
+            return False
+        else:
+            return True
 
 if __name__ == "__main__":
     Solution().Run()
