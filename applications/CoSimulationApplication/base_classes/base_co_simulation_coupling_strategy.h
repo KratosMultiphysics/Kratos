@@ -22,8 +22,8 @@
 #include "includes/model_part.h"
 
 // Application includes
-#include "custom_base_classes/base_co_simulation_application.h"
-#include "custom_base_classes/base_co_simulation_convergence_acceleration_scheme.h"
+#include "base_classes/base_co_simulation_application.h"
+#include "base_classes/base_co_simulation_convergence_acceleration_scheme.h"
 
 namespace Kratos
 {
@@ -38,14 +38,15 @@ class CoSimulationBaseCouplingStrategy
   public:
     ///@name Type Definitions
     ///@{
+    typedef typename CoSimulationBaseApplication::Pointer CoSimBaseClassPointerType;
+    typedef typename CoSimulationBaseConvergenceAccelerationScheme::Pointer CoSimulationBaseConvergenceAccelerationSchemePointerType;
     KRATOS_CLASS_POINTER_DEFINITION(CoSimulationBaseCouplingStrategy);
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseCouplingStrategy(CoSimBaseClassPointerType app1, CoSimBaseClassPointerType app2, CoSimulationBaseConvergenceAccelerationScheme& iConvAccelerator) : BaseType(*(ModelPart::Pointer(new ModelPart("cosim")))), 
-                                                                                                                                                                        mpApplicationOne(app1), 
+    CoSimulationBaseCouplingStrategy(CoSimBaseClassPointerType app1, CoSimBaseClassPointerType app2, CoSimulationBaseConvergenceAccelerationSchemePointerType iConvAccelerator=nullptr) : mpApplicationOne(app1), 
                                                                                                                                                                         mpApplicationTwo(app2),
-                                                                                                                                                                        mrConvAccelerator(iConvAccelerator)
+                                                                                                                                                                        mpConvAccelerator(iConvAccelerator)
     {
     }
 
@@ -56,62 +57,41 @@ class CoSimulationBaseCouplingStrategy
     ///@name Operators
     ///@{
 
-    virtual void Predict() override
+    virtual void Initialize() 
     {
     }
 
-    virtual void Initialize() override
-    {
-    }
-
-    virtual double Solve() override
+    virtual double Solve() 
     {
         return 0.0;
     }
 
-    virtual void Clear() override
+    virtual void Clear()  
     {
     }
 
-    virtual bool IsConverged() override
-    {
-        return true;
-    }
-
-    virtual void CalculateOutputData() override
-    {
-    }
-
-    virtual void InitializeSolutionStep() override
-    {
-    }
-
-    virtual void FinalizeSolutionStep() override
-    {
-    }
-
-    virtual bool SolveSolutionStep() override
+    virtual bool IsConverged()  
     {
         return true;
     }
 
-    virtual void SetRebuildLevel(int Level) override
+
+    virtual void InitializeSolutionStep() 
     {
     }
 
-    virtual int GetRebuildLevel() override
+    virtual void FinalizeSolutionStep()  
     {
-        return 0;
     }
 
-    virtual double GetResidualNorm() override
+    virtual bool SolveSolutionStep()  
+    {
+        return true;
+    }
+
+    virtual double GetResidualNorm()  
     {
         return 0.0;
-    }
-
-    virtual int Check() override
-    {
-        return 0;
     }
 
     /// Methods specific for Co-Simulation
@@ -174,7 +154,7 @@ class CoSimulationBaseCouplingStrategy
 
     CoSimBaseClassPointerType mpApplicationOne;
     CoSimBaseClassPointerType mpApplicationTwo;
-    CoSimulationBaseConvergenceAccelerationScheme& mrConvAccelerator;
+    CoSimulationBaseConvergenceAccelerationSchemePointerType mpConvAccelerator;
 
     ///@}
     ///@name Member Variables

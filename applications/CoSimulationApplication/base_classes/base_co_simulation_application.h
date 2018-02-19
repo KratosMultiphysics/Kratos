@@ -16,13 +16,14 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <map>
 
 // Project includes
 
 // Application includes
-#include "custom_base_classes/base_co_simulation_application_io.h"
-#include "custom_base_classes/base_co_simulation_data.h"
-#include "custom_base_classes/base_co_simulation_mesh.h"
+#include "base_classes/base_co_simulation_application_io.h"
+#include "base_classes/base_co_simulation_data.h"
+#include "base_classes/base_co_simulation_mesh.h"
 
 class CoSimulationBaseApplication
 {
@@ -30,10 +31,10 @@ class CoSimulationBaseApplication
   public:
     ///@name Type Definitions
     ///@{
-    typedef std::shared_ptr<CoSimulationBaseApplication> Pointer;
-    typedef CoSimulationData<double>::Pointer DataPointerType;
-    typedef CoSimulationBaseIo::Pointer BaseIoPointerType;
-    typedef CoSimulationMesh::Pointer MeshPointerType;
+    KRATOS_CLASS_POINTER_DEFINITION(CoSimulationBaseApplication);
+    typedef typename CoSimulationData<double>::Pointer DataPointerType;
+    typedef typename CoSimulationBaseIo::Pointer BaseIoPointerType;
+    typedef typename CoSimulationMesh::Pointer MeshPointerType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -57,28 +58,27 @@ class CoSimulationBaseApplication
 
     virtual void Initialize(std::string iMode)
     {
-        mpIo->Initialize(this->mName);
+        mpIo->Initialize(this->mName, iMode);
     }
 
     /////////////////////////////////////////////////
     /// Methods specific for Co-Simulation
     /////////////////////////////////////////////////
 
-    virtual DataPointerType AddCoSimulationData(std::string iName, unsigned int iSize)
+    virtual DataPointerType AddCoSimulationData(std::string iName, size_t iSize)
     {
         DataPointerType data = DataPointerType(new CoSimulationData<double>(iName, iSize));
-        mCoSimulationData.push_back(data);
-        return data; 
+        mCoSimulationDataMap[iName] = data;
+        return data;
     }
 
     virtual DataPointerType AddCoSimulationData(std::string iName, std::string iMeshName)
     {
-        DataPointerType data = DataPointerType(new CoSimulationData<double>(iName, iSize));
-        mCoSimulationData.push_back(data);
-        return data; 
+        size_t size = mCoSimulationMeshMap[iMeshName]->GetDataFieldSize();
+        DataPointerType data = DataPointerType(new CoSimulationData<double>(iName, size));
+        mCoSimulationDataMap[iName] = (data);
+        return data;
     }
-  
-
 
     virtual void SetIo(BaseIoPointerType iIo)
     {
@@ -93,6 +93,14 @@ class CoSimulationBaseApplication
 
     virtual void ImportData(DataPointerType iData, Pointer iFromApp)
     {
+
+        if (mCoSimulationDataMap.count(iData->Name())) // If its available overrite it
+        {
+        }
+        else // If not create it first then fill it.
+        {
+        }
+
         mpIo->ImportData(iData, iFromApp->Name(), this->Name());
     }
 
@@ -114,6 +122,23 @@ class CoSimulationBaseApplication
     virtual void MakeMeshAvailable(MeshPointerType iMesh, Pointer iToApp)
     {
         mpIo->MakeMeshAvailable(iMesh, this->Name(), iToApp->Name());
+    }
+
+    // Control functions
+    virtual void SolveSolutionStep()
+    {
+    }
+
+    virtual void ExecuteBeforeSolve()
+    {
+    }
+
+    virtual void ExecuteAfterSolve()
+    {
+    }
+
+    virtual void Finalize()
+    {
     }
 
     ///@}
@@ -173,7 +198,8 @@ class CoSimulationBaseApplication
     ///@{
     std::string mName;
     BaseIoPointerType mpIo;
-    std::vector<DataPointerType> mCoSimulationData;
+    std::map<std::string, DataPointerType> mCoSimulationDataMap;
+    std::map<std::string, MeshPointerType> mCoSimulationMeshMap;
     ///@}
     ///@name Private Operators
     ///@{

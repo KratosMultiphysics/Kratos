@@ -2,18 +2,16 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 import KratosMultiphysics
 from KratosMultiphysics import *
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
-import os
+import tools
 
-parameter_file = open("ProjectParameters.json", 'r')
+parameter_file = open("ProjectParametersModified.json", 'r')
 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-newStrategyModule = __import__(ProjectParameters[
-    "co_simulation_solver_settings"]["type"].GetString())
-solver = newStrategyModule.CreateSolver(
-    ProjectParameters["co_simulation_solver_settings"])
+participating_solvers = tools.GetSolvers(ProjectParameters["solvers"])
+
+new_strategy_module = __import__(ProjectParameters["co_simulation_solver_settings"]["type"].GetString())
+solver = new_strategy_module.CreateSolver(ProjectParameters)
 solver.Initialize()
 
 delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
@@ -29,11 +27,12 @@ while (time <= end_time):
     time = time + delta_time
     step = step + 1
 
-    solver.InitializeSolutionStep()
+    solver.InitializeTimeStep()
     print('############## ')
     print('Step :: ', step)
     print('Time :: ', time)
 
     solver.Solve()
+    
+    solver.FinalizeTimeStep()
 
-    solver.FinalizeSolutionStep()

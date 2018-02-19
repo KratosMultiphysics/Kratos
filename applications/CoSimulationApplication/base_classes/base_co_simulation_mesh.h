@@ -27,7 +27,7 @@ class CoSimulationMesh
   public:
     ///@name Type Definitions
     ///@{
-    typedef std::shared_ptr<CoSimulationMesh> Pointer;        
+    KRATOS_CLASS_POINTER_DEFINITION(CoSimulationMesh);        
 
     ///@}
     ///@name Life Cycle
@@ -64,8 +64,12 @@ class CoSimulationMesh
         mMeshName = iMeshName;
     }
 
-    virtual void PrintDetails(std::ofstream& iFile)
+    virtual void ExportDetails(std::ofstream& iFile)
     {
+    }
+
+    virtual size_t GetDataFieldSize(){
+        return 0;
     }
 
     ///@}

@@ -30,6 +30,7 @@ class CoSimulationBaseConvergenceAccelerationScheme
 public:
 	///@name Type Definitions
 	///@{
+        KRATOS_CLASS_POINTER_DEFINITION(CoSimulationBaseConvergenceAccelerationScheme);
 
 	///@}
 	///@name Life Cycle

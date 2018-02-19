@@ -29,9 +29,9 @@ class CoSimulationBaseIo
   public:
     ///@name Type Definitions
     ///@{
-    typedef std::shared_ptr<CoSimulationBaseIo> Pointer;
-    typedef CoSimulationData<double>::Pointer DataPointerType;
-    typedef CoSimulationMesh::Pointer MeshPointerType;    
+    KRATOS_CLASS_POINTER_DEFINITION(CoSimulationBaseIo);
+    typedef typename CoSimulationData<double>::Pointer DataPointerType;
+    typedef typename CoSimulationMesh::Pointer MeshPointerType;    
 
     ///@}
     ///@name Life Cycle
@@ -51,10 +51,10 @@ class CoSimulationBaseIo
     /////////////////////////////////////////////////
     /// Methods specific for Co-Simulation
     /////////////////////////////////////////////////
-    virtual void Initialize(std::string iName)
+    virtual void Initialize(std::string iName, std::string iMode)
     {
         std::string StringName = (dot + slash + dot + iName);        
-        CoSimulation_MakeFolder(StringName);
+        CoSimulation_MakeFolder(StringName.c_str());
     }
 
 
@@ -88,10 +88,10 @@ class CoSimulationBaseIo
     virtual void MakeDataAvailable(DataPointerType iData, std::string iFrom, std::string iTo)
     {
         std::string AvailFileName = (dot + slash + dot + iTo + dot + iFrom + slash + "DATA" + dot + iData->Name() + dot + availExtension);
-        std::ofstream outputFile(AvailFileName.c_str(), ios::out);
+        std::ofstream outputFile(AvailFileName.c_str(), std::ios::out);
         if(outputFile.is_open())
         {
-            iData -> PrintDetails(outputFile);
+            iData -> ExportDetails(outputFile);
         }
     }
 
@@ -101,7 +101,7 @@ class CoSimulationBaseIo
         std::ofstream outputFile(AvailFileName.c_str());
         if(outputFile.is_open())
         {
-            iMesh -> PrintDetails(outputFile);
+            iMesh -> ExportDetails(outputFile);
         }
 
         outputFile.close();
@@ -147,8 +147,8 @@ class CoSimulationBaseIo
 
     virtual void ReadDataDetails(DataPointerType iData, std::string iAvailFileName)
     {
-        std::ofstream inputFile(iAvailFileName.c_str(), ios::in);
-        iData -> ReadDetails(inputFile);
+        std::ifstream inputFile(iAvailFileName.c_str(), std::ios::in);
+        iData -> ImportDetails(inputFile);
         inputFile.close();
     }
 

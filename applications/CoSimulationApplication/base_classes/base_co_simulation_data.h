@@ -16,7 +16,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdio.h>
+#include <fstream>
 
 // Application includes
 #include "custom_utilities/co_simulation_include.h"
@@ -28,12 +28,12 @@ class CoSimulationData
   public:
     ///@name Type Definitions
     ///@{
-    typedef std::shared_ptr<CoSimulationData> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(CoSimulationData);
 
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationData(std::string iName, unsigned int iSize) : mName(iName), mSize(iSize), mData(nullptr)
+    CoSimulationData(std::string iName, unsigned int iSize) : mData(nullptr), mName(iName), mSize(iSize)
     {
         mLocationOnMesh = ON_NONE;
         mMeshName = "NONE";
@@ -85,7 +85,7 @@ class CoSimulationData
         mLocationOnMesh = iLocationOnMesh;
     }
 
-    virtual void PrintDetails(std::ofstream &iFile)
+    virtual void ExportDetails(std::ofstream &iFile)
     {
         iFile << "Name : " << mName << std::endl;
         iFile << "Size : " << mSize << std::endl;
@@ -95,12 +95,12 @@ class CoSimulationData
             iFile << "Mesh : " << mMeshName << std::endl;
     }
 
-    virtual void ReadDetails(std::ofstream &iFile)
+    virtual void ImportDetails(std::ifstream &iFile)
     {
         if (iFile)
         {
             std::string line;
-            while (std::getline(iFile, line))
+            while (getline(iFile, line))
             {
                 std::istringstream is_line(line);
                 std::string key;
@@ -115,15 +115,15 @@ class CoSimulationData
                         }
                         if (key == "Size ")
                         {
-                            mSize = value;
+                          is_line >> mSize;
                         }
                         if (key == "LocationOnMesh ")
                         {
-                            mLocationOnMesh = value;
+                            is_line >> value;
                         }
                         if (key == "Mesh ")
                         {
-                            mMeshName = value;
+                            is_line >> value;
                         }
                     }
                 }
@@ -191,7 +191,7 @@ class CoSimulationData
     ///@name Member Variables
     ///@{
     Type *mData;
-    const std::string mName;
+    std::string mName;
     unsigned int mSize;
     DataLocationOnMesh mLocationOnMesh;
     std::string mMeshName;

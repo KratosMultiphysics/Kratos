@@ -16,6 +16,7 @@
 // system includes
 #include "stdio.h"
 #include <iostream>
+#include "sys/stat.h"
 
 std::string slash = "/";
 std::string dot = ".";
@@ -26,6 +27,11 @@ enum DataLocationOnMesh {
     ON_ELEMENTS,
     ON_NONE
 };
+
+void CoSimulation_MakeFolder(const char* iFolderName)
+{
+    mkdir(iFolderName, ACCESSPERMS); // Gives only the user the permissions
+}
 
 bool CoSimulation_FileExists(const char *iFileName)
 {

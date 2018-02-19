@@ -1,77 +1,66 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 import KratosMultiphysics
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("CoSimulationApplication")
-import KratosMultiphysics.CoSimulationApplication as CoSimApp
 
-# Other imports
 import os
+import process_factory
 
-def CreateSolver(custom_settings):
-    return KratosDummySolver(custom_settings)
+def Create(settings):
+    return KratosDummyCoSimulationSolver(settings)
 
-class KratosDummySolver(CoSimApp.CoSimulationBaseApplication):
+class KratosDummyCoSimulationSolver:
+
     def __init__(self, custom_settings):
-
-        ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "type": "kratos_dummy_solver",
-            "name": "dummy1",
-            "io": {
-                "type":"kratos_io",
-                "settings":{
-                }
-            },   
-            "output_data_field_list": ["DISPLACEMENT"],
-            "input_data_field_list": ["POINT_LOAD"],
+            "name": "dummy",
+            "type": "",
+            "geometry_list": [],
+            "io_type": "kratos_io",            
             "settings":{
-            },
-            "output_configuration": {
-                "file_label"          : "step",
-                "output_control_type" : "step",
-                "output_frequency"    : 1,
-                "nodal_results"       : ["DISPLACEMENT","REACTION"],
-                "elemental_results"   : []   
+                "input_file":""
             }
         }""")
-
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
+        self.name = self.settings['name'].GetString()
+        self.geometry = {}
 
-        super(KratosDummySolver, self).__init__(custom_settings)        
+        self.project_parameters_file_name = self.settings['settings']['input_file'].GetString()
+        self.geometry = {}
 
-        ### Constructing the IO for this solver
-        iOModule = __import__(self.settings['io']['type'].GetString())
-        self.io = iOModule.CreateIo(self.settings['io'])
 
-    def InitializeSolutionStep(self):
-        pass
-    def Predict(self):
-        pass
     def Initialize(self):
-        print("KratosDummySolver initializing .................. !!")
-    def Clear(self):
         pass
-    def IsConverged(self):
+
+    def Finalize(self):
         pass
-    def CalculateOutputData(self):
+
+    def SolveTimeStep(self):
+        self.SolveSolutionStep();
+
+    def InitializeTimeStep(self):
+        # This function is not needed in this solver
         pass
-    def FinalizeSolutionStep(self):
+    def FinalizeTimeStep(self):
+        # This function is not needed in this solver
         pass
+
+    def ImportData(self, DataName, FromClient):
+        pass
+    def ImportMesh(self, MeshName, FromClient):
+        pass
+
+    def ExportData(self, DataName, ToClient):
+        pass
+    def ExportMesh(self, MeshName, ToClient):
+        pass
+
+    def MakeDataAvailable(self, DataName, ToClient):
+        pass
+    def MakeMeshAvailable(self, MeshName, ToClient):
+        pass
+
+    ###########################################################################
     def SolveSolutionStep(self):
         pass
-    def SetEchoLevel(self):
-        pass
-    def GetEchoLevel(self):
-        pass
-    def GetResidualNorm(self):
-        pass
-    def Solve(self):
-        print("KratosDummySolver solving .................. !!")
-    def GetModelPart(self):
-        return KratosMultiphysics.ModelPart('app')
-    def SynchronizeInputData(self):
-        self.io.SynchronizeInputData()
-    def SynchronizeOutputData(self):
-        self.io.SynchronizeOutputData()
-    

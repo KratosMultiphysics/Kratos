@@ -23,8 +23,8 @@
 #include "custom_python/add_base_classes_to_python.h"
 #include "base_classes/base_co_simulation_application_io.h"
 #include "base_classes/base_co_simulation_application.h"
-/*#include "custom_base_classes/base_co_simulation_coupling_strategy.h"
-#include "custom_base_classes/base_co_simulation_convergence_acceleration_scheme.h"
+#include "base_classes/base_co_simulation_coupling_strategy.h"
+/*#include "custom_base_classes/base_co_simulation_convergence_acceleration_scheme.h"
 #include "custom_base_classes/base_co_simulation_convergence_criterion.h"*/
 
 #include "spaces/ublas_space.h"
@@ -44,8 +44,9 @@ void AddCustomBaseClassesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 
-    /*typedef CoSimulationBaseCouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseCouplingStrategyType;
-    typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;*/
+    typedef CoSimulationBaseCouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseCouplingStrategyType;
+    typedef typename CoSimulationBaseApplication::Pointer CoSimBaseClassPointerType;
+    /*typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;*/
 
     //********************************************************************
     //********************CoSimulationIo**********************************
@@ -56,7 +57,8 @@ void AddCustomBaseClassesToPython()
            .def("ImportData", &CoSimulationBaseIo::ImportData)
            .def("ExportMesh", &CoSimulationBaseIo::ExportMesh)
            .def("ImportMesh", &CoSimulationBaseIo::ImportMesh) 
-           .def("MakeDataAvailable", &CoSimulationBaseIo::MakeDataAvailable);
+           .def("MakeDataAvailable", &CoSimulationBaseIo::MakeDataAvailable)
+           .def("MakeMeshAvailable", &CoSimulationBaseIo::MakeDataAvailable);
 
 
     //********************************************************************
@@ -67,34 +69,36 @@ void AddCustomBaseClassesToPython()
            .def("SetIo", &CoSimulationBaseApplication::SetIo)
            .def("ImportData", &CoSimulationBaseApplication::ImportData)
            .def("ExportData", &CoSimulationBaseApplication::ExportData)
+           .def("MakeDataAvailable", &CoSimulationBaseApplication::MakeDataAvailable)
            .def("ExportMesh", &CoSimulationBaseApplication::ExportMesh)
            .def("ImportMesh", &CoSimulationBaseApplication::ImportMesh) 
-           .def("MakeDataAvailable", &CoSimulationBaseApplication::MakeDataAvailable);
-           
-    ;
+           .def("MakeMeshAvailable", &CoSimulationBaseApplication::MakeDataAvailable)
+           .def("Initialize", &CoSimulationBaseApplication::ImportMesh) 
+           .def("InitializeTimeStep", &CoSimulationBaseApplication::ImportMesh) 
+           .def("SolveTimeStep", &CoSimulationBaseApplication::ImportMesh) 
+           .def("FinalizeTimeStep", &CoSimulationBaseApplication::ImportMesh)            
+           .def("Finalize", &CoSimulationBaseApplication::ImportMesh);
 
-   /* //********************************************************************
+   //********************************************************************
     //********************CoSimulationCouplingStrategy********************
-    //********************************************************************
+    //******************************************************************** 
     class_<CoSimulationBaseCouplingStrategyType,
-           bases<CoSimulationBaseClassType>,
-           boost::noncopyable>("CoSimulationBaseCouplingStrategy", init<CoSimulationBaseApplicationType::Pointer , CoSimulationBaseApplicationType::Pointer, CoSimulationBaseConvergenceCriterion::Pointer, CoSimulationBaseConvergenceAccelerationScheme::Pointer>())
+           boost::noncopyable>("CoSimulationBaseCouplingStrategy", init<CoSimBaseClassPointerType , CoSimBaseClassPointerType>())
            ;
 
     //********************************************************************
     //********************CoSimulationRelaxationSchemes*******************
     //********************************************************************
-    class_<CoSimulationBaseConvergenceAccelerationScheme,
+/*     class_<CoSimulationBaseConvergenceAccelerationScheme,
            boost::noncopyable>("CoSimulationBaseConvergenceAccelerationScheme", init<>());
 
-
+ */
     //********************************************************************
     //********************CoSimulationConvergenceCriterion****************
     //********************************************************************
-    class_<CoSimulationBaseConvergenceCriterion,
+/*     class_<CoSimulationBaseConvergenceCriterion,
            boost::noncopyable>("CoSimulationBaseConvergenceCriterion", init<double, double>())
-           .def("IsConverged",&CoSimulationBaseConvergenceCriterion::IsConverged);   */        
-
+           .def("IsConverged",&CoSimulationBaseConvergenceCriterion::IsConverged); */
 }
 
 } // namespace Python.
