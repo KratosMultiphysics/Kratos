@@ -14,12 +14,9 @@
 #if !defined(KRATOS_AND_CRITERIA_H)
 #define  KRATOS_AND_CRITERIA_H
 
-
 /* System includes */
 
-
 /* External includes */
-
 
 /* Project includes */
 #include "includes/define.h"
@@ -48,40 +45,24 @@ namespace Kratos
 ///@name Kratos Classes 
 ///@{
 
-/** Short class definition.
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-*/
-
+/** 
+ * @class MortarAndConvergenceCriteria 
+ * @ingroup KratosCore 
+ * @brief This convergence criteria checks simultaneously two convergence criteria (both must be satisfied)
+ * @details It takes two different convergence criteria in order to work
+ * @author Riccardo Rossi
+ */
 template<class TSparseSpace,
          class TDenseSpace
          >
-class And_Criteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class And_Criteria 
+    : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /** Counted pointer of And_Criteria */
-
-
     KRATOS_CLASS_POINTER_DEFINITION(And_Criteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
@@ -96,30 +77,36 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-
+    typedef typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /** 
+     * @brief Constructor.
+     * @details It takes two different convergence criteria in order to work
+     * @param pFirstCriterion The first convergence criteria
+     * @param pSecondCriterion The second convergence criteria
     */
-    And_Criteria
-    (
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion)
-        :ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    And_Criteria(
+        ConvergenceCriteriaPointerType pFirstCriterion,
+        ConvergenceCriteriaPointerType pSecondCriterion
+        ) :BaseType(),
+           mpFirstCriterion(pFirstCriterion),
+           mpSecondCriterion(pSecondCriterion)
     {
-        mpFirstCriterion   =  pFirstCriterion;
-        mpSecondCriterion  =  pSecondCriterion;
     }
 
-    /** Copy constructor.
+    /** 
+     * @brief Copy constructor.
+     * @param rOther The other And_Criteria to be copied
     */
     And_Criteria(And_Criteria const& rOther)
-      :BaseType(rOther)
-     {
-       mpFirstCriterion   =  rOther.mpFirstCriterion;
-       mpSecondCriterion  =  rOther.mpSecondCriterion;      
+      :BaseType(rOther),
+        mpFirstCriterion(rOther.mpFirstCriterion),
+        mpSecondCriterion(rOther.mpSecondCriterion)
+     {     
      }
 
     /** Destructor.
@@ -130,61 +117,89 @@ public:
     ///@name Operators
     ///@{
 
-    /**level of echo for the convergence criterion
-    0 -> mute... no echo at all
-    1 -> print basic informations
-    2 -> print extra informations
+    /**
+     * @brief It sets the level of echo for the solving strategy
+     * @param Level The level to set
+     * @details The different levels of echo are:
+     * - 0: Mute... no echo at all
+     * - 1: Printing time and basic informations
+     * - 2: Printing extra informations
      */
     void SetEchoLevel(int Level) override
     {
-      BaseType::SetEchoLevel(Level);
-      mpFirstCriterion->SetEchoLevel(Level);
-      mpSecondCriterion->SetEchoLevel(Level);
+        BaseType::SetEchoLevel(Level);
+        mpFirstCriterion->SetEchoLevel(Level);
+        mpSecondCriterion->SetEchoLevel(Level);
     }
-
-
-    /*Criteria that need to be called after getting the solution */
+    
+    /**
+     * @brief Criteria that need to be called after getting the solution
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) override
+        ) override
     {
-        bool pFirstCriterionResult  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
-        bool pSecondCriterionResult = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool pFirstCriterionResult  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool pSecondCriterionResult = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
 
         return (pFirstCriterionResult && pSecondCriterionResult);
-
     }
 
-
+    /**
+     * @brief This function initialize the convergence criteria
+     * @param rModelPart The model part of interest
+     */ 
     void Initialize(ModelPart& rModelPart) override
     {
         mpFirstCriterion->Initialize(rModelPart);
         mpSecondCriterion->Initialize(rModelPart);
     }
 
+    /**
+     * @brief This function initializes the solution step
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) override
+        ) override
     {
         mpFirstCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
         mpSecondCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
     }
-
+    
+    /**
+     * @brief This function finalizes the solution step
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) override
+        ) override
     {
         mpFirstCriterion->FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
         mpSecondCriterion->FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
@@ -247,8 +262,8 @@ private:
     ///@name Member Variables
     ///@{
     
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpFirstCriterion;
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpSecondCriterion;
+    ConvergenceCriteriaPointerType mpFirstCriterion;  /// The pointer to the first convergence criterion
+    ConvergenceCriteriaPointerType mpSecondCriterion; /// The pointer to the second convergence criterion
 
     ///@}
     ///@name Private Operators
@@ -272,7 +287,7 @@ private:
 
     ///@}
 
-}; /* Class ClassName */
+}; /* Class And_Criteria */
 
 ///@}
 
