@@ -3,9 +3,10 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
 import math
+import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestVariableUtils(KratosUnittest.TestCase):
@@ -60,7 +61,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetValue(DISPLACEMENT_Y), 2.0)
             self.assertEqual(node.GetValue(DISPLACEMENT_Z), 3.0)
             self.assertEqual(node.GetValue(VISCOSITY), viscosity)
-            
+
         # Now for conditions (it will work for elements too)
         VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Conditions)
         VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Conditions)
