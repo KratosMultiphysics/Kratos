@@ -125,15 +125,15 @@ class CoSimulationBaseSolver
     }
 
     // Control functions
-    virtual void SolveSolutionStep()
+    virtual void SolveTimeStep()
     {
     }
 
-    virtual void ExecuteBeforeSolve()
+    virtual void InitializeTimeStep()
     {
     }
 
-    virtual void ExecuteAfterSolve()
+    virtual void FinalizeTimeStep()
     {
     }
 

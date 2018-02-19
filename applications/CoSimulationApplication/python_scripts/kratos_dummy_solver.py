@@ -37,7 +37,7 @@ class KratosDummyCoSimulationSolver:
         pass
 
     def SolveTimeStep(self):
-        self.SolveSolutionStep();
+        pass
 
     def InitializeTimeStep(self):
         # This function is not needed in this solver
@@ -62,5 +62,3 @@ class KratosDummyCoSimulationSolver:
         pass
 
     ###########################################################################
-    def SolveSolutionStep(self):
-        pass
