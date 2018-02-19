@@ -1,4 +1,4 @@
-<img src="https://github.com/KratosMultiphysics/Kratos/tree/Brep_Application/applications/NurbsBrepMechanicsApplication/readme_application_description/nurbs_symbol.png">
+<img src="https://github.com/KratosMultiphysics/Kratos/tree/Brep_Application/applications/NurbsBrepApplication/readme_application_description/nurbs_symbol.png">
 
 # Nurbs Brep Application
 
