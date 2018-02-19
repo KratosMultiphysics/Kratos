@@ -14,16 +14,31 @@ Please add following instructions to the configure file for the correct compilat
 ```
 If it is wished to do structural mechanics simulation with Isogeometric Analysis the *IGAStructuralMechanicsApplication* provides necessary element and condition formulations for thin walled structures.
 
+## Preparation of Geometries
+Generally the geometries are stored in the geometry.json file. This file is a standardized B-Rep based NURBS geometry file. It is recommended to use this standard. Anyways read in of geometries with different input formats is possible, too.
+```
+#import define_output
+cad_geometry_file = open("geometry.json",'r')
+cad_geometry = Parameters( cad_geometry_file.read())
+```
+The json file can be read by the *BrepModelGeometryReader*. It generates a structure to handle full CAD simulation possibilities.
+```
+geometry_reader = BrepModelGeometryReader(cad_geometry)
+```
+The geometry structure is handled by the *NurbsBrepModeler*. Here, the creation of the Integration Domain, projections towards the surface and additional processes are possible.
+```
+modeler = NurbsBrepModeler(geometry_reader, model_part)
+```
 ## Generation of Integration Domain
 The application can create a proper Isogeometric B-Rep Analysis integration domain for numerical simulation.
 
 After reading in the geometries, the generation of the integration domain can be called inside python with the following command:
 ```
-modeler.CreateIntegrationDomain(2, model_part_integration_domain)
+modeler.CreateIntegrationDomain(order, model_part_integration_domain)
 ```
-It has to be passed a model part which is used as data holder for the integration points. Additionally the wished number of derivatives of shape functions can be given. If it is chosen as -1, no shape functions are enhanced.
+It has to be passed a model part which is used as data holder for the integration points. Additionally the wished number of derivatives of shape functions can be given. If it is chosen as -1, no shape functions are enhanced. With the order being 0 only the shape functions are given.
 
-[Display of integration points]<img src="https://github.com/KratosMultiphysics/Kratos/tree/Brep_Application/applications/NurbsBrepApplication/readme_application_description/integration_domain.png">
+[Creation of integration domain]<img src="https://github.com/KratosMultiphysics/Kratos/tree/Brep_Application/applications/NurbsBrepApplication/readme_application_description/integration_domain.png">
 
 ## Meshless formulations
 Meshless formulations require a precomputation of numerical data. This means in general, the definition of shape functions, shape function derivatives and the integration weight. Some conditions might need extra information.
