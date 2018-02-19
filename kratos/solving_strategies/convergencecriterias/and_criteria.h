@@ -149,10 +149,10 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        const bool pFirstCriterionResult  = mpFirstCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
-        const bool pSecondCriterionResult = mpSecondCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool first_criterion_result  = mpFirstCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool second_criterion_result = mpSecondCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
 
-        return (pFirstCriterionResult && pSecondCriterionResult);
+        return (first_criterion_result && second_criterion_result);
     }
     
     /**
@@ -172,10 +172,10 @@ public:
         const TSystemVectorType& b
         ) override
     {
-        const bool pFirstCriterionResult  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
-        const bool pSecondCriterionResult = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool first_criterion_result  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool second_criterion_result = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
 
-        return (pFirstCriterionResult && pSecondCriterionResult);
+        return (first_criterion_result && second_criterion_result);
     }
 
     /**
@@ -209,6 +209,26 @@ public:
     }
     
     /**
+     * @brief This function initializes the non linear iteration
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void InitializeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->InitializeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->InitializeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+    }
+    
+    /**
      * @brief This function finalizes the solution step
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
@@ -228,6 +248,45 @@ public:
         mpSecondCriterion->FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
     }
 
+    /**
+     * @brief This function finalizes the non linear iteration
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void FinalizeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->FinalizeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->FinalizeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+    }
+    
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed on the input provided. 
+     * @details Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @return 0 all ok 
+     */
+    int Check(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        const int check1 = mpFirstCriterion->Check(rModelPart);
+        const int check2 = mpSecondCriterion->Check(rModelPart);
+        
+        return check1 + check2;
+        
+        KRATOS_CATCH("");
+    }
+    
     ///@}
     ///@name Operations
     ///@{
