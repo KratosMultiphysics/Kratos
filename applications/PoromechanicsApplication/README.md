@@ -11,7 +11,7 @@ conditions)
 - Stable UPw small displacement element for saturated porous media 
 (with higher order interpolation for displacements)
 
-- Stabilized UPw small displacement element for saturated porous media 
+- FIC-Stabilized UPw small displacement element for saturated porous media 
 (with equal order interpolation for displacements)
 
 - UPw Quasi-zero-thickness interface elements for defining cracks and 
