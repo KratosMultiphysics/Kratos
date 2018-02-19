@@ -446,7 +446,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         if input_variable_location == "geom_entity":
             if geom_entity.Has(input_variable): # Values in Geom Entites are saved as Non-historical values (model_part_io.cpp)
-                input_value = geom_entity.GetValue(input_variable)
+                input_value = geom_entity.GetValue(input_variable) # This is a double, since Tables exist only with doubles!
             else:
                 err_msg  = "Geometric Entity # " + str(geom_entity.Id)
                 err_msg += " does not have " + input_variable.Name()
@@ -456,7 +456,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             input_value = 0.0
             for node in nodes:
                 if node.SolutionStepsDataHas(input_variable): # Values in Nodes are saved as Historical values (model_part_io.cpp)
-                    input_value += node.GetSolutionStepValue(input_variable)
+                    input_value += node.GetSolutionStepValue(input_variable) # This is a double, since Tables exist only with doubles!
                 else:
                     err_msg  = "Node # " + str(node.Id)
                     err_msg += " does not have " + input_variable.Name()
