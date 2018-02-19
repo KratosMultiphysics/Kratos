@@ -208,9 +208,9 @@ public:
             
             rho = static_cast<double>(*boost::max_element(y));
             
-            TSparseSpaceType::InplaceMult(y, 1.0/rho);
-
             KRATOS_ERROR_IF(rho == 0.0) << "Perpendicular eigenvector to M" << std::endl;
+            
+            TSparseSpaceType::InplaceMult(y, 1.0/rho);
 
             const double convergence_rho = std::abs((rho - old_rho) / rho);
             const double convergence_norm = TSparseSpaceType::TwoNorm(y - y_old)/TSparseSpaceType::TwoNorm(y);
