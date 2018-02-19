@@ -138,6 +138,29 @@ public:
     }
 
     /**
+     * @brief Criterias that need to be called before getting the solution
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
+    bool PreCriteria(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        const bool pFirstCriterionResult  = mpFirstCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool pSecondCriterionResult = mpSecondCriterion ->PreCriteria(rModelPart,rDofSet,A,Dx,b);
+
+        return (FirstCriterionResult || SecondCriterionResult);
+    }
+    
+    /**
      * @brief Criteria that need to be called after getting the solution
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
@@ -160,6 +183,115 @@ public:
         return (FirstCriterionResult || SecondCriterionResult);
     }
 
+    /**
+     * @brief This function initialize the convergence criteria
+     * @param rModelPart The model part of interest
+     */ 
+    void Initialize(ModelPart& rModelPart) override
+    {
+        mpFirstCriterion->Initialize(rModelPart);
+        mpSecondCriterion->Initialize(rModelPart);
+    }
+
+    /**
+     * @brief This function initializes the solution step
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->InitializeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+    }
+    
+    /**
+     * @brief This function initializes the non linear iteration
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void InitializeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->InitializeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->InitializeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+    }
+    
+    /**
+     * @brief This function finalizes the solution step
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void FinalizeSolutionStep(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->FinalizeSolutionStep(rModelPart,rDofSet,A,Dx,b);
+    }
+    
+    /**
+     * @brief This function finalizes the non linear iteration
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     */
+    void FinalizeNonLinearIteration(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {
+        mpFirstCriterion->FinalizeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+        mpSecondCriterion->FinalizeNonLinearIteration(rModelPart,rDofSet,A,Dx,b);
+    }
+    
+    /**
+     * @brief This function is designed to be called once to perform all the checks needed on the input provided. 
+     * @details Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param rModelPart
+     * @return 0 all ok
+     */
+    int Check(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+        const int check1 = mpFirstCriterion->Check(rModelPart);
+        const int check2 = mpSecondCriterion->Check(rModelPart);
+        
+        return check1 + check2;
+        
+        KRATOS_CATCH("");
+    }
+    
     ///@}
     ///@name Operations
     ///@{
