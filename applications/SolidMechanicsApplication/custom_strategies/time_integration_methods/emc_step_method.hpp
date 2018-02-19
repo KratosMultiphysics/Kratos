@@ -74,23 +74,23 @@ namespace Kratos
 
     private:
       
-      friend class Serializer;
+      // friend class Serializer;
 
-      void save(Serializer& rSerializer) const
-      {
-	rSerializer.save("alpha", alpha);
-	rSerializer.save("delta_time", delta_time);
-	rSerializer.save("c0", c0);
-	rSerializer.save("c1", c1);
-      };
+      // void save(Serializer& rSerializer) const
+      // {
+      // 	rSerializer.save("alpha", alpha);
+      // 	rSerializer.save("delta_time", delta_time);
+      // 	rSerializer.save("c0", c0);
+      // 	rSerializer.save("c1", c1);
+      // };
 
-      void load(Serializer& rSerializer)
-      {
-	rSerializer.load("alpha", alpha);
-	rSerializer.load("delta_time", delta_time);
-	rSerializer.load("c0", c0);
-	rSerializer.load("c1", c1);
-      };
+      // void load(Serializer& rSerializer)
+      // {
+      // 	rSerializer.load("alpha", alpha);
+      // 	rSerializer.load("delta_time", delta_time);
+      // 	rSerializer.load("c0", c0);
+      // 	rSerializer.load("c1", c1);
+      // };
       
     };
     

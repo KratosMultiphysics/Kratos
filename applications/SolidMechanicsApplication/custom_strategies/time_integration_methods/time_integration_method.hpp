@@ -357,23 +357,23 @@ namespace Kratos
     ///@}
     ///@name Serialization
     ///@{
-    friend class Serializer;
+    // friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-      // rSerializer.save("Variable", mpVariable);
-      // rSerializer.save("FirstDerivative", mpFirstDerivative);
-      // rSerializer.save("SecondDerivative", mpSecondDerivative);
-      // rSerializer.save("InputVariable", mpInputVariable);
-    };
+    // virtual void save(Serializer& rSerializer) const
+    // {
+    //   // rSerializer.save("Variable", mpVariable);
+    //   // rSerializer.save("FirstDerivative", mpFirstDerivative);
+    //   // rSerializer.save("SecondDerivative", mpSecondDerivative);
+    //   // rSerializer.save("InputVariable", mpInputVariable);
+    // };
 
-    virtual void load(Serializer& rSerializer)
-    {
-      // rSerializer.load("Variable", mpVariable);
-      // rSerializer.load("FirstDerivative", mpFirstDerivative);
-      // rSerializer.load("SecondDerivative", mpSecondDerivative);
-      // rSerializer.load("InputVariable", mpInputVariable);
-    };
+    // virtual void load(Serializer& rSerializer)
+    // {
+    //   // rSerializer.load("Variable", mpVariable);
+    //   // rSerializer.load("FirstDerivative", mpFirstDerivative);
+    //   // rSerializer.load("SecondDerivative", mpSecondDerivative);
+    //   // rSerializer.load("InputVariable", mpInputVariable);
+    // };
     ///@}
     ///@name Private Inquiry
     ///@{
