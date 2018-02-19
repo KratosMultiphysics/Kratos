@@ -13,7 +13,6 @@ import os
 # Import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
-#import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
@@ -31,6 +30,7 @@ class Solution(object):
         parallel.SetNumThreads(self.ProjectParameters["problem_data"]["number_of_threads"].GetInt())
         if self.parallel_type == "MPI":
             import KratosMultiphysics.mpi as KratosMPI
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             print("MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
         else:
             print("OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
@@ -40,21 +40,26 @@ class Solution(object):
         self.LoadParametersFile()
         self.DefineParallelType()
         self.DefineVariables()
+        
+        if(self.consider_selfweight == True):
+           self.PreviousSelfweightProblem()
+
         self.CreateModelPart()
         self.SetSolver()
 
     def DefineVariables(self):
-        self.domain_size = ProjectParameters["problem_data"]["domain_size"].GetInt()
-        self.problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
+        self.domain_size = self.ProjectParameters["problem_data"]["domain_size"].GetInt()
+        self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()
         self.problem_path = os.getcwd()
-        self.echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
-        self.buffer_size = ProjectParameters["solver_settings"]["buffer_size"].GetInt()
-        self.use_streamline_utility = ProjectParameters["problem_data"]["streamlines_utility"].GetBool()
-        self.delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
-        self.end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
-        self.time = ProjectParameters["problem_data"]["start_time"].GetDouble()
-        self.tol = delta_time*1.0e-10
-        self.time_scale = ProjectParameters["problem_data"]["time_scale"].GetString()
+        self.echo_level = self.ProjectParameters["solver_settings"]["echo_level"].GetInt()
+        self.buffer_size = self.ProjectParameters["solver_settings"]["buffer_size"].GetInt()
+        self.consider_selfweight = self.ProjectParameters["problem_data"]["consider_selfweight"].GetBool()
+        self.use_streamline_utility = self.ProjectParameters["problem_data"]["streamlines_utility"].GetBool()
+        self.delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
+        self.end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
+        self.time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
+        self.tol = self.delta_time*1.0e-10
+        self.time_scale = self.ProjectParameters["problem_data"]["time_scale"].GetString()
 
         # Time Units Converter
         if(self.time_scale=="Weeks"):               # Factor to pass from weeks to seconds
@@ -75,14 +80,89 @@ class Solution(object):
 
     def CreateModelPart(self):
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
-        self.main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, time_unit_converter)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.delta_time)
+        self.main_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, self.time_unit_converter)
 
     def SetSolver(self):
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
         self.solver = solver_module.CreateSolver(self.main_model_part, self.ProjectParameters["solver_settings"])
+
+    def PreviousSelfweightProblem(self):
+        # Parsing parmeters of Selfweight Problem
+        self_parameter_file = open("ProjectParametersSelfWeight.json",'r')
+        SelfWeightProjectParameters = KratosMultiphysics.Parameters( self_parameter_file.read())
+        
+        ## Creating Selfweight model part --------------------------------------------------------------
+        self.self_weight_model_part = KratosMultiphysics.ModelPart("SelfWeight")
+        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
+        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
+        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, self.delta_time)
+        self.self_weight_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, self.time_unit_converter)
+
+        ## Construct the solver for selfweight problem -------------------------------------------------
+        selfweight_solver_module = __import__(SelfWeightProjectParameters["solver_settings"]["solver_type"].GetString())
+        selfweight_solver = selfweight_solver_module.CreateSolver(self.self_weight_model_part, SelfWeightProjectParameters["solver_settings"])
+        selfweight_solver.AddVariables()
+        selfweight_solver.ImportModelPart()
+        selfweight_solver.AddDofs()
+
+        ## Kratos Selfweight Model ---------------------------------------------------------------------
+        DamSelfWeightModel = KratosMultiphysics.Model()
+        DamSelfWeightModel.AddModelPart(self.self_weight_model_part)
+
+        ## Get the list of the submodel part in the object Model
+        #for i in range(SelfWeightProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
+        #    self_part_name = SelfWeightProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
+        #    DamSelfWeightModel.AddModelPart(self.self_weight_model_part.GetSubModelPart(self_part_name))
+
+        ## Initialize ----------------------------------------------------------------------------------
+
+        # Construct processes to be applied
+        import process_factory
+        self_list_of_processes = process_factory.KratosProcessFactory(DamSelfWeightModel).ConstructListOfProcesses( SelfWeightProjectParameters["constraints_process_list"] )
+
+        # Initialize processes
+        for process in self_list_of_processes:
+            process.ExecuteInitialize()
+
+        # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
+        self_time = self.time - (self.buffer_size-1) * self.delta_time
+        self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
+        for step in range(buffer_size-1):
+            self_time = self_time + self.delta_time
+            self.self_weight_model_part.CloneTimeStep(self_time)
+
+        # Initialize the solver
+        selfweight_solver.Initialize()
+
+        # ExecuteBeforeSolutionLoop
+        for process in self_list_of_processes:
+            process.ExecuteBeforeSolutionLoop()
+
+        # Getting gravity direction
+        direction_selfweight = ProjectParameters["problem_data"]["selfweight_direction"].GetString()
+        if(direction_selfweight == "X"): 
+            variable_name = KratosMultiphysics.VOLUME_ACCELERATION_X
+        elif(direction_selfweight == "Y"):
+            variable_name = KratosMultiphysics.VOLUME_ACCELERATION_Y
+        else:
+            variable_name = KratosMultiphysics.VOLUME_ACCELERATION_Z
+
+        # Set the acceleration at the nodes according to gravity direction
+        for node in self.self_weight_model_part.Nodes:
+            node.SetSolutionStepValue(variable_name, -9.81)
+
+        # Solving selfweight problem
+        selfweight_solver.Solve()
+
+        # Cleaning selfweight solver
+        selfweight_solver.Clear()
+
+        # Initialize transfer_selfweight_stress_utility
+        import transfer_selfweight_stress_utility
+        self.transfer_utility = transfer_selfweight_stress_utility.TransferSelfweightStressToMainModelPartUtility()
         
     def Run(self):
         self.Initialize()
@@ -101,7 +181,7 @@ class Solution(object):
         DamModel.AddModelPart(self.main_model_part)
 
         # Print model_part and properties
-        if(echo_level > 1):
+        if(self.echo_level > 1):
             print(self.main_model_part)
             for self.properties in self.main_model_part.Properties:
                 print(self.properties)
@@ -112,7 +192,7 @@ class Solution(object):
         self.list_of_processes += process_factory.KratosProcessFactory(DamModel).ConstructListOfProcesses( self.ProjectParameters["loads_process_list"] )
 
         # Print list of constructed processes
-        if(echo_level>1):
+        if(self.echo_level>1):
             for self.process in self.list_of_processes:
                 print(self.process)
 
@@ -121,9 +201,9 @@ class Solution(object):
             self.process.ExecuteInitialize()
 
         # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
-        self.time = self.time - (buffer_size-1)*self.delta_time
+        self.time = self.time - (self.buffer_size-1)*self.delta_time
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
-        for step in range(buffer_size-1):
+        for step in range(self.buffer_size-1):
             self.time = self.time + self.delta_time
             self.main_model_part.CloneTimeStep(self.time)
 
@@ -135,15 +215,15 @@ class Solution(object):
             poromechanics_cleaning_utility.CleanPreviousFiles(self.problem_path) # Clean previous post files
             from gid_dam_output_process import GiDDamOutputProcess
             self.gid_output = GiDDamOutputProcess(computing_model_part,
-                                             self.problem_name,
-                                             self.start_time,
-                                             output_settings)
+                                                  self.problem_name,
+                                                  self.start_time,
+                                                  output_settings)
         else:
             from gid_output_process_mpi import GiDOutputProcessMPI
             self.gid_output = GiDOutputProcessMPI(computing_model_part,
-                                             self.problem_name,
-                                             self.start_time,
-                                             output_settings)
+                                                  self.problem_name,
+                                                  self.start_time,
+                                                  output_settings)
         self.gid_output.ExecuteInitialize()
 
         self.solver.Initialize() # Initialize the solver
@@ -161,12 +241,10 @@ class Solution(object):
             import streamlines_output_utility
             self.streamline_utility = streamlines_output_utility.StreamlinesOutputUtility(domain_size)
 
-        if (echo_level > 1):
+        if (self.echo_level > 1):
             f = open("ProjectParametersOutput.json", 'w')
             f.write(self.ProjectParameters.PrettyPrintJsonString())
             f.close()
-
-
 
     def RunMainTemporalLoop(self):
 
@@ -197,15 +275,17 @@ class Solution(object):
             for self.process in self.list_of_processes:
                 self.process.ExecuteBeforeOutputStep()
 
+            if(self.consider_selfweight == True):
+                self.transfer_utility.Transfer(self.self_weight_model_part, self.main_model_part, self.domain_size)
+
             # Write GiD results
             if self.gid_output.IsOutputStep():
                 self.gid_output.PrintOutput()
 
-            for self.process in list_of_processes:
+            for self.process in self.list_of_processes:
                 self.process.ExecuteAfterOutputStep()
 
-
-    def Initialize(self):
+    def Finalize(self):
         self.gid_output.ExecuteFinalize() # Finalizing output files
 
         for self.process in self.list_of_processes:
@@ -217,7 +297,7 @@ class Solution(object):
 
         # Time control
         print("Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - initial_time)," seconds.")
-        print(timer.ctime())
-        
+        print(timer.ctime())        
+
 if __name__ == "__main__":
     Solution().Run()
