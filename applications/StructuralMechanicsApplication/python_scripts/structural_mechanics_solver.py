@@ -59,7 +59,7 @@ class MechanicalSolver(object):
                 "restart_load_file_label" : 0.0,
                 "save_restart"            : false,
                 "restart_save_frequency"  : 1.0,
-                "serializer_trace"        : "trace_all"
+                "serializer_trace"        : "no_trace"
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
@@ -115,7 +115,7 @@ class MechanicalSolver(object):
             custom_settings["model_import_settings"].RemoveValue("input_file_label")
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified [model_import_settings][input_file_label], '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_on_rank_zero(warning)
+            self.print_on_rank_zero("Input file label", warning)
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
