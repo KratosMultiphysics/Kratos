@@ -51,40 +51,24 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** Short class definition.
-Detail class definition.
-
-\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-*/
-
+/** 
+ * @class Or_Criteria 
+ * @ingroup KratosCore 
+ * @brief This convergence criteria checks simultaneously two convergence criteria (one of them must be satisfied)
+ * @details It takes two different convergence criteria in order to work
+ * @author Riccardo Rossi
+ */
 template<class TSparseSpace,
          class TDenseSpace
          >
-class Or_Criteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class Or_Criteria 
+    : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /** Counted pointer of Or_Criteria */
-
-
     KRATOS_CLASS_POINTER_DEFINITION(Or_Criteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
@@ -99,30 +83,34 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    typedef typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /** 
+     * @brief Constructor.
+     * @details It takes two different convergence criteria in order to work
+     * @param pFirstCriterion The first convergence criteria
+     * @param pSecondCriterion The second convergence criteria
     */
-    Or_Criteria
-    (
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pFirstCriterion,
-        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer pSecondCriterion)
-        :ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    Or_Criteria(
+        ConvergenceCriteriaPointerType pFirstCriterion,
+        ConvergenceCriteriaPointerType pSecondCriterion
+        ) :BaseType(),
+           mpFirstCriterion(pFirstCriterion),
+           mpSecondCriterion(pSecondCriterion)
     {
-        mpFirstCriterion   =  pFirstCriterion;
-        mpSecondCriterion  =  pSecondCriterion;
     }
 
     /** Copy constructor.
     */
     Or_Criteria(Or_Criteria const& rOther)
-      :BaseType(rOther)
-     {
-       mpFirstCriterion   =  rOther.mpFirstCriterion;
-       mpSecondCriterion  =  rOther.mpSecondCriterion;      
+        :BaseType(rOther),
+         mpFirstCriterion(rOther.mpFirstCriterion),
+         mpSecondCriterion(rOther.mpSecondCriterion)
+     {      
      }
 
     /** Destructor.
@@ -134,33 +122,42 @@ public:
     ///@name Operators
     ///@{
 
-    /**level of echo for the convergence criterion
-    0 -> mute... no echo at all
-    1 -> print basic informations
-    2 -> print extra informations
+    /**
+     * @brief It sets the level of echo for the solving strategy
+     * @param Level The level to set
+     * @details The different levels of echo are:
+     * - 0: Mute... no echo at all
+     * - 1: Printing time and basic informations
+     * - 2: Printing extra informations
      */
     void SetEchoLevel(int Level) override
     {
-      BaseType::SetEchoLevel(Level);
-      mpFirstCriterion->SetEchoLevel(Level);
-      mpSecondCriterion->SetEchoLevel(Level);
+        BaseType::SetEchoLevel(Level);
+        mpFirstCriterion->SetEchoLevel(Level);
+        mpSecondCriterion->SetEchoLevel(Level);
     }
 
-
-    /*Criteria that need to be called after getting the solution */
+    /**
+     * @brief Criteria that need to be called after getting the solution
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    ) override
+        ) override
     {
-        bool FirstCriterionResult  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
-        bool SecondCriterionResult = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool FirstCriterionResult  = mpFirstCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
+        const bool SecondCriterionResult = mpSecondCriterion ->PostCriteria(rModelPart,rDofSet,A,Dx,b);
 
         return (FirstCriterionResult || SecondCriterionResult);
-
     }
 
     ///@}
@@ -219,8 +216,9 @@ private:
     ///@name Member Variables
     ///@{
     
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpFirstCriterion;
-    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpSecondCriterion;
+    ConvergenceCriteriaPointerType mpFirstCriterion;  /// The pointer to the first convergence criterion
+    ConvergenceCriteriaPointerType mpSecondCriterion; /// The pointer to the second convergence criterion
+
 
     ///@}
     ///@name Private Operators
@@ -244,7 +242,7 @@ private:
 
     ///@}
 
-}; /* Class ClassName */
+}; /* Class Or_Criteria */
 
 ///@}
 
@@ -256,5 +254,5 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_AND_CRITERIA  defined */
+#endif /* KRATOS_OR_CRITERIA_H  defined */
 
