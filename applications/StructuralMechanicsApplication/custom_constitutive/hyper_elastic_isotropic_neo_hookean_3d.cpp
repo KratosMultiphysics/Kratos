@@ -102,7 +102,7 @@ void  HyperElasticIsotropicNeoHookean3D::CalculateMaterialResponsePK2(Constituti
     Matrix inverse_C_tensor(dimension, dimension); 
     MathUtils<double>::InvertMatrix( C_tensor, inverse_C_tensor, aux_det);
     
-    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
+    if(Options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         CalculateCauchyGreenStrain(rValues, strain_vector);
     }
