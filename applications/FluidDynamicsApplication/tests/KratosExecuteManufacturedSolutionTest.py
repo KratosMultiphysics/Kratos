@@ -63,30 +63,39 @@ class KratosExecuteManufacturedSolutionTest(KratosUnittest.TestCase):
 
             h_1_v = []
             h_2_v = []
+            h_3_v = []
             h_1_p = []
             h_2_p = []
+            h_3_p = []
 
             den = 1.0
             for i in range(0,len(err_p)):
                 h_1_v.append(err_v[0]/den)
                 h_2_v.append(err_v[0]/den**2)
+                h_3_v.append(err_v[0]/den**3)
                 h_1_p.append(err_p[0]/den)
                 h_2_p.append(err_p[0]/den**2)
+                h_3_p.append(err_p[0]/den**3)
                 den *= 2
 
+            plt.rc('text', usetex=True)
+            plt.rc('font', family='serif')
             plt.loglog(h, err_p, '-+', color = 'r', label = 'Obtained pressure')
             plt.loglog(h, h_1_p, '--', color = 'r', label = 'Linear pressure')
             plt.loglog(h, h_2_p, ':' , color = 'r', label = 'Quadratic pressure')
+            plt.loglog(h, h_3_p, '-.', color = 'r', label = 'Cubic pressure')
             plt.loglog(h, err_v, '-x', color = 'k', label = 'Obtained velocity')
             plt.loglog(h, h_1_v, '--', color = 'k', label = 'Linear velocity')
             plt.loglog(h, h_2_v, ':' , color = 'k', label = 'Quadratic velocity')
+            plt.loglog(h, h_3_v, ':' , color = 'k', label = 'Cubic velocity')
 
             plt.title('L2 norm convergence')
-            plt.ylabel('Absolute error')
+            plt.ylabel(r'$\displaystyle\sum_{i=1}^{n_{n}}\frac{A_{i}\Vert\mathbf{u}_{i}-\mathbf{\bar{u}}_{i}\Vert}{A_{T}}$')
             plt.xlabel('h')
-            # plt.xlim([0.02, 0.25])
+            plt.xlim([0.01, 0.25])
             # plt.ylim([1e-4, 1])
-            plt.legend(loc=0)
+            plt.legend(loc=4, ncol=2)
+            plt.tight_layout()
             plt.savefig('l2_norm_convergence.png')
 
         # Check obtained solution

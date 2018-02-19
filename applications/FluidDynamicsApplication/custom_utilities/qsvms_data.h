@@ -15,6 +15,7 @@
 
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
+#include "custom_utilities/element_size_calculator.h"
 
 namespace Kratos {
 
@@ -54,6 +55,11 @@ double DeltaTime;
 double DynamicTau;
 int UseOSS;
 
+double ElementSize;
+
+/// Auxiliary container for the local matrix at the integration point (stored to save reallocation at each point)
+boost::numeric::ublas::bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> LHS;
+
 ///@}
 ///@name Public Operations
 ///@{
@@ -72,11 +78,13 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNodalData(Pressure,PRESSURE,r_geometry);
     this->FillFromNodalData(MassProjection,DIVPROJ,r_geometry);
     this->FillFromProperties(Density,DENSITY,r_properties);
-    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties);
-    this->FillFromElementData(CSmagorinsky,C_SMAGORINSKY,rElement);
+    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties); //TODO: remove once we have a Smagorinky constitutive law
+    this->FillFromElementData(CSmagorinsky,C_SMAGORINSKY,rElement); //TODO: remove once we have a Smagorinky constitutive law
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
     this->FillFromProcessInfo(UseOSS,OSS_SWITCH,rProcessInfo);
+
+    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

@@ -101,6 +101,7 @@ public:
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
     constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
+    constexpr static unsigned int StrainSize = FluidElement<TElementData>::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -280,8 +281,8 @@ protected:
 
     void AddVelocitySystem(
         TElementData& rData,
-        MatrixType& rLHS,
-        VectorType& rRHS) override;
+        MatrixType& rLocalLHS,
+        VectorType& rLocalRHS) override;
 
     void AddMassLHS(
         TElementData& rData,
@@ -297,6 +298,11 @@ protected:
         const Vector& rUnitNormal,
         MatrixType& rLHS,
         VectorType& rRHS) override;
+
+    void AddViscousTerm(
+        const TElementData& rData,
+        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+        VectorType& rRHS);
 
     /**
      * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
@@ -315,7 +321,6 @@ protected:
         double Density,
         double DynamicViscosity,
         const array_1d<double,3> &Velocity,
-        double ElemSize,
         double &TauOne,
         double &TauTwo);    
 
@@ -340,7 +345,7 @@ protected:
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale);
 
-        virtual void ASGSMomentumResidual(
+    virtual void ASGSMomentumResidual(
         TElementData& rData,
         array_1d<double,3>& rMomentumRes);
 
@@ -466,12 +471,6 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 
 namespace Internals {
-
-template <unsigned int TDim>
-void AddViscousTerm(double DynamicViscosity,
-                    double GaussWeight,
-                    const Kratos::Matrix& rDN_DX,
-                    Kratos::Matrix& rLHS);
 
 template <class TElementData, bool TDataKnowsAboutTimeIntegration>
 class SpecializedAddTimeIntegratedSystem {
