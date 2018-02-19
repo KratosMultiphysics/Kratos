@@ -27,8 +27,7 @@ class convergence_criterion:
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         
         if(echo_level >= 1 and KratosMPI.mpi.rank == 0):
-            print("::[Mechanical Solver]:: MPI CONVERGENCE CRITERION : ", 
-                  convergence_criterion_parameters["convergence_criterion"].GetString())
+            KratosMultiphysics.Logger.PrintInfo("::[Mechanical Solver]::", "MPI CONVERGENCE CRITERION : " + convergence_criterion_parameters["convergence_criterion"].GetString())
 
         if(convergence_crit == "displacement_criterion"):
             self.mechanical_convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)
