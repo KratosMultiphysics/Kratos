@@ -84,7 +84,7 @@ public:
     ///@{
 
     /** 
-     * @brief Constructor.
+     * @brief Default constructor.
      * @details It takes two different convergence criteria in order to work
      * @param pFirstCriterion The first convergence criteria
      * @param pSecondCriterion The second convergence criteria
@@ -134,9 +134,9 @@ public:
 
     /**
      * @brief Criterias that need to be called before getting the solution
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
      * @param Dx Vector of results (variations on nodal variables)
      * @param b RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
@@ -157,9 +157,9 @@ public:
     
     /**
      * @brief Criteria that need to be called after getting the solution
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
      * @param Dx Vector of results (variations on nodal variables)
      * @param b RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
@@ -190,9 +190,9 @@ public:
 
     /**
      * @brief This function initializes the solution step
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
      * @param Dx Vector of results (variations on nodal variables)
      * @param b RHS vector (residual)
      */
@@ -210,9 +210,9 @@ public:
     
     /**
      * @brief This function initializes the non linear iteration
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
      * @param Dx Vector of results (variations on nodal variables)
      * @param b RHS vector (residual)
      */
@@ -230,9 +230,9 @@ public:
     
     /**
      * @brief This function finalizes the solution step
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
      * @param Dx Vector of results (variations on nodal variables)
      * @param b RHS vector (residual)
      */
@@ -250,9 +250,9 @@ public:
 
     /**
      * @brief This function finalizes the non linear iteration
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
+     * @param rModelPart ModelPart containing the problem.
+     * @param rDofSet Container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix
      * @param Dx Vector of results (variations on nodal variables)
      * @param b RHS vector (residual)
      */
@@ -272,7 +272,7 @@ public:
      * @brief This function is designed to be called once to perform all the checks needed on the input provided. 
      * @details Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rModelPart ModelPart containing the problem.
      * @return 0 all ok 
      */
     int Check(ModelPart& rModelPart) override
