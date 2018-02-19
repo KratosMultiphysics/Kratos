@@ -89,6 +89,7 @@ namespace Kratos
     bool IsFullKnotSpan();
     bool m_is_full_knot_span = false;
 
+	Polygon Polygon::GetDifference(Polygon Substractor);
 
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.

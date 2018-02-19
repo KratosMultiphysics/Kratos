@@ -48,6 +48,15 @@ namespace Kratos
     }
     file_embedded.close();
 
+	ModelPart& faces_2_reversed = faces.GetSubModelPart("FACE_2_REVERSE");
+	std::ofstream file_reversed;
+	file_reversed.open("facesreversed.txt");
+	for (auto node = faces_2_reversed.NodesBegin(); node != faces_2_reversed.NodesEnd(); ++node)
+	{
+		file_reversed << node->X() << " " << node->Y() << " " << node->Z() << " " << "\n";
+	}
+	file_reversed.close();
+
     const ModelPart& edges = model_part.GetSubModelPart("EDGES");
     std::ofstream file_edges;
     file_edges.open("edges.txt");
@@ -93,10 +102,10 @@ namespace Kratos
         unsigned int face_id = brep_json["faces"][i]["brep_id"].GetInt();
 
         //model_part.CreateSubModelPart("FACE_" + std::to_string(face_id));
-        //ModelPart& sub_model_part_face = model_part.GetSubModelPart("FACE_" + std::to_string(face_id));
+        ModelPart::Pointer sub_model_part_face = model_part.CreateSubModelPart("FACE_" + std::to_string(face_id));
 
         //sub_model_part_face.CreateSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
-        //ModelPart& sub_model_part_face_cp = sub_model_part_face.GetSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
+        ModelPart::Pointer sub_model_part_face_cp = sub_model_part_face->CreateSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
 
         std::cout << "> Reading face " << face_id << "..." << std::endl;
 
@@ -147,8 +156,8 @@ namespace Kratos
 
           control_points_ids.push_back(cp_id);
 
-          //sub_model_part_face.CreateNewNode(cp_id, x, y, z);
-          //sub_model_part_face.GetNode(cp_id).SetValue(CONTROL_POINT_WEIGHT, w);
+          sub_model_part_face_cp->CreateNewNode(cp_id, x, y, z);
+          sub_model_part_face_cp->GetNode(cp_id).SetValue(CONTROL_POINT_WEIGHT, w);
         }
         std::cout << "> Reading face " << face_id << " cps" << std::endl;
 
@@ -280,6 +289,7 @@ namespace Kratos
           bool is_outer_loop = true;
           if (embedded_dict[loop_idx]["loop_type"].GetString() == "inner")
             is_outer_loop = false;
+		  std::cout << is_outer_loop << "length: "<< loop_curves.size() << std::endl;
           BrepBoundaryLoop loop(loop_curves, is_outer_loop);
           embedded_loops.push_back(loop);
         }
@@ -287,9 +297,8 @@ namespace Kratos
 
 
         std::cout << "> Reading face " << face_id << " finishing" << std::endl;
-        std::cout << "WARNING: WRONG MODEL PART PASSED" << std::endl;
         // create face
-        BrepFace face(face_id, trimming_loops, embedded_loops, knot_vector_u, knot_vector_v, p, q, control_points_ids, model_part);
+        BrepFace face(face_id, trimming_loops, embedded_loops, knot_vector_u, knot_vector_v, p, q, control_points_ids, sub_model_part_face_cp);
         faces_vector.push_back(face);
       }
 

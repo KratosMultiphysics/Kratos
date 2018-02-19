@@ -164,7 +164,7 @@ namespace Kratos
         triangles.push_back(triangle);
       else
       {
-        std::cout << "triangle with zero area" << GetAreaOfTriangle(triangle) << std::endl;
+        //std::cout << "triangle with zero area" << GetAreaOfTriangle(triangle) << std::endl;
         //KRATOS_WATCH(triangle)
       }
       if (bestvertex > (diagonal.index1 + 1)) {
@@ -362,7 +362,7 @@ namespace Kratos
     //for (auto polygon = m_polygon_list.begin(); polygon != m_polygon_list.end(); ++polygon)
     for (unsigned int i = 0; i<m_polygon_list.size(); i++)
     {
-      std::cout << boost::geometry::wkt<PolygonType>(m_polygon_list[i]) << std::endl;
+      //std::cout << boost::geometry::wkt<PolygonType>(m_polygon_list[i]) << std::endl;
       if (boost::geometry::area(m_polygon_list[i]) > 0)
       {
         Reverse(i);
@@ -615,6 +615,59 @@ namespace Kratos
     return true;
   }
 
+  Polygon Polygon::GetDifference(Polygon Substractor)
+  {
+	  PolygonVectorType polygon_outer_list;
+	  PolygonVectorType polygon_inner_list;
+	  //PolygonVectorType polygon_list;
+	  //std::vector<array_1d<double, 2>> boundary_polygon;
+	  //for (unsigned int loop_i = 0; loop_i < boundary_loops.size(); loop_i++)
+	  //{
+		 // std::vector<array_1d<double, 2>> boundary_polygon;
+		 // std::vector<PointXYType> points;
+		 // boundary_polygon = boundary_loops[loop_i].GetBoundaryPolygon(5);
+
+		 // for (unsigned int i = 0; i < boundary_polygon.size(); i++)
+			//  points.push_back(PointXYType(boundary_polygon[i][0], boundary_polygon[i][1]));
+
+		 // PolygonType polygon;
+		 // boost::geometry::assign_points(polygon, points);
+		 // boost::geometry::correct(polygon);
+
+		 // if (boundary_loops[loop_i].IsOuterLoop())
+			//  polygon_outer_list.push_back(polygon);
+		 // else
+			//  polygon_inner_list.push_back(polygon);
+	  //}
+
+	  //std::cout << "start get difference..." << std::endl;
+	  for (unsigned int i = 0; i < m_polygon_list.size(); i++)
+	  {
+		  for (unsigned int j = 0; j < Substractor.m_polygon_list.size(); j++)
+		  {
+			  std::deque<PolygonType> output;
+			  boost::geometry::difference(m_polygon_list[j], Substractor.m_polygon_list[i], output);
+			  //std::cout << "output size: " << output.size() << std::endl;
+			  //if (output.size() >= 1)
+			  //{
+				  for (auto it = output.begin(); it != output.end(); ++it)
+				  {
+					  polygon_outer_list.push_back(*it);
+					  //std::cout << "push back: " << output.size() << std::endl;
+				  }
+			  //}
+			  //else
+			  //{
+				 //std::cout << "m_polygon_list"  << boost::geometry::wkt<PolygonType>(m_polygon_list[i]) << std::endl;
+				 //std::cout << boost::geometry::wkt<PolygonType>(Substractor.m_polygon_list[j]) << std::endl;
+			  //}
+
+			  //  KRATOS_THROW_ERROR(std::runtime_error, "Error in boundary loop definition.", std::endl);
+		  }
+	  }
+	  //std::cout << "Size of polygon outer list: " << polygon_outer_list.size() << std::endl;
+	  return Polygon(polygon_outer_list);
+  }
 
   double Polygon::GetArea()
   {
@@ -666,9 +719,10 @@ namespace Kratos
     PolygonVectorType polygon_inner_list;
     PolygonVectorType polygon_list;
     std::vector<array_1d<double, 2>> boundary_polygon;
-    std::vector<PointXYType> points;
     for (unsigned int loop_i = 0; loop_i < boundary_loops.size(); loop_i++)
     {
+      std::vector<array_1d<double, 2>> boundary_polygon;
+      std::vector<PointXYType> points;
       boundary_polygon = boundary_loops[loop_i].GetBoundaryPolygon(5);
 
       for (unsigned int i = 0; i < boundary_polygon.size(); i++)
@@ -689,10 +743,16 @@ namespace Kratos
       {
         std::deque<PolygonType> output;
         boost::geometry::difference(polygon_outer_list[j], polygon_inner_list[i], output);
+		std::cout <<"output size: "<< output.size() << std::endl;
         if (output.size() == 1)
           polygon_outer_list[j] = output[0];
-        else
-          KRATOS_THROW_ERROR(std::runtime_error, "Error in boundary loop definition.", std::endl);
+		else
+		{
+			std::cout << boost::geometry::wkt<PolygonType>(polygon_inner_list[i]) << std::endl;
+			std::cout << boost::geometry::wkt<PolygonType>(polygon_outer_list[j]) << std::endl;
+		}
+			
+        //  KRATOS_THROW_ERROR(std::runtime_error, "Error in boundary loop definition.", std::endl);
       }
     }
     m_polygon_list = polygon_outer_list;

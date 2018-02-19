@@ -230,7 +230,72 @@ namespace Kratos
     return NodeVector;
   }
 
+  std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsReversed(const int& shapefunction_order)
+  {
+	  //std::vector<array_1d<double, 2>> boundary_polygon;
+	  //for (unsigned int loop_i = 0; loop_i < m_trimming_loops.size(); loop_i++)
+	  //{
+	  //  boundary_polygon = m_trimming_loops[loop_i].GetBoundaryPolygon(5);
+	  //}
+	  Polygon boundaries(m_embedded_loops);
+	  Polygon full_boundaries(m_trimming_loops);
+	  Polygon difference = full_boundaries.GetDifference(boundaries);
 
+	  std::vector<Node<3>::Pointer> NodeVector;
+
+	  int tolerance = 10e6;
+
+	  IntVector knot_vector_u = GetIntegerVector(m_knot_vector_u, tolerance);
+	  IntVector knot_vector_v = GetIntegerVector(m_knot_vector_v, tolerance);
+
+	  Vector parameter_span_u = ZeroVector(2);
+	  Vector parameter_span_v = ZeroVector(2);
+
+	  for (unsigned int i = 0; i < knot_vector_u.size() - 1; i++)
+	  {
+		  if (abs(knot_vector_u[i + 1] - knot_vector_u[i]) > 1)
+		  {
+			  parameter_span_u[0] = m_knot_vector_u[i];
+			  parameter_span_u[1] = m_knot_vector_u[i + 1];
+
+			  for (unsigned int j = 0; j < knot_vector_v.size() - 1; j++)
+			  {
+				  if (abs(knot_vector_v[j + 1] - knot_vector_v[j]) > 1)
+				  {
+					  parameter_span_v[0] = m_knot_vector_v[j];
+					  parameter_span_v[1] = m_knot_vector_v[j + 1];
+
+					  Polygon boundary_polygon = difference.clipByKnotSpan(parameter_span_u, parameter_span_v);
+
+					  std::vector<array_1d<double, 3>> points;
+					  if (!boundary_polygon.IsFullKnotSpan())
+					  {
+						  KnotSpan2dNIntegrate knot_span(0, true, m_p, m_q, parameter_span_u, parameter_span_v, boundary_polygon);
+						  points = knot_span.getIntegrationPointsInParameterDomain();
+					  }
+					  else
+					  {
+						  KnotSpan2d knot_span(0, true, m_p, m_q, parameter_span_u, parameter_span_v);
+						  points = knot_span.getIntegrationPointsInParameterDomain();
+					  }
+					  //std::cout << "k: " << std::endl;
+					  //for (unsigned int k = 0; k < points.size(); k++)
+					  //{
+					  //  std::cout << "k: " << k << std::endl;
+					  //  std::cout << "points: " << points[k][0] << points[k][1] << points[k][2] << std::endl;
+					  //}
+					  //std::cout << "size of points: " << points.size() << std::endl;
+					  std::vector<Node<3>::Pointer> NodeVectorElement = EnhanceShapeFunctions(points, shapefunction_order);
+					  for (unsigned int k = 0; k < NodeVectorElement.size(); k++)
+					  {
+						  NodeVector.push_back(NodeVectorElement[k]);
+					  }
+				  }
+			  }
+		  }
+	  }
+	  return NodeVector;
+  }
 
   std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsOfTrimmingCurve(const int& shapefunction_order, const int& trim_index)
   {
@@ -266,16 +331,18 @@ namespace Kratos
 
   std::vector<Node<3>::Pointer> BrepFace::GetQuadraturePointsOfTrimmingCurveWithPoints(const int& shapefunction_order, const int& trim_index, std::vector<Point> intersection_points)
   {
-    BrepTrimmingCurve trimming_curve = GetTrimmingCurve(trim_index);
+    BrepTrimmingCurve& trimming_curve = GetTrimmingCurve(trim_index);
     //trimming_curve.PrintData();
 
     std::vector<array_1d<double, 2>> intersection_points_2d;
     for (unsigned int i = 0; i < intersection_points.size(); i++)
     {
+		std::cout << "Intersection point: X: " << intersection_points[i].X() << ", Y: " << intersection_points[i].Y() << ", Z: " << intersection_points[i].Z() << std::endl;
       //GetLocalParameterOfPointOnTrimmingCurve(intersection_points[i], trimming_curve, )
       double u = 0;
       double v = 0;
       bool success = NewtonRaphson(intersection_points[i], u, v);
+	  std::cout << "After first Newton Raphson: u: " << u << ", v: " << v << std::endl;
       //GetClosestPoint(intersection_points[i], u, v);
       if (!success)
       {
@@ -297,6 +364,7 @@ namespace Kratos
         }
         u = initial_guess[0];
         v = initial_guess[1];
+		std::cout << "Initial guesses: u: " << u << ", v: " << v << std::endl;
         bool success = NewtonRaphson(intersection_points[i], u, v);
         if (!success) {
           std::cout << "100 iteration points needed." << std::endl;
@@ -327,9 +395,17 @@ namespace Kratos
           }
         }
       }
-      array_1d<double, 2> point(u, v);
+      array_1d<double, 2> point;
+	  point[0] = u;
+	  point[1] = v;
       intersection_points_2d.push_back(point);
     }
+
+	for (auto no = intersection_points_2d.begin(); no != intersection_points_2d.end(); ++no)
+	{/*
+	 NodeVectorElement2.push_back(no->get());*/
+		KRATOS_WATCH(*no)
+	}
 
     std::vector<double> intersections_slave = trimming_curve.FindIntersectionsWithPoints(intersection_points_2d);
     std::cout << "intersections slave: ";
@@ -338,6 +414,7 @@ namespace Kratos
       std::cout << intersections_slave[i] << ", ";
     }
     std::cout << std::endl;
+
     std::vector<double> intersections_master = trimming_curve.FindIntersections(m_p, m_q, m_knot_vector_u, m_knot_vector_v);
     std::cout << "intersections master: ";
     for (unsigned int i = 0; i < intersections_master.size(); i++)
@@ -359,7 +436,6 @@ namespace Kratos
     }
 
     int highest_polynomial_order = std::max(m_p, m_q);
-
     std::vector<array_1d<double, 3>> quadrature_points = trimming_curve.GetQuadraturePoints(intersections, highest_polynomial_order);
 
     std::vector<Node<3>::Pointer> NodeVectorElement = EnhanceShapeFunctions(quadrature_points, shapefunction_order);
@@ -372,6 +448,27 @@ namespace Kratos
       NodeVectorElement[k]->SetValue(TANGENTS_BASIS_VECTOR, tangents_basis_vector);
       //KRATOS_WATCH(tangents_basis_vector)
     }
+
+	//std::vector<Node<3>::Pointer> NodeVectorElement2;
+	//std::cout << "here 1.1: " << NodeVectorElement .size() << std::endl;
+	//for (auto no = NodeVectorElement.begin(); no != NodeVectorElement.end(); ++no)
+	//{/*
+	//	NodeVectorElement2.push_back(no->get());*/
+	//	KRATOS_WATCH(no->get()->X())
+	//		KRATOS_WATCH(no->get()->Y())
+	//		KRATOS_WATCH(no->get()->Z())
+	//}
+	//for (unsigned int i = 0; i < NodeVectorElement.size(); i++)
+	//{
+	//	nodevector.push_back(NodeVectorElement[i]);
+	//}
+	//for (auto no = nodevector.begin(); no != nodevector.end(); ++no)
+	//{/*
+	// NodeVectorElement2.push_back(no->get());*/
+	//	KRATOS_WATCH(no->get()->X())
+	//	KRATOS_WATCH(no->get()->Y())
+	//	KRATOS_WATCH(no->get()->Z())
+	//}
     return NodeVectorElement;
   }
 
@@ -429,7 +526,7 @@ namespace Kratos
       double parameter_max = 0.0;
       double parameter = 0.0;
 
-      bool success = false;// = NewtonRaphson(point, u, v);
+      bool success = NewtonRaphson(point, u, v);
       //std::cout << "Very Initial: u=" << u << ", v=" << v << std::endl;
       //GetClosestPoint(point, u, v);
       if (!success)
@@ -444,6 +541,7 @@ namespace Kratos
         {
           Point point_global;
           EvaluateSurfacePoint(point_global, trimming_curve_loop[pt_i][0], trimming_curve_loop[pt_i][1]);
+
 
           //std::ofstream file;
           //file.open("slave_points.txt", std::ios_base::app | std::ios_base::out);
@@ -511,7 +609,9 @@ namespace Kratos
         }
       }
       //std::cout << "u=" << u << ", v=" << v << std::endl;
-      array_1d<double, 2> point2d(u, v);
+      array_1d<double, 2> point2d;
+	  point2d[0] = u;
+	  point2d[1] = v;
       Point point3d;
       //Point point3d;
       std::vector<Vector> location;
@@ -532,6 +632,15 @@ namespace Kratos
       trimming_curve.EvaluateCurvePoint(point3d, parameter);
       double error_distance = sqrt((point3d[0] - location[0][0]) * (point3d[0] - location[0][0])
         + (point3d[1] - location[0][1]) * (point3d[1] - location[0][1]));
+	  Point point27;
+	  EvaluateSurfacePoint(point27, point3d[0], point3d[1]);
+	  Vector distance2 = ZeroVector(3);
+	  distance2[0] = point[0] - point27[0];
+	  distance2[1] = point[1] - point27[1];
+	  distance2[2] = point[2] - point27[2];
+	  KRATOS_WATCH(error_distance)
+	  KRATOS_WATCH(distance2)
+
       //std::cout << "error_distance: " << error_distance << std::endl;
       //if (error_distance > 0.00001)
       //{
@@ -605,9 +714,9 @@ namespace Kratos
         ControlPointIDs(k) = m_control_points_ids[control_point_index];
 
 
-        new_point[0] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).X();
-        new_point[1] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Y();
-        new_point[2] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Z();
+        new_point[0] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).X();
+        new_point[1] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
+        new_point[2] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
         //std::cout << "c + (m_q + 1)*b" << c + (m_q + 1)*b << std::endl;
         //std::cout << "k" << k << std::endl;
 
@@ -683,9 +792,9 @@ namespace Kratos
         ControlPointIDs(k) = m_control_points_ids[control_point_index];
         //ControlPointIDs(c + (m_q + 1)*b) = m_control_points_ids[control_point_index];
 
-        new_point[0] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).X();
-        new_point[1] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Y();
-        new_point[2] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Z();
+        new_point[0] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).X();
+        new_point[1] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
+        new_point[2] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
 
         //std::cout << "c + (m_q + 1)*b" << c + (m_q + 1)*b << std::endl;
         //std::cout << "k" << k << std::endl;
@@ -760,9 +869,9 @@ namespace Kratos
 
         ControlPointIDs(k) = m_control_points_ids[control_point_index];
 
-        new_point[0] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).X();
-        new_point[1] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Y();
-        new_point[2] += R(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Z();
+        new_point[0] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).X();
+        new_point[1] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
+        new_point[2] += R(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
 
         k++;
       }
@@ -792,7 +901,7 @@ namespace Kratos
   {
     double norm_delta_u = 100000000;
     //unsigned int k = 0;
-    unsigned int max_itr = 20;
+    unsigned int max_itr = 10;
 
     for (int i = 0; i<max_itr; ++i)// (norm_delta_u > 1e-8)
     {
@@ -820,10 +929,17 @@ namespace Kratos
       u -= delta_u(0);
       v -= delta_u(1);
 
-      norm_delta_u = norm_2(delta_u);
+	  //KRATOS_WATCH(u)
+	  //KRATOS_WATCH(v)
+	  EvaluateSurfacePoint(newton_raphson_point, u, v);
+	  difference(0) = newton_raphson_point[0] - point[0];
+	  difference(1) = newton_raphson_point[1] - point[1];
+	  difference(2) = newton_raphson_point[2] - point[2];
 
+      norm_delta_u = norm_2(difference);
+	  //KRATOS_WATCH(norm_delta_u)
       //k++;
-      if (norm_delta_u > 1e-7)
+      if (norm_delta_u < 1e-7)
         return true;
     }
     return false;
@@ -1034,9 +1150,9 @@ namespace Kratos
         int m_n_u = m_knot_vector_u.size() - m_p - 1;
         int control_point_index = vi*m_n_u + ui;
 
-        rSurfacePoint[0] += N(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).X();
-        rSurfacePoint[1] += N(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Y();
-        rSurfacePoint[2] += N(b, c) * m_model_part.GetNode(m_control_points_ids[control_point_index]).Z();
+        rSurfacePoint[0] += N(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).X();
+        rSurfacePoint[1] += N(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
+        rSurfacePoint[2] += N(b, c) * mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
       }
     }
   }
@@ -1082,9 +1198,9 @@ namespace Kratos
         int m_n_u = m_knot_vector_u.size() - m_p - 1;
         int control_point_index = vi*m_n_u + ui;
 
-        double cp_x = m_model_part.GetNode(m_control_points_ids[control_point_index]).X();
-        double cp_y = m_model_part.GetNode(m_control_points_ids[control_point_index]).Y();
-        double cp_z = m_model_part.GetNode(m_control_points_ids[control_point_index]).Z();
+        double cp_x = mp_model_part->GetNode(m_control_points_ids[control_point_index]).X();
+        double cp_y = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Y();
+        double cp_z = mp_model_part->GetNode(m_control_points_ids[control_point_index]).Z();
 
         dQdu(0) += dR(k, 0) * cp_x;
         dQdu(1) += dR(k, 0) * cp_y;
@@ -1162,7 +1278,7 @@ namespace Kratos
         int m_n_u = m_knot_vector_u.size() - m_p - 1;
         int control_point_index = vi*m_n_u + ui;
         // Evaluate basis function
-        R(b, c) = N(b)*M(c)*m_model_part.GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
+        R(b, c) = N(b)*M(c)*mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
         sum += R(b, c);
       }
     }
@@ -1223,7 +1339,7 @@ namespace Kratos
         int control_point_index = vi*m_n_u + ui;
 
         // Evaluate basis function
-        weight = m_model_part.GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
+        weight = mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
 
         r[k] = N(0, b)*M(0, c)*weight;
         sum += r[k];
@@ -1323,7 +1439,7 @@ namespace Kratos
         int control_point_index = vi*m_n_u + ui;
 
         // Evaluate basis function
-        weight = m_model_part.GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
+        weight = mp_model_part->GetNode(m_control_points_ids[control_point_index]).GetValue(CONTROL_POINT_WEIGHT);
         R(b, c) = N_matrix(0, b)*M_matrix(0, c)*weight;
         sum += R(b, c);
 
@@ -1356,14 +1472,14 @@ namespace Kratos
     TrimmingLoopVector& embedded_loops,
     Vector& knot_vector_u, Vector& knot_vector_v,
     unsigned int& p, unsigned int& q, IntVector& control_point_ids,
-    ModelPart& model_part)
+    ModelPart::Pointer model_part)
     : m_trimming_loops(trimming_loops),
       m_embedded_loops(embedded_loops),
       m_knot_vector_u(knot_vector_u),
       m_knot_vector_v(knot_vector_v),
       m_p(p),
       m_q(q),
-      m_model_part(model_part),
+      mp_model_part(model_part),
       m_control_points_ids(control_point_ids),
       IndexedObject(brep_id),
       Flags()

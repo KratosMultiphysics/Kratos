@@ -131,6 +131,15 @@ namespace Kratos
           id_itr++;
           model_part_face_id_embedded->AddNode(NodeVectorEmbeddedElement[k]);
         }
+
+		ModelPart::Pointer model_part_face_id_reversed = model_part_faces->CreateSubModelPart("FACE_" + std::to_string(face.Id()) + "_REVERSE");
+		std::vector<Node<3>::Pointer> NodeVectorReversedElement = face.GetQuadraturePointsReversed(shapefunction_order);
+		for (unsigned int k = 0; k < NodeVectorReversedElement.size(); k++)
+		{
+			NodeVectorReversedElement[k]->SetId(id_itr);
+			id_itr++;
+			model_part_face_id_reversed->AddNode(NodeVectorReversedElement[k]);
+		}
       }
 
       for (unsigned int edge_itr = 0; edge_itr < m_brep_model_vector[brep_itr].GetEdgeVector().size(); edge_itr++)
@@ -152,7 +161,8 @@ namespace Kratos
           edge.GetEdgeInformation(0, face_id_master, trim_index_master);
           BrepFace& face_master = GetFace(face_id_master);
 
-          std::vector<Node<3>::Pointer> NodeVectorElement = face_master.GetQuadraturePointsOfTrimmingCurveWithPoints(
+
+		  std::vector<Node<3>::Pointer> NodeVectorElement = face_master.GetQuadraturePointsOfTrimmingCurveWithPoints(
             shapefunction_order, trim_index_master, points);
 
           //for (unsigned int k = 0; k < NodeVectorElement.size(); k++)

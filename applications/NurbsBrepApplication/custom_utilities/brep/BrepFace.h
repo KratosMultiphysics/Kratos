@@ -86,8 +86,9 @@ namespace Kratos
     std::vector<Node<3>::Pointer> GetQuadraturePoints(const int& shapefunction_order);
     std::vector<Node<3>::Pointer> GetQuadraturePointsTrimmed(const int& shapefunction_order);
     std::vector<Node<3>::Pointer> GetQuadraturePointsEmbedded(const int& shapefunction_order);
-    std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurve(const int& shapefunction_order, const int& trim_index);
-    std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurveWithPoints(
+	std::vector<Node<3>::Pointer> GetQuadraturePointsReversed(const int& shapefunction_order);
+	std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurve(const int& shapefunction_order, const int& trim_index);
+	std::vector<Node<3>::Pointer> GetQuadraturePointsOfTrimmingCurveWithPoints(
       const int& shapefunction_order, const int& trim_index, std::vector<Point> intersection_points);
     bool CheckIfPointIsInside(Vector node_parameters);
     void EvaluateSurfacePoint(Point& rSurfacePoint, const double& u, const double& v);
@@ -110,7 +111,7 @@ namespace Kratos
       TrimmingLoopVector& embedded_loops,
       Vector& knot_vector_u, Vector& knot_vector_v,
       unsigned int& p, unsigned int& q, IntVector& control_point_ids,
-      ModelPart& model_part);
+      ModelPart::Pointer model_part);
 
     /// Destructor.
     virtual ~BrepFace();
@@ -144,7 +145,7 @@ namespace Kratos
     unsigned int m_p;
     unsigned int m_q;
     IntVector m_control_points_ids;
-    ModelPart& m_model_part;
+    ModelPart::Pointer mp_model_part;
 
     ///@}    
 
