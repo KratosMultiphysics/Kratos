@@ -167,7 +167,7 @@ class MechanicalSolver(object):
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
-            if hasattr(mechanical_solver, SetInitializePerformedFlag):
+            if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
 
