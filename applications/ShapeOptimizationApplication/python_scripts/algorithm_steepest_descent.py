@@ -118,6 +118,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __updateMeshAccordingCurrentShapeUpdate( self ):
         self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
+        self.ModelPartController.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def __callCommunicatorToRequestNewAnalyses( self ):
