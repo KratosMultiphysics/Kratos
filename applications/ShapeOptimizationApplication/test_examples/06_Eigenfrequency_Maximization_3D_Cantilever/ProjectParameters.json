@@ -107,7 +107,7 @@
                 "use_kratos"    : true,
                 "gradient_mode" : "finite_differencing",
                 "step_size"     : 1e-8,
-                "discretization_weighting": false
+                "consider_discretization": false
         }],
         "design_variables" : {
             "design_variables_type"     : "vertex_morphing",

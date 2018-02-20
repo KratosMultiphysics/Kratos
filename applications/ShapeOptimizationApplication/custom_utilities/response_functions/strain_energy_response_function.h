@@ -104,7 +104,7 @@ public:
 		else
 			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
 
-		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
+		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 
 		// Initialize member variables to NULL
 		m_initial_value = 0.0;
