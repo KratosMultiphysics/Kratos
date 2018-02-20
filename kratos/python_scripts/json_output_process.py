@@ -11,9 +11,7 @@ def Factory(settings, Model):
     return JsonOutputProcess(Model, settings["Parameters"])
 
 class JsonOutputProcess(KratosMultiphysics.Process):
-  
     def __init__(self,model_part,params):
-
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""
         {
@@ -26,7 +24,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             "resultant_solution"   : false
         }
         """)
-        
+
         ## Overwrite the default settings with user-provided parameters
         self.params = params
         self.params.ValidateAndAssignDefaults(default_parameters)
@@ -40,19 +38,19 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self.frequency = 0.0
         self.time_counter = 0.0
         self.resultant_solution = False
-        
+
     def ExecuteInitialize(self):
         self.output_file_name = self.params["output_file_name"].GetString()
         if (len(self.params["sub_model_part_name"].GetString()) > 0):
             self.sub_model_part = self.model_part[self.params["model_part_name"].GetString()].GetSubModelPart(self.params["sub_model_part_name"].GetString())
         else:
             self.sub_model_part = self.model_part[self.params["model_part_name"].GetString()]
-            
+
         self.output_variables = self.__generate_variable_list_from_input(self.params["output_variables"])
         self.frequency = self.params["time_frequency"].GetDouble()
         self.resultant_solution = self.params["resultant_solution"].GetBool()
         self.historical_value = self.params["historical_value"].GetBool()
-        
+
     def ExecuteBeforeSolutionLoop(self):
         data = {}
         data["TIME"] = []
@@ -61,8 +59,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             if (self.resultant_solution == False):
                 data["NODE_"+str(node.Id)] = {}
             else:
-                data["RESULTANT"] = {}
-                    
+                if (count == 0):
+                    data["RESULTANT"] = {}
+
             for i in range(self.params["output_variables"].size()):
                 out = self.params["output_variables"][i]
                 variable = KratosMultiphysics.KratosGlobals.GetVariable( out.GetString() )
@@ -94,15 +93,15 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             if (count == 0):
                                 data["RESULTANT"][out.GetString() ] = []
             count += 1
-            
+
         write_external_json(self.output_file_name, data)
-        
+
     def ExecuteInitializeSolutionStep(self):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
         data =  read_external_json(self.output_file_name)
-        
+
         time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
         dt = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.DELTA_TIME)
         self.time_counter += dt
@@ -119,7 +118,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                         value = node.GetSolutionStepValue(variable, 0)
                     else:
                         value = node.GetValue(variable)
-                    
+
                     if isinstance(value,float):
                         if (self.resultant_solution == False):
                             data["NODE_"+str(node.Id)][out.GetString() ].append(value)
@@ -156,7 +155,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                 else:
                                     data["RESULTANT"][out.GetString() ][-1] += aux
                 count += 1
-              
+
         write_external_json(self.output_file_name, data)
 
     def ExecuteBeforeOutputStep(self):
@@ -167,13 +166,13 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalize(self):
         pass
-      
+
     def __kratos_vector_to__python_list(self,value):
         list = []
         for index in range(len(value)):
             list.append(value[index])
         return list
-        
+
     def __generate_variable_list_from_input(self,param):
       '''Parse a list of variables from input.'''
       # At least verify that the input is a string
