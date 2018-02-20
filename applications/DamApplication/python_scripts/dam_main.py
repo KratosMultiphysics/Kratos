@@ -6,7 +6,6 @@ print(timer.ctime())
 initial_time = timer.perf_counter()
 
 import os
-import sys
 
 # Import kratos core and applications
 import KratosMultiphysics
@@ -22,7 +21,7 @@ class Solution(object):
         self.LoadParametersFile()
         self.DefineParallelType()
         self.DefineVariables()
-        
+
         if(self.consider_selfweight == True):
            self.PreviousSelfweightProblem()
 
@@ -91,7 +90,7 @@ class Solution(object):
         # Parsing parmeters of Selfweight Problem
         self_parameter_file = open("ProjectParametersSelfWeight.json",'r')
         SelfWeightProjectParameters = KratosMultiphysics.Parameters( self_parameter_file.read())
-        
+
         ## Creating Selfweight model part --------------------------------------------------------------
         self.self_weight_model_part = KratosMultiphysics.ModelPart("SelfWeight")
         self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
@@ -141,7 +140,7 @@ class Solution(object):
 
         # Getting gravity direction
         direction_selfweight = self.ProjectParameters["problem_data"]["selfweight_direction"].GetString()
-        if(direction_selfweight == "X"): 
+        if(direction_selfweight == "X"):
             variable_name = KratosMultiphysics.VOLUME_ACCELERATION_X
         elif(direction_selfweight == "Y"):
             variable_name = KratosMultiphysics.VOLUME_ACCELERATION_Y
@@ -161,7 +160,7 @@ class Solution(object):
         # Initialize transfer_selfweight_stress_utility
         import transfer_selfweight_stress_utility
         self.transfer_utility = transfer_selfweight_stress_utility.TransferSelfweightStressToMainModelPartUtility()
-        
+
     def Run(self):
         self.Initialize()
 
@@ -207,13 +206,13 @@ class Solution(object):
 
         # Initialize GiD I/O
         computing_model_part = self.solver.GetComputingModelPart()
-        
+
         if self.consider_construction:
             thermal_computing_model_part = self.solver.GetComputingThermalModelPart()
             import dam_construction_utility
             self.construction_utilities = dam_construction_utility.DamConstructionUtility(computing_model_part, thermal_computing_model_part, self.ProjectParameters["construction_process"])
             self.construction_utilities.Initialize()
-        
+
         output_settings = self.ProjectParameters["output_configuration"]
         if self.parallel_type == "OpenMP":
             import poromechanics_cleaning_utility
@@ -259,7 +258,7 @@ class Solution(object):
             self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
             self.time = self.time + self.delta_time
             self.main_model_part.CloneTimeStep(self.time)
-            
+
             if self.consider_construction:
                 # Execute initialize solution
                 self.construction_utilities.InitializeSolutionStep()
@@ -293,14 +292,14 @@ class Solution(object):
 
             for self.process in self.list_of_processes:
                 self.process.ExecuteAfterOutputStep()
-                
+
             if self.consider_construction:
                 #  After initialize solution
                 self.construction_utilities.AfterOutputStep()
-                
+
     def PrintOutput(self):
         self.gid_output.PrintOutput()
-        
+
     def Finalize(self):
         self.gid_output.ExecuteFinalize() # Finalizing output files
 

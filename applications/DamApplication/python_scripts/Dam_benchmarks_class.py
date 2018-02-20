@@ -2,17 +2,11 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
-import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-import KratosMultiphysics.DamApplication as KratosDam
 
 KratosMultiphysics.CheckForPreviousImport() # check that KratosMultiphysics was imported in the main script
 
-import shutil
 from glob import glob
-from math import pi, sin, cos, tan, atan, fabs
+from math import fabs
 import sys
 import os
 
@@ -39,7 +33,7 @@ class Benchmark201:
             del node
 
         self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_displacement_x).rjust(13)+" "+str("%.6g"%total_displacement_y).rjust(13)+"\n")
-        self.simulation_graph.flush()        
+        self.simulation_graph.flush()
 
     def print_results(self):
         error1, error2 = self.compute_errors(self.output_filename)
@@ -71,7 +65,7 @@ class Benchmark201:
                 parts = line.split()
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
 
@@ -83,7 +77,7 @@ class Benchmark201:
         for i, j in zip(calculation_data_displX, reference_data_displX):
             generated_data_error_displX += fabs(i-j)
         generated_data_error_displX /= summation_of_reference_data_displX
-        
+
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
@@ -122,7 +116,7 @@ class Benchmark202:
             del node
 
         self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_displacement_x).rjust(13)+" "+str("%.6g"%total_displacement_y).rjust(13)+"\n")
-        self.simulation_graph.flush()        
+        self.simulation_graph.flush()
 
     def print_results(self):
         error1, error2 = self.compute_errors(self.output_filename)
@@ -154,7 +148,7 @@ class Benchmark202:
                 parts = line.split()
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
 
@@ -166,7 +160,7 @@ class Benchmark202:
         for i, j in zip(calculation_data_displX, reference_data_displX):
             generated_data_error_displX += fabs(i-j)
         generated_data_error_displX /= summation_of_reference_data_displX
-        
+
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
@@ -181,7 +175,7 @@ class Benchmark202:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark203:
 
     def __init__(self):
@@ -243,7 +237,7 @@ class Benchmark203:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -262,7 +256,7 @@ class Benchmark203:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -279,7 +273,7 @@ class Benchmark203:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark204:
 
     def __init__(self):
@@ -341,7 +335,7 @@ class Benchmark204:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -360,7 +354,7 @@ class Benchmark204:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -377,7 +371,7 @@ class Benchmark204:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark205:
 
     def __init__(self):
@@ -439,7 +433,7 @@ class Benchmark205:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -458,7 +452,7 @@ class Benchmark205:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -475,7 +469,7 @@ class Benchmark205:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark206:
 
     def __init__(self):
@@ -537,7 +531,7 @@ class Benchmark206:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -556,7 +550,7 @@ class Benchmark206:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -573,7 +567,7 @@ class Benchmark206:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark207:
 
     def __init__(self):
@@ -635,7 +629,7 @@ class Benchmark207:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -654,7 +648,7 @@ class Benchmark207:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -671,7 +665,7 @@ class Benchmark207:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark208:
 
     def __init__(self):
@@ -733,7 +727,7 @@ class Benchmark208:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -752,7 +746,7 @@ class Benchmark208:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -769,7 +763,7 @@ class Benchmark208:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark209:
 
     def __init__(self):
@@ -831,7 +825,7 @@ class Benchmark209:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -850,7 +844,7 @@ class Benchmark209:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -867,7 +861,7 @@ class Benchmark209:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark210:
 
     def __init__(self):
@@ -929,7 +923,7 @@ class Benchmark210:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -948,7 +942,7 @@ class Benchmark210:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -1027,7 +1021,7 @@ class Benchmark211:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -1046,7 +1040,7 @@ class Benchmark211:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -1125,7 +1119,7 @@ class Benchmark212:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_temp.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_temp = 0.0
@@ -1144,7 +1138,7 @@ class Benchmark212:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(m-n)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -1187,7 +1181,7 @@ class Benchmark301:
             del node
 
         self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_displacement_x).rjust(13)+" "+str("%.6g"%total_displacement_y).rjust(13)+" "+str("%.6g"%total_displacement_z).rjust(13)+"\n")
-        
+
         self.simulation_graph.flush()
 
     def print_results(self):
@@ -1224,7 +1218,7 @@ class Benchmark301:
                 calculation_data_displX.append(float(parts[1]))
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_displZ.append(float(parts[3]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_displZ = 0.0
@@ -1243,7 +1237,7 @@ class Benchmark301:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_displZ, reference_data_displZ):
             generated_data_error_displZ += fabs(m-n)
         generated_data_error_displZ /= summation_of_reference_data_displZ
@@ -1290,7 +1284,7 @@ class Benchmark302:
             del node
 
         self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_displacement_x).rjust(13)+" "+str("%.6g"%total_displacement_y).rjust(13)+" "+str("%.6g"%total_displacement_z).rjust(13)+" "+str("%.6g"%total_temperature).rjust(13)+"\n")
-        
+
         self.simulation_graph.flush()
 
     def print_results(self):
@@ -1330,7 +1324,7 @@ class Benchmark302:
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_displZ.append(float(parts[3]))
                 calculation_data_temp.append(float(parts[4]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_displZ = 0.0
@@ -1352,11 +1346,11 @@ class Benchmark302:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_displZ, reference_data_displZ):
             generated_data_error_displZ += fabs(m-n)
         generated_data_error_displZ /= summation_of_reference_data_displZ
-        
+
         for o, p in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(o-p)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -1375,7 +1369,7 @@ class Benchmark302:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark303:
 
     def __init__(self):
@@ -1405,7 +1399,7 @@ class Benchmark303:
             del node
 
         self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_displacement_x).rjust(13)+" "+str("%.6g"%total_displacement_y).rjust(13)+" "+str("%.6g"%total_displacement_z).rjust(13)+" "+str("%.6g"%total_temperature).rjust(13)+"\n")
-        
+
         self.simulation_graph.flush()
 
     def print_results(self):
@@ -1445,7 +1439,7 @@ class Benchmark303:
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_displZ.append(float(parts[3]))
                 calculation_data_temp.append(float(parts[4]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_displZ = 0.0
@@ -1467,11 +1461,11 @@ class Benchmark303:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_displZ, reference_data_displZ):
             generated_data_error_displZ += fabs(m-n)
         generated_data_error_displZ /= summation_of_reference_data_displZ
-        
+
         for o, p in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(o-p)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -1490,7 +1484,7 @@ class Benchmark303:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark304:
 
     def __init__(self):
@@ -1520,7 +1514,7 @@ class Benchmark304:
             del node
 
         self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_displacement_x).rjust(13)+" "+str("%.6g"%total_displacement_y).rjust(13)+" "+str("%.6g"%total_displacement_z).rjust(13)+" "+str("%.6g"%total_temperature).rjust(13)+"\n")
-        
+
         self.simulation_graph.flush()
 
     def print_results(self):
@@ -1560,7 +1554,7 @@ class Benchmark304:
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_displZ.append(float(parts[3]))
                 calculation_data_temp.append(float(parts[4]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_displZ = 0.0
@@ -1582,11 +1576,11 @@ class Benchmark304:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_displZ, reference_data_displZ):
             generated_data_error_displZ += fabs(m-n)
         generated_data_error_displZ /= summation_of_reference_data_displZ
-        
+
         for o, p in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(o-p)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -1605,7 +1599,7 @@ class Benchmark304:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark305:
 
     def __init__(self):
@@ -1635,7 +1629,7 @@ class Benchmark305:
             del node
 
         self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_displacement_x).rjust(13)+" "+str("%.6g"%total_displacement_y).rjust(13)+" "+str("%.6g"%total_displacement_z).rjust(13)+" "+str("%.6g"%total_temperature).rjust(13)+"\n")
-        
+
         self.simulation_graph.flush()
 
     def print_results(self):
@@ -1675,7 +1669,7 @@ class Benchmark305:
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_displZ.append(float(parts[3]))
                 calculation_data_temp.append(float(parts[4]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_displZ = 0.0
@@ -1697,11 +1691,11 @@ class Benchmark305:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_displZ, reference_data_displZ):
             generated_data_error_displZ += fabs(m-n)
         generated_data_error_displZ /= summation_of_reference_data_displZ
-        
+
         for o, p in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(o-p)
         generated_data_error_temp /= summation_of_reference_data_temp
@@ -1720,7 +1714,7 @@ class Benchmark305:
 
     def finalize_data(self):
         self.simulation_graph.close()
-        
+
 class Benchmark306:
 
     def __init__(self):
@@ -1750,7 +1744,7 @@ class Benchmark306:
             del node
 
         self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%total_displacement_x).rjust(13)+" "+str("%.6g"%total_displacement_y).rjust(13)+" "+str("%.6g"%total_displacement_z).rjust(13)+" "+str("%.6g"%total_temperature).rjust(13)+"\n")
-        
+
         self.simulation_graph.flush()
 
     def print_results(self):
@@ -1790,7 +1784,7 @@ class Benchmark306:
                 calculation_data_displY.append(float(parts[2]))
                 calculation_data_displZ.append(float(parts[3]))
                 calculation_data_temp.append(float(parts[4]))
-                
+
         generated_data_error_displX = 0.0
         generated_data_error_displY = 0.0
         generated_data_error_displZ = 0.0
@@ -1812,11 +1806,11 @@ class Benchmark306:
         for k, l in zip(calculation_data_displY, reference_data_displY):
             generated_data_error_displY += fabs(k-l)
         generated_data_error_displY /= summation_of_reference_data_displY
-        
+
         for m, n in zip(calculation_data_displZ, reference_data_displZ):
             generated_data_error_displZ += fabs(m-n)
         generated_data_error_displZ /= summation_of_reference_data_displZ
-        
+
         for o, p in zip(calculation_data_temp, reference_data_temp):
             generated_data_error_temp += fabs(o-p)
         generated_data_error_temp /= summation_of_reference_data_temp

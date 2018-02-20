@@ -111,7 +111,7 @@ def Run():
 
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
-    
+
     return Text
 
 if __name__ == '__main__':

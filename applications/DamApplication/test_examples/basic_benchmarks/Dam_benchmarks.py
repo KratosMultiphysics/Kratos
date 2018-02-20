@@ -78,7 +78,7 @@ class Solution(dam_main.Solution):
 
         with open(file_name, 'r') as parameters_file:
             self.ProjectParameters = KratosMultiphysics.Parameters(parameters_file.read())
-       
+
     def Initialize(self):
         super(Solution, self).Initialize()
         benchmark.set_initial_data()
