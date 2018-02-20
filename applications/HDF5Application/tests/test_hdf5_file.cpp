@@ -153,7 +153,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_IsDataSet, KratosHDF5TestSuite)
 
     HDF5::FileSerial test_file(test_params);
     HDF5::File::Vector<int> data(5, 0);
-    test_file.WriteDataSet("/foo/data", data);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/foo/data", data, info);
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.IsGroup("invalid_path");
         , "Invalid path: \"invalid_path\"");
@@ -239,6 +240,36 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_CreateGroup, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
+KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetLinkNames, KratosHDF5TestSuite)
+{
+    KRATOS_TRY;
+    Parameters test_params(R"(
+        {
+            "file_name" : "test.h5",
+            "file_access_mode": "exclusive",
+            "file_driver": "core"
+        })");
+
+    HDF5::FileSerial test_file(test_params);
+    std::vector<std::string> names;
+    test_file.AddPath("/foo");
+    test_file.GetLinkNames("/foo", names);
+    KRATOS_CHECK(names.size() == 0);
+    test_file.AddPath("/foo/group");
+    HDF5::File::Vector<double> data(3, 0.0);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/foo/data", data, info);
+    KRATOS_CHECK(test_file.IsGroup("/foo/group"));
+    KRATOS_CHECK(test_file.IsDataSet("/foo/data"));
+    test_file.GetLinkNames("/foo", names);
+    KRATOS_CHECK(names.size() == 2);
+    KRATOS_CHECK(names[0] == "data");
+    KRATOS_CHECK(names[1] == "group");
+    KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
+    H5close(); // Clean HDF5 for next unit test.
+    KRATOS_CATCH_WITH_BLOCK("", H5close(););
+}
+
 KRATOS_TEST_CASE_IN_SUITE(HDF5File_AddPath, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
@@ -254,7 +285,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_AddPath, KratosHDF5TestSuite)
         test_file.AddPath("invalid_path");
         , "Invalid path: invalid_path");
     HDF5::File::Vector<double> data(5, 1.23);
-    test_file.WriteDataSet("/a_data_set", data);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/a_data_set", data, info);
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.AddPath("/a_data_set");
         , "Path exists and is not a group: /a_data_set");
@@ -277,9 +309,10 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetDataDimensions, KratosHDF5TestSuite)
     HDF5::File::Vector<double> data1(5);
     HDF5::File::Vector<array_1d<double,3>> data2(3);
     HDF5::File::Matrix<double> data3(2,2);
-    test_file.WriteDataSet("/data1", data1);
-    test_file.WriteDataSet("/data2", data2);
-    test_file.WriteDataSet("/data3", data3);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data1", data1, info);
+    test_file.WriteDataSet("/data2", data2, info);
+    test_file.WriteDataSet("/data3", data3, info);
     
     std::vector<unsigned> dims;
     dims = test_file.GetDataDimensions("/data1");
@@ -311,8 +344,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasIntDataType, KratosHDF5TestSuite)
     HDF5::FileSerial test_file(test_params);
     HDF5::File::Vector<int> data1(3);
     HDF5::File::Vector<double> data2(3);
-    test_file.WriteDataSet("/data1", data1);
-    test_file.WriteDataSet("/data2", data2);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data1", data1, info);
+    test_file.WriteDataSet("/data2", data2, info);
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.HasIntDataType("/invalid/path");
         , "H5Dopen failed");
@@ -336,8 +370,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_HasFloatDataType, KratosHDF5TestSuite)
     HDF5::FileSerial test_file(test_params);
     HDF5::File::Vector<int> data1(3);
     HDF5::File::Vector<double> data2(3);
-    test_file.WriteDataSet("/data1", data1);
-    test_file.WriteDataSet("/data2", data2);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data1", data1, info);
+    test_file.WriteDataSet("/data2", data2, info);
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.HasIntDataType("/invalid/path");
         , "H5Dopen failed");
@@ -377,7 +412,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet1, KratosHDF5TestSuite)
 
     HDF5::FileSerial test_file(test_params);
     HDF5::File::Vector<double> data_in, data_out(3, 0.0);
-    test_file.WriteDataSet("/data", data_out);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data", data_out, info);
     HDF5::File::Matrix<double> bad_data_container;
     HDF5::File::Vector<int> bad_data_type;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
@@ -412,7 +448,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet2, KratosHDF5TestSuite)
 
     HDF5::FileSerial test_file(test_params);
     HDF5::File::Vector<array_1d<double,3>> data_in, data_out(3);
-    test_file.WriteDataSet("/data", data_out);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data", data_out, info);
     HDF5::File::Vector<double> bad_data_container;
     HDF5::File::Vector<array_1d<int,3>> bad_data_type;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
@@ -444,7 +481,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet3, KratosHDF5TestSuite)
 
     HDF5::FileSerial test_file(test_params);
     HDF5::File::Matrix<double> data_in, data_out(3,3);
-    test_file.WriteDataSet("/data", data_out);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data", data_out, info);
     HDF5::File::Vector<double> bad_data_container;
     HDF5::File::Matrix<int> bad_data_type;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
@@ -481,7 +519,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet4, KratosHDF5TestSuite)
     HDF5::File::Vector<int> data_in, data_out(3);
     for (int i = 0; i < 3; ++i)
         data_out[i] = i;
-    test_file.WriteDataSet("/data", data_out);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data", data_out, info);
     test_file.ReadDataSet("/data", data_in, 0, 3);
     KRATOS_CHECK(data_in.size() == 3);
     for (int i = 0; i < 3; ++i)
@@ -505,7 +544,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet5, KratosHDF5TestSuite)
     HDF5::File::Vector<double> data_in, data_out(3);
     for (int i = 0; i < 3; ++i)
         data_out[i] = i;
-    test_file.WriteDataSet("/data", data_out);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data", data_out, info);
     test_file.ReadDataSet("/data", data_in, 0, 3);
     KRATOS_CHECK(data_in.size() == 3);
     for (int i = 0; i < 3; ++i)
@@ -529,7 +569,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet6, KratosHDF5TestSuite)
     HDF5::File::Vector<array_1d<double,3>> data_in, data_out(3);
     for (int i = 0; i < 3; ++i)
         data_out[i] = array_1d<double, 3>(3, 2.718282);
-    test_file.WriteDataSet("/data", data_out);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data", data_out, info);
     test_file.ReadDataSet("/data", data_in, 0, 3);
     KRATOS_CHECK(data_in.size() == 3);
     for (int i = 0; i < 3; ++i)
@@ -555,7 +596,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadDataSet7, KratosHDF5TestSuite)
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 2; ++j)
             data_out(i,j) = 2.718282;
-    test_file.WriteDataSet("/data", data_out);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/data", data_out, info);
     test_file.ReadDataSet("/data", data_in, 0, 3);
     KRATOS_CHECK(data_in.size1() == 3);
     KRATOS_CHECK(data_in.size2() == 2);
@@ -820,6 +862,53 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute9, KratosHDF5TestSuite)
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadAttribute("/foo", "PROPERTY_SCAL", property_in);
         , "Attribute \"PROPERTY_SCAL\" is not matrix.")
+    H5close(); // Clean HDF5 for next unit test.
+    KRATOS_CATCH_WITH_BLOCK("", H5close(););
+}
+
+KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute10, KratosHDF5TestSuite)
+{
+    KRATOS_TRY;
+    Parameters test_params(R"(
+        {
+            "file_name" : "test.h5",
+            "file_access_mode": "exclusive",
+            "file_driver": "core"
+        })");
+
+    HDF5::File test_file(test_params);
+
+    std::string property_in;
+    std::string property_out(101, 'a');
+    
+    test_file.CreateGroup("/foo");
+    test_file.WriteAttribute("/foo", "PROPERTY_STR", property_out);
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    test_file.ReadAttribute("/foo", "PROPERTY_STR", property_in);
+        , "Error: String size is greater than 100.")
+    H5close(); // Clean HDF5 for next unit test.
+    KRATOS_CATCH_WITH_BLOCK("", H5close(););
+}
+
+KRATOS_TEST_CASE_IN_SUITE(HDF5File_ReadAttribute11, KratosHDF5TestSuite)
+{
+    KRATOS_TRY;
+    Parameters test_params(R"(
+        {
+            "file_name" : "test.h5",
+            "file_access_mode": "exclusive",
+            "file_driver": "core"
+        })");
+
+    HDF5::File test_file(test_params);
+
+    std::string property_in;
+    std::string property_out("bar");
+    
+    test_file.CreateGroup("/foo");
+    test_file.WriteAttribute("/foo", "PROPERTY_STR", property_out);
+    test_file.ReadAttribute("/foo", "PROPERTY_STR", property_in);
+    KRATOS_CHECK(property_in == property_out);
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }

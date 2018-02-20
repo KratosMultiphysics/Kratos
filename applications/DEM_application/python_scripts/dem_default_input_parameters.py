@@ -31,6 +31,12 @@ def GetDefaultInputParameters():
             "PotentialEnergyReferencePointZ"   : 0.0,
            
             "VelocityTrapOption"               : false,
+            "VelocityTrapMaxX"                 : 0.0,
+            "VelocityTrapMaxY"                 : 0.0,
+            "VelocityTrapMaxZ"                 : 0.0,
+            "VelocityTrapMinX"                 : 0.0,
+            "VelocityTrapMinY"                 : 0.0,
+            "VelocityTrapMinZ"                 : 0.0,
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
