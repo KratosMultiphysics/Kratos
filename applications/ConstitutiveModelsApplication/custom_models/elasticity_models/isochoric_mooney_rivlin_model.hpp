@@ -7,15 +7,15 @@
 //
 //
 
-#if !defined(KRATOS_ISOCHORIC_HYPERELASTIC_MODEL_H_INCLUDED )
-#define  KRATOS_ISOCHORIC_HYPERELASTIC_MODEL_H_INCLUDED
+#if !defined(KRATOS_ISOCHORIC_MOONEY_RIVLIN_MODEL_H_INCLUDED )
+#define  KRATOS_ISOCHORIC_MOONEY_RIVLIN_MODEL_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/mooney_rivlin_model.hpp"
 
 namespace Kratos
 {
@@ -44,41 +44,41 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) IsochoricHyperElasticModel : public HyperElasticModel
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) IsochoricMooneyRivlinModel : public MooneyRivlinModel
   {
   public:
 
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of IsochoricHyperElasticModel
-    KRATOS_CLASS_POINTER_DEFINITION( IsochoricHyperElasticModel );
+    /// Pointer definition of IsochoricMooneyRivlinModel
+    KRATOS_CLASS_POINTER_DEFINITION( IsochoricMooneyRivlinModel );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    IsochoricHyperElasticModel() : HyperElasticModel() {}
+    IsochoricMooneyRivlinModel() : MooneyRivlinModel() {}
     
     /// Copy constructor.
-    IsochoricHyperElasticModel(IsochoricHyperElasticModel const& rOther) : HyperElasticModel(rOther) {}
+    IsochoricMooneyRivlinModel(IsochoricMooneyRivlinModel const& rOther) : MooneyRivlinModel(rOther) {}
 
     /// Assignment operator.
-    IsochoricHyperElasticModel& operator=(IsochoricHyperElasticModel const& rOther)
+    IsochoricMooneyRivlinModel& operator=(IsochoricMooneyRivlinModel const& rOther)
     {
-	HyperElasticModel::operator=(rOther);
+	MooneyRivlinModel::operator=(rOther);
 	return *this;
     }
 
     /// Clone.
     virtual ConstitutiveModel::Pointer Clone() const override
     {
-      return ( IsochoricHyperElasticModel::Pointer(new IsochoricHyperElasticModel(*this)) );      
+      return ( IsochoricMooneyRivlinModel::Pointer(new IsochoricMooneyRivlinModel(*this)) );      
     }
  
     /// Destructor.
-    virtual ~IsochoricHyperElasticModel() {}
+    virtual ~IsochoricMooneyRivlinModel() {}
 
 
     ///@}
@@ -119,6 +119,8 @@ namespace Kratos
       rValues.StressMatrix = rStressMatrix; //store isochoric stress matrix as StressMatrix
 
       this->CalculateAndAddVolumetricStressTensor(Variables, rStressMatrix);
+
+      Variables.State().Set(ConstitutiveModelData::STRESS_COMPUTED);
       
       KRATOS_CATCH(" ")
     }
@@ -162,20 +164,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "IsochoricHyperElasticModel";
+        buffer << "IsochoricMooneyRivlinModel";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "IsochoricHyperElasticModel";
+        rOStream << "IsochoricMooneyRivlinModel";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "IsochoricHyperElasticModel Data";
+      rOStream << "IsochoricMooneyRivlinModel Data";
     }
 
     ///@}
@@ -323,6 +325,8 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
 
+
+    
     virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 					     const unsigned int& a, const unsigned int& b,
 					     const unsigned int& c, const unsigned int& d) override
@@ -570,9 +574,9 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      HyperElasticModel::CalculateScalingFactors(rVariables);
+      MooneyRivlinModel::CalculateScalingFactors(rVariables);
 	
-      rVariables.Factors.Alpha4 = this->GetVolumetricFunctionJDerivative(rVariables,rVariables.Factors.Alpha4);
+      rVariables.Factors.Alpha4 = this->GetVolumetricFunction1stJDerivative(rVariables,rVariables.Factors.Alpha4);
       rVariables.Factors.Beta4  = this->GetVolumetricFunction2ndJDerivative(rVariables,rVariables.Factors.Beta4);
 		
       KRATOS_CATCH(" ")
@@ -580,7 +584,7 @@ namespace Kratos
 
     // set the default volumetric function for the incompressible case
     
-    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
+    virtual double& GetVolumetricFunction1srtDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
     {
       KRATOS_TRY
 	
@@ -656,12 +660,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MooneyRivlinModel )
     }
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MooneyRivlinModel )      
     }
 
     ///@}
@@ -675,7 +679,7 @@ namespace Kratos
 
     ///@}
 
-  }; // Class IsochoricHyperElasticModel
+  }; // Class IsochoricMooneyRivlinModel
 
   ///@}
 
@@ -694,6 +698,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ISOCHORIC_HYPERELASTIC_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_ISOCHORIC_MOONEY_RIVLIN_MODEL_H_INCLUDED  defined 
 
 
