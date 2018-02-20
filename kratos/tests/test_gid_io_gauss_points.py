@@ -9,8 +9,6 @@ try:
 except ImportError:
     have_fluid_dynamics = False
 
-import testing_utilities as test_utils
-
 import filecmp
 import os
 
@@ -37,7 +35,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
     def tearDown(self):
         with WorkFolderScope(self.workFolder):
             for suffix in ['_0.post.res', '_0.post.msh']:
-                test_utils.DeleteFileIfExisting(self.output_file_name+suffix)
+                UnitTest.DeleteFileIfExisting(self.output_file_name+suffix)
 
 
     def setModelPart(self):

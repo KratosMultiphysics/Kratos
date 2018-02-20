@@ -3,8 +3,6 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 
-import testing_utilities as test_utils
-
 import os
 import sys
 
@@ -18,7 +16,7 @@ class TestRestart(KratosUnittest.TestCase):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def tearDown(self):
-        test_utils.DeleteFileIfExisting("test_restart_file.rest")
+        KratosUnittest.DeleteFileIfExisting("test_restart_file.rest")
 
     def _check_modelpart(self, model_part):
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
@@ -151,7 +149,6 @@ class TestRestart(KratosUnittest.TestCase):
         model_part = self._execute_restart_load(file_name, serializer_flag)
 
         self._check_modelpart(model_part)
-
 
     def test_restart_NOTRACE(self):
         self._execute_restart_test(KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE)
