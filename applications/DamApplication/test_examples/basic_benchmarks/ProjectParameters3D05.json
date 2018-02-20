@@ -1,6 +1,6 @@
 {
     "problem_data"             : {
-        "problem_name"        : "3D-Test5",
+        "problem_name"        : "3D05",
         "model_part_name"     : "MainModelPart",
         "domain_size"         : 3,
         "parallel_type"       : "OpenMP",
@@ -10,13 +10,14 @@
         "time_step"           : 1,
         "time_scale"          : "Days",
         "consider_selfweight" : false,
+        "consider_construction" : false,
         "streamlines_utility" : false
     },
     "solver_settings"          : {
         "solver_type"                   : "dam_thermo_mechanic_solver",
         "model_import_settings"         : {
             "input_type"       : "mdpa",
-            "input_filename"   : "3D-Test5",
+            "input_filename"   : "3D05",
             "input_file_label" : 0
         },
         "echo_level"                    : 1,
@@ -51,7 +52,7 @@
             "displacement_absolute_tolerance"      : 1e-9,
             "residual_relative_tolerance"          : 0.0001,
             "residual_absolute_tolerance"          : 1e-9,
-            "max_iteration"                        : 15,
+            "max_iteration"                        : 100,
             "echo_level"                           : 1,
             "buffer_size"                          : 2,
             "compute_reactions"                    : false,
@@ -133,7 +134,7 @@
             "model_part_name" : "ThermalParameters3D_Thermal_Parameters_Auto1",
             "variable_name"   : "THERMAL_PARAMETERS",
             "ThermalDensity"  : 2400,
-            "Conductivity"    : 1.0,
+            "Conductivity"    : 100.0,
             "SpecificHeat"    : 1000.0
         }
     },{
@@ -146,7 +147,7 @@
             "model_part_name" : "ThermalParameters3D_Thermal_Parameters_Auto2",
             "variable_name"   : "THERMAL_PARAMETERS",
             "ThermalDensity"  : 3000,
-            "Conductivity"    : 1.0,
+            "Conductivity"    : 100.0,
             "SpecificHeat"    : 1000.0
         }
     },{
