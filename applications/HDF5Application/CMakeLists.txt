@@ -11,7 +11,6 @@ set( KRATOS_HDF5_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_serial.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io_base.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_properties_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_data_value_container_io.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_nodal_solution_step_variables_io.cpp
