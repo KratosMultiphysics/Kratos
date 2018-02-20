@@ -1,3 +1,5 @@
+import KratosMultiphysics
+
 import dam_main as Main
 
 solution = Main.Solution()

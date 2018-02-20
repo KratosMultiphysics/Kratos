@@ -9,8 +9,11 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
+import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
+import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+import KratosMultiphysics.DamApplication as KratosDam
 
 class Solution(object):
 
@@ -30,15 +33,15 @@ class Solution(object):
         self.ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
     def DefineParallelType(self):
-        self.parallel_type = self.ProjectParameters["problem_data"]["parallel_type"].GetString()
+        #self.parallel_type = self.ProjectParameters["problem_data"]["parallel_type"].GetString()
         parallel=KratosMultiphysics.OpenMPUtils()
         parallel.SetNumThreads(self.ProjectParameters["problem_data"]["number_of_threads"].GetInt())
-        if self.parallel_type == "MPI":
-            import KratosMultiphysics.mpi as KratosMPI
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-            print("MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
-        else:
-            print("OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+        #if self.parallel_type == "MPI":
+            #import KratosMultiphysics.mpi as KratosMPI
+            #import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+            #print("MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
+        #else:
+        print("OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
 
     def DefineVariables(self):
         self.domain_size = self.ProjectParameters["problem_data"]["domain_size"].GetInt()
@@ -211,20 +214,20 @@ class Solution(object):
             self.construction_utilities.Initialize()
 
         output_settings = self.ProjectParameters["output_configuration"]
-        if self.parallel_type == "OpenMP":
-            import poromechanics_cleaning_utility
-            poromechanics_cleaning_utility.CleanPreviousFiles(self.problem_path) # Clean previous post files
-            from gid_dam_output_process import GiDDamOutputProcess
-            self.gid_output = GiDDamOutputProcess(computing_model_part,
-                                                  self.problem_name,
-                                                  self.start_time,
-                                                  output_settings)
-        else:
-            from gid_output_process_mpi import GiDOutputProcessMPI
-            self.gid_output = GiDOutputProcessMPI(computing_model_part,
-                                                  self.problem_name,
-                                                  self.start_time,
-                                                  output_settings)
+        #if self.parallel_type == "OpenMP":
+        import poromechanics_cleaning_utility
+        poromechanics_cleaning_utility.CleanPreviousFiles(self.problem_path) # Clean previous post files
+        from gid_dam_output_process import GiDDamOutputProcess
+        self.gid_output = GiDDamOutputProcess(computing_model_part,
+                                              self.problem_name,
+                                              self.start_time,
+                                              output_settings)
+        #else:
+            #from gid_output_process_mpi import GiDOutputProcessMPI
+            #self.gid_output = GiDOutputProcessMPI(computing_model_part,
+                                                  #self.problem_name,
+                                                  #self.start_time,
+                                                  #output_settings)
         self.gid_output.ExecuteInitialize()
 
         self.solver.Initialize() # Initialize the solver
@@ -304,8 +307,8 @@ class Solution(object):
             self.process.ExecuteFinalize()
 
         # Finalizing strategy
-        if self.parallel_type == "OpenMP":
-            self.solver.Clear()
+        #if self.parallel_type == "OpenMP":
+        self.solver.Clear()
 
         # Time control
         print("Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - initial_time)," seconds.")
