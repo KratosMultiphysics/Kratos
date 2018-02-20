@@ -74,10 +74,7 @@ void ModelPartIO::ReadElements(NodesContainerType& rNodes,
     KRATOS_TRY;
 
     rElements.clear();
-    std::vector<std::string> group_names;
-    mpFile->GetGroupNames(mPrefix + "/Elements", group_names);
-
-    for (const auto& r_name : group_names)
+    for (const auto& r_name : mpFile->GetGroupNames(mPrefix + "/Elements"))
     {
         unsigned start_index, block_size;
         std::tie(start_index, block_size) = StartIndexAndBlockSize(mPrefix + "/Elements/" + r_name);
@@ -117,10 +114,7 @@ void ModelPartIO::ReadConditions(NodesContainerType& rNodes,
     KRATOS_TRY;
 
     rConditions.clear();
-    std::vector<std::string> group_names;
-    mpFile->GetGroupNames(mPrefix + "/Conditions", group_names);
-
-    for (const auto& r_name : group_names)
+    for (const auto& r_name : mpFile->GetGroupNames(mPrefix + "/Conditions"))
     {
         unsigned start_index, block_size;
         std::tie(start_index, block_size) = StartIndexAndBlockSize(mPrefix + "/Conditions/" + r_name);

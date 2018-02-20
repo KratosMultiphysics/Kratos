@@ -118,9 +118,9 @@ public:
 
     void CreateGroup(const std::string& rPath);
 
-    void GetLinkNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const;
+    std::vector<std::string> GetLinkNames(const std::string& rGroupPath) const;
 
-    void GetGroupNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const;
+    std::vector<std::string> GetGroupNames(const std::string& rGroupPath) const;
 
     void AddPath(const std::string& rPath);
 

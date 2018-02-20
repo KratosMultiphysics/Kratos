@@ -253,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetLinkNames, KratosHDF5TestSuite)
     HDF5::FileSerial test_file(test_params);
     std::vector<std::string> names;
     test_file.AddPath("/foo");
-    test_file.GetLinkNames("/foo", names);
+    names = test_file.GetLinkNames("/foo");
     KRATOS_CHECK(names.size() == 0);
     test_file.AddPath("/foo/group");
     HDF5::File::Vector<double> data(3, 0.0);
@@ -261,7 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetLinkNames, KratosHDF5TestSuite)
     test_file.WriteDataSet("/foo/data", data, info);
     KRATOS_CHECK(test_file.IsGroup("/foo/group"));
     KRATOS_CHECK(test_file.IsDataSet("/foo/data"));
-    test_file.GetLinkNames("/foo", names);
+    names = test_file.GetLinkNames("/foo");
     KRATOS_CHECK(names.size() == 2);
     KRATOS_CHECK(names[0] == "data");
     KRATOS_CHECK(names[1] == "group");

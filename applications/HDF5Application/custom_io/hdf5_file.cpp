@@ -168,7 +168,7 @@ void File::CreateGroup(const std::string& rPath)
     KRATOS_CATCH("");
 }
 
-void File::GetLinkNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const
+std::vector<std::string> File::GetLinkNames(const std::string& rGroupPath) const
 {
     KRATOS_TRY;
     constexpr unsigned max_ssize = 100;
@@ -181,7 +181,7 @@ void File::GetLinkNames(const std::string& rGroupPath, std::vector<std::string>&
     KRATOS_ERROR_IF(H5Gget_info(group_id, &group_info) < 0)
         << "H5Gget_info failed." << std::endl;
     hsize_t num_links = group_info.nlinks;
-    rNames.resize(num_links);
+    std::vector<std::string> names(num_links);
 
     for (hsize_t i=0; i < num_links; ++i)
     {
@@ -192,25 +192,24 @@ void File::GetLinkNames(const std::string& rGroupPath, std::vector<std::string>&
         KRATOS_ERROR_IF(ssize < 0) << "H5Lget_name_by_idx failed." << std::endl;
         KRATOS_ERROR_IF(ssize > max_ssize) << "Link name size exceeds "
                                            << max_ssize << std::endl;
-        rNames[i].resize(ssize);
-        std::copy_n(buffer, ssize, rNames[i].begin());
+        names[i].resize(ssize);
+        std::copy_n(buffer, ssize, names[i].begin());
     }
     KRATOS_ERROR_IF(H5Gclose(group_id) < 0) << "H5Gclose failed." << std::endl;
+    return names;
     KRATOS_CATCH("");
 }
 
-void File::GetGroupNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const
+std::vector<std::string> File::GetGroupNames(const std::string& rGroupPath) const
 {
     KRATOS_TRY;
-
-    rNames.resize(0);
-    std::vector<std::string> link_names;
-    GetLinkNames(rGroupPath, link_names);
-    rNames.reserve(link_names.size());
+    std::vector<std::string> names;
+    std::vector<std::string> link_names = GetLinkNames(rGroupPath);
+    names.reserve(link_names.size());
     for (const auto& r_name : link_names)
         if (IsGroup(rGroupPath + '/' + r_name))
-            rNames.push_back(r_name);
-
+            names.push_back(r_name);
+    return names;
     KRATOS_CATCH("");
 }
 
