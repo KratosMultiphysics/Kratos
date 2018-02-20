@@ -5,10 +5,8 @@ import time as timer
 print(timer.ctime())
 initial_time = timer.perf_counter()
 
-## Importing modules -----------------------------------------------------------------------------------------
-
-# Import system python
 import os
+import sys
 
 # Import kratos core and applications
 import KratosMultiphysics
@@ -21,7 +19,6 @@ import KratosMultiphysics.DamApplication as KratosDam
 class Solution(object):
 
     def __init__(self):
-
         self.LoadParametersFile()
         self.DefineParallelType()
         self.DefineVariables()
@@ -35,7 +32,7 @@ class Solution(object):
     def LoadParametersFile(self):
         parameter_file = open("ProjectParameters.json",'r')
         self.ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
-        
+
     def DefineParallelType(self):
         self.parallel_type = self.ProjectParameters["problem_data"]["parallel_type"].GetString()
         parallel=KratosMultiphysics.OpenMPUtils()
@@ -292,7 +289,7 @@ class Solution(object):
 
             # Write GiD results
             if self.gid_output.IsOutputStep():
-                self.gid_output.PrintOutput()
+                self.PrintOutput()
 
             for self.process in self.list_of_processes:
                 self.process.ExecuteAfterOutputStep()
@@ -300,7 +297,10 @@ class Solution(object):
             if self.consider_construction:
                 #  After initialize solution
                 self.construction_utilities.AfterOutputStep()
-
+                
+    def PrintOutput(self):
+        self.gid_output.PrintOutput()
+        
     def Finalize(self):
         self.gid_output.ExecuteFinalize() # Finalizing output files
 
@@ -314,12 +314,6 @@ class Solution(object):
         # Time control
         print("Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - initial_time)," seconds.")
         print(timer.ctime())
-        
-    def is_empty(self,a):
-        if a:
-            return False
-        else:
-            return True
 
 if __name__ == "__main__":
     Solution().Run()
