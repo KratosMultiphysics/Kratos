@@ -191,8 +191,10 @@ public:
 
         RandomInitializeUtility<double>::RandomInitialize(K, y);
 
-        if(Eigenvalues.size() < 1)
-            Eigenvalues.resize(1, 0.0);
+        if(Eigenvalues.size() < 1) {
+            Eigenvalues.resize(1);
+            Eigenvalues[0] = 0.0;
+        }
 
         // Starting with first step
         double rho = 0.0;
@@ -213,10 +215,14 @@ public:
             TSparseSpaceType::InplaceMult(y, 1.0/rho);
 
             const double convergence_rho = std::abs((rho - old_rho) / rho);
-            const double convergence_norm = TSparseSpaceType::TwoNorm(y - y_old)/TSparseSpaceType::TwoNorm(y);
+            const double norm_y = TSparseSpaceType::TwoNorm(y);
+            double convergence_norm =  TSparseSpaceType::TwoNorm(y - y_old);
+            if (norm_y > 0.0)
+                convergence_norm /= norm_y;
 
             if (mEchoLevel > 1)
-                KRATOS_INFO("Power Iterator Highest Eigenvalue Solver: ") << "Iteration: " << i << "\trho: " << rho << " \tConvergence norm: " << convergence_norm << " \tConvergence rho: " << convergence_rho << std::endl;
+                KRATOS_INFO("Power Iterator Highest Eigenvalue Solver: ") << "Iteration: " << i << "\trho: " << rho << " \tConvergence norm: " << convergence_norm << " \tConvergence rho: " <<
+                convergence_rho << std::endl;
             
             if(convergence_norm < tolerance || convergence_rho < tolerance)
                 break;
@@ -232,8 +238,8 @@ public:
 
         Eigenvalues[0] = rho;
 
-        if((Eigenvectors.size1() < 1) || (Eigenvectors.size2() < size))
-            Eigenvectors.resize(1,size);
+        if((Eigenvectors.size1() != 1) || (Eigenvectors.size2() < size))
+            Eigenvectors.resize(1, size, false);
 
         for(SizeType i = 0 ; i < size ; i++)
             Eigenvectors(0,i) = y[i];
