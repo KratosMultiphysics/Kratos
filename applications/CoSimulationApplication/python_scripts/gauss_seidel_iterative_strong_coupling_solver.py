@@ -70,7 +70,6 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCoupling
 
         ### Creating the convergence criterion
         #self.conv_criterion = CoSimApp.CoSimulationBaseConvergenceCriterion(self.settings['residual_relative_tolerance'].GetDouble(), self.settings['residual_relative_tolerance'].GetDouble())
-        ## Initialting the parent class
 
     def Initialize(self):
         for solver_name, solver in self.participating_solvers.items():
@@ -118,21 +117,21 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCoupling
             print('\tCoupling iteration :: ', iter)
             for solver_name, solver in self.participating_solvers.items():
                 print('\tSolving :: ', solver_name) 
-                self.SynchronizeInputData(solver)
+                self.__SynchronizeInputData(solver)
                 solver.SolveTimeStep()
-                self.SynchronizeOutputData(solver)
+                self.__SynchronizeOutputData(solver)
             
             iter = iter + 1
 
     ###############################
-    def SynchronizeInputData(self, solver):
+    def __SynchronizeInputData(self, solver):
         for solver_name, details in self.solver_cosim_details.items():
             input_data_list = details['input_data_list']
             for i in range(0, input_data_list.size()):
                 from_solver  = self.participating_solvers[ input_data_list[i]['from_solver'].GetString() ]
                 self.participating_solvers[solver_name].ImportData(input_data_list[i]['data_name'].GetString(), from_solver)
 
-    def SynchronizeOutputData(self, solver):
+    def __SynchronizeOutputData(self, solver):
         for solver_name, details in self.solver_cosim_details.items():
             output_data_list = details['output_data_list']
             for i in range(0, output_data_list.size()):

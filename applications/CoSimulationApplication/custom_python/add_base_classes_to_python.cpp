@@ -46,7 +46,6 @@ void AddCustomBaseClassesToPython()
 
     typedef CoSimulationBaseCouplingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> CoSimulationBaseCouplingStrategyType;
     typedef typename CoSimulationBaseSolver::Pointer CoSimBaseClassPointerType;
-    /*typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> SolvingStrategyType;*/
 
     //********************************************************************
     //********************CoSimulationIo**********************************
