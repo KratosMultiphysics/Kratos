@@ -3,7 +3,6 @@ import os
 import subprocess
 import sys
 import platform
-import smtplib
 
 path = '../test_examples'
 sys.path.append(path)
@@ -67,8 +66,8 @@ def Run():
                         subprocess.check_call(["python", "-3", path + "/Dam_benchmarks.py", str(benchmark), ">", "BenchTemp.info"], stdout=f, stderr=f)
                     os.system("export OMP_NUM_THREADS=") # Trying to set a 'default' value
             except:
-                #failure = True
-                #list_of_failed_tests += [benchmark]
+                failure = True
+                list_of_failed_tests += [benchmark]
                 print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
                 with open("errors.err", "a") as g:
                     if benchmark == 201:

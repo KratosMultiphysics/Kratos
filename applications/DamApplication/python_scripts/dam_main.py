@@ -13,7 +13,6 @@ import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
-import KratosMultiphysics.DamApplication as KratosDam
 
 class Solution(object):
 
@@ -127,7 +126,7 @@ class Solution(object):
         # Set TIME and DELTA_TIME and fill the previous steps of the buffer with the initial conditions
         self_time = self.time - (self.buffer_size-1) * self.delta_time
         self.self_weight_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, self.time)
-        for step in range(buffer_size-1):
+        for step in range(self.buffer_size-1):
             self_time = self_time + self.delta_time
             self.self_weight_model_part.CloneTimeStep(self_time)
 
