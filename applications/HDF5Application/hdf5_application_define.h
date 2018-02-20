@@ -53,11 +53,7 @@ typedef IO::MeshType::ElementsContainerType ElementsContainerType;
 
 typedef IO::MeshType::PropertiesContainerType PropertiesContainerType;
 
-typedef std::vector<ElementType const*> ConstElementsContainerType;
-
 typedef IO::MeshType::ConditionsContainerType ConditionsContainerType;
-
-typedef std::vector<ConditionType const*> ConstConditionsContainerType;
 
 } // namespace HDF5.
 } // namespace Kratos.
