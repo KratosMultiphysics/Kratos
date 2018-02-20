@@ -199,16 +199,14 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5File_GetAttributeNames, KratosHDF5TestSuite)
         })");
 
     HDF5::File test_file(test_params);
-    std::vector<std::string> names;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        test_file.GetAttributeNames("/invalid/path", names);
+        test_file.GetAttributeNames("/invalid/path");
         , "H5Oopen failed");
     test_file.AddPath("/foo");
-    test_file.GetAttributeNames("/foo", names);
-    KRATOS_CHECK(names.size() == 0);
+    KRATOS_CHECK(test_file.GetAttributeNames("/foo").size() == 0);
     test_file.WriteAttribute("/foo", "DENSITY", 1.2);
     test_file.WriteAttribute("/foo", "VISCOSITY", 1e-5);
-    test_file.GetAttributeNames("/foo", names);
+    std::vector<std::string> names = test_file.GetAttributeNames("/foo");
     KRATOS_CHECK(names.size() == 2);
     KRATOS_CHECK(names[0] == "DENSITY");
     KRATOS_CHECK(names[1] == "VISCOSITY");

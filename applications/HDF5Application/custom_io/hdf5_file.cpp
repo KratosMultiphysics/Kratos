@@ -128,7 +128,7 @@ bool File::HasAttribute(const std::string& rObjectPath, const std::string& rName
     KRATOS_CATCH("");
 }
 
-void File::GetAttributeNames(const std::string& rObjectPath, std::vector<std::string>& rNames) const
+std::vector<std::string> File::GetAttributeNames(const std::string& rObjectPath) const
 {
     KRATOS_TRY;
     constexpr unsigned max_ssize = 100;
@@ -140,7 +140,7 @@ void File::GetAttributeNames(const std::string& rObjectPath, std::vector<std::st
     KRATOS_ERROR_IF(H5Oget_info(object_id, &object_info) < 0)
         << "H5Oget_info failed." << std::endl;
     hsize_t num_attrs = object_info.num_attrs;
-    rNames.resize(num_attrs);
+    std::vector<std::string> names(num_attrs);
 
     for (hsize_t i = 0; i < num_attrs; ++i)
     {
@@ -151,10 +151,11 @@ void File::GetAttributeNames(const std::string& rObjectPath, std::vector<std::st
         KRATOS_ERROR_IF(ssize < 0) << "H5Aget_name_by_idx failed." << std::endl;
         KRATOS_ERROR_IF(ssize > max_ssize) << "Attribute name size exceeds "
                                            << max_ssize << std::endl;
-        rNames[i].resize(ssize);
-        std::copy_n(buffer, ssize, rNames[i].begin());
+        names[i].resize(ssize);
+        std::copy_n(buffer, ssize, names[i].begin());
     }
     KRATOS_ERROR_IF(H5Oclose(object_id) < 0) << "H5Oclose failed." << std::endl;
+    return names;
     KRATOS_CATCH("");
 }
 

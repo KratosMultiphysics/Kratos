@@ -13,8 +13,7 @@ void ReadDataValueContainer(File& rFile, std::string const& rPrefix, DataValueCo
 {
     KRATOS_TRY;
 
-    std::vector<std::string> attr_names;
-    rFile.GetAttributeNames(rPrefix + "/DataValues", attr_names);
+    std::vector<std::string> attr_names = rFile.GetAttributeNames(rPrefix + "/DataValues");
 
     for (const auto& r_name : attr_names)
     {

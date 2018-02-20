@@ -30,8 +30,7 @@ void ReadAndAssignVariablesList(File& rFile, std::string const& rPrefix, ModelPa
 
     VariablesList& r_variables_list = rModelPart.GetNodalSolutionStepVariablesList();
     r_variables_list.clear();
-    std::vector<std::string> variable_names;
-    rFile.GetAttributeNames(rPrefix + "/NodalSolutionStep/VariablesList", variable_names);
+    std::vector<std::string> variable_names = rFile.GetAttributeNames(rPrefix + "/NodalSolutionStep/VariablesList");
 
     // Ensure the variables order is the same as in the original model part.
     std::vector<std::string> ordered_variable_names(variable_names.size());
