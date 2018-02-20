@@ -101,10 +101,10 @@ public:
         )
     {
         // We create a random vector as seed of the method
-        std::random_device this_random_device;
-        std::mt19937 generator(this_random_device());
+        unsigned int seed = 1; // Constant seed
+        std::default_random_engine generator(seed);
         
-        std::normal_distribution<> normal_distribution(MeanValue, VarianceValue);
+        std::normal_distribution<TDataType> normal_distribution(MeanValue, VarianceValue);
         
         for (SizeType i = 0; i < R.size(); ++i)
             R[i] = normal_distribution(generator);
