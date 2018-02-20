@@ -11,7 +11,7 @@ namespace Kratos
 namespace HDF5
 {
 PartitionedModelPartIO::PartitionedModelPartIO(File::Pointer pFile, std::string const& rPrefix)
-: ModelPartIOBase(pFile, rPrefix)
+: ModelPartIO(pFile, rPrefix)
 {
     KRATOS_TRY;
 
@@ -25,29 +25,16 @@ bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
     KRATOS_TRY;
 
     rNodes.clear();
-
-    unsigned local_start_index, local_block_size;
+    BaseType::ReadNodes(rNodes);
     unsigned ghost_start_index, ghost_block_size;
-
     File& r_file = *mpFile;
-
-    std::tie(local_start_index, local_block_size) = HDF5::StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Local");
-    std::tie(ghost_start_index, ghost_block_size) = HDF5::StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Ghost");
-    rNodes.reserve(local_block_size + ghost_block_size);
-
-    // Read local nodes.
-    Internals::PointsData local_points;
-    local_points.ReadData(r_file, mPrefix + "/Nodes/Local", local_start_index, local_block_size);
-    local_points.CreateNodes(rNodes);
-    local_points.Clear();
-    
+    std::tie(ghost_start_index, ghost_block_size) = StartIndexAndBlockSize(mPrefix + "/Nodes/Ghost");
     // Read ghost nodes.
     Internals::PointsData ghost_points;
     ghost_points.ReadData(r_file, mPrefix + "/Nodes/Ghost", ghost_start_index, ghost_block_size);
     ghost_points.CreateNodes(rNodes);
-    ghost_points.Clear();
-
     return true;
+
     KRATOS_CATCH("");
 }
 
@@ -57,11 +44,9 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 
     NodesContainerType local_nodes;
     NodesContainerType ghost_nodes;
-
     const unsigned num_nodes = rNodes.size();
     local_nodes.reserve(num_nodes);
     ghost_nodes.reserve(0.1 * num_nodes);
-
     File& r_file = *mpFile;
 
     // Divide nodes into local and global containers.
@@ -75,114 +60,16 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     }
 
     // Write local nodes.
-    Internals::PointsData local_points;
-    local_points.SetData(local_nodes);
-    WriteInfo info;
-    local_points.WriteData(r_file, mPrefix + "/Nodes/Local", info);
-    WritePartitionTable(r_file, mPrefix + "/Nodes/Local", info);
-    local_points.Clear();
+    BaseType::WriteNodes(local_nodes);
 
     // Write ghost nodes.
+    WriteInfo info;
     Internals::PointsData ghost_points;
     ghost_points.SetData(ghost_nodes);
     ghost_points.WriteData(r_file, mPrefix + "/Nodes/Ghost", info);
-    WritePartitionTable(r_file, mPrefix + "/Nodes/Ghost", info);
+    StoreWriteInfo(mPrefix + "/Nodes/Ghost", info);
     WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
     ghost_points.Clear();
-
-    KRATOS_CATCH("");
-}
-
-void PartitionedModelPartIO::ReadElements(NodesContainerType& rNodes,
-                                          PropertiesContainerType& rProperties,
-                                          ElementsContainerType& rElements)
-{
-    KRATOS_TRY;
-
-    unsigned start_index, block_size;
-    rElements.clear();
-    std::vector<std::string> group_names;
-    mpFile->GetGroupNames(mPrefix + "/Elements", group_names);
-
-    for (const auto& r_name : group_names)
-    {
-        Internals::ConnectivitiesData connectivities;
-        std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(
-            *mpFile, mPrefix + "/Elements/" + r_name);
-        connectivities.ReadData(*mpFile, mPrefix + "/Elements/" + r_name, start_index, block_size);
-        connectivities.CreateEntities(rNodes, rProperties, rElements);
-    }
-
-    KRATOS_CATCH("");
-}
-
-void PartitionedModelPartIO::WriteElements(ElementsContainerType const& rElements)
-{
-    KRATOS_TRY;
-
-    std::vector<std::string> names;
-    std::vector<ElementsContainerType> factored_elements;
-    FactorElements(rElements, names, factored_elements);
-
-    WriteInfo info;
-    for (unsigned int i = 0; i < names.size(); ++i)
-    {
-        Internals::ConnectivitiesData connectivities;
-        // For partitioned elements, the local container may be empty. Therefore,
-        // we explicitly provide the element name here.
-        connectivities.SetData(names[i], factored_elements[i]);
-        connectivities.WriteData(*mpFile, mPrefix + "/Elements/" + connectivities.Name(), info);
-        const int size = info.TotalSize;
-        mpFile->WriteAttribute(mPrefix + "/Elements/" + connectivities.Name(), "Size", size);
-        WritePartitionTable(*mpFile, mPrefix + "/Elements/" + connectivities.Name(), info);
-    }
-
-    KRATOS_CATCH("");
-}
-
-void PartitionedModelPartIO::ReadConditions(NodesContainerType& rNodes,
-                                            PropertiesContainerType& rProperties,
-                                            ConditionsContainerType& rConditions)
-{
-    KRATOS_TRY;
-
-    unsigned start_index, block_size;
-    rConditions.clear();
-    std::vector<std::string> group_names;
-    mpFile->GetGroupNames(mPrefix + "/Conditions", group_names);
-
-    for (const auto& r_name : group_names)
-    {
-        Internals::ConnectivitiesData connectivities;
-        std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(
-            *mpFile, mPrefix + "/Conditions/" + r_name);
-        connectivities.ReadData(*mpFile, mPrefix + "/Conditions/" + r_name, start_index, block_size);
-        connectivities.CreateEntities(rNodes, rProperties, rConditions);
-    }
-
-    KRATOS_CATCH("");
-}
-
-void PartitionedModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
-{
-    KRATOS_TRY;
-
-    std::vector<std::string> names;
-    std::vector<ConditionsContainerType> factored_conditions;
-    FactorConditions(rConditions, names, factored_conditions);
-
-    WriteInfo info;
-    for (unsigned i = 0; i < names.size();  ++i)
-    {
-        Internals::ConnectivitiesData connectivities;
-        // For partitioned conditions, the local container may be empty. Therefore,
-        // we explicitly provide the condition name here.
-        connectivities.SetData(names[i], factored_conditions[i]);
-        connectivities.WriteData(*mpFile, mPrefix + "/Conditions/" + connectivities.Name(), info);
-        const int size = info.TotalSize;
-        mpFile->WriteAttribute(mPrefix + "/Conditions/" + connectivities.Name(), "Size", size);
-        WritePartitionTable(*mpFile, mPrefix + "/Conditions/" + connectivities.Name(), info);
-    }
 
     KRATOS_CATCH("");
 }
@@ -254,13 +141,31 @@ void PartitionedModelPartIO::ReadAndAssignPartitionIndex(const std::string& rPat
     // local nodes are read. Then copy it to the solution step data after the buffer
     // is initialized.
     unsigned start_index, block_size;
-    std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(*mpFile, rPath);
+    std::tie(start_index, block_size) = StartIndexAndBlockSize(rPath);
     Vector<int> partition_ids, node_ids;
     mpFile->ReadDataSet(rPath + "/PARTITION_INDEX", partition_ids, start_index, block_size);
     mpFile->ReadDataSet(rPath + "/Ids", node_ids, start_index, block_size);
     for (unsigned i = 0; i < node_ids.size(); ++i)
         r_nodes[node_ids[i]].FastGetSolutionStepValue(PARTITION_INDEX) = partition_ids[i];
 
+    KRATOS_CATCH("");
+}
+
+std::tuple<unsigned, unsigned> PartitionedModelPartIO::StartIndexAndBlockSize(std::string const& rPath) const
+{
+    KRATOS_TRY;
+    unsigned start_index, block_size;
+    std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(*mpFile, rPath);
+    return std::make_tuple(start_index, block_size);
+    KRATOS_CATCH("");
+}
+
+void PartitionedModelPartIO::StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo)
+{
+    KRATOS_TRY;
+    WritePartitionTable(*mpFile, rPath, rInfo);
+    const int size = rInfo.TotalSize;
+    mpFile->WriteAttribute(rPath, "Size", size);
     KRATOS_CATCH("");
 }
 

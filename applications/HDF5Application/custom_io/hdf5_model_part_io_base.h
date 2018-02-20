@@ -57,13 +57,29 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    bool ReadNodes(NodesContainerType& rNodes) override;
+
     std::size_t ReadNodesNumber() override;
+
+    void WriteNodes(NodesContainerType const& rNodes) override;
 
     void ReadProperties(PropertiesContainerType& rThisProperties) override;
 
     void WriteProperties(Properties const& rThisProperties) override;
 
     void WriteProperties(PropertiesContainerType const& rThisProperties) override;
+
+    void ReadElements(NodesContainerType& rNodes,
+                      PropertiesContainerType& rProperties,
+                      ElementsContainerType& rElements) override;
+
+    void WriteElements(ElementsContainerType const& rElements) override;
+
+    void ReadConditions(NodesContainerType& rNodes,
+                        PropertiesContainerType& rProperties,
+                        ConditionsContainerType& rConditions) override;
+
+    void WriteConditions(ConditionsContainerType const& rConditions) override;
 
     void WriteModelPart(ModelPart& rModelPart) override;
 
@@ -77,7 +93,7 @@ protected:
 
     ~ModelPartIOBase() = default;
 
-    virtual std::tuple<int, int> StartIndexAndBlockSize(std::string const& rPath) const;
+    virtual std::tuple<unsigned, unsigned> StartIndexAndBlockSize(std::string const& rPath) const;
 
     virtual void StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo);
 

@@ -53,29 +53,13 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    bool ReadNodes(NodesContainerType& rNodes) override;
 
-    void WriteNodes(NodesContainerType const& rNodes) override;
-
-    void ReadElements(NodesContainerType& rNodes,
-                      PropertiesContainerType& rProperties,
-                      ElementsContainerType& rElements) override;
-
-    void WriteElements(ElementsContainerType const& rElements) override;
-
-    void ReadConditions(NodesContainerType& rNodes,
-                        PropertiesContainerType& rProperties,
-                        ConditionsContainerType& rConditions) override;
-
-    void WriteConditions(ConditionsContainerType const& rConditions) override;
 
     ///@}
 
 protected:
     ///@name Protected Operations
     ///@{
-
-    void Check();
 
     ///@}
 
