@@ -45,8 +45,8 @@ class CoSimulationBaseCouplingStrategy : public CoSimulationBaseSolver
     ///@}
     ///@name Life Cycle
     ///@{
-    CoSimulationBaseCouplingStrategy(std::string iName, CoSimBaseClassPointerType app1, 
-                                     CoSimBaseClassPointerType app2, 
+    CoSimulationBaseCouplingStrategy(std::string iName, CoSimBaseClassPointerType app1=nullptr, 
+                                     CoSimBaseClassPointerType app2=nullptr, 
                                      CoSimulationBaseConvergenceAccelerationSchemePointerType iConvAccelerator=nullptr) 
                                      : BaseType(iName), mpApplicationOne(app1), 
                                        mpApplicationTwo(app2),

@@ -70,6 +70,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCoupling
 
         ### Creating the convergence criterion
         #self.conv_criterion = CoSimApp.CoSimulationBaseConvergenceCriterion(self.settings['residual_relative_tolerance'].GetDouble(), self.settings['residual_relative_tolerance'].GetDouble())
+        ## Initialting the parent class
 
     def Initialize(self):
         for solver_name, solver in self.participating_solvers.items():
@@ -105,7 +106,8 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCoupling
     def MakeDataAvailable(self, DataName, ToClient):
         pass
     def MakeMeshAvailable(self, MeshName, ToClient):
-        pass           
+        pass
+            
 
     def SolveTimeStep(self):
         max_iter = self.settings["co_simulation_solver_settings"]['max_iteration_per_step'].GetInt()
