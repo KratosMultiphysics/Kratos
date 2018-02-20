@@ -31,8 +31,8 @@ bool PartitionedModelPartIO::ReadNodes(NodesContainerType& rNodes)
 
     File& r_file = *mpFile;
 
-    std::tie(local_start_index, local_block_size) = StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Local");
-    std::tie(ghost_start_index, ghost_block_size) = StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Ghost");
+    std::tie(local_start_index, local_block_size) = HDF5::StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Local");
+    std::tie(ghost_start_index, ghost_block_size) = HDF5::StartIndexAndBlockSize(r_file, mPrefix + "/Nodes/Ghost");
     rNodes.reserve(local_block_size + ghost_block_size);
 
     // Read local nodes.
@@ -107,7 +107,7 @@ void PartitionedModelPartIO::ReadElements(NodesContainerType& rNodes,
     for (const auto& r_name : group_names)
     {
         Internals::ConnectivitiesData connectivities;
-        std::tie(start_index, block_size) = StartIndexAndBlockSize(
+        std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(
             *mpFile, mPrefix + "/Elements/" + r_name);
         connectivities.ReadData(*mpFile, mPrefix + "/Elements/" + r_name, start_index, block_size);
         connectivities.CreateEntities(rNodes, rProperties, rElements);
@@ -154,7 +154,7 @@ void PartitionedModelPartIO::ReadConditions(NodesContainerType& rNodes,
     for (const auto& r_name : group_names)
     {
         Internals::ConnectivitiesData connectivities;
-        std::tie(start_index, block_size) = StartIndexAndBlockSize(
+        std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(
             *mpFile, mPrefix + "/Conditions/" + r_name);
         connectivities.ReadData(*mpFile, mPrefix + "/Conditions/" + r_name, start_index, block_size);
         connectivities.CreateEntities(rNodes, rProperties, rConditions);
@@ -254,7 +254,7 @@ void PartitionedModelPartIO::ReadAndAssignPartitionIndex(const std::string& rPat
     // local nodes are read. Then copy it to the solution step data after the buffer
     // is initialized.
     unsigned start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, rPath);
+    std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(*mpFile, rPath);
     Vector<int> partition_ids, node_ids;
     mpFile->ReadDataSet(rPath + "/PARTITION_INDEX", partition_ids, start_index, block_size);
     mpFile->ReadDataSet(rPath + "/Ids", node_ids, start_index, block_size);

@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <tuple>
 
 // External includes
 
@@ -75,6 +76,10 @@ protected:
     ///@{
 
     ~ModelPartIOBase() = default;
+
+    virtual std::tuple<int, int> StartIndexAndBlockSize(std::string const& rPath) const;
+
+    virtual void StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo);
 
     ///@}
     ///@name Member Variables

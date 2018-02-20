@@ -75,5 +75,22 @@ void ModelPartIOBase::ReadModelPart(ModelPart& rModelPart)
     KRATOS_CATCH("");
 }
 
+std::tuple<int, int> ModelPartIOBase::StartIndexAndBlockSize(std::string const& rPath) const
+{
+    KRATOS_TRY;
+    int size;
+    mpFile->ReadAttribute(rPath, "Size", size);
+    return std::make_tuple(0, size);
+    KRATOS_CATCH("");
+}
+
+void ModelPartIOBase::StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo)
+{
+    KRATOS_TRY;
+    const int size = rInfo.TotalSize;
+    mpFile->WriteAttribute(rPath, "Size", size);
+    KRATOS_CATCH("");
+}
+
 } // namespace HDF5.
 } // namespace Kratos.
