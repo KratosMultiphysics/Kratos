@@ -90,7 +90,22 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimApp.CoSimulationBaseCoupling
     def FinalizeTimeStep(self):
         for solver_name, solver in self.participating_solvers.items():
             print('FinalizeTimeStep for solver :: ', solver_name)
-            solver.FinalizeTimeStep()               
+            solver.FinalizeTimeStep()   
+
+    def ImportData(self, DataName, FromClient):
+        pass
+    def ImportMesh(self, MeshName, FromClient):
+        pass
+
+    def ExportData(self, DataName, ToClient):
+        pass
+    def ExportMesh(self, MeshName, ToClient):
+        pass
+
+    def MakeDataAvailable(self, DataName, ToClient):
+        pass
+    def MakeMeshAvailable(self, MeshName, ToClient):
+        pass           
 
     def SolveTimeStep(self):
         max_iter = self.settings["co_simulation_solver_settings"]['max_iteration_per_step'].GetInt()
