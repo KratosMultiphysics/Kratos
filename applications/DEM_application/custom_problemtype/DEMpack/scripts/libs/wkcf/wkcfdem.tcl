@@ -609,6 +609,9 @@ proc ::wkcf::WriteAppliedLoadsData {AppId} {
 
 
 proc ::wkcf::WriteBoundingBoxDefaults {fileid} {
+	
+	global KPriv
+
 	if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 		puts $fileid "BoundingBoxMaxX                  =  10.0"
 		puts $fileid "BoundingBoxMaxY                  =  10.0"
@@ -627,6 +630,9 @@ proc ::wkcf::WriteBoundingBoxDefaults {fileid} {
 }
 
 proc ::wkcf::WriteBoundingBoxDefaultsInJsonFile {fileid} {
+
+	global KPriv
+
 	if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 		puts $fileid "\"BoundingBoxMaxX\"                  : 10.0,"
 		puts $fileid "\"BoundingBoxMaxY\"                  : 10.0,"
@@ -1260,9 +1266,11 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
     puts $fileid "\"PostShearStress\"                  : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
     
     # PostReactions
-    #set cxpath "$cxpathtoDEMresults//i.DEM-Reactions"
-    #set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "\"PostReactions\"                    : [::wkcf::TranslateToBinaryJson [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-Reactions" "dv"]],"
+	if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+		set cxpath "$cxpathtoDEMresults//i.DEM-Reactions"
+		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
+		puts $fileid "\"PostReactions\"                    : [::wkcf::TranslateToBinaryJson [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-Reactions" "dv"]],"
+	}
 
     # PostPressure
     set cxpath "$cxpathtoDEMresults//i.DEM-Pressure"
