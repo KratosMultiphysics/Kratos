@@ -46,6 +46,10 @@ class Solution(object):
 
         # Defining the number of threads
         num_threads =  self._get_parallel_size()
+        if( self.ProjectParameters.Has("problem_data") ):
+            if( self.ProjectParameters["problem_data"].Has("threads") ):
+                num_threads = self.ProjectParameters["problem_data"]["threads"].GetInt()
+        self._set_parallel_size(num_threads)
 
         print(" ")
         print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
@@ -66,8 +70,7 @@ class Solution(object):
         self.model  = self._get_model()
 
         # Start solver
-        computing_model_part = self.model.GetComputingModelPart()
-        self.solver = self._get_solver(computing_model_part)
+        self.solver = self._get_solver()
 
         self.solver.SetEchoLevel(self.echo_level)
         solver_variables = self.solver.GetVariables()
@@ -78,17 +81,18 @@ class Solution(object):
 
         processes_variables = self.processes.GetVariables()
         self.model.SetVariables(processes_variables)
-
-        self.process_info = self.model.GetProcessInfo()
-
+        
         # Read model
         self.model.ImportModel()
 
+        self.process_info = self.model.GetProcessInfo()
+        
         sys.stdout.flush()
 
-        # Initialize solver buffer
-        if( self._is_not_restarted() ):
-            self.solver.SetBuffer()
+        # Initialize Solver
+        computing_model_part = self.model.GetComputingModelPart()
+        self.solver.SetComputingModelPart(computing_model_part)
+        self.solver.ExecuteInitialize()
 
         # Import materials
         self.main_model_part = self.model.GetMainModelPart()
@@ -119,7 +123,7 @@ class Solution(object):
             self.output.ExecuteBeforeSolutionLoop()
 
 
-        self.solver.Initialize()
+        self.solver.ExecuteBeforeSolutionLoop()
 
         print(" ")
         print("::[KSM Simulation]:: Analysis -START- ")
@@ -281,9 +285,9 @@ class Solution(object):
         import model_manager
         return (model_manager.ModelManager(self.ProjectParameters["model_settings"]))
 
-    def _get_solver(self, computing_model_part):
+    def _get_solver(self):
         solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-        return (solver_module.CreateSolver(computing_model_part, self.ProjectParameters["solver_settings"]["Parameters"]))
+        return (solver_module.CreateSolver(self.ProjectParameters["solver_settings"]["Parameters"]))
 
     def _import_materials(self):
         # Assign material to model_parts (if Materials.json exists)

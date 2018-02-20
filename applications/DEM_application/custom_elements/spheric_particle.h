@@ -42,6 +42,7 @@ typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 /// Default constructor.
+SphericParticle();
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
@@ -50,6 +51,8 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 
 /// Destructor.
 virtual ~SphericParticle();
+
+SphericParticle& operator=(const SphericParticle& rOther);  
 
 class ParticleDataBuffer
 {
@@ -100,7 +103,7 @@ array_1d<double, 3> mDomainMax;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
 
-std::vector<DEMWall*> mNeighbourRigidFaces;
+std::vector<DEMWall*> mNeighbourRigidFaces; // why repeated? it is in the sphere as well!
 
 };
 
@@ -286,8 +289,6 @@ double mPartialRepresentativeVolume;
 std::vector<int> mFemOldNeighbourIds;
 
 protected:
-
-SphericParticle();
 
 virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer,
                                                 array_1d<double, 3>& rElasticForce,

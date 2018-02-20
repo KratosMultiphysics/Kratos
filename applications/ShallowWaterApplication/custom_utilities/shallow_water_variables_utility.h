@@ -67,6 +67,24 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
+        /**
+         * This method computes the water height as FREE_SURFACE_ELEVATION - BATHYMETRY
+         */
+        void ComputeHeightFromInitialFreeSurface()
+        {
+            KRATOS_TRY
+
+            ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+            #pragma omp parallel for
+            for(unsigned int i = 0; i < static_cast<unsigned int>(r_nodes.size()); i++)
+            {
+                ModelPart::NodesContainerType::iterator inode = r_nodes.begin() + i;
+                inode->FastGetSolutionStepValue(HEIGHT) = inode->FastGetSolutionStepValue(FREE_SURFACE_ELEVATION) - (inode->FastGetSolutionStepValue(BATHYMETRY) / mWaterHeightConvert);
+            }
+
+            KRATOS_CATCH("")
+        }
+
         /** 
          * This method computes the velocity as the MOMENTUM / HEIGHT
          */
