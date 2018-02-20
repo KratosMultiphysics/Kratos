@@ -1845,6 +1845,7 @@ def delete_archives():
     files_to_delete_list.extend(glob('*.lst'))
     files_to_delete_list.extend(glob('*.post.res'))
     files_to_delete_list.extend(glob('*.post.msh'))
+    files_to_delete_list.extend(glob('*.info'))
 
     for to_erase_file in files_to_delete_list:
         os.remove(to_erase_file)
