@@ -686,6 +686,7 @@ void PrestressMembraneElement::CalculateAll(
 
     Values.SetStrainVector(StrainVector);       // this is the input parameter
     Values.SetStressVector(StressVector);       // this is an output parameter
+    Values.SetDeformationGradientF(CalculateDeformationGradient());
 
     // resizing as needed the LHS
     if (CalculateStiffnessMatrixFlag == true)    // calculation of the matrix is required
@@ -1400,6 +1401,10 @@ void PrestressMembraneElement::ModifyPrestress(const unsigned int PointNumber,
     prestress_modified(2,PointNumber) = rTensor(1,0);
 
 }
+
+//***********************************************************************************
+//***********************************************************************************
+
 void PrestressMembraneElement::PrestressComputation(const unsigned int PointNumber){
     // initialize prestress matrix and prestress directions
     Matrix& prestress_variable = this->GetValue(MEMBRANE_PRESTRESS);
@@ -1442,6 +1447,10 @@ void PrestressMembraneElement::PrestressComputation(const unsigned int PointNumb
             }
         }
 }
+
+//***********************************************************************************
+//***********************************************************************************
+
 void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints){
     // compute Jacobian
     GeometryType::JacobiansType J0;
@@ -1528,6 +1537,15 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
 
 //***********************************************************************************
 //***********************************************************************************
+
+const Matrix& CalculateDeformationGradient()
+{
+    KRATOS_ERROR << "Anna can you please implement this function?" std::endl;
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
 int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
