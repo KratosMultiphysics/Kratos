@@ -14,7 +14,7 @@ END CONDITION
 
 BOOK: Initial_conditions
 
-CONDITION: Water_height
+CONDITION: Initial_water_height
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces
@@ -50,7 +50,7 @@ VALUE: #N# 2 0.0 0.0
 HELP: If Pressure_Distribution is set to Uniform, Value means Pressure_Value. If Pressure_Distribution is Hydrostatic, Value means Reference_Coordinate.
 END CONDITION
 
-CONDITION: Flux
+CONDITION: Imposed_flux
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: lines
@@ -75,7 +75,7 @@ BOOK: Source_terms
 CONDITION: Bottom_friction
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: surface
+GROUPALLOW: surfaces
 QUESTION: Manning_friction
 VALUE: 0.004
 END CONDITION
