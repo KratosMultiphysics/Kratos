@@ -52,7 +52,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
                }
             },
             "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
-            "contact_sub_model_part_list": []
+            "contact_bodies_list": []
         }
         """)
         
@@ -87,7 +87,7 @@ class ContactDomain(meshing_domain.MeshingDomain):
         if( not self.main_model_part.HasSubModelPart(self.settings["model_part_name"].GetString()) ):
             self.main_model_part.CreateSubModelPart(self.settings["model_part_name"].GetString())
         
-        contact_model_part_names = self.settings["contact_sub_model_part_list"]
+        contact_model_part_names = self.settings["contact_bodies_list"]
         self.contact_parts = KratosContact.StringVector()
         for i in range(contact_model_part_names.size()):
             self.contact_parts.PushBack(contact_model_part_names[i].GetString())

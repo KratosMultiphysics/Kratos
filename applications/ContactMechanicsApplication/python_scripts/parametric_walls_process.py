@@ -179,5 +179,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
     #
     def GetVariables(self):
-        nodal_variables = ['VOLUME_ACCELERATION', 'CONTACT_FORCE', 'CONTACT_NORMAL']
+        nodal_variables = ['RIGID_WALl']
+        nodal_variables = nodal_variables + ['CONTACT_FORCE', 'CONTACT_NORMAL']
+        #nodal_variables = nodal_variables + ['VOLUME_ACCELERATION']
         return nodal_variables

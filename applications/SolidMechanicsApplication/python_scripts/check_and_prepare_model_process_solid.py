@@ -24,7 +24,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             self.bodies_parts_list = Parameters["bodies_list"]
 
 
-    def Execute(self):
+    def ExecuteInitialize(self):
 
         #construct body model parts:
         solid_body_model_parts = []

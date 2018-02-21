@@ -66,3 +66,7 @@ class SetMechanicalInitialStateProcess(KratosMultiphysics.Process):
             GG[1] = -10;
             node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION, GG)
 
+    #
+    def GetVariables(self):
+        nodal_variables = ['VOLUME_ACCELERATION']
+        return nodal_variables

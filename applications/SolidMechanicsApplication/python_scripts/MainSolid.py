@@ -96,8 +96,9 @@ class Solution(object):
 
         # Import materials
         self.main_model_part = self.model.GetMainModelPart()
-        self._import_materials()
-
+        if( self._is_not_restarted() ):
+            self._import_materials()
+       
         # Initiliaze processes
         self.processes.ExecuteInitialize()
 
@@ -113,7 +114,6 @@ class Solution(object):
         output_model_part = self.model.GetOutputModelPart()
         self.output = self._get_graphical_output(output_model_part)
         self.output.ExecuteInitialize()
-
 
         # First execution before solution loop
         self.processes.ExecuteBeforeSolutionLoop()
@@ -297,7 +297,6 @@ class Solution(object):
 
             MaterialParameters = self.input_manager.GetMaterialParameters()
 
-
             if(MaterialParameters.Has("material_models_list")):
 
                 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterials
@@ -309,6 +308,8 @@ class Solution(object):
                 for process in assign_materials_processes:
                     process.Execute()
 
+                self.model.CleanModel()
+                    
         elif os.path.isfile("materials.py"): # legacy
 
             import constitutive_law_python_utility as constitutive_law_utils
@@ -323,7 +324,7 @@ class Solution(object):
 
         else:
             print(" No Materials.json or Materials.py found ")
-
+            
 
     def _get_processes(self):
         # Obtain the list of the processes to be applied

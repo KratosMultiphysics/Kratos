@@ -74,3 +74,8 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
 
     ###
     
+    #
+    def GetVariables(self):
+
+        nodal_variables = ['RIGID_WALL']
+        return nodal_variables

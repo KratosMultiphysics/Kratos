@@ -147,4 +147,11 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
                         
 
         
+    #
+    def GetVariables(self):
 
+        nodal_variables = remesh_domains_process.RemeshDomainsProcess.GetVariables(self)
+        nodal_variables = nodal_variables + ['OFFSET']
+        nodal_variables = nodal_variables + ['CONTACT_NORMAL', 'CONTACT_FORCE']        
+        nodal_variables = nodal_variables + ['CONTACT_STRESS', 'EFFECTIVE_CONTACT_STRESS', 'EFFECTIVE_CONTACT_FORCE']
+        return nodal_variables
