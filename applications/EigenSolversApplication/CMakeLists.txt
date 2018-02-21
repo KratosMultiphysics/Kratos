@@ -17,7 +17,7 @@ if( NOT DEFINED EIGEN_ROOT )
 	message( FATAL_ERROR "EIGEN_ROOT not defined" )
 endif()
 
-if( EIGEN_USE_MKL MATCHES ON AND NOT DEFINED ENV{MKLROOT} )
+if( USE_EIGEN_MKL MATCHES ON AND NOT DEFINED ENV{MKLROOT} )
 	message( FATAL_ERROR "MKLROOT not defined" )
 endif()
 
@@ -28,7 +28,7 @@ include_directories(
 	${EIGEN_ROOT}
 )
 
-if( EIGEN_USE_MKL MATCHES ON )
+if( USE_EIGEN_MKL MATCHES ON )
 	message( "MKLROOT = $ENV{MKLROOT}" )
 
 	if( NOT MSVC )
@@ -36,7 +36,7 @@ if( EIGEN_USE_MKL MATCHES ON )
 	endif()
 
 	include_directories( $ENV{MKLROOT}/include )
-	add_definitions( -DEIGEN_USE_MKL -DEIGEN_USE_MKL_ALL )
+	add_definitions( -DUSE_EIGEN_MKL -DUSE_EIGEN_MKL_ALL )
 endif()
 
 ## generate variables with the sources
@@ -51,7 +51,7 @@ set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES
 add_library( KratosEigenSolversApplication SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_SOURCES} )
 target_link_libraries( KratosEigenSolversApplication KratosCore )
 
-if( DEFINED ENV{MKLROOT} )
+if( USE_EIGEN_MKL MATCHES ON )
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
         find_library(MKL_RT_LIB mkl_rt)
         message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
