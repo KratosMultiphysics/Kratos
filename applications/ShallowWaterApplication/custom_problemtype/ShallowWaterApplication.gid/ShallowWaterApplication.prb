@@ -37,6 +37,8 @@ QUESTION: Absolute_tolerance
 VALUE: 1.0E-9
 QUESTION: Maximum_iterations
 VALUE: 20
+QUESTION: Compute_Reactions#CB#(true,false)
+VALUE: false
 QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
 VALUE: false
 QUESTION: Move_Mesh#CB#(true,false)

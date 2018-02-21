@@ -17,7 +17,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "        \"end_time\"             : [GiD_AccessValue get gendata End_Time],"
     puts $FileVar "        \"parallel_type\"        : \"[GiD_AccessValue get gendata Parallel_Configuration]\","
     puts $FileVar "        \"number_of_threads\"    : [GiD_AccessValue get gendata Number_of_threads],"
-    puts $FileVar "        \"gravity\"              : [gid_AccessValue get gendata Start_Time],"
+    puts $FileVar "        \"gravity\"              : [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"time_scale\"           : \"seconds\","
     puts $FileVar "        \"water_height_scale\"   : \"meters\""
     puts $FileVar "    \},"
@@ -26,17 +26,17 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     # solver_settings
     puts $FileVar "    \"solver_settings\"      : \{"
     if {[GiD_AccessValue get gendata Framework] eq "Pfem2"} {
-        if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
-            puts $FileVar "        \"solver_type\"              : \"pfem2_primitive_var_solver\","
-        } else {
-            puts $FileVar "        \"solver_type\"              : \"pfem2_conserved_var_solver\","
-        }
+    if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
+        puts $FileVar "        \"solver_type\"              : \"pfem2_primitive_var_solver\","
     } else {
-        if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
-            puts $FileVar "        \"solver_type\"              : \"eulerian_primitive_var_solver\","
-        } else {
-            puts $FileVar "        \"solver_type\"              : \"eulerian_conserved_var_solver\","
-        }
+        puts $FileVar "        \"solver_type\"              : \"pfem2_conserved_var_solver\","
+    }
+    } else {
+    if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
+        puts $FileVar "        \"solver_type\"              : \"eulerian_primitive_var_solver\","
+    } else {
+        puts $FileVar "        \"solver_type\"              : \"eulerian_conserved_var_solver\","
+    }
     }
     puts $FileVar "        \"model_import_settings\"    : \{"
     puts $FileVar "            \"input_type\"               : \"mdpa\","
@@ -48,50 +48,50 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "        \"relative_tolerance\"       : [GiD_AccessValue get gendata Relative_tolerance],"
     puts $FileVar "        \"absolute_tolerance\"       : [GiD_AccessValue get gendata Absolute_tolerance],"
     puts $FileVar "        \"maximum_iterations\"       : [GiD_AccessValue get gendata Maximum_iterations],"
-    puts $FileVar "        \"compute_reactions\"        : [GiD_AccessValue get gendata Write_Reactions],"
-    puts $FileVar "        \"reform_dofs_at_each_step\" : [giD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
+    puts $FileVar "        \"compute_reactions\"        : [GiD_AccessValue get gendata Compute_Reactions],"
+    puts $FileVar "        \"reform_dofs_at_each_step\" : [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
     puts $FileVar "        \"move_mesh_flag\"           : [GiD_AccessValue get gendata Move_Mesh],"
     puts $FileVar "        \"volume_model_part_name\"   : [],"
     # linear_solver_settings
     puts $FileVar "        \"linear_solver_settings\"   : \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
-        if {[GiD_AccessValue get gendata Solver_Type] eq "AmgclMPISolver"} {
-            puts $FileVar "            \"solver_type\"      : \"AmgclMPISolver\","
-            puts $FileVar "            \"krylov_type\"      : \"fgmres\","
-            puts $FileVar "            \"max_iteration\"    : 100,"
-            puts $FileVar "            \"tolerance\"        : 1.0e-6,"
-        } elseif {[GiD_AccessValue get gendata Solver_Type] eq "AztecSolver"} {
-            puts $FileVar "            \"solver_type\"      : \"AztecSolver\","
-            puts $FileVar "            \"tolerance\"        : 1.0e-6,"
-            puts $FileVar "            \"max_iteration\"    : 200,"
-            puts $FileVar "            \"preconditioner_type\": \"None\""
-        } elseif {([GiD_AccessValue get gendata Solver_Type] eq "Klu") || ([GiD_AccessValue get gendata Solver_Type] eq "MultiLevelSolver")} {
-            puts $FileVar "            \"solver_type\"      : \"[GiD_AccessValue get gendata Solver_Type]\","
-            puts $FileVar "            \"scaling\"          : false"
-        } else {
-            puts $FileVar "            \"solver_type\"      : \"Klu\","
-            puts $FileVar "            \"scaling\"          : false"
-        }
+    if {[GiD_AccessValue get gendata Solver_Type] eq "AmgclMPISolver"} {
+        puts $FileVar "            \"solver_type\"      : \"AmgclMPISolver\","
+        puts $FileVar "            \"krylov_type\"      : \"fgmres\","
+        puts $FileVar "            \"max_iteration\"    : 100,"
+        puts $FileVar "            \"tolerance\"        : 1.0e-6,"
+    } elseif {[GiD_AccessValue get gendata Solver_Type] eq "AztecSolver"} {
+        puts $FileVar "            \"solver_type\"      : \"AztecSolver\","
+        puts $FileVar "            \"tolerance\"        : 1.0e-6,"
+        puts $FileVar "            \"max_iteration\"    : 200,"
+        puts $FileVar "            \"preconditioner_type\": \"None\""
+    } elseif {([GiD_AccessValue get gendata Solver_Type] eq "Klu") || ([GiD_AccessValue get gendata Solver_Type] eq "MultiLevelSolver")} {
+        puts $FileVar "            \"solver_type\"      : \"[GiD_AccessValue get gendata Solver_Type]\","
+        puts $FileVar "            \"scaling\"          : false"
     } else {
-        if {[GiD_AccessValue get gendata Solver_Type] eq "AMGCL"} {
-            puts $FileVar "            \"solver_type\"      : \"AMGCL\","
-            puts $FileVar "            \"smoother_type\"    : \"ilu0\","
-            puts $FileVar "            \"krylov_type\"      : \"gmres\","
-            puts $FileVar "            \"coarsening_type\"  : \"aggregation\","
-            puts $FileVar "            \"max_iteration\"    : 100,"
-            puts $FileVar "            \"tolerance\"        : 1.0e-6,"
-            puts $FileVar "            \"scaling\"          : [GiD_AccessValue get gendata Scaling]"
-        } elseif {[GiD_AccessValue get gendata Solver_Type] eq "BICGSTABSolver"} {
-            puts $FileVar "            \"solver_type\"      : \"BICGSTABSolver\","
-            puts $FileVar "            \"tolerance\"        : 1.0e-6,"
-            puts $FileVar "            \"max_iteration\"    : 100,"
-            puts $FileVar "            \"scaling\"          : [GiD_AccessValue get gendata Scaling],"
-            puts $FileVar "            \"preconditioner_type\": \"ILU0Preconditioner\""
-        } elseif {([GiD_AccessValue get gendata Solver_Type] eq "SkylineLUFactorizationSolver") || ([GiD_AccessValue get gendata Solver_Type] eq "SuperLUSolver")} {
-            puts $FileVar "            \"solver_type\"      : \"[GiD_AccessValue get gendata Solver_Type]\""
-        } else {
-            puts $FileVar "            \"solver_type\"      : \"SuperLUSolver\""
-        }
+        puts $FileVar "            \"solver_type\"      : \"Klu\","
+        puts $FileVar "            \"scaling\"          : false"
+    }
+    } else {
+    if {[GiD_AccessValue get gendata Solver_Type] eq "AMGCL"} {
+        puts $FileVar "            \"solver_type\"      : \"AMGCL\","
+        puts $FileVar "            \"smoother_type\"    : \"ilu0\","
+        puts $FileVar "            \"krylov_type\"      : \"gmres\","
+        puts $FileVar "            \"coarsening_type\"  : \"aggregation\","
+        puts $FileVar "            \"max_iteration\"    : 100,"
+        puts $FileVar "            \"tolerance\"        : 1.0e-6,"
+        puts $FileVar "            \"scaling\"          : false"
+    } elseif {[GiD_AccessValue get gendata Solver_Type] eq "BICGSTABSolver"} {
+        puts $FileVar "            \"solver_type\"      : \"BICGSTABSolver\","
+        puts $FileVar "            \"tolerance\"        : 1.0e-6,"
+        puts $FileVar "            \"max_iteration\"    : 100,"
+        puts $FileVar "            \"scaling\"          : false,"
+        puts $FileVar "            \"preconditioner_type\": \"ILU0Preconditioner\""
+    } elseif {([GiD_AccessValue get gendata Solver_Type] eq "SkylineLUFactorizationSolver") || ([GiD_AccessValue get gendata Solver_Type] eq "SuperLUSolver")} {
+        puts $FileVar "            \"solver_type\"      : \"[GiD_AccessValue get gendata Solver_Type]\""
+    } else {
+        puts $FileVar "            \"solver_type\"      : \"SuperLUSolver\""
+    }
     }
     puts $FileVar "        \},"
     puts $FileVar "        \"time_stepping\"            : \{"
@@ -99,15 +99,15 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "            \"time_step\"                : [GiD_AccessValue get gendata Delta_Time]"
     puts $FileVar "        \},"
     if {[GiD_AccessValue get gendata FrameWork] eq "Pfem2"} {
-        puts $FileVar "        \"pfem2_settings\"           : \{"
-        puts $FileVar "            \"convection_scalar_variable\"   : \"HEIGHT\","
-        if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
-            puts $FileVar "            \"convection_vector_variable\"   : \"VELOCITY\","
-        } elseif {
-            puts $FileVar "            \"convection_vector_variable\"   : \"MOMENTUM\","
-        }
-        puts $FileVar "            \"maximum_number_of_particles\"  : [GiD_AccessValue get gendata Maximum_number_of_particles]"
-        puts $FileVar "        \}"
+    puts $FileVar "        \"pfem2_settings\"           : \{"
+    puts $FileVar "            \"convection_scalar_variable\"   : \"HEIGHT\","
+    if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
+        puts $FileVar "            \"convection_vector_variable\"   : \"VELOCITY\","
+    } else {
+        puts $FileVar "            \"convection_vector_variable\"   : \"MOMENTUM\","
+    }
+    puts $FileVar "            \"maximum_number_of_particles\"  : [GiD_AccessValue get gendata Maximum_number_of_particles]"
+    puts $FileVar "        \}"
     }
     puts $FileVar "    \},"
 
@@ -116,10 +116,10 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "    \"output_configuration\" : \{"
     puts $FileVar "        \"result_file_configuration\" : \{"
     puts $FileVar "            \"gidpost_flags\"         : \{"
-    puts $FileVar "                \"GidPostMode\"           : \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
+    puts $FileVar "                \"GidPostMode\"           : \"[GiD_AccessValue get gendata GiD_post_mode]\","
     puts $FileVar "                \"WriteDeformedMeshFlag\" : \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
-    puts $FileVar "                \"WriteConditionsFlag\"   :   \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $FileVar "                \"WMultifileFlag\"        :   \"[GiD_AccessValue get gendata Write_conditions]\""
+    puts $FileVar "                \"WriteConditionsFlag\"   : \"[GiD_AccessValue get gendata Write_conditions]\","
+    puts $FileVar "                \"MultifileFlag\"         : \"[GiD_AccessValue get gendata Multi_file_flag]\""
     puts $FileVar "            \}"
     puts $FileVar "            \"output_control_type\"   : \"[GiD_AccessValue get gendata Output_control_type]\","
     puts $FileVar "            \"output_frequency\"      : [GiD_AccessValue get gendata Output_frequency],"
@@ -129,21 +129,16 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "            \"plane_output\"          : \[\],"
     # nodal_results
     set PutStrings \[
-    set iGroup 0
     if {[GiD_AccessValue get gendata Variables] eq "Conserved"} {
-        incr iGroup
-        append PutStrings \"MOMENTUM\" ,
+    append PutStrings \"MOMENTUM\" ,
     }
-    incr iGroup
-    append PutStrings \"VELOCITY\",\"HEIHT\",\"FREE_SURFECE_ELEVATION\",\"BATHYMETRY\"
-    if {$iGroup > 0} {
-        set PutStrings [string trimright $PutStrings ,]
-    }
+    append PutStrings \"VELOCITY\",\"HEIGHT\",\"FREE_SURFECE_ELEVATION\",\"BATHYMETRY\"
+    set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     puts $FileVar "            \"nodal_results\"         : $PutStrings,"
     puts $FileVar "            \"gauss_point_results\"   : \[\]"
     puts $FileVar "        \},"
-    puts $FileVar "        \"point_data_configuration\":  \[\]"
+    puts $FileVar "        \"point_data_configuration\"  :  \[\]"
     puts $FileVar "    \},"
 
 
