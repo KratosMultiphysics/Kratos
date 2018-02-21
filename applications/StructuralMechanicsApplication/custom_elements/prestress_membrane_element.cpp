@@ -1538,9 +1538,9 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
 //***********************************************************************************
 //***********************************************************************************
 
-const Matrix& CalculateDeformationGradient()
+const Matrix& PrestressMembraneElement::CalculateDeformationGradient()
 {
-    KRATOS_ERROR << "Anna can you please implement this function?" std::endl;
+    KRATOS_ERROR << "Anna can you please implement this function?" << std::endl;
 }
 
 //***********************************************************************************
