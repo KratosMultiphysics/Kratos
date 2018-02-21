@@ -111,20 +111,16 @@ namespace Kratos
 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
 			int index = i * msDimension * 2;
+			const auto& acc = this->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+			const auto& ang_acc = this->GetGeometry()[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
 
-			rValues[index] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(ACCELERATION_X, Step);
-			rValues[index + 1] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(ACCELERATION_Y, Step);
-			rValues[index + 2] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(ACCELERATION_Z, Step);
+			rValues[index] = acc[0];
+			rValues[index + 1] = acc[1];
+			rValues[index + 2] = acc[2];
 
-			rValues[index + 3] = this->GetGeometry()[i].
-				FastGetSolutionStepValue(ANGULAR_ACCELERATION_X, Step);
-			rValues[index + 4] = this->GetGeometry()[i].
-				FastGetSolutionStepValue(ANGULAR_ACCELERATION_Y, Step);
-			rValues[index + 5] = this->GetGeometry()[i].
-				FastGetSolutionStepValue(ANGULAR_ACCELERATION_Z, Step);
+			rValues[index + 3] = ang_acc[0];
+			rValues[index + 4] = ang_acc[1];
+			rValues[index + 5] = ang_acc[2];
 		}
 		KRATOS_CATCH("")
 	}
@@ -138,45 +134,38 @@ namespace Kratos
 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
 			int index = i * msDimension * 2;
-			rValues[index] = this->GetGeometry()[i].
-				FastGetSolutionStepValue(VELOCITY_X, Step);
-			rValues[index + 1] = this->GetGeometry()[i].
-				FastGetSolutionStepValue(VELOCITY_Y, Step);
-			rValues[index + 2] = this->GetGeometry()[i].
-				FastGetSolutionStepValue(VELOCITY_Z, Step);
+			const auto& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+			const auto& ang_vel = this->GetGeometry()[i].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
 
-			rValues[index + 3] = this->GetGeometry()[i].
-				FastGetSolutionStepValue(ANGULAR_VELOCITY_X, Step);
-			rValues[index + 4] = this->GetGeometry()[i].
-				FastGetSolutionStepValue(ANGULAR_VELOCITY_Y, Step);
-			rValues[index + 5] = this->GetGeometry()[i].
-				FastGetSolutionStepValue(ANGULAR_VELOCITY_Z, Step);
+			rValues[index] = vel[0];
+			rValues[index + 1] = vel[1];
+			rValues[index + 2] = vel[2];
+
+			rValues[index + 3] = ang_vel[0];
+			rValues[index + 4] = ang_vel[1];
+			rValues[index + 5] = ang_vel[2];
 		}
 		KRATOS_CATCH("")
 	}
 
 	void CrBeamElement3D2N::GetValuesVector(Vector& rValues, int Step) 
 	{
-
 		KRATOS_TRY
 		if (rValues.size() != msElementSize) rValues.resize(msElementSize, false);
 
 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
 			int index = i * msDimension * 2;
-			rValues[index] = this->GetGeometry()[i]
-				.GetSolutionStepValue(DISPLACEMENT_X, Step);
-			rValues[index + 1] = this->GetGeometry()[i]
-				.GetSolutionStepValue(DISPLACEMENT_Y, Step);
-			rValues[index + 2] = this->GetGeometry()[i]
-				.GetSolutionStepValue(DISPLACEMENT_Z, Step);
+			const auto& disp = this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+			const auto& rot = this->GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
 
-			rValues[index + 3] = this->GetGeometry()[i]
-				.GetSolutionStepValue(ROTATION_X, Step);
-			rValues[index + 4] = this->GetGeometry()[i]
-				.GetSolutionStepValue(ROTATION_Y, Step);
-			rValues[index + 5] = this->GetGeometry()[i]
-				.GetSolutionStepValue(ROTATION_Z, Step);
+			rValues[index] = disp[0];
+			rValues[index + 1] = disp[1];
+			rValues[index + 2] = disp[2];
+
+			rValues[index + 3] = rot[0];
+			rValues[index + 4] = rot[1];
+			rValues[index + 5] = rot[2];
 		}
 		KRATOS_CATCH("")
 	}
@@ -754,8 +743,7 @@ namespace Kratos
 
 		KRATOS_TRY
 		//update local CS
-		Matrix aux_rotation_matrix = ZeroMatrix(msDimension);
-		aux_rotation_matrix = this->UpdateRotationMatrixLocal(Bisectrix,VectorDifference);
+		Matrix aux_rotation_matrix = this->UpdateRotationMatrixLocal(Bisectrix,VectorDifference);
 
 		rRotationMatrix = ZeroMatrix(msElementSize);
 		//Building the rotation matrix for the local element matrix
@@ -850,7 +838,6 @@ namespace Kratos
 
 
 		//vector part of difference quaternion
-		VectorDifference = ZeroVector(msDimension);
 		VectorDifference = this->mQuaternionSCA_A * this->mQuaternionVEC_B;
 		VectorDifference -= this->mQuaternionSCA_B * this->mQuaternionVEC_A;
 		VectorDifference += MathUtils<double>::CrossProduct(this->mQuaternionVEC_A,
@@ -911,9 +898,9 @@ namespace Kratos
 
 		bounded_matrix<double,msDimension,msDimension> n_xyz = ZeroMatrix(msDimension);
 		for (unsigned int i = 0; i < msDimension; ++i) {
-			n_xyz(i, 0) = -1.0 * rotated_coordinate_system(i, 0);
-			n_xyz(i, 1) = 1.0 * rotated_coordinate_system(i, 1);
-			n_xyz(i, 2) = 1.0 * rotated_coordinate_system(i, 2);
+			n_xyz(i, 0) = -rotated_coordinate_system(i, 0);
+			n_xyz(i, 1) = rotated_coordinate_system(i, 1);
+			n_xyz(i, 2) = rotated_coordinate_system(i, 2);
 		}
 
 		bounded_matrix<double,msDimension,msDimension> Identity = ZeroMatrix(msDimension);

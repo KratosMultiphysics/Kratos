@@ -225,15 +225,15 @@ namespace Kratos
 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
 			int index = i * msDimension;
-			rValues[index] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(DISPLACEMENT_X, Step);
-			rValues[index + 1] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
-			rValues[index + 2] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
+			const auto& disp = this->GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+
+			rValues[index] = disp[0];
+			rValues[index + 1] = disp[1];
+			rValues[index + 2] = disp[2];
 		}
 		KRATOS_CATCH("")
 	}
+
 
 	void TrussElement3D2N::GetFirstDerivativesVector(Vector& rValues, int Step){
 
@@ -243,15 +243,15 @@ namespace Kratos
 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
 			int index = i * msDimension;
-			rValues[index] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(VELOCITY_X, Step);
-			rValues[index + 1] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(VELOCITY_Y, Step);
-			rValues[index + 2] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(VELOCITY_Z, Step);
+			const auto& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+
+			rValues[index] = vel[0];
+			rValues[index + 1] = vel[1];
+			rValues[index + 2] = vel[2];
 		}
 		KRATOS_CATCH("")
 	}
+
 
 	void TrussElement3D2N::GetSecondDerivativesVector(Vector& rValues,int Step){
 
@@ -261,12 +261,11 @@ namespace Kratos
 		for (int i = 0; i < msNumberOfNodes; ++i)
 		{
 			int index = i * msDimension;
-			rValues[index] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(ACCELERATION_X, Step);
-			rValues[index + 1] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(ACCELERATION_Y, Step);
-			rValues[index + 2] = this->GetGeometry()[i]
-				.FastGetSolutionStepValue(ACCELERATION_Z, Step);
+			const auto& acc = this->GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+
+			rValues[index] = acc[0];
+			rValues[index + 1] = acc[1];
+			rValues[index + 2] = acc[2];
 		}
 
 		KRATOS_CATCH("")
