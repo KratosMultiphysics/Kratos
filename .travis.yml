@@ -45,5 +45,6 @@ script:
 - make install/fast
 - ccache -s
 
-# - cd ../kratos/python_scripts
-# - python3 run_tests.py -l small
+after_script:
+- cd ../kratos/python_scripts
+- python3 run_tests.py -l small
