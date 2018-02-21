@@ -49,7 +49,7 @@ class ModelManager(object):
 
         # Process Info
         self.process_info = self.main_model_part.ProcessInfo
-                
+
         # Variables and Dofs settings
         self.nodal_variables = []
         self.dof_variables   = []
@@ -63,16 +63,16 @@ class ModelManager(object):
         #print("::[Model_Manager]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["input_file_settings"]["name"].GetString()
-        
+
         if(self.settings["input_file_settings"]["type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
             print("  (reading file: "+ input_filename + ".mdpa)")
             #print("   " + os.path.join(problem_path, input_filename) + ".mdpa ")
             sys.stdout.flush()
 
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.settings["dimension"].GetInt())                 
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.settings["dimension"].GetInt())
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.settings["dimension"].GetInt()) # Legacy
-            
+
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
 
             # Check and prepare computing model part and import constitutive laws.
@@ -99,10 +99,10 @@ class ModelManager(object):
             load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1;
             self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
             # print("   Finished loading model part from restart file ")
-            
+
             computing_model_part = self.settings["computing_model_part_name"].GetString()
             self._add_model_part_to_model(computing_model_part)
-            
+
             # Get the list of the model_part's in the object Model
             for i in range(self.settings["domain_parts_list"].size()):
                 part_name = self.settings["domain_parts_list"][i].GetString()
@@ -119,7 +119,7 @@ class ModelManager(object):
         #print ("::[Model_Manager]:: Finished importing model part")
         print ("::[Model_Manager]:: Model Ready")
 
-        
+
     def ExportModel(self):
         name_out_file = self.settings["input_file_settings"]["name"].GetString()+".out"
         file = open(name_out_file + ".mdpa","w")
@@ -128,8 +128,8 @@ class ModelManager(object):
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
     def CleanModel(self):
-        self._clean_body_parts()      
-        
+        self._clean_body_parts()
+
     ########
 
     def GetProcessInfo(self):
@@ -161,8 +161,8 @@ class ModelManager(object):
         # Defining the model_part
         main_model_part = KratosMultiphysics.ModelPart(self.settings["model_name"].GetString())
         return main_model_part
-    
-    def _create_model(self):        
+
+    def _create_model(self):
         #TODO: replace this "model" for real one once available in kratos core
         model = {self.settings["model_name"].GetString() : self.main_model_part}
         return model
@@ -170,11 +170,11 @@ class ModelManager(object):
     def _add_model_part_to_model(self, part_name):
         if( self.main_model_part.HasSubModelPart(part_name) ):
             self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-        
-    def _create_sub_model_part(self, part_name):                
+
+    def _create_sub_model_part(self, part_name):
         self.main_model_part.CreateSubModelPart(part_name)
         self._add_model_part_to_model(part_name)
-    
+
     def _add_variables(self):
 
         self._set_variables()
@@ -183,7 +183,7 @@ class ModelManager(object):
         self.nodal_variables = list(set(self.nodal_variables))
 
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
-        self.nodal_variables.sort() 
+        self.nodal_variables.sort()
 
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
@@ -285,7 +285,7 @@ class ModelManager(object):
 
         # Build model
         self._build_model()
-            
+
     #
     def _build_bodies(self):
 
@@ -295,14 +295,14 @@ class ModelManager(object):
         rigid_body_model_parts = []
 
         void_flags = KratosSolid.FlagsContainer()
-        
+
         bodies_list = self.settings["bodies_list"]
         for i in range(bodies_list.size()):
             #create body model part
             body_model_part_name = bodies_list[i]["body_name"].GetString()
             self.main_model_part.CreateSubModelPart(body_model_part_name)
             body_model_part = self.main_model_part.GetSubModelPart(body_model_part_name)
-            
+
             print("::[Model_Prepare]::Body Created :", body_model_part_name)
             body_model_part.ProcessInfo = self.main_model_part.ProcessInfo
             body_model_part.Properties  = self.main_model_part.Properties
@@ -370,7 +370,7 @@ class ModelManager(object):
         computing_model_part_name  = self.settings["computing_model_part_name"].GetString()
         sub_model_part_names       = self.settings["domain_parts_list"]
         processes_model_part_names = self.settings["processes_parts_list"]
-        
+
         domain_parts = []
         for i in range(sub_model_part_names.size()):
             domain_parts.append(self.main_model_part.GetSubModelPart(sub_model_part_names[i].GetString()))
@@ -402,7 +402,7 @@ class ModelManager(object):
             #condition flags as BOUNDARY or CONTACT are reserved to composite or contact conditions (do not set it here)
             transfer_process = KratosSolid.TransferEntitiesProcess(computing_model_part,part,entity_type)
             transfer_process.Execute()
-        
+
     #
     def _build_model(self):
 
@@ -425,10 +425,10 @@ class ModelManager(object):
             part_name = self.settings["processes_parts_list"][i].GetString()
             if( self.main_model_part.HasSubModelPart(part_name) ):
                 self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
-    
+
     #
     def _clean_body_parts(self):
-    
+
         #delete body parts: (materials have to be already assigned)
         if( self._has_bodies() ):
             bodies_list = self.settings["bodies_list"]

@@ -81,12 +81,12 @@ class Solution(object):
 
         processes_variables = self.processes.GetVariables()
         self.model.SetVariables(processes_variables)
-        
+
         # Read model
         self.model.ImportModel()
 
         self.process_info = self.model.GetProcessInfo()
-        
+
         sys.stdout.flush()
 
         # Initialize Solver
@@ -98,7 +98,7 @@ class Solution(object):
         self.main_model_part = self.model.GetMainModelPart()
         if( self._is_not_restarted() ):
             self._import_materials()
-       
+
         # Initiliaze processes
         self.processes.ExecuteInitialize()
 
@@ -309,7 +309,7 @@ class Solution(object):
                     process.Execute()
 
                 self.model.CleanModel()
-                    
+
         elif os.path.isfile("materials.py"): # legacy
 
             import constitutive_law_python_utility as constitutive_law_utils
@@ -324,7 +324,7 @@ class Solution(object):
 
         else:
             print(" No Materials.json or Materials.py found ")
-            
+
 
     def _get_processes(self):
         # Obtain the list of the processes to be applied
