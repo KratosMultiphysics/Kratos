@@ -21,7 +21,7 @@
             "materials_filename": "eigen_test/Eigen_Q4_Thick_2x2_Plate_test_materials.json"
         },
 	"eigensolver_settings":{
-        "solver_type": "FEAST",
+        "solver_type": "feast",
         "print_feast_output": false,
         "perform_stochastic_estimate": false,
         "solve_eigenvalue_problem": true,
@@ -56,7 +56,7 @@
         "process_name"  : "CheckEigenvaluesProcess",
         "Parameters"    : {
             "model_part_name"  : "Structure",
-	    "variable_name"   : "EIGENVALUE_VECTOR",                                              
+	    "variable_name"   : "EIGENVALUE_VECTOR",
             "reference_values": "[88.96614452368635, 3955.0855388258715, 7796.83946434412]"
         }
     },{
@@ -79,15 +79,5 @@
             "file_name_2"       : "eigen_test/Eigen_Q4_Thick_2x2_Plate_EigenResults_0.post.res",
             "deterministic"     : true
         }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    }]
 }
