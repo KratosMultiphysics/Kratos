@@ -304,9 +304,7 @@ proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName Prop
                 incr MyConditionId
                 lappend MyConditionList $MyConditionId
                 set ElementGroup [GiD_EntitiesGroups entity_groups element [lindex [lindex $Entities 0] $j]]
-                WarnWin "ElementGroup: $ElementGroup"
                 set len [llength $ElementGroup]
-                WarnWin "Length ElementGroup: $len"
                 for {set k 0} {$k < [llength $ElementGroup]} {incr k} {
                     if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
                         set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
