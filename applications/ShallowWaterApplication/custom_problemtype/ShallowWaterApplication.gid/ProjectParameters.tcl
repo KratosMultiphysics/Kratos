@@ -1,14 +1,14 @@
-proc WriteProjectParameters { basename dir problemtypedir TableDict} {
+proc WriteProjectParameters { basename dir problemtypedir } {
 
 
-    ## Start ProjectParameters.json file
+    # Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]
     set FileVar [open $filename w]
 
     puts $FileVar "\{"
 
 
-    ## problem_data
+    # problem_data
     puts $FileVar "    \"problem_data\"         : \{"
     puts $FileVar "        \"problem_name\"         : \"$basename\","
     puts $FileVar "        \"model_part_name\"      : \"main_model_part\","
@@ -23,7 +23,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "    \},"
 
 
-    ## solver_settings
+    # solver_settings
     puts $FileVar "    \"solver_settings\"      : \{"
     if {[GiD_AccessValue get gendata Framework] eq "Pfem2"} {
         if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
@@ -52,7 +52,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"reform_dofs_at_each_step\" : [giD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
     puts $FileVar "        \"move_mesh_flag\"           : [GiD_AccessValue get gendata Move_Mesh],"
     puts $FileVar "        \"volume_model_part_name\"   : [],"
-    ## linear_solver_settings
+    # linear_solver_settings
     puts $FileVar "        \"linear_solver_settings\"   : \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         if {[GiD_AccessValue get gendata Solver_Type] eq "AmgclMPISolver"} {
@@ -94,32 +94,33 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
         }
     }
     puts $FileVar "        \},"
-    puts $FileVar "        \"time_stepping\"            : {"
-    puts $FileVar "        \"automatic_time_step\"  : false"
-    puts $FileVar "            \"time_step\"        : [GiD_AccessValue get gendata Delta_Time]"
+    puts $FileVar "        \"time_stepping\"            : \{"
+    puts $FileVar "            \"automatic_time_step\"      : false"
+    puts $FileVar "            \"time_step\"                : [GiD_AccessValue get gendata Delta_Time]"
     puts $FileVar "        \},"
     if {[GiD_AccessValue get gendata FrameWork] eq "Pfem2"} {
-        puts $FileVar "        \"pfem2_settings\"           : {"
+        puts $FileVar "        \"pfem2_settings\"           : \{"
         puts $FileVar "            \"convection_scalar_variable\"   : \"HEIGHT\","
         if {[GiD_AccessValue get gendata Variables] eq "Primitive"} {
-        puts $FileVar "            \"convection_vector_variable\"   : \"VELOCITY\","
+            puts $FileVar "            \"convection_vector_variable\"   : \"VELOCITY\","
         } elseif {
-        puts $FileVar "            \"convection_vector_variable\"   : \"MOMENTUM\","
+            puts $FileVar "            \"convection_vector_variable\"   : \"MOMENTUM\","
         }
         puts $FileVar "            \"maximum_number_of_particles\"  : [GiD_AccessValue get gendata Maximum_number_of_particles]"
+        puts $FileVar "        \}"
     }
-    puts $FileVar "        \}"
     puts $FileVar "    \},"
 
 
-    ## output_configuration
+    # output_configuration
     puts $FileVar "    \"output_configuration\" : \{"
     puts $FileVar "        \"result_file_configuration\" : \{"
     puts $FileVar "            \"gidpost_flags\"         : \{"
     puts $FileVar "                \"GidPostMode\"           : \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteDeformedMeshFlag\" : \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\"   :   \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $FileVar "                \"WMultifileFlag\"        :   \"[GiD_AccessValue get gendata Write_conditions]\","
+    puts $FileVar "                \"WMultifileFlag\"        :   \"[GiD_AccessValue get gendata Write_conditions]\""
+    puts $FileVar "            \}"
     puts $FileVar "            \"output_control_type\"   : \"[GiD_AccessValue get gendata Output_control_type]\","
     puts $FileVar "            \"output_frequency\"      : [GiD_AccessValue get gendata Output_frequency],"
     puts $FileVar "            \"body_output\"           : [GiD_AccessValue get gendata Body_output],"
@@ -146,14 +147,17 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "    \},"
 
 
-    ## initial conditions
-    
-    ## boundary conditions
-    
-    ## bathymetry
+    # initial conditions
 
-    ## Finish ProjectParameters.json file
+
+    # boundary conditions
+
+
+    # bathymetry
+
+
+    # Finish ProjectParameters.json file
     puts $FileVar "\}"
-    
+
     close $FileVar
 }
