@@ -23,6 +23,7 @@ File::File(Parameters Settings)
     Settings.RecursivelyValidateAndAssignDefaults(default_params);
 
     m_file_name = Settings["file_name"].GetString();
+    KRATOS_ERROR_IF(m_file_name == "PLEASE_SPECIFY_HDF5_FILENAME") << "Invalid file name: " << m_file_name << std::endl;
 
     hid_t fapl_id = H5Pcreate(H5P_FILE_ACCESS);
     std::string file_driver = Settings["file_driver"].GetString();
@@ -216,7 +217,7 @@ std::vector<std::string> File::GetGroupNames(const std::string& rGroupPath) cons
 
 void File::AddPath(const std::string& rPath)
 {
-    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: " <<rPath << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: " << rPath << std::endl;
 
     std::vector<std::string> splitted_path = Internals::Split(rPath, '/');
     std::string sub_path;
@@ -443,7 +444,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
     KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
     KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
-    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Attribute \"" << rName << "\" is not a string." << std::endl;
 
     // Check dimensions.
     space_id = H5Aget_space(attr_id);
@@ -598,15 +599,14 @@ bool IsPath(const std::string& rPath)
 
 std::vector<std::string> Split(const std::string& rPath, char Delimiter)
 {
-    std::vector<std::string> result;
-    result.reserve(10);
+    std::vector<std::string> splitted;
+    splitted.reserve(10);
     std::stringstream ss(rPath);
     std::string sub_string;
     while (std::getline(ss, sub_string, Delimiter))
         if (sub_string.size() > 0)
-            result.push_back(sub_string);
-
-    return result;
+            splitted.push_back(sub_string);
+    return splitted;
 }
 } // namespace Internals.
 
