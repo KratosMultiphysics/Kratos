@@ -303,16 +303,15 @@ proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName Prop
             for {set j 0} {$j < [llength [lindex $Entities 1]]} {incr j} {
                 incr MyConditionId
                 lappend MyConditionList $MyConditionId
-                set ElementGroup [GiD_EntitiesGroups entity_groups element [lindex [lindex $Entities 0] $j]]
-                set len [llength $ElementGroup]
-                for {set k 0} {$k < [llength $ElementGroup]} {incr k} {
-                    if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
-                        set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
-                        break
-                    }
-                }
+                #~ set ElementGroup [GiD_EntitiesGroups entity_groups element [lindex [lindex $Entities 0] $j]]
+                #~ for {set k 0} {$k < [llength $ElementGroup]} {incr k} {
+                    #~ if {[dict exists $PropertyDict [lindex $ElementGroup $k]] eq 1} {
+                        #~ set PropertyId [dict get $PropertyDict [lindex $ElementGroup $k]]
+                        #~ break
+                    #~ }
+                #~ }
                 set Connectivities [GiD_Mesh get element [lindex [lindex $Entities 0] $j] face [lindex [lindex $Entities 1] $j]]
-                puts $MyFileVar "  $MyConditionId  $PropertyId  $Connectivities"
+                puts $MyFileVar "  $MyConditionId  0  $Connectivities"
             }
             puts $MyFileVar "End Conditions"
             puts $MyFileVar ""

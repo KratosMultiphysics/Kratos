@@ -1,45 +1,17 @@
 proc WriteMdpa { basename dir problemtypedir } {
-    
+
     ## Source auxiliar procedures
     source [file join $problemtypedir MdpaAuxProcs.tcl]
-    
+
     ## Start MDPA file
     set filename [file join $dir ${basename}.mdpa]
     set FileVar [open $filename w]
-    
-    ## ModelPart Data
-    #puts $FileVar "Begin ModelPartData"
-    #puts $FileVar "  // VARIABLE_NAME value"
-    #puts $FileVar "End ModelPartData"
-    #puts $FileVar ""
-    #puts $FileVar ""
-    
-    #~ ## Tables
-    #~ set TableId 0
-    #~ set TableDict [dict create]
-    #~ # Solid_Displacement
-    #~ ConstraintVectorTable FileVar TableId TableDict Solid_Displacement DISPLACEMENT
-    #~ # Fluid_Pressure
-    #~ PressureTable FileVar TableId TableDict Fluid_Pressure WATER_PRESSURE
-    #~ # Force
-    #~ VectorTable FileVar TableId TableDict Force FORCE
-    #~ # Face_Load
-    #~ VectorTable FileVar TableId TableDict Face_Load FACE_LOAD
-    #~ # Normal_Load
-    #~ NormalTangentialTable FileVar TableId TableDict Normal_Load NORMAL_CONTACT_STRESS TANGENTIAL_CONTACT_STRESS
-    #~ # Normal_Fluid_Flux
-    #~ ScalarTable FileVar TableId TableDict Normal_Fluid_Flux NORMAL_FLUID_FLUX
-    #~ # Interface_Face_Load
-    #~ VectorTable FileVar TableId TableDict Interface_Face_Load FACE_LOAD
-    #~ # Interface_Normal_Fluid_Flux
-    #~ ScalarTable FileVar TableId TableDict Interface_Normal_Fluid_Flux NORMAL_FLUID_FLUX
-    #~ # Body_Acceleration
-    #~ VectorTable FileVar TableId TableDict Body_Acceleration VOLUME_ACCELERATION
-    #~ puts $FileVar ""
-    
+
     ## Properties
     set PropertyId 0
     set PropertyDict [dict create]
+    puts $FileVar "Begin Properties 0"
+    puts $FileVar "End Properties"
     # Source_terms
     set Groups [GiD_Info conditions Bottom_friction groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
@@ -50,7 +22,6 @@ proc WriteMdpa { basename dir problemtypedir } {
         puts $FileVar "End Properties"
         puts $FileVar ""
     }
-
 
     ## Nodes
     set Nodes [GiD_Info Mesh Nodes]
