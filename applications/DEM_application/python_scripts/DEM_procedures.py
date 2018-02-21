@@ -1581,8 +1581,7 @@ class DEMIo(object):
             self.PushPrintVar(1, IMPACT_WEAR, self.fem_boundary_variables)
 
     def AddClusterVariables(self):
-        self.PushPrintVar(
-            self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
+        #self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
         if self.DEM_parameters["PostEulerAngles"].GetBool():
             # JIG: SHOULD BE REMOVED IN THE FUTURE
             self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables)
