@@ -9,7 +9,7 @@
 # ==============================================================================
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 from KratosMultiphysics import *
@@ -44,6 +44,20 @@ class ModelPartController:
             self.MeshController = MeshControllerBasicUpdating( self.OptimizationModelPart )
 
     # --------------------------------------------------------------------------
+    def IsOptimizationModelPartAlreadyImported( self ):
+        if self.OptimizationModelPart.NumberOfNodes()>0:
+            return True
+        else:
+            return False
+
+    # --------------------------------------------------------------------------
+    def ImportOptimizationModelPart( self ):
+        model_part_io = ModelPartIO( self.OptimizationSettings["design_variables"]["optimization_model_part_name"].GetString() )
+        model_part_io.ReadModelPart( self.OptimizationModelPart )
+        self.OptimizationModelPart.SetBufferSize( 1 )
+        self.OptimizationModelPart.ProcessInfo.SetValue( DOMAIN_SIZE, self.OptimizationSettings["design_variables"]["domain_size"].GetInt() )
+
+    # --------------------------------------------------------------------------
     def InitializeMeshController( self ):
         self.MeshController.Initialize()
 
@@ -55,13 +69,21 @@ class ModelPartController:
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
         self.MeshController.UpdateMeshAccordingInputVariable( InputVariable )
 
-    # --------------------------------------------------------------------------    
-    def ResetMeshToReferenceMesh( self ):
-        MeshControllerUtilities( self.OptimizationModelPart ).ResetMeshToReferenceMesh()    
+    # --------------------------------------------------------------------------
+    def SetMeshToReferenceMesh( self ):
+        MeshControllerUtilities( self.OptimizationModelPart ).SetMeshToReferenceMesh()
+
+    # --------------------------------------------------------------------------
+    def SetReferenceMeshToMesh( self ):
+        MeshControllerUtilities( self.OptimizationModelPart ).SetReferenceMeshToMesh()
+
+    # --------------------------------------------------------------------------
+    def SetDeformationVariablesToZero( self ):
+        MeshControllerUtilities( self.OptimizationModelPart ).SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def GetOptimizationModelPart( self ):
-        return self.OptimizationModelPart   
+        return self.OptimizationModelPart
 
     # --------------------------------------------------------------------------
     def GetDesignSurface( self ):
@@ -73,16 +95,16 @@ class ModelPartController:
     def GetDampingRegions( self ):
         if self.DampingRegions is None:
             self.__IdentifyDampingRegions()
-        return self.DampingRegions           
+        return self.DampingRegions
 
-    # --------------------------------------------------------------------------    
+    # --------------------------------------------------------------------------
     def __IdentifyDesignSurface( self ):
         nameOfDesingSurface = self.OptimizationSettings["design_variables"]["design_surface_sub_model_part_name"].GetString()
         if self.OptimizationModelPart.HasSubModelPart( nameOfDesingSurface ):
             self.DesignSurface = self.OptimizationModelPart.GetSubModelPart( nameOfDesingSurface )
             print("> The following design surface was defined:\n\n",self.DesignSurface)
         else:
-            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)         
+            raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)
 
     # --------------------------------------------------------------------------
     def __IdentifyDampingRegions( self ):
@@ -96,9 +118,9 @@ class ModelPartController:
                         print(regionName)
                         self.DampingRegions[regionName] = self.OptimizationModelPart.GetSubModelPart(regionName)
                     else:
-                        raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)  
+                        raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)
             else:
                 raise ValueError("Definition of damping regions required but not availabe!")
-        print("")    
+        print("")
 
 # ==============================================================================

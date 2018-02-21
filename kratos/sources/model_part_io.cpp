@@ -17,6 +17,7 @@
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include<unordered_set>
 
 namespace Kratos
 {
@@ -485,8 +486,8 @@ namespace Kratos
         WriteTableBlock(rThisModelPart.Tables());
         WriteMesh(rThisModelPart.GetMesh());
         WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
-//         WriteElementalDataBlock(rThisModelPart.Elements()); // TODO: FINISH ME
-//         WriteConditionalDataBlock(rThisModelPart.Conditions()); // TODO: FINISH ME
+        WriteDataBlock(rThisModelPart.Elements(), "Element");
+        WriteDataBlock(rThisModelPart.Conditions(),"Condition"); 
 //         WriteCommunicatorDataBlock(); // TODO: FINISH ME
 //         WriteMeshBlock(rThisModelPart); // TODO: FINISH ME
         WriteSubModelPartBlock(rThisModelPart, "");
@@ -1773,6 +1774,60 @@ namespace Kratos
         }
 
         KRATOS_CATCH("")
+    }
+    template<class TObjectsContainerType>
+    void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName){
+        typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+        std::unordered_set<std::string> variables;
+        
+        for(auto& object :rThisObjectContainer){
+            for(auto& var:object.GetData()){
+                auto const& is_included = variables.find(var.first->Name());
+                if(is_included == variables.end()){
+                    variables.insert(var.first->Name());
+                    // determine variable type
+                    if(KratosComponents<Variable<bool>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<bool>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<int>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<int>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<double>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<double>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<array_1d_component_type>::Has(var.first->Name())){
+                        WriteDataBlock<array_1d_component_type>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<array_1d<double,3>>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<array_1d<double,3>>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<Quaternion<double>>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<Quaternion<double>>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<Vector>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<Vector>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<Matrix>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<Matrix>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else
+                        std::cout << var.first->Name() << " is not a valid variable for output!!!" << std::endl;
+                    
+                }
+            }
+        }
+    }
+
+    template<class TVariableType, class TObjectsContainerType>
+    void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName){
+        const TVariableType variable = KratosComponents<TVariableType>::Get(rVariable->Name());
+        (*mpStream) << "Begin "<<rObjectName<<"alData "<<variable.Name()<<std::endl;
+        for(auto& object : rThisObjectContainer){
+            if(object.Has(variable)){
+                (*mpStream)<<object.Id()<<"\t"<<object.GetValue(variable)<<std::endl;
+            }
+        }
+        (*mpStream)<<"End "<<rObjectName<<"alData\n"<<std::endl;
     }
 
     template<class TVariableType>
@@ -4417,13 +4472,14 @@ namespace Kratos
 
 
 
-
-    // Basically it starts to read the character sequence until reaching a
-    // "(" and then goes until corresponding ")" which means the vector or
-    // matrix value is completely read. It can be used to read any kind of
-    // vector or matrix with operator >> defined and writtern in following
-    // format for a vector: [size] ( value1, value2,...., valueN )
-    // format for a matrix: [size1,size2] ( )( )...( ) //look props read
+    /**
+    * @note Basically it starts to read the character sequence until reaching a
+    *       "(" and then goes until corresponding ")" which means the vector or
+    *       matrix value is completely read. It can be used to read any kind of
+    *       vector or matrix with operator >> defined and writtern in following
+    *       format for a vector: [size] ( value1, value2,...., valueN )
+    *       format for a matrix: [size1,size2] (( )( )...( )) //look props read
+    */
     template<class TValueType>
     TValueType& ModelPartIO::ReadVectorialValue(TValueType& rValue)
     {

@@ -57,10 +57,9 @@ StructureModel.AddModelPart(main_model_part)
 
 ## Print model_part and properties
 if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
-    print("")
-    print(main_model_part)
+    Logger.PrintInfo("ModelPart", main_model_part)
     for properties in main_model_part.Properties:
-        print(properties)
+        Logger.PrintInfo("Property " + str(properties.Id), properties)
 
 ## Processes construction
 import process_factory
@@ -72,8 +71,10 @@ if (ProjectParameters.Has("json_output_process") == True):
     list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["json_output_process"])
 
 if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
+    count = 0
     for process in list_of_processes:
-        print(process)
+        count += 1
+        Logger.PrintInfo("Process " + str(count), process)
 
 ## Processes initialization
 for process in list_of_processes:
@@ -103,6 +104,9 @@ end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 time = start_time
 main_model_part.ProcessInfo[STEP] = 0
 
+if (parallel_type == "OpenMP") or (mpi.rank == 0):
+    Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
+
 # Solving the problem (time integration)
 while(time <= end_time):
 
@@ -111,9 +115,8 @@ while(time <= end_time):
     main_model_part.CloneTimeStep(time)
 
     if (parallel_type == "OpenMP") or (mpi.rank == 0):
-        print("")
-        print("STEP = ", main_model_part.ProcessInfo[STEP])
-        print("TIME = ", time)
+        Logger.PrintInfo("STEP: ", main_model_part.ProcessInfo[STEP])
+        Logger.PrintInfo("TIME: ", time)
 
     for process in list_of_processes:
         process.ExecuteInitializeSolutionStep()
@@ -145,6 +148,4 @@ if (output_post == True):
     gid_output.ExecuteFinalize()
 
 if (parallel_type == "OpenMP") or (mpi.rank == 0):
-    print(" ")
-    print("::[KSM Simulation]:: Analysis -END- ")
-    print(" ")
+    Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")

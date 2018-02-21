@@ -14,14 +14,11 @@
 #include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
-#include "custom_constitutive/newtonian_3d_law.h"
-
-#include "fluid_dynamics_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/checks.h"
+#include "custom_constitutive/newtonian_3d_law.h"
 
 namespace Kratos
 {
@@ -30,127 +27,91 @@ namespace Kratos
 //************************************************************************************
 
 Newtonian3DLaw::Newtonian3DLaw()
-    : ConstitutiveLaw()
-{
-}
+    : FluidConstitutiveLaw()
+{}
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
 Newtonian3DLaw::Newtonian3DLaw(const Newtonian3DLaw& rOther)
-    : ConstitutiveLaw(rOther)
-{
-}
+    : FluidConstitutiveLaw(rOther)
+{}
 
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer Newtonian3DLaw::Clone() const
-{
-    Newtonian3DLaw::Pointer p_clone(new Newtonian3DLaw(*this));
-    return p_clone;
+ConstitutiveLaw::Pointer Newtonian3DLaw::Clone() const {
+    return Kratos::make_shared<Newtonian3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-Newtonian3DLaw::~Newtonian3DLaw()
-{
+Newtonian3DLaw::~Newtonian3DLaw() {}
+
+ConstitutiveLaw::SizeType Newtonian3DLaw::WorkingSpaceDimension() {
+    return 3;
 }
 
+ConstitutiveLaw::SizeType Newtonian3DLaw::GetStrainSize() {
+    return 6;
+}
 
-void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
-{
+void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
+    const Flags& options = rValues.GetOptions();
+    
+    const Properties& material_properties = rValues.GetMaterialProperties(); 
 
-    //-----------------------------//
+    const Vector& r_strain_rate = rValues.GetStrainVector();
+    Vector& r_viscous_stress = rValues.GetStressVector();
 
-    //a.-Check if the constitutive parameters are passed correctly to the law calculation
-    //CheckParameters(rValues);
+    const double mu = material_properties[DYNAMIC_VISCOSITY];
 
-    //b.- Get Values to compute the constitutive law:
-    Flags &Options=rValues.GetOptions();
-
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
-
-    Vector& S                  = rValues.GetStrainVector(); //using the short name S to reduce the lenght of the expressions
-    Vector& StressVector                  = rValues.GetStressVector();
-
-    //-----------------------------//
-
-    //1.- Lame constants
-    const double mu          = MaterialProperties[DYNAMIC_VISCOSITY];
-    const double trS = S[0]+S[1]+S[2];
-    const double eps_vol = trS/3.0;
+    const double trace = r_strain_rate[0] + r_strain_rate[1] + r_strain_rate[2];
+    const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
 
     //computation of stress
-    StressVector[0] = 2.0*mu*(S[0] - eps_vol);
-    StressVector[1] = 2.0*mu*(S[1] - eps_vol);
-    StressVector[2] = 2.0*mu*(S[2] - eps_vol);
-    StressVector[3] = mu*S[3];
-    StressVector[4] = mu*S[4];
-    StressVector[5] = mu*S[5];
+    r_viscous_stress[0] = 2.0*mu*(r_strain_rate[0] - volumetric_part);
+    r_viscous_stress[1] = 2.0*mu*(r_strain_rate[1] - volumetric_part);
+    r_viscous_stress[2] = 2.0*mu*(r_strain_rate[2] - volumetric_part);
+    r_viscous_stress[3] = mu*r_strain_rate[3];
+    r_viscous_stress[4] = mu*r_strain_rate[4];
+    r_viscous_stress[5] = mu*r_strain_rate[5];
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+    if( options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        Matrix& C                  = rValues.GetConstitutiveMatrix();
-        
-        noalias(C)  = ZeroMatrix(6,6);
-
-        C(0,0) = 4.0/3.0*mu;  C(0,1) = -2.0/3.0*mu; C(0,2) = -2.0/3.0*mu;
-        C(1,0) = -2.0/3.0*mu; C(1,1) = 4.0/3.0*mu;  C(1,2) = -2.0/3.0*mu;
-        C(2,0) = -2.0/3.0*mu; C(2,1) = -2.0/3.0*mu; C(2,2) = 4.0/3.0*mu;
-        C(3,3) = mu;
-        C(4,4) = mu;
-        C(5,5) = mu;
-            
+        this->NewtonianConstitutiveMatrix3D(mu,rValues.GetConstitutiveMatrix());
     }
-	  
 }
 
+int Newtonian3DLaw::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo) {
+    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
 
-//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
-//************************************************************************************
-
-void Newtonian3DLaw::GetLawFeatures(Features& rFeatures)
-{
-    	//Set the type of law
-	rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
-	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
-	rFeatures.mOptions.Set( ISOTROPIC );
-
-	//Set strain measure required by the consitutive law
-	rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-
-	//Set the strain size
-	rFeatures.mStrainSize = 6;
-
-	//Set the spacedimension
-	rFeatures.mSpaceDimension = 3;
-
-}
-
-//******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
-//************************************************************************************
-
-// bool Newtonian3DLaw::CheckParameters(Parameters& rValues)
-// {
-//     return rValues.CheckAllParameters();
-// }
-
-
-
-int Newtonian3DLaw::Check(const Properties& rMaterialProperties,
-                              const GeometryType& rElementGeometry,
-                              const ProcessInfo& rCurrentProcessInfo)
-{
-
-    if(DYNAMIC_VISCOSITY.Key() == 0 || rMaterialProperties[DYNAMIC_VISCOSITY]<= 0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"DYNAMIC_VISCOSITY has Key zero or invalid value ", "" )
+    if( rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00 ) {
+        KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian3DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
+    }
 
     return 0;
-
 }
 
+std::string Newtonian3DLaw::Info() const {
+    return "Newtonian3DLaw";
+}
+
+double Newtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+    // We are abusing the fact that C(5,5) = mu
+    return rParameters.GetConstitutiveMatrix()(5,5);
+}
+
+void Newtonian3DLaw::save(Serializer& rSerializer) const {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
+}
+
+void Newtonian3DLaw::load(Serializer& rSerializer) {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
+}
 
 } // Namespace Kratos

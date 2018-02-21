@@ -57,11 +57,7 @@ namespace Kratos {
 
     void Cluster3D::Initialize(ProcessInfo& r_process_info) {
         
-        RigidBodyElement3D::Initialize(r_process_info);
-        CustomInitialize(r_process_info);
-    }
-    
-    void Cluster3D::CustomInitialize(ProcessInfo& r_process_info) {
+        RigidBodyElement3D::Initialize(r_process_info);           
         
         const double cl = GetGeometry()[0].FastGetSolutionStepValue(CHARACTERISTIC_LENGTH);
         const ClusterInformation& cl_info = GetProperties()[CLUSTER_INFORMATION];
