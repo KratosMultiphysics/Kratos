@@ -1,4 +1,4 @@
-## GiD events --------------------------------------------------------------------------------------------------------------------------------------------------
+## GiD events ------------------------------------------------------------------
 
 proc InitGIDProject { dir } {
     
@@ -12,7 +12,7 @@ proc InitGIDProject { dir } {
         GiDMenu::InsertOption "Shallow Water Application" [list "Project Parameters"] 4 PRE "GidOpenProblemData" "" ""
         GiDMenu::UpdateMenus
     }
-    
+
     # Save ProblemTypePath
     set ::ShallowWaterApplication::ProblemTypePath $dir
 }
@@ -48,11 +48,11 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
 
     # Write MDPA
     source [file join $problemtypedir Mdpa.tcl]
-    set TableDict [WriteMdpa $basename $dir $problemtypedir]
+    WriteMdpa $basename $dir $problemtypedir
 
     # Write ProjectParameters
     source [file join $problemtypedir ProjectParameters.tcl]
-    WriteProjectParameters $basename $dir $problemtypedir $TableDict
+    WriteProjectParameters $basename $dir $problemtypedir
 
     # Copy python script in the problemdir
     file copy -force [file join $problemtypedir shallow_water_main.py] [file join $dir MainKratos.py]
@@ -69,16 +69,10 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
                                     Input files have been written.\n\
                                     Run the case with: mpirun -np \[npartitions\] python3 MainKratos.py" ]]
     }
-    
-    ### Measure time
-    #set start_time_1 [clock clicks]
-    #set end_time_1 [expr { [clock clicks]-$start_time_1 }]
-    #WarnWin "Time for GenerateNewFractures: $end_time_1 clicks"
-    ###
 }
 
 
-## Problemtype procedures --------------------------------------------------------------------------------------------------------------------------------------
+## Problemtype procedures ------------------------------------------------------
 
 namespace eval ShallowWaterApplication {
     variable ProblemName ""
