@@ -51,8 +51,8 @@ class RestartUtility(object):
         restart_path = self._get_load_file_name()
         # Check path
         if (os.path.exists(restart_path+".rest") == False):
-            raise Exception("Restart file not found: " + restart_path + ".rest")        
-        print("    Loading Restart file: ", restart_path + ".rest")
+            raise Exception("Restart file not found: " + restart_path + ".rest")
+        self._print_on_rank_zero("Restart Utility", "Loading Restart file: ", restart_path + ".rest")
 
         # Load the ModelPart
         serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
@@ -60,20 +60,17 @@ class RestartUtility(object):
 
         self._execute_after_load()
 
-        # Set restart-info in ProcessInfo
-        # print(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
-        # err
         self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         load_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
         self.model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
 
-        print("    Finished loading model part from restart file.")
+        self._print_on_rank_zero("Restart Utility", "Finished loading model part from restart file.")
 
     def SaveRestart(self):
         """
         This function saves the restart file. It should be called at the end of a time-step.
         """
-        if self.is_restart_output_step():
+        if self._is_restart_output_step():
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             file_name = self._get_save_file_name(time)
 
@@ -86,7 +83,7 @@ class RestartUtility(object):
                 while self.next_output <= time:
                     self.next_output += self.output_frequency
 
-    def is_restart_output_step(self):
+    def _is_restart_output_step(self):
         return (self.model_part.ProcessInfo[KratosMultiphysics.TIME] > self.next_output)
 
     def _get_load_file_name(self):
@@ -97,5 +94,9 @@ class RestartUtility(object):
         return self.input_filename + '_' + str(time)
 
     def _execute_after_load(self):
-        """This function creates the communicators in MPI/trilinos"""        
+        """This function creates the communicators in MPI/trilinos"""
         pass
+
+    def _print_on_rank_zero(self, *args):
+        # This function will be overridden in the trilinos-version
+        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))

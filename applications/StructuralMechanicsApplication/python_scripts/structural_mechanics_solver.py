@@ -125,6 +125,11 @@ class MechanicalSolver(object):
         self.main_model_part = main_model_part
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
+        set the is_restarted to the modelpart hereits done twice then but I guess this is ok ...
+        also maybe I change the function ...?
+        if self.settings["restart_settings"]["load_restart"].GetBool() == True:
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
+
     def AddVariables(self):
         if not self.is_restarted():
             # Add displacements.
@@ -207,8 +212,10 @@ class MechanicalSolver(object):
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
-            if hasattr(mechanical_solver, SetInitializePerformedFlag):
+            try:
                 mechanical_solver.SetInitializePerformedFlag(True)
+            except AttributeError:
+                pass
         self.Check()
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
