@@ -1,32 +1,42 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("ALEApplication")
+
+# Import applications
 import KratosMultiphysics.ALEApplication as KratosALE
-KratosMultiphysics.CheckForPreviousImport()
+
+# Other imports
+import os
 
 
-def CreateSolver(model_part, custom_settings):
-    return MeshSolverBase(model_part, custom_settings)
+def CreateSolver(mesh_model_part, custom_settings):
+    return MeshSolverBase(mesh_model_part, custom_settings)
 
 
 class MeshSolverBase(object):
     """The base class for mesh motion solvers.
-    
+
     This class defines the user interface to mesh motion solvers.
 
     Derived classes must override the function _create_mesh_motion_solver()
     to customize the mesh motion algorithm. The mesh motion solver and linear
-    solver should always be retrieved using the getter functions. Only the 
+    solver should always be retrieved using the getter functions. Only the
     member variables listed below should be accessed directly.
 
     Public member variables:
     settings -- Kratos parameters for general mesh motion settings.
-    model_part -- the mesh motion model part.
+    mesh_model_part -- the mesh motion model part.
     """
-    def __init__(self, model_part, custom_settings):
+    def __init__(self, mesh_model_part, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type" : "mesh_solver_structural_similarity",
+            "buffer_size": 2,
+            "echo_level": 0,
             "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "unknown_name"
@@ -46,32 +56,45 @@ class MeshSolverBase(object):
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
             },
+            "computing_model_part_name"       : "computing_domain",
+                    "time_stepping"          : {
+            "automatic_time_step" : false,
+            "time_step"           : 0.1
+            },
+            "skin_parts"             : [],
+            "no_skin_parts"             : [],
             "time_order" : 2,
             "reform_dofs_each_step" : false,
             "compute_reactions"     : false
         }""")
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        self.model_part = model_part
-        print("::[MeshSolverBase]:: Construction finished")
+        self.mesh_model_part = mesh_model_part
+        self.print_on_rank_zero("::[MeshSolverBase]:: Construction finished")
 
     #### Public user interface functions ####
 
     def AddVariables(self):
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
-        self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
-        print("::[MeshSolverBase]:: Variables ADDED.")
+        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
+        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_VELOCITY)
+        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
+        self.mesh_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_RHS)
+        self.print_on_rank_zero("::[MeshSolverBase]:: Variables ADDED.")
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, self.model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, self.model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, self.model_part)
-        print("::[MeshSolverBase]:: DOFs ADDED.")
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, self.mesh_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, self.mesh_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, self.mesh_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_X, KratosMultiphysics.MESH_REACTION_X, self.mesh_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Y, KratosMultiphysics.MESH_REACTION_Y, self.mesh_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.MESH_DISPLACEMENT_Z, KratosMultiphysics.MESH_REACTION_Z, self.mesh_model_part)
+        self.print_on_rank_zero("::[MeshSolverBase]:: DOFs ADDED.")
+
 
     def Initialize(self):
         self.get_mesh_motion_solver().Initialize()
-        print("::[MeshSolverBase]:: Finished initialization.")
+        #self.neighbour_search.Execute()
+        self.print_on_rank_zero("::[MeshSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self):
         self.get_mesh_motion_solver().InitializeSolutionStep()
@@ -98,10 +121,25 @@ class MeshSolverBase(object):
         self.get_mesh_motion_solver().MoveMesh()
 
     def ImportModelPart(self):
-        raise Exception("::[MeshSolverBase]:: ImportModelPart() is not implemented yet.")
+
+        self.print_on_rank_zero("::[ALESolver]:: Importing model part.")
+        problem_path = os.getcwd()
+        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
+
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+            # Import model part from mdpa file.
+            self.print_on_rank_zero("    Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.mesh_model_part)
+            self.print_on_rank_zero("    Finished reading model part from mdpa file.")
+            # Check and prepare computing model part and import constitutive laws.
+            #self._execute_after_reading()
+            self._set_and_fill_buffer()
+        else:
+            raise Exception("::[MeshSolverBase]:: ImportModelPart() only implemnted for mdpa format.")
+
 
     def GetComputingModelPart(self):
-        return self.model_part
+        return self.mesh_model_part
 
     #### Specific internal functions ####
 
@@ -115,8 +153,13 @@ class MeshSolverBase(object):
             self._mesh_motion_solver = self._create_mesh_motion_solver()
         return self._mesh_motion_solver
 
+    @classmethod
+    def print_on_rank_zero(self, *args):
+        # This function will be overridden in the trilinos-solvers
+        print(" ".join(map(str,args)))
+
     #### Private functions ####
-    
+
     def _create_linear_solver(self):
         import linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["ale_linear_solver_settings"])
@@ -124,7 +167,34 @@ class MeshSolverBase(object):
 
     def _create_mesh_motion_solver(self):
         """Create the mesh motion solver.
-        
+
         The mesh motion solver must provide the functions defined in SolutionStrategy.
         """
         raise Exception("Mesh motion solver must be created by the derived class.")
+
+    @classmethod
+    def GetMinimumBufferSize(self):
+        return 2
+
+
+    def _set_and_fill_buffer(self):
+        """Prepare nodal solution step data containers and time step information. """
+        # Set the buffer size for the nodal solution steps data. Existing nodal
+        # solution step data may be lost.
+        buffer_size = self.settings["buffer_size"].GetInt()
+        if buffer_size < self.GetMinimumBufferSize():
+            buffer_size = self.GetMinimumBufferSize()
+        self.mesh_model_part.SetBufferSize(buffer_size)
+        # Cycle the buffer. This sets all historical nodal solution step data to
+        # the current value and initializes the time stepping in the process info.
+        delta_time = self.mesh_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        time = self.mesh_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        step =-buffer_size
+        time = time - delta_time * buffer_size
+        self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+        for i in range(0, buffer_size):
+            step = step + 1
+            time = time + delta_time
+            self.mesh_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+            self.mesh_model_part.CloneTimeStep(time)
+        self.mesh_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False

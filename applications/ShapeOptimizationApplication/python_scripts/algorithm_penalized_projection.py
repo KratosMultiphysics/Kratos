@@ -123,6 +123,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __updateMeshAccordingCurrentShapeUpdate( self ):
         self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
+        self.ModelPartController.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def __callCoumminicatorToCreateNewRequests( self ):
