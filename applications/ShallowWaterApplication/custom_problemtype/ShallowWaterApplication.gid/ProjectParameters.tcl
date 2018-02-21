@@ -12,7 +12,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "    \"problem_data\"         : \{"
     puts $FileVar "        \"problem_name\"         : \"$basename\","
     puts $FileVar "        \"model_part_name\"      : \"main_model_part\","
-    puts $FileVar "        \"domain_size\"          : 2"
+    puts $FileVar "        \"domain_size\"          : 2,"
     puts $FileVar "        \"start_time\"           : [GiD_AccessValue get gendata Start_Time],"
     puts $FileVar "        \"end_time\"             : [GiD_AccessValue get gendata End_Time],"
     puts $FileVar "        \"parallel_type\"        : \"[GiD_AccessValue get gendata Parallel_Configuration]\","
@@ -40,7 +40,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     }
     puts $FileVar "        \"model_import_settings\"    : \{"
     puts $FileVar "            \"input_type\"               : \"mdpa\","
-    puts $FileVar "            \"input_filename\"           : \"$basename\","
+    puts $FileVar "            \"input_filename\"           : \"$basename\""
     puts $FileVar "        \},"
     puts $FileVar "        \"echo_level\"               : [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"buffer_size\"              : 2,"
@@ -51,7 +51,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "        \"compute_reactions\"        : [GiD_AccessValue get gendata Compute_Reactions],"
     puts $FileVar "        \"reform_dofs_at_each_step\" : [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
     puts $FileVar "        \"move_mesh_flag\"           : [GiD_AccessValue get gendata Move_Mesh],"
-    puts $FileVar "        \"volume_model_part_name\"   : [],"
+    puts $FileVar "        \"volume_model_part_name\"   : \"fluid_model\","
     # linear_solver_settings
     puts $FileVar "        \"linear_solver_settings\"   : \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
@@ -95,7 +95,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     }
     puts $FileVar "        \},"
     puts $FileVar "        \"time_stepping\"            : \{"
-    puts $FileVar "            \"automatic_time_step\"      : false"
+    puts $FileVar "            \"automatic_time_step\"      : false,"
     puts $FileVar "            \"time_step\"                : [GiD_AccessValue get gendata Delta_Time]"
     puts $FileVar "        \},"
     if {[GiD_AccessValue get gendata FrameWork] eq "Pfem2"} {
@@ -120,7 +120,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "                \"WriteDeformedMeshFlag\" : \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\"   : \"[GiD_AccessValue get gendata Write_conditions]\","
     puts $FileVar "                \"MultifileFlag\"         : \"[GiD_AccessValue get gendata Multi_file_flag]\""
-    puts $FileVar "            \}"
+    puts $FileVar "            \},"
     puts $FileVar "            \"output_control_type\"   : \"[GiD_AccessValue get gendata Output_control_type]\","
     puts $FileVar "            \"output_frequency\"      : [GiD_AccessValue get gendata Output_frequency],"
     puts $FileVar "            \"body_output\"           : [GiD_AccessValue get gendata Body_output],"
@@ -139,7 +139,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "            \"gauss_point_results\"   : \[\]"
     puts $FileVar "        \},"
     puts $FileVar "        \"point_data_configuration\"  :  \[\]"
-    puts $FileVar "    \},"
+    puts $FileVar "    \}"
 
 
     # initial conditions
