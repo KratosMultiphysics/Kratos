@@ -1,6 +1,7 @@
 #include "custom_io/hdf5_points_data.h"
 
 #include "utilities/openmp_utils.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
