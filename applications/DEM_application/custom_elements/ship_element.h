@@ -29,7 +29,7 @@ namespace Kratos
         ShipElement3D(IndexType NewId, GeometryType::Pointer pGeometry);
         ShipElement3D(IndexType NewId, NodesArrayType const& ThisNodes);
         ShipElement3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;      
 
         /// Destructor
         virtual ~ShipElement3D();
@@ -64,8 +64,8 @@ namespace Kratos
     private:
        
         friend class Serializer;
-        virtual void save(Serializer& rSerializer) const { KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RigidBodyElement3D); }
-        virtual void load(Serializer& rSerializer) { KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RigidBodyElement3D); }
+        virtual void save(Serializer& rSerializer) const override{ KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RigidBodyElement3D); }
+        virtual void load(Serializer& rSerializer) override{ KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RigidBodyElement3D); }
 
     }; // Class ShipElement3D
    
