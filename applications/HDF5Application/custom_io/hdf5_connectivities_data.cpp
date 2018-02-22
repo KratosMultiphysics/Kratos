@@ -251,9 +251,9 @@ void ConnectivitiesData::SetData(const std::string& rName, ConditionsContainerTy
 void ConnectivitiesData::Clear()
 {
     mName = "";
-    mIds.clear();
-    mPropertiesIds.clear();
-    mConnectivities.clear();
+    mIds.resize(0);
+    mPropertiesIds.resize(0);
+    mConnectivities.resize(0,0);
 }
 } // namespace Internals.
 } // namespace HDF5.
