@@ -9,7 +9,7 @@
 # ==============================================================================
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 from KratosMultiphysics import *
@@ -19,54 +19,49 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-def CreateCommunicator( optimizationSettings ):
-    return Communicator( optimizationSettings )
+def CreateCommunicator( optimization_settings ):
+    return Communicator( optimization_settings )
 
 # ==============================================================================
 class Communicator:
-    
-    # --------------------------------------------------------------------------
-    def __init__( self, optimizationSettings ):
-        self.listOfRequests = self.__initializeListOfRequests( optimizationSettings )
-        self.listOfResponses = self.__initializeListOfResponses( optimizationSettings )
 
     # --------------------------------------------------------------------------
-    def __initializeListOfRequests( self, optimizationSettings ):
-
-        listOfRequests = {}
-        numberOfObjectives = optimizationSettings["objectives"].size()
-        numberOfConstraints = optimizationSettings["constraints"].size()
-
-        for objectiveNumber in range(numberOfObjectives):
-            objectiveId = optimizationSettings["objectives"][objectiveNumber]["identifier"].GetString()
-            listOfRequests[objectiveId] = {"calculateValue": False, "calculateGradient": False}
-
-        for constraintNumber in range(numberOfConstraints):
-            constraintId = optimizationSettings["constraints"][constraintNumber]["identifier"].GetString()
-            listOfRequests[constraintId] = {"calculateValue": False, "calculateGradient": False}
-
-        return listOfRequests
+    def __init__( self, optimization_settings ):
+        self.__initializeListOfRequests( optimization_settings )
+        self.__initializeListOfResponses( optimization_settings )
 
     # --------------------------------------------------------------------------
-    def __initializeListOfResponses( self, optimizationSettings ):
-        
-        listOfResponses = {}  
-        numberOfObjectives = optimizationSettings["objectives"].size()
-        numberOfConstraints = optimizationSettings["constraints"].size()
+    def __initializeListOfRequests( self, optimization_settings ):
+        self.list_of_requests = {}
 
-        for objectiveNumber in range(numberOfObjectives):
-            objectiveId = optimizationSettings["objectives"][objectiveNumber]["identifier"].GetString()
-            listOfResponses[objectiveId] = {}
+        for objective_number in range( optimization_settings["objectives"].size()):
+            objective_id = optimization_settings["objectives"][objective_number]["identifier"].GetString()
+            self.list_of_requests[objective_id] = {"calculateValue": False, "calculateGradient": False}
 
-        for constraintNumber in range(numberOfConstraints):
-            constraintId = optimizationSettings["constraints"][constraintNumber]["identifier"].GetString()
-            listOfResponses[constraintId] = {}  
+        for constraint_number in range(optimization_settings["constraints"].size()):
+            constraint_id = optimization_settings["constraints"][constraint_number]["identifier"].GetString()
+            self.list_of_requests[constraint_id] = {"calculateValue": False, "calculateGradient": False}
 
-        for responseId in listOfResponses:
-            listOfResponses[responseId] = {"value": None, "referenceValue": None, "gradient": None} 
+    # --------------------------------------------------------------------------
+    def __initializeListOfResponses( self, optimization_settings ):
+        self.list_of_responses = {}
 
-        return listOfResponses
-    
+        for objective_number in range(optimization_settings["objectives"].size()):
+            objective_id =  optimization_settings["objectives"][objective_number]["identifier"].GetString()
+            self.list_of_responses[objective_id] = {"value": None, "referenceValue": None, "gradient": None}
+
+        for constraint_number in range( optimization_settings["constraints"].size()):
+            constraint = optimization_settings["constraints"][constraint_number]
+            constraint_id = optimization_settings["constraints"][constraint_number]["identifier"].GetString()
+            reference_value = None
+            if  constraint["reference"].GetString() == "specified_value":
+                reference_value =  constraint["reference_value"].GetDouble()
+            elif constraint["reference"].GetString() == "initial_value":
+                pass
+            else:
+                raise RuntimeError(">\nImproper definition of reference for the following response function: " + constraint_id )
+            self.list_of_responses[constraint_id] = {"value": None, "referenceValue": reference_value, "gradient": None}
+
     # --------------------------------------------------------------------------
     def initializeCommunication( self ):
         self.__deleteAllRequests()
@@ -74,67 +69,68 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def __deleteAllRequests( self ):
-        for responseId in self.listOfRequests:
-            self.listOfRequests[responseId]["CalculateValue"] = False
-            self.listOfRequests[responseId]["calculateGradient"] = False
+        for response_id in self.list_of_requests:
+            self.list_of_requests[response_id]["calculateValue"] = False
+            self.list_of_requests[response_id]["calculateGradient"] = False
 
     # --------------------------------------------------------------------------
     def __deleteAllReportedValues( self ):
-        for responseId in self.listOfResponses:
-            self.listOfResponses[responseId]["value"] = None 
-            self.listOfResponses[responseId]["gradient"] = None 
-            
-    # --------------------------------------------------------------------------
-    def requestFunctionValueOf( self, responseId ):
-        self.listOfRequests[responseId]["calculateValue"] = True
+        for response_id in self.list_of_responses:
+            self.list_of_responses[response_id]["value"] = None
+            self.list_of_responses[response_id]["gradient"] = None
 
     # --------------------------------------------------------------------------
-    def requestGradientOf( self, responseId ):
-        self.listOfRequests[responseId]["calculateGradient"] = True
+    def requestFunctionValueOf( self, response_id ):
+        self.list_of_requests[response_id]["calculateValue"] = True
 
     # --------------------------------------------------------------------------
-    def isRequestingFunctionValueOf( self, responseId ):
-        if responseId not in self.listOfRequests.keys(): return False
-        return self.listOfRequests[responseId]["calculateValue"]
+    def requestGradientOf( self, response_id ):
+        self.list_of_requests[response_id]["calculateGradient"] = True
 
     # --------------------------------------------------------------------------
-    def isRequestingGradientOf( self, responseId ):
-        if responseId not in self.listOfRequests.keys(): return False
-        return self.listOfRequests[responseId]["calculateGradient"]
+    def isRequestingFunctionValueOf( self, response_id ):
+        if response_id not in self.list_of_requests.keys(): return False
+        return self.list_of_requests[response_id]["calculateValue"]
 
     # --------------------------------------------------------------------------
-    def reportFunctionValue( self, responseId, functionValue ):
-        if responseId in self.listOfResponses.keys():
-            self.listOfResponses[responseId]["value"] = functionValue
+    def isRequestingGradientOf( self, response_id ):
+        if response_id not in self.list_of_requests.keys(): return False
+        return self.list_of_requests[response_id]["calculateGradient"]
+
+    # --------------------------------------------------------------------------
+    def reportFunctionValue( self, response_id, functionValue ):
+        if response_id in self.list_of_responses.keys():
+            self.list_of_responses[response_id]["value"] = functionValue
         else:
-            raise NameError("Reported function is not specified: " + responseId)
+            raise NameError("Reported function is not specified: " + response_id)
 
     # --------------------------------------------------------------------------
-    def reportGradient( self, responseId, gradient ):
-        if responseId in self.listOfResponses.keys():        
-            self.listOfResponses[responseId]["gradient"] = gradient
+    def reportGradient( self, response_id, gradient ):
+        if response_id in self.list_of_responses.keys():
+            self.list_of_responses[response_id]["gradient"] = gradient
         else:
-            raise NameError("Reported function is not specified: " + responseId)
+            raise NameError("Reported function is not specified: " + response_id)
 
     # --------------------------------------------------------------------------
-    def setFunctionReferenceValue( self, responseId, functionReferenceValue ):
-        if responseId in self.listOfResponses.keys():
-            self.listOfResponses[responseId]["referenceValue"] = functionReferenceValue
+    def setReferenceValue( self, response_id, reference_value ):
+        if response_id in self.list_of_responses.keys():
+            self.list_of_responses[response_id]["referenceValue"] = reference_value
         else:
-            raise NameError("Reported function is not specified: " + responseId)
+            raise NameError("Function for which reference values is reported is not specified: " + response_id)
 
     # --------------------------------------------------------------------------
-    def getReportedFunctionValueOf( self, responseId ):
-        return self.listOfResponses[responseId]["value"]
+    def getFunctionValue( self, response_id ):
+        return self.list_of_responses[response_id]["value"]
 
     # --------------------------------------------------------------------------
-    def getReportedFunctionReferenceValueOf( self, responseId ):
-        return self.listOfResponses[responseId]["referenceValue"]
-
-    # --------------------------------------------------------------------------    
-    def getReportedGradientOf( self, responseId ):
-        return self.listOfResponses[responseId]["gradient"]
+    def getReferenceValue( self, response_id ):
+        if self.list_of_responses[response_id]["referenceValue"] is not None:
+            return self.list_of_responses[response_id]["referenceValue"]
+        else:
+            raise NameError("Reference value required but not yet reported for the following response function: " + response_id)
 
     # --------------------------------------------------------------------------
+    def getGradient( self, response_id ):
+        return self.list_of_responses[response_id]["gradient"]
 
 # ==============================================================================

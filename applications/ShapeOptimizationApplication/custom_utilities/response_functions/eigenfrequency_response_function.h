@@ -320,7 +320,7 @@ protected:
 
 				for (int i = 0; i < NumNodeDofs; i++)
                     eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((m_traced_eigenvalue-1),i);
-					
+
 				k++;
 			}
 
