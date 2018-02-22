@@ -389,7 +389,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     Matrix var_origin_matrix(TNumNodes, size_to_compute);
     MortarUtilities::MatrixValue<TVarType, THistOrigin>(MasterGeometry, mOriginVariable, var_origin_matrix);
     Matrix var_destination_matrix(TNumNodes, size_to_compute);
-    MortarUtilities::MatrixValue<TVarType, THistOrigin>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
+    MortarUtilities::MatrixValue<TVarType, THistDestination>(SlaveGeometry, mDestinationVariable, var_destination_matrix);
 
     const std::size_t size_1 = var_origin_matrix.size1();
     const std::size_t size_2 = var_origin_matrix.size2();
@@ -480,7 +480,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     unsigned int iteration = 0;
 
     // We set to zero the variables
-    MortarUtilities::ResetValue<TVarType, THistOrigin>(mrThisModelPart, mDestinationVariable, mInvertedPairing);
+    MortarUtilities::ResetValue<TVarType, THistDestination>(mrThisModelPart, mDestinationVariable, mInvertedPairing);
 
     // Getting the auxiliar variable
     TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
@@ -597,7 +597,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             auto it_node = nodes_array.begin() + i;
             if (it_node->Is(SLAVE) == !mInvertedPairing) {
                 NodeType::Pointer pnode = *(it_node.base());
-                MortarUtilities::AddAreaWeightedNodalValue<TVarType, THistOrigin>(pnode, mDestinationVariable, ref_area);
+                MortarUtilities::AddAreaWeightedNodalValue<TVarType, THistDestination>(pnode, mDestinationVariable, ref_area);
                 for (unsigned int i_size = 0; i_size < variable_size; ++i_size) {
                     const double& value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
                     #pragma omp atomic
@@ -647,7 +647,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     unsigned int iteration = 0;
 
     // We set to zero the variables
-    MortarUtilities::ResetValue<TVarType, THistOrigin>(mrThisModelPart, mDestinationVariable, mInvertedPairing);
+    MortarUtilities::ResetValue<TVarType, THistDestination>(mrThisModelPart, mDestinationVariable, mInvertedPairing);
 
     // Creating the assemble database
     std::size_t system_size;
@@ -754,7 +754,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
         for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
         {
             mpThisLinearSolver->Solve(A, Dx, b[i_size]);
-            MortarUtilities::UpdateDatabase<TVarType, THistOrigin>(mrThisModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
+            MortarUtilities::UpdateDatabase<TVarType, THistDestination>(mrThisModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
             const double residual_norm = norm_2(b[i_size])/system_size;
             if (iteration == 0) norm_b0[i_size] = residual_norm;
             const double increment_norm = norm_2(Dx)/system_size;
@@ -820,5 +820,29 @@ template class SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, Hi
 template class SimpleMortarMapperProcess<2, 2, Variable<array_1d<double, 3>>, NonHistorical>;
 template class SimpleMortarMapperProcess<3, 3, Variable<array_1d<double, 3>>, NonHistorical>;
 template class SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, NonHistorical>;
+
+template class SimpleMortarMapperProcess<2, 2, Variable<double>, Historical, NonHistorical>;
+template class SimpleMortarMapperProcess<3, 3, Variable<double>, Historical, NonHistorical>;
+template class SimpleMortarMapperProcess<3, 4, Variable<double>, Historical, NonHistorical>;
+
+template class SimpleMortarMapperProcess<2, 2, Variable<double>, NonHistorical, Historical>;
+template class SimpleMortarMapperProcess<3, 3, Variable<double>, NonHistorical, Historical>;
+template class SimpleMortarMapperProcess<3, 4, Variable<double>, NonHistorical, Historical>;
+
+template class SimpleMortarMapperProcess<2, 2, ComponentType, Historical, NonHistorical>;
+template class SimpleMortarMapperProcess<3, 3, ComponentType, Historical, NonHistorical>;
+template class SimpleMortarMapperProcess<3, 4, ComponentType, Historical, NonHistorical>;
+
+template class SimpleMortarMapperProcess<2, 2, ComponentType, NonHistorical, Historical>;
+template class SimpleMortarMapperProcess<3, 3, ComponentType, NonHistorical, Historical>;
+template class SimpleMortarMapperProcess<3, 4, ComponentType, NonHistorical, Historical>;
+
+template class SimpleMortarMapperProcess<2, 2, Variable<array_1d<double, 3>>, Historical, NonHistorical>;
+template class SimpleMortarMapperProcess<3, 3, Variable<array_1d<double, 3>>, Historical, NonHistorical>;
+template class SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, Historical, NonHistorical>;
+
+template class SimpleMortarMapperProcess<2, 2, Variable<array_1d<double, 3>>, NonHistorical, Historical>;
+template class SimpleMortarMapperProcess<3, 3, Variable<array_1d<double, 3>>, NonHistorical, Historical>;
+template class SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>, NonHistorical, Historical>;
 
 }  // namespace Kratos.
