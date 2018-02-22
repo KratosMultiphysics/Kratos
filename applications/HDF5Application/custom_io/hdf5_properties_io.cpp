@@ -3,6 +3,7 @@
 #include <sstream>
 #include "includes/kratos_components.h"
 #include "custom_io/hdf5_data_value_container_io.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {

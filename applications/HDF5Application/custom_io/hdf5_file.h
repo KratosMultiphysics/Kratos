@@ -23,7 +23,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
-#include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 
 // Application includes
@@ -31,6 +30,9 @@
 
 namespace Kratos
 {
+
+class Parameters;
+
 namespace HDF5
 {
 ///@addtogroup HDF5Application

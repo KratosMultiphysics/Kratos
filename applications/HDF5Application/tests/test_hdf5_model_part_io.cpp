@@ -18,6 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/kratos_components.h"
+#include "includes/kratos_parameters.h"
 
 // Application includes
 #include "custom_io/hdf5_file_serial.h"

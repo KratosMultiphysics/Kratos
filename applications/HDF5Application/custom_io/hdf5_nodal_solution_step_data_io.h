@@ -22,8 +22,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/kratos_parameters.h"
-#include "includes/communicator.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -31,6 +29,10 @@
 
 namespace Kratos
 {
+
+class Parameters;
+class Communicator;
+
 namespace HDF5
 {
 ///@addtogroup HDF5Application

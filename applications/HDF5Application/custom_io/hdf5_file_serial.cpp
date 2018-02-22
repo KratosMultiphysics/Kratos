@@ -1,5 +1,7 @@
 #include "hdf5_file_serial.h"
 
+#include "includes/kratos_parameters.h"
+
 namespace Kratos
 {
 namespace HDF5

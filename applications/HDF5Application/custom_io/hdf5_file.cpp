@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <sstream>
 #include <regex>
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {

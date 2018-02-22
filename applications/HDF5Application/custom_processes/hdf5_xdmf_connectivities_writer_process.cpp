@@ -2,6 +2,7 @@
 
 #include "custom_io/hdf5_file_serial.h"
 #include "utilities/openmp_utils.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {

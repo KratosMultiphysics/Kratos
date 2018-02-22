@@ -19,6 +19,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "includes/kratos_parameters.h"
 
 // Application includes
 #include "tests/test_utils.h"

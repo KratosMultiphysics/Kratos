@@ -3,6 +3,8 @@
 #include "includes/kratos_components.h"
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
+#include "includes/kratos_parameters.h"
+#include "includes/communicator.h"
 
 namespace Kratos
 {

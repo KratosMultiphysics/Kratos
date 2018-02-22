@@ -21,6 +21,7 @@
 #include "includes/node.h"
 #include "includes/kratos_components.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "includes/kratos_parameters.h"
 
 // Application includes
 #include "custom_io/hdf5_file_serial.h"
