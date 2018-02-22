@@ -6,7 +6,8 @@
         "parallel_type"   : "MPI",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 0.3
+        "end_time"        : 0.3,
+        "time_step"       : 0.1
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -39,13 +40,6 @@
         "model_import_settings" : {
             "input_type"     : "mdpa",
             "input_filename" : "test_mdpa_files/rectangle_3D4N_test"
-        },
-        "computing_model_part_name" : "Parts_Fluid",
-        "skin_parts"             : ["FixedBoundary","MovingBoundary"],
-        "no_skin_parts"          : [],
-        "time_stepping"          : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.1
         }
     },
     "initial_conditions_process_list"  : [],

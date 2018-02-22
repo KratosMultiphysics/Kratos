@@ -56,13 +56,6 @@ class MeshSolverBase(object):
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
             },
-            "computing_model_part_name"       : "computing_domain",
-                    "time_stepping"          : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.1
-            },
-            "skin_parts"             : [],
-            "no_skin_parts"             : [],
             "time_order" : 2,
             "reform_dofs_each_step" : false,
             "compute_reactions"     : false

@@ -77,7 +77,7 @@ class MainKratos:
 
 
         ## Stepping and time settings
-        delta_time = self.ProjectParameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+        delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
         start_time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
         end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
