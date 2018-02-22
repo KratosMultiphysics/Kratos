@@ -403,7 +403,12 @@ namespace Kratos
                 // Initialize The Elements - OPEARATIONS TO BE DONE ONCE
                 if (pScheme->ElementsAreInitialized() == false)
                 {
-                    pScheme->InitializeElements(BaseType::GetModelPart());
+                    // set elemental values for formfinding
+                    for(auto& elem : BaseType::GetModelPart().Elements()){
+                        elem.SetValue(IS_FORMFINDING, true);
+                    }  
+                    
+                    pScheme->InitializeElements(BaseType::GetModelPart());     
                 }
 
                 // Initialize The Conditions - OPERATIONS TO BE DONE ONCE

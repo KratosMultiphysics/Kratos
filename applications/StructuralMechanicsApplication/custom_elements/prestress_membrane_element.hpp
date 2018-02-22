@@ -92,15 +92,15 @@ namespace Kratos
       ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(
-      Vector& values,
+      Vector& rValues,
       int Step = 0) override;
 
     void GetFirstDerivativesVector(
-      Vector& values,
+      Vector& rValues,
       int Step = 0) override;
 
     void GetSecondDerivativesVector(
-      Vector& values,
+      Vector& rValues,
       int Step = 0) override;
 
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
@@ -141,72 +141,38 @@ namespace Kratos
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
       const ProcessInfo& rCurrentProcessInfo,
-      bool CalculateStiffnessMatrixFlag,
-      bool CalculateResidualVectorFlag);
+      const bool& rCalculateStiffnessMatrixFlag,
+      const bool& rCalculateResidualVectorFlag);
 
     void CalculateAndAddKm(
-      Matrix& K,
-      Matrix& msB,
-      Matrix& msD,
-      double weight);
+      Matrix& rK,
+      Matrix& rB,
+      Matrix& rD,
+      const double& rWeight);
 
 
     void InitializeNonLinearIteration();
 
     void CalculateAndAddNonlinearKm(
-        Matrix& K,
-        Matrix& B11,
-        Matrix& B22,
-        Matrix& B12,
-        Vector& SD,
-        double weight);
-
-    //void CalculateAndAddKg(
-    //  Matrix& K,
-    //  boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
-    //  const Matrix& DN_De,
-    //  Vector& msStressVector,
-    //  double weight);
-
-    //void CalculateAndSubKp(
-    //  Matrix& K,
-    //  array_1d<double, 3>& ge,
-    //  array_1d<double, 3>& gn,
-    //  const Matrix& DN_De,
-    //  const Vector& N,
-    //  double pressure,
-    //  double weight);
+        Matrix& rK,
+        Matrix& rB11,
+        Matrix& rB22,
+        Matrix& rB12,
+        Vector& rSD,
+        const double& rWeight);
 
     void ClearNodalForces();
 
-    //void AddExplicitContribution(
-    //  const VectorType& rRHSVector,
-    //  const Variable<VectorType>& rRHSVariable,
-    //  Variable<array_1d<double, 3> >& rDestinationVariable,
-    //  const ProcessInfo& rCurrentProcessInfo);
-
-
-    //void MakeCrossMatrix(
-    //  boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
-    //  array_1d<double, 3>& U);
-
-
     void CalculateQ(
-      boost::numeric::ublas::bounded_matrix<double, 3, 3>& msQ,
-      Matrix& msG);
+      bounded_matrix<double, 3, 3>& rQ,
+      const unsigned int& rPointNumber);
 
     void CalculateB(
         Matrix& B,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+        const bounded_matrix<double, 3, 3>& Q,
         const Matrix& DN_De,
         const array_1d<double, 3>& g1,
         const array_1d<double, 3>& g2);
-
-    //void CalculateJ(
-    //  boost::numeric::ublas::bounded_matrix<double, 2, 2>& j,
-    //  array_1d<double, 3>& ge,
-    //  array_1d<double, 3>& gn,
-    //  array_1d<double, 3>& v3);
 
     void CalculateStrain(
         Vector& StrainVector,
@@ -218,14 +184,14 @@ namespace Kratos
       const ProcessInfo& rCurrentProcessInfo,
       array_1d<double, 3>& BodyForce,
       VectorType& rRightHandSideVector,
-      double weight);
+      const double& rWeight);
 
     void CalculateAndAdd_PressureForce(
       VectorType& residualvector,
       const Vector& N,
       const array_1d<double, 3>& v3,
       double pressure,
-      double weight,
+      const double& rrWeight,
       const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateMetricDeformed(const unsigned int& PointNumber,
@@ -239,7 +205,7 @@ namespace Kratos
         Matrix& Strain_locCartesian11,
         Matrix& Strain_locCartesian22,
         Matrix& Strain_locCartesian12,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& Q,
+        bounded_matrix<double, 3, 3>& Q,
         array_1d<double, 3>& g1,
         array_1d<double, 3>& g2);
 
