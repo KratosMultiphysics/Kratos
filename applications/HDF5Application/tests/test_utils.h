@@ -47,6 +47,20 @@ HDF5::File::Matrix<T> TestMatrix(std::size_t m=3, std::size_t n=3)
     return mat;
 }
 
+void CreateTestMesh(HDF5::NodesContainerType& rNodes,
+                    HDF5::PropertiesContainerType& rProperties,
+                    HDF5::ElementsContainerType& rElements,
+                    HDF5::Vector<int>& rElementIds,
+                    HDF5::Vector<int>& rPropertiesIds,
+                    HDF5::Matrix<int>& rConnectivities);
+
+void CreateTestMesh(HDF5::NodesContainerType& rNodes,
+                    HDF5::PropertiesContainerType& rProperties,
+                    HDF5::ConditionsContainerType& rConditions,
+                    HDF5::Vector<int>& rConditionIds,
+                    HDF5::Vector<int>& rPropertiesIds,
+                    HDF5::Matrix<int>& rConnectivities);
+
 } // namespace Testing
 } // namespace Kratos.
 

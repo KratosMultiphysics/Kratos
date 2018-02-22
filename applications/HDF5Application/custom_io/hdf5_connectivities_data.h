@@ -23,12 +23,15 @@
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
+
+class File;
+struct WriteInfo;
+
 namespace Internals
 {
 ///@addtogroup HDF5Application
@@ -57,21 +60,6 @@ public:
     inline std::string const& Name() const
     {
         return mName;
-    }
-
-    inline Vector<int> const& Ids() const
-    {
-        return mIds;
-    }
-
-    inline Vector<int> const& PropertiesIds() const
-    {
-        return mPropertiesIds;
-    }
-
-    inline Matrix<int> const& Connectivities() const
-    {
-        return mConnectivities;
     }
 
     inline unsigned size() const

@@ -3,6 +3,7 @@
 #include "includes/kratos_components.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
