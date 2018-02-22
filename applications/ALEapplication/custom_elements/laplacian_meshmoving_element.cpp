@@ -1,287 +1,228 @@
-// ==============================================================================
-/*
- KratosALEApllication
- A library based on:
- Kratos
- A General Purpose Software for Multi-Physics Finite Element Analysis
- (Released on march 05, 2007).
-
- Copyright (c) 2016: Pooyan Dadvand, Riccardo Rossi, Andreas Winterstein
-                     pooyan@cimne.upc.edu
-                     rrossi@cimne.upc.edu
-                     a.winterstein@tum.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-  Gran Capita' s/n, 08034 Barcelona, Spain
-- Chair of Structural Analysis, Technical University of Munich
-  Arcisstrasse 21 80333 Munich, Germany
-
- Permission is hereby granted, free  of charge, to any person obtaining
- a  copy  of this  software  and  associated  documentation files  (the
- "Software"), to  deal in  the Software without  restriction, including
- without limitation  the rights to  use, copy, modify,  merge, publish,
- distribute,  sublicense and/or  sell copies  of the  Software,  and to
- permit persons to whom the Software  is furnished to do so, subject to
- the following condition:
-
- Distribution of this code for  any  commercial purpose  is permissible
- ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
-
- The  above  copyright  notice  and  this permission  notice  shall  be
- included in all copies or substantial portions of the Software.
-
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
- IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
- CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
- TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
- SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-//==============================================================================
-
-/* ****************************************************************************
- *  Projectname:         $KratosALEApplication
- *  Last Modified by:    $Author: A.Winterstein@tum.de $
- *  Date:                $Date: June 2016 $
- *  Revision:            $Revision: 1.5 $
- * ***************************************************************************/
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license:
+// kratos/license.txt
+//
+//  Main authors:    Andreas Winterstein (a.winterstein@tum.de)
+//
 
 // System includes
+
 // External includes
+
 // Project includes
-#include "includes/define.h"
-#include "ale_application.h"
-#include "utilities/math_utils.h"
-#include "utilities/geometry_utilities.h"
 #include "custom_elements/laplacian_meshmoving_element.h"
+#include "ale_application.h"
+#include "custom_utilities/move_mesh_utilities.h"
+#include "utilities/math_utils.h"
 
-namespace Kratos
-{
-LaplacianMeshMovingElement::LaplacianMeshMovingElement(IndexType NewId,
-                                                       GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
-{
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+namespace Kratos {
+
+LaplacianMeshMovingElement::LaplacianMeshMovingElement(
+    IndexType NewId, GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry) {}
+LaplacianMeshMovingElement::LaplacianMeshMovingElement(
+    IndexType NewId, GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties) {}
+
+//******************************************************************************
+//******************************************************************************
+Element::Pointer
+LaplacianMeshMovingElement::Create(IndexType NewId,
+                                   NodesArrayType const &rThisNodes,
+                                   PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<LaplacianMeshMovingElement>(
+      NewId, GetGeometry().Create(rThisNodes), pProperties);
 }
 
-LaplacianMeshMovingElement::LaplacianMeshMovingElement(IndexType NewId,
-                                                       GeometryType::Pointer pGeometry,
-                                                       PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
-{
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+//******************************************************************************
+//******************************************************************************
+Element::Pointer
+LaplacianMeshMovingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
+                                   PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<LaplacianMeshMovingElement>(NewId, pGeom,
+                                                         pProperties);
 }
 
-Element::Pointer LaplacianMeshMovingElement::Create(IndexType NewId,
-                                                    NodesArrayType const& rThisNodes,
-                                                    PropertiesType::Pointer pProperties) const
-{
-    return Element::Pointer(new LaplacianMeshMovingElement(
-        NewId, GetGeometry().Create(rThisNodes), pProperties));
+//******************************************************************************
+//******************************************************************************
+void LaplacianMeshMovingElement::CalculateDeltaPosition(
+    VectorType &rIntermediateDisplacements, ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
+
+  const unsigned int component_index =
+      rCurrentProcessInfo[LAPLACIAN_DIRECTION] - 1;
+  const SizeType num_nodes = this->GetGeometry().PointsNumber();
+
+  for (SizeType iNode = 0; iNode < num_nodes; ++iNode) {
+    const VectorType &displacement =
+        GetGeometry()[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT, 0) -
+        GetGeometry()[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
+    rIntermediateDisplacements[iNode] = displacement[component_index];
+  }
+
+  KRATOS_CATCH("");
 }
 
-Element::Pointer LaplacianMeshMovingElement::Create(IndexType NewId,
-                                                    GeometryType::Pointer pGeom,
-                                                    PropertiesType::Pointer pProperties) const
-{
-    return BaseType::Pointer(new LaplacianMeshMovingElement(NewId, pGeom, pProperties));
+//******************************************************************************
+//******************************************************************************
+void LaplacianMeshMovingElement::CheckElementMatrixDimension(
+    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) {
+  const SizeType num_nodes = this->GetGeometry().PointsNumber();
+
+  if (rLeftHandSideMatrix.size1() != num_nodes)
+    rLeftHandSideMatrix.resize(num_nodes, num_nodes, false);
+
+  if (rRightHandSideVector.size() != num_nodes)
+    rRightHandSideVector.resize(num_nodes, false);
+
+  noalias(rLeftHandSideMatrix) = ZeroMatrix(num_nodes, num_nodes);
+  noalias(rRightHandSideVector) = ZeroVector(num_nodes);
 }
 
-void LaplacianMeshMovingElement::Initialize()
-{
-    KRATOS_TRY;
+//******************************************************************************
+//******************************************************************************
+void LaplacianMeshMovingElement::CalculateLocalSystem(
+    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
+    ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
 
-    const GeometryType::IntegrationPointsArrayType& integration_points =
-        GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+  GeometryType &rgeom = this->GetGeometry();
+  const SizeType num_nodes = rgeom.PointsNumber();
+  const IntegrationMethod this_integration_method =
+      rgeom.GetDefaultIntegrationMethod();
+  const GeometryType::IntegrationPointsArrayType &integration_points =
+      GetGeometry().IntegrationPoints(this_integration_method);
+  VectorType delta_displacement = ZeroVector(num_nodes);
 
-    mJ0 = GetGeometry().Jacobian(mJ0, mThisIntegrationMethod);
-    mInvJ0.resize(integration_points.size());
-    mDetJ0.resize(integration_points.size(), false);
-    mTotalDomainInitialSize = 0.00;
+  GeometryType::JacobiansType J0;
+  GeometryType::JacobiansType invJ0;
+  VectorType detJ0;
 
-    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
-    {
-        // getting informations for integration
-        double IntegrationWeight = integration_points[PointNumber].Weight();
+  MoveMeshUtilities::CheckJacobianDimension(invJ0, detJ0, rgeom);
 
-        // calculating and storing inverse of the jacobian and the parameters
-        // needed
-        MathUtils<double>::InvertMatrix(
-            mJ0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber]);
+  CheckElementMatrixDimension(rLeftHandSideMatrix, rRightHandSideVector);
 
-        // calculating the total area
-        mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
-    }
-
-    KRATOS_CATCH("");
-}
-
-
-void LaplacianMeshMovingElement::GetDisplacementValues(VectorType& rValues, const int Step)
-{
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.PointsNumber();
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-   // if (rValues.size() != mLocalSize)
-   //     rValues.resize(mLocalSize, false);
-
-    if (dimension == 2)
-    {
-        SizeType Index = 0;
-
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rValues[Index++] =
-                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_X, 0);
-            rValues[Index++] =
-                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_Y, 0);
-        }
-    }
-    else if (dimension == 3)
-    {
-        SizeType Index = 0;
-
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rValues[Index++] =
-                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_X, 0);
-            rValues[Index++] =
-                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_Y, 0);
-            rValues[Index++] =
-                rGeom[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT_Z, 0);
-        }
-    }
-}
-
-LaplacianMeshMovingElement::MatrixType LaplacianMeshMovingElement::CalculateDerivatives(
-    const int& rdimension, const double& rPointNumber)
-{
-    KRATOS_TRY;
+  for (unsigned int point_number = 0; point_number < integration_points.size();
+       ++point_number) {
+    J0 = GetGeometry().Jacobian(J0, this_integration_method);
+    MathUtils<double>::InvertMatrix(J0[point_number], invJ0[point_number],
+                                    detJ0[point_number]);
 
     GeometryType::ShapeFunctionsGradientsType DN_De =
-        this->GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+        this->GetGeometry().ShapeFunctionsLocalGradients(
+            this_integration_method);
 
-    Matrix DN_DX = prod(DN_De[rPointNumber], mInvJ0[rPointNumber]);
+    // We do not multiply by DetJ0, since this additionally stabilizes the
+    // simulation
+    double integration_weight = integration_points[point_number].Weight();
 
-    return DN_DX;
+    // Compute LHS
+    Matrix DN_DX = prod(DN_De[point_number], invJ0[point_number]);
+    noalias(rLeftHandSideMatrix) +=
+        integration_weight * prod(DN_DX, trans(DN_DX));
 
-    KRATOS_CATCH("");
+    // Compute RHS
+    CalculateDeltaPosition(delta_displacement, rCurrentProcessInfo);
+    noalias(rRightHandSideVector) =
+        -prod(rLeftHandSideMatrix, delta_displacement);
+  }
+
+  KRATOS_CATCH("");
 }
 
-void LaplacianMeshMovingElement::CalculateDeltaPosition(VectorType& IntermediateDisplacements,
-                                                        ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
+//******************************************************************************
+//******************************************************************************
+void LaplacianMeshMovingElement::EquationIdVector(
+    EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
 
-    const unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
+  GeometryType &rgeom = this->GetGeometry();
+  const SizeType num_nodes = rgeom.size();
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+  if (rResult.size() != num_nodes)
+    rResult.resize(num_nodes, false);
 
-    for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-    {
-        const VectorType& displacement =
-            GetGeometry()[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT, 0) -
-            GetGeometry()[iNode].FastGetSolutionStepValue(MESH_DISPLACEMENT, 1);
-        IntermediateDisplacements[iNode] = displacement[ComponentIndex];
+  unsigned int pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
+
+  if (dimension == 2) {
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 1)
+        rResult[i_node] =
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_X, pos).EquationId();
+
+      else if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 2)
+        rResult[i_node] =
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_Y, pos + 1).EquationId();
+    }
+  } else {
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 1)
+        rResult[i_node] =
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_X, pos).EquationId();
+      else if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 2)
+        rResult[i_node] =
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_Y, pos + 1).EquationId();
+      else if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 3)
+        rResult[i_node] =
+            rgeom[i_node].GetDof(MESH_DISPLACEMENT_Z, pos + 2).EquationId();
+    }
+  }
+  KRATOS_CATCH("");
+}
+
+//******************************************************************************
+//******************************************************************************
+void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
+                                            ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
+
+  GeometryType &rgeom = this->GetGeometry();
+  const SizeType num_nodes = rgeom.size();
+  const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+  if (rElementalDofList.size() != num_nodes)
+    rElementalDofList.resize(num_nodes);
+
+  if (dimension == 2)
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 1)
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_X);
+      else if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 2)
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
+    }
+  else
+    for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
+      if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 1)
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_X);
+      if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 2)
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Y);
+      if (rCurrentProcessInfo[LAPLACIAN_DIRECTION] == 3)
+        rElementalDofList[i_node] = rgeom[i_node].pGetDof(MESH_DISPLACEMENT_Z);
     }
 
-    KRATOS_CATCH("");
+  KRATOS_CATCH("");
 }
 
-void LaplacianMeshMovingElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                                      VectorType& rRightHandSideVector,
-                                                      ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
+//******************************************************************************
+//******************************************************************************
+// Called in function "CalculateReactions" within the component wise builder and
+// solver
+void LaplacianMeshMovingElement::CalculateRightHandSide(
+    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
 
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    const unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+  MatrixType LHS;
+  CalculateLocalSystem(LHS, rRightHandSideVector, rCurrentProcessInfo);
 
-    const GeometryType::IntegrationPointsArrayType& integration_points =
-        GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-
-    if (rLeftHandSideMatrix.size1() != NumNodes)
-        rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
-
-    if (rRightHandSideVector.size() != NumNodes)
-        rRightHandSideVector.resize(NumNodes, false);
-
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
-    noalias(rRightHandSideVector) = ZeroVector(NumNodes);
-
-    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); ++PointNumber)
-    {
-        double IntegrationWeight = integration_points[PointNumber].Weight();
-
-        // Compute LHS
-        MatrixType DN_DX = CalculateDerivatives(dimension, PointNumber);
-        noalias(rLeftHandSideMatrix) += prod((IntegrationWeight * DN_DX), trans(DN_DX));
-
-        // Compute RHS
-        double LocalSize = NumNodes * dimension;
-        VectorType LastValues = ZeroVector(LocalSize);
-        this->GetDisplacementValues(LastValues, 0);
-        noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, LastValues);
-    }
-    KRATOS_CATCH("");
-}
-
-void LaplacianMeshMovingElement::EquationIdVector(EquationIdVectorType& rResult,
-                                                  ProcessInfo& rCurrentProcessInfo)
-{
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.size();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType LocalSize = NumNodes * dimension;
-
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize, false);
-    
-    unsigned int pos = this->GetGeometry()[0].GetDofPosition(MESH_DISPLACEMENT_X);
-    if (dimension == 2)
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            SizeType Index = iNode * dimension;
-            rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
-            rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
-        }
-    else
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            SizeType Index = iNode * dimension;
-            rResult[Index] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_X,pos).EquationId();
-            rResult[Index + 1] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Y,pos+1).EquationId();
-            rResult[Index + 2] = rGeom[iNode].GetDof(MESH_DISPLACEMENT_Z,pos+2).EquationId();
-        }
-}
-
-void LaplacianMeshMovingElement::GetDofList(DofsVectorType& rElementalDofList,
-                                            ProcessInfo& rCurrentProcessInfo)
-{
-    GeometryType& rGeom = this->GetGeometry();
-    const SizeType NumNodes = rGeom.size();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const SizeType LocalSize = NumNodes * dimension;
-
-    if (rElementalDofList.size() != LocalSize)
-        rElementalDofList.resize(LocalSize);
- 
-    if (dimension == 2)
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            SizeType Index = iNode * dimension;
-            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
-            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
-        }
-    else
-        for (SizeType iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            SizeType Index = iNode * dimension;
-            rElementalDofList[Index] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_X);
-            rElementalDofList[Index + 1] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Y);
-            rElementalDofList[Index + 2] = rGeom[iNode].pGetDof(MESH_DISPLACEMENT_Z);
-        }
+  KRATOS_CATCH("");
 }
 
 } // Namespace Kratos

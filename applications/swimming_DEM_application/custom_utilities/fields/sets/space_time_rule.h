@@ -235,7 +235,7 @@ void SetSpaceTimeBoundingBox(const array_1d<double, 4>& low, const array_1d<doub
     Check();
 }
 
-bool CheckIfRuleIsMet(const double time, const double coor_x, const double coor_y, const double coor_z)
+bool CheckIfRuleIsMet(const double time, const double coor_x, const double coor_y, const double coor_z) override
 {
     bool low  = time < mLowTime  || coor_x < mLowX  || coor_y < mLowY  || coor_z < mLowZ;
     bool high = time > mHighTime || coor_x > mHighX || coor_y > mHighY || coor_z > mHighZ;
