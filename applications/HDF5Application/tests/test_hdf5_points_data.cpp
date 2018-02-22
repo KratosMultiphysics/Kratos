@@ -25,7 +25,7 @@ namespace Kratos
 namespace Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_CreateNodes, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData_CreateNodes, KratosHDF5TestSuite)
 {
     Parameters test_params(R"(
         {
@@ -56,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_CreateNodes, KratosHDF5TestSuite)
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_WriteData, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData_WriteData, KratosHDF5TestSuite)
 {
     Parameters test_params(R"(
         {
