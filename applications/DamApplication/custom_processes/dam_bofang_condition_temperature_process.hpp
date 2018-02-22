@@ -230,7 +230,7 @@ class DamBofangConditionTemperatureProcess : public Process
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
-        KRATOS_WATCH("HELLO")
+
         if (nnodes != 0)
         {
             
