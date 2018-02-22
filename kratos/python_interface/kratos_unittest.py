@@ -145,8 +145,6 @@ def runTests(tests):
 def DeleteFileIfExisting(file_name):
     if os.path.isfile(file_name):
         os.remove(file_name)
-    else:
-        pass
 
 
 KratosSuites = {
