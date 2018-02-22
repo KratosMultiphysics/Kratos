@@ -121,20 +121,20 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __analyzeShape( self ):
         self.Communicator.initializeCommunication()
-        self.Communicator.requestValue( self.onlyObjectiveId )
-        self.Communicator.requestValue( self.onlyConstraintId )
-        self.Communicator.requestGradient( self.onlyObjectiveId )
-        self.Communicator.requestGradient( self.onlyConstraintId )
+        self.Communicator.requestValueOf( self.onlyObjectiveId )
+        self.Communicator.requestValueOf( self.onlyConstraintId )
+        self.Communicator.requestGradientOf( self.onlyObjectiveId )
+        self.Communicator.requestGradientOf( self.onlyConstraintId )
 
         self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
 
         self.__storeResultOfSensitivityAnalysisOnNodes()
-        self.__ResetPossibleShapeModificationsDuringAnalysis()
+        self.__RevertPossibleShapeModificationsDuringAnalysis()
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
-        gradientOfObjectiveFunction = self.Communicator.getGradientInStandardForm( self.onlyObjectiveId )
-        gradientOfConstraintFunction = self.Communicator.getGradientInStandardForm( self.onlyConstraintId )
+        gradientOfObjectiveFunction = self.Communicator.getStandardizedGradient( self.onlyObjectiveId )
+        gradientOfConstraintFunction = self.Communicator.getStandardizedGradient( self.onlyConstraintId )
         self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, OBJECTIVE_SENSITIVITY )
         self.__storeGradientOnNodalVariable( gradientOfConstraintFunction, CONSTRAINT_SENSITIVITY )
 
@@ -148,15 +148,15 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
 
     # --------------------------------------------------------------------------
-    def __ResetPossibleShapeModificationsDuringAnalysis( self ):
+    def __RevertPossibleShapeModificationsDuringAnalysis( self ):
         self.ModelPartController.SetMeshToReferenceMesh()
         self.ModelPartController.SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def __projectSensitivitiesOnSurfaceNormals( self ):
-            self.GeometryUtilities.ComputeUnitSurfaceNormals()
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( CONSTRAINT_SENSITIVITY )
+        self.GeometryUtilities.ComputeUnitSurfaceNormals()
+        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
+        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( CONSTRAINT_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
@@ -167,7 +167,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     def __computeShapeUpdate( self ):
         self.__mapSensitivitiesToDesignSpace()
 
-        constraint_value = self.Communicator.getValueInStandardForm( self.onlyConstraintId )
+        constraint_value = self.Communicator.getStandardizedValue( self.onlyConstraintId )
         if self.__isConstraintActive( constraint_value ):
             self.OptimizationUtilities.ComputeProjectedSearchDirection()
             self.OptimizationUtilities.CorrectProjectedSearchDirection( constraint_value )

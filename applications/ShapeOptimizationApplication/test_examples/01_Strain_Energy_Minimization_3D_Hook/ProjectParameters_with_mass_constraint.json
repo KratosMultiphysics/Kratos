@@ -107,9 +107,9 @@
                 }
         }],
         "constraints" : [{
-                "identifier": "mass",
-                "type"      : "equality",
-                "reference" : "initial_value",
+                "identifier" : "mass",
+                "type"       : "equality",
+                "reference"  : "initial_value",
                 "use_kratos" : true,
                 "kratos_response_settings":{
                     "gradient_mode"          : "finite_differencing",

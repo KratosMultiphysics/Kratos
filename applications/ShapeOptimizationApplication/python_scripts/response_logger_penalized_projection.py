@@ -52,13 +52,6 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         self.initialIteration = 0
 
     # --------------------------------------------------------------------------
-    def __CreateCompleteResponseLogFilename( self, optimizationSettings ):
-        resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
-        responseLogFilename = optimizationSettings["output"]["response_log_filename"].GetString()
-        completeResponseLogFilename = resultsDirectory+"/"+responseLogFilename+".csv"
-        return completeResponseLogFilename
-
-    # --------------------------------------------------------------------------
     def InitializeLogging( self ):
         with open(self.completeResponseLogFileName, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -94,6 +87,27 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
         self.previousIteration = optimizationIteration
 
+    # --------------------------------------------------------------------------
+    def FinalizeLogging( self ):
+        pass
+
+    # --------------------------------------------------------------------------
+    def GetValue( self, variableKey ):
+        if variableKey=="RELATIVE_CHANGE_OF_OBJECTIVE_VALUE":
+            if self.__IsFirstLog():
+                raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
+            else:
+                return self.relativeChangeOfObjectiveHistory[self.currentIteration]
+        else:
+            raise NameError("Value with the following variable key not defined in response_logger_penalized_projection.py: " + variableKey)
+
+    # --------------------------------------------------------------------------
+    def __CreateCompleteResponseLogFilename( self, optimizationSettings ):
+        resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
+        responseLogFilename = optimizationSettings["output"]["response_log_filename"].GetString()
+        completeResponseLogFilename = resultsDirectory+"/"+responseLogFilename+".csv"
+        return completeResponseLogFilename
+
     # -------------------------------------------------------------------------
     def __IsFirstLog( self ):
         if len(self.objectiveHistory) == 0:
@@ -103,8 +117,8 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __AddResponseValuesToHistory( self ):
-        objectiveValue = self.communicator.getValueInStandardForm( self.onlyObjective )
-        constraintValue = self.communicator.getValueInStandardForm( self.onlyConstraint ) + self.communicator.getReferenceValue( self.onlyConstraint )
+        objectiveValue = self.communicator.getStandardizedValue( self.onlyObjective )
+        constraintValue = self.communicator.getStandardizedValue( self.onlyConstraint ) + self.communicator.getReferenceValue( self.onlyConstraint )
 
         self.objectiveHistory[self.currentIteration] = objectiveValue
         self.constraintHistory[self.currentIteration] = constraintValue
@@ -113,6 +127,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
     def __DetermineReferenceValuesForOutput( self ):
         self.constraintOutputReference = self.communicator.getReferenceValue( self.onlyConstraint )
         self.objectiveOutputReference = self.objectiveHistory[self.initialIteration]
+
         if abs(self.objectiveOutputReference)<1e-12:
             print("\n> WARNING: Objective reference value < 1e-12!! Therefore, standard reference value of 1 is assumed! ")
             self.objectiveOutputReference = 1.0
@@ -169,19 +184,5 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             row.append(str("{:>16f}".format(self.timer.GetTotalTime())))
             row.append("{:>25}".format(self.timer.GetTimeStamp()))
             historyWriter.writerow(row)
-
-    # --------------------------------------------------------------------------
-    def FinalizeLogging( self ):
-        pass # No finalization necessary here
-
-    # --------------------------------------------------------------------------
-    def GetValue( self, variableKey ):
-        if variableKey=="RELATIVE_CHANGE_OF_OBJECTIVE_VALUE":
-            if self.__IsFirstLog():
-                raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
-            else:
-                return self.relativeChangeOfObjectiveHistory[self.currentIteration]
-        else:
-            raise NameError("Value with the following variable key not defined in response_logger_penalized_projection.py: " + variableKey)
 
 # ==============================================================================
