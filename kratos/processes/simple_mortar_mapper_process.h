@@ -49,7 +49,16 @@ namespace Kratos
 ///@name  Functions
 ///@{
     
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THist> 
+/**
+ * @ingroup KratosCore
+ * @class SimpleMortarMapperProcess
+ * @brief This is basic mapper of values between domains using mortar formulation
+ * @details Using the dual mortar formulation the resolution of the system of equations is not needed. 
+ * Several types of constructors are avaible depending of the needs.
+ * If the pairs sets are not provided a serach will be performed using a KDTree
+ * @author Vicente Mataix Ferrandiz
+ */
+template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination = THistOrigin> 
 class KRATOS_API(KRATOS_CORE) SimpleMortarMapperProcess
         : public Process
 {
@@ -67,38 +76,44 @@ public:
     typedef ModelPart::NodesContainerType           NodesArrayType;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
     
-    // Type definition for integration methods
+    /// Type definition for integration methods
     typedef GeometryData::IntegrationMethod      IntegrationMethod;
     
-    // Auxiliar geometries
+    /// Auxiliar geometries
     typedef Line2D2<PointType>                            LineType;
     typedef Triangle3D3<PointType>                    TriangleType;
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompType;
     
-    // Component type
+    /// Component type
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
 
-    // Linear solver
+    /// Linear solver
     typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector>               LocalSpaceType;
     typedef typename SparseSpaceType::MatrixType                 MatrixType;
     typedef typename SparseSpaceType::VectorType                 VectorType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     
-    // Component type
+    /// Component type
     typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > ComponentType;  
     
-    // An integer map
+    /// An integer map
     typedef std::unordered_map<int, int>                             IntMap;
     
-    // BoundedMatrix
+    /// BoundedMatrix
     typedef bounded_matrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /**
+     * @brief Default constructor
+     * @param rThisModelPart The model part to compute 
+     * @param ThisVariable The variable to transfer and be transfered
+     * @param ThisParameters The configuration parameters
+     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
+     */
     SimpleMortarMapperProcess( 
         ModelPart& rThisModelPart,
         TVarType& ThisVariable, 
@@ -106,6 +121,14 @@ public:
         LinearSolverType::Pointer pThisLinearSolver = nullptr
         );
     
+    /**
+     * @brief A constructor where two different variables can be considered for each subdomain
+     * @param rThisModelPart The model part to compute 
+     * @param OriginVariable The variable to transfer
+     * @param DestinationVariable The variable to be transfered
+     * @param ThisParameters The configuration parameters
+     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
+     */
     SimpleMortarMapperProcess( 
         ModelPart& rThisModelPart,
         TVarType& OriginVariable,
@@ -221,13 +244,13 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrThisModelPart;                   // The model part to compute
-    TVarType mOriginVariable;                     // The origin variable to map
-    TVarType mDestinationVariable;                // The destiny variable to map
+    ModelPart& mrThisModelPart;                   /// The model part to compute
+    TVarType mOriginVariable;                     /// The origin variable to map
+    TVarType mDestinationVariable;                /// The destiny variable to map
     
-    unsigned int mEchoLevel;                      // The verbosity level
-    bool mInvertedPairing;                        // The if the master/slaves are paired inverted            
-    Parameters mThisParameters;                   // The configuration parameters
+    unsigned int mEchoLevel;                      /// The verbosity level
+    bool mInvertedPairing;                        /// The if the master/slaves are paired inverted            
+    Parameters mThisParameters;                   /// The configuration parameters
     
     LinearSolverType::Pointer mpThisLinearSolver; // The linear solver used to compute the solution
 
@@ -240,17 +263,17 @@ private:
     ///@{
     
     /**
-     * This method resets the nodal area
+     * @brief This method resets the nodal area
      */
     void ResetNodalArea();
     
     /**
-     * This method gets the max area of the conditions from the modelpart
+     * @brief This method gets the max area of the conditions from the modelpart
      */
     double GetReferenceArea();
     
     /**
-     * This method assemble locally the mortar operators
+     * @brief This method assemble locally the mortar operators
      * @param ConditionsPointSlave The list of points that form the triangle decomposition
      * @param SlaveGeometry The slave geometry
      * @param MasterGeometry The master geometry
@@ -272,7 +295,7 @@ private:
         );
     
     /**
-     * This method computes the Ae matrix
+     * @brief This method computes the Ae matrix
      * @param SlaveGeometry The slave geometry
      * @param ThisKinematicVariables The kinematic variables
      * @param ConditionsPointsSlave The list of decomposed triangles
@@ -287,14 +310,14 @@ private:
         );
         
     /**
-     * This method inverts a diagonal matrix
+     * @brief This method inverts a diagonal matrix
      * @param InputMatrix The matrix to invert
      * @return The matrix inverted
      */
     static inline BoundedMatrixType InvertDiagonalMatrix(const BoundedMatrixType& InputMatrix);
 
     /**
-     * This method inverts a diagonal matrix
+     * @brief This method inverts a diagonal matrix
      * @param InputMatrix The matrix to invert
      * @param InvertedMatrix The matrix inverted
      */
@@ -304,20 +327,20 @@ private:
         );
     
     /**
-     * This method lumps a matrix
+     * @brief This method lumps a matrix
      * @param InputMatrix The matrix to lump
      */
     void LumpMatrix(BoundedMatrixType& InputMatrix);
     
     /**
-     * This method computes the size of the system
+     * @brief This method computes the size of the system
      * @param SizeSystem The size of the system
      */
         
     void GetSystemSize(std::size_t& SizeSystem);
 
     /**
-     * This method creates a slave database needed to assemble the system
+     * @brief This method creates a slave database needed to assemble the system
      * @param SizeSystem The size of the system
      * @param ConectivityDatabase The database that will be used to assemble the system
      * @param InverseConectivityDatabase The inverse database that will be used to assemble the system
@@ -330,20 +353,20 @@ private:
         );
     
     /**
-     * This method returns the corresponding integration order considered
+     * @brief This method returns the corresponding integration order considered
      * @return The integration order considered
      */
     IntegrationMethod GetIntegrationMethod();
     
     /**
-     * This method checks if all components of a vector are true
+     * @brief This method checks if all components of a vector are true
      * @param VectorToCheck The vector to check
      * @return result True if all componets are true
      */
     bool CheckWholeVector(std::vector<bool> VectorToCheck);
     
     /**
-     * This method computes the residual matrix of the mapping
+     * @brief This method computes the residual matrix of the mapping
      * @param ResidualMatrix The matrix containing the residual of the mappping
      * @param SlaveGeometry The slave geometry
      * @param MasterGeometry The master geometry
@@ -357,7 +380,7 @@ private:
         );
     
     /**
-     * This method assembles the LHS and the RHS
+     * @brief This method assembles the LHS and the RHS
      * @param A The LHS of the system
      * @param b The RHS of the system
      * @param VariableSize The size of the variable
@@ -377,7 +400,7 @@ private:
         );
     
     /**
-     * This method assembles the RHS
+     * @brief This method assembles the RHS
      * @param b The RHS of the system
      * @param VariableSize The size of the variable
      * @param ResidualMatrix The matrix containing the residual of the mappping
@@ -393,14 +416,19 @@ private:
         );
     
     /**
-     * This method executes the explicit mapping (when no linear solver is avalaible)
+     * @brief This method executes the explicit mapping (when no linear solver is avalaible)
      */
     void ExecuteExplicitMapping();
     
     /**
-     * This method executes the mapping when a linear solver is avalaible and a system of equations can be solved
+     * @brief This method executes the mapping when a linear solver is avalaible and a system of equations can be solved
      */
     void ExecuteImplicitMapping();
+        
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters();
         
     ///@}
     ///@name Private  Access
