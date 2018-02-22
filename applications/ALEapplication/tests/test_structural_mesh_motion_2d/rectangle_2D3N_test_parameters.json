@@ -16,7 +16,7 @@
                 "WriteConditionsFlag"   : "WriteConditions",
                 "MultiFileFlag"         : "SingleFile"
             },
-            "file_label"          : "time",
+            "file_label"          : "step",
             "output_control_type" : "step",
             "output_frequency"    : 1,
             "body_output"         : true,
