@@ -57,6 +57,20 @@ SmallDisplacement::~SmallDisplacement()
 /***********************************************************************************/
 /***********************************************************************************/
 
+void SmallDisplacement::SetConstituveLawFlags(
+    Flags& rConstituveLawFlags,
+    const bool ComputeStress,
+    const bool ComputeConstitutiveTensor
+    )
+{
+    rConstituveLawFlags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    rConstituveLawFlags.Set(ConstitutiveLaw::COMPUTE_STRESS, ComputeStress);
+    rConstituveLawFlags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, ComputeConstitutiveTensor);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacement::CalculateAll( 
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -99,9 +113,7 @@ void SmallDisplacement::CalculateAll(
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    SetConstituveLawFlags(ConstitutiveLawOptions, true, true);
     
     // If strain has to be computed inside of the constitutive law with PK2
     Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter

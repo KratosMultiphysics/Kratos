@@ -46,8 +46,12 @@ namespace Kratos
 ///@{
     
 /**
+ * @class BaseSolidElement
+ * @ingroup StructuralMechanicsApplication
  * @brief This is base clase used to define the solid elements
  * @details The elements derived from this class are the small displacement element, the total lagrangian element and the updated lagrangian element
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseSolidElement
     : public Element
@@ -443,7 +447,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the constitutive laws
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     ///@}
     ///@name Protected Operators
@@ -454,14 +458,26 @@ protected:
     ///@{
     
     /**
-     * It initializes the material
+     * @brief It initializes the material
      */
     virtual void InitializeMaterial();
     
     /**
-     * Gives the StressMeasure used
+     * @brief Gives the StressMeasure used
      */
     virtual ConstitutiveLaw::StressMeasure GetStressMeasure() const;
+    
+    /**
+     * @brief Sets the flags of the constitutive law
+     * @param rConstituveLawFlags The flags of the constitutive law
+     * @param ComputeStress If the stress vector is computed or not
+     * @param ComputeConstitutiveTensor If the constitutive tensor is computed or not
+     */
+    virtual void SetConstituveLawFlags(
+        Flags& rConstituveLawFlags,
+        const bool ComputeStress = true,
+        const bool ComputeConstitutiveTensor = false
+        );
     
     /**
      * @brief This functions calculates both the RHS and the LHS

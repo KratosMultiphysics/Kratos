@@ -44,8 +44,12 @@ namespace Kratos
 ///@{
 
 /**
+ * @class SmallDisplacement
+ * @ingroup StructuralMechanicsApplication
  * @brief Small displacement element for 2D and 3D geometries.
  * @details Implements a small displacement definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacement
@@ -138,6 +142,18 @@ protected:
     {
     }
 
+    /**
+     * @brief Sets the flags of the constitutive law
+     * @param rConstituveLawFlags The flags of the constitutive law
+     * @param ComputeStress If the stress vector is computed or not
+     * @param ComputeConstitutiveTensor If the constitutive tensor is computed or not
+     */
+    void SetConstituveLawFlags(
+        Flags& rConstituveLawFlags,
+        const bool ComputeStress = true,
+        const bool ComputeConstitutiveTensor = false
+        ) override;
+    
     /**
      * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix The LHS

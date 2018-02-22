@@ -109,9 +109,7 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    SetConstituveLawFlags(ConstitutiveLawOptions);
 
     Values.SetStrainVector(this_constitutive_variables.StrainVector);
     
@@ -209,9 +207,7 @@ void UpdatedLagrangian::CalculateAll(
     
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    SetConstituveLawFlags(ConstitutiveLawOptions, true, true);
     
     // If strain has to be computed inside of the constitutive law with PK2
     Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
@@ -295,30 +291,6 @@ void UpdatedLagrangian::CalculateKinematicVariables(
     
     // Calculating operator B
     this->CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, strain_size, IntegrationPoints, PointNumber );
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void UpdatedLagrangian::CalculateConstitutiveVariables(
-    KinematicVariables& rThisKinematicVariables, 
-    ConstitutiveVariables& rThisConstitutiveVariables, 
-    ConstitutiveLaw::Parameters& rValues,
-    const unsigned int PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    )
-{       
-    // Here we essentially set the input parameters
-    rValues.SetDeterminantF(rThisKinematicVariables.detF); // Assuming the determinant is computed somewhere else
-    rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
-    
-    // Here we set the space on which the results shall be written
-    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); // Assuming the determinant is computed somewhere else
-    rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
-    
-    // Actually do the computations in the ConstitutiveLaw    
-    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done 
 }
 
 /***********************************************************************************/
