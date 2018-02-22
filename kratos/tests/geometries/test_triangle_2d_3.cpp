@@ -205,10 +205,10 @@ namespace Testing {
     auto geom = GenerateIrregularTriangle2D3<Node<3>>();
 
     // Compute the global coordinates of the baricentre
-    array_1d<double, 3> baricentre = ZeroVector(3);
     const Geometry<Node<3>>::PointsArrayType geom_pts = geom->Points();
-    baricentre(0) = (geom_pts[0].X() + geom_pts[1].X() + geom_pts[2].X()) / 3.0;
-    baricentre(1) = (geom_pts[0].Y() + geom_pts[1].Y() + geom_pts[2].Y()) / 3.0;
+    const double x_coord = (geom_pts[0].X() + geom_pts[1].X() + geom_pts[2].X()) / 3.0;
+    const double y_coord = (geom_pts[0].Y() + geom_pts[1].Y() + geom_pts[2].Y()) / 3.0;
+    Point baricentre(x_coord, y_coord, 0.0);
 
     // Compute the baricentre local coordinates
     array_1d<double, 3> baricentre_local_coords = geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
