@@ -22,13 +22,17 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
     def __init__(self, main_model_part, custom_settings):
 
+        self.element_name = "EmbeddedNavierStokes"
+        self.condition_name = "NavierStokesWallCondition"
+        self.min_buffer_size = 3
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
         ## Default settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "trilinos_navier_stokes_embedded_solver",
+            "solver_type": "Embedded",
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -37,21 +41,21 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
                 "import_mode"         : "from_GID_file",
                 "distance_file_name"  : "distance_file"
             },
-            "maximum_iterations": 10,
-            "dynamic_tau": 0.0,
+            "maximum_iterations": 7,
+            "dynamic_tau": 1.0,
             "echo_level": 0,
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
-            "reform_dofs_at_each_step": true,
-            "relative_velocity_tolerance": 1e-5,
-            "absolute_velocity_tolerance": 1e-7,
-            "relative_pressure_tolerance": 1e-5,
-            "absolute_pressure_tolerance": 1e-7,
+            "reform_dofs_at_each_step": false,
+            "relative_velocity_tolerance": 1e-3,
+            "absolute_velocity_tolerance": 1e-5,
+            "relative_pressure_tolerance": 1e-3,
+            "absolute_pressure_tolerance": 1e-5,
             "linear_solver_settings"       : {
                 "solver_type"                        : "MultiLevelSolver",
                 "max_iteration"                      : 200,
-                "tolerance"                          : 1e-8,
+                "tolerance"                          : 1e-6,
                 "max_levels"                         : 3,
                 "symmetric"                          : false,
                 "reform_preconditioner_at_each_step" : true,
@@ -74,28 +78,13 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
+        # TODO: Remove this once we finish the new implementations
+        if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
+            self.element_name = "EmbeddedSymbolicNavierStokes"
+
         ## Construct the linear solver
         import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-
-        ## Set the element replace settings
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedNavierStokes3D4N",
-                    "condition_name": "NavierStokesWallCondition3D3N"
-                }
-                """)
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                    "element_name":"EmbeddedNavierStokes2D3N",
-                    "condition_name": "NavierStokesWallCondition2D2N"
-                }
-                """)
-        else:
-            raise Exception("Domain size is not 2 or 3!!")
 
         print("Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
 
@@ -118,11 +107,19 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
         # Execute the Metis partitioning and reading
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
-        # Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._ExecuteAfterReading()
+        # Replace default elements and conditions
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._replace_elements_and_conditions()
+        # Executes the check and prepare model process
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._execute_check_and_prepare()
         # Call the base class set buffer size
-        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._SetBufferSize()
-        # Construct the communicators
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._set_buffer_size()
+        # Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._set_physical_properties()
+        # Sets the constitutive law
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._set_constitutive_law()
+        # Sets the nodal distance
+        super(NavierStokesMPIEmbeddedMonolithicSolver, self)._set_distance_function()
+        # Construct the Trilinos communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
         if KratosMPI.mpi.rank == 0:
@@ -147,7 +144,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
         ## If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
 
         ## Creating the Trilinos convergence criteria
         self.conv_criteria = KratosTrilinos.TrilinosUPCriteria(self.settings["relative_velocity_tolerance"].GetDouble(),

@@ -95,6 +95,7 @@ public:
     constexpr static unsigned int NumNodes = TBaseElement::NumNodes;
     constexpr static unsigned int BlockSize = TBaseElement::BlockSize;
     constexpr static unsigned int LocalSize = TBaseElement::LocalSize;
+    constexpr static unsigned int StrainSize = TBaseElement::StrainSize;
 
     using BaseElementData = typename TBaseElement::ElementData;
     using EmbeddedElementData = EmbeddedData< BaseElementData >;
@@ -170,9 +171,69 @@ public:
                             Geometry<NodeType>::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
+    /// Calculates both LHS and RHS contributions
+    /**
+     * Computes the LHS and RHS elementar matrices. If the element is split
+     * includes the contribution of the level set boundary condition imposition.
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rCurrentProcessInfo reference to the ProcessInfo
+     */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo) override;
+
+    /// Computes an elemental double value
+    /**
+     * Given a double variable, this function computes its value inside de element.
+     * If the function has not implemented this variable computation, calls the base class one.
+     * @param rVariable Variable to be computed
+     * @param rOutput Reference to the output double
+     * @param rCurrentProcessInfo Reference to the process info
+     */
+    void Calculate(
+        const Variable<double> &rVariable,
+        double &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    /// Computes an elemental 3 components array value
+    /**
+     * Given a 3 components array variable, this function computes its value inside de element.
+     * If the function has not implemented this variable computation, calls the base class one.
+     * @param rVariable Variable to be computed
+     * @param rOutput Reference to the output array
+     * @param rCurrentProcessInfo Reference to the process info
+     */
+    void Calculate(
+        const Variable<array_1d<double, 3>> &rVariable,
+        array_1d<double, 3> &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    /// Computes an elemental vector value
+    /**
+     * Given a vector variable, this function computes its value inside de element.
+     * If the function has not implemented this variable computation, calls the base class one.
+     * @param rVariable Variable to be computed
+     * @param rOutput Reference to the output vector
+     * @param rCurrentProcessInfo Reference to the process info
+     */
+    void Calculate(
+        const Variable<Vector> &rVariable,
+        Vector &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    /// Computes an elemental matrix value
+    /**
+     * Given a matrix variable, this function computes its value inside de element.
+     * If the function has not implemented this variable computation, calls the base class one.
+     * @param rVariable Variable to be computed
+     * @param rOutput Reference to the output matrix
+     * @param rCurrentProcessInfo Reference to the process info
+     */
+    void Calculate(
+        const Variable<Matrix> &rVariable,
+        Matrix &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
@@ -225,6 +286,70 @@ protected:
     void DefineCutGeometryData(EmbeddedElementData& rData) const;
 
     void NormalizeInterfaceNormals(typename EmbeddedElementData::InterfaceNormalsType& rNormals, double Tolerance) const;
+
+    /**
+    * This functions adds the no-penetration condition penalty level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddSlipNormalPenaltyContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+    * This functions adds the no-penetration condition adjoint term level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddSlipNormalSymmetricCounterpartContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+    * This functions adds the tangential stress condition penalty level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddSlipTangentialPenaltyContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+    * This functions adds the tangential stress condition adjoint term level set contribution.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void AddSlipTangentialSymmetricCounterpartContribution(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+     * This function computes the penalty coefficient for the Nitsche normal imposition
+     * @param rData reference to element data structure
+     */
+    double ComputeSlipNormalPenaltyCoefficient(const EmbeddedElementData& rData) const;
+
+    /**
+     * This function computes the Nitsche coefficients for the Nitsche normal imposition
+     * @param rData reference to element data structure
+     * @return a pair of double containing the two coefficients
+     */
+    std::pair<const double, const double> ComputeSlipTangentialPenaltyCoefficients(const EmbeddedElementData& rData) const;
+
+    /**
+     * This function computes the Nitsche coefficients for the Nitsche tangential imposition
+     * @param rData reference to element data structure
+     * @return a pair of double containing the two coefficients
+     */
+    std::pair<const double, const double> ComputeSlipTangentialNitscheCoefficients(const EmbeddedElementData& rData) const;
 
     /**
     * This functions adds the penalty extra term level set contribution.
