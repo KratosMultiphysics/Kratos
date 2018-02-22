@@ -33,6 +33,11 @@ class ImposeReservoirTemperatureConditionProcess(Process):
             component.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-
+        print("HELLO1")
         for component in self.components_process_list:
             component.ExecuteInitializeSolutionStep()
+            
+    def ExecuteFinalizeSolutionStep(self):
+
+        for component in self.components_process_list:
+            component.ExecuteFinalizeSolutionStep()

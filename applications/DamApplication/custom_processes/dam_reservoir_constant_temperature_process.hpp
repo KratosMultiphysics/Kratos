@@ -206,26 +206,30 @@ class DamReservoirConstantTemperatureProcess : public Process
     
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//     void ExecuteFinalizeSolutionStep()
-//     {
-// 
-//         KRATOS_TRY;
-// 
-//         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-// 
-//         const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
-// 
-//         if (nnodes != 0)
-//         {
-//             
-//             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
-// 
-//             #pragma omp parallel for
-//             for (int i = 0; i < nnodes; i++) it->Free(var);
-//         }
-// 
-//         KRATOS_CATCH("");
-//     }
+    void ExecuteFinalizeSolutionStep()
+    {
+
+        KRATOS_TRY;
+
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        KRATOS_WATCH("HELLO")
+        if (nnodes != 0)
+        {
+            
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+
+            #pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->Free(var);
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
 
     /// Turn back information as a string.
     std::string Info() const
