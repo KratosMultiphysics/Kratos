@@ -35,7 +35,7 @@ class MeshSolverBase(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type" : "mesh_solver_structural_similarity",
-            "buffer_size": 2,
+            "buffer_size": 3,
             "echo_level": 0,
             "model_import_settings" : {
                 "input_type"     : "mdpa",
@@ -56,13 +56,6 @@ class MeshSolverBase(object):
                 "use_block_matrices_if_possible" : true,
                 "coarse_enough" : 5000
             },
-            "computing_model_part_name"       : "computing_domain",
-                    "time_stepping"          : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.1
-            },
-            "skin_parts"             : [],
-            "no_skin_parts"             : [],
             "time_order" : 2,
             "reform_dofs_each_step" : false,
             "compute_reactions"     : false
@@ -131,8 +124,6 @@ class MeshSolverBase(object):
             self.print_on_rank_zero("    Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.mesh_model_part)
             self.print_on_rank_zero("    Finished reading model part from mdpa file.")
-            # Check and prepare computing model part and import constitutive laws.
-            #self._execute_after_reading()
             self._set_and_fill_buffer()
         else:
             raise Exception("::[MeshSolverBase]:: ImportModelPart() only implemnted for mdpa format.")
@@ -172,18 +163,19 @@ class MeshSolverBase(object):
         """
         raise Exception("Mesh motion solver must be created by the derived class.")
 
-    @classmethod
-    def GetMinimumBufferSize(self):
-        return 2
-
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
         buffer_size = self.settings["buffer_size"].GetInt()
-        if buffer_size < self.GetMinimumBufferSize():
-            buffer_size = self.GetMinimumBufferSize()
+        time_order = self.settings["time_order"].GetInt()
+        if time_order == 1:
+            buffer_size = 2
+        elif time_order == 2:
+            buffer_size = 3
+        else:
+            buffer_size = buffer_size
         self.mesh_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.

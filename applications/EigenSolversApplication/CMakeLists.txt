@@ -36,7 +36,7 @@ if( USE_EIGEN_MKL MATCHES ON )
 	endif()
 
 	include_directories( $ENV{MKLROOT}/include )
-	add_definitions( -DUSE_EIGEN_MKL -DUSE_EIGEN_MKL_ALL )
+	add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
 endif()
 
 ## generate variables with the sources
