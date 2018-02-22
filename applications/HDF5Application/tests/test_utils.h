@@ -14,6 +14,7 @@
 #define KRATOS_HDF5_TEST_UTILS_H_INCLUDED
 
 // System includes
+#include <string>
 
 // External includes
 
@@ -22,6 +23,9 @@
 
 namespace Kratos
 {
+
+class ModelPart;
+
 namespace Testing
 {
 
@@ -47,19 +51,17 @@ HDF5::File::Matrix<T> TestMatrix(std::size_t m=3, std::size_t n=3)
     return mat;
 }
 
-void CreateTestMesh(HDF5::NodesContainerType& rNodes,
-                    HDF5::PropertiesContainerType& rProperties,
-                    HDF5::ElementsContainerType& rElements,
-                    HDF5::Vector<int>& rElementIds,
-                    HDF5::Vector<int>& rPropertiesIds,
-                    HDF5::Matrix<int>& rConnectivities);
+void CreateTestModelPart(ModelPart& rModelPart,
+                         std::string const& rElementType = "Element2D3N",
+                         std::string const& rConditionType = "Condition2D3N");
 
-void CreateTestMesh(HDF5::NodesContainerType& rNodes,
-                    HDF5::PropertiesContainerType& rProperties,
-                    HDF5::ConditionsContainerType& rConditions,
-                    HDF5::Vector<int>& rConditionIds,
-                    HDF5::Vector<int>& rPropertiesIds,
-                    HDF5::Matrix<int>& rConnectivities);
+void CompareElements(HDF5::ElementsContainerType& rElements1, HDF5::ElementsContainerType& rElements2);
+
+void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::ConditionsContainerType& rConditions2);
+
+void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2);
+
+HDF5::File::Pointer pGetFile();
 
 } // namespace Testing
 } // namespace Kratos.

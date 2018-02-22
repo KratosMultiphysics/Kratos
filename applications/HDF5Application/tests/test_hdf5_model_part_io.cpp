@@ -23,72 +23,14 @@
 // Application includes
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_model_part_io.h"
+#include "tests/test_utils.h"
 
 namespace Kratos
 {
 namespace Testing
 {
 
-void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2)
-{
-    // Compare nodes.
-    KRATOS_CHECK(rModelPart1.NumberOfNodes() == rModelPart2.NumberOfNodes());
-    for (auto it = rModelPart1.NodesBegin(); it != rModelPart1.NodesEnd(); ++it)
-    {
-        HDF5::NodeType& r_node_1 = *it;
-        HDF5::NodeType& r_node_2 = rModelPart2.GetNode(r_node_1.Id());
-        for (unsigned i = 0; i < 3; ++i)
-            KRATOS_CHECK(r_node_1.Coordinates()[i] == r_node_2.Coordinates()[i]);
-    }
-    // Compare elements.
-    KRATOS_CHECK(rModelPart1.NumberOfElements() == rModelPart2.NumberOfElements());
-    for (auto it = rModelPart1.ElementsBegin(); it != rModelPart1.ElementsEnd(); ++it)
-    {
-        HDF5::ElementType& r_elem_1 = *it;
-        HDF5::ElementType& r_elem_2 = rModelPart2.GetElement(r_elem_1.Id());
-        std::stringstream print_info1, print_info2;
-        r_elem_1.PrintInfo(print_info1);
-        r_elem_2.PrintInfo(print_info2);
-        KRATOS_CHECK(print_info1.str() == print_info2.str());
-        KRATOS_CHECK(r_elem_1.GetGeometry().size() == r_elem_1.GetGeometry().size());
-        for (unsigned i = 0; i < r_elem_1.GetGeometry().size(); ++i)
-        {
-            KRATOS_CHECK(r_elem_1.GetGeometry()[i].Id() == r_elem_2.GetGeometry()[i].Id());
-            KRATOS_CHECK(r_elem_1.GetProperties().Id() == r_elem_2.GetProperties().Id());
-        }
-    }
-    // Compare conditions.
-    KRATOS_CHECK(rModelPart1.NumberOfConditions() == rModelPart2.NumberOfConditions());    
-    for (auto it = rModelPart1.ConditionsBegin(); it != rModelPart1.ConditionsEnd(); ++it)
-    {
-        HDF5::ConditionType& r_cond_1 = *it;
-        HDF5::ConditionType& r_cond_2 = rModelPart2.GetCondition(r_cond_1.Id());
-        std::stringstream print_info1, print_info2;
-        r_cond_1.PrintInfo(print_info1);
-        r_cond_2.PrintInfo(print_info2);
-        KRATOS_CHECK(print_info1.str() == print_info2.str());
-        KRATOS_CHECK(r_cond_1.GetGeometry().size() == r_cond_1.GetGeometry().size());
-        for (unsigned i = 0; i < r_cond_1.GetGeometry().size(); ++i)
-        {
-            KRATOS_CHECK(r_cond_1.GetGeometry()[i].Id() == r_cond_2.GetGeometry()[i].Id());
-            KRATOS_CHECK(r_cond_1.GetProperties().Id() == r_cond_2.GetProperties().Id());
-        }
-    }
-}
-
-HDF5::File::Pointer pGetFile()
-{
-    Parameters file_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_access_mode": "exclusive",
-            "file_driver": "core"
-        })");
-    HDF5::File::Pointer p_file = boost::make_shared<HDF5::FileSerial>(file_params);
-    return p_file;
-}
-
-KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadNodes, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadNodes, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
     const unsigned num_nodes = 10;
@@ -105,7 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadNodes, KratosHDF5TestSuite)
     CompareModelParts(read_model_part, write_model_part);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadElements1, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements1, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
     const unsigned num_elems = 5;
@@ -135,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadElements1, KratosHDF5TestSuite)
     CompareModelParts(read_model_part, write_model_part);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadElements2, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements2, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
     const unsigned num_tri_elems = 10;
@@ -173,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadElements2, KratosHDF5TestSuite)
     CompareModelParts(read_model_part, write_model_part);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadConditions1, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions1, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
     const unsigned num_conds = 5;
@@ -203,7 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadConditions1, KratosHDF5TestSuite)
     CompareModelParts(read_model_part, write_model_part);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadConditions2, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions2, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
     const unsigned num_tri_conds = 10;
@@ -241,7 +183,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_ReadConditions2, KratosHDF5TestSuite)
     CompareModelParts(read_model_part, write_model_part);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5ModelPartIO_Properties, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
     ModelPart read_model_part("test_read");
