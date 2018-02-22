@@ -171,7 +171,6 @@ class Algorithm(object):
         Add("store_full_gradient_option").SetBool(False)
         Add("store_fluid_pressure_option").SetBool(False)
         Add("laplacian_calculation_type").SetInt(0)
-        Add("do_search_neighbours").SetBool(True)
         Add("faxen_terms_type").SetInt(0)
         Add("material_acceleration_calculation_type").SetInt(1)
         Add("faxen_force_type").SetInt(0)
