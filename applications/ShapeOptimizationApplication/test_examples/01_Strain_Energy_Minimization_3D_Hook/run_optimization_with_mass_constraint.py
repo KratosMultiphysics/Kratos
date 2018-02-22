@@ -69,7 +69,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
          # Calculation of value of objective function
-        if communicator.isRequestingFunctionValueOf("strain_energy"):
+        if communicator.isRequestingValueOf("strain_energy"):
 
             print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
@@ -81,17 +81,17 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             listOfResponseFunctions["strain_energy"].CalculateValue()
             print("> Time needed for calculation of strain energy = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())
+            communicator.reportValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())
 
         # Calculation of value of constraint function
-        if communicator.isRequestingFunctionValueOf("mass"):
+        if communicator.isRequestingValueOf("mass"):
 
             print("\n> Starting calculation of value of mass constraint")
             listOfResponseFunctions["mass"].CalculateValue()
-            constraintFunctionValue = listOfResponseFunctions["mass"].GetValue()
+            constraintValue = listOfResponseFunctions["mass"].GetValue()
             print("> Time needed for calculation of value of mass constraint = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("mass", constraintFunctionValue)
+            communicator.reportValue("mass", constraintValue)
 
         # Calculation of gradients of objective function
         if communicator.isRequestingGradientOf("strain_energy"):

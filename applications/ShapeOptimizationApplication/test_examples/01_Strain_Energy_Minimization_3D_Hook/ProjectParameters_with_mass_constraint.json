@@ -98,6 +98,7 @@
     "optimization_settings" : {
         "objectives" : [{
                 "identifier" : "strain_energy",
+                "task"       : "minimize",
                 "use_kratos" : true,
                 "kratos_response_settings":{
                     "gradient_mode"          : "semi_analytic",

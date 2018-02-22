@@ -40,11 +40,12 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
         self.completeResponseLogFileName = self.__CreateCompleteResponseLogFilename( optimizationSettings )
 
-        self.objectiveValueHistory = {}
-        self.constraintValueHistory = {}
-        self.objectiveReferenceValue = None
-        self.absoluteChangeOfObjectiveValueHistory = {}
-        self.relativeChangeOfObjectiveValueHistory = {}
+        self.objectiveHistory = {}
+        self.constraintHistory = {}
+        self.objectiveOutputReference = None
+        self.constraintOutputReference = None
+        self.absoluteChangeOfObjectiveHistory = {}
+        self.relativeChangeOfObjectiveHistory = {}
 
         self.currentIteration = 0
         self.previousIteration = 0
@@ -83,6 +84,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         if self.__IsFirstLog():
             self.initialIteration = optimizationIteration
             self.__AddResponseValuesToHistory()
+            self.__DetermineReferenceValuesForOutput()
             self.__InitializeChangeOfResponseValuesHistory()
         else:
             self.__AddResponseValuesToHistory()
@@ -94,50 +96,50 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # -------------------------------------------------------------------------
     def __IsFirstLog( self ):
-        if len(self.objectiveValueHistory) == 0:
+        if len(self.objectiveHistory) == 0:
             return True
         else:
             return False
 
     # --------------------------------------------------------------------------
     def __AddResponseValuesToHistory( self ):
-        objectiveValue = self.communicator.getFunctionValue( self.onlyObjective )
-        self.objectiveValueHistory[self.currentIteration] = objectiveValue
+        objectiveValue = self.communicator.getValueInStandardForm( self.onlyObjective )
+        constraintValue = self.communicator.getValueInStandardForm( self.onlyConstraint ) + self.communicator.getReferenceValue( self.onlyConstraint )
 
-        constraintValue = self.communicator.getFunctionValue( self.onlyConstraint )
-        self.constraintValueHistory[self.currentIteration] = constraintValue
+        self.objectiveHistory[self.currentIteration] = objectiveValue
+        self.constraintHistory[self.currentIteration] = constraintValue
+
+    # --------------------------------------------------------------------------
+    def __DetermineReferenceValuesForOutput( self ):
+        self.constraintOutputReference = self.communicator.getReferenceValue( self.onlyConstraint )
+        self.objectiveOutputReference = self.objectiveHistory[self.initialIteration]
+        if abs(self.objectiveOutputReference)<1e-12:
+            print("\n> WARNING: Objective reference value < 1e-12!! Therefore, standard reference value of 1 is assumed! ")
+            self.objectiveOutputReference = 1.0
+        else:
+            self.objectiveOutputReference = self.objectiveHistory[self.initialIteration]
 
     # --------------------------------------------------------------------------
     def __InitializeChangeOfResponseValuesHistory( self ):
-        self.objectiveReferenceValue = self.objectiveValueHistory[self.initialIteration]
-        if abs(self.objectiveReferenceValue)<1e-12:
-            print("\n> WARNING: Objective reference value < 1e-12!!:")
-            print("> WARNING: Standard reference value of 1 is assumed.")
-            self.objectiveReferenceValue = 1.0
-
-        self.absoluteChangeOfObjectiveValueHistory[self.currentIteration] = 0.0
-        self.relativeChangeOfObjectiveValueHistory[self.currentIteration] = 0.0
+        self.absoluteChangeOfObjectiveHistory[self.currentIteration] = 0.0
+        self.relativeChangeOfObjectiveHistory[self.currentIteration] = 0.0
 
     # --------------------------------------------------------------------------
     def __AddChangeOfResponseValuesToHistory( self ):
-        objectiveValue = self.objectiveValueHistory[self.currentIteration]
-        previousObjectiveValue = self.objectiveValueHistory[self.previousIteration]
-        initialObjectiveValue = self.objectiveValueHistory[self.initialIteration]
+        objectiveValue = self.objectiveHistory[self.currentIteration]
+        previousObjectiveValue = self.objectiveHistory[self.previousIteration]
+        initialObjectiveValue = self.objectiveHistory[self.initialIteration]
 
-        constraintValue = self.constraintValueHistory[self.currentIteration]
-        previousConstraintValue = self.constraintValueHistory[self.previousIteration]
-        initialConstraintValue = self.constraintValueHistory[self.initialIteration]
-
-        self.absoluteChangeOfObjectiveValueHistory[self.currentIteration] = 100*(objectiveValue-initialObjectiveValue) / abs(self.objectiveReferenceValue)
-        self.relativeChangeOfObjectiveValueHistory[self.currentIteration] = 100*(objectiveValue-previousObjectiveValue) / abs(self.objectiveReferenceValue)
+        self.absoluteChangeOfObjectiveHistory[self.currentIteration] = 100*(objectiveValue-self.objectiveOutputReference) / abs(self.objectiveOutputReference)
+        self.relativeChangeOfObjectiveHistory[self.currentIteration] = 100*(objectiveValue-previousObjectiveValue) / abs(self.objectiveOutputReference)
 
     # --------------------------------------------------------------------------
     def __PrintInfoAboutResponseFunctionValues( self ):
-        objectiveValue = self.objectiveValueHistory[self.currentIteration]
-        constraintValue = self.constraintValueHistory[self.currentIteration]
+        objectiveValue = self.objectiveHistory[self.currentIteration]
+        constraintValue = self.constraintHistory[self.currentIteration]
 
-        absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentIteration]
-        relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveValueHistory[self.currentIteration]
+        absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveHistory[self.currentIteration]
+        relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveHistory[self.currentIteration]
 
         print("\n> Current value of objective function = ", round(objectiveValue,12))
         print("> Absolut change of objective function = ",round(absoluteChangeOfObjectiveValue,4)," [%]")
@@ -146,12 +148,11 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __WriteDataToLogFile( self ):
-        objectiveValue = self.objectiveValueHistory[self.currentIteration]
-        constraintValue = self.constraintValueHistory[self.currentIteration]
-        constraintReferenceValue = self.communicator.getReferenceValue( self.onlyConstraint )
+        objectiveValue = self.objectiveHistory[self.currentIteration]
+        constraintValue = self.constraintHistory[self.currentIteration]
 
-        absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveValueHistory[self.currentIteration]
-        relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveValueHistory[self.currentIteration]
+        absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveHistory[self.currentIteration]
+        relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveHistory[self.currentIteration]
 
         with open(self.completeResponseLogFileName, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
@@ -161,7 +162,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             row.append(str("{:>12f}".format(absoluteChangeOfObjectiveValue)))
             row.append(str("{:>12f}".format(relativeChangeOfObjectiveValue)))
             row.append(str("{:>20f}".format(constraintValue)))
-            row.append(str("{:>20f}".format(constraintReferenceValue)))
+            row.append(str("{:>20f}".format(self.constraintOutputReference)))
             row.append(str("{:>13f}".format(self.optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble())))
             row.append(str("{:>13f}".format(self.optimizationSettings["line_search"]["step_size"].GetDouble())))
             row.append(str("{:>12f}".format(self.timer.GetLapTime())))
@@ -179,7 +180,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             if self.__IsFirstLog():
                 raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
             else:
-                return self.relativeChangeOfObjectiveValueHistory[self.currentIteration]
+                return self.relativeChangeOfObjectiveHistory[self.currentIteration]
         else:
             raise NameError("Value with the following variable key not defined in response_logger_penalized_projection.py: " + variableKey)
 

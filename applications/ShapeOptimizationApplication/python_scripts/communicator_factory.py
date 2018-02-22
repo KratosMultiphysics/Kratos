@@ -47,25 +47,78 @@ class Communicator:
         self.list_of_responses = {}
 
         for objective_number in range(optimization_settings["objectives"].size()):
-            objective_id =  optimization_settings["objectives"][objective_number]["identifier"].GetString()
-            self.list_of_responses[objective_id] = {"value": None, "referenceValue": None, "gradient": None}
+            objective = optimization_settings["objectives"][objective_number]
+            objective_id =  objective["identifier"].GetString()
+            objective_task = objective["task"].GetString()
+
+            if objective_task == "minimize":
+                self.list_of_responses[objective_id] = {"type": "min_objective", "value": None, "gradient": None}
+            elif objective_task == "maximize":
+                self.list_of_responses[objective_id] = {"type": "max_objective", "value": None, "gradient": None}
+            else:
+                raise RuntimeError(">\nImproper definition of task for the following objective function: " + objective_id )
 
         for constraint_number in range( optimization_settings["constraints"].size()):
             constraint = optimization_settings["constraints"][constraint_number]
             constraint_id = optimization_settings["constraints"][constraint_number]["identifier"].GetString()
-            reference_value = None
-            if  constraint["reference"].GetString() == "specified_value":
+            constraint_reference = constraint["reference"].GetString()
+
+            if  constraint_reference == "specified_value":
                 reference_value =  constraint["reference_value"].GetDouble()
-            elif constraint["reference"].GetString() == "initial_value":
-                pass
+                self.list_of_responses[constraint_id] = {"type": "constraint", "value": None, "gradient": None, "referenceValue": reference_value}
+            elif constraint_reference == "initial_value":
+                self.list_of_responses[constraint_id] = {"type": "constraint", "value": None, "gradient": None, "referenceValue": "waitingForInitialValue"}
             else:
-                raise RuntimeError(">\nImproper definition of reference for the following response function: " + constraint_id )
-            self.list_of_responses[constraint_id] = {"value": None, "referenceValue": reference_value, "gradient": None}
+                raise RuntimeError(">\nImproper definition of reference for the following constraint function: " + constraint_id )
 
     # --------------------------------------------------------------------------
     def initializeCommunication( self ):
         self.__deleteAllRequests()
         self.__deleteAllReportedValues()
+
+    # --------------------------------------------------------------------------
+    def requestValue( self, response_id ):
+        self.list_of_requests[response_id]["calculateValue"] = True
+
+    # --------------------------------------------------------------------------
+    def requestGradient( self, response_id ):
+        self.list_of_requests[response_id]["calculateGradient"] = True
+
+    # --------------------------------------------------------------------------
+    def isRequestingValueOf( self, response_id ):
+        if response_id not in self.list_of_requests.keys():
+            return False
+        return self.list_of_requests[response_id]["calculateValue"]
+
+    # --------------------------------------------------------------------------
+    def isRequestingGradientOf( self, response_id ):
+        if response_id not in self.list_of_requests.keys():
+            return False
+        return self.list_of_requests[response_id]["calculateGradient"]
+
+    # --------------------------------------------------------------------------
+    def reportValue( self, response_id, value ):
+        self.__setReferenceValueIfNecessary( response_id, value )
+        self.__storeResponseValue( response_id, self.__translateValueToStandardForm( response_id, value ) )
+
+    # --------------------------------------------------------------------------
+    def reportGradient( self, response_id, gradient ):
+        print("gradient[1001] = ", gradient[1001])
+        translated_gradient = self.__translateGradientToStandardForm( response_id, gradient )
+        print("translated_gradient[1001] = ", translated_gradient[1001])
+        self.__storeResponseGradient( response_id, translated_gradient )
+
+    # --------------------------------------------------------------------------
+    def getValueInStandardForm( self, response_id ):
+        return self.list_of_responses[response_id]["value"]
+
+    # --------------------------------------------------------------------------
+    def getReferenceValue( self, response_id ):
+        return self.list_of_responses[response_id]["referenceValue"]
+
+    # --------------------------------------------------------------------------
+    def getGradientInStandardForm( self, response_id ):
+        return self.list_of_responses[response_id]["gradient"]
 
     # --------------------------------------------------------------------------
     def __deleteAllRequests( self ):
@@ -80,57 +133,35 @@ class Communicator:
             self.list_of_responses[response_id]["gradient"] = None
 
     # --------------------------------------------------------------------------
-    def requestFunctionValueOf( self, response_id ):
-        self.list_of_requests[response_id]["calculateValue"] = True
+    def __setReferenceValueIfNecessary( self, response_id, value ):
+        response = self.list_of_responses[response_id]
+        if response["type"] == "constraint" and response["referenceValue"] == "waitingForInitialValue":
+            response["referenceValue"] = value
 
     # --------------------------------------------------------------------------
-    def requestGradientOf( self, response_id ):
-        self.list_of_requests[response_id]["calculateGradient"] = True
-
-    # --------------------------------------------------------------------------
-    def isRequestingFunctionValueOf( self, response_id ):
-        if response_id not in self.list_of_requests.keys(): return False
-        return self.list_of_requests[response_id]["calculateValue"]
-
-    # --------------------------------------------------------------------------
-    def isRequestingGradientOf( self, response_id ):
-        if response_id not in self.list_of_requests.keys(): return False
-        return self.list_of_requests[response_id]["calculateGradient"]
-
-    # --------------------------------------------------------------------------
-    def reportFunctionValue( self, response_id, functionValue ):
-        if response_id in self.list_of_responses.keys():
-            self.list_of_responses[response_id]["value"] = functionValue
+    def __translateValueToStandardForm( self, response_id, value ):
+        response = self.list_of_responses[response_id]
+        if response["type"] == "constraint":
+            value = value - response["referenceValue"]
+            return value
         else:
-            raise NameError("Reported function is not specified: " + response_id)
+            return value
 
     # --------------------------------------------------------------------------
-    def reportGradient( self, response_id, gradient ):
-        if response_id in self.list_of_responses.keys():
-            self.list_of_responses[response_id]["gradient"] = gradient
+    def __translateGradientToStandardForm( self, response_id, gradient ):
+        response = self.list_of_responses[response_id]
+        if response["type"] == "max_objective":
+            gradient = -1*gradient
+            return gradient
         else:
-            raise NameError("Reported function is not specified: " + response_id)
+            return gradient
 
     # --------------------------------------------------------------------------
-    def setReferenceValue( self, response_id, reference_value ):
-        if response_id in self.list_of_responses.keys():
-            self.list_of_responses[response_id]["referenceValue"] = reference_value
-        else:
-            raise NameError("Function for which reference values is reported is not specified: " + response_id)
+    def __storeResponseValue( self, response_id, value ):
+        self.list_of_responses[response_id]["value"] = value
 
     # --------------------------------------------------------------------------
-    def getFunctionValue( self, response_id ):
-        return self.list_of_responses[response_id]["value"]
-
-    # --------------------------------------------------------------------------
-    def getReferenceValue( self, response_id ):
-        if self.list_of_responses[response_id]["referenceValue"] is not None:
-            return self.list_of_responses[response_id]["referenceValue"]
-        else:
-            raise NameError("Reference value required but not yet reported for the following response function: " + response_id)
-
-    # --------------------------------------------------------------------------
-    def getGradient( self, response_id ):
-        return self.list_of_responses[response_id]["gradient"]
+    def __storeResponseGradient( self, response_id, gradient ):
+        self.list_of_responses[response_id]["gradient"] = gradient
 
 # ==============================================================================
