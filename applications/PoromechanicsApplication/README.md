@@ -60,7 +60,7 @@ Make sure that the following lines are properly set in the configure.sh file:
 > -DUSE_PORO_MPI=ON \\
 
 Uncomment the following line in 
-[poromechanics_main.py](https://github.com/KratosMultiphysics/Kratos/blob/documentation/adding-feature-lists/applications/PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_main.py) and [poromechanics_fracture_main.py](https://github.com/KratosMultiphysics/Kratos/blob/documentation/adding-feature-lists/applications/PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_fracture_main.py).
+[poromechanics_main.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_main.py) and [poromechanics_fracture_main.py](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/PoromechanicsApplication/custom_problemtype/Poromechanics_Application.gid/poromechanics_fracture_main.py).
 
 > import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
