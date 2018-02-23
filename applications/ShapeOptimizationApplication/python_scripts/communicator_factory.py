@@ -117,10 +117,10 @@ class Communicator:
             objective_id =  objective["identifier"].GetString()
 
             if objective["type"].GetString() not in self.supported_objective_types:
-                raise RuntimeError("Unsuported type defined for the following objective: " + objective_id +
-                                   "\n Choose among " + self.supported_objective_types )
+                raise RuntimeError("Unsuported type defined for the following objective: " + objective_id)
 
             self.list_of_responses[objective_id] = { "type"                 : objective["type"].GetString(),
+                                                     "value"                : None,
                                                      "standardized_value"   : None,
                                                      "standardized_gradient": None }
 
