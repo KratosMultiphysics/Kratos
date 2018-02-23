@@ -71,20 +71,17 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def LogCurrentResponses( self, optimizationIteration ):
-
         self.currentIteration = optimizationIteration
-
         if self.__IsFirstLog():
             self.initialIteration = optimizationIteration
             self.__AddResponseValuesToHistory()
             self.__DetermineReferenceValuesForOutput()
-            self.__InitializeChangeOfResponseValuesHistory()
+            self.__InitializeChangeOfObjectiveHistory()
         else:
             self.__AddResponseValuesToHistory()
-            self.__AddChangeOfResponseValuesToHistory()
+            self.__AddChangeOfObjectiveToHistory()
         self.__PrintInfoAboutResponseFunctionValues()
         self.__WriteDataToLogFile()
-
         self.previousIteration = optimizationIteration
 
     # --------------------------------------------------------------------------
@@ -135,12 +132,12 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             self.objectiveOutputReference = self.objectiveHistory[self.initialIteration]
 
     # --------------------------------------------------------------------------
-    def __InitializeChangeOfResponseValuesHistory( self ):
+    def __InitializeChangeOfObjectiveHistory( self ):
         self.absoluteChangeOfObjectiveHistory[self.currentIteration] = 0.0
         self.relativeChangeOfObjectiveHistory[self.currentIteration] = 0.0
 
     # --------------------------------------------------------------------------
-    def __AddChangeOfResponseValuesToHistory( self ):
+    def __AddChangeOfObjectiveToHistory( self ):
         objectiveValue = self.objectiveHistory[self.currentIteration]
         previousObjectiveValue = self.objectiveHistory[self.previousIteration]
         initialObjectiveValue = self.objectiveHistory[self.initialIteration]
@@ -152,7 +149,6 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
     def __PrintInfoAboutResponseFunctionValues( self ):
         objectiveValue = self.objectiveHistory[self.currentIteration]
         constraintValue = self.constraintHistory[self.currentIteration]
-
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveHistory[self.currentIteration]
         relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveHistory[self.currentIteration]
 
@@ -165,7 +161,6 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
     def __WriteDataToLogFile( self ):
         objectiveValue = self.objectiveHistory[self.currentIteration]
         constraintValue = self.constraintHistory[self.currentIteration]
-
         absoluteChangeOfObjectiveValue = self.absoluteChangeOfObjectiveHistory[self.currentIteration]
         relativeChangeOfObjectiveValue = self.relativeChangeOfObjectiveHistory[self.currentIteration]
 
