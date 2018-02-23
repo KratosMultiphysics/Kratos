@@ -14,11 +14,13 @@ END CONDITION
 
 BOOK: Initial_conditions
 
-CONDITION: Initial_water_height
+CONDITION: Initial_water_level
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces
-QUESTION: Water_height
+QUESTION: Variable#CB#(Free_surface_elevation,Height)
+VALUE: Free_surface_elevation
+QUESTION: Value
 VALUE: 0.0
 END CONDITION
 

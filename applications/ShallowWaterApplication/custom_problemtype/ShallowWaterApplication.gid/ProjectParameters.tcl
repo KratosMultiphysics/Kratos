@@ -143,7 +143,11 @@ proc WriteProjectParameters { basename dir problemtypedir } {
 
 
     # initial conditions
-
+    set Groups [GiD_Info conditions Initial_water_level groups]
+    set NumGroups [llength $Groups]
+    set iGroup 0
+    puts $FileVar "    \"initial_conditions_process_list\"  :\[\{"
+    WriteInitialWaterLevelProcess FileVar iGroup $Groups surfaces $NumGroups
 
     # boundary conditions
 
