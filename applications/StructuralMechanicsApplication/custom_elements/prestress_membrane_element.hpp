@@ -124,12 +124,6 @@ namespace Kratos
     std::vector< array_1d<double, 3> > mG1;                   // Base vector 1 in updated reference configuration
     std::vector< array_1d<double, 3> > mG2;                   // Base vector 2 in updated reference configuration
 
-    // Using this variable is a potential bug if the element is not used in formfinding!
-    // In the future this should be a Processinfo Variable (e.g. FROMFINDING_STEP), which
-    // is set by the Fromfinding Strategy
-    // The element can then check if this Var is set and use it accordingly
-    unsigned int mStep;                                       // Simulation step for formfinding
-
     bool mAnisotropicPrestress;                               // determines if isotropic or anisotropic prestress is applied
     std::vector< array_1d<double, 3> > mG1Initial;            // Base vector 1 in initial reference configuration
     std::vector< array_1d<double, 3> > mG2Initial;            // Base vector 2 in initial reference configuration
@@ -175,80 +169,87 @@ namespace Kratos
         const array_1d<double, 3>& g2);
 
     void CalculateStrain(
-        Vector& StrainVector,
-        array_1d<double, 3>& gab,
-        array_1d<double, 3>& gab_ref);
+        Vector& rStrainVector,
+        array_1d<double, 3>& rgab,
+        array_1d<double, 3>& rGab);
 
     void CalculateAndAdd_BodyForce(
-      const Vector& N,
+      const Vector& rN,
       const ProcessInfo& rCurrentProcessInfo,
       array_1d<double, 3>& BodyForce,
       VectorType& rRightHandSideVector,
       const double& rWeight);
 
     void CalculateAndAdd_PressureForce(
-      VectorType& residualvector,
+      VectorType& rResidualVector,
       const Vector& N,
-      const array_1d<double, 3>& v3,
-      double pressure,
-      const double& rrWeight,
+      const array_1d<double, 3>& rv3,
+      const double& rPressure,
+      const double& rWeight,
       const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateMetricDeformed(const unsigned int& PointNumber,
+    void CalculateMetricDeformed(const unsigned int& rPointNumber,
         Matrix DN_De,
-        array_1d<double, 3>& gab,
-        array_1d<double, 3>& g1,
-        array_1d<double, 3>& g2);
+        array_1d<double, 3>& rgab,
+        array_1d<double, 3>& rg1,
+        array_1d<double, 3>& rg2);
 
 
     void CalculateSecondVariationStrain(Matrix DN_De,
         Matrix& Strain_locCartesian11,
         Matrix& Strain_locCartesian22,
         Matrix& Strain_locCartesian12,
-        bounded_matrix<double, 3, 3>& Q,
-        array_1d<double, 3>& g1,
-        array_1d<double, 3>& g2);
+        bounded_matrix<double, 3, 3>& Q);
 
     void CalculateMembraneElasticityTensor(
         Matrix& D
         );
+    
+    void InitializeFormfinding(const unsigned int& rIntegrationPointSize);
 
-    void TransformPrestress(const unsigned int PointNumber);
+    void TransformPrestress(const unsigned int& rPointNumber);
 
-    void UpdatePrestress(const unsigned int PointNumber);
+    void UpdatePrestress(const unsigned int& rPointNumber);
 
-    void PrestressComputation(const unsigned int PointNumber);
+    void PrestressComputation(const unsigned int& rIntegrationPointSize);
 
     void ComputeBaseVectors(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints);
 
-    void InitializeMaterial(const unsigned int NumberIntegrationPoints);
+    void InitializeMaterial(const unsigned int& NumberIntegrationPoints);
 
-    void ComputeRelevantCoSys(const unsigned int PointNumber,
+    void ComputeContravariantBaseVectors(
+                        array_1d<double, 3>& rG1Contra, 
+                        array_1d<double, 3>& rG2Contra,
+                        const unsigned int& rPointNumber);
+
+    void ComputeRelevantCoSys(const unsigned int& rPointNumber,
              array_1d<double, 3>& rg1,array_1d<double, 3>& rg2,array_1d<double, 3>& rg3, array_1d<double, 3>& rgab,
              array_1d<double, 3>& rG3,
              array_1d<double, 3>& rE1Tot, array_1d<double, 3>& rE2Tot,array_1d<double, 3>& rE3Tot,
              array_1d<double, 3>& rE1,array_1d<double, 3>& rE2,array_1d<double, 3>& rE3,
              array_1d<double, 3>& rBaseRefContraTot1,array_1d<double, 3>& rBaseRefContraTot2);
 
-    void ComputeEigenvaluesDeformationGradient(const unsigned int PointNumber,
+    void ComputeEigenvaluesDeformationGradient(const unsigned int& rPointNumber,
                     bounded_matrix<double,3,3>& rOrigin, bounded_matrix<double,3,3>& rTarget, bounded_matrix<double,3,3>& rTensor,
                     const array_1d<double, 3>& rBaseRefContraTot1, const array_1d<double, 3>& rBaseRefContraTot2,
                     const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot, const array_1d<double, 3>& rE3Tot,
                     const array_1d<double, 3>& rgab,
                     double& rLambda1, double& rLambda2);
 
-    void ComputeEigenvectorsDeformationGradient(const unsigned int PointNumber,
+    void ComputeEigenvectorsDeformationGradient(const unsigned int& rPointNumber,
                                 bounded_matrix<double,3,3>& rTensor, bounded_matrix<double,3,3>& rOrigin,
                                 const bounded_matrix<double,3,3>& rDeformationGradientTotal,
                                 const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot,
                                 const double Lambda1, const double Lambda2,
                                 bounded_matrix<double,3,3>& rNAct);
 
-    void ModifyPrestress(const unsigned int PointNumber,
+    void ModifyPrestress(const unsigned int& rPointNumber,
                     bounded_matrix<double,3,3>& rOrigin, bounded_matrix<double,3,3>& rTarget,bounded_matrix<double,3,3>& rTensor,
                     const array_1d<double, 3>& rE1, const array_1d<double, 3>& rE2, const array_1d<double, 3>& rE3, const array_1d<double, 3>& rG3,
                     const array_1d<double, 3>& rg1, const array_1d<double, 3>& rg2, const array_1d<double, 3>& rg3, const bounded_matrix<double,3,3>& rNAct,
                     const double Lambda1, const double Lambda2);
+
+    const Matrix CalculateDeformationGradient(const unsigned int& rPointNumber);
 
     int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 
