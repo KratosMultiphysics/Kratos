@@ -115,8 +115,11 @@ namespace Kratos
     
     if(slave>=0)
       {
+	// Clear nodes and slaves before push back quantities
+	mContactVariables.nodes.resize(0);
+	mContactVariables.slaves.resize(0);
 
-        NodesArrayType vertex;
+	NodesArrayType vertex;
 	mContactVariables.order.resize(rGeometry.PointsNumber(),false);
 	
 	int counter = 0;
@@ -719,15 +722,32 @@ namespace Kratos
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.front();
 
-    double Eslave = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties()[YOUNG_MODULUS];
-    double Emin   = rMasterElement.GetProperties()[YOUNG_MODULUS];
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
+    const Properties& MasterProperties = rMasterElement.GetProperties();
+    double Eslave  = 1e9;
+    if( SlaveProperties.Has(YOUNG_MODULUS) ){
+	Eslave  = SlaveProperties[YOUNG_MODULUS];
+    }
+    else if( SlaveProperties.Has(C10) ){
+	Eslave = SlaveProperties[C10];
+    }
 
+    double Emaster = 1e9;
+    if( MasterProperties.Has(YOUNG_MODULUS) ){
+	Emaster = MasterProperties[YOUNG_MODULUS];
+    }
+    else if( MasterProperties.Has(C10) ){
+	Emaster = MasterProperties[C10];
+    }
+    
     //STANDARD OPTION
-    if(Emin>Eslave)
-      Emin=Eslave;
+    if(Emaster>Eslave)
+      Emaster=Eslave;
 
-    mContactVariables.StabilizationFactor = alpha_stab/Emin;
+    mContactVariables.StabilizationFactor = alpha_stab/Emaster;
 
+    //std::cout<<" Emaster "<<Emaster<<" tau "<<mContactVariables.StabilizationFactor<<std::endl;
+    
     //EXPERIMENTAL OPTION
     // const GeometryType::IntegrationPointsArrayType& integration_points = rMasterElement.GetGeometry().IntegrationPoints( mThisIntegrationMethod );
    

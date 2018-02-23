@@ -27,7 +27,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
              "python_module": "contact_meshing_strategy",
              "meshing_frequency": 0.0,
              "remesh": true,
-             "constrained": false,
+             "constrained": true,
              "contact_parameters":{
                  "contact_condition_type": "ContactDomainLM2DCondition",
                  "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
@@ -38,7 +38,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
                      "MU_DYNAMIC": 0.2,
                      "PENALTY_PARAMETER": 1000,
                      "TANGENTIAL_PENALTY_RATIO": 0.1,
-                     "TAU_STAB": 1
+                     "TAU_STAB": 1.0
                  }
              }
         }
@@ -46,7 +46,7 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
                 
         #print("::[Contact_Modeler_Strategy]:: Construction of Meshing Strategy finished")
         

@@ -102,10 +102,13 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
 	}
     }
 
-
+    
     if(slave>=0)
     {
-
+	// Clear nodes and slaves before push back quantities
+	mContactVariables.nodes.resize(0);
+	mContactVariables.slaves.resize(0);
+	
         NodesArrayType vertex;
 	mContactVariables.order.resize(GetGeometry().PointsNumber(),false);
 	
@@ -357,22 +360,36 @@ void ContactDomainLM2DCondition::CalculateContactFactor( ProcessInfo& rCurrentPr
     double alpha_stab = 0.1;
     alpha_stab = GetProperties()[TAU_STAB];
 
-    ElementType& MasterElement = mContactVariables.GetMasterElement();
+    ElementType& rMasterElement = mContactVariables.GetMasterElement();
   
     //Look at the nodes, get the slave and get the Emin
 
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.back();
 
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
+    const Properties& MasterProperties = rMasterElement.GetProperties();
+    double Eslave  = 1e9;
+    if( SlaveProperties.Has(YOUNG_MODULUS) ){
+	Eslave  = SlaveProperties[YOUNG_MODULUS];
+    }
+    else if( SlaveProperties.Has(C10) ){
+	Eslave = SlaveProperties[C10];
+    }
 
-    double Eslave = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties()[YOUNG_MODULUS];
-    double Emin   = MasterElement.GetProperties()[YOUNG_MODULUS];
-
+    double Emaster = 1e9;
+    if( MasterProperties.Has(YOUNG_MODULUS) ){
+	Emaster = MasterProperties[YOUNG_MODULUS];
+    }
+    else if( MasterProperties.Has(C10) ){
+	Emaster = MasterProperties[C10];
+    }
+    
     //STANDARD OPTION
-    if(Emin>Eslave)
-	Emin=Eslave;
+    if(Emaster>Eslave)
+      Emaster=Eslave;
 
-    mContactVariables.StabilizationFactor = alpha_stab/Emin;
+    mContactVariables.StabilizationFactor = alpha_stab/Emaster;
 
     //EXPERIMENTAL OPTION
     // const GeometryType::IntegrationPointsArrayType& integration_points = MasterElement.GetGeometry().IntegrationPoints( mThisIntegrationMethod );

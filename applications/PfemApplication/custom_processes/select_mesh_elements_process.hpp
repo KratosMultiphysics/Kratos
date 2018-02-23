@@ -164,9 +164,9 @@ public:
 	  // 	}
 	  //   }
 
-	  // //std::cout<<"   MaxOutID "<<max_out_id<<std::endl;
-	  // //std::cout<<"   NumberOfNodes "<<rNodes.size()<<std::endl;
-	  // //std::cout<<"   NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
+	  // std::cout<<"   MaxOutID "<<max_out_id<<std::endl;
+	  // std::cout<<"   NumberOfNodes "<<rNodes.size()<<std::endl;
+	  // std::cout<<"   NodalPreIdsSize "<<mrRemesh.NodalPreIds.size()<<std::endl;
 	  
 	  // if( max_out_id >= mrRemesh.NodalPreIds.size() )
 	  //   std::cout<<" ERROR ID PRE IDS "<<max_out_id<<" > "<<mrRemesh.NodalPreIds.size()<<std::endl;
@@ -193,7 +193,7 @@ public:
 	      // 	}
 	      
 	      // std::cout<<"] "<<std::endl;
-
+	      wrong_added_node = false;
 	      box_side_element = false;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
@@ -203,21 +203,22 @@ public:
 		    std::cout<<" ERROR: something is wrong: nodal id < 0 "<<el<<std::endl;
 		  
 		  //check if the number of nodes are considered in the nodal pre ids
-		  if( (unsigned int)OutElementList[el*nds+pn] > mrRemesh.NodalPreIds.size() ){
-		    wrong_added_node = true;
-		    std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
-		    break;
+		  if( (unsigned int)OutElementList[el*nds+pn] >= mrRemesh.NodalPreIds.size() ){
+		      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
+			  wrong_added_node = true;
+		      std::cout<<" ERROR: something is wrong: node out of bounds "<<std::endl;
+		      break;
 		  }
 		  
 		  //check if is a vertex of an artificial external bounding box
 		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
-		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
-		      std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
-		    box_side_element = true;
-		    break;
+		      if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
+			  std::cout<<" ERROR: something is wrong: nodal id < 0 "<<std::endl;
+		      box_side_element = true;
+		      break;
 		  }
 		  		
-		  //vertices.push_back( *((rNodes).find( OutElementList[el*nds+pn] ).base() ) );
+		  //vertices.push_bac( *((rNodes).find( OutElementList[el*nds+pn] ).base() ) );
 		  vertices.push_back(rNodes(OutElementList[el*nds+pn]));
 
 		  //check flags on nodes
@@ -331,9 +332,9 @@ public:
 
 		  if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
 		    {
-		      //problems in 3D: take care
+		      //problems in 3D: be careful
 		      if(self_contact)
-			accepted=ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
+			  accepted = ModelerUtils.CheckOuterCentre(vertices,mrRemesh.OffsetFactor, self_contact);
 		    }
 		  else
 		    {
@@ -371,6 +372,13 @@ public:
 		      
 		      number_of_slivers++;
 		    }
+		    else{
+
+		      if(mrRemesh.Options.Is(ModelerUtilities::CONTACT_SEARCH))
+			accepted = false;
+		      else
+			accepted = true;
+		    }
 
 		    delete tetrahedron;
 		  }
@@ -379,7 +387,7 @@ public:
 
 	      if(accepted)
 		{
-		  //std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
+		  //std::cout<<" Element ACCEPTED after cheking Center+Sliver "<<number<<std::endl;
 		  number+=1;
 		  mrRemesh.PreservedElements[el] = number;
 		}
@@ -395,7 +403,7 @@ public:
 
 	}
 
-      std::cout<<"   Number of Preserved Elements "<<mrRemesh.Info->NumberOfElements<<" (slivers detected: "<<number_of_slivers<<") "<<std::endl;
+      std::cout<<"   [Preserved Elements "<<mrRemesh.Info->NumberOfElements<<"] :: (slivers detected: "<<number_of_slivers<<") "<<std::endl;
       std::cout<<"   (passed_alpha_shape: "<<passed_alpha_shape<<", passed_inner_outer: "<<passed_inner_outer<<") "<<std::endl;
 
       if(mrRemesh.ExecutionOptions.IsNot(ModelerUtilities::KEEP_ISOLATED_NODES)){
@@ -467,8 +475,8 @@ public:
 	// std::cout<<"   Passed_AlphaShape  :"<<mrRemesh.Info->NumberOfElements<<std::endl;
 	// if(OutNumberOfElements-mrRemesh.Info->NumberOfElements!=0)
 	//   std::cout<<" DELETED ELEMENTS "<<std::endl;
-	
-	std::cout<<"   SELECT MESH ELEMENTS ]; "<<std::endl;
+	std::cout<<"   SELECT MESH ELEMENTS ("<<mrRemesh.Info->NumberOfElements<<") ]; "<<std::endl;
+
       }
 
       KRATOS_CATCH( "" )

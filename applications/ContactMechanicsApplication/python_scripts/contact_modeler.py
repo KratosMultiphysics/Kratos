@@ -44,6 +44,8 @@ class ContactModeler(mesh_modeler.MeshModeler):
     #
     def InitializeMeshing(self):
 
+        self.MeshingParameters.InitializeMeshing()
+        
         meshing_options = self.MeshingParameters.GetOptions()
         
         # set execution flags: to set the options to be executed in methods and processes
@@ -81,8 +83,8 @@ class ContactModeler(mesh_modeler.MeshModeler):
         elif( self.dimension == 3 ):
 
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
-                #modeler_flags = "pMYYCJFu0"     #tetgen 1.5.0
-                modeler_flags = "pJFBMYYCCQu0"  #tetgen 1.4.3
+                modeler_flags = "pMYYCJFQ"     #tetgen 1.5.0
+                #modeler_flags = "pJFBMYYCCQu0"  #tetgen 1.4.3
                 #modeler_flags = "pJFBMYYCCQ"  #tetgen 1.5.0
             else:
                 modeler_flags = "JFMQO4/4"
@@ -94,18 +96,21 @@ class ContactModeler(mesh_modeler.MeshModeler):
     def SetPreMeshingProcesses(self):
  
         # The order set is the order of execution:
-
+        
         # clear contact conditions
         clear_contact_conditions= KratosContact.ClearContactConditions(self.model_part, self.echo_level)
         self.mesher.SetPreMeshingProcess(clear_contact_conditions)
 
+        #print GiD mesh output for checking purposes
+        #print_output_mesh = KratosPfem.PrintOutputMeshProcess(self.model_part, self.MeshingParameters, "input", self.echo_level)
+        #self.mesher.SetPreMeshingProcess(print_output_mesh) 
     #
     def SetPostMeshingProcesses(self):
 
         # The order set is the order of execution:
 
         #print GiD mesh output for checking purposes
-        print_output_mesh = KratosPfem.PrintOutputMeshProcess(self.model_part, self.MeshingParameters, self.echo_level)
+        print_output_mesh = KratosPfem.PrintOutputMeshProcess(self.model_part, self.MeshingParameters, "output", self.echo_level)
         self.mesher.SetPostMeshingProcess(print_output_mesh)        
         
         #select mesh elements
@@ -123,3 +128,5 @@ class ContactModeler(mesh_modeler.MeshModeler):
         execution_options = KratosMultiphysics.Flags() 
         # all false
         self.MeshingParameters.SetExecutionOptions(execution_options)
+
+        self.MeshingParameters.FinalizeMeshing()

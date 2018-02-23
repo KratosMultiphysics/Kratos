@@ -799,10 +799,20 @@ namespace Kratos
     //Calculate Explicit Lagrange Multipliers or Penalty Factors
     this->CalculateExplicitFactors( rVariables, rCurrentProcessInfo );
 
-    // std::cout<<" F "<<rVariables.F<<std::endl;
-    // std::cout<<" StressVector "<<rVariables.StressVector<<std::endl;
+    
+    //std::cout<<" F "<<rVariables.F<<std::endl;
+    //std::cout<<" StressVector "<<rVariables.StressVector<<std::endl;
 
+    // std::cout<<" SOLID EL["<<MasterElement.Id()<<"]"<<std::endl;
+    // for (unsigned int i=0; i<MasterElement.GetGeometry().size(); i++)
+    // 	std::cout<<" Disp["<<MasterElement.GetGeometry()[i].Id()<<"]: "<<MasterElement.GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
+    
+    
+    // std::cout<<" CONTACT EL["<<this->Id()<<"]"<<std::endl;
+    // for (unsigned int i=0; i<GetGeometry().size(); i++)
+    // 	std::cout<<" Disp["<<GetGeometry()[i].Id()<<"]: "<<GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
 
+    
     KRATOS_CATCH( "" )
   }
 
@@ -914,8 +924,11 @@ namespace Kratos
 
     }   
 
-
-     
+    // std::cout<<" CONTACT FORCE EL["<<this->Id()<<"] [";
+    // for (unsigned int i=0; i<GetGeometry().size(); i++)
+    // 	std::cout<<" "<<GetGeometry()[i].Id();
+    // std::cout<<" ]"<<std::endl;
+    
     //KRATOS_WATCH( rLeftHandSideMatrix )
     //KRATOS_WATCH( rRightHandSideVector )
 

@@ -150,10 +150,21 @@ namespace Kratos
 
     WeakPointerVector<Element >& rE = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
     double ElasticModulus = 0;
-    if( GetProperties().Has(YOUNG_MODULUS) )
+    if( GetProperties().Has(YOUNG_MODULUS) ){
       ElasticModulus = GetProperties()[YOUNG_MODULUS];
-    else
-      ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
+    }
+    else if( GetProperties().Has(C10) ){
+	ElasticModulus = GetProperties()[C10];
+    }
+    else{
+	
+	if( rE.front().GetProperties().Has(YOUNG_MODULUS) ){
+	    ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
+	}
+	else if( rE.front().GetProperties().Has(C10) ){
+	    ElasticModulus = rE.front().GetProperties()[C10];
+	}
+    }
 
     // the Modified Cam Clay model does not have a constant Young modulus, so something similar to that is computed
     if (ElasticModulus <= 1.0e-5) {

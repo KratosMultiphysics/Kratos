@@ -27,7 +27,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    this->mHistoryVector.clear();
+    noalias(this->mHistoryVector) = ZeroVector(6);
     
     this->mHistoryVector[0] = 1.0;
     this->mHistoryVector[1] = 1.0;    

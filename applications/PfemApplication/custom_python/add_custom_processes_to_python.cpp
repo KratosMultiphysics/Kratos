@@ -175,7 +175,7 @@ namespace Kratos
 
       class_<PrintOutputMeshProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "PrintOutputMeshProcess", init<ModelPart&,  ModelerUtilities::MeshingParameters&, int>()
+	  "PrintOutputMeshProcess", init<ModelPart&,  ModelerUtilities::MeshingParameters&, std::string, int>()
 	 )
 	;
       
