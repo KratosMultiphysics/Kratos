@@ -56,7 +56,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         with open(self.completeResponseLogFileName, 'w') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("{:<6s}".format("itr"))
+            row.append("{:<4s}".format("itr"))
             row.append("{:>20s}".format("f"))
             row.append("{:>12s}".format("df_abs[%]"))
             row.append("{:>12s}".format("df_rel[%]"))
@@ -117,8 +117,8 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def __AddResponseValuesToHistory( self ):
-        objectiveValue = self.communicator.getStandardizedValue( self.onlyObjective )
-        constraintValue = self.communicator.getStandardizedValue( self.onlyConstraint ) + self.communicator.getReferenceValue( self.onlyConstraint )
+        objectiveValue = self.communicator.getValue( self.onlyObjective )
+        constraintValue = self.communicator.getValue( self.onlyConstraint )
 
         self.objectiveHistory[self.currentIteration] = objectiveValue
         self.constraintHistory[self.currentIteration] = constraintValue
@@ -172,7 +172,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
         with open(self.completeResponseLogFileName, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
-            row.append("{:<6s}".format(str(self.currentIteration)))
+            row.append("{:<4s}".format(str(self.currentIteration)))
             row.append(str("{:>20f}".format(objectiveValue)))
             row.append(str("{:>12f}".format(absoluteChangeOfObjectiveValue)))
             row.append(str("{:>12f}".format(relativeChangeOfObjectiveValue)))

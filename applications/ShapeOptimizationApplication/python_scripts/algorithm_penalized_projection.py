@@ -185,7 +185,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __isConstraintActive( self, constraintValue ):
-        if self.typeOfOnlyConstraint == "equality":
+        if self.typeOfOnlyConstraint == "=":
             return True
         elif constraintValue > 0:
             return True
