@@ -167,7 +167,7 @@ class Communicator:
         if response["type"] in self.supported_constraint_types and response["reference_value"] == "waiting_for_initial_value":
             return True
         else:
-            False
+            return False
 
     # --------------------------------------------------------------------------
     def __setValueAsReference( self, response_id, value ):

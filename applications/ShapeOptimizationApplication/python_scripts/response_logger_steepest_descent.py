@@ -90,7 +90,6 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
     def GetValue( self, variableKey ):
-
         if variableKey=="RELATIVE_CHANGE_OF_OBJECTIVE_VALUE":
             if self.__IsFirstLog():
                 raise RuntimeError("Relative change of objective function can not be computed since only one logged value is existing!")
@@ -130,9 +129,8 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
     def __AddChangeOfObjectiveToHistory( self ):
         objectiveValue = self.objectiveHistory[self.currentIteration]
         previousObjectiveValue = self.objectiveHistory[self.previousIteration]
-        initialObjectiveValue = self.objectiveHistory[self.initialIteration]
 
-        self.absoluteChangeOfObjectiveHistory[self.currentIteration] = 100*(objectiveValue-initialObjectiveValue) / abs(self.objectiveOutputReference)
+        self.absoluteChangeOfObjectiveHistory[self.currentIteration] = 100*(objectiveValue-self.objectiveOutputReference) / abs(self.objectiveOutputReference)
         self.relativeChangeOfObjectiveHistory[self.currentIteration] = 100*(objectiveValue-previousObjectiveValue) / abs(self.objectiveOutputReference)
 
     # --------------------------------------------------------------------------

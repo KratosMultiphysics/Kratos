@@ -140,7 +140,6 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
     def __AddChangeOfObjectiveToHistory( self ):
         objectiveValue = self.objectiveHistory[self.currentIteration]
         previousObjectiveValue = self.objectiveHistory[self.previousIteration]
-        initialObjectiveValue = self.objectiveHistory[self.initialIteration]
 
         self.absoluteChangeOfObjectiveHistory[self.currentIteration] = 100*(objectiveValue-self.objectiveOutputReference) / abs(self.objectiveOutputReference)
         self.relativeChangeOfObjectiveHistory[self.currentIteration] = 100*(objectiveValue-previousObjectiveValue) / abs(self.objectiveOutputReference)
