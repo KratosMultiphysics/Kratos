@@ -70,8 +70,8 @@ void PointsData::SetData(NodesContainerType const& rNodes)
 
 void PointsData::Clear()
 {
-    mIds.clear();
-    mCoords.clear();
+    mIds.resize(0);
+    mCoords.resize(0);
 }
 
 } // namespace Internals.

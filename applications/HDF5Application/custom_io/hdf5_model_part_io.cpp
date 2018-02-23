@@ -7,11 +7,29 @@
 #include "custom_io/hdf5_connectivities_data.h"
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 #include "utilities/builtin_timer.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
+
+template <typename TContainer>
+void WriteContainerIds(File& rFile, std::string const& rPath, TContainer const& rContainer, WriteInfo& rInfo)
+{
+    KRATOS_TRY;
+    Vector<int> ids;
+    ids.resize(rContainer.size());
+    #pragma omp parallel for
+    for (std::size_t i = 0; i < rContainer.size(); ++i)
+    {
+        const auto it = rContainer.begin() + i;
+        ids[i] = it->Id();
+    }
+    rFile.WriteDataSet(rPath, ids, rInfo);
+    KRATOS_CATCH("");
+}
+
 ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix)
 : mpFile(pFile), mPrefix(rPrefix)
 {
@@ -161,6 +179,15 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());
+
+    for (auto it = rModelPart.SubModelPartsBegin(); it != rModelPart.SubModelPartsEnd(); ++it)
+    {
+        WriteInfo info;
+        WriteContainerIds(*mpFile, mPrefix + "/SubModelParts/" + it->Name() + "/ElementIds", it->Elements(), info);
+        StoreWriteInfo(mPrefix + "/SubModelParts/" + it->Name() + "/ElementIds", info);
+        WriteContainerIds(*mpFile, mPrefix + "/SubModelParts/" + it->Name() + "/ConditionIds", it->Conditions(), info);
+        StoreWriteInfo(mPrefix + "/SubModelParts/" + it->Name() + "/ConditionIds", info);
+    }
 
      if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
         std::cout << "Time to write model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;

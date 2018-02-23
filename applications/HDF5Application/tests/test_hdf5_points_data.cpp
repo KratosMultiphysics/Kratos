@@ -16,72 +16,32 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "custom_io/hdf5_file_serial.h"
+
+// Application includes
 #include "custom_io/hdf5_points_data.h"
-#include "includes/kratos_parameters.h"
+#include "tests/test_utils.h"
 
 namespace Kratos
 {
 namespace Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData_CreateNodes, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData1, KratosHDF5TestSuite)
 {
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
-    HDF5::Vector<int> ids(3);
-    HDF5::Vector<array_1d<double, 3>> coords(3);
-    for (unsigned i = 0; i < 3; ++i)
-    {
-        ids[i] = i + 1;
-        coords[i] = array_1d<double, 3>(3, 1.2345);
-    }
-    HDF5::WriteInfo info;
-    test_file.WriteDataSet("/Nodes/Ids", ids, info);
-    test_file.WriteDataSet("/Nodes/Coordinates", coords, info);
+    ModelPart test_model_part;
+    TestModelPartFactory::CreateModelPart(test_model_part);
+    KRATOS_CHECK(test_model_part.NumberOfNodes() > 0);
     HDF5::Internals::PointsData data;
-    data.ReadData(test_file, "/Nodes", 0, 3);
-    HDF5::NodesContainerType nodes;
-    data.CreateNodes(nodes);
-    KRATOS_CHECK(nodes.size() == 3);
-    for (unsigned i = 0; i < 3; ++i)
-    {
-        HDF5::NodeType& r_node = nodes[ids[i]];
-        for (unsigned j = 0; j < 3; ++j)
-            KRATOS_CHECK(r_node.Coordinates()[j] == coords[i][j]);
-    }
-}
-
-KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData_WriteData, KratosHDF5TestSuite)
-{
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
-    HDF5::NodesContainerType nodes;
-    for (unsigned i = 0; i < 3; ++i)
-    {
-        auto p_node = boost::make_shared<HDF5::NodeType>(
-            i + 1, 1.2345, 1.2345, 1.2345);
-        nodes.push_back(p_node);
-    }
-    HDF5::Internals::PointsData data;
-    data.SetData(nodes);
+    data.SetData(test_model_part.Nodes());
+    HDF5::File::Pointer p_file = pGetFile();
     HDF5::WriteInfo info;
-    data.WriteData(test_file, "/Nodes", info);
-    HDF5::Vector<int> ids(3);
-    HDF5::Vector<array_1d<double, 3>> coords(3);
-    test_file.ReadDataSet("/Nodes/Ids", ids, 0, 3);
-    test_file.ReadDataSet("/Nodes/Coordinates", coords, 0, 3);
-    for (unsigned i = 0; i < 3; ++i)
-        for (unsigned j = 0; j < 3; ++j)
-            KRATOS_CHECK(coords[i][j] == nodes[ids[i]].Coordinates()[j]);
+    data.WriteData(*p_file, "/Nodes", info);
+    data.Clear();
+    KRATOS_CHECK(data.size() == 0);
+    data.ReadData(*p_file, "/Nodes", info.StartIndex, info.BlockSize);
+    HDF5::NodesContainerType new_nodes;
+    data.CreateNodes(new_nodes);
+    CompareNodes(new_nodes, test_model_part.Nodes());
 }
 
 } // namespace Testing

@@ -11,17 +11,13 @@
 //
 
 // System includes
-#include <sstream>
 
 // External includes
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/kratos_components.h"
-#include "includes/kratos_parameters.h"
 
 // Application includes
-#include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_model_part_io.h"
 #include "tests/test_utils.h"
 
@@ -33,40 +29,21 @@ namespace Testing
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadNodes, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
-    const unsigned num_nodes = 10;
-    for (unsigned i = 0; i < num_nodes; ++i)
-    {
-        double xyz = i;
-        write_model_part.CreateNewNode(i + 1, xyz, xyz, xyz);
-    }
+    TestModelPartFactory::CreateModelPart(write_model_part);
+    KRATOS_CHECK(write_model_part.NumberOfNodes() > 0);
     HDF5::File::Pointer p_file = pGetFile();
     HDF5::ModelPartIO model_part_io(p_file, "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
     ModelPart read_model_part("test_read");
     model_part_io.ReadNodes(read_model_part.Nodes());
-    CompareModelParts(read_model_part, write_model_part);
+    CompareNodes(read_model_part.Nodes(), write_model_part.Nodes());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements1, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
-    const unsigned num_elems = 5;
-    const unsigned num_nodes = num_elems + 2;
-    for (unsigned i = 0; i < num_nodes; ++i)
-    {
-        double xyz = i;
-        write_model_part.CreateNewNode(i + 1, xyz, xyz, xyz);
-    }
-    const HDF5::ElementType& Element2D3N = KratosComponents<HDF5::ElementType>::Get("Element2D3N");
-    HDF5::ElementsContainerType& r_elems = write_model_part.Elements();
-    HDF5::ElementType::NodesArrayType geom_nodes(3);
-    ModelPart::PropertiesType::Pointer p_prop = write_model_part.pGetProperties(1);
-    for (unsigned i = 0; i < num_elems; ++i)
-    {
-        for (unsigned j = 0; j < 3; ++j)
-            geom_nodes(j) = write_model_part.pGetNode(i + j + 1);
-        r_elems.push_back(Element2D3N.Create(i + 1, geom_nodes, p_prop));
-    }
+    TestModelPartFactory::CreateModelPart(write_model_part, {{"Element2D3N"}});
+    KRATOS_CHECK(write_model_part.NumberOfElements() > 0);
     HDF5::File::Pointer p_file = pGetFile();
     HDF5::ModelPartIO model_part_io(p_file, "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
@@ -74,37 +51,15 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements1, KratosHDF5TestSuite)
     ModelPart read_model_part("test_read");
     model_part_io.ReadNodes(read_model_part.Nodes());
     model_part_io.ReadElements(read_model_part.Nodes(), read_model_part.rProperties(), read_model_part.Elements());
-    CompareModelParts(read_model_part, write_model_part);
+    CompareElements(read_model_part.Elements(), write_model_part.Elements());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements2, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
-    const unsigned num_tri_elems = 10;
-    const unsigned num_quad_elems = 15;
-    const unsigned num_nodes = (num_tri_elems + 2) + (num_quad_elems + 2);
-    for (unsigned i = 0; i < num_nodes; ++i)
-    {
-        double xyz = i;
-        write_model_part.CreateNewNode(i + 1, xyz, xyz, xyz);
-    }
-    const HDF5::ElementType& Element2D3N = KratosComponents<HDF5::ElementType>::Get("Element2D3N");
-    const HDF5::ElementType& Element2D4N = KratosComponents<HDF5::ElementType>::Get("Element2D4N");
-    HDF5::ElementsContainerType& r_elems = write_model_part.Elements();
-    HDF5::ElementType::NodesArrayType tri_nodes(3), quad_nodes(4);
-    ModelPart::PropertiesType::Pointer p_prop = write_model_part.pGetProperties(1);
-    for (unsigned i = 0; i < num_tri_elems; ++i)
-    {
-        for (unsigned j = 0; j < 3; ++j)
-            tri_nodes(j) = write_model_part.pGetNode(i + j + 1);
-        r_elems.push_back(Element2D3N.Create(i + 1, tri_nodes, p_prop));
-    }
-    for (unsigned i = 0; i < num_quad_elems; ++i)
-    {
-        for (unsigned j = 0; j < 4; ++j)
-            quad_nodes(j) = write_model_part.pGetNode(num_tri_elems + i + j + 1);
-        r_elems.push_back(Element2D4N.Create(num_tri_elems + i + 1, quad_nodes, p_prop));
-    }
+    TestModelPartFactory::CreateModelPart(write_model_part,
+                                          {{"Element2D3N"}, {"Element2D4N"}});
+    KRATOS_CHECK(write_model_part.NumberOfElements() > 0);
     HDF5::File::Pointer p_file = pGetFile();
     HDF5::ModelPartIO model_part_io(p_file, "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
@@ -112,29 +67,14 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements2, KratosHDF5TestSuite)
     ModelPart read_model_part("test_read");
     model_part_io.ReadNodes(read_model_part.Nodes());
     model_part_io.ReadElements(read_model_part.Nodes(), read_model_part.rProperties(), read_model_part.Elements());
-    CompareModelParts(read_model_part, write_model_part);
+    CompareElements(read_model_part.Elements(), write_model_part.Elements());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions1, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
-    const unsigned num_conds = 5;
-    const unsigned num_nodes = num_conds + 2;
-    for (unsigned i = 0; i < num_nodes; ++i)
-    {
-        double xyz = i;
-        write_model_part.CreateNewNode(i + 1, xyz, xyz, xyz);
-    }
-    const HDF5::ConditionType& SurfaceCondition3D3N = KratosComponents<HDF5::ConditionType>::Get("SurfaceCondition3D3N");
-    HDF5::ConditionsContainerType& r_conds = write_model_part.Conditions();
-    HDF5::ConditionType::NodesArrayType geom_nodes(3);
-    ModelPart::PropertiesType::Pointer p_prop = write_model_part.pGetProperties(1);
-    for (unsigned i = 0; i < num_conds; ++i)
-    {
-        for (unsigned j = 0; j < 3; ++j)
-            geom_nodes(j) = write_model_part.pGetNode(i + j + 1);
-        r_conds.push_back(SurfaceCondition3D3N.Create(i + 1, geom_nodes, p_prop));
-    }
+    TestModelPartFactory::CreateModelPart(write_model_part, {}, {{"SurfaceCondition3D3N"}});
+    KRATOS_CHECK(write_model_part.NumberOfConditions() > 0);
     HDF5::File::Pointer p_file = pGetFile();
     HDF5::ModelPartIO model_part_io(p_file, "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
@@ -142,37 +82,16 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions1, KratosHDF5TestSuite)
     ModelPart read_model_part("test_read");
     model_part_io.ReadNodes(read_model_part.Nodes());
     model_part_io.ReadConditions(read_model_part.Nodes(), read_model_part.rProperties(), read_model_part.Conditions());
-    CompareModelParts(read_model_part, write_model_part);
+    CompareConditions(read_model_part.Conditions(), write_model_part.Conditions());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions2, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
-    const unsigned num_tri_conds = 10;
-    const unsigned num_quad_conds = 15;
-    const unsigned num_nodes = (num_tri_conds + 2) + (num_quad_conds + 2);
-    for (unsigned i = 0; i < num_nodes; ++i)
-    {
-        double xyz = i;
-        write_model_part.CreateNewNode(i + 1, xyz, xyz, xyz);
-    }
-    const HDF5::ConditionType& SurfaceCondition3D3N = KratosComponents<HDF5::ConditionType>::Get("SurfaceCondition3D3N");
-    const HDF5::ConditionType& SurfaceCondition3D4N = KratosComponents<HDF5::ConditionType>::Get("SurfaceCondition3D4N");
-    HDF5::ConditionsContainerType& r_conds = write_model_part.Conditions();
-    HDF5::ConditionType::NodesArrayType tri_nodes(3), quad_nodes(4);
-    ModelPart::PropertiesType::Pointer p_prop = write_model_part.pGetProperties(1);
-    for (unsigned i = 0; i < num_tri_conds; ++i)
-    {
-        for (unsigned j = 0; j < 3; ++j)
-            tri_nodes(j) = write_model_part.pGetNode(i + j + 1);
-        r_conds.push_back(SurfaceCondition3D3N.Create(i + 1, tri_nodes, p_prop));
-    }
-    for (unsigned i = 0; i < num_quad_conds; ++i)
-    {
-        for (unsigned j = 0; j < 4; ++j)
-            quad_nodes(j) = write_model_part.pGetNode(num_tri_conds + i + j + 1);
-        r_conds.push_back(SurfaceCondition3D4N.Create(num_tri_conds + i + 1, quad_nodes, p_prop));
-    }
+    TestModelPartFactory::CreateModelPart(
+        write_model_part, {},
+        {{"SurfaceCondition3D3N"}, {"SurfaceCondition3D4N"}});
+    KRATOS_CHECK(write_model_part.NumberOfConditions() > 0);
     HDF5::File::Pointer p_file = pGetFile();
     HDF5::ModelPartIO model_part_io(p_file, "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
@@ -180,7 +99,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions2, KratosHDF5TestSuite)
     ModelPart read_model_part("test_read");
     model_part_io.ReadNodes(read_model_part.Nodes());
     model_part_io.ReadConditions(read_model_part.Nodes(), read_model_part.rProperties(), read_model_part.Conditions());
-    CompareModelParts(read_model_part, write_model_part);
+    CompareConditions(read_model_part.Conditions(), write_model_part.Conditions());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties, KratosHDF5TestSuite)

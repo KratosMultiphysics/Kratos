@@ -51,9 +51,34 @@ HDF5::File::Matrix<T> TestMatrix(std::size_t m=3, std::size_t n=3)
     return mat;
 }
 
-void CreateTestModelPart(ModelPart& rModelPart,
-                         std::string const& rElementType = "Element2D3N",
-                         std::string const& rConditionType = "Condition2D3N");
+class TestModelPartFactory
+{
+    public:
+        static void CreateModelPart(
+            ModelPart& rTestModelPart,
+            std::vector<std::string> const& rElements = {},
+            std::vector<std::string> const& rConditions = {},
+            std::vector<std::string> const& rNodalVariables = {});
+
+    private:
+        explicit TestModelPartFactory(ModelPart& rTestModelPart);
+
+        std::size_t AddNodes(std::size_t NumNodes);
+
+        void AddNodalVariables(std::vector<std::string> const& rNodalVariables);
+
+        void SetBufferSize(std::size_t BufferSize);
+
+        void AssignNodalTestData(std::vector<std::string> const& rNodalVariables);
+
+        std::size_t AddElements(std::string const& rElement, std::size_t NumElems);
+
+        std::size_t AddConditions(std::string const& rCondition, std::size_t NumConds);
+
+        ModelPart& mrTestModelPart;
+};
+
+void CompareNodes(HDF5::NodesContainerType& rNodes1, HDF5::NodesContainerType& rNodes2);
 
 void CompareElements(HDF5::ElementsContainerType& rElements1, HDF5::ElementsContainerType& rElements2);
 

@@ -23,41 +23,146 @@ HDF5::File::Vector<array_1d<double,3>> TestVector(std::size_t n)
     return vec;
 }
 
-void CreateTestModelPart(ModelPart& rModelPart,
-                         std::string const& rElementType,
-                         std::string const& rConditionType)
+void TestModelPartFactory::CreateModelPart(ModelPart& rTestModelPart,
+                                           std::vector<std::string> const& rElements,
+                                           std::vector<std::string> const& rConditions,
+                                           std::vector<std::string> const& rNodalVariables)
 {
-    rModelPart.SubModelParts().clear();
-    rModelPart.Elements().clear();
-    rModelPart.Conditions().clear();
-    rModelPart.Nodes().clear();
-    rModelPart.rProperties().clear();
-    const unsigned num_elems_and_conds = 3;
-    const Element& r_elem = KratosComponents<Element>::Get(rElementType);
-    const Condition& r_cond = KratosComponents<Condition>::Get(rConditionType);
-    const unsigned num_nodes =
-        num_elems_and_conds +
-        std::max(r_elem.GetGeometry().size(), r_cond.GetGeometry().size());
-    // Create nodes.
-    for (unsigned i = 0; i < num_nodes; ++i)
-        rModelPart.CreateNewNode(i + 1, 1.0, 2.0, 3.0);
-    // Create elements.
-    for (unsigned i = 0; i < num_elems_and_conds; ++i)
+    const std::size_t num_elems_and_conds{2};
+    std::size_t num_nodes{2};
+    for (const auto& r_name : rElements)
     {
-        std::vector<ModelPart::IndexType> elem_node_ids(r_elem.GetGeometry().size());
-        for (unsigned j = 0; j < r_elem.GetGeometry().size(); ++j)
-            elem_node_ids.at(j) = i + j + 1;
-        rModelPart.CreateNewElement(rElementType, i + 1, elem_node_ids, rModelPart.pGetProperties(1));
-        std::vector<ModelPart::IndexType> cond_node_ids(r_cond.GetGeometry().size());
-        for (unsigned j = 0; j < r_cond.GetGeometry().size(); ++j)
-            cond_node_ids.at(j) = i + j + 1;
-        rModelPart.CreateNewCondition(rConditionType, i + 1, cond_node_ids, rModelPart.pGetProperties(1));
+        const Element& r_elem = KratosComponents<Element>::Get(r_name);
+        num_nodes = std::max(num_nodes, num_elems_and_conds + r_elem.GetGeometry().size());
     }
+    for (const auto& r_name : rConditions)
+    {
+        const Condition& r_cond = KratosComponents<Condition>::Get(r_name);
+        num_nodes = std::max(num_nodes, num_elems_and_conds + r_cond.GetGeometry().size());
+    }
+    TestModelPartFactory model_part_factory(rTestModelPart);
+    model_part_factory.AddNodalVariables(rNodalVariables);
+    model_part_factory.AddNodes(num_nodes);
+    for (const auto& r_name : rElements)
+        model_part_factory.AddElements(r_name, num_elems_and_conds);
+    for (const auto& r_name : rConditions)
+        model_part_factory.AddConditions(r_name, num_elems_and_conds);
+    model_part_factory.SetBufferSize(2);
+    model_part_factory.AssignNodalTestData(rNodalVariables);
+}
+
+TestModelPartFactory::TestModelPartFactory(ModelPart& rTestModelPart)
+    : mrTestModelPart(rTestModelPart)
+{
+}
+
+std::size_t TestModelPartFactory::AddNodes(std::size_t NumNodes)
+{
+    std::size_t start_index{0};
+    if (mrTestModelPart.NumberOfNodes() > 0)
+        start_index = mrTestModelPart.Nodes().back().Id();
+    for (std::size_t i = start_index; i < NumNodes; ++i)
+        mrTestModelPart.CreateNewNode(i + 1, 1.23, 4.56, 7.89);
+    return mrTestModelPart.NumberOfNodes();
+}
+
+void TestModelPartFactory::AddNodalVariables(std::vector<std::string> const& rNodalVariables)
+{
+    for (const auto& r_variable_name : rNodalVariables)
+    {
+        if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name))
+        {
+            mrTestModelPart.AddNodalSolutionStepVariable(
+                KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name));
+        }
+        else if (KratosComponents<Variable<double>>::Has(r_variable_name))
+        {
+            mrTestModelPart.AddNodalSolutionStepVariable(
+                KratosComponents<Variable<double>>::Get(r_variable_name));
+        }
+        else if (KratosComponents<Variable<int>>::Has(r_variable_name))
+        {
+            mrTestModelPart.AddNodalSolutionStepVariable(
+                KratosComponents<Variable<int>>::Get(r_variable_name));
+        }
+        else
+        {
+            KRATOS_ERROR << "Unsupported variable type: " << r_variable_name << std::endl;
+        }
+    }
+}
+
+void TestModelPartFactory::SetBufferSize(std::size_t BufferSize)
+{
+    mrTestModelPart.SetBufferSize(BufferSize);
+}
+
+void TestModelPartFactory::AssignNodalTestData(std::vector<std::string> const& rNodalVariables)
+{
+    if (rNodalVariables.size() == 0)
+        return;
+
+    for (auto& r_node : mrTestModelPart.Nodes())
+    {
+        for (VariableData const& r_variable_data : *r_node.pGetVariablesList())
+        {
+            if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_data.Name()))
+            {
+                r_node.FastGetSolutionStepValue(
+                    KratosComponents<Variable<array_1d<double, 3>>>::Get(
+                        r_variable_data.Name())) = array_1d<double, 3>(3, 1.23);
+            }
+            else if (KratosComponents<Variable<double>>::Has(r_variable_data.Name()))
+            {
+                r_node.FastGetSolutionStepValue(
+                    KratosComponents<Variable<double>>::Get(r_variable_data.Name())) = 1.23;
+            }
+            else if (KratosComponents<Variable<int>>::Has(r_variable_data.Name()))
+            {
+                r_node.FastGetSolutionStepValue(
+                    KratosComponents<Variable<int>>::Get(r_variable_data.Name())) = 123;
+            }
+            else
+            {
+                KRATOS_ERROR << "Unsupported variable type: " << r_variable_data.Name()
+                             << std::endl;
+            }
+        }
+    }
+}
+
+std::size_t TestModelPartFactory::AddElements(std::string const& rElement, std::size_t NumElems)
+{
+    const auto& r_elem = KratosComponents<Element>::Get(rElement);
+    std::vector<ModelPart::IndexType> node_ids(r_elem.GetGeometry().size());
+    std::size_t start_index = (mrTestModelPart.NumberOfElements() > 0) ? mrTestModelPart.Elements().back().Id() : 0;
+    for (std::size_t i = 0; i < NumElems; ++i)
+    {
+        for (std::size_t j = 0; j < r_elem.GetGeometry().size(); ++j)
+            node_ids.at(j) = i + j + 1;
+        mrTestModelPart.CreateNewElement(rElement, start_index + i + 1, node_ids, mrTestModelPart.pGetProperties(1));
+    }
+    return mrTestModelPart.NumberOfElements();
+}
+
+std::size_t TestModelPartFactory::AddConditions(std::string const& rCondition, std::size_t NumConds)
+{
+    const auto& r_cond = KratosComponents<Condition>::Get(rCondition);
+    std::vector<ModelPart::IndexType> node_ids(r_cond.GetGeometry().size());
+    std::size_t start_index = (mrTestModelPart.NumberOfConditions() > 0) ? mrTestModelPart.Conditions().back().Id() : 0;
+    for (std::size_t i = 0; i < NumConds; ++i)
+    {
+        for (std::size_t j = 0; j < r_cond.GetGeometry().size(); ++j)
+            node_ids.at(j) = i + j + 1;
+        mrTestModelPart.CreateNewCondition(rCondition, start_index + i + 1, node_ids, mrTestModelPart.pGetProperties(1));
+    }
+    return mrTestModelPart.NumberOfConditions();
 }
 
 void CompareNodes(HDF5::NodesContainerType& rNodes1, HDF5::NodesContainerType& rNodes2)
 {
     KRATOS_CHECK(rNodes1.size() == rNodes2.size());
+    KRATOS_CHECK(rNodes1.size() > 0);
     for (const auto& r_node_1 : rNodes1)
     {
         HDF5::NodeType& r_node_2 = rNodes2[r_node_1.Id()];
@@ -69,6 +174,7 @@ void CompareNodes(HDF5::NodesContainerType& rNodes1, HDF5::NodesContainerType& r
 void CompareElements(HDF5::ElementsContainerType& rElements1, HDF5::ElementsContainerType& rElements2)
 {
     KRATOS_CHECK(rElements1.size() == rElements2.size());
+    KRATOS_CHECK(rElements1.size() > 0);
     for (auto it = rElements1.begin(); it != rElements1.end(); ++it)
     {
         HDF5::ElementType& r_elem_1 = *it;
@@ -85,6 +191,7 @@ void CompareElements(HDF5::ElementsContainerType& rElements1, HDF5::ElementsCont
 void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::ConditionsContainerType& rConditions2)
 {
     KRATOS_CHECK(rConditions1.size() == rConditions2.size());
+    KRATOS_CHECK(rConditions1.size() > 0);
     for (auto it = rConditions1.begin(); it != rConditions1.end(); ++it)
     {
         HDF5::ConditionType& r_cond_1 = *it;
