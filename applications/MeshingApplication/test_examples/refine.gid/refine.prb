@@ -30,7 +30,7 @@ QUESTION: Solver_Type#CB#(StaticSolver,ArcLengthSolver,LineSearchesSolver,Dynami
 VALUE: StaticSolver
 QUESTION: Time_Integration#CB#(Bossak_Newmark,Central_Differences)
 VALUE: Bossak_Newmark
-QUESTION: Linear_Solver#CB#(SkylineLUFactorization,SuperLUSolver,BiCGStab_ILU0,BiCGStab_DIAG,ParallelMKLPardisoSolver)
+QUESTION: Linear_Solver#CB#(SkylineLUFactorization,SuperLUSolver,BiCGStab_ILU0,BiCGStab_DIAG)
 VALUE: SkylineLUFactorization
 QUESTION: Linear_Solver_Tolerance
 VALUE: 1E-9
