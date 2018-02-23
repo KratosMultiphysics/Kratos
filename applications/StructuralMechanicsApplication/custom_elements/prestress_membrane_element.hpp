@@ -110,6 +110,9 @@ namespace Kratos
 
 
   private:
+    // Anna please think carefully if you really need all of these members.
+    // Sometimes it is better to recompute than to store them
+    // => update the serializer if you change sth here
     ///@name Static Member Variables
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     Vector mDetJ0;
@@ -204,7 +207,7 @@ namespace Kratos
     void CalculateMembraneElasticityTensor(
         Matrix& D
         );
-    
+
     void InitializeFormfinding(const unsigned int& rIntegrationPointSize);
 
     void TransformPrestress(const unsigned int& rPointNumber);
@@ -218,7 +221,7 @@ namespace Kratos
     void InitializeMaterial(const unsigned int& NumberIntegrationPoints);
 
     void ComputeContravariantBaseVectors(
-                        array_1d<double, 3>& rG1Contra, 
+                        array_1d<double, 3>& rG1Contra,
                         array_1d<double, 3>& rG2Contra,
                         const unsigned int& rPointNumber);
 

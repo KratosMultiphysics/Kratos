@@ -24,20 +24,20 @@ namespace Kratos
 #define INITIAL_CURRENT
     enum Configuration {Initial = 0, Current = 1};
 #endif
-    
+
 class StructuralMechanicsMathUtilities
 {
 public:
 
     ///@name Type definitions
     ///@{
-     
+
     typedef long double                                RealType;
-    
+
     typedef Node<3>                                    NodeType;
-    
+
     typedef Geometry<NodeType>                     GeometryType;
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -312,25 +312,25 @@ public:
 
         return true;
     }
-    
+
     /**
      * Calculates the radius of axisymmetry
      * @param N: The Gauss Point shape function
      * @param Geom: The geometry studied
      * @return Radius: The radius of axisymmetry
      */
-        
+
     static inline double CalculateRadius(
         const Vector N,
         GeometryType& Geom,
-        const Configuration ThisConfiguration = Current 
+        const Configuration ThisConfiguration = Current
         )
     {
         double Radius = 0.0;
 
         for (unsigned int iNode = 0; iNode < Geom.size(); iNode++)
         {
-            // Displacement from the reference to the current configuration   
+            // Displacement from the reference to the current configuration
             if (ThisConfiguration == Current)
             {
                 const array_1d<double, 3 > CurrentPosition = Geom[iNode].Coordinates();
@@ -338,28 +338,28 @@ public:
             }
             else
             {
-                const array_1d<double, 3 > DeltaDisplacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT) - Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);  
+                const array_1d<double, 3 > DeltaDisplacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT) - Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT,1);
                 const array_1d<double, 3 > CurrentPosition = Geom[iNode].Coordinates();
                 const array_1d<double, 3 > ReferencePosition = CurrentPosition - DeltaDisplacement;
                 Radius += ReferencePosition[0] * N[iNode];
             }
         }
-        
+
         return Radius;
     }
-    
+
     /**
      * Calculates the radius of axisymmetry for a point
      * @param Geom: The geometry studied
      * @return The radius of axisymmetry
      */
-        
+
     static inline double CalculateRadiusPoint(
         GeometryType& Geom,
-        const Configuration ThisConfiguration = Current 
+        const Configuration ThisConfiguration = Current
         )
     {
-        // Displacement from the reference to the current configuration   
+        // Displacement from the reference to the current configuration
         if (ThisConfiguration == Current)
         {
             const array_1d<double, 3 > CurrentPosition = Geom[0].Coordinates();
@@ -367,7 +367,7 @@ public:
         }
         else
         {
-            const array_1d<double, 3 > DeltaDisplacement = Geom[0].FastGetSolutionStepValue(DISPLACEMENT) - Geom[0].FastGetSolutionStepValue(DISPLACEMENT,1);  
+            const array_1d<double, 3 > DeltaDisplacement = Geom[0].FastGetSolutionStepValue(DISPLACEMENT) - Geom[0].FastGetSolutionStepValue(DISPLACEMENT,1);
             const array_1d<double, 3 > CurrentPosition = Geom[0].Coordinates();
             const array_1d<double, 3 > ReferencePosition = CurrentPosition - DeltaDisplacement;
             return ReferencePosition[0];
@@ -392,13 +392,13 @@ public:
         bounded_matrix<double,TDim,TDim>& rTensor)
     {
         // metric computation (of the target systems)
-        bounded_matrix<double,TDim,TDim> metric_left = ZeroMatrix(TDim,TDim);
-        bounded_matrix<double,TDim,TDim> metric_right = ZeroMatrix(TDim,TDim);
+        bounded_matrix<double,TDim,TDim> metric_left = ZeroMatrix(TDim,TDim); // Anna noalias?
+        bounded_matrix<double,TDim,TDim> metric_right = ZeroMatrix(TDim,TDim); // Anna noalias?
         for(int i=0;i<TDim;i++){
             for(int j=0;j<TDim;j++){
                 metric_left(i,j) += inner_prod(column(rTargetLeft,i),column(rTargetLeft,j));
                 metric_right(i,j) += inner_prod(column(rTargetRight,i),column(rTargetRight,j));
-            }        
+            }
         }
 
         // invert metric
@@ -409,17 +409,17 @@ public:
         MathUtils<double>::InvertMatrix(metric_right,inv_metric_right,det);
 
         // Compute dual target base vectors
-        bounded_matrix<double,TDim,TDim> target_left_dual = ZeroMatrix(TDim,TDim);
-        bounded_matrix<double,TDim,TDim> target_right_dual = ZeroMatrix(TDim,TDim);
+        bounded_matrix<double,TDim,TDim> target_left_dual = ZeroMatrix(TDim,TDim); // Anna noalias?
+        bounded_matrix<double,TDim,TDim> target_right_dual = ZeroMatrix(TDim,TDim); // Anna noalias?
         for(int i=0;i<TDim;i++){
-            for(int j=0;j<TDim;j++){            
+            for(int j=0;j<TDim;j++){
                 column(target_left_dual,i) += inv_metric_left(i,j)*column(rTargetLeft,j);
                 column(target_right_dual,i) += inv_metric_right(i,j)*column(rTargetRight,j);
-            }        
+            }
         }
 
         // Tensor transformation
-        bounded_matrix<double, TDim, TDim> transformed_tensor = ZeroMatrix(TDim, TDim);
+        bounded_matrix<double, TDim, TDim> transformed_tensor = ZeroMatrix(TDim, TDim); // Anna noalias?
         for(int k=0;k<TDim;k++){
             for(int l=0;l<TDim;l++){
                 for(int i=0;i<TDim;i++){
@@ -431,9 +431,9 @@ public:
         }
         rTensor = transformed_tensor;
     }
-    
+
 private:
 };// class StructuralMechanicsMathUtilities
 }
 #endif /* KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES defined */
- 
+

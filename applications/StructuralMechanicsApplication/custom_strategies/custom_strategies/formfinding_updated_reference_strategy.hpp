@@ -18,6 +18,7 @@
 // External includes
 
 // Project includes
+// Anna please check if all these headers are necessary
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -50,11 +51,11 @@ namespace Kratos
     ///@{
 
 
-
     ///@}
     ///@name Kratos Classes
     ///@{
 
+    // Anna can you please write some small doku here? => Ask Vicente how
     /// Short class definition.
 
     /// Detail class definition.
@@ -91,6 +92,8 @@ namespace Kratos
 
         // Counted pointer of ClassName
         KRATOS_CLASS_POINTER_DEFINITION(FormfindingUpdatedReferenceStrategy);
+
+        // Anna please check if all these typedefs are necessary
 
         typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
         typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
@@ -139,7 +142,8 @@ namespace Kratos
         {
             KRATOS_TRY;
 
-            std::cout << "Formfinding strategy created!" << std::endl;
+            if (this->GetEchoLevel() > 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+                std::cout << "Formfinding strategy created!" << std::endl;
 
             mKeepSystemConstantDuringIterations = false;
 
@@ -173,9 +177,6 @@ namespace Kratos
 
             // tells to the Builder and Solver if the system matrix and vectors need to be reshaped at each step or not
             GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
-
-            //set EchoLevel to the default value (only time is displayed)
-            SetEchoLevel(1);
 
             //by default the matrices are rebuilt at each iteration
             this->SetRebuildLevel(2);
@@ -238,9 +239,6 @@ namespace Kratos
             //be reshaped at each step or not
             GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
 
-            //set EchoLevel to the default value (only time is displayed)
-            SetEchoLevel(1);
-
             //by default the matrices are rebuilt at each iteration
             this->SetRebuildLevel(2);
 
@@ -252,8 +250,6 @@ namespace Kratos
 
             KRATOS_CATCH("");
         }
-
-
 
         /**
         * Destructor.
@@ -406,9 +402,9 @@ namespace Kratos
                     // set elemental values for formfinding
                     for(auto& elem : BaseType::GetModelPart().Elements()){
                         elem.SetValue(IS_FORMFINDING, true);
-                    }  
-                    
-                    pScheme->InitializeElements(BaseType::GetModelPart());     
+                    }
+
+                    pScheme->InitializeElements(BaseType::GetModelPart());
                 }
 
                 // Initialize The Conditions - OPERATIONS TO BE DONE ONCE
@@ -814,6 +810,8 @@ namespace Kratos
             return mA;
         }
 
+
+        // Anna are the following two functions needed?
         void SetKeepSystemConstantDuringIterations(bool value)
         {
             mKeepSystemConstantDuringIterations = value;
@@ -897,7 +895,7 @@ namespace Kratos
         * 1 ~ only the original problem is to be solved
         */
 
-        double mHomotopyFactor;
+        double mHomotopyFactor; // Anna is this needed? I don't think this is used
 
 
         /**
@@ -924,7 +922,7 @@ namespace Kratos
         bool mInitializeWasPerformed;
 
         //flag to allow keeping system matrix constant during iterations
-        bool mKeepSystemConstantDuringIterations;
+        bool mKeepSystemConstantDuringIterations; // Anna is this needed? I don't think this is used
 
 
         ///@}
@@ -1011,7 +1009,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-                BaseType::Check();
+            BaseType::Check();
 
             GetBuilderAndSolver()->Check(BaseType::GetModelPart());
 
