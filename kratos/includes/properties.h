@@ -264,6 +264,11 @@ public:
         return (mTables.size() > 0);
     }
 
+    bool const IsEmpty()
+    {
+        return !( HasVariables() || HasTables() );
+    }
+
     int64_t Key(std::size_t XKey, std::size_t YKey) const
     {
 		int64_t result_key = XKey;

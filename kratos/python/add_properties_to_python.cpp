@@ -150,6 +150,7 @@ void  AddPropertiesToPython()
 
     .def("HasVariables", &Properties::HasVariables)
     .def("HasTables", &Properties::HasTables)
+    .def("IsEmpty", &Properties::IsEmpty)
 
 	.def(self_ns::str(self))
     ;
