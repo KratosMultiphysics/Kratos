@@ -1,6 +1,6 @@
-import KratosMultiphysics  
+import KratosMultiphysics
 import sys
-        
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -26,7 +26,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         See _AssignPropertyBlock for detail on how properties are imported.
         """
-        KratosMultiphysics.Process.__init__(self) 
+        KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
             {
             "materials_filename" : "please specify the file to be opened"
@@ -83,15 +83,15 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         module_name = splitted[-2]
 
         if module_name == "KratosMultiphysics":
-            return getattr(KratosMultiphysics, constitutive_law_name) 
+            return getattr(KratosMultiphysics, constitutive_law_name)
         else:
             application_name = "Kratos" + module_name
             if application_name not in KratosMultiphysics.KratosGlobals.RequestedApplications:
                 raise ImportError(module_name + " is not imported!")
             module1 = KratosMultiphysics.KratosGlobals.RequestedApplications[application_name]
             module2 = sys.modules[application_name]
-            
-            return getattr(module2, constitutive_law_name) 
+
+            return getattr(module2, constitutive_law_name)
 
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
@@ -122,6 +122,11 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         property_id = data["properties_id"].GetInt()
         mesh_id = 0
         prop = model_part.GetProperties(property_id, mesh_id)
+
+        if len(data["Material"]["Variables"].keys()) > 0 and prop.HasVariables():
+                KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has variables." )
+        if len(data["Material"]["Tables"].keys()) > 0 and prop.HasTables():
+                KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has tables." )
 
         # Assign the properties to the model part's elements and conditions.
         for elem in model_part.Elements:
