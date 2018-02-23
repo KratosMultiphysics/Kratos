@@ -55,7 +55,7 @@ def ConstructSolver(configuration):
         raise Exception("not implemented within trilinos")
     else:
         print("*****************************************************************")
-        print("Inexisting solver type. Specified::::::::::: ", solver_type) 
+        print("Inexisting solver type. Specified::::::::::: ", solver_type)
         print(" Possibilities are:")
         print("............")
         print("*****************************************************************")

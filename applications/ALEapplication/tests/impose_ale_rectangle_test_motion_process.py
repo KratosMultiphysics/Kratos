@@ -36,3 +36,4 @@ class ImposeALERectangleTestMotionProcess(Process):
             vr = yc + s * rx + c * ry - node.Y0
             node.SetSolutionStepValue(MESH_DISPLACEMENT_X, ut + ur)
             node.SetSolutionStepValue(MESH_DISPLACEMENT_Y, vr)
+
