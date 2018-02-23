@@ -118,7 +118,7 @@ class DamReservoirConstantTemperatureProcess : public Process
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -184,7 +184,7 @@ class DamReservoirConstantTemperatureProcess : public Process
         {
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
 
-#pragma omp parallel for
+            #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -198,6 +198,33 @@ class DamReservoirConstantTemperatureProcess : public Process
                     }
                     it->FastGetSolutionStepValue(var) = mWaterTemp;
                 }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+    
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteFinalizeSolutionStep()
+    {
+
+        KRATOS_TRY;
+
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+
+        if (nnodes != 0)
+        {
+            
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+
+            #pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->Free(var);
             }
         }
 

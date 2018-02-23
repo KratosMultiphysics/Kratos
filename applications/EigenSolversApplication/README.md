@@ -85,7 +85,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     ```batch
     call "C:\Program Files (x86)\IntelSWTools\compilers_and_libraries\windows\mkl\bin\mklvars.bat" intel64 lp64
     ```
-    
+
     **Linux:**
 
     ```batch
@@ -93,9 +93,9 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     ```
 
 2. Add the following flag to CMake to your configure script:
-    
+
     ```batch
-    -DEIGEN_USE_MKL=ON ^
+    -DUSE_EIGEN_MKL=ON ^
     ```
 
 3. Build Kratos
@@ -117,7 +117,7 @@ In case you have installed [MKL](https://software.intel.com/en-us/mkl), you can 
     or add the folders to your `PATH`/`LD_LIBRARY_PATH` variable.
 
     **Linux:**
-    
+
     Set the environment before using MKL
     ```batch
     source ~/intel/mkl/bin/mklvars.sh intel64 lp64
