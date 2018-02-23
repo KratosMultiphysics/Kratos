@@ -19,7 +19,11 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
+
+// Application includes
 #include "custom_io/hdf5_file.h"
+#include "custom_io/hdf5_file_serial.h"
 
 namespace Kratos
 {
@@ -86,7 +90,11 @@ void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::Condit
 
 void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2);
 
-HDF5::File::Pointer pGetFile();
+HDF5::File::Pointer pGetTestSerialFile();
+
+HDF5::File GetTestFile();
+
+HDF5::FileSerial GetTestSerialFile();
 
 } // namespace Testing
 } // namespace Kratos.

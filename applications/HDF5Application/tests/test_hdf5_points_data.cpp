@@ -16,10 +16,11 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "includes/model_part.h"
 
 // Application includes
-#include "custom_io/hdf5_points_data.h"
 #include "tests/test_utils.h"
+#include "custom_io/hdf5_points_data.h"
 
 namespace Kratos
 {
@@ -33,12 +34,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData1, KratosHDF5TestSuite)
     KRATOS_CHECK(test_model_part.NumberOfNodes() > 0);
     HDF5::Internals::PointsData data;
     data.SetData(test_model_part.Nodes());
-    HDF5::File::Pointer p_file = pGetFile();
+    auto test_file = GetTestSerialFile();
     HDF5::WriteInfo info;
-    data.WriteData(*p_file, "/Nodes", info);
+    data.WriteData(test_file, "/Nodes", info);
     data.Clear();
     KRATOS_CHECK(data.size() == 0);
-    data.ReadData(*p_file, "/Nodes", info.StartIndex, info.BlockSize);
+    data.ReadData(test_file, "/Nodes", info.StartIndex, info.BlockSize);
     HDF5::NodesContainerType new_nodes;
     data.CreateNodes(new_nodes);
     CompareNodes(new_nodes, test_model_part.Nodes());

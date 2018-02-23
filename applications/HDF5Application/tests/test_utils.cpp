@@ -217,14 +217,34 @@ void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2)
     }
 }
 
-HDF5::File::Pointer pGetFile()
+HDF5::File::Pointer pGetTestSerialFile()
 {
     Parameters file_params(R"(
         {
             "file_name" : "test.h5",
             "file_driver": "core"
         })");
-    return boost::make_shared<HDF5::FileSerial>(file_params);
+    return HDF5::File::Pointer(new HDF5::FileSerial(file_params));
+}
+
+HDF5::File GetTestFile()
+{
+    Parameters file_params(R"(
+        {
+            "file_name" : "test.h5",
+            "file_driver": "core"
+        })");
+    return HDF5::File(file_params);
+}
+
+HDF5::FileSerial GetTestSerialFile()
+{
+    Parameters file_params(R"(
+        {
+            "file_name" : "test.h5",
+            "file_driver": "core"
+        })");
+    return HDF5::FileSerial(file_params);
 }
 
 } // namespace Testing

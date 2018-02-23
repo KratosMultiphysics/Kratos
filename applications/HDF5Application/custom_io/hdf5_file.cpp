@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <sstream>
 #include <regex>
+#include <utility>
 #include "includes/kratos_parameters.h"
 
 namespace Kratos
@@ -58,6 +59,25 @@ File::File(Parameters Settings)
     m_echo_level = Settings["echo_level"].GetInt();
 
     KRATOS_CATCH("");
+}
+
+File::File(File&& rOther)
+{
+    m_file_name = std::move(rOther.m_file_name);
+    m_file_id = rOther.m_file_id;
+    rOther.m_file_id = -1;
+    m_echo_level = rOther.m_echo_level;
+    rOther.m_echo_level = 0;
+}
+
+File& File::operator=(File&& rOther)
+{
+    m_file_name = std::move(rOther.m_file_name);
+    m_file_id = rOther.m_file_id;
+    rOther.m_file_id = -1;
+    m_echo_level = rOther.m_echo_level;
+    rOther.m_echo_level = 0;
+    return *this;
 }
 
 File::~File()

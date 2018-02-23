@@ -91,17 +91,17 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
     explicit File(Parameters Settings);
 
-    // Copy constructor.
     File(const File& rOther) = delete;
 
-    /// Destructor.
+    File(File&& rOther);
+
     virtual ~File();
 
-    // Assignment operator.
     File& operator=(const File& rOther) = delete;
+
+    File& operator=(File&& rOther);
 
     ///@}
     ///@name Operations

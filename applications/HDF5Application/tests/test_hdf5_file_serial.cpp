@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include <cmath>
 #include <vector>
 #include <string>
 
@@ -19,7 +18,6 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/kratos_parameters.h"
 
 // Application includes
 #include "tests/test_utils.h"
@@ -33,12 +31,7 @@ namespace Testing
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet1, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Vector<int> data_out = TestVector<int>(3);
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
@@ -55,12 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet1, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet2, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Vector<double> data_out = TestVector<double>(3);
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
@@ -78,12 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet2, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet3, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Vector<array_1d<double,3>> data_out = TestVector<array_1d<double,3>>();
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
@@ -101,12 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet3, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet4, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Matrix<double> data_out = TestMatrix<double>(3, 2);
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
@@ -125,12 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet4, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet5, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Vector<double> data_in;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadDataSet("invalid_path", data_in, 0, 1);
@@ -143,12 +116,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet5, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet6, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Vector<double> data_in;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadDataSet("/not/a/dataset", data_in, 0, 1);
@@ -161,12 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet6, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet7, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Vector<double> data_out = TestVector<double>(3);
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
@@ -182,12 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet7, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet8, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Vector<double> data_out = TestVector<double>(3);
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
@@ -203,12 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet8, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet9, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Vector<double> data_out = TestVector<double>(3);
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
@@ -224,12 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet9, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet10, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Matrix<double> data_in;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadDataSet("invalid_path", data_in, 0, 1);
@@ -242,12 +190,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet10, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet11, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Matrix<double> data_in;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadDataSet("/not/a/dataset", data_in, 0, 1);
@@ -260,12 +203,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet11, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet12, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Matrix<double> data_out = TestMatrix<double>(3);
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
@@ -281,12 +219,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet12, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet13, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Matrix<double> data_out = TestMatrix<double>(3);
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
@@ -302,12 +235,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet13, KratosHDF5TestSuite)
 KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet14, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
-    Parameters test_params(R"(
-        {
-            "file_name" : "test.h5",
-            "file_driver": "core"
-        })");
-    HDF5::FileSerial test_file(test_params);
+    auto test_file = GetTestSerialFile();
     HDF5::File::Matrix<double> data_out = TestMatrix<double>(3);
     HDF5::WriteInfo info;
     test_file.WriteDataSet("/data", data_out, info);
