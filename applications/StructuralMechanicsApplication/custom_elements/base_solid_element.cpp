@@ -87,7 +87,9 @@ void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    SetConstituveLawFlags(ConstitutiveLawOptions);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     Values.SetStrainVector(this_constitutive_variables.StrainVector);
     
@@ -142,15 +144,9 @@ ConstitutiveLaw::StressMeasure BaseSolidElement::GetStressMeasure() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::SetConstituveLawFlags(
-    Flags& rConstituveLawFlags,
-    const bool ComputeStress,
-    const bool ComputeConstitutiveTensor
-    )
+bool BaseSolidElement::UseElementProvidedStrain()
 {
-    rConstituveLawFlags.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-    rConstituveLawFlags.Set(ConstitutiveLaw::COMPUTE_STRESS, ComputeStress);
-    rConstituveLawFlags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, ComputeConstitutiveTensor);
+    return false;
 }
 
 /***********************************************************************************/
@@ -527,7 +523,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
-        SetConstituveLawFlags(ConstitutiveLawOptions);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
         
@@ -635,7 +633,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
-        SetConstituveLawFlags(ConstitutiveLawOptions);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
         
@@ -675,7 +675,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         
         // Set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
-        SetConstituveLawFlags(ConstitutiveLawOptions);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         
         Values.SetStrainVector(this_constitutive_variables.StrainVector);
         
@@ -761,7 +763,9 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
-        SetConstituveLawFlags(ConstitutiveLawOptions, false, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
         Values.SetConstitutiveMatrix(this_constitutive_variables.D); //this is the output parameter
         

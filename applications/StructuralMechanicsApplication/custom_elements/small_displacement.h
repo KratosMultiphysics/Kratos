@@ -142,17 +142,10 @@ protected:
     {
     }
 
-    /**
-     * @brief Sets the flags of the constitutive law
-     * @param rConstituveLawFlags The flags of the constitutive law
-     * @param ComputeStress If the stress vector is computed or not
-     * @param ComputeConstitutiveTensor If the constitutive tensor is computed or not
+     /**
+     * @brief This method returns if the element provides the strain
      */
-    void SetConstituveLawFlags(
-        Flags& rConstituveLawFlags,
-        const bool ComputeStress = true,
-        const bool ComputeConstitutiveTensor = false
-        ) override;
+    bool UseElementProvidedStrain() override;
     
     /**
      * @brief This functions calculates both the RHS and the LHS

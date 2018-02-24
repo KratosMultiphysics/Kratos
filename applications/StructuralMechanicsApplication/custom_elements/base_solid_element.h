@@ -468,16 +468,9 @@ protected:
     virtual ConstitutiveLaw::StressMeasure GetStressMeasure() const;
     
     /**
-     * @brief Sets the flags of the constitutive law
-     * @param rConstituveLawFlags The flags of the constitutive law
-     * @param ComputeStress If the stress vector is computed or not
-     * @param ComputeConstitutiveTensor If the constitutive tensor is computed or not
+     * @brief This method returns if the element provides the strain
      */
-    virtual void SetConstituveLawFlags(
-        Flags& rConstituveLawFlags,
-        const bool ComputeStress = true,
-        const bool ComputeConstitutiveTensor = false
-        );
+    virtual bool UseElementProvidedStrain();
     
     /**
      * @brief This functions calculates both the RHS and the LHS
