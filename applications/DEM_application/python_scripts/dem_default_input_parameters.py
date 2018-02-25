@@ -93,6 +93,7 @@ def GetDefaultInputParameters():
             "PostParticleMoment"               : false,
             "PostEulerAngles"                  : false,
             "PostRollingResistanceMoment"      : false,
+            "PostCharacteristicLength"         : false,
             "PostElasticForces"                : false,
             "PostContactForces"                : false,
             "PostTangentialElasticForces"      : false,
