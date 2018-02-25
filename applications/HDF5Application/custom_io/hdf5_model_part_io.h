@@ -19,7 +19,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/io.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -49,7 +48,7 @@ public:
     ///@{
 
     /// Constructor.
-    ModelPartIO(Parameters Settings, File::Pointer pFile);
+    ModelPartIO(File::Pointer pFile, std::string const& rPrefix);
 
     ///@}
     ///@name Operations
@@ -69,8 +68,6 @@ public:
                         ConditionsContainerType& rConditions) override;
 
     void WriteConditions(ConditionsContainerType const& rConditions) override;
-
-    void ReadModelPart(ModelPart& rModelPart) override;
 
     ///@}
 

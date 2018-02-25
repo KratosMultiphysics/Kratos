@@ -18,6 +18,7 @@
 
 #include "fluid_dynamics_application_variables.h"
 #include "custom_utilities/fluid_element_data.h"
+#include "custom_utilities/element_size_calculator.h"
 
 namespace Kratos {
 
@@ -66,6 +67,8 @@ double bdf2;
 boost::numeric::ublas::bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
 array_1d<double,TNumNodes*(TDim+1)> rhs;
 
+double ElementSize;
+
 ///@}
 ///@name Public Operations
 ///@{
@@ -98,6 +101,15 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
+}
+
+void UpdateGeometryValues(
+    double NewWeight,
+    const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
+    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX) override
+{
+    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(NewWeight,rN,rDN_DX);
+    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

@@ -9,8 +9,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_solver as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return ExplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(custom_settings):
+    return ExplicitMechanicalSolver(custom_settings)
 
 class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
     """The solid mechanics explicit dynamic solver.
@@ -22,7 +22,7 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
 
     See solid_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, custom_settings):
 
         # Set defaults and validate custom settings.
         ##TODO : solving_strategy_settings must be time_integration_settings (GiD interface changes needed)
@@ -51,7 +51,7 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             custom_settings["solving_strategy_settings"]["integration_method"].SetString("CentralDifferences")
 
         # Construct the base solver.
-        super(ExplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(ExplicitMechanicalSolver, self).__init__(custom_settings)
 
         print("::[Explicit_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
 

@@ -43,7 +43,7 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
         
         # Construct the base solver.
         super(HarmonicAnalysisSolver, self).__init__(main_model_part, custom_settings)
-        print("::[HarmonicAnalysisSolver]:: Construction finished")
+        self.print_on_rank_zero("::[HarmonicAnalysisSolver]:: ", "Construction finished")
 
     #### Private functions ####
 

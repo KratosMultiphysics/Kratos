@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/isochoric_hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/isochoric_mooney_rivlin_model.hpp"
 
 namespace Kratos
 {
@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) IsochoricNeoHookeanModel : public IsochoricHyperElasticModel
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) IsochoricNeoHookeanModel : public IsochoricMooneyRivlinModel
   {
   public:
 
@@ -59,15 +59,15 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    IsochoricNeoHookeanModel() : IsochoricHyperElasticModel() {}
+    IsochoricNeoHookeanModel() : IsochoricMooneyRivlinModel() {}
     
     /// Copy constructor.
-    IsochoricNeoHookeanModel(IsochoricNeoHookeanModel const& rOther) : IsochoricHyperElasticModel(rOther) {}
+    IsochoricNeoHookeanModel(IsochoricNeoHookeanModel const& rOther) : IsochoricMooneyRivlinModel(rOther) {}
 
     /// Assignment operator.
     IsochoricNeoHookeanModel& operator=(IsochoricNeoHookeanModel const& rOther)
     {
-      IsochoricHyperElasticModel::operator=(rOther);
+      IsochoricMooneyRivlinModel::operator=(rOther);
       return *this;
     }
 
@@ -443,7 +443,7 @@ namespace Kratos
     }
 
     
-    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
+    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 	
@@ -564,12 +564,12 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const  override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, IsochoricHyperElasticModel )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, IsochoricMooneyRivlinModel )
     }
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, IsochoricHyperElasticModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, IsochoricMooneyRivlinModel )      
     }
 
     ///@}

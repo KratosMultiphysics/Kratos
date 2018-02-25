@@ -1,15 +1,15 @@
 #include "custom_io/hdf5_model_part_io.h"
 
-#include "custom_utilities/hdf5_points_data.h"
-#include "custom_io/hdf5_nodal_solution_step_variables_io.h"
-#include "custom_io/hdf5_data_value_container_io.h"
+#include "custom_io/hdf5_points_data.h"
+#include "custom_io/hdf5_connectivities_data.h"
+#include "custom_utilities/factor_elements_and_conditions_utility.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
-ModelPartIO::ModelPartIO(Parameters Settings, File::Pointer pFile)
-: ModelPartIOBase(Settings, pFile)
+ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix)
+: ModelPartIOBase(pFile, rPrefix)
 {
     KRATOS_TRY;
 
@@ -25,10 +25,9 @@ bool ModelPartIO::ReadNodes(NodesContainerType& rNodes)
     rNodes.clear();
 
     const std::size_t num_nodes = ReadNodesNumber();
-    File& r_file = GetFile();
     Internals::PointsData points;
 
-    points.ReadData(r_file, mPrefix + "/Nodes/Local", 0, num_nodes);
+    points.ReadData(*mpFile, mPrefix + "/Nodes/Local", 0, num_nodes);
     points.CreateNodes(rNodes);
 
     return true;
@@ -41,8 +40,8 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 
     Internals::PointsData points;
     points.SetData(rNodes);
-    File& r_file = GetFile();
-    points.WriteData(r_file, mPrefix + "/Nodes/Local");
+    WriteInfo info;
+    points.WriteData(*mpFile, mPrefix + "/Nodes/Local", info);
     
     KRATOS_CATCH("");
 }
@@ -54,14 +53,16 @@ void ModelPartIO::ReadElements(NodesContainerType& rNodes,
     KRATOS_TRY;
 
     rElements.clear();
+    std::vector<std::string> group_names;
+    mpFile->GetGroupNames(mPrefix + "/Elements", group_names);
 
-    File& r_file = GetFile();
-
-    Internals::ConnectivitiesInput<ElementType> elem_inputs(mElementIO);
-    for (auto& r_item : elem_inputs)
+    for (const auto& r_name : group_names)
     {
-        const unsigned num_elems = r_file.GetDataDimensions(r_item.Path + "/Ids")[0];
-        r_item.ReadConnectivities(r_file, rNodes, rProperties, 0, num_elems, rElements);
+        int num_elems;
+        mpFile->ReadAttribute(mPrefix + "/Elements/" + r_name, "Size", num_elems);
+        Internals::ConnectivitiesData connectivities;
+        connectivities.ReadData(*mpFile, mPrefix + "/Elements/" + r_name, 0, num_elems);
+        connectivities.CreateEntities(rNodes, rProperties, rElements);
     }
 
     KRATOS_CATCH("");
@@ -71,10 +72,17 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
 {
     KRATOS_TRY;
 
-    Internals::ConnectivitiesOutput<ElementType> elem_outputs(mElementIO, rElements);
-    File& r_file = GetFile();
-    for (auto& r_item : elem_outputs)
-        r_item.WriteConnectivities(r_file);
+    std::vector<ElementsContainerType> factored_elements = FactorElements(rElements);
+
+    WriteInfo info;
+    for (const auto& r_elems : factored_elements)
+    {
+        Internals::ConnectivitiesData connectivities;
+        connectivities.SetData(r_elems);
+        connectivities.WriteData(*mpFile, mPrefix + "/Elements/" + connectivities.Name(), info);
+        const int size = info.TotalSize;
+        mpFile->WriteAttribute(mPrefix + "/Elements/" + connectivities.Name(), "Size", size);
+    }
 
     KRATOS_CATCH("");
 }
@@ -86,13 +94,16 @@ void ModelPartIO::ReadConditions(NodesContainerType& rNodes,
     KRATOS_TRY;
 
     rConditions.clear();
-    File& r_file = GetFile();
+    std::vector<std::string> group_names;
+    mpFile->GetGroupNames(mPrefix + "/Conditions", group_names);
 
-    Internals::ConnectivitiesInput<ConditionType> cond_inputs(mConditionIO);
-    for (auto& r_item : cond_inputs)
+    for (const auto& r_name : group_names)
     {
-        const unsigned num_conds = r_file.GetDataDimensions(r_item.Path + "/Ids")[0];
-        r_item.ReadConnectivities(r_file, rNodes, rProperties, 0, num_conds, rConditions);
+        int num_conds;
+        mpFile->ReadAttribute(mPrefix + "/Conditions/" + r_name, "Size", num_conds);
+        Internals::ConnectivitiesData connectivities;
+        connectivities.ReadData(*mpFile, mPrefix + "/Conditions/" + r_name, 0, num_conds);
+        connectivities.CreateEntities(rNodes, rProperties, rConditions);
     }
 
     KRATOS_CATCH("");
@@ -102,27 +113,17 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
 {
     KRATOS_TRY;
 
-    Internals::ConnectivitiesOutput<ConditionType> cond_outputs(mConditionIO, rConditions);
-    File& r_file = GetFile();
-    for (auto& r_item : cond_outputs)
-        r_item.WriteConnectivities(r_file);
+    std::vector<ConditionsContainerType> factored_conditions = FactorConditions(rConditions);
 
-    KRATOS_CATCH("");
-}
-
-void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
-{
-    KRATOS_TRY;
-
-    ReadProperties(rModelPart.rProperties());
-    Internals::DataValueContainerIO process_info_io(mPrefix + "/ProcessInfo", mpFile);
-    process_info_io.ReadDataValueContainer(rModelPart.GetProcessInfo());
-    ReadNodes(rModelPart.Nodes());
-    ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
-    ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
-    Internals::NodalSolutionStepVariablesIO nodal_variables_io(mPrefix, mpFile);
-    nodal_variables_io.ReadAndAssignVariablesList(rModelPart);
-    nodal_variables_io.ReadAndAssignBufferSize(rModelPart);
+    WriteInfo info;
+    for (const auto& r_conds : factored_conditions)
+    {
+        Internals::ConnectivitiesData connectivities;
+        connectivities.SetData(r_conds);
+        connectivities.WriteData(*mpFile, mPrefix + "/Conditions/" + connectivities.Name(), info);
+        const int size = info.TotalSize;
+        mpFile->WriteAttribute(mPrefix + "/Conditions/" + connectivities.Name(), "Size", size);
+    }
 
     KRATOS_CATCH("");
 }
@@ -131,7 +132,7 @@ void ModelPartIO::Check()
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF(GetFile().GetTotalProcesses() != 1)
+    KRATOS_ERROR_IF(mpFile->GetTotalProcesses() != 1)
         << "Serial IO expects file access by a single process only." << std::endl;
 
     KRATOS_CATCH("");

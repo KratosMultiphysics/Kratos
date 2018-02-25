@@ -12,6 +12,12 @@ class Kratos_Execute_Test:
 
         self.ProjectParameters = ProjectParameters
 
+        self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+        
+        # To avoid many prints
+        if (self.echo_level == 0):
+            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+        
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
