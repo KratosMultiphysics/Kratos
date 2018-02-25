@@ -271,6 +271,24 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(r_u_1, -Force_X,6)
         self.assertAlmostEqual(r_u_3, 0.00 ,4)
 
+    def _check_results_dynamic_explicit_nonlinear(self,mp,time_i,time_step):
+             
+        simulated_disp_temp = mp.Nodes[2].GetSolutionStepValue(
+            KratosMultiphysics.DISPLACEMENT_Y)
+        test_disp_temp = [-0.02187643575439285, -0.06198215720163387,
+         -0.12627003172959766, -0.19804924254370843, -0.2631923777969079,
+          -0.313031207094566, -0.34361350795228707, -0.35373182403184056,
+           -0.34338092709445905, -0.31319057182012966, -0.26486546314308357,
+            -0.2024755542645808, -0.13407164406937494, -0.07231351774628614,
+             -0.03221019822561301, -0.02538203496105414, -0.05392477771156322,
+              -0.10902565726302998, -0.17575172783220822, -0.23975893050044683,
+               -0.2911859747582321, -0.32489277095205155, -0.33890901757885206,
+                -0.33289145786308927, -0.30738557023931556, -0.26404183431169526,
+                 -0.20665783067442736, -0.14257695438336992, -0.08331538499080232,
+                  -0.04276029659491523, -0.03225900075675591]
+ 
+        self.assertAlmostEqual(simulated_disp_temp, test_disp_temp[time_step])
+
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
         # Set buffer size
         mp.SetBufferSize(buffer_size)
@@ -575,8 +593,76 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._solve_nonlinear(mp)  
             self._check_results_cable(mp,Force_X)
 
+    def test_truss3D2N_dynamic_explicit_nonlinear(self):
+                dim = 3
+                mp = KratosMultiphysics.ModelPart("solid_part")
+                self._add_variables(mp)
+                _add_explicit_variables(mp)
+                self._apply_material_properties(mp,dim)
 
-     
+                #create nodes
+                mp.CreateNewNode(1,0.0,0.0,0.0)
+                mp.CreateNewNode(2,2.0,1.0,0.0)
+                #add dofs
+                self._add_dofs(mp)
+                #create condition
+                mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+                #create submodelparts for dirichlet boundary conditions
+                bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+                bcs_xyz.AddNodes([1])
+                bcs_yz = mp.CreateSubModelPart("Dirichlet_XZ")
+                bcs_yz.AddNodes([2])
+                #create a submodalpart for neumann boundary conditions
+                bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+                bcs_neumann.AddNodes([2])
+                bcs_neumann.AddConditions([1])
+                #create Elementsdb
+                mp.CreateNewElement("CrBeamElement3D2N", 1, [1,2], mp.GetProperties()[0])
+                #apply constant boundary conditions
+                Force_Y = -24000000
+                self._apply_BCs(bcs_xyz,'xyz')
+                self._apply_BCs(bcs_yz,'xz')
+                self._apply_Neumann_BCs(bcs_neumann,'y',Force_Y)
+
+                #loop over time
+                time_start = 0.00
+                time_end = 0.012
+                time_delta = 0.0004
+                time_i = time_start
+                time_step = 0
+                self._set_and_fill_buffer(mp,2,time_delta)
+
+                strategy_expl = _create_dynamic_explicit_strategy(mp)
+                while (time_i <= time_end):
+                    time_i += time_delta
+                    mp.CloneTimeStep(time_i)
+                    #solve + compare
+                    strategy_expl.Solve()
+                    self._check_results_dynamic_explicit_nonlinear(mp,time_i,time_step)
+                    time_step += 1
+            
+                
+
+
+
+def _add_explicit_variables(mp):
+    mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_VELOCITY)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE_RESIDUAL)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.RESIDUAL_VECTOR)
+    mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.MIDDLE_ANGULAR_VELOCITY)
+    mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.NODAL_INERTIA)
+    mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
+
+def _create_dynamic_explicit_strategy(mp):
+    linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+    scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
+
+    strategy = StructuralMechanicsApplication.ExplicitStrategy(mp,
+                                        scheme,linear_solver,0,0,1)
+    strategy.SetEchoLevel(0)
+    return strategy 
+
 
         
 if __name__ == '__main__':
