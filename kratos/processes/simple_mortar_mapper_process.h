@@ -32,6 +32,10 @@
 /* Custom utilities */
 #include "utilities/exact_mortar_segmentation_utility.h"
 
+/* Tree structures */
+// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
+#include "spatial_containers/spatial_containers.h" // kd-tree 
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -48,6 +52,140 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
+
+///@}
+///@name Kratos Classes
+///@{
+    
+/** 
+ * @ingroup KratosCore
+ * @class PointMapper
+ * @brief Custom Point container to be used by the mapper
+ * @details The main difference with this point and the base one is that it contains the pointer to condition where the center of the points belongs
+ * @author Vicente Mataix Ferrandiz 
+ */
+class PointMapper
+    : public Point
+{
+public:
+    ///@name Type Definitions
+    ///@{
+    
+    typedef Point BaseType; 
+    
+    /// Counted pointer of PointMapper
+    KRATOS_CLASS_POINTER_DEFINITION( PointMapper );
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructors
+    PointMapper():
+        BaseType(),
+        mpOriginCond(nullptr)
+    {}
+
+    PointMapper(const array_1d<double, 3>& Coords)
+        :BaseType(Coords),
+         mpOriginCond(nullptr)
+    {}
+    
+    PointMapper(Condition::Pointer pCond):
+        mpOriginCond(pCond)
+    {
+        UpdatePoint();
+    }
+    
+    PointMapper(
+        const array_1d<double, 3>& Coords,
+        Condition::Pointer pCond
+    ):
+        BaseType(Coords),
+        mpOriginCond(pCond)
+    {}
+
+    ///Copy constructor  (not really required)
+    PointMapper(const PointMapper& rhs):
+        BaseType(rhs),
+        mpOriginCond(rhs.mpOriginCond)
+    {
+    }
+
+    /// Destructor.
+    ~PointMapper() override= default;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Returns the point
+     * @return The point
+     */
+    BaseType GetPoint()
+    {
+        BaseType Point(this->Coordinates());
+        return Point;
+    }
+    
+    /**
+     * @brief Set the point
+     * @param Point The point
+     */
+    void SetPoint(const BaseType Point)
+    {
+        this->Coordinates() = Point.Coordinates();
+    }
+
+    /**
+     * @brief Sets the condition associated to the point
+     * @param pCond The pointer to the condition
+     */
+    void SetCondition(Condition::Pointer pCond)
+    {
+        mpOriginCond = pCond;
+    }
+    
+    /**
+     * @brief Returns the condition associated to the point
+     * @return mpOriginCond The pointer to the condition associated to the point
+     */
+    Condition::Pointer GetCondition()
+    {
+        KRATOS_DEBUG_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointMapper class" << std::endl;
+        return mpOriginCond;
+    }
+    
+    /**
+     * @brief This method checks everything is right
+     */
+    void Check()
+    {
+        KRATOS_TRY;
+        
+        auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
+        KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointMapper class" << std::endl;
+        KRATOS_ERROR_IF(mpOriginCond == nullptr) << "Condition no initialized in the PointMapper class" << std::endl;
+        
+        KRATOS_CATCH("");
+    }
+    
+    /**
+     * @brief This function updates the database, using as base for the coordinates the condition center
+     */
+    void UpdatePoint()
+    {
+        this->Coordinates() = mpOriginCond->GetGeometry().Center().Coordinates();
+    }
+
+private:
+    ///@name Member Variables
+    ///@{
+    Condition::Pointer mpOriginCond; /// Condition pointer  
+    ///@}
+
+}; // Class PointMapper 
     
 /**
  * @ingroup KratosCore
@@ -103,6 +241,18 @@ public:
     /// BoundedMatrix
     typedef bounded_matrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
 
+    // Type definitions for the tree
+    typedef PointMapper                                     PointMapperType;
+    typedef PointMapperType::Pointer                       PointTypePointer;
+    typedef std::vector<PointTypePointer>                       PointVector;
+    typedef PointVector::iterator                             PointIterator;
+    typedef std::vector<double>                              DistanceVector;
+    typedef DistanceVector::iterator                       DistanceIterator;
+    
+    // KDtree definitions
+    typedef Bucket< 3ul, PointMapperType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
+    typedef Tree< KDTreePartition<BucketType> > KDTreeType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -131,6 +281,40 @@ public:
      */
     SimpleMortarMapperProcess( 
         ModelPart& rThisModelPart,
+        TVarType& OriginVariable,
+        TVarType& DestinationVariable,
+        Parameters ThisParameters = Parameters(R"({})" ),
+        LinearSolverType::Pointer pThisLinearSolver = nullptr
+        );
+    
+    /**
+     * @brief Default constructor
+     * @param rOriginModelPart The origin model part to compute 
+     * @param rDestinationModelPart The destination model part to compute 
+     * @param ThisVariable The variable to transfer and be transfered
+     * @param ThisParameters The configuration parameters
+     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
+     */
+    SimpleMortarMapperProcess( 
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        TVarType& ThisVariable, 
+        Parameters ThisParameters = Parameters(R"({})" ),
+        LinearSolverType::Pointer pThisLinearSolver = nullptr
+        );
+    
+    /**
+     * @brief A constructor where two different variables can be considered for each subdomain
+     * @param rOriginModelPart The origin model part to compute 
+     * @param rDestinationModelPart The destination model part to compute 
+     * @param OriginVariable The variable to transfer
+     * @param DestinationVariable The variable to be transfered
+     * @param ThisParameters The configuration parameters
+     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
+     */
+    SimpleMortarMapperProcess( 
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
         TVarType& OriginVariable,
         TVarType& DestinationVariable,
         Parameters ThisParameters = Parameters(R"({})" ),
@@ -244,12 +428,12 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrThisModelPart;                   /// The model part to compute
+    ModelPart& mrOriginModelPart;                 /// The origin model part to compute
+    ModelPart& mrDestinationModelPart;            /// The destination model part to compute
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
     
-    unsigned int mEchoLevel;                      /// The verbosity level
-    bool mInvertedPairing;                        /// The if the master/slaves are paired inverted            
+    unsigned int mEchoLevel;                      /// The verbosity level    
     Parameters mThisParameters;                   /// The configuration parameters
     
     LinearSolverType::Pointer mpThisLinearSolver; // The linear solver used to compute the solution
@@ -425,6 +609,13 @@ private:
      */
     void ExecuteImplicitMapping();
         
+    /**
+     * @brief This method sets the origin destination model maps when only one model part is provided 
+     * @details The only model part should have MASTER/SLAVE flags in the nodes and conditions
+     * @param rModelPart The main model part, where the origin/destination model parts will be created
+     */
+    void SetOriginDestinationModelParts(ModelPart& rModelPart);
+    
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */

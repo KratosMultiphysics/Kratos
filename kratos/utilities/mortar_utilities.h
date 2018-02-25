@@ -662,13 +662,11 @@ public:
      * @brief This method resets the value
      * @param rThisModelPart The model part to update
      * @param ThisVariable The variable to set
-     * @param InvertedPair If the master/slave follows the standard way 
      */
     template< class TVarType, HistoricalValues THist>
     static inline void ResetValue(
         ModelPart& rThisModelPart,
-        TVarType& ThisVariable, 
-        const bool InvertedPair = false
+        TVarType& ThisVariable
         );
     
     /**
@@ -757,42 +755,39 @@ private:
 template<> 
 inline void MortarUtilities::ResetValue<Variable<double>, Historical>(
         ModelPart& rThisModelPart,
-        Variable<double>& ThisVariable, 
-        const bool InvertedPair
-        ) {
+        Variable<double>& ThisVariable
+        ) 
+{
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
     
     // We set to zero
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !InvertedPair) 
-            it_node->FastGetSolutionStepValue(ThisVariable) = 0.0;
+        it_node->FastGetSolutionStepValue(ThisVariable) = 0.0;
     }
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<ComponentType, Historical>(
         ModelPart& rThisModelPart,
-        ComponentType& ThisVariable, 
-        const bool InvertedPair
-        ) {
+        ComponentType& ThisVariable
+        ) 
+{
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
     
     // We set to zero
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !InvertedPair) 
-            it_node->FastGetSolutionStepValue(ThisVariable) = 0.0;
+        it_node->FastGetSolutionStepValue(ThisVariable) = 0.0;
     }
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, Historical>(
         ModelPart& rThisModelPart,
-        Variable<array_1d<double, 3>>& ThisVariable, 
-        const bool InvertedPair
+        Variable<array_1d<double, 3>>& ThisVariable
         ) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
     
@@ -800,18 +795,15 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, Historica
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !InvertedPair) {
-            array_1d<double, 3>& aux_value = it_node->FastGetSolutionStepValue(ThisVariable);
-            noalias(aux_value) = ZeroVector(3);
-        }
+        array_1d<double, 3>& aux_value = it_node->FastGetSolutionStepValue(ThisVariable);
+        noalias(aux_value) = ZeroVector(3);
     }
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<Variable<double>, NonHistorical>(
         ModelPart& rThisModelPart,
-        Variable<double>& ThisVariable, 
-        const bool InvertedPair
+        Variable<double>& ThisVariable
         ) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
     
@@ -819,16 +811,14 @@ inline void MortarUtilities::ResetValue<Variable<double>, NonHistorical>(
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !InvertedPair) 
-            it_node->SetValue(ThisVariable, 0.0);
+        it_node->SetValue(ThisVariable, 0.0);
     }
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<ComponentType, NonHistorical>(
         ModelPart& rThisModelPart,
-        ComponentType& ThisVariable, 
-        const bool InvertedPair
+        ComponentType& ThisVariable
         ) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
     
@@ -836,16 +826,14 @@ inline void MortarUtilities::ResetValue<ComponentType, NonHistorical>(
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !InvertedPair) 
-            it_node->SetValue(ThisVariable, 0.0);
+        it_node->SetValue(ThisVariable, 0.0);
     }
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistorical>(
         ModelPart& rThisModelPart,
-        Variable<array_1d<double, 3>>& ThisVariable, 
-        const bool InvertedPair
+        Variable<array_1d<double, 3>>& ThisVariable
         ) {
     // Zero vector
     const array_1d<double, 3> zero_vector(3, 0.0);
@@ -856,8 +844,7 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistor
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !InvertedPair) 
-            it_node->SetValue(ThisVariable, zero_vector);
+        it_node->SetValue(ThisVariable, zero_vector);
     }
 }
 

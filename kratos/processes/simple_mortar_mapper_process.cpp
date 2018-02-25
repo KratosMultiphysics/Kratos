@@ -29,16 +29,47 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestinati
     TVarType& ThisVariable,
     Parameters ThisParameters,
     LinearSolverType::Pointer pThisLinearSolver
-): mrThisModelPart(rThisModelPart),
-    mOriginVariable(ThisVariable),
-    mDestinationVariable(ThisVariable),
-    mThisParameters(ThisParameters),
-    mpThisLinearSolver(pThisLinearSolver)
+    ): mrOriginModelPart(*new ModelPart()),
+       mrDestinationModelPart(*new ModelPart()),
+       mOriginVariable(ThisVariable),
+       mDestinationVariable(ThisVariable),
+       mThisParameters(ThisParameters),
+       mpThisLinearSolver(pThisLinearSolver)
 {
+    // The default parameters
     Parameters default_parameters = GetDefaultParameters();
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mInvertedPairing = mThisParameters["inverted_master_slave_pairing"].GetBool();
+    // We set some values
+    mEchoLevel = mThisParameters["echo_level"].GetInt();
+    
+    // We add the corresponding conditions and nodes to the modelparts
+    SetOriginDestinationModelParts(rThisModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SimpleMortarMapperProcess(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    TVarType& OriginVariable,
+    TVarType& DestinationVariable,
+    Parameters ThisParameters,
+    LinearSolverType::Pointer pThisLinearSolver
+    ): mrOriginModelPart(rOriginModelPart),
+       mrDestinationModelPart(rDestinationModelPart),
+       mOriginVariable(OriginVariable),
+       mDestinationVariable(DestinationVariable),
+       mThisParameters(ThisParameters),
+       mpThisLinearSolver(pThisLinearSolver)
+{
+    // The default parameters
+    Parameters default_parameters = GetDefaultParameters();
+    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+    // We set some values
     mEchoLevel = mThisParameters["echo_level"].GetInt();
 }
 
@@ -52,16 +83,46 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestinati
     TVarType& DestinationVariable,
     Parameters ThisParameters,
     LinearSolverType::Pointer pThisLinearSolver
-): mrThisModelPart(rThisModelPart),
-    mOriginVariable(OriginVariable),
-    mDestinationVariable(DestinationVariable),
-    mThisParameters(ThisParameters),
-    mpThisLinearSolver(pThisLinearSolver)
+    ): mrOriginModelPart(*new ModelPart()),
+       mrDestinationModelPart(*new ModelPart()),
+       mOriginVariable(OriginVariable),
+       mDestinationVariable(DestinationVariable),
+       mThisParameters(ThisParameters),
+       mpThisLinearSolver(pThisLinearSolver)
 {
+    // The default parameters
     Parameters default_parameters = GetDefaultParameters();
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mInvertedPairing = mThisParameters["inverted_master_slave_pairing"].GetBool();
+    // We set some values
+    mEchoLevel = mThisParameters["echo_level"].GetInt();
+    
+    // We add the corresponding conditions and nodes to the modelparts
+    SetOriginDestinationModelParts(rThisModelPart);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SimpleMortarMapperProcess(
+    ModelPart& rOriginModelPart,
+    ModelPart& rDestinationModelPart,
+    TVarType& ThisVariable,
+    Parameters ThisParameters,
+    LinearSolverType::Pointer pThisLinearSolver
+):  mrOriginModelPart(rOriginModelPart),
+    mrDestinationModelPart(rDestinationModelPart),
+    mOriginVariable(ThisVariable),
+    mDestinationVariable(ThisVariable),
+    mThisParameters(ThisParameters),
+    mpThisLinearSolver(pThisLinearSolver)
+{
+    // The default parameters
+    Parameters default_parameters = GetDefaultParameters();
+    mThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+    // We set some values
     mEchoLevel = mThisParameters["echo_level"].GetInt();
 }
 
@@ -87,7 +148,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::ResetNodalArea()
 {
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& nodes_array = mrDestinationModelPart.Nodes();
 
     // We set to zero
     #pragma omp parallel for
@@ -104,11 +165,20 @@ template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin,
 double SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::GetReferenceArea()
 {
     double ref_area = 0.0;
-    ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
+    ConditionsArrayType& conditions_array_origin = mrOriginModelPart.Conditions();
 
-    // We look for the max area
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-        auto it_cond = conditions_array.begin() + i;
+    // We look for the max area in the origin model part
+    for(int i = 0; i < static_cast<int>(conditions_array_origin.size()); ++i) {
+        auto it_cond = conditions_array_origin.begin() + i;
+        const double current_area = it_cond->GetGeometry().Area();
+        if (current_area > ref_area) ref_area = current_area;
+    }
+    
+    ConditionsArrayType& conditions_array_destination = mrDestinationModelPart.Conditions();
+    
+    // We look for the max area in the destination model part
+    for(int i = 0; i < static_cast<int>(conditions_array_destination.size()); ++i) {
+        auto it_cond = conditions_array_destination.begin() + i;
         const double current_area = it_cond->GetGeometry().Area();
         if (current_area > ref_area) ref_area = current_area;
     }
@@ -292,20 +362,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::GetSystemSize(std::size_t& SizeSystem)
 {
-    // Initialize the value
-    SizeSystem = 0;
-
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-
-    // We create the database
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !mInvertedPairing) {
-            #pragma omp atomic
-            SizeSystem += 1;
-        }
-    }
+    SizeSystem = mrDestinationModelPart.Nodes().size();
 }
 
 /***********************************************************************************/
@@ -321,16 +378,14 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     // Initialize the value
     SizeSystem = 0;
 
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& nodes_array = mrDestinationModelPart.Nodes();
 
     // We create the database
     for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
         auto it_node = nodes_array.begin() + i;
-        if (it_node->Is(SLAVE) == !mInvertedPairing) {
-            ConectivityDatabase[SizeSystem] = it_node->Id();
-            InverseConectivityDatabase[it_node->Id()] = SizeSystem;
-            SizeSystem += 1;
-        }
+        ConectivityDatabase[SizeSystem] = it_node->Id();
+        InverseConectivityDatabase[it_node->Id()] = SizeSystem;
+        SizeSystem += 1;
     }
 }
 
@@ -470,7 +525,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mrThisModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mrOriginModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mrDestinationModelPart);
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
@@ -480,7 +536,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     unsigned int iteration = 0;
 
     // We set to zero the variables
-    MortarUtilities::ResetValue<TVarType, THistDestination>(mrThisModelPart, mDestinationVariable, mInvertedPairing);
+    MortarUtilities::ResetValue<TVarType, THistDestination>(mrDestinationModelPart, mDestinationVariable);
 
     // Getting the auxiliar variable
     TVarType aux_variable = MortarUtilities::GetAuxiliarVariable<TVarType>();
@@ -514,9 +570,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 
     while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations) {
         // We reset the auxiliar variable
-        MortarUtilities::ResetAuxiliarValue<TVarType>(mrThisModelPart);
+        MortarUtilities::ResetAuxiliarValue<TVarType>(mrOriginModelPart);
+        MortarUtilities::ResetAuxiliarValue<TVarType>(mrDestinationModelPart);
 
-        ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
+        ConditionsArrayType& conditions_array = mrDestinationModelPart.Conditions();
         const int num_conditions = static_cast<int>(conditions_array.size());
 
         // We map the values from one side to the other
@@ -524,70 +581,68 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
         for(int i = 0; i < num_conditions; ++i) {
             auto it_cond = conditions_array.begin() + i;
 
-            if (it_cond->Is(SLAVE) == !mInvertedPairing) {
-                const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
-                GeometryType& slave_geometry = it_cond->GetGeometry();
+            const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
+            GeometryType& slave_geometry = it_cond->GetGeometry();
 
-                IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                std::vector<std::size_t> indexes_to_remove;
+            IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
+            std::vector<std::size_t> indexes_to_remove;
 
-                for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
-                    Condition::Pointer p_cond_master = mrThisModelPart.pGetCondition(*it_pair); // MASTER
-                    const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
-                    GeometryType& master_geometry = p_cond_master->GetGeometry();
+            for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
+                Condition::Pointer p_cond_master = mrOriginModelPart.pGetCondition(*it_pair); // MASTER
+                const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
+                GeometryType& master_geometry = p_cond_master->GetGeometry();
 
-                    const IntegrationMethod& this_integration_method = GetIntegrationMethod();
+                const IntegrationMethod& this_integration_method = GetIntegrationMethod();
 
-                    // Reading integration points
-                    std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
-                    const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
+                // Reading integration points
+                std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
+                const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
 
-                    if (is_inside == true) {
-                        // Initialize general variables for the current master element
-                        this_kinematic_variables.Initialize();
+                if (is_inside == true) {
+                    // Initialize general variables for the current master element
+                    this_kinematic_variables.Initialize();
 
-                        // Initialize the mortar operators
-                        this_mortar_operators.Initialize();
+                    // Initialize the mortar operators
+                    this_mortar_operators.Initialize();
 
-                        const BoundedMatrixType& Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
+                    const BoundedMatrixType& Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
 
-                        AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
+                    AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
 
-                        /* We compute the residual */
-                        const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
-                        Matrix residual_matrix(TNumNodes, size_to_compute);
-                        ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
+                    /* We compute the residual */
+                    const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
+                    Matrix residual_matrix(TNumNodes, size_to_compute);
+                    ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
 
-                        MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                    MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
 
-                        // We check if DOperator is diagonal
-                        if (mEchoLevel > 1) {
-                            BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
-                            LumpMatrix(aux_copy_D);
-                            const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
-                            const double norm_diff = norm_frobenius(aux_diff);
-                            if (norm_diff > 1.0e-4)
-                                KRATOS_WARNING("D OPERATOR") << " THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
-                            if (mEchoLevel == 3) {
-                                KRATOS_WATCH(norm_diff);
-                                KRATOS_WATCH(this_mortar_operators.DOperator);
-                            }
+                    // We check if DOperator is diagonal
+                    if (mEchoLevel > 1) {
+                        BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
+                        LumpMatrix(aux_copy_D);
+                        const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
+                        const double norm_diff = norm_frobenius(aux_diff);
+                        if (norm_diff > 1.0e-4)
+                            KRATOS_WARNING("D OPERATOR") << " THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
+                        if (mEchoLevel == 3) {
+                            KRATOS_WATCH(norm_diff);
+                            KRATOS_WATCH(this_mortar_operators.DOperator);
                         }
+                    }
 
-                        if (iteration == 0) // Just assembled the first iteration
-                            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
-                                slave_geometry[i_node].GetValue(NODAL_AREA) += this_mortar_operators.DOperator(i_node, i_node);
-                    } else
-                        indexes_to_remove.push_back(*it_pair);
-                }
-
-                // Clear indexes
-                for (unsigned int i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
-                    indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
+                    if (iteration == 0) // Just assembled the first iteration
+                        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node)
+                            slave_geometry[i_node].GetValue(NODAL_AREA) += this_mortar_operators.DOperator(i_node, i_node);
+                } else
+                    indexes_to_remove.push_back(*it_pair);
             }
+
+            // Clear indexes
+            for (unsigned int i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
+                indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
         }
 
-        NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+        NodesArrayType& nodes_array = mrDestinationModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
 
         // We compute the residual norm
@@ -595,14 +650,12 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
         #pragma omp parallel for
         for(int i = 0; i < num_nodes; ++i) {
             auto it_node = nodes_array.begin() + i;
-            if (it_node->Is(SLAVE) == !mInvertedPairing) {
-                NodeType::Pointer pnode = *(it_node.base());
-                MortarUtilities::AddAreaWeightedNodalValue<TVarType, THistDestination>(pnode, mDestinationVariable, ref_area);
-                for (unsigned int i_size = 0; i_size < variable_size; ++i_size) {
-                    const double& value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
-                    #pragma omp atomic
-                    residual_norm[i_size] += std::pow(value, 2);
-                }
+            NodeType::Pointer pnode = *(it_node.base());
+            MortarUtilities::AddAreaWeightedNodalValue<TVarType, THistDestination>(pnode, mDestinationVariable, ref_area);
+            for (unsigned int i_size = 0; i_size < variable_size; ++i_size) {
+                const double& value = MortarUtilities::GetAuxiliarValue<TVarType>(pnode, i_size);
+                #pragma omp atomic
+                residual_norm[i_size] += std::pow(value, 2);
             }
         }
 
@@ -637,7 +690,8 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     KRATOS_TRY;
 
     // Calculate the mean of the normal in all the nodes
-    MortarUtilities::ComputeNodesMeanNormalModelPart(mrThisModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mrOriginModelPart);
+    MortarUtilities::ComputeNodesMeanNormalModelPart(mrDestinationModelPart);
 
     // Defining tolerance
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
@@ -647,7 +701,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     unsigned int iteration = 0;
 
     // We set to zero the variables
-    MortarUtilities::ResetValue<TVarType, THistDestination>(mrThisModelPart, mDestinationVariable, mInvertedPairing);
+    MortarUtilities::ResetValue<TVarType, THistDestination>(mrDestinationModelPart, mDestinationVariable);
 
     // Creating the assemble database
     std::size_t system_size;
@@ -681,80 +735,80 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
             for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
                 b[i_size] = zero_vector;
 
+        ConditionsArrayType& conditions_array = mrDestinationModelPart.Conditions();
+        const int num_conditions = static_cast<int>(conditions_array.size());
+
         // We map the values from one side to the other
         #pragma omp parallel for firstprivate(this_kinematic_variables, this_mortar_operators, integration_utility)
-        for(int i=0; i<static_cast<int>(mrThisModelPart.Conditions().size()); ++i) {
-            auto it_cond = mrThisModelPart.ConditionsBegin() + i;
+        for(int i = 0; i < num_conditions; ++i) {
+            auto it_cond = conditions_array.begin() + i;
+            const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
+            GeometryType& slave_geometry = it_cond->GetGeometry();
 
-            if (it_cond->Is(SLAVE) == !mInvertedPairing) {
-                const array_1d<double, 3>& slave_normal = it_cond->GetValue(NORMAL);
-                GeometryType& slave_geometry = it_cond->GetGeometry();
+            IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
+            std::vector<std::size_t> indexes_to_remove;
 
-                IndexSet::Pointer& indexes_set = it_cond->GetValue( INDEX_SET ); // These are the master conditions
-                std::vector<std::size_t> indexes_to_remove;
+            for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
+                Condition::Pointer p_cond_master = mrOriginModelPart.pGetCondition(*it_pair); // MASTER
+                const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
+                GeometryType& master_geometry = p_cond_master->GetGeometry();
 
-                for (auto it_pair = indexes_set->begin(); it_pair != indexes_set->end(); ++it_pair ) {
-                    Condition::Pointer p_cond_master = mrThisModelPart.pGetCondition(*it_pair); // MASTER
-                    const array_1d<double, 3>& master_normal = p_cond_master->GetValue(NORMAL);
-                    GeometryType& master_geometry = p_cond_master->GetGeometry();
+                const IntegrationMethod& this_integration_method = GetIntegrationMethod();
 
-                    const IntegrationMethod& this_integration_method = GetIntegrationMethod();
+                // Reading integration points
+                std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
+                const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
 
-                    // Reading integration points
-                    std::vector<array_1d<PointType,TDim>> conditions_points_slave; // These are the segmentation points, with this points it is possible to create the lines or triangles used on the mapping
-                    const bool is_inside = integration_utility.GetExactIntegration(slave_geometry, slave_normal, master_geometry, master_normal, conditions_points_slave);
+                if (is_inside == true) {
+                    // Initialize general variables for the current master element
+                    this_kinematic_variables.Initialize();
 
-                    if (is_inside == true) {
-                        // Initialize general variables for the current master element
-                        this_kinematic_variables.Initialize();
+                    // Initialize the mortar operators
+                    this_mortar_operators.Initialize();
 
-                        // Initialize the mortar operators
-                        this_mortar_operators.Initialize();
+                    const BoundedMatrixType& Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
 
-                        const BoundedMatrixType& Ae = CalculateAe(slave_geometry, this_kinematic_variables, conditions_points_slave, this_integration_method);
+                    AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
 
-                        AssemblyMortarOperators( conditions_points_slave, slave_geometry, master_geometry,master_normal,this_kinematic_variables, this_mortar_operators, this_integration_method, Ae);
+                    /* We compute the residual */
+                    const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
+                    Matrix residual_matrix(TNumNodes, size_to_compute);
+                    ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
 
-                        /* We compute the residual */
-                        const unsigned int size_to_compute = MortarUtilities::SizeToCompute<TDim, TVarType>();
-                        Matrix residual_matrix(TNumNodes, size_to_compute);
-                        ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, this_mortar_operators);
-
-                        // We check if DOperator is diagonal
-                        if (mEchoLevel > 1) {
-                            BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
-                            LumpMatrix(aux_copy_D);
-                            const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
-                            const double norm_diff = norm_frobenius(aux_diff);
-                            if (norm_diff > 1.0e-4)
-                                KRATOS_WARNING("D OPERATOR") << " THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
-                            if (mEchoLevel == 3) {
-                                KRATOS_WATCH(norm_diff);
-                                KRATOS_WATCH(this_mortar_operators.DOperator);
-                            }
+                    // We check if DOperator is diagonal
+                    if (mEchoLevel > 1) {
+                        BoundedMatrixType aux_copy_D = this_mortar_operators.DOperator;
+                        LumpMatrix(aux_copy_D);
+                        const BoundedMatrixType aux_diff = aux_copy_D - this_mortar_operators.DOperator;
+                        const double norm_diff = norm_frobenius(aux_diff);
+                        if (norm_diff > 1.0e-4)
+                            KRATOS_WARNING("D OPERATOR") << " THE MORTAR OPERATOR D IS NOT DIAGONAL" << std::endl;
+                        if (mEchoLevel == 3) {
+                            KRATOS_WATCH(norm_diff);
+                            KRATOS_WATCH(this_mortar_operators.DOperator);
                         }
-
-                        /* We compute the residual and assemble */
-                        if (iteration == 0)
-                            AssembleRHSAndLHS(A, b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database, this_mortar_operators);
-                        else
-                            AssembleRHS(b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database);
                     }
-                    else
-                        indexes_to_remove.push_back(*it_pair);
-                }
 
-                // Clear indexes
-                for (unsigned int i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
-                    indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
+                    /* We compute the residual and assemble */
+                    if (iteration == 0)
+                        AssembleRHSAndLHS(A, b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database, this_mortar_operators);
+                    else
+                        AssembleRHS(b, variable_size, residual_matrix, slave_geometry, inverse_conectivity_database);
+                }
+                else
+                    indexes_to_remove.push_back(*it_pair);
             }
+
+            // Clear indexes
+            for (unsigned int i_to_remove = 0; i_to_remove < indexes_to_remove.size(); ++i_to_remove)
+                indexes_set->RemoveId(indexes_to_remove[i_to_remove]);
         }
 
         // Finally we solve the system
         for (unsigned int i_size = 0; i_size < variable_size; ++i_size)
         {
             mpThisLinearSolver->Solve(A, Dx, b[i_size]);
-            MortarUtilities::UpdateDatabase<TVarType, THistDestination>(mrThisModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
+            MortarUtilities::UpdateDatabase<TVarType, THistDestination>(mrDestinationModelPart, mDestinationVariable, Dx, i_size, conectivity_database);
             const double residual_norm = norm_2(b[i_size])/system_size;
             if (iteration == 0) norm_b0[i_size] = residual_norm;
             const double increment_norm = norm_2(Dx)/system_size;
@@ -792,6 +846,58 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THi
     })" );
     
     return default_parameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SetOriginDestinationModelParts(ModelPart& rModelPart)
+{
+    // We check if the MapperModelPart already exists
+    if (rModelPart.HasSubModelPart("MapperModelPart") == true) {
+        auto& mapper_sub_model_part = rModelPart.GetSubModelPart("MapperModelPart");
+        mrOriginModelPart = mapper_sub_model_part.GetSubModelPart("OriginModelPart");
+        mrDestinationModelPart = mapper_sub_model_part.GetSubModelPart("DestinationModelPart");
+    } else {
+        auto mapper_sub_model_part = rModelPart.CreateSubModelPart("MapperModelPart");
+        mrOriginModelPart = *mapper_sub_model_part->CreateSubModelPart("OriginModelPart");
+        mrDestinationModelPart = *mapper_sub_model_part->CreateSubModelPart("DestinationModelPart");
+    }
+    
+    // The if the master/slaves are paired inverted  
+    const bool inverted_pairing = mThisParameters["inverted_master_slave_pairing"].GetBool();
+    
+    for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
+        auto it_cond = rModelPart.ConditionsBegin() + i;
+
+        if (it_cond->Is(SLAVE) == !inverted_pairing) {
+            mrDestinationModelPart.AddCondition(*(it_cond.base()));
+        } else if (it_cond->Is(MASTER) == !inverted_pairing) {
+            mrOriginModelPart.AddCondition(*(it_cond.base()));
+        }
+    }
+
+    for(int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
+        auto it_node = rModelPart.NodesBegin() + i;
+
+        if (it_node->Is(SLAVE) == !inverted_pairing) {
+            mrDestinationModelPart.AddNode(*(it_node.base()));
+        } else if (it_node->Is(MASTER) == !inverted_pairing) {
+            mrOriginModelPart.AddNode(*(it_node.base()));
+        }
+    }
+    
+    KRATOS_ERROR_IF(mrOriginModelPart.Conditions().size() == 0) << "No origin conditions. Check your flags are properly set" << std::endl;
+    KRATOS_ERROR_IF(mrDestinationModelPart.Conditions().size() == 0) << "No destination conditions. Check your flags are properly set" << std::endl;
+    
+    KRATOS_ERROR_IF(mrOriginModelPart.Nodes().size() == 0) << "No origin nodes. Check your flags are properly set" << std::endl;
+    KRATOS_ERROR_IF(mrDestinationModelPart.Nodes().size() == 0) << "No destination nodes. Check your flags are properly set" << std::endl;
+    
+    if (mEchoLevel > 2) {
+        KRATOS_WATCH(mrOriginModelPart)
+        KRATOS_WATCH(mrDestinationModelPart)
+    }
 }
 
 /***********************************************************************************/
