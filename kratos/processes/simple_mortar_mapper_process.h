@@ -447,6 +447,11 @@ private:
     ///@{
     
     /**
+     * @brief Check if the pairs has been created
+     */
+    void CheckAndPerformSearch();
+    
+    /**
      * @brief This method resets the nodal area
      */
     void ResetNodalArea();

@@ -146,6 +146,114 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 /***********************************************************************************/
 
 template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
+void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::CheckAndPerformSearch()
+{
+    // First we check if search already exists
+    bool search_exists = true;
+    // Iterate in the conditions
+    ConditionsArrayType& destination_conditions_array = mrDestinationModelPart.Conditions();
+    for(std::size_t i = 0; i < destination_conditions_array.size(); ++i) {
+        auto it_cond = destination_conditions_array.begin() + i;
+
+        if (!it_cond->Has( INDEX_SET )) {
+            search_exists = false; 
+            break;
+        }
+    }
+        
+    // Now we perform the corresponding search
+    if (search_exists == false) {
+        
+        // We create the variable INDEX_SET
+        #pragma omp parallel for 
+        for(int i = 0; i < static_cast<int>(destination_conditions_array.size()); ++i) {
+            auto it_cond = destination_conditions_array.begin() + i;
+            if (it_cond->Has(INDEX_SET) == false) 
+                it_cond->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>()); 
+        }
+        
+        // A list that contents the all the points (from nodes) from the modelpart 
+        PointVector point_list_destination; 
+        
+        point_list_destination.clear();
+        
+        // Iterate in the conditions
+        ConditionsArrayType& origin_conditions_array = mrOriginModelPart.Conditions();
+        
+        // Creating a buffer for parallel vector fill
+        const int num_threads = OpenMPUtils::GetNumThreads();
+        std::vector<PointVector> points_buffer(num_threads);
+
+        #pragma omp parallel
+        {
+            const int thread_id = OpenMPUtils::ThisThread();
+
+            #pragma omp for
+            for(int i = 0; i < static_cast<int>(origin_conditions_array.size()); ++i) {
+                auto it_cond = origin_conditions_array.begin() + i;
+                
+                const PointTypePointer& p_point = PointTypePointer(new PointMapperType((*it_cond.base())));
+                (points_buffer[thread_id]).push_back(p_point);
+            }
+            
+            // Combine buffers together
+            #pragma omp single
+            {
+                for( auto& point_buffer : points_buffer)
+                    std::move(point_buffer.begin(),point_buffer.end(),back_inserter(point_list_destination));
+            }
+        }
+        
+        #pragma omp parallel for 
+        for(int i = 0; i < static_cast<int>(point_list_destination.size()); ++i) 
+            point_list_destination[i]->UpdatePoint();
+        
+        // Some auxiliar values
+        const unsigned int allocation_size = mThisParameters["search_parameters"]["allocation_size"].GetInt(); // Allocation size for the vectors and max number of potential results 
+        const double search_factor = mThisParameters["search_parameters"]["search_factor"].GetDouble(); // The search factor to be considered 
+        unsigned int bucket_size = mThisParameters["search_parameters"]["bucket_size"].GetInt(); // Bucket size for kd-tree
+        
+        // Create a tree
+        // It will use a copy of mNodeList (a std::vector which contains pointers)
+        // Copying the list is required because the tree will reorder it for efficiency
+        KDTreeType tree_points(point_list_destination.begin(), point_list_destination.end(), bucket_size);
+        
+        for(std::size_t i = 0; i < destination_conditions_array.size(); ++i) {
+            auto it_cond = destination_conditions_array.begin() + i;
+            
+            // Initialize values
+            PointVector points_found(allocation_size);
+            
+            GeometryType& geometry = it_cond->GetGeometry();
+            const Point& center = geometry.Center();
+            
+            double radius = 0.0; 
+            for(std::size_t i_node = 0; i_node < it_cond->GetGeometry().PointsNumber(); ++i_node)  { 
+                const array_1d<double, 3>& aux_vector = center.Coordinates() - it_cond->GetGeometry()[i_node].Coordinates();
+                const double aux_value = inner_prod(aux_vector, aux_vector);
+                if(aux_value > radius) radius = aux_value; 
+            } 
+            
+            const double search_radius = search_factor * std::sqrt(radius);
+
+            std::size_t number_points_found = tree_points.SearchInRadius(center, search_radius, points_found.begin(), allocation_size);
+            
+            if (number_points_found > 0) {  
+                IndexSet::Pointer indexes_set = it_cond->GetValue(INDEX_SET);
+                
+                for (std::size_t i_point = 0; i_point < number_points_found; ++i_point ) {
+                    Condition::Pointer p_cond_master = points_found[i_point]->GetCondition();
+                    indexes_set->AddId(p_cond_master->Id());
+                }
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::ResetNodalArea()
 {
     NodesArrayType& nodes_array = mrDestinationModelPart.Nodes();
@@ -561,13 +669,16 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
 
     // We call the exact integration utility
     ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim, distance_threshold);
-
+    
     // We reset the nodal area
     ResetNodalArea();
     
     // We get the reference area
     const double ref_area = GetReferenceArea();
 
+    // Check if the pairs has been created
+    CheckAndPerformSearch();
+    
     while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations) {
         // We reset the auxiliar variable
         MortarUtilities::ResetAuxiliarValue<TVarType>(mrOriginModelPart);
@@ -729,6 +840,9 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDest
     // We call the exact integration utility
     ExactMortarIntegrationUtility<TDim, TNumNodes> integration_utility = ExactMortarIntegrationUtility<TDim, TNumNodes>(TDim, distance_threshold);
 
+    // Check if the pairs has been created
+    CheckAndPerformSearch();
+    
     while (CheckWholeVector(is_converged) == false && iteration < max_number_iterations) {
         // We reset the RHS
         if (iteration > 0)
@@ -842,7 +956,12 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THi
         "max_number_iterations"            : 10,
         "integration_order"                : 2,
         "distance_threshold"               : 1.0e24,
-        "inverted_master_slave_pairing"    : false
+        "inverted_master_slave_pairing"    : false,
+        "search_parameters"                : {
+            "allocation_size"                  : 1000, 
+            "bucket_size"                      : 4, 
+            "search_factor"                    : 3.5
+        }
     })" );
     
     return default_parameters;
