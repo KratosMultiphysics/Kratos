@@ -919,6 +919,17 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                         LHS_Contribution(localInternEqId, localSlaveEqId) = 0.0;
                     }
                 }
+
+                for (auto localSlaveEqId : localSlaveEquationIds)
+                { // Loop over all the slaves for this node
+                    for (auto localSlaveEqIdOther : localSlaveEquationIds)
+                    { // Loop over all the slaves for this node
+                        // Kss = I
+                        LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 0.0;
+                        if (localSlaveEqId == localSlaveEqIdOther)
+                            LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 1.0;
+                    }
+                }                
             }
         }
         KRATOS_CATCH("Applying Multipoint constraints failed ..");
