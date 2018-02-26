@@ -30,7 +30,7 @@ Its main applications are:
 
 Some main modules are:
 - [External Solvers](applications/ExternalSolversApplication)
-- [Trilinos]()
+- [Trilinos](applications/trilinos_application)
 - [Metis]()
 - [Meshing]()
 
