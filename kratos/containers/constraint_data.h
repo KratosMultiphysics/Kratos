@@ -204,9 +204,7 @@ class ConstraintEquationContainer
         bool
         operator()(const ConstraintEquationPointerType &rObj1, const ConstraintEquationPointerType &rObj2) const
         {
-            if ((rObj1->SlaveDofId() == rObj2->SlaveDofId()) && (rObj1->SlaveDofKey() == rObj2->SlaveDofKey()))
-                return true;
-            return false;
+            return (rObj1->SlaveDofId() == rObj2->SlaveDofId()) && (rObj1->SlaveDofKey() == rObj2->SlaveDofKey());
         }     
     };
 
