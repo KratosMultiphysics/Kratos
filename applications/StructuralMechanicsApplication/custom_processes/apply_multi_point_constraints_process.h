@@ -74,6 +74,7 @@ class ApplyMultipointConstraintsProcess : public Process
         std::string name = rParameters["constraint_set_name"].GetString();
         pMpc->SetName(name);
         pMpc->SetActive(true);
+        mReformEveryTimeStep = m_parameters["reform_every_step"].GetBool();
 
         MpcDataSharedPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
         (*mpcDataVector).push_back(pMpc);
@@ -94,6 +95,7 @@ class ApplyMultipointConstraintsProcess : public Process
         pMpc = MpcDataPointerType(new MpcData());
         pMpc->SetName(name);
         pMpc->SetActive(true);
+        mReformEveryTimeStep = false;
 
         MpcDataSharedPointerVectorType mpcDataVector = info->GetValue(MPC_DATA_CONTAINER);
         (*mpcDataVector).push_back(pMpc);
@@ -262,7 +264,7 @@ class ApplyMultipointConstraintsProcess : public Process
     {
         KRATOS_TRY;
 
-        if (m_parameters["reform_every_step"].GetBool())
+        if (mReformEveryTimeStep)
             // Adding the master slave relation between the master and slave sub model parts
             AddMasterSlaveRelation();
 
@@ -308,6 +310,7 @@ class ApplyMultipointConstraintsProcess : public Process
     ModelPart &mr_model_part;
     MpcDataPointerType pMpc;
     Parameters m_parameters;
+    bool mReformEveryTimeStep;
 
   private:
     /// Assignment operator.
