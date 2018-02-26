@@ -6,6 +6,7 @@ from array import array
 from numpy import *
 from math import *
 import numpy as np
+import itertools
 #import matplotlib.pyplot as plt
 
 
@@ -23,6 +24,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
+                "upper_surface_model_part_name" : "please specify the model part that contains the upper surface nodes",
+                "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
                 "mesh_id": 0,
                 "velocity_infinity": [1.0,0.0,0]
             }  """ );
@@ -30,16 +33,18 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters);
         
         
-        self.model_part = Model[settings["model_part_name"].GetString()]
+        #self.model_part = Model[settings["model_part_name"].GetString()]
+        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
+        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
         #self.model_part = Model.get('model_part_name',None)
         self.velocity_infinity = [0,0,0]#array('d', [1.0, 2.0, 3.14])#np.array([0,0,0])#np.zeros(3)#vector(3)
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         
-        self.reference_area =  383 #m² # WRONG 489.89 m²   
+        self.reference_area =  1#8#383 #m² # WRONG 489.89 m²   
         
-        self.AOAdeg                 = 3#°
+        self.AOAdeg                 = 5#°
         
         #convert angle from degrees to radians
         self.AOArad = self.AOAdeg*pi/180  
@@ -52,7 +57,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
          ry = 0.0
          rz = 0.0
 
-         for cond in self.model_part.Conditions:
+         for cond in itertools.chain(self.upper_surface_model_part.Conditions,self.lower_surface_model_part.Conditions):
            n = cond.GetValue(NORMAL)
            cp = cond.GetValue(PRESSURE)
            #print(cp)
@@ -61,16 +66,16 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
            ry += n[1]*cp
            rz += n[2]*cp
 
-         Lift = rz/self.reference_area
-         Drag = rx/self.reference_area
-         Side = ry/self.reference_area
+         RZ = rz/self.reference_area
+         RX = rx/self.reference_area
+         RY = ry/self.reference_area
          
-         Cl = Lift*cos(self.AOArad) - Drag*sin(self.AOArad)
-         Cd = Lift*sin(self.AOArad) + Drag*cos(self.AOArad)
+         Cl = RY*cos(self.AOArad) - RX*sin(self.AOArad)
+         Cd = RY*sin(self.AOArad) + RX*cos(self.AOArad)
          
-         print('Lift = ', Lift)
-         print('Drag = ', Drag)
-         print('Side = ', Side)
+         print('RZ = ', RZ)
+         print('RX = ', RX)
+         print('RY = ', RY)
          
          print('Cl = ', Cl) 
          print('Cd = ', Cd)

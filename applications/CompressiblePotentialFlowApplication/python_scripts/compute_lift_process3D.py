@@ -6,6 +6,7 @@ from array import array
 from numpy import *
 from math import *
 import numpy as np
+import itertools
 #import matplotlib.pyplot as plt
 
 
@@ -23,7 +24,8 @@ class ComputeLiftProcess3D(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name"   : "PLEASE_CHOOSE_MODEL_PART_NAME",
-                "skin_parts"        :["UpperSurface","LowerSurface","Fuselage"],
+                "upper_surface_model_part_name" : "please specify the model part that contains the upper surface nodes",
+                "lower_surface_model_part_name" : "please specify the model part that contains the lower surface nodes",
                 "mesh_id"           : 0,
                 "velocity_infinity" : [1.0,0.0,0]
             }  """ );
@@ -32,6 +34,9 @@ class ComputeLiftProcess3D(KratosMultiphysics.Process):
         
         
         self.model_part = Model[settings["model_part_name"].GetString()]
+        self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
+        self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
+        '''
         print('Creating aircraft modelpart...')
         self.aircraft_modelpart = self.model_part.CreateSubModelPart("aircraft_modelpart")
         for i in range(settings["skin_parts"].size()):
@@ -41,6 +46,7 @@ class ComputeLiftProcess3D(KratosMultiphysics.Process):
             for cond in mp.Conditions:
                 self.aircraft_modelpart.Conditions.append(cond)
         print('Finished creating aircraft modelpart')
+        '''
         
         #KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.aircraft_modelpart,self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])  
         
@@ -66,7 +72,7 @@ class ComputeLiftProcess3D(KratosMultiphysics.Process):
          rz = 0.0
          
          counter = 1        
-         for cond in self.aircraft_modelpart.Conditions:
+         for cond in itertools.chain(self.upper_surface_model_part.Conditions,self.lower_surface_model_part.Conditions):
            n = cond.GetValue(NORMAL)
            cp = cond.GetValue(PRESSURE)
            #print(cp)
@@ -78,16 +84,16 @@ class ComputeLiftProcess3D(KratosMultiphysics.Process):
 
          
          print('Looped over ', counter, ' lifting conditions.')
-         Lift = rz/self.reference_area
-         Drag = rx/self.reference_area
-         Side = ry/self.reference_area
+         RZ = rz/self.reference_area
+         RX = rx/self.reference_area
+         RY = ry/self.reference_area
          
-         Cl = Lift*cos(self.AOArad) - Drag*sin(self.AOArad)
-         Cd = Lift*sin(self.AOArad) + Drag*cos(self.AOArad)
+         Cl = RZ*cos(self.AOArad) - RX*sin(self.AOArad)
+         Cd = RZ*sin(self.AOArad) + RX*cos(self.AOArad)
          
-         print('Lift = ', Lift)
-         print('Drag = ', Drag)
-         print('Side = ', Side)
+         print('RZ = ', RZ)
+         print('RX = ', RX)
+         print('RY = ', RY)
          
          print('Cl = ', Cl) 
          print('Cd = ', Cd)

@@ -42,9 +42,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
         #convert angle to radians
         self.AOArad = self.AOAdeg*pi/180
         
+        #rotate velocity vector according to the angle of attack
         self.velocity_infinity[0]   = settings["velocity_infinity"][0].GetDouble()*cos(self.AOArad)
-        self.velocity_infinity[1]   = settings["velocity_infinity"][0].GetDouble()*sin(self.AOArad)
-        self.velocity_infinity[2]   = settings["velocity_infinity"][2].GetDouble()
+        self.velocity_infinity[2]   = settings["velocity_infinity"][0].GetDouble()*sin(self.AOArad)
+        self.velocity_infinity[1]   = settings["velocity_infinity"][2].GetDouble()
                 
         from numpy import linalg as LA
         velocity_norm = LA.norm(self.velocity_infinity)

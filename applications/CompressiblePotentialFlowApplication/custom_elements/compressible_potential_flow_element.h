@@ -409,6 +409,31 @@ public:
                                                                                             PartitionsSign, 
                                                                                             GradientsValue, 
                                                                                             NEnriched);
+            
+            //Project wake condition
+            //Matrix projection = ZeroMatrix(Dim,Dim);
+            //Matrix projection = rCurrentProcessInfo[PROJECTION_MATRIX];
+            Matrix up_projection = rCurrentProcessInfo[UPPER_PROJECTION];
+            Matrix low_projection = rCurrentProcessInfo[LOWER_PROJECTION];
+            Matrix DN_DX_up = ZeroMatrix(NumNodes,Dim);
+            Matrix DN_DX_low = ZeroMatrix(NumNodes,Dim);
+            // projection(0,0) = 1;
+            // projection(1,1) = 1;
+            //DN_DX_proj = prod(data.DN_DX,projection);
+            DN_DX_up = prod(data.DN_DX,up_projection);
+            DN_DX_low = prod(data.DN_DX,low_projection);
+            if(this->Id()==1062817)
+            {
+                std::cout << "data.DN_DX = " << data.DN_DX  << std::endl;
+                std::cout << "up_projection= " << up_projection  << std::endl;
+                std::cout << "low_projection= " << low_projection  << std::endl;
+                std::cout << "DN_DX_up= " << DN_DX_up  << std::endl;
+                std::cout << "DN_DX_low= " << DN_DX_low  << std::endl;
+            }
+            
+            
+            
+            
             //compute the lhs and rhs that would correspond to it not being divided
             Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
@@ -423,12 +448,12 @@ public:
                     if(PartitionsSign[i] > 0)
                     {
                         //ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
-                        noalias(lhs_positive) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                        noalias(lhs_positive) += Volumes[i]*density*prod(DN_DX_up, trans(DN_DX_up));
                     }                        
                     else
                     {
                         //ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
-                        noalias(lhs_negative) += Volumes[i]*density*prod(data.DN_DX, trans(data.DN_DX));
+                        noalias(lhs_negative) += Volumes[i]*density*prod(DN_DX_low, trans(DN_DX_low));
                     }                  
                         
                 }

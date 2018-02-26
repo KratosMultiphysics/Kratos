@@ -36,30 +36,22 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         #convert angle to radians
         self.AOArad = self.AOAdeg*pi/180       
  
+        #'''
         self.direction = KratosMultiphysics.Vector(3)
         self.direction[0] = settings["direction"][0].GetDouble()*cos(self.AOArad)
-        self.direction[1] = settings["direction"][0].GetDouble()*sin(self.AOArad)
-        self.direction[2] = settings["direction"][2].GetDouble()
-        
-        
+        self.direction[2] = settings["direction"][0].GetDouble()*sin(self.AOArad)
+        self.direction[1] = settings["direction"][2].GetDouble()  
         '''
         self.direction = KratosMultiphysics.Vector(3)
         self.direction[0] = settings["direction"][0].GetDouble()
         self.direction[1] = settings["direction"][1].GetDouble()
         self.direction[2] = settings["direction"][2].GetDouble()
-        '''
+        #'''
         dnorm = math.sqrt(self.direction[0]**2 + self.direction[1]**2 + self.direction[2]**2)
         self.direction[0] /= dnorm
         self.direction[1] /= dnorm
         self.direction[2] /= dnorm
         print('wake direction =', self.direction)
-        
-        self.wake_normal = KratosMultiphysics.Vector(3)
-        self.wake_normal[0] = -self.direction[1]
-        self.wake_normal[1] = 0.0
-        self.wake_normal[2] = self.direction[0]
-        print('wake normal =', self.wake_normal)    
-        
         
         self.epsilon = settings["epsilon"].GetDouble()
 
@@ -67,10 +59,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.fluid_model_part =         Model[settings["fluid_part_name"].GetString()]
         self.upper_surface_model_part = Model[settings["upper_surface_model_part_name"].GetString()]
         self.lower_surface_model_part = Model[settings["lower_surface_model_part_name"].GetString()]
-        
-        
-        self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE_NORMAL,self.wake_normal)
-        
         
         # Neigbour search tool instance
         AvgElemNum = 10
@@ -106,6 +94,12 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         #compute the distances of the elements of the wake, and decide which ones are wak    
         if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): #2D case
+            self.projection = KratosMultiphysics.Matrix(2,2)
+            self.projection[0,0] = 1.0
+            self.projection[0,1] = 0.0
+            self.projection[1,1] = 1.0
+            self.projection[1,0] = 0.0
+            self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.PROJECTION_MATRIX,self.projection)
             
             xn = KratosMultiphysics.Vector(3)
             
@@ -113,8 +107,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             self.n[0] = -self.direction[1]
             self.n[1] = self.direction[0]
             self.n[2] = 0.0
-            print("normal =",self.n)
+            print("wake normal =",self.n)
             
+            self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE_NORMAL,self.n)
             for node in self.kutta_model_part.Nodes:
                 x0 = node.X
                 y0 = node.Y
@@ -214,6 +209,43 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             print('\nImporting wake ...')
             from stl import mesh #this requires numpy-stl
             print('\nWake has been imported')
+            self.up_projection = KratosMultiphysics.Matrix(3,3)
+            self.up_projection[0,0] = 1.0
+            self.up_projection[0,1] = 0.0
+            self.up_projection[0,2] = 0.0
+            
+            self.up_projection[1,0] = 0.0
+            self.up_projection[1,1] = 1.0
+            self.up_projection[1,2] = 0.0
+            
+            self.up_projection[2,0] = 0.0
+            self.up_projection[2,1] = 0.0
+            self.up_projection[2,2] = 1.0
+            
+            self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_PROJECTION,self.up_projection)
+            
+            self.low_projection = KratosMultiphysics.Matrix(3,3)
+            self.low_projection[0,0] = 1.0
+            self.low_projection[0,1] = 0.0
+            self.low_projection[0,2] = 0.0
+            
+            self.low_projection[1,0] = 0.0
+            self.low_projection[1,1] = -1.0
+            self.low_projection[1,2] = 0.0
+            
+            self.low_projection[2,0] = 0.0
+            self.low_projection[2,1] = 0.0
+            self.low_projection[2,2] = 1.0
+            
+            self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.LOWER_PROJECTION,self.low_projection)
+            
+            self.wake_normal = KratosMultiphysics.Vector(3)
+            self.wake_normal[0] = -self.direction[2]
+            self.wake_normal[1] = 0.0
+            self.wake_normal[2] = self.direction[0]
+            print('wake normal =', self.wake_normal)        
+            
+            self.fluid_model_part.ProcessInfo.SetValue(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE_NORMAL,self.wake_normal)            
 
             #initialize the distances to zero on all elements
             zero = KratosMultiphysics.Vector(4)
@@ -460,6 +492,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
                     
                     #print(elem.Id, elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))
-                
+            #'''    
     def ExecuteInitialize(self):
         self.Execute()
