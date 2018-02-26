@@ -78,18 +78,26 @@ class Communicator:
 
     # --------------------------------------------------------------------------
     def getValue( self, response_id ):
+        if self.list_of_responses[response_id]["value"] is None:
+            raise RuntimeError("The requested value for ", response_id, " is None!")
         return self.list_of_responses[response_id]["value"]
 
     # --------------------------------------------------------------------------
     def getReferenceValue( self, response_id ):
+        if self.list_of_responses[response_id]["reference_value"] is None:
+            raise RuntimeError("The requested reference_value for ", response_id, " is None!")
         return self.list_of_responses[response_id]["reference_value"]
 
     # --------------------------------------------------------------------------
     def getStandardizedValue( self, response_id ):
+        if self.list_of_responses[response_id]["standardized_value"] is None:
+            raise RuntimeError("The requested standardized_value for ", response_id, " is None!")
         return self.list_of_responses[response_id]["standardized_value"]
 
     # --------------------------------------------------------------------------
     def getStandardizedGradient( self, response_id ):
+        if self.list_of_responses[response_id]["standardized_gradient"] is None:
+            raise RuntimeError("The requested standardized_gradient for ", response_id, " is None!")
         return self.list_of_responses[response_id]["standardized_gradient"]
 
     # --------------------------------------------------------------------------
