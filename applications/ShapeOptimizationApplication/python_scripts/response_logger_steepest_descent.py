@@ -50,9 +50,8 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
     # --------------------------------------------------------------------------
     def __CreateCompleteResponseLogFilename( self, optimizationSettings ):
         resultsDirectory = optimizationSettings["output"]["output_directory"].GetString()
-        responseLogFilename = optimizationSettings["output"]["response_log_filename"].GetString()
-        completeResponseLogFilename = resultsDirectory+"/"+responseLogFilename+".csv"
-        return completeResponseLogFilename
+        responseLogFilename = optimizationSettings["output"]["response_log_filename"].GetString()+".csv"
+        return os.path.join( resultsDirectory, responseLogFilename )
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
