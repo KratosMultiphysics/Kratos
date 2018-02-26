@@ -55,7 +55,7 @@ class ApplyMultipointConstraintsProcess : public Process
 
     /// Constructor.
     ApplyMultipointConstraintsProcess(ModelPart &rModelPart,
-                                      Parameters rParameters) : Process(Flags()), mrModelPart(rModelPart), mParameters(rParameters)
+                                      Parameters parameters) : Process(Flags()), mrModelPart(rModelPart), mParameters(parameters)
     {
 
         Parameters default_parameters(R"(
@@ -90,7 +90,7 @@ class ApplyMultipointConstraintsProcess : public Process
             AddMasterSlaveRelation();
     }
 
-    ApplyMultipointConstraintsProcess(ModelPart &model_part, std::string name = "default") : Process(Flags()), mrModelPart(model_part), mParameters("{}")
+    ApplyMultipointConstraintsProcess(ModelPart &rModelPart, std::string rName = "default") : Process(Flags()), mrModelPart(rModelPart), mParameters("{}")
     {
         Parameters default_parameters(R"(
             {
@@ -108,7 +108,7 @@ class ApplyMultipointConstraintsProcess : public Process
              info->SetValue(CONSTRAINTS_CONTAINER, Kratos::make_shared<std::vector<ConstraintPointerType>>());
 
         pMpc = Kratos::make_shared<MultipointConstraint<SparseSpaceType,LocalSpaceType>>();
-        pMpc->SetName(name);
+        pMpc->SetName(rName);
         pMpc->SetActive(true);
 
         ConstraintSharedPointerVectorType mpc_data_vector = info->GetValue(CONSTRAINTS_CONTAINER);
@@ -144,44 +144,44 @@ class ApplyMultipointConstraintsProcess : public Process
     template <int TDim>
     void ApplyConstraints(ModelPart &master_model_part, ModelPart &slave_model_part)
     {
-        BinBasedFastPointLocator<TDim> *p_point_locator = new BinBasedFastPointLocator<TDim>(master_model_part);
+        std::unique_ptr< BinBasedFastPointLocator<TDim> > p_point_locator (new BinBasedFastPointLocator<TDim>(master_model_part));
         int num_vars = mParameters["variable_names"].size();
         // iterating over slave nodes to find the corresponding masters
         const int n_slave_nodes = slave_model_part.Nodes().size();
         array_1d<double, TDim + 1> N; // This is only for triangular meshes
         const int max_results = 100;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+        ModelPart::NodesContainerType::iterator iparticle = slave_model_part.NodesBegin();
+        typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();        
 
         for (int i = 0; i < n_slave_nodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator iparticle = slave_model_part.NodesBegin() + i;
+        {            
+            iparticle += i;
             Node<3>::Pointer p_slave_node = *(iparticle.base());
-            typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
             Element::Pointer p_master_element;
             bool is_found = p_point_locator->FindPointOnMesh(p_slave_node->Coordinates(), N, p_master_element, result_begin, max_results);
             if (is_found == true)
             {
                 for (int i = 0; i < num_vars; i++)
                 {
-                    std::string varName = mParameters["variable_names"][i].GetString();
-                    Geometry<Node<3>> &geom = p_master_element->GetGeometry();
-                    for (unsigned int i = 0; i < geom.size(); i++)
+                    std::string var_name = mParameters["variable_names"][i].GetString();
+                    Geometry<Node<3>> &r_geometry = p_master_element->GetGeometry();
+                    for (unsigned int i = 0; i < r_geometry.size(); i++)
                     {
-                        if (KratosComponents<Variable<double>>::Has(varName))
+                        if (KratosComponents<Variable<double>>::Has(var_name))
                         { //case of double variable
-                            VariableType rVar = KratosComponents<Variable<double>>::Get(mParameters["variable_names"][i].GetString());
-                            this->AddMasterSlaveRelationWithNodesAndVariable(geom[i], rVar, *p_slave_node, rVar, N[i], 0.0);
+                            VariableType r_var = KratosComponents<Variable<double>>::Get(mParameters["variable_names"][i].GetString());
+                            this->AddMasterSlaveRelationWithNodesAndVariable(r_geometry[i], r_var, *p_slave_node, r_var, N[i], 0.0);
                         }
-                        else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(varName))
+                        else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(var_name))
                         {
-                            VariableComponentType rVar = KratosComponents<VariableComponentType>::Get(mParameters["variable_names"][i].GetString());
-                            this->AddMasterSlaveRelationWithNodesAndVariableComponents(geom[i], rVar, *p_slave_node, rVar, N[i], 0.0);
+                            VariableComponentType r_var = KratosComponents<VariableComponentType>::Get(mParameters["variable_names"][i].GetString());
+                            this->AddMasterSlaveRelationWithNodesAndVariableComponents(r_geometry[i], r_var, *p_slave_node, r_var, N[i], 0.0);
                         }
                     }
                 }
             }
         }
-        delete p_point_locator;
     }
 
     /**
