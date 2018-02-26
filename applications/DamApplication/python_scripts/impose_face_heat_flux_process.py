@@ -18,14 +18,16 @@ class ImposeFaceHeatFluxProcess(Process):
 
         ## This process assign and uniform heat flux
         if "Uniform" in settings["model_part_name"].GetString():
-            t_uniform = Parameters("{}")
-            t_uniform.AddValue("model_part_name",settings["model_part_name"])
-            t_uniform.AddValue("mesh_id",settings["mesh_id"])
-            t_uniform.AddEmptyValue("is_fixed").SetBool(False)
-            t_uniform.AddValue("variable_name",settings["variable_name"])
-            t_uniform.AddValue("value",settings["value"])
-            
-            self.components_process_list.append(DamFixTemperatureConditionProcess(model_part, t_uniform))
+            if settings["table"].GetInt() == 0:
+                t_uniform = Parameters("{}")
+                t_uniform.AddValue("model_part_name",settings["model_part_name"])
+                t_uniform.AddValue("mesh_id",settings["mesh_id"])
+                t_uniform.AddEmptyValue("is_fixed").SetBool(False)
+                t_uniform.AddValue("variable_name",settings["variable_name"])
+                t_uniform.AddValue("value",settings["value"])
+                self.process = ApplyConstantScalarValueProcess(model_part, t_uniform) 
+            else:
+                self.components_process_list.append(DamFixTemperatureConditionProcess(model_part, settings))
 
         ## This process compute the heat flux according to q = h(t_ambient - t_current).
         ## Setting the extra values to 0.0 it is possible to use the same process.
