@@ -197,7 +197,7 @@ class ConstraintEquationContainer
         }
     };
 
-    // Custom comparator that compares the string objects by length
+    // Custom comparator that compares the Constraint equation objects by their SlaveDOF key and SlaveDOF ID
     struct EquationComparator
     {
         bool
