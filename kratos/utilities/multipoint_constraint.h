@@ -129,7 +129,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
 
                 NodeType &master_node = rNodes[master_dof_id];
                 Node<3>::DofsContainerType::iterator it_master = master_node.GetDofs().find(master_dof_key);
-                master_data->SetEquationId(it_master->EquationId());
+                master_data->SetMasterEqId(it_master->EquationId());
             }
         } 
     }
