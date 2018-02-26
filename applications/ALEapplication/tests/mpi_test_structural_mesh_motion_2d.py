@@ -36,14 +36,20 @@ class TestCase(KratosUnittest.TestCase):
             test = self.createTest('test_structural_mesh_motion_2d/mpi_rectangle_2D3N_test')
             test.Solve()
             KratosMPI.mpi.world.barrier()
-            rank = test.main_model_part.GetCommunicator().MyPID()
+            rank = KratosMPI.mpi.rank
             # remove files
             if rank == 0:
-                self.removeFile("./test_structural_mesh_motion_2d/rectangle_2D3N_test_probe1.dat")
-                self.removeFile("./test_structural_mesh_motion_2d/rectangle_2D3N_test_probe2.dat")
-                self.removeFile("./test_structural_mesh_motion_2d/rectangle_2D3N_test.time")
-            self.removeFile("./test_structural_mesh_motion_2d/rectangle_2D3N_test_" + str(rank) + ".time")
-            self.removeFile("./test_structural_mesh_motion_2d/rectangle_2D3N_test_" + str(rank) + ".mdpa")
+                self.removeFile("./test_mdpa_files/rectangle_2D3N_test.time")
+
+    def test_Rectangle_2D4N(self):
+        with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            test = self.createTest('test_structural_mesh_motion_2d/mpi_rectangle_2D4N_test')
+            test.Solve()
+            KratosMPI.mpi.world.barrier()
+            rank = KratosMPI.mpi.rank
+            # remove files
+            if rank == 0:
+                self.removeFile("./test_mdpa_files/rectangle_2D4N_test.time")
 
     def tearDown(self):
         pass

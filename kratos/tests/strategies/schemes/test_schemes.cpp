@@ -105,7 +105,7 @@ namespace Kratos
             ModelPart model_part("Main");
             
             typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
-            typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedNewmarkDisplacementSchemeType() );
+            SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedNewmarkDisplacementSchemeType() );
             
             const double delta_time = 1.0e-4;
 
@@ -168,7 +168,7 @@ namespace Kratos
             ModelPart model_part("Main");
             
             typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
-            typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedBossakDisplacementSchemeType() );
+            SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedBossakDisplacementSchemeType() );
             
             const double delta_time = 1.0e-4;
 
@@ -231,7 +231,7 @@ namespace Kratos
             ModelPart model_part("Main");
             
             typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFDisplacementSchemeType;
-            typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedBDFDisplacementSchemeType(2) );
+            SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedBDFDisplacementSchemeType(2) );
             
             const double delta_time = 1.0e-4;
 

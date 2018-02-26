@@ -91,19 +91,19 @@ class MechanicalSolver(object):
             custom_settings.RemoveValue("bodies_list")
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "bodies_list", '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_on_rank_zero(warning)
+            self.print_warning_on_rank_zero("Bodies list", warning)
         if custom_settings.Has("solver_type"):
             custom_settings.RemoveValue("solver_type")
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "solver_type", '
             warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            self.print_on_rank_zero(warning)
+            self.print_warning_on_rank_zero("Solver type", warning)
         if custom_settings.Has("time_integration_method"):
             custom_settings.RemoveValue("time_integration_method")
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "time_integration_method", '
             warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
-            self.print_on_rank_zero(warning)
+            self.print_warning_on_rank_zero("Time integration method", warning)
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
@@ -111,7 +111,7 @@ class MechanicalSolver(object):
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
-        self.print_on_rank_zero("::[MechanicalSolver]:: Construction finished")
+        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         # Add displacements.
@@ -138,7 +138,7 @@ class MechanicalSolver(object):
             variable_name = self.settings["auxiliary_variables_list"][i].GetString()
             variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
             self.main_model_part.AddNodalSolutionStepVariable(variable)
-        self.print_on_rank_zero("::[MechanicalSolver]:: Variables ADDED")
+        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
         return 2
@@ -153,17 +153,17 @@ class MechanicalSolver(object):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,self.main_model_part)
         if self.settings["pressure_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
-        self.print_on_rank_zero("::[MechanicalSolver]:: DOF's ADDED")
+        self.print_on_rank_zero("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
-        print("::[MechanicalSolver]:: Importing model part.")
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
-            print("    Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.Logger.PrintInfo("ModelpartIO", "\tReading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            print("    Finished reading model part from mdpa file.")
+            KratosMultiphysics.Logger.PrintInfo("ModelpartIO", "\tFinished reading model part from mdpa file.")
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
@@ -173,7 +173,7 @@ class MechanicalSolver(object):
             restart_path = os.path.join(problem_path, input_filename + "__" + self.settings["model_import_settings"]["input_file_label"].GetString())
             if(os.path.exists(restart_path+".rest") == False):
                 raise Exception("Restart file not found: " + restart_path + ".rest")
-            print("    Loading Restart file: ", restart_path + ".rest")
+            KratosMultiphysics.Logger.PrintInfo("Restart", "\tLoading Restart file: ", restart_path + ".rest")
             serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
             # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
             # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
@@ -183,11 +183,11 @@ class MechanicalSolver(object):
             #I use it to rebuild the contact conditions.
             load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
             self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
-            print("    Finished loading model part from restart file.")
+            KratosMultiphysics.Logger.PrintInfo("ModelpartIO", "\tFinished loading model part from restart file.")
         else:
             raise Exception("Other model part input options are not yet implemented.")
-        print(self.main_model_part)
-        print("::[MechanicalSolver]:: Finished importing model part.")
+        KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished importing model part.")
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -197,7 +197,7 @@ class MechanicalSolver(object):
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        self.print_on_rank_zero("::[MechanicalSolver]:: Initializing ...")
+        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Initializing ...")
         # The mechanical solver is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
@@ -211,7 +211,7 @@ class MechanicalSolver(object):
             if hasattr(mechanical_solver, SetInitializePerformedFlag):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
-        self.print_on_rank_zero("::[MechanicalSolver]:: Finished initialization.")
+        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def GetComputingModelPart(self):
         return self.main_model_part.GetSubModelPart(self.settings["computing_model_part_name"].GetString())
@@ -355,7 +355,11 @@ class MechanicalSolver(object):
 
     def print_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
-        print(" ".join(map(str,args)))
+        KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
+        
+    def print_warning_on_rank_zero(self, *args):
+        # This function will be overridden in the trilinos-solvers
+        KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
 
     #### Private functions ####
 
@@ -373,9 +377,9 @@ class MechanicalSolver(object):
         # Import constitutive laws.
         materials_imported = self.import_constitutive_laws()
         if materials_imported:
-            self.print_on_rank_zero("    Constitutive law was successfully imported.")
+            self.print_on_rank_zero("::[MechanicalSolver]:: ", "Constitutive law was successfully imported.")
         else:
-            self.print_on_rank_zero("    Constitutive law was not imported.")
+            self.print_on_rank_zero("::[MechanicalSolver]:: ", "Constitutive law was not imported.")
 
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
