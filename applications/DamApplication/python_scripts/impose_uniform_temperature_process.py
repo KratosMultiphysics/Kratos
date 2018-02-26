@@ -15,7 +15,6 @@ class ImposeUniformTemperatureProcess(Process):
 
         Process.__init__(self)
         model_part = Model[settings["model_part_name"].GetString()]
-        self.components_process_list = []
  
         if settings["table"].GetInt() == 0:
             param = Parameters("{}")
@@ -26,20 +25,13 @@ class ImposeUniformTemperatureProcess(Process):
             param.AddValue("value",settings["value"])
             self.process = ApplyConstantScalarValueProcess(model_part, param) 
         else:
-            self.components_process_list = []
-            self.components_process_list.append(DamFixTemperatureConditionProcess(model_part, settings))
+            self.process = DamFixTemperatureConditionProcess(model_part, settings)
 
     def ExecuteInitialize(self):
-
-        for component in self.components_process_list:
-            component.ExecuteInitialize()
+        self.process.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-
-        for component in self.components_process_list:
-            component.ExecuteInitializeSolutionStep()
+        self.process.ExecuteInitializeSolutionStep()
             
     def ExecuteFinalizeSolutionStep(self):
-
-        for component in self.components_process_list:
-            component.ExecuteFinalizeSolutionStep()
+        self.process.ExecuteFinalizeSolutionStep()

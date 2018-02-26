@@ -25,7 +25,7 @@ class ImposeFaceHeatFluxProcess(Process):
                 t_uniform.AddEmptyValue("is_fixed").SetBool(False)
                 t_uniform.AddValue("variable_name",settings["variable_name"])
                 t_uniform.AddValue("value",settings["value"])
-                self.process = ApplyConstantScalarValueProcess(model_part, t_uniform) 
+                self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, t_uniform))
             else:
                 self.components_process_list.append(DamFixTemperatureConditionProcess(model_part, settings))
 
@@ -50,12 +50,9 @@ class ImposeFaceHeatFluxProcess(Process):
             self.components_process_list.append(DamTSolAirHeatFluxProcess(model_part, settings))
              
     def ExecuteInitialize(self):
-
         for component in self.components_process_list:
             component.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
-
         for component in self.components_process_list:
             component.ExecuteInitializeSolutionStep()
-
