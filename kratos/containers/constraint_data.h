@@ -216,14 +216,6 @@ class ConstraintEquationContainer
     ///@name Life Cycle
     ///@{
 
-     /**
-		Creates a MPC data object
-		*/
-/*     ConstraintEquationContainer() : mConstraintEquationsSet()
-    {
-    } */
-    /// Destructor.
-    //virtual ~ConstraintEquationContainer(){};
 
     ///@}
 
