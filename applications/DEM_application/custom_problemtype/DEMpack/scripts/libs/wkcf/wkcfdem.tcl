@@ -607,43 +607,23 @@ proc ::wkcf::WriteAppliedLoadsData {AppId} {
     }
 }
 
-
 proc ::wkcf::WriteBoundingBoxDefaults {fileid} {
-	if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-		puts $fileid "BoundingBoxMaxX                  =  10.0"
-		puts $fileid "BoundingBoxMaxY                  =  10.0"
-		puts $fileid "BoundingBoxMaxZ                  =  10.0"
-		puts $fileid "BoundingBoxMinX                  = -10.0"
-		puts $fileid "BoundingBoxMinY                  = -10.0"
-		puts $fileid "BoundingBoxMinZ                  = -10.0"
-	} else {
-		puts $fileid "BoundingBoxMaxX                  =  1.00000e+01"
-		puts $fileid "BoundingBoxMaxY                  =  1.00000e+01"
-		puts $fileid "BoundingBoxMaxZ                  =  1.00000e+01"
-		puts $fileid "BoundingBoxMinX                  = -1.00000e+01"
-		puts $fileid "BoundingBoxMinY                  = -1.00000e+01"
-		puts $fileid "BoundingBoxMinZ                  = -1.00000e+01"
-	}
+    puts $fileid "BoundingBoxMaxX                  =  10.0"
+    puts $fileid "BoundingBoxMaxY                  =  10.0"
+    puts $fileid "BoundingBoxMaxZ                  =  10.0"
+    puts $fileid "BoundingBoxMinX                  = -10.0"
+    puts $fileid "BoundingBoxMinY                  = -10.0"
+    puts $fileid "BoundingBoxMinZ                  = -10.0"
 }
 
 proc ::wkcf::WriteBoundingBoxDefaultsInJsonFile {fileid} {
-	if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-		puts $fileid "\"BoundingBoxMaxX\"                  : 10.0,"
-		puts $fileid "\"BoundingBoxMaxY\"                  : 10.0,"
-		puts $fileid "\"BoundingBoxMaxZ\"                  : 10.0,"
-		puts $fileid "\"BoundingBoxMinX\"                  : -10.0,"
-		puts $fileid "\"BoundingBoxMinY\"                  : -10.0,"
-		puts $fileid "\"BoundingBoxMinZ\"                  : -10.0,"
-	} else {
-		puts $fileid "\"BoundingBoxMaxX\"                  :  1.00000e+01,"
-		puts $fileid "\"BoundingBoxMaxY\"                  :  1.00000e+01,"
-		puts $fileid "\"BoundingBoxMaxZ\"                  :  1.00000e+01,"
-		puts $fileid "\"BoundingBoxMinX\"                  : -1.00000e+01,"
-		puts $fileid "\"BoundingBoxMinY\"                  : -1.00000e+01,"
-		puts $fileid "\"BoundingBoxMinZ\"                  : -1.00000e+01,"
-	}
+    puts $fileid "\"BoundingBoxMaxX\"                  : 10.0,"
+    puts $fileid "\"BoundingBoxMaxY\"                  : 10.0,"
+    puts $fileid "\"BoundingBoxMaxZ\"                  : 10.0,"
+    puts $fileid "\"BoundingBoxMinX\"                  : -10.0,"
+    puts $fileid "\"BoundingBoxMinY\"                  : -10.0,"
+    puts $fileid "\"BoundingBoxMinZ\"                  : -10.0,"
 }
-
 
 proc ::wkcf::WriteMatTestData {fileid} {
     global KPriv
@@ -1127,7 +1107,7 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
     puts $fileid "\"PostBoundingBox\"                  : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
 
     # Size distribution curve
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
     set cproperty "dv"
     set cxpath "DEM//c.DEM-Results//i.DEM-Granulometry"
     set granulometry_option [::xmlutils::setXml $cxpath $cproperty]
@@ -1163,7 +1143,7 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
     set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
     puts $fileid "\"PostRigidElementForces\"           : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
 
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	# PostExportSkinSphere
 	set PrintOrNot [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-SkinSphere" dv]
 	puts $fileid "\"PostSkinSphere\"                   : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
@@ -1284,12 +1264,12 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
     puts $fileid "\"PostNodalArea\"                    : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
 
     puts $fileid ""
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	# PostStressStrainOnSpheres
 	puts $fileid "\"PostStressStrainOption\"           : [::wkcf::TranslateToBinaryJson [::xmlutils::setXml $cxpathtoDEMresults//i.DEM-Stresses dv]],"
    }
 
-   if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+   if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
        # Write all Dem Bond Elem Properties
        set basexpath "DEM//c.DEM-Results//c.DEM-BondElem"
        set ilist [::xmlutils::setXmlContainerIds $basexpath "Item"]
@@ -2186,7 +2166,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     # Clean IndentationsOption
     set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CleanInitialIndentations"
     set CleanIndentationsOption [::xmlutils::setXml $cxpath $cproperty]
-    if {$KPriv(what_dempack_package) ne "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
 	puts $fileid "\"CleanIndentationsOption\"          : false,"
     } elseif {$CleanIndentationsOption == "Yes"} {
 	puts $fileid "\"CleanIndentationsOption\"          : true,"
@@ -2194,7 +2174,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	puts $fileid "\"CleanIndentationsOption\"          : false,"
     }
 
-    if {$KPriv(what_dempack_package) ne "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
 	# RemoveBallsInEmbedded
 	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RemoveBallsInEmbedded"
 	set RemoveBallsInEmbedded [::xmlutils::setXml $cxpath $cproperty]
@@ -2223,7 +2203,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	puts $fileid "\"CoordinationNumber\"               : $CoordNumber,"
     }
 
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	# Amplified Search Radius Extension
 	set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-NeighbourSearchAcceptedGap"
 	set AcceptedGap [::xmlutils::setXml $cxpath $cproperty]
@@ -2268,7 +2248,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 
 
     # Compute Stress Tensor
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {false} { ; #{$KPriv(what_dempack_package) eq "C-DEMPack"} {}
 	set tensor [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-ComputeStressTensorOption" "dv"]
 	if {$tensor eq "Yes"} {
 	    puts $fileid "\"ComputeStressTensorOption\"        : true,"
@@ -2278,7 +2258,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     }
 
     # Poisson Effect Option
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set pe [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-PoissonEffect" "dv"]
 	if {$pe eq "Yes"} {
 	    puts $fileid "\"PoissonEffectOption\"              : true,"
@@ -2288,7 +2268,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     }
     
     # Shear Strains Parallel To Bonds Effect Option
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set ssptb [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-ShearStrainParallelToBondEffect" "dv"]
 	if {$ssptb eq "Yes"} {          
 	    puts $fileid "\"ShearStrainParallelToBondOption\"  : true,"
@@ -2307,7 +2287,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     #puts $fileid "\"ComputeEnergiesOption\"            : $ceo"
 
     # Dont search until failure
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set io [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-DontSearchUntilFail" "dv"]
 	if {$io eq "Yes"} {
 	    puts $fileid "\"DontSearchUntilFailure\"           : true,"
@@ -2321,7 +2301,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     #puts $fileid "\"DontSearchUntilFailure\"           : \"$DSUF\""
 
     # Contact Mesh Option
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set CMO [::xmlutils::setXml "$rootid//c.DEM-Results//i.DEM-ShowBondElements" dv]
 	if {$CMO eq "Yes"} {
 	    puts $fileid "\"ContactMeshOption\"                : true,"
@@ -2409,7 +2389,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     puts $fileid "\"NeighbourSearchFrequency\"         : $FrecTime,"
 
     # Material Test Data #########################################################################################
-    if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set cproperty "dv"
 	set cxpath "DEM//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-MaterialTestActivate"
 	set material_option [::xmlutils::setXml $cxpath $cproperty]        
