@@ -55,10 +55,10 @@ class ConstraintEquation
         {
         }
         size_t MasterKey() { return mKey; }
-        double MasterWeight() { return mMasterWeight; }
+        double MasterWeight() const { return mMasterWeight; }
+        double& MasterWeight() { return mMasterWeight; }
         void UpdateWeight(double iWeight) { mMasterWeight += iWeight; }
         size_t MasterDofId() { return mId; }
-        void SetEquationId(size_t Id) { mEquationId = Id; }
         size_t MasterEqId() { return mEquationId; }
         void SetMasterEqId(size_t Id) { mEquationId = Id; }
 
@@ -69,6 +69,8 @@ class ConstraintEquation
         size_t mEquationId;
     };
     typedef MasterData::Pointer MasterDataPointerType;
+
+    // Custom hash function to store MasterData objects in a unordered_set
     struct MasterHasher
     {
         size_t
@@ -81,15 +83,13 @@ class ConstraintEquation
         }
     };
 
-    // Custom comparator that compares the string objects by length
+    // Custom comparator that compares the MasterData objects by their key and ID
     struct MasterComparator
     {
         bool
         operator()(const MasterDataPointerType &rObj1, const MasterDataPointerType &rObj2) const
         {
-            if ((rObj1->MasterDofId() == rObj2->MasterDofId()) && (rObj1->MasterKey() == rObj2->MasterKey()))
-                return true;
-            return false;
+            return (rObj1->MasterDofId() == rObj2->MasterDofId()) && (rObj1->MasterKey() == rObj2->MasterKey());
         }
     };
 
@@ -123,13 +123,13 @@ class ConstraintEquation
     // Add a master or update a master(if already present) to this slave given are the masterDofId, masterDofKey, weight
     void AddMaster(DofType const &rMasterDof, double Weight)
     {
-        MasterDataPointerType masterData = Kratos::make_shared<MasterData>(rMasterDof, Weight);
-        auto res = mMasterDataVector.find(masterData);
+        MasterDataPointerType master_data = Kratos::make_shared<MasterData>(rMasterDof, Weight);
+        auto res = mMasterDataVector.find(master_data);
         if (res != mMasterDataVector.end())
         {
             (*res)->UpdateWeight(Weight);
         } else {
-            mMasterDataVector.insert(masterData);
+            mMasterDataVector.insert(master_data);
         }
     }
 
@@ -248,7 +248,7 @@ class ConstraintEquationContainer
     ConstraintEquation &GetConstraintEquation(DofType &rSlaveDof)
     {
         //ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsSet.find(rSlaveDof);
+        auto res = mConstraintEquationsSet.find( Kratos::make_shared<ConstraintEquation>(rSlaveDof) );
         if (res != mConstraintEquationsSet.end())
         {
             return *(*res);
@@ -266,7 +266,7 @@ class ConstraintEquationContainer
     int GetNumberOfMasterDofsForSlave(DofType const &rSlaveDof)
     {
         //ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsSet.find(rSlaveDof);
+        auto res = mConstraintEquationsSet.find( Kratos::make_shared<ConstraintEquation>(rSlaveDof) );
         int numMasters = -1;
         if (res != mConstraintEquationsSet.end())
         {
@@ -291,7 +291,7 @@ class ConstraintEquationContainer
     // Takes in a slave dof and a master dof
     void AddConstraint(DofType const &rSlaveDof, DofType const &rMasterDof, double Weight, double Constant = 0.0)
     {
-        auto res = mConstraintEquationsSet.find(rSlaveDof);
+        auto res = mConstraintEquationsSet.find( Kratos::make_shared<ConstraintEquation>(rSlaveDof) );
         if (res != mConstraintEquationsSet.end())
         { // Equation already exists
             ((*res))->AddMaster(rMasterDof, Weight);

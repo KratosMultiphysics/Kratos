@@ -168,7 +168,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 int start_position_node_dofs = num_dofs_per_node * (j);
                 for (int i = 0; i < num_dofs_per_node; i++)
                 {
-                    if (this->GetData().GetNumbeOfMasterDofsForSlave(*(element_dofs[start_position_node_dofs + i])) > 0)
+                    if (this->GetData().GetNumberOfMasterDofsForSlave(*(element_dofs[start_position_node_dofs + i])) > 0)
                     {
                         auto &constraint_eq_data = this->GetData().GetConstraintEquation(*(element_dofs[start_position_node_dofs + i]));
                         for (auto &master_data : constraint_eq_data)
@@ -198,7 +198,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 int start_position_node_dofs = num_dofs_per_node * (j);
                 for (int i = 0; i < num_dofs_per_node; i++)
                 {
-                    if (this->GetData().GetNumbeOfMasterDofsForSlave(*(element_dofs[start_position_node_dofs + i])) > 0)
+                    if (this->GetData().GetNumberOfMasterDofsForSlave(*(element_dofs[start_position_node_dofs + i])) > 0)
                     {
                         auto &constraint_eq_data = this->GetData().GetConstraintEquation(*(element_dofs[start_position_node_dofs + i]));
 
@@ -291,7 +291,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         for (size_t i = 0; i < element_dofs.size(); ++i)
         {
             local_indices.push_back(i);
-            int num_masters = this->GetData().GetNumbeOfMasterDofsForSlave(*element_dofs[i]);
+            int num_masters = this->GetData().GetNumberOfMasterDofsForSlave(*element_dofs[i]);
 
             if (num_masters > 0)
             {
@@ -440,7 +440,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         for (size_t i = 0; i < element_dofs.size(); ++i)
         {
             local_indices.push_back(i);
-            int num_masters = this->GetData().GetNumbeOfMasterDofsForSlave(*element_dofs[i]);
+            int num_masters = this->GetData().GetNumberOfMasterDofsForSlave(*element_dofs[i]);
 
             if (num_masters > 0)
             {
