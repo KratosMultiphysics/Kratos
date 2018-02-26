@@ -55,3 +55,52 @@ SHAPE_FUNTION_VALUES_SLAVE
 SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE
 TANGENTS_SLAVE
 ```
+
+## Project parameter set up
+
+The application holds the possibility to specify special parameters for the geometrical interpretation. 
+The possible parameters are mentioned in the section:
+``` 
+"nurbs_geometry_configuration": {
+  ...
+}
+``` 
+
+### Description of integration domain
+```
+"integration_domain_parameter": {
+  "integration_scheme": "triangulation", //"AGIP"
+  "accuracy": 10e-8,
+  "number_of_projection_iterations": 100,
+  "integration_domains": {
+    "faces": true,
+    "faces_embedded": false,
+    "faces_reversed": false,
+    "edges": true,
+    "coupling_edges": true
+  }
+},
+```
+### Geometry refinement
+If it is wished to manually refine the geometries that were obtained from CAD those refinement operations can be specified in the following section. Here, either all patches or specific patches can be selected.
+The order of those operations is line-wise.
+```
+"refinement": [
+  {
+    "selection": "ALL", //"SELECTION"
+    // only if "SELECTION": "patch_id": [int, ...],
+    "parameters": {
+      "knot_insertions_u": [ int ... ],
+      "knot_insertions_v": [ 1, 2 ],
+      "multiply_knots_u": 4,
+      "multiply_knots_v": 4,
+      "max_element_size_u": 0.3,
+      "max_element_size_v": 0.3,
+      "order_elevation_p": 1,
+      "order_elevation_q": 1,
+      "min_order_p": 1,
+      "min_order_q": 1
+    }
+  }
+]
+```
