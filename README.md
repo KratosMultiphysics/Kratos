@@ -23,16 +23,16 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 Its main applications are:
 - [DEM](applications/DEM_application) for cohesive and non cohesive shperic and non spheric particles simultion
-- [Fluid Dynamics](applications/FluidDynamicsApplication) Provides 2D and 3D incompressible fluids formulation
-- [Fluid Structure Interaction](applications/FSIapplication) for solution of different FSI problems
-- [Structural Mechanics](applications/StructuralMechanicsApplication) Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
-- [Contact Structural Mechanics](applications/ContactStructuralMechanicsApplication) For contact problems used along the [Structural Mechanics application](applications/StructuralMechanicsApplication)
+- [Fluid Dynamics](applications/FluidDynamicsApplication/README.md) Provides 2D and 3D incompressible fluids formulation
+- [Fluid Structure Interaction](applications/FSIapplication/README.md) for solution of different FSI problems
+- [Structural Mechanics](applications/StructuralMechanicsApplication/README.md) Providing solution for solid, shell and beam structures with linear and nonlinear, static and dynamic behavior
+- [Contact Structural Mechanics](applications/ContactStructuralMechanicsApplication/README.md) For contact problems used along the [Structural Mechanics application](applications/StructuralMechanicsApplication/README.md)
 
 Some main modules are:
-- [External Solvers](applications/ExternalSolversApplication)
-- [Trilinos](applications/trilinos_application)
-- [Metis]()
-- [Meshing]()
+- [External Solvers](applications/ExternalSolversApplication/README.md)
+- [Trilinos](applications/trilinos_application/README.md)
+- [Metis](applications/metis_application/README.md)
+- [Meshing](applications/meshing_application/README.md)
 
 # Examples of use
 Kratos has been used for simulation of many different problems in a wid variaty of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
