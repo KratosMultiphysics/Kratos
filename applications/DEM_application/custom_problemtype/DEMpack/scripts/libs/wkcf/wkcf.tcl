@@ -1224,7 +1224,7 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
 		            set kelemtype [string trim ${KEKWord}${etbf}]
 
 		            if {[dict get [::wkcf::GetFluidMaterialProperties $AppId] "NonNewtonianFluid"] eq "Yes"} {
-		                set kelemtype "BinghamVMS3D"
+		                set kelemtype "HerschelBulkleyVMS3D"
 		            }
 		            
 		            #set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)

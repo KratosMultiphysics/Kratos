@@ -1218,9 +1218,10 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
 	puts $fileid "\"PostRollingResistanceMoment\"      : false,"
     }
     # PostCharacteristicLength
-    set PrintOrNot [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-CharacteristicLength" dv]
-    puts $fileid "\"PostCharacteristicLength\"         : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
-
+    if {$KPriv(what_dempack_package) ne "F-DEMPack"} {
+	set PrintOrNot [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-CharacteristicLength" dv]
+	puts $fileid "\"PostCharacteristicLength\"         : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
+    }
     puts $fileid ""
     # PostElasticForces
     set cxpath "$cxpathtoDEMresults//i.DEM-ElasForces"
@@ -1411,17 +1412,16 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
 	puts $fileid "\"print_PRESSURE_GRADIENT_option\"             : [::wkcf::TranslateToBinaryJson $PrintOrNot],"        
 	set cxpath "$cxpathtoFLUIDresults//i.Fluid-SolidFraction"
 	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "\"print_DISPERSE_FRACTION_option\"                : [::wkcf::TranslateToBinaryJson $PrintOrNot],"        
-    set cxpath "$cxpathtoFLUIDresults//i.Fluid-MeanHydroReaction"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "\"print_MEAN_HYDRODYNAMIC_REACTION_option\"    : [::wkcf::TranslateToBinaryJson $PrintOrNot],"        
+	puts $fileid "\"print_DISPERSE_FRACTION_option\"             : [::wkcf::TranslateToBinaryJson $PrintOrNot],"        
+	set cxpath "$cxpathtoFLUIDresults//i.Fluid-MeanHydroReaction"
+	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
+	puts $fileid "\"print_MEAN_HYDRODYNAMIC_REACTION_option\"    : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
 	set cxpath "$cxpathtoFLUIDresults//i.Fluid-VelocityLaplacian"
 	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
 	puts $fileid "\"print_VELOCITY_LAPLACIAN_option\"            : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
 	set cxpath "$cxpathtoFLUIDresults//i.Fluid-VelocityLaplacianRate"
 	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
 	puts $fileid "\"print_VELOCITY_LAPLACIAN_RATE_option\"       : [::wkcf::TranslateToBinaryJson $PrintOrNot],"                        
-	puts $fileid ""
 
 	# SWIMMING-SPECIFIC SECTION ENDS ###########################################################################
     }
@@ -2241,11 +2241,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     }
     
     # Global Damping
-    #set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-GlobalDamping"
-    #set gd [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-GlobalDamping" dv]
     puts $fileid "\"GlobalDamping\"                    : [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-GlobalDamping" dv],"
-
-
 
     # Compute Stress Tensor
     if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
@@ -2479,11 +2475,16 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     } else {
 	puts $fileid "\"pick_individual_forces_option\"          : false,"
     }
-    
-    if {$include_faxen_terms_option} {
-	puts $fileid "\"include_faxen_terms_option\"          : true,"
+    set SearchNeighboursOption [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-Physical-opts//i.SearchNeighboursOption" dv]
+    if {$SearchNeighboursOption == "Yes"} {
+	puts $fileid "\"do_search_neighbours\"                   : true,"
     } else {
-	puts $fileid "\"include_faxen_terms_option\"          : false,"
+	puts $fileid "\"do_search_neighbours\"                   : false,"
+    }
+    if {$include_faxen_terms_option} {
+	puts $fileid "\"include_faxen_terms_option\"             : true,"
+    } else {
+	puts $fileid "\"include_faxen_terms_option\"             : false,"
     }
     puts $fileid "\"include_faxen_terms_option_comment\"     : \"(relevant if the Maxey Riley equation is used)\","
     
@@ -2502,7 +2503,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     puts $fileid "\"virtual_mass_force_type_comment\"        : \"null virtual mass force (0)\","
     
     puts $fileid "\"lift_force_type\"                        : $lift_force_type,"
-    puts $fileid "\"lift_force_type_comment\"                        : \"# null lift force (0), Saffman (1)\","
+    puts $fileid "\"lift_force_type_comment\"                : \"# null lift force (0), Saffman (1)\","
     
     puts $fileid "\"magnus_force_type\"                      : $magnus_force_type,"
     puts $fileid "\"magnus_force_type_comment\"              : \" null magnus force (0), Rubinow and Keller (1), Oesterle and Bui Dihn (2)\","
@@ -2557,7 +2558,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	puts $fileid "\"print_particles_results_cycle_comment\"  : \" number of 'ticks' per printing cycle\","
 	
 	puts $fileid "\"debug_tool_cycle\"                       : 10," 
-	puts $fileid "\"debug_tool_cycle_comment\"                       : \" number of 'ticks' per debug computations cycle\","
+	puts $fileid "\"debug_tool_cycle_comment\"               : \" number of 'ticks' per debug computations cycle\","
 	
 	puts $fileid "\"similarity_transformation_type\"         : 0," 
 	puts $fileid "\"similarity_transformation_type_comment\" : \" no transformation (0), Tsuji (1)\","
@@ -2587,8 +2588,16 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 	puts $fileid "\"meso_scale_length\"                      : 0.2," 
 	puts $fileid "\"meso_scale_length_comment\"              : \" the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)\","
 	
-	puts $fileid "\"shape_factor\"                           : 0.5," 
-	puts $fileid ""
+	puts $fileid "\"shape_factor\"                           : 0.5,"
+	if {[dict get [::wkcf::GetFluidMaterialProperties "Fluid"] "NonNewtonianFluid"] eq "No"} {
+	    puts $fileid "\"non_newtonian_option\"                   : false,"
+	} else {
+	    puts $fileid "\"non_newtonian_option\"                   : true,"
+	    puts $fileid "\"yield_stress\"                           : [dict get [::wkcf::GetFluidMaterialProperties "Fluid"] "YieldStress"],"
+	    puts $fileid "\"regularization_coefficient\"             : [dict get [::wkcf::GetFluidMaterialProperties "Fluid"] "BinghamSmoother"],"
+	    puts $fileid "\"power_law_k\"                            : [dict get [::wkcf::GetFluidMaterialProperties "Fluid"] "PowerLawK"],"
+	    puts $fileid "\"power_law_n\"                            : [dict get [::wkcf::GetFluidMaterialProperties "Fluid"] "PowerLawN"],"
+	}
     }
     # SWIMMING-SPECIFIC SECTION ENDS ###########################################################################
 
