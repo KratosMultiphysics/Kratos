@@ -168,9 +168,9 @@ class ConstraintEquation
  * 
  *  These constraint equations are of the form :
  *  
- *  slaveDOF = w_1*masterDOF_1 + w_2*masterDOF_2 + ..... + w_n*masterDOF_n
+ *  slaveDOF = w_1*masterDOF_1 + w_2*masterDOF_2 + ..... + w_n*masterDOF_n + c
  * 
- *  It contains a boost multi index which will allow to access the constraint equations stored either with (dofID , dofKEY) pair or equationID of the slaveDOF.
+ *  It contains a data structure which will allow to access the constraint equations stored either with slaveDOF itself or equationID of the slaveDOF.
  *  This class also provides interface to access the data of the constraint equations.
  *  
  */
@@ -247,8 +247,8 @@ class ConstraintEquationContainer
 		*/
     ConstraintEquation &GetConstraintEquation(DofType &rSlaveDof)
     {
-        ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsSet.find(equation);
+        //ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
+        auto res = mConstraintEquationsSet.find(rSlaveDof);
         if (res != mConstraintEquationsSet.end())
         {
             return *(*res);
@@ -265,8 +265,8 @@ class ConstraintEquationContainer
 		 */
     int GetNumberOfMasterDofsForSlave(DofType const &rSlaveDof)
     {
-        ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsSet.find(equation);
+        //ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
+        auto res = mConstraintEquationsSet.find(rSlaveDof);
         int numMasters = -1;
         if (res != mConstraintEquationsSet.end())
         {
@@ -291,12 +291,12 @@ class ConstraintEquationContainer
     // Takes in a slave dof and a master dof
     void AddConstraint(DofType const &rSlaveDof, DofType const &rMasterDof, double Weight, double Constant = 0.0)
     {
-        ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsSet.find(equation);
+        auto res = mConstraintEquationsSet.find(rSlaveDof);
         if (res != mConstraintEquationsSet.end())
         { // Equation already exists
             ((*res))->AddMaster(rMasterDof, Weight);
         } else {
+            ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);            
             equation->AddMaster(rMasterDof, Weight);
             equation->SetConstant(Constant);
             mConstraintEquationsSet.insert(equation);
