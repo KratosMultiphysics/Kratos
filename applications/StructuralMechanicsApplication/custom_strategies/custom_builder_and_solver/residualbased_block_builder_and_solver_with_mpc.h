@@ -9,7 +9,7 @@
 //
 //  Main authors:    Aditya Ghantasala / Navaneeth K Narayanan
 //
-//  The modification of the element matrices follows the algorithm described in 
+//  The modification of the element matrices follows the algorithm described in
 //  "AN ALGQRITHM FOR MULTIPOINT CONSTRAINTS IN FINITE ELEMENT ANALYSIS"
 //   by John F. Abel and Mark S. Shephard
 //
@@ -556,7 +556,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                             ProcessInfo &CurrentProcessInfo)
     {
 
-                KRATOS_TRY
+        KRATOS_TRY
         bool slaveFound = false;
         Element::NodesArrayType nodesArray = rCurrentElement->GetGeometry();
         const unsigned int number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
@@ -678,7 +678,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 for (auto localInternEqId : localInternEquationIds)
                                 { // Loop over all the local equation ids
                                     LHS_Contribution(localInternEqId, localMasterEqId) += LHS_Contribution(localInternEqId, localSlaveEqId) * masterI.second;
-                                } // Loop over all the local equation ids                                
+                                } // Loop over all the local equation ids
                                 if (!(mpcData->IsWeak()))
                                 {
                                     // Kmu = Kmu + A'*Ksu
@@ -690,7 +690,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 // Adding the master to the EFT
                                 EquationId.push_back(masterI.first);
                                 if (!(mpcData->IsWeak()))
-                                {   
+                                {
                                     // RHSm = RHSm + A'*RHSs
                                     RHS_Contribution(localMasterEqId) = RHS_Contribution(localMasterEqId) + masterI.second * RHS_Contribution(localSlaveEqId);
                                     localMasterEquationIds.push_back(localMasterEqId);
@@ -726,6 +726,17 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                         LHS_Contribution(localInternEqId, localSlaveEqId) = 0.0;
                     }
                 }
+
+                for (auto localSlaveEqId : localSlaveEquationIds)
+                { // Loop over all the slaves for this node
+                    for (auto localSlaveEqIdOther : localSlaveEquationIds)
+                    { // Loop over all the slaves for this node
+                        // Kss = I
+                        LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 0.0;
+                        if (localSlaveEqId == localSlaveEqIdOther)
+                            LHS_Contribution(localSlaveEqId, localSlaveEqIdOther) = 1.0;
+                    }
+                }
             }
         }
         KRATOS_CATCH("Applying Multipoint constraints failed ..");
@@ -738,7 +749,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                               ProcessInfo &CurrentProcessInfo)
     {
 
-                KRATOS_TRY
+        KRATOS_TRY
         bool slaveFound = false;
         Element::NodesArrayType nodesArray = rCurrentElement->GetGeometry();
         const unsigned int number_of_nodes = rCurrentElement->GetGeometry().PointsNumber();
@@ -860,7 +871,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 for (auto localInternEqId : localInternEquationIds)
                                 { // Loop over all the local equation ids
                                     LHS_Contribution(localInternEqId, localMasterEqId) += LHS_Contribution(localInternEqId, localSlaveEqId) * masterI.second;
-                                } // Loop over all the local equation ids                                
+                                } // Loop over all the local equation ids
                                 if (!(mpcData->IsWeak()))
                                 {
                                     // Kmu = Kmu + A'*Ksu
@@ -872,7 +883,7 @@ class ResidualBasedBlockBuilderAndSolverWithMpc
                                 // Adding the master to the EFT
                                 EquationId.push_back(masterI.first);
                                 if (!(mpcData->IsWeak()))
-                                {   
+                                {
                                     // RHSm = RHSm + A'*RHSs
                                     RHS_Contribution(localMasterEqId) = RHS_Contribution(localMasterEqId) + masterI.second * RHS_Contribution(localSlaveEqId);
                                     localMasterEquationIds.push_back(localMasterEqId);
