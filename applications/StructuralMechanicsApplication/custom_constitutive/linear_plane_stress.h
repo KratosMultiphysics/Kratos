@@ -244,13 +244,16 @@ private:
     {
         //1.-Compute total deformation gradient
         const Matrix& F = rValues.GetDeformationGradientF();
-        Matrix Etensor = prod(trans(F),F);
 
         // for shells/membranes in case the DeformationGradient is of size 3x3
-        if (Etensor.size1() != 2 || Etensor.size2() != 2)
-            Etensor.resize(2,2,true); // preserve existing elements
+        bounded_matrix<double, 2, 2> F2x2;
+        for (unsigned int i=0; i<2; ++i)
+            for (unsigned int j=0; j<2; ++j)
+                F2x2(i,j) = F(i,j);
 
-        for(unsigned int i=0; i<2; ++i)
+        Matrix Etensor = prod(trans(F2x2),F2x2);
+
+        for (unsigned int i=0; i<2; ++i)
             Etensor(i,i) -= 1.0;
 
         Etensor *= 0.5;
