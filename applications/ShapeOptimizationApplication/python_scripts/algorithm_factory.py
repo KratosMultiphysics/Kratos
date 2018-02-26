@@ -18,19 +18,34 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
+# Additional imports
 from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
+import mapper_factory
+import data_logger_factory
 
 # ==============================================================================
-def CreateAlgorithm( designSurface, listOfDampingRegions, analyzer, mapper, communicator, optimizationSettings ):
+def CreateAlgorithm( ModelPartController, Analyzer, Communicator, OptimizationSettings ):
+    AlgorithmName = OptimizationSettings["optimization_algorithm"]["name"].GetString()
 
-    optimizationAlgorithm = optimizationSettings["optimization_algorithm"]["name"].GetString()
+    Mapper = mapper_factory.CreateMapper( ModelPartController, OptimizationSettings ) 
+    DataLogger = data_logger_factory.CreateDataLogger( ModelPartController, Communicator, OptimizationSettings )  
 
-    if optimizationAlgorithm == "steepest_descent":
-        return AlgorithmSteepestDescent( designSurface, listOfDampingRegions, analyzer, mapper, communicator, optimizationSettings )
-    elif optimizationAlgorithm == "penalized_projection":
-        return AlgorithmPenalizedProjection( designSurface, listOfDampingRegions, analyzer, mapper, communicator, optimizationSettings )  
+    if OptimizationSettings["optimization_algorithm"]["name"].GetString() == "steepest_descent":
+        return AlgorithmSteepestDescent( ModelPartController, 
+                                         Analyzer, 
+                                         Communicator, 
+                                         Mapper, 
+                                         DataLogger, 
+                                         OptimizationSettings )
+    elif AlgorithmName == "penalized_projection":
+        return AlgorithmPenalizedProjection( ModelPartController, 
+                                             Analyzer, 
+                                             Communicator, 
+                                             Mapper, 
+                                             DataLogger, 
+                                             OptimizationSettings )
     else:
-        raise NameError("The following optimization algorithm not supported by the algorithm driver (name may be misspelled): " + optimizationAlgorithm)              
+        raise NameError("The following optimization algorithm not supported by the algorithm driver (name may be misspelled): " + AlgorithmName)              
 
 # # ==============================================================================

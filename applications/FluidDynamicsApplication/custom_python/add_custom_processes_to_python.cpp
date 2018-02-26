@@ -31,6 +31,7 @@
 #include "custom_processes/boussinesq_force_process.h"
 #include "custom_processes/embedded_nodes_initialization_process.h"
 #include "custom_processes/embedded_postprocess_process.h"
+#include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/move_rotor_process.h"
 #include "spaces/ublas_space.h"
 
@@ -73,16 +74,28 @@ void AddCustomProcessesToPython()
     ;
 
     class_< DistanceModificationProcess, bases<Process>, boost::noncopyable >
-    ("DistanceModificationProcess",init < ModelPart&, const bool, const bool >())
+    ("DistanceModificationProcess",init < ModelPart&, const double, const double, const bool, const bool, const bool >())
+    .def(init< ModelPart&, Parameters& >())
     ;
 
     class_< EmbeddedNodesInitializationProcess, bases<Process>, boost::noncopyable >
     ("EmbeddedNodesInitializationProcess",init < ModelPart&, unsigned int >())
     ;
 
-
     class_< EmbeddedPostprocessProcess, bases<Process>, boost::noncopyable >
     ("EmbeddedPostprocessProcess",init < ModelPart& >())
+    ;
+
+    class_< EmbeddedSkinVisualizationProcess, bases<Process>, boost::noncopyable >
+    ("EmbeddedSkinVisualizationProcess",init < 
+        ModelPart&, 
+        ModelPart&, 
+        const std::vector<Variable <double> >, 
+        const std::vector<Variable< array_1d<double, 3> > >, 
+        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >, 
+        std::string, 
+        const bool >())
+    .def(init< ModelPart&, ModelPart&, Parameters& >())
     ;
 
     class_< MoveRotorProcess, bases<Process>, boost::noncopyable >

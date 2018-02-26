@@ -104,9 +104,24 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         #gid_output.ExecuteFinalizeSolutionStep()
         #gid_output.ExecuteFinalize()  
         
-        import filecmp 
-        value = filecmp.cmp(file_path + "/mmg_eulerian_test/coarse_sphere_test_result.mesh", file_path + "/mmg_eulerian_test/coarse_sphere_test_step=0.o.mesh")
-        self.assertTrue(value)
+        from compare_two_files_check_process import CompareTwoFilesCheckProcess
+        check_files = CompareTwoFilesCheckProcess(main_model_part, KratosMultiphysics.Parameters("""
+                            {
+                                "file_name_1"            : "mmg_eulerian_test/coarse_sphere_test_step=0.sol",
+                                "file_name_2"            : "mmg_eulerian_test/coarse_sphere_test_result.sol",
+                                "deterministic"          : false,
+                                "error_assumed"          : 1.0e-6,
+                                "dimension"              : 3,
+                                "non_deterministic_comp" : "sol_file"
+                            }
+                            """) 
+                            )
+        
+        check_files.ExecuteInitialize()
+        check_files.ExecuteBeforeSolutionLoop()
+        check_files.ExecuteInitializeSolutionStep()
+        check_files.ExecuteFinalizeSolutionStep()
+        check_files.ExecuteFinalize()  
         
 if __name__ == '__main__':
     KratosUnittest.main()

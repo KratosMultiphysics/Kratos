@@ -111,7 +111,7 @@ public:
     ///@name Operations
     ///@{
 
-    Geometry<Node<3>>* pGetBase()
+    Geometry<Node<3>>* pGetBaseGeometry() override
     {
         return mpGeometry;
     }
@@ -351,12 +351,12 @@ private:
 
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const 
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);
     }
-    virtual void load(Serializer& rSerializer) 
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;        
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, InterfaceObject);

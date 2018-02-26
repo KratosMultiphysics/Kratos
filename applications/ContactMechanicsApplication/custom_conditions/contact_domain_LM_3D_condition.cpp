@@ -603,7 +603,10 @@ namespace Kratos
     //A_n-1, B_n-1, L_n-1:
     std::vector<BaseLengths> PreviousBase(3);
     mContactUtilities.CalculateEdgeDistances(PreviousBase,P1,P2,PS1,PS2,mContactVariables.PreStepSurface.Normal);
-    double EquivalentArea = 0.5 * norm_2( MathUtils<double>::CrossProduct(mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.Tangent.CovariantBase.DirectionB) ); 
+
+    PointType NormalDirection;
+    MathUtils<double>::CrossProduct(NormalDirection, mContactVariables.Tangent.CovariantBase.DirectionA,mContactVariables.Tangent.CovariantBase.DirectionB);
+    double EquivalentArea = 0.5 * norm_2( NormalDirection ); 
     double FactorArea = 0.25 * (PreviousBase[0].L + PreviousBase[1].L) * (PreviousBase[0].L + PreviousBase[1].L);
     
     //complete the computation of the stabilization gap
@@ -765,7 +768,7 @@ namespace Kratos
   //********************************CALCULATE EXPLICIT MULTIPLIERS**********************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateExplicitFactors(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainLM3DCondition::CalculateExplicitFactors(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
   {
 
     // std::cout<<" Master Nodes "<<GetValue(MASTER_NODES).size()<<std::endl;
@@ -785,8 +788,7 @@ namespace Kratos
     //std::cout<<" Order ("<<mContactVariables.order[0]<<" "<<mContactVariables.order[1]<<" "<<mContactVariables.order[2]<<" "<<mContactVariables.order[3]<<")"<<std::endl;
 
     // std::cout<<" Slaves ("<<GetValue(MASTER_NODES).front().Id()<<" "<<GetValue(MASTER_NODES).back().Id()<<") ["<<mContactVariables.slaves[0]<<" "<<mContactVariables.slaves[1]<<"]"<<std::endl;
-
-    
+  
 
     if( this->Is(SELECTED) )
       CalculateExplicitFactorsEdgeType(rVariables, rCurrentProcessInfo); 
@@ -807,9 +809,9 @@ namespace Kratos
 
 
     // if(rVariables.Contact.Options.Is(ACTIVE))
-    //   std::cout<<" ELEMENT ACTIVE "<<std::endl;
+    //   std::cout<<"["<<this->Id()<<"] ELEMENT ACTIVE "<<std::endl;
     // else
-    //   std::cout<<" ELEMENT NOT ACTIVE "<<std::endl;
+    //   std::cout<<"["<<this->Id()<<"] ELEMENT NOT ACTIVE "<<std::endl;
 
       
     if(mContactVariables.IterationCounter < 1)
@@ -820,7 +822,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainLM3DCondition::CalculateExplicitFactorsFaceType(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
   {
 
     //Contact face node1-node2-node3
@@ -1158,7 +1160,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+  void ContactDomainLM3DCondition::CalculateExplicitFactorsEdgeType(ConditionVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
   {
 
     //Contact face node1-node2-node3
@@ -1234,7 +1236,9 @@ namespace Kratos
 
     //a, b, l:
     mContactUtilities.CalculateEdgeDistances(rVariables.Contact.CurrentBase,P1,P2,PS1,PS2,rVariables.Contact.CurrentSurface.Normal);
-    rVariables.Contact.Tangent.CurrentArea = 0.5 * norm_2(MathUtils<double>::CrossProduct(rVariables.Contact.Tangent.CovariantBase.DirectionA,rVariables.Contact.Tangent.CovariantBase.DirectionB) );
+    PointType NormalDirection;
+    MathUtils<double>::CrossProduct( NormalDirection, rVariables.Contact.Tangent.CovariantBase.DirectionA,rVariables.Contact.Tangent.CovariantBase.DirectionB);
+    rVariables.Contact.Tangent.CurrentArea = 0.5 * norm_2(NormalDirection);
 
     
     //A, B, L:
@@ -1251,7 +1255,9 @@ namespace Kratos
     PointType V1 = P2 - P1;
     PointType V2 = PS2 - PS1;
 
-    rVariables.Contact.Tangent.ReferenceArea = 0.5 * norm_2(MathUtils<double>::CrossProduct(V1,V2) );
+    PointType V3;
+    MathUtils<double>::CrossProduct(V3,V1,V2);
+    rVariables.Contact.Tangent.ReferenceArea = 0.5 * norm_2(V3);
 
 
     rVariables.Contact.Tangent.FactorArea = 0.25 * (rVariables.Contact.ReferenceBase[0].L + rVariables.Contact.ReferenceBase[1].L) * (rVariables.Contact.ReferenceBase[0].L + rVariables.Contact.ReferenceBase[1].L);
@@ -1505,7 +1511,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainLM3DCondition::CalculateDomainShapeN(GeneralVariables& rVariables)
+  void ContactDomainLM3DCondition::CalculateDomainShapeN(ConditionVariables& rVariables)
   {
 
     unsigned int ndi,ndj,ndk,ndl,ndm,ndn;
@@ -1719,7 +1725,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn)
+  void ContactDomainLM3DCondition::FSigmaP(ConditionVariables& rVariables, std::vector<Vector > &rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndl,unsigned int &ndm,unsigned int &ndn)
   {
     if( this->Is(SELECTED) ){
 
@@ -1767,7 +1773,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainLM3DCondition::FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj)
+  void ContactDomainLM3DCondition::FSigmaPnd(ConditionVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj)
   {
     //Computation with the ndi and storage to ndj
     rSigmaP[ndj].resize(3);
@@ -1957,7 +1963,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateNormalForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  void ContactDomainLM3DCondition::CalculateNormalForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {    
     KRATOS_TRY
 
@@ -1970,7 +1976,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainLM3DCondition::CalculateTangentStickForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  void ContactDomainLM3DCondition::CalculateTangentStickForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {
     KRATOS_TRY
 
@@ -1998,7 +2004,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void ContactDomainLM3DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
+  void ContactDomainLM3DCondition::CalculateTangentSlipForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
   {
     KRATOS_TRY
          
@@ -2025,7 +2031,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateContactStiffness (double &Kcont,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+  void ContactDomainLM3DCondition::CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
   {
     KRATOS_TRY
       
@@ -2203,7 +2209,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  inline bool ContactDomainLM3DCondition::CheckFictiousContacts(GeneralVariables& rVariables)
+  inline bool ContactDomainLM3DCondition::CheckFictiousContacts(ConditionVariables& rVariables)
   {
     KRATOS_TRY
 

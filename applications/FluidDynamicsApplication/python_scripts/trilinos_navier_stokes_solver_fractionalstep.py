@@ -1,23 +1,30 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-## Importing the Kratos Library
+
+# Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.MetisApplication as KratosMetis
-import KratosMultiphysics.TrilinosApplication as KratosTrilinos
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
 
-## Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
 
-## Import base class file
+# Import applications
+import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
+import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
+import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dynamics application
+
+# Import base class file
 import navier_stokes_solver_fractionalstep
 
 def CreateSolver(main_model_part, custom_settings):
-    return Trilinos_NavierStokesSolver_FractionalStep(main_model_part, custom_settings)
+    return TrilinosNavierStokesSolverFractionalStep(main_model_part, custom_settings)
 
-class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolver_FractionalStep):
+class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolverFractionalStep):
 
     def __init__(self, main_model_part, custom_settings):
+
+        self.element_name = "FractionalStep"
+        self.condition_name = "WallCondition"
+        self.min_buffer_size = 3
 
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
@@ -25,7 +32,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         ## Default settings string in Json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "trilinos_navier_stokes_solver_fractionalstep",
+            "solver_type": "FractionalStep",
             "model_import_settings": {
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
@@ -41,9 +48,8 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
-            "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": false,
-            "pressure_linear_solver_settings":  {
+            "pressure_linear_solver_settings": {
                 "solver_type"                        : "MultiLevelSolver",
                 "max_iteration"                      : 200,
                 "tolerance"                          : 1e-6,
@@ -78,73 +84,61 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
-        self.compute_reactions = self.settings["compute_reactions"].GetBool()
-
         ## Construct the linear solvers
         import trilinos_linear_solver_factory
-        self.settings["pressure_linear_solver_settings"].PrettyPrintJsonString()
         self.pressure_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["pressure_linear_solver_settings"])
         self.velocity_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["velocity_linear_solver_settings"])
 
-        ## Set the element replace settings
-        if main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            default_element = "FractionalStep2D3N"
-            default_condition =  "WallCondition2D2N"
-        elif main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
-            default_element = "FractionalStep3D4N"
-            default_condition =  "WallCondition3D3N"
-        else:
-            Msg = 'Trilinos_NavierStokesSolver_FractionalStep Error:\n'
-            Msg+= 'Unsupported number of dimensions: {0}\n'.format(main_model_part.ProcessInfo[DOMAIN_SIZE])
-            raise Exception(Msg)
+        self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
-        self.settings.AddEmptyValue("element_replace_settings")
-        self.settings["element_replace_settings"].AddEmptyValue("element_name")
-        self.settings["element_replace_settings"]["element_name"].SetString(default_element)
-        self.settings["element_replace_settings"].AddEmptyValue("condition_name")
-        self.settings["element_replace_settings"]["condition_name"].SetString(default_condition)
-
-        print("Construction of Trilinos_NavierStokesSolver_FractionalStep finished")
+        if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            print("Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
 
 
     def AddVariables(self):
         ## Add variables from the base class
-        super(Trilinos_NavierStokesSolver_FractionalStep, self).AddVariables()
+        super(TrilinosNavierStokesSolverFractionalStep, self).AddVariables()
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         KratosMPI.mpi.world.barrier()
 
         if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             print("variables for the trilinos fractional step solver added correctly")
 
 
     def ImportModelPart(self):
+
         ## Construct the Trilinos import model part utility
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-
         ## Execute the Metis partitioning and reading
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
-
-        ## Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(Trilinos_NavierStokesSolver_FractionalStep, self)._ExecuteAfterReading()
-
+        ## Replace default elements and conditions
+        super(TrilinosNavierStokesSolverFractionalStep, self)._replace_elements_and_conditions()
+        ## Executes the check and prepare model process
+        super(TrilinosNavierStokesSolverFractionalStep, self)._execute_check_and_prepare()
         ## Call the base class set buffer size
-        super(Trilinos_NavierStokesSolver_FractionalStep, self)._SetBufferSize()
-
-        ## Construct the communicators
+        super(TrilinosNavierStokesSolverFractionalStep, self)._set_buffer_size()
+        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
+        super(TrilinosNavierStokesSolverFractionalStep, self)._set_physical_properties()
+        ## Construct Trilinos the communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
-        print ("MPI model reading finished.")
+        if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            print ("MPI model reading finished.")
 
 
     def AddDofs(self):
         ## Base class DOFs addition
-        super(Trilinos_NavierStokesSolver_FractionalStep, self).AddDofs()
+        super(TrilinosNavierStokesSolverFractionalStep, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
         if KratosMPI.mpi.rank == 0:
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             print("DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
 
@@ -157,7 +151,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
 
         ## If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
@@ -202,11 +196,6 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         (self.solver).Initialize()
         (self.solver).Check()
 
-        print ("Initialization Trilinos_NavierStokesSolver_FractionalStep Finished")
-
-
-    def Solve(self):
-        (self.solver).Solve()
-
-        if self.compute_reactions:
-            self.solver.CalculateReactions()
+        if (KratosMPI.mpi.rank == 0):
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            print ("Initialization TrilinosNavierStokesSolverFractionalStep finished")

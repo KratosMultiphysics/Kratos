@@ -23,15 +23,15 @@ CheckForPreviousImport()
 class DesignLogger:
 
     # --------------------------------------------------------------------------
-    def initializeLogging( self ):
-        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> initializeLogging << .")
+    def InitializeLogging( self ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> InitializeLogging << .")
 
     # --------------------------------------------------------------------------
-    def logCurrentDesign( self, optimizationIteration ):
-        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> logCurrentDesign << .")
+    def LogCurrentDesign( self, optimizationIteration ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> LogCurrentDesign << .")
 
     #---------------------------------------------------------------------------
-    def finalizeLogging( self ):
-        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> finalizeLogging << .")
+    def FinalizeLogging( self ):
+        raise RuntimeError("Design logger base class is called. Please check your implementation of the function >> FinalizeLogging << .")
 
 # ==============================================================================

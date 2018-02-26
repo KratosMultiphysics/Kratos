@@ -94,17 +94,17 @@ namespace Kratos
     //**************************************************************************
 
 
-    void NodalErrorCalculation(ModelPart& rModelPart,std::vector<double>& rNodalError,std::vector<int>& rIds,unsigned int MeshId,const Variable<double> &rVariable)
+    void NodalErrorCalculation(ModelPart& rModelPart,std::vector<double>& rNodalError,std::vector<int>& rIds,const Variable<double> &rVariable)
     {
       KRATOS_TRY
 
       std::vector<double> ElementalError;
       std::vector<int>    elems_ids;
 
-      ElementalErrorCalculation(rModelPart,ElementalError,elems_ids,MeshId,rVariable);
+      ElementalErrorCalculation(rModelPart,ElementalError,elems_ids,rVariable);
 
       if( !rNodalError.size() )
-	rNodalError.resize(rModelPart.NumberOfNodes(MeshId)+1);
+	rNodalError.resize(rModelPart.NumberOfNodes()+1);
 
       std::fill( rNodalError.begin(), rNodalError.end(), 100 );
       
@@ -116,7 +116,7 @@ namespace Kratos
       double NodalMeanError  = 0;
     
       int id=1;
-      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(MeshId) ; in != rModelPart.NodesEnd(MeshId) ; in++)
+      for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin() ; in != rModelPart.NodesEnd() ; in++)
 	{
 	  if( in->IsNot(NEW_ENTITY) ){// && in->IsNot(STRUCTURE)){ 
 
@@ -152,7 +152,7 @@ namespace Kratos
     //**************************************************************************
 
 
-    void ElementalErrorCalculation(ModelPart& rModelPart,std::vector<double>& rElementalError,std::vector<int>& rIds,unsigned int MeshId,const Variable<double> rVariable)
+    void ElementalErrorCalculation(ModelPart& rModelPart,std::vector<double>& rElementalError,std::vector<int>& rIds,const Variable<double> rVariable)
     {
       KRATOS_TRY
 
@@ -172,7 +172,7 @@ namespace Kratos
       std::vector<double> Value(1);
 
       unsigned int id=1;
-      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
+      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ie++)
 	{   		   
 	  (ie)->GetValueOnIntegrationPoints(rVariable,Value,CurrentProcessInfo);
 	   
@@ -192,7 +192,7 @@ namespace Kratos
 	}
 
 
-      std::vector<double> NodalError(rModelPart.NumberOfNodes(MeshId)+1);
+      std::vector<double> NodalError(rModelPart.NumberOfNodes()+1);
       std::fill( NodalError.begin(), NodalError.end(), 0 );
 
       std::vector<int> nodes_ids (ModelerUtilities::GetMaxNodeId(rModelPart)+1); //mesh 0
@@ -205,7 +205,7 @@ namespace Kratos
       double Error = 0;
   
       id=1;
-      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++)
+      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); in++)
 	{
 
 	  if(in->IsNot(NEW_ENTITY) ){// && in->IsNot(STRUCTURE)){
@@ -270,7 +270,7 @@ namespace Kratos
 	  std::cout<<"   Variable errors ( MinVar= "<<VariableMin<<", MaxVar= "<<VariableMax<<" )"<<std::endl;
 
 	id=1;
-	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(MeshId); ie != rModelPart.ElementsEnd(MeshId); ie++)
+	for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin(); ie != rModelPart.ElementsEnd(); ie++)
 	  {
 
 	    PointsArrayType& vertices=ie->GetGeometry().Points();

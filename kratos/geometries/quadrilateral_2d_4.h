@@ -24,6 +24,7 @@
 
 // Project includes
 #include "geometries/line_2d_2.h"
+#include "geometries/triangle_2d_3.h"
 #include "integration/quadrilateral_gauss_legendre_integration_points.h"
 #include "integration/quadrilateral_collocation_integration_points.h"
 
@@ -325,7 +326,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //             NewPoints.push_back(boost::make_shared< Point<3> >(( *this )[i]));
+    //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
     //     }   
         
     //     //creating a geometry with the new points
@@ -451,9 +452,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     virtual bool IsInside( 
@@ -504,11 +505,35 @@ public:
     GeometriesArrayType Edges( void ) override
     {
         GeometriesArrayType edges = GeometriesArrayType();
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
-        edges.push_back( boost::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 3 ), this->pGetPoint( 0 ) ) );
         return edges;
+    }
+
+    /** This method checks if an axis-aliged bounding box (AABB)
+    intersects the quadrilateral
+
+    @return bool if the quadrilateral overlaps the box
+    @param rLowPoint first corner of the box
+    @param rHighPoint second corner of the box
+    @see Triangle2D3::HasIntersection
+    */
+    bool HasIntersection( const Point& rLowPoint, const Point& rHighPoint ) override
+    {
+        Triangle2D3<PointType> triangle_0 (this->pGetPoint( 0 ),
+                                           this->pGetPoint( 1 ),
+                                           this->pGetPoint( 2 )
+        );
+        Triangle2D3<PointType> triangle_1 (this->pGetPoint( 2 ),
+                                           this->pGetPoint( 3 ),
+                                           this->pGetPoint( 0 )
+        );
+
+        if      ( triangle_0.HasIntersection(rLowPoint, rHighPoint) ) return true;
+        else if ( triangle_1.HasIntersection(rLowPoint, rHighPoint) ) return true;
+        else return false;
     }
 
     ///@}

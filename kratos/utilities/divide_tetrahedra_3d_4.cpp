@@ -51,6 +51,21 @@ namespace Kratos
         rOStream << "   Distance values: " << distances_buffer.str();
     };
 
+    // Returns the mEdgeNodeI member vector
+    const std::vector<int>& DivideTetrahedra3D4::GetEdgeIdsI() const {
+        return mEdgeNodeI;
+    }
+
+    // Returns the mEdgeNodeJ member vector
+    const std::vector<int>& DivideTetrahedra3D4::GetEdgeIdsJ() const {
+        return mEdgeNodeJ;
+    }
+
+    // Returns the mSplitEdges member vector
+    std::vector<int>& DivideTetrahedra3D4::GetSplitEdges() {
+        return mSplitEdges;
+    }
+
     // Performs and saves the splitting pattern.
     void DivideTetrahedra3D4::GenerateDivision() {
 
@@ -71,7 +86,7 @@ namespace Kratos
             // Add the original geometry points
             for (unsigned int i = 0; i < n_nodes; ++i) {
                 const array_1d<double, 3> aux_point_coords = geometry[i].Coordinates();
-                IndexedPointPointerType paux_point = boost::make_shared<IndexedPoint>(aux_point_coords, i);
+                IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, i);
                 mAuxPointsContainer.push_back(paux_point);
             }
 
@@ -95,11 +110,11 @@ namespace Kratos
                     const double aux_node_rel_location = std::abs (nodal_distances(edge_node_i)/(nodal_distances(edge_node_j)-nodal_distances(edge_node_i)));
                     array_1d<double, 3> aux_point_coords;
                     for (unsigned int comp = 0; comp < 3; ++comp) {
-                        aux_point_coords(comp) = i_node_coords(comp)*aux_node_rel_location + j_node_coords(comp)*(1.0-aux_node_rel_location);
+                        aux_point_coords(comp) = j_node_coords(comp)*aux_node_rel_location + i_node_coords(comp)*(1.0-aux_node_rel_location);
                     }
 
                     // Add the intersection point to the auxiliar points array
-                    IndexedPointPointerType paux_point = boost::make_shared<IndexedPoint>(aux_point_coords, aux_node_id);
+                    IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, aux_node_id);
                     mAuxPointsContainer.push_back(paux_point);
                 }
 
@@ -122,22 +137,23 @@ namespace Kratos
                 TetrahedraSplit::TetrahedraGetNewConnectivityGID(idivision, t.data(), mSplitEdges.data(), &i0, &i1, &i2, &i3);
 
                 // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
-                IndexedPointGeometryPointerType p_aux_partition = boost::make_shared<IndexedPointTetrahedraType>(mAuxPointsContainer(i0), 
+                IndexedPointGeometryPointerType p_aux_partition = Kratos::make_shared<IndexedPointTetrahedraType>(mAuxPointsContainer(i0), 
                                                                                                                  mAuxPointsContainer(i1), 
                                                                                                                  mAuxPointsContainer(i2),
                                                                                                                  mAuxPointsContainer(i3));
+                
+                // Determine if the subdivision is wether in the negative or the positive side                                                                                                 
+                unsigned int neg = 0, pos = 0;
+                if(i0 <= 3) {nodal_distances(i0) < 0.0 ? neg++ : pos++;}
+                if(i1 <= 3) {nodal_distances(i1) < 0.0 ? neg++ : pos++;}
+                if(i2 <= 3) {nodal_distances(i2) < 0.0 ? neg++ : pos++;}
+                if(i3 <= 3) {nodal_distances(i3) < 0.0 ? neg++ : pos++;}
 
-                // Determine if the subdivision is wether in the negative or the positive side
-                bool is_positive;
-                if ((i0 == 0) || (i0 == 1) || (i0 == 2) || (i0 == 3)) {
-                    is_positive = nodal_distances(i0) < 0.0 ? false : true;
-                } else if ((i1 == 0) || (i1 == 1) || (i1 == 2) || (i1 == 3)) {
-                    is_positive = nodal_distances(i1) < 0.0 ? false : true;
-                } else if ((i2 == 0) || (i2 == 1) || (i2 == 2) || (i2 == 3)) {
-                    is_positive = nodal_distances(i2) < 0.0 ? false : true;
-                } else {
-                    is_positive = nodal_distances(i3) < 0.0 ? false : true;
-                }
+                if(neg > 0 && pos > 0)
+                    KRATOS_ERROR << "The subgeometry " << i0 << " " << i1 << " " << i2 << " " << i3 << " in tetrahedra has nodes in both positive and negative sides." << std::endl;
+
+                bool is_positive = false;
+                if(pos > 0) {is_positive = true;}
 
                 // Add the generated tetrahedra to its corresponding partition arrays
                 if (is_positive) {
@@ -153,10 +169,16 @@ namespace Kratos
         }
     };
 
-void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
+    void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
         // Set some geometry constant parameters
         const int n_nodes = 4;
         const unsigned int n_faces = 4;
+
+        // Clear the interfaces vectors
+        mPositiveInterfaces.clear();
+        mNegativeInterfaces.clear();
+        mPositiveInterfacesParentIds.clear();
+        mNegativeInterfacesParentIds.clear();
 
         if (mIsSplit) {
 
@@ -167,7 +189,7 @@ void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
             for (unsigned int i_subdivision = 0; i_subdivision < n_positive_subdivision; ++i_subdivision) {
                 // Get the subdivision geometry faces
                 const IndexedPointGeometryPointerType p_subdivision_geom = mPositiveSubdivisions[i_subdivision];
-                GeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
+                IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
 
                 // Faces iteration
                 for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
@@ -182,10 +204,11 @@ void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
                     // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes) && (node_k_key >= n_nodes)) {
                         // Generate an indexed point triangle geometry pointer with the two interface nodes
-                        IndexedPointGeometryPointerType p_intersection_tri = boost::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(node_i_key), 
+                        IndexedPointGeometryPointerType p_intersection_tri = Kratos::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(node_i_key), 
                                                                                                                           mAuxPointsContainer(node_j_key),
                                                                                                                           mAuxPointsContainer(node_k_key));
                         mPositiveInterfaces.push_back(p_intersection_tri);
+                        mPositiveInterfacesParentIds.push_back(i_subdivision);
                     }
                 }
             }
@@ -194,7 +217,7 @@ void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
             for (unsigned int i_subdivision = 0; i_subdivision < n_negative_subdivision; ++i_subdivision) {
                 // Get the subdivision geometry
                 const IndexedPointGeometryPointerType p_subdivision_geom = mNegativeSubdivisions[i_subdivision];
-                GeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
+                IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
 
                 // Faces iteration
                 for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
@@ -209,15 +232,105 @@ void DivideTetrahedra3D4::GenerateIntersectionsSkin() {
                     // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
                     if ((node_i_key >= n_nodes) && (node_j_key >= n_nodes) && (node_k_key >= n_nodes)) {
                         // Generate an indexed point triangle geometry pointer with the two interface nodes
-                        IndexedPointGeometryPointerType p_intersection_tri = boost::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(node_i_key), 
+                        IndexedPointGeometryPointerType p_intersection_tri = Kratos::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(node_i_key), 
                                                                                                                           mAuxPointsContainer(node_j_key),
                                                                                                                           mAuxPointsContainer(node_k_key));
                         mNegativeInterfaces.push_back(p_intersection_tri);
+                        mNegativeInterfacesParentIds.push_back(i_subdivision);
                     }
                 }
             }
         } else {
             KRATOS_ERROR << "Trying to generate the intersection skin in DivideTetrahedra3D4::GenerateIntersectionsSkin() for a non-split element.";
+        }
+    };
+
+    void DivideTetrahedra3D4::GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) {
+
+        // Set some geometry constant parameters
+        const unsigned int n_faces = 4;
+
+        // Set the exterior faces vectors
+        rExteriorFacesVector.clear();
+        rExteriorFacesParentSubdivisionsIdsVector.clear();
+
+        // Iterate the triangle faces
+        for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
+            std::vector < unsigned int > aux_ext_faces_parent_ids;
+            std::vector < DivideTetrahedra3D4::IndexedPointGeometryPointerType > aux_ext_faces;
+
+            DivideTetrahedra3D4::GenerateExteriorFaces(
+                aux_ext_faces,
+                aux_ext_faces_parent_ids,
+                rSubdivisionsContainer, 
+                i_face);
+            
+            rExteriorFacesVector.insert(rExteriorFacesVector.end(), aux_ext_faces.begin(), aux_ext_faces.end());
+            rExteriorFacesParentSubdivisionsIdsVector.insert(rExteriorFacesParentSubdivisionsIdsVector.end(), aux_ext_faces_parent_ids.begin(), aux_ext_faces_parent_ids.end());
+        }
+    };
+
+    void DivideTetrahedra3D4::GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
+        const unsigned int FatherFaceId) {
+        // Set some geometry constant parameters
+        const unsigned int n_faces = 4;
+
+        // Set the exterior faces vector
+        rExteriorFacesVector.clear();
+        rExteriorFacesParentSubdivisionsIdsVector.clear();
+
+        if (mIsSplit) {
+            // Create the face nodes data
+            // The position represents the face while the value the real and intersection nodes in that face edges
+            std::array < std::array< unsigned int, 6 >, 4> edges_map = {{
+                {{2, 3, 1, 7, 8, 9}},     // Face 0
+                {{0, 2, 3, 5, 6, 9}},     // Face 1
+                {{0, 1, 3, 4, 6, 8}},     // Face 2
+                {{0, 2, 1, 4, 5, 7}}}};   // Face 3
+
+            // Compute the side exterior faces geometries
+            const unsigned int n_subdivision = rSubdivisionsContainer.size();
+            for (unsigned int i_subdivision = 0; i_subdivision < n_subdivision; ++i_subdivision) {
+                // Get the subdivision faces
+                const IndexedPointGeometryPointerType p_subdivision_geom = rSubdivisionsContainer[i_subdivision];
+                IndexedGeometriesArrayType subdivision_faces = p_subdivision_geom->Faces();
+
+                // Subdivision geometry subfaces iteration
+                for (unsigned int i_face = 0; i_face < n_faces; ++i_face) {
+                    IndexedPointGeometryType r_face = subdivision_faces[i_face];
+
+                    // Get the subdivision face nodal keys
+                    int node_i_key = r_face[0].Id();
+                    int node_j_key = r_face[1].Id();
+                    int node_k_key = r_face[2].Id();
+
+                    // Get the parent geometry face key value (candidate nodes)
+                    std::array< unsigned int, 6 > faces_edge_nodes = edges_map[FatherFaceId];
+
+                    // Search the subdivision nodal keys into the parent geometry face key value
+                    if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_i_key) != faces_edge_nodes.end()) {
+                        if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_j_key) != faces_edge_nodes.end()) {
+                            if (std::find(faces_edge_nodes.begin(), faces_edge_nodes.end(), node_k_key) != faces_edge_nodes.end()) {
+                                // If both nodes are in the candidate nodes list, the subface is exterior
+                                IndexedPointGeometryPointerType p_subface_triang = Kratos::make_shared<IndexedPointTriangleType>(
+                                    mAuxPointsContainer(node_i_key),
+                                    mAuxPointsContainer(node_j_key),
+                                    mAuxPointsContainer(node_k_key));
+                                rExteriorFacesVector.push_back(p_subface_triang);
+                                rExteriorFacesParentSubdivisionsIdsVector.push_back(i_subdivision);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            KRATOS_ERROR << "Trying to generate the exterior faces in DivideTetrahedra3D4::GenerateExteriorFaces() for a non-split element.";
         }
     };
         

@@ -80,30 +80,6 @@ namespace Kratos
   KRATOS_CREATE_LOCAL_FLAG ( ModelerUtilities, PASS_ALPHA_SHAPE,                    11 );
 
   
-
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void ModelerUtilities::SetDomainLabels (ModelPart& rModelPart)
-  {
-
-    unsigned int start=0;
-    unsigned int NumberOfMeshes=rModelPart.NumberOfMeshes();
-    if(NumberOfMeshes>1)
-      start=1;     
-
-    for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
-      {
-	for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
-	  {
-
-	    i_node->SetValue(DOMAIN_LABEL,MeshId);
-	  }
-      }
-
-  }
-
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -192,20 +168,22 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const unsigned int dimension = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
     double ModelPartVolume = 0;
-    if( dimension ==2 ){
+    if( dimension == 2 ){
       
       for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
 	{
-	  ModelPartVolume += i_elem->GetGeometry().Area();
+	  if( i_elem->GetGeometry().Dimension() == 2 )
+	    ModelPartVolume += i_elem->GetGeometry().Area();
 	}
     }
     else{ //dimension == 3
       
       for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; i_elem++)
 	{
-	  ModelPartVolume += i_elem->GetGeometry().Volume();
+	  if( i_elem->GetGeometry().Dimension() == 3 )
+	    ModelPartVolume += i_elem->GetGeometry().Volume();
 	}
      }
 
@@ -486,7 +464,6 @@ namespace Kratos
       {
 	for(unsigned int j=i+1; j<size; j++)
 	  {
-	    //if( rGeometry[i].GetValue(DOMAIN_LABEL) == rGeometry[j].GetValue(DOMAIN_LABEL) )
 	    if( rGeometry[i].GetValue(MODEL_PART_NAME) == rGeometry[j].GetValue(MODEL_PART_NAME) )
 	      {
 		//std::cout<<" MP name "<<rGeometry[i].GetValue(MODEL_PART_NAME)<<" "<<rGeometry[j].GetValue(MODEL_PART_NAME)<<std::endl;
@@ -1217,7 +1194,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void ModelerUtilities::CheckParticles (ModelPart& rModelPart,ModelPart::IndexType MeshId)
+  void ModelerUtilities::CheckParticles (ModelPart& rModelPart)
   {
     KRATOS_TRY
 
@@ -1653,13 +1630,13 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  double ModelerUtilities::CheckCriticalRadius (ModelPart& rModelPart, double rCriticalRadius, unsigned int MeshId)
+  double ModelerUtilities::CheckCriticalRadius (ModelPart& rModelPart, double rCriticalRadius)
   {
     KRATOS_TRY
 
     double minimum_h = rCriticalRadius;
     
-    for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
+    for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; i_node++)
       {
       
 	double nodal_h = i_node->FastGetSolutionStepValue(NODAL_H);
@@ -1745,16 +1722,14 @@ namespace Kratos
 				  MeshingParameters& rMeshingVariables)
   {
     KRATOS_TRY
-     
-    unsigned int& MeshId = rMeshingVariables.MeshId;
 
-    const unsigned int dimension = rModelPart.ElementsBegin(MeshId)->GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 
     //*********************************************************************
     //input mesh: NODES
     ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
     
-    InMesh.CreatePointList(rModelPart.Nodes(MeshId).size(), dimension);
+    InMesh.CreatePointList(rModelPart.Nodes().size(), dimension);
 
     double* PointList     = InMesh.GetPointList();
     int& NumberOfPoints   = InMesh.GetNumberOfPoints();
@@ -1769,7 +1744,7 @@ namespace Kratos
     }
     
     //writing the points coordinates in a vector and reordening the Id's
-    ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin(MeshId);
+    ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin();
 
     int base   = 0;
     int direct = 1;
@@ -1842,16 +1817,15 @@ namespace Kratos
   {
     KRATOS_TRY
        
-    unsigned int& MeshId = rMeshingVariables.MeshId;
-
     //*********************************************************************
     //input mesh: ELEMENTS
-    ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin(MeshId);
+    ModelPart::ElementsContainerType::iterator element_begin = rModelPart.ElementsBegin();
+    
     const unsigned int nds       = element_begin->GetGeometry().size();
 
     ModelerUtilities::MeshContainer& InMesh = rMeshingVariables.InMesh;
 
-    InMesh.CreateElementList(rModelPart.Elements(MeshId).size(), nds);
+    InMesh.CreateElementList(rModelPart.Elements().size(), nds);
     
     int* ElementList      = InMesh.GetElementList();
     int& NumberOfElements = InMesh.GetNumberOfElements();

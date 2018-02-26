@@ -12,10 +12,14 @@ class Kratos_Execute_Test:
 
         self.ProjectParameters = ProjectParameters
 
+        self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+        
+        # To avoid many prints
+        if (self.echo_level == 0):
+            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+        
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-        self.Model = {self.ProjectParameters["problem_data"]["model_part_name"].GetString(): self.main_model_part}
 
         # Construct the solver (main setting methods are located in the solver_module)
         import python_solvers_wrapper_structural
@@ -32,11 +36,8 @@ class Kratos_Execute_Test:
         # If we integrate it in the model part we cannot use combined solvers
         self.solver.AddDofs()
 
-        # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-        # #Get the list of the submodel part in the object Model
-        for i in range(self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-            part_name = self.ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-            self.Model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+        self.Model = KratosMultiphysics.Model()
+        self.Model.AddModelPart(self.main_model_part)
 
         # Obtain the list of the processes to be applied
         self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["constraints_process_list"])
@@ -86,7 +87,7 @@ class Kratos_Execute_Test:
         # Delta time
         delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
         # Start step
-        self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] = 0
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
         # Start time
         time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
         # End time
@@ -95,7 +96,7 @@ class Kratos_Execute_Test:
         # Solving the problem (time integration)
         while(time <= end_time):
             time = time + delta_time
-            self.main_model_part.ProcessInfo[KratosMultiphysics.TIME_STEPS] += 1
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             self.main_model_part.CloneTimeStep(time)
 
             for process in self.list_of_processes:
@@ -105,9 +106,6 @@ class Kratos_Execute_Test:
                 self.gid_output.ExecuteInitializeSolutionStep()
                         
             self.solver.Solve()
-
-            current_vals = [ev for ev in self.computing_model_part.ProcessInfo[StructuralMechanicsApplication.EIGENVALUE_VECTOR]]
-            print(current_vals)
             
             if (self.output_post == True):
                 self.gid_output.ExecuteFinalizeSolutionStep()

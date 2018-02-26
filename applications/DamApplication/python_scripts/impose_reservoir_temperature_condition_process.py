@@ -21,7 +21,7 @@ class ImposeReservoirTemperatureConditionProcess(Process):
         self.components_process_list = []   
 
         if "Bofang" in settings["model_part_name"].GetString():
-            self.components_process_list.append(BofangConditionTemperatureProcess(model_part, settings))
+            self.components_process_list.append(DamBofangConditionTemperatureProcess(model_part, settings))
 
         if "Reservoir" in settings["model_part_name"].GetString():
             self.components_process_list.append(DamReservoirConstantTemperatureProcess(model_part, settings))
@@ -36,3 +36,8 @@ class ImposeReservoirTemperatureConditionProcess(Process):
 
         for component in self.components_process_list:
             component.ExecuteInitializeSolutionStep()
+            
+    def ExecuteFinalizeSolutionStep(self):
+
+        for component in self.components_process_list:
+            component.ExecuteFinalizeSolutionStep()

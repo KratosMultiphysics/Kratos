@@ -21,7 +21,16 @@ CheckForPreviousImport()
 # ==============================================================================
 class analyzerBaseClass:
 
+    # --------------------------------------------------------------------------    
+    def initializeBeforeOptimizationLoop( self ):
+        pass
+
+    # --------------------------------------------------------------------------    
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
         raise RuntimeError("Analyzer base class is called. Please check your implementation of the function >> analyzeDesignAndReportToCommunicator << .")
 
+    # --------------------------------------------------------------------------    
+    def finalizeAfterOptimizationLoop( self ):
+        pass
+        
 # ==============================================================================

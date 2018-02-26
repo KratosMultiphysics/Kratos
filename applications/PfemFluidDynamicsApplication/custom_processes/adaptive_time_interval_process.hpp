@@ -162,14 +162,14 @@ namespace Kratos
 
       if(timeIntervalReduced==false){
 	if(updatedTimeInterval>(2.0*minimumTimeInterval)){
-	  
-	  CheckNodalConditionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
 
-	  if(timeIntervalReduced==false){
-
-	    CheckElementalConditionForTimeStepReduction(increaseTimeInterval);
-
-	  }
+	  const unsigned int dimension =  mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+	  if(dimension==2){
+	    CheckNodalConditionForTimeStepReduction(updatedTimeInterval,increaseTimeInterval,timeIntervalReduced);
+	    if(timeIntervalReduced==false){
+	      CheckElementalConditionForTimeStepReduction(increaseTimeInterval);
+	    }
+	}
 	}
 
 	if(increaseTimeInterval==true && initialTimeInterval>(1.0+tolerance)*updatedTimeInterval && badPressureConvergence==false && badVelocityConvergence==false ){
@@ -225,7 +225,6 @@ namespace Kratos
 	    ModelPart::NodeIterator NodeBegin;
 	    ModelPart::NodeIterator NodeEnd;
 	    OpenMPUtils::PartitionedIterators(mrModelPart.Nodes(),NodeBegin,NodeEnd);
-
 	    for (ModelPart::NodeIterator itNode = NodeBegin; itNode != NodeEnd; ++itNode)
 	      {
 		if(itNode->IsNot(TO_ERASE) && itNode->IsNot(ISOLATED) && itNode->IsNot(SOLID)){

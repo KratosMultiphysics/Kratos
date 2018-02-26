@@ -73,7 +73,7 @@ Element::Pointer SmallDisplacementAnalyticSensitivityElement::Clone( IndexType N
 		NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 
 		if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-			KRATOS_THROW_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+			KRATOS_ERROR << "Constitutive law not has the correct size. Size is: " << NewElement.mConstitutiveLawVector.size() << std::endl;
 	}
 
 
@@ -109,8 +109,8 @@ void SmallDisplacementAnalyticSensitivityElement::Calculate(const Variable<Vecto
 		Vector result_z = ZeroVector(number_of_dofs);
 
         KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
-        ConstitutiveVariables this_constitutive_variables(strain_size);		
-        
+        ConstitutiveVariables this_constitutive_variables(strain_size);
+
         // Reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(  );
 
@@ -118,15 +118,8 @@ void SmallDisplacementAnalyticSensitivityElement::Calculate(const Variable<Vecto
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);		
-        
-        // Displacements vector
-        Vector displacements;
-        GetValuesVector(displacements);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-        // Contribution to external forces
-        const Vector body_force = this->GetBodyForce();
-        
 		//ask for node for which DKDXU shall be computed
 		int active_node_index = this->GetValue(ACTIVE_NODE_INDEX);
 
@@ -136,12 +129,12 @@ void SmallDisplacementAnalyticSensitivityElement::Calculate(const Variable<Vecto
             CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
 
             // Compute material reponse
-            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
+            CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
             // Calculating weights for integration on the reference configuration
-            double IntegrationWeight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
+            double IntegrationWeight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0);
 
-            if ( dimension == 2 && GetProperties().Has( THICKNESS )) 
+            if ( dimension == 2 && GetProperties().Has( THICKNESS ))
             {
                 IntegrationWeight *= GetProperties()[THICKNESS];
             }
@@ -171,7 +164,7 @@ void SmallDisplacementAnalyticSensitivityElement::Calculate(const Variable<Vecto
 			this->SetValue(DKDXU_Z,result_z);
 		}
 	}
-	
+
 	KRATOS_CATCH( "" )
 }
 
@@ -191,8 +184,8 @@ void SmallDisplacementAnalyticSensitivityElement::load( Serializer& rSerializer 
 
 // ----------------------------------------------------------------------------------------------------
 void SmallDisplacementAnalyticSensitivityElement::CalculateDerivedDeformationMatrix( Matrix& rDB_DX,
-        																			 const Matrix& rDN_DX, 
-																					 const int node_index, 
+        																			 const Matrix& rDN_DX,
+																					 const int node_index,
 																					 const int direction )
 {
     KRATOS_TRY
@@ -234,8 +227,8 @@ void SmallDisplacementAnalyticSensitivityElement::CalculateDerivedDeformationMat
         }
     }
     else
-        KRATOS_THROW_ERROR( std::invalid_argument, "Wrong dimension specified.", "" )
-		
+        KRATOS_ERROR << "Wrong dimension specified." << std::endl;
+
     KRATOS_CATCH( "" )
 }
 

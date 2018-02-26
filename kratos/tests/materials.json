@@ -5,17 +5,18 @@
 		"Material": {
 			"name": "steel",
 			"constitutive_law": {
-				"name": "KratosMultiphysics.SolidMechanicsApplication.LinearElastic3DLaw"
+				"name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
 			},
 			"Variables": {
 				"KratosMultiphysics.YOUNG_MODULUS": 200.0,
 				"POISSON_RATIO": 0.3,
 				"YIELD_STRESS": 400.0,
-				"KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE" : 0.1
+				"KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE" : 0.1,
+				"FluidDynamicsApplication.VORTICITY_MAGNITUDE" : -5.888
 				},
 			"Tables": {
 				"Table1": {
-					"input_variable": "TEMPERATURE",
+					"input_variable": "KratosMultiphysics.TEMPERATURE",
 					"output_variable": "YOUNG_MODULUS",
 					"data": [
 						[0.0, 100.0],
@@ -30,7 +31,7 @@
 		"Material": {
 			"name": "steel",
 			"constitutive_law": {
-				"name": "ConstitutiveLaw"
+				"name": "KratosMultiphysics.ConstitutiveLaw"
 			},
 			"Variables": {
 				"YOUNG_MODULUS": 100.0,

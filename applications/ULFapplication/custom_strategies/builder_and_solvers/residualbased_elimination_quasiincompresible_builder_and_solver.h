@@ -171,7 +171,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        KRATOS_WATCH("Initialize Solution Step::: EMPTY FUNCTION FOR THIS SOLVER")
+        //KRATOS_WATCH("Initialize Solution Step::: EMPTY FUNCTION FOR THIS SOLVER")
         KRATOS_CATCH("")
     }
 
@@ -182,7 +182,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        KRATOS_WATCH("Finalize Solution Step:::EMPTY FUNCTION FOR THIS SOLVER")
+        //KRATOS_WATCH("Finalize Solution Step:::EMPTY FUNCTION FOR THIS SOLVER")
         KRATOS_CATCH("")
     }
 
@@ -197,7 +197,48 @@ public:
     )
     {
         KRATOS_TRY
+	
+	//KRATOS_WATCH("ENTERED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
+	mActiveNodes.clear(); 
+        mActiveNodes.reserve(r_model_part.Nodes().size() );
 
+        for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
+        {
+            if( (it->GetValue(NEIGHBOUR_NODES)).size() != 0 )
+            {
+                mActiveNodes.push_back(*(it.base() ));
+            }
+        }
+
+        //getting the dof position
+        //unsigned int dof_position = (mActiveNodes.begin())->GetDofPosition(PRESSURE);
+
+        //fills the DofList and give a unique progressive tag to each node
+        BaseType::mDofSet.clear();
+        BaseType::mDofSet.reserve(mActiveNodes.size()*TDim );
+
+        for(WeakPointerVector< Node<3> >::iterator iii = mActiveNodes.begin(); iii!=mActiveNodes.end(); iii++)
+        {
+
+	     BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_X).get());
+	     BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y).get());
+            //BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Y));
+	    if (TDim==3)
+	            BaseType::mDofSet.push_back( iii->pGetDof(DISPLACEMENT_Z).get());
+        }
+
+
+	this->mEquationSystemSize = BaseType::mDofSet.size();
+
+	 if (BaseType::mDofSet.size()==0)
+            KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
+
+        BaseType::mDofSetIsInitialized = true;
+
+	//KRATOS_WATCH("FINISHED SETUP DOFSET OF BUILDER AND SOLVER OF ULF")
+
+	//BELOW IS THE OLD VERSION
+	/*
         //count dofs
         mnumber_of_active_nodes = 0;
         for (typename NodesArrayType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); ++it)
@@ -242,6 +283,9 @@ public:
         }
         //before it was like that:
         //this->mEquationSystemSize = rDofSet.size();
+
+
+
         this->mEquationSystemSize = BaseType::mDofSet.size();
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
@@ -249,6 +293,7 @@ public:
             KRATOS_THROW_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
+	*/
 
         KRATOS_CATCH("")
     }
@@ -394,8 +439,8 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        //KRATOS_WATCH(number_of_threads);
+        //KRATOS_WATCH(element_partition);
 
 
         double start_prod = omp_get_wtime();
@@ -576,10 +621,17 @@ public:
     TSystemVectorType mMdiagInv;
     TSystemVectorType mpreconditioner;
     unsigned int mnumber_of_active_nodes;
-    /*@} */
-    /**@name Private Operators*/
+    WeakPointerVector<Node<3> > mActiveNodes;
+
+//private:
+    /**@name Static Member Variables */
     /*@{ */
 
+
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+  //  WeakPointerVector<Node<3> > mActiveNodes;
 
     /*@} */
     /**@name Private Operations*/
@@ -836,8 +888,8 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        //KRATOS_WATCH(number_of_threads);
+        //KRATOS_WATCH(element_partition);
 
 
         double start_prod = omp_get_wtime();
@@ -1279,8 +1331,8 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, r_model_part.Elements().size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        //KRATOS_WATCH(number_of_threads);
+        //KRATOS_WATCH(element_partition);
 
 
         double start_prod = omp_get_wtime();
@@ -2032,7 +2084,7 @@ public:
             {
                 if (in->FastGetSolutionStepValue(IS_FLUID)==1.0 && in->FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0)
                 {
-                    KRATOS_WATCH("Computing pressure at a free surface node")
+                    //KRATOS_WATCH("Computing pressure at a free surface node")
                     in->FastGetSolutionStepValue(PRESSURE)=bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));
 //=in->FastGetSolutionStepValue(PRESSURE,1)+bulk_modulus*density*(in->FastGetSolutionStepValue(NODAL_AREA) - in->FastGetSolutionStepValue(NODAL_AREA,1))/(in->FastGetSolutionStepValue(NODAL_AREA));
 

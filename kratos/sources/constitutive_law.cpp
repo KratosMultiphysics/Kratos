@@ -24,9 +24,9 @@ namespace Kratos
 
 
     /**
-     * Flags related to the Parameters of the Contitutive Law
+     * Flags related to the Parameters of the Constitutive Law
      */
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, USE_ELEMENT_PROVIDED_STRAIN,               0 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, USE_ELEMENT_PROVIDED_STRAIN,  0 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,               1 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR,  2 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN_ENERGY,        3 );
@@ -43,7 +43,7 @@ namespace Kratos
   
 
     /**
-     * Flags related to the Features of the Contitutive Law
+     * Flags related to the Features of the Constitutive Law
      */
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,              1 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,       2 );
@@ -155,6 +155,17 @@ bool ConstitutiveLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable)
 bool ConstitutiveLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable)
 {
     return false;
+}
+
+/**
+ * returns the value of a specified variable
+ * @param rThisVariable the variable to be returned
+ * @param rValue a reference to the returned value
+ * @param rValue output: the value of the specified variable
+ */
+bool& ConstitutiveLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+{
+    return rValue;
 }
 
 /**
@@ -301,7 +312,6 @@ void ConstitutiveLaw::SetValue(const Variable<array_1d<double, 6 > >& rVariable,
 }
 
 
-
 /**
  * calculates the value of a specified variable
  * @param rParameterValues the needed parameters for the CL calculation
@@ -376,6 +386,20 @@ array_1d<double, 6 > & ConstitutiveLaw::CalculateValue(Parameters& rParameterVal
 {
     return rValue;
 }
+
+/**
+ * Is called to check whether the provided material parameters in the Properties
+ * match the requirements of current constitutive model.
+ * @param rMaterialProperties the current Properties to be validated against.
+ * @return true, if parameters are correct; false, if parameters are insufficient / faulty
+ * NOTE: this has to implemented by each constitutive model. Returns false in base class since
+ * no valid implementation is contained here.
+ */
+bool ConstitutiveLaw::ValidateInput(const Properties& rMaterialProperties)
+{
+  return false;
+}
+
 
 /**
  * returns the expected strain measure of this constitutive law (by default linear strains)
