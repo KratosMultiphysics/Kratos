@@ -1,21 +1,19 @@
 ## Trilinos Application
 
-This application contains the wrappers for different components of [Trilinos project](https://trilinos.org/). Kratos use of trilinos is oriented
-parallel solvers and mainly uses two of trilinos components.
+### Distributed matrices and linear solvers
 
-Trilinos application provide wrappers for the following functionalities 
+Kratos Multiphysics uses several components of the [Trilinos project](https://trilinos.org/) for its MPI capabilities. The most relevant of these are the __distributed-memory matrix and vector classes__ from the Epetra module and the __linear solvers__ provided by the AztecOO, Amesos and ML packages. In addition, it also contains the MPI version of the AMGCL solver.
 
-#### Solvers
+#### Main solver classes
 - TrilinosLinearSolver
 - AztecSolver
 - AmesosSolver
 - MultiLevelSolver
 - AMGCL Mpi-based Solver
 
-### Kratos Interface Extension
+### Kratos interface extension
 
-Trilinos in Kratos extends the normal kratos interface to be used with trilinos backend. Hance it provide its own
-version of common Kratos ( and application ) interface elements:
+The Trilinos application also provides __MPI versions of most of the core classes of Kratos__, adapted to work with Epetra distributed matrices where necessary. Hence it provide its own version of the following Kratos (and application) interface elements:
 
 #### Builder and solvers
 - TrilinosResidualBasedBuilderAndSolver
