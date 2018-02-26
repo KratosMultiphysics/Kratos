@@ -68,7 +68,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 # --------------------------------------------------------------------------
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
-         # Calculation of value of objective function
+         # Calculation of value of strain energy
         if communicator.isRequestingValueOf("strain_energy"):
 
             print("\n> Starting StructuralMechanicsApplication to solve structure")
@@ -83,35 +83,35 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             communicator.reportValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())
 
-        # Calculation of value of constraint function
+        # Calculation of value of mass
         if communicator.isRequestingValueOf("mass"):
 
-            print("\n> Starting calculation of value of mass constraint")
+            print("\n> Starting calculation of value of mass")
             startTime = timer.time()
             listOfResponseFunctions["mass"].CalculateValue()
             constraintValue = listOfResponseFunctions["mass"].GetValue()
-            print("> Time needed for calculation of value of mass constraint = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculation of value of mass = ",round(timer.time() - startTime,2),"s")
 
             communicator.reportValue("mass", constraintValue)
 
-        # Calculation of gradients of objective function
+        # Calculation of gradients of strain energy
         if communicator.isRequestingGradientOf("strain_energy"):
 
-            print("\n> Starting calculation of gradient of objective function")
+            print("\n> Starting calculation of gradient of strain energy")
             startTime = timer.time()
             listOfResponseFunctions["strain_energy"].CalculateGradient()
-            print("> Time needed for calculating gradient of objective function = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculating gradient of strain energy = ",round(timer.time() - startTime,2),"s")
 
             gradientForCompleteModelPart = listOfResponseFunctions["strain_energy"].GetGradient()
             communicator.reportGradient("strain_energy", gradientForCompleteModelPart)
 
-        # Calculation of gradients of constraint function
+        # Calculation of gradients of mass
         if communicator.isRequestingGradientOf("mass"):
 
-            print("\n> Starting calculation of gradient of constraint function")
+            print("\n> Starting calculation of gradient of mass")
             startTime = timer.time()
             listOfResponseFunctions["mass"].CalculateGradient()
-            print("> Time needed for calculating gradient of constraint function = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculating gradient of mass = ",round(timer.time() - startTime,2),"s")
 
             gradientForCompleteModelPart = listOfResponseFunctions["mass"].GetGradient()
             communicator.reportGradient("mass", gradientForCompleteModelPart)

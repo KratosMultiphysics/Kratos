@@ -137,13 +137,9 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.__storeGradientOnNodalVariable( gradientOfConstraintFunction, CONSTRAINT_SENSITIVITY )
 
     # --------------------------------------------------------------------------
-    def __storeGradientOnNodalVariable( self, gradients, variable_name ):
-        for nodeId in gradients:
-            gradient = Vector(3)
-            gradient[0] = gradients[nodeId][0]
-            gradient[1] = gradients[nodeId][1]
-            gradient[2] = gradients[nodeId][2]
-            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
+    def __storeGradientOnNodalVariable( self, gradient, variable_name ):
+        for nodeId, tmp_gradient in gradient.items():
+            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(variable_name,0,tmp_gradient)
 
     # --------------------------------------------------------------------------
     def __RevertPossibleShapeModificationsDuringAnalysis( self ):

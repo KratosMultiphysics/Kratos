@@ -109,7 +109,7 @@
             "use_kratos" : true,
             "kratos_response_settings":{
                 "gradient_mode"          : "semi_analytic",
-                "step_size"              : 1e-6,
+                "step_size"              : 1e-8,
                 "consider_discretization": false
             }
         }],

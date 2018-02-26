@@ -125,7 +125,7 @@ class Communicator:
             objective_id =  objective["identifier"].GetString()
 
             if objective["type"].GetString() not in self.supported_objective_types:
-                raise RuntimeError("Unsuported type defined for the following objective: " + objective_id)
+                raise RuntimeError("Unsupported type defined for the following objective: " + objective_id)
 
             self.list_of_responses[objective_id] = { "type"                 : objective["type"].GetString(),
                                                      "value"                : None,
@@ -139,7 +139,7 @@ class Communicator:
             constraint_id = self.optimization_settings["constraints"][constraint_number]["identifier"].GetString()
 
             if constraint["type"].GetString() not in self.supported_constraint_types:
-                raise RuntimeError("Unsuported type defined for the following constraint: " + constraint_id )
+                raise RuntimeError("Unsupported type defined for the following constraint: " + constraint_id )
 
             if  constraint["reference"].GetString() == "specified_value":
                 self.list_of_responses[constraint_id] = { "type"                 : constraint["type"].GetString(),
@@ -154,7 +154,7 @@ class Communicator:
                                                           "standardized_gradient": None,
                                                           "reference_value"      : "waiting_for_initial_value" }
             else:
-                raise RuntimeError("Unsuported reference defined for the following constraint: " + constraint_id )
+                raise RuntimeError("Unsupported reference defined for the following constraint: " + constraint_id )
 
     # --------------------------------------------------------------------------
     def __deleteAllRequests( self ):
@@ -172,7 +172,7 @@ class Communicator:
     # --------------------------------------------------------------------------
     def __isResponseWaitingForInitialValueAsReference( self, response_id ):
         response = self.list_of_responses[response_id]
-        if response["type"] in self.supported_constraint_types and response["reference_value"] == "waiting_for_initial_value":
+        if "reference_value" in response and response["reference_value"] == "waiting_for_initial_value":
             return True
         else:
             return False

@@ -68,7 +68,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     # --------------------------------------------------------------------------
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
-        # Calculation of value of objective function
+        # Calculation of value of strain energy
         if communicator.isRequestingValueOf("strain_energy"):
 
             print("\n> Starting StructuralMechanicsApplication to solve structure")
@@ -76,20 +76,20 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             self.__solveStructure( optimizationIteration )
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
 
-            print("\n> Starting calculation of response value")
+            print("\n> Starting calculation of strain energy")
             startTime = timer.time()
             listOfResponseFunctions["strain_energy"].CalculateValue()
-            print("> Time needed for calculation of response value = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculation of strain energy = ",round(timer.time() - startTime,2),"s")
 
             communicator.reportValue("strain_energy", listOfResponseFunctions["strain_energy"].GetValue())
 
-        # Calculation of gradient of objective function
+        # Calculation of gradient of strain energy
         if communicator.isRequestingGradientOf("strain_energy"):
 
-            print("\n> Starting calculation of gradients")
+            print("\n> Starting calculation of gradients of strain energy")
             startTime = timer.time()
             listOfResponseFunctions["strain_energy"].CalculateGradient()
-            print("> Time needed for calculating gradients = ",round(timer.time() - startTime,2),"s")
+            print("> Time needed for calculating gradients of strain energy = ",round(timer.time() - startTime,2),"s")
 
             gradientOnDesignSurface = listOfResponseFunctions["strain_energy"].GetGradient()
             communicator.reportGradient("strain_energy", gradientOnDesignSurface)
