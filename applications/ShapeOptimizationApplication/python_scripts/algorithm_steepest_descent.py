@@ -125,12 +125,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
         gradientOfObjectiveFunction = self.Communicator.getStandardizedGradient ( self.onlyObjectiveId )
-        for nodeId in gradientOfObjectiveFunction:
-            gradient = Vector(3)
-            gradient[0] = gradientOfObjectiveFunction[nodeId][0]
-            gradient[1] = gradientOfObjectiveFunction[nodeId][1]
-            gradient[2] = gradientOfObjectiveFunction[nodeId][2]
-            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,gradient)
+        for nodeId, tmp_gradient in gradientOfObjectiveFunction.items():
+            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,tmp_gradient)
 
     # --------------------------------------------------------------------------
     def __RevertPossibleShapeModificationsDuringAnalysis( self ):
