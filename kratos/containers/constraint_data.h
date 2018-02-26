@@ -263,7 +263,7 @@ class ConstraintEquationContainer
 		Get the Total number of MasterDOFs for a given slave dof
 		@return Total number of MasterDOFs for a given slave dof
 		 */
-    int GetNumbeOfMasterDofsForSlave(DofType const &rSlaveDof)
+    int GetNumberOfMasterDofsForSlave(DofType const &rSlaveDof)
     {
         ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
         auto res = mConstraintEquationsVector.find(equation);

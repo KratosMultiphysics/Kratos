@@ -163,9 +163,9 @@ class Constraint
 	* Get the Total number of MasterDOFs for a given slave dof
 	* @return Total number of MasterDOFs for a given slave dof
 	*/
-    virtual unsigned int GetNumbeOfMasterDofsForSlave(DofType &rSlaveDof)
+    virtual unsigned int GetNumberOfMasterDofsForSlave(DofType &rSlaveDof)
     {
-        return mConstraintEquationContainer.GetNumbeOfMasterDofsForSlave(rSlaveDof);
+        return mConstraintEquationContainer.GetNumberOfMasterDofsForSlave(rSlaveDof);
     }
 
     /**
