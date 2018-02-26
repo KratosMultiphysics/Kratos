@@ -24,12 +24,8 @@ class ImposeFaceHeatFluxProcess(Process):
             t_uniform.AddEmptyValue("is_fixed").SetBool(False)
             t_uniform.AddValue("variable_name",settings["variable_name"])
             t_uniform.AddValue("value",settings["value"])
-
-            if settings["table"].GetInt() == 0:
-                self.components_process_list.append(ApplyConstantScalarValueProcess(model_part, t_uniform))
-            else:
-                t_uniform.AddValue("table",settings["table"])
-                self.components_process_list.append(ApplyDoubleTableProcess(model_part, t_uniform))
+            
+            self.components_process_list.append(DamFixTemperatureConditionProcess(model_part, t_uniform))
 
         ## This process compute the heat flux according to q = h(t_ambient - t_current).
         ## Setting the extra values to 0.0 it is possible to use the same process.
