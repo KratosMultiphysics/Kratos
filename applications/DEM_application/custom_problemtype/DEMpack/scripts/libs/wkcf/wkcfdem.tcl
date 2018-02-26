@@ -2248,7 +2248,7 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
 
 
     # Compute Stress Tensor
-    if {false} { ; #{$KPriv(what_dempack_package) eq "C-DEMPack"} {}
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
 	set tensor [::xmlutils::setXml "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-ComputeStressTensorOption" "dv"]
 	if {$tensor eq "Yes"} {
 	    puts $fileid "\"ComputeStressTensorOption\"        : true,"
