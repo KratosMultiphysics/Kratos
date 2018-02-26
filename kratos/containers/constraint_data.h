@@ -207,24 +207,24 @@ class ConstraintEquationContainer
             if ((rObj1->SlaveDofId() == rObj2->SlaveDofId()) && (rObj1->SlaveDofKey() == rObj2->SlaveDofKey()))
                 return true;
             return false;
-        }
+        }     
     };
 
-    typedef std::unordered_set<ConstraintEquationPointerType, EquationHasher, EquationComparator> ConstraintEquationVectorType;
+    typedef std::unordered_set<ConstraintEquationPointerType, EquationHasher, EquationComparator> ConstraintEquationSetType;
 
-    typedef ConstraintEquationVectorType::iterator iterator;
+    typedef ConstraintEquationSetType::iterator iterator;
 
     ///@name Life Cycle
     ///@{
 
-    /**
+     /**
 		Creates a MPC data object
 		*/
-    ConstraintEquationContainer() : mConstraintEquationsVector()
+/*     ConstraintEquationContainer() : mConstraintEquationsSet()
     {
-    }
+    } */
     /// Destructor.
-    virtual ~ConstraintEquationContainer(){};
+    //virtual ~ConstraintEquationContainer(){};
 
     ///@}
 
@@ -236,10 +236,10 @@ class ConstraintEquationContainer
 		*/
     void Clear()
     {
-        mConstraintEquationsVector.clear();
+        mConstraintEquationsSet.clear();
     }
-    iterator begin() { return mConstraintEquationsVector.begin(); }
-    iterator end() { return mConstraintEquationsVector.end(); }
+    iterator begin() { return mConstraintEquationsSet.begin(); }
+    iterator end() { return mConstraintEquationsSet.end(); }
 
     /**
 		Get the Constraint equation for this slave
@@ -248,8 +248,8 @@ class ConstraintEquationContainer
     ConstraintEquation &GetConstraintEquation(DofType &rSlaveDof)
     {
         ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsVector.find(equation);
-        if (res != mConstraintEquationsVector.end())
+        auto res = mConstraintEquationsSet.find(equation);
+        if (res != mConstraintEquationsSet.end())
         {
             return *(*res);
         }
@@ -266,9 +266,9 @@ class ConstraintEquationContainer
     int GetNumberOfMasterDofsForSlave(DofType const &rSlaveDof)
     {
         ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsVector.find(equation);
+        auto res = mConstraintEquationsSet.find(equation);
         int numMasters = -1;
-        if (res != mConstraintEquationsVector.end())
+        if (res != mConstraintEquationsSet.end())
         {
             numMasters = (*res)->NumberOfMasters();
         }
@@ -279,9 +279,9 @@ class ConstraintEquationContainer
 		Get the Data for this slave
 		@return Data vector for this slave
 		*/
-    ConstraintEquationVectorType &GetData()
+    ConstraintEquationSetType &GetData()
     {
-        return mConstraintEquationsVector;
+        return mConstraintEquationsSet;
     }
 
     /**
@@ -292,14 +292,14 @@ class ConstraintEquationContainer
     void AddConstraint(DofType const &rSlaveDof, DofType const &rMasterDof, double Weight, double Constant = 0.0)
     {
         ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsVector.find(equation);
-        if (res != mConstraintEquationsVector.end())
+        auto res = mConstraintEquationsSet.find(equation);
+        if (res != mConstraintEquationsSet.end())
         { // Equation already exists
             ((*res))->AddMaster(rMasterDof, Weight);
         } else {
             equation->AddMaster(rMasterDof, Weight);
             equation->SetConstant(Constant);
-            mConstraintEquationsVector.insert(equation);
+            mConstraintEquationsSet.insert(equation);
         }
     }
     ///@
@@ -320,7 +320,7 @@ class ConstraintEquationContainer
     virtual void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << " ConstraintEquationContainer object " << std::endl;
-        rOStream << " Number of constraint equations : " << mConstraintEquationsVector.size() << std::endl;
+        rOStream << " Number of constraint equations : " << mConstraintEquationsSet.size() << std::endl;
     }
 
     ///@name Serialization
@@ -338,7 +338,7 @@ class ConstraintEquationContainer
   private:
     ///@name Member Variables
     ///@{
-    ConstraintEquationVectorType mConstraintEquationsVector;
+    ConstraintEquationSetType mConstraintEquationsSet;
     ///@}
 };
 
