@@ -102,7 +102,7 @@ class DamFixTemperatureConditionProcess : public Process
 
                 if (mIsFixed)
                 {
-                    it->Fix(var);        
+                    it->Fix(var);
                 }
 
                 it->FastGetSolutionStepValue(var) = mTemperature;
@@ -142,7 +142,7 @@ class DamFixTemperatureConditionProcess : public Process
 
                 if (mIsFixed)
                 {
-                    it->Fix(var);        
+                    it->Fix(var);
                 }
 
                 it->FastGetSolutionStepValue(var) = mTemperature;
