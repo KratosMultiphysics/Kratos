@@ -185,6 +185,7 @@ class ConstraintEquationContainer
     typedef Node<3> NodeType;
     typedef ConstraintEquation::Pointer ConstraintEquationPointerType;
 
+    // Custom hash function to store Constraint equation objects in a unordered_set
     struct EquationHasher
     {
         size_t
