@@ -101,11 +101,9 @@ public:
 		else
 			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: finite_differencing. Specified gradient_mode: " << gradientMode << std::endl;
 
-		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
+		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 
 		// Initialize member variables to NULL
-		m_initial_value = 0.0;
-		m_initial_value_defined = false;
 		m_total_mass = 0.0;
 	}
 
@@ -147,13 +145,6 @@ public:
 			else
 				elem_volume = element_geometry.Volume();
 			m_total_mass +=  elem_density*elem_volume;
-		}
-
-		// Set initial value if not done yet
-		if(!m_initial_value_defined)
-		{
-			m_initial_value = m_total_mass;
-			m_initial_value_defined = true;
 		}
 
 		KRATOS_CATCH("");
@@ -276,19 +267,6 @@ public:
 
 		}
 
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	double GetInitialValue()
-	{
-		KRATOS_TRY;
-
-		if(!m_initial_value_defined)
-			KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"CalculateValue()\"!" << std::endl;
-
-		return m_initial_value;
 
 		KRATOS_CATCH("");
 	}
@@ -438,8 +416,6 @@ private:
 	unsigned int m_gradient_mode;
 	double m_total_mass;
 	double mDelta;
-	double m_initial_value;
-	bool m_initial_value_defined;
 	bool mConsiderDiscretization;
 
 	///@}
