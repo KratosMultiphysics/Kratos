@@ -254,7 +254,7 @@ class ApplyMultipointConstraintsProcess : public Process
 		Sets the name of the constraint set
 		@arg Name Name of the constraint set
 		*/
-    void SetName(std::string Name)
+    void SetName(std::string& Name)
     {
         pMpc->SetName(Name);
     }

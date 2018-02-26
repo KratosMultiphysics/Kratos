@@ -57,7 +57,6 @@ class ConstraintEquation
         size_t MasterKey() { return mKey; }
         double MasterWeight() const { return mMasterWeight; }
         double& MasterWeight() { return mMasterWeight; }
-        void UpdateWeight(double iWeight) { mMasterWeight += iWeight; }
         size_t MasterDofId() { return mId; }
         size_t MasterEqId() { return mEquationId; }
         void SetMasterEqId(size_t Id) { mEquationId = Id; }
@@ -127,7 +126,7 @@ class ConstraintEquation
         auto res = mMasterDataVector.find(master_data);
         if (res != mMasterDataVector.end())
         {
-            (*res)->UpdateWeight(Weight);
+            (*res)->MasterWeight() += Weight;
         } else {
             mMasterDataVector.insert(master_data);
         }

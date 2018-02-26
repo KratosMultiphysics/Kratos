@@ -171,7 +171,7 @@ class Constraint
     /**
 	* Set the name for the current set of constraints. 
 	*/
-    virtual void SetName(const std::string Name)
+    virtual void SetName(const std::string& Name)
     {
         mName = Name;
     }

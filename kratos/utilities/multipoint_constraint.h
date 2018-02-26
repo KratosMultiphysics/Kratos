@@ -9,8 +9,8 @@
 //
 //  Main authors:    Aditya Ghantasala
 //
-//  The modification of the element matrices follows the algorithm described in
-//  "AN ALGQRITHM FOR MULTIPOINT CONSTRAINTS IN FINITE ELEMENT ANALYSIS"
+//  The modification of the element matrix follows the algorithm described in
+//  "AN ALGORITHM FOR MULTIPOINT CONSTRAINTS IN FINITE ELEMENT ANALYSIS"
 //   by John F. Abel and Mark S. Shephard
 //
 //
