@@ -459,6 +459,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_WriteAttribute1, KratosHDF5TestSuite)
     const HDF5::Vector<double> vec_double_attr = TestVector<double>();
     const HDF5::Matrix<int> mat_int_attr = TestMatrix<int>();
     const HDF5::Matrix<double> mat_double_attr = TestMatrix<double>();
+    const array_1d<double, 3> array_1d_attr = array_1d<double, 3>(3, 1.234);
     test_file.WriteAttribute("/foo", "INT_ATTRIBUTE", int_attr);
     test_file.WriteAttribute("/foo", "DOUBLE_ATTRIBUTE", double_attr);
     test_file.WriteAttribute("/foo", "STRING_ATTRIBUTE", string_attr);
@@ -466,6 +467,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_WriteAttribute1, KratosHDF5TestSuite)
     test_file.WriteAttribute("/foo", "VEC_DOUBLE_ATTRIBUTE", vec_double_attr);
     test_file.WriteAttribute("/foo", "MAT_INT_ATTRIBUTE", mat_int_attr);
     test_file.WriteAttribute("/foo", "MAT_DOUBLE_ATTRIBUTE", mat_double_attr);
+    test_file.WriteAttribute("/foo", "ARRAY1D_ATTRIBUTE", array_1d_attr);
     KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -672,6 +674,23 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute5, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();
+    test_file.AddPath("/foo");
+    const array_1d<double, 3> array_1d_attr_out = array_1d<double, 3>(3, 1.234);
+    test_file.WriteAttribute("/foo", "ARRAY1D_ATTRIBUTE", array_1d_attr_out);
+    array_1d<double, 3> array_1d_attr_in;
+    test_file.ReadAttribute("/foo", "ARRAY1D_ATTRIBUTE", array_1d_attr_in);
+    KRATOS_CHECK(array_1d_attr_in.size() == array_1d_attr_out.size());
+    for (std::size_t i = 0; i < array_1d_attr_in.size(); ++i)
+        KRATOS_CHECK(array_1d_attr_in[i] == array_1d_attr_out[i]);
+    KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
+    H5close(); // Clean HDF5 for next unit test.
+    KRATOS_CATCH_WITH_BLOCK("", H5close(););
+}
+
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute6, KratosHDF5TestSuite)
+{
+    KRATOS_TRY;
+    auto test_file = GetTestFile();
     double attr;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         test_file.ReadAttribute("/foo", "ATTRIBUTE", attr);
@@ -681,7 +700,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute5, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute6, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute7, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();
@@ -695,7 +714,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute6, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute7, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute8, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();
@@ -710,7 +729,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute7, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute8, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute9, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();
@@ -725,7 +744,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute8, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute9, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute10, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();
@@ -740,7 +759,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute9, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute10, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute11, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();
@@ -755,7 +774,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute10, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute11, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute12, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();
@@ -770,7 +789,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute11, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute12, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute13, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();
@@ -785,7 +804,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute12, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute13, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute14, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();
@@ -800,7 +819,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute13, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute14, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute15, KratosHDF5TestSuite)
 {
     KRATOS_TRY;
     auto test_file = GetTestFile();

@@ -276,6 +276,14 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 
+void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const array_1d<double, 3>& rValue)
+{
+    KRATOS_TRY;
+    Vector<double> vector_value = rValue;
+    WriteAttribute(rObjectPath, rName, vector_value);
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
 void File::WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
@@ -483,6 +491,17 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     rValue = std::string(buffer, dims[0]);
     if (GetEchoLevel() == 2 && GetPID() == 0)
         std::cout << "Read time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
+void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, array_1d<double, 3>& rValue)
+{
+    KRATOS_TRY;
+    Vector<double> vector_value;
+    ReadAttribute(rObjectPath, rName, vector_value);
+    KRATOS_ERROR_IF(vector_value.size() > 3)
+        << "Invalid size (" << vector_value.size() << ") for array_1d!" << std::endl;
+    rValue = vector_value;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 

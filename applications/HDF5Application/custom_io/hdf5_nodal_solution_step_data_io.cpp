@@ -1,10 +1,10 @@
 #include "custom_io/hdf5_nodal_solution_step_data_io.h"
 
-#include "includes/kratos_components.h"
 #include "utilities/openmp_utils.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 #include "includes/kratos_parameters.h"
 #include "includes/communicator.h"
+#include "custom_utilities/registered_variable_lookup.h"
 
 namespace Kratos
 {
@@ -23,10 +23,46 @@ void SetNodalSolutionStepData(TVariableType const& rVariable,
                               Vector<TFileDataType> const& rData,
                               std::vector<NodeType*>& rNodes,
                               unsigned Step);
+
+template <typename TVariable>
+class WriteVariableFunctor
+{
+public:
+    void operator()(TVariable const& rVariable,
+                    std::vector<NodeType*>& rNodes,
+                    unsigned Step,
+                    File& rFile,
+                    std::string const& rPrefix,
+                    WriteInfo& rInfo)
+    {
+        Vector<typename TVariable::Type> data;
+        SetDataBuffer(rVariable, rNodes, data, Step);
+        rFile.WriteDataSet(rPrefix + "/NodalResults/" + rVariable.Name(), data, rInfo);
+    }
+};
+
+template <typename TVariable>
+class ReadVariableFunctor
+{
+public:
+    void operator()(TVariable const& rVariable,
+                    std::vector<NodeType*>& rNodes,
+                    unsigned Step,
+                    File& rFile,
+                    std::string const& rPrefix,
+                    unsigned StartIndex,
+                    unsigned BlockSize)
+    {
+        Vector<typename TVariable::Type> data;
+        rFile.ReadDataSet(rPrefix + "/NodalResults/" + rVariable.Name(), data,
+                          StartIndex, BlockSize);
+        SetNodalSolutionStepData(rVariable, data, rNodes, Step);
+    }
+};
 } // unnamed namespace
 
 NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters Settings, File::Pointer pFile)
-: mpFile(pFile)
+    : mpFile(pFile)
 {
     KRATOS_TRY;
 
@@ -74,46 +110,10 @@ void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes
 
     // Write each variable.
     for (const std::string& r_variable_name : mVariableNames)
-    {
-        if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name))
-        {
-            const Variable<array_1d<double, 3>>& rVARIABLE =
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
-            Vector<array_1d<double, 3>> data;
-            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
-            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
-        }
-        else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
-                     r_variable_name))
-        {
-            const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& rVARIABLE =
-                KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
-                    r_variable_name);
-            Vector<double> data;
-            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
-            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
-        }
-        else if (KratosComponents<Variable<double>>::Has(r_variable_name))
-        {
-            const Variable<double>& rVARIABLE =
-                KratosComponents<Variable<double>>::Get(r_variable_name);
-            Vector<double> data;
-            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
-            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
-        }
-        else if (KratosComponents<Variable<int>>::Has(r_variable_name))
-        {
-            const Variable<int>& rVARIABLE =
-                KratosComponents<Variable<int>>::Get(r_variable_name);
-            Vector<int> data;
-            SetDataBuffer(rVARIABLE, local_nodes, data, Step);
-            mpFile->WriteDataSet(mPrefix + "/NodalResults/" + r_variable_name, data, info);
-        }
-        else
-        {
-            KRATOS_ERROR << "Unsupported variable type: " << r_variable_name << std::endl;
-        }
-    }
+        RegisteredVariableLookup<Variable<array_1d<double, 3>>,
+                                 VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
+                                 Variable<double>, Variable<int>>(r_variable_name)
+            .Execute<WriteVariableFunctor>(local_nodes, Step, *mpFile, mPrefix, info);
 
     // Write block partition.
     WritePartitionTable(*mpFile, mPrefix + "/NodalResults", info);
@@ -135,50 +135,11 @@ void NodalSolutionStepDataIO::ReadNodalResults(NodesContainerType& rNodes, Commu
 
     // Read local data for each variable.
     for (const std::string& r_variable_name : mVariableNames)
-    {
-        if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name))
-        {
-            Vector<array_1d<double, 3>> data;
-            mpFile->ReadDataSet(mPrefix + "/NodalResults/" + r_variable_name,
-                                data, start_index, block_size);
-            const Variable<array_1d<double, 3>>& rVARIABLE =
-                KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name);
-            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
-        }
-        else if (KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Has(
-                     r_variable_name))
-        {
-            Vector<double> data;
-            mpFile->ReadDataSet(mPrefix + "/NodalResults/" + r_variable_name,
-                                data, start_index, block_size);
-            const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& rVARIABLE =
-                KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(
-                    r_variable_name);
-            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
-        }
-        else if (KratosComponents<Variable<double>>::Has(r_variable_name))
-        {
-            Vector<double> data;
-            mpFile->ReadDataSet(mPrefix + "/NodalResults/" + r_variable_name,
-                                data, start_index, block_size);
-            const Variable<double>& rVARIABLE =
-                KratosComponents<Variable<double>>::Get(r_variable_name);
-            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
-        }
-        else if (KratosComponents<Variable<int>>::Has(r_variable_name))
-        {
-            Vector<int> data;
-            mpFile->ReadDataSet(mPrefix + "/NodalResults/" + r_variable_name,
-                                data, start_index, block_size);
-            const Variable<int>& rVARIABLE =
-                KratosComponents<Variable<int>>::Get(r_variable_name);
-            SetNodalSolutionStepData(rVARIABLE, data, local_nodes, Step);
-        }
-        else
-        {
-            KRATOS_ERROR << "Unsupported variable type: " << r_variable_name << std::endl;
-        }
-    }
+        RegisteredVariableLookup<Variable<array_1d<double, 3>>,
+                                 VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>,
+                                 Variable<double>, Variable<int>>(r_variable_name)
+            .Execute<ReadVariableFunctor>(local_nodes, Step, *mpFile, mPrefix,
+                                          start_index, block_size);
 
     // Synchronize ghost nodes.
     rComm.SynchronizeNodalSolutionStepsData();

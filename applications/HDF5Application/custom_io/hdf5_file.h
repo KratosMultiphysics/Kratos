@@ -137,6 +137,8 @@ public:
 
     void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::string& rValue);
 
+    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const array_1d<double, 3>& rValue);
+
     /// Write a data set to the HDF5 file.
     /**
      *  Performs collective write in MPI. The data is written blockwise according to
@@ -204,6 +206,8 @@ public:
     void ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<TScalar>& rValue);
 
     void ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::string& rValue);
+
+    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, array_1d<double, 3>& rValue);
 
     /// Read a data set from the HDF5 file.
     /**
