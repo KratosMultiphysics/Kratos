@@ -19,7 +19,7 @@ The application offers the functionalities listed below. If there is an Object w
   * _CloseResultFile_
   
 ### Utilities
-* __MeshTransferDD__
+* __MeshTransfer2D__
 * __MeshTransfer3D__:
   * _DirectModelPartInterpolation_
   * _DirectScalarVarInterpolation_
