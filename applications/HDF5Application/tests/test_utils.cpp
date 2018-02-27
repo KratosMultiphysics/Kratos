@@ -162,23 +162,44 @@ std::size_t TestModelPartFactory::AddConditions(std::string const& rCondition, s
 
 void TestModelPartFactory::AddSubModelParts()
 {
-    ModelPart& sub_model_part =
+    mrTestModelPart.CreateSubModelPart("SubModelPart0"); // Empty sub model part.
+    ModelPart& sub_model_part1 =
         *mrTestModelPart.CreateSubModelPart("SubModelPart1");
     if (mrTestModelPart.NumberOfElements() > 0)
     {
+        // Sub model part 1 contains elements but not conditions.
         auto p_elem = *mrTestModelPart.Elements().ptr_begin();
-        sub_model_part.AddElement(p_elem);
+        sub_model_part1.AddElement(p_elem);
         for (auto it = p_elem->GetGeometry().ptr_begin();
              it != p_elem->GetGeometry().ptr_end(); ++it)
-            sub_model_part.AddNode(*it);
+            sub_model_part1.AddNode(*it);
     }
+    ModelPart& sub_model_part2 =
+        *mrTestModelPart.CreateSubModelPart("SubModelPart2");
     if (mrTestModelPart.NumberOfConditions() > 0)
     {
+        // Sub model part 2 contains conditions but not elements.
         auto p_cond = *mrTestModelPart.Conditions().ptr_begin();
-        sub_model_part.AddCondition(p_cond);
+        sub_model_part2.AddCondition(p_cond);
         for (auto it = p_cond->GetGeometry().ptr_begin();
              it != p_cond->GetGeometry().ptr_end(); ++it)
-            sub_model_part.AddNode(*it);
+            sub_model_part2.AddNode(*it);
+    }
+    ModelPart& sub_model_part3 =
+        *mrTestModelPart.CreateSubModelPart("SubModelPart3");
+    if (mrTestModelPart.NumberOfElements() > 0 && mrTestModelPart.NumberOfConditions() > 0)
+    {
+        // Sub model part 3 contains elements and conditions.
+        auto p_elem = *mrTestModelPart.Elements().ptr_begin();
+        sub_model_part3.AddElement(p_elem);
+        for (auto it = p_elem->GetGeometry().ptr_begin();
+             it != p_elem->GetGeometry().ptr_end(); ++it)
+            sub_model_part3.AddNode(*it);
+        auto p_cond = *mrTestModelPart.Conditions().ptr_begin();
+        sub_model_part3.AddCondition(p_cond);
+        for (auto it = p_cond->GetGeometry().ptr_begin();
+             it != p_cond->GetGeometry().ptr_end(); ++it)
+            sub_model_part3.AddNode(*it);
     }
 }
 
@@ -230,9 +251,13 @@ void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::Condit
 
 void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2)
 {
-    CompareNodes(rModelPart1.Nodes(), rModelPart2.Nodes());
-    CompareElements(rModelPart1.Elements(), rModelPart2.Elements());
-    CompareConditions(rModelPart1.Conditions(), rModelPart2.Conditions());
+    KRATOS_CHECK(rModelPart1.IsSubModelPart() == rModelPart2.IsSubModelPart());
+    if (!rModelPart1.IsSubModelPart() || rModelPart1.NumberOfNodes() > 0)
+        CompareNodes(rModelPart1.Nodes(), rModelPart2.Nodes());
+    if (!rModelPart1.IsSubModelPart() || rModelPart1.NumberOfElements() > 0)
+        CompareElements(rModelPart1.Elements(), rModelPart2.Elements());
+    if (!rModelPart1.IsSubModelPart() || rModelPart1.NumberOfConditions() > 0)
+       CompareConditions(rModelPart1.Conditions(), rModelPart2.Conditions());
     KRATOS_CHECK(rModelPart1.NumberOfSubModelParts() == rModelPart2.NumberOfSubModelParts());
     for (ModelPart& sub_model_part_1 : rModelPart1.SubModelParts())
     {
