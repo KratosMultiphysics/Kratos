@@ -6,7 +6,7 @@ thrid party libraries (Triangle, TetGen, MMG)
 The application offers the functionalities listed below. If there is an Object without methds it means it can be called using the __Execute()__ function.
 
 ### Custom IO
-* _PFEMGidIO_: A specialized instance of GiDIO for the PFEM Application. It redefines several IO methods:
+* __PFEMGidIO__: A specialized instance of GiDIO for the PFEM Application. It redefines several IO methods:
   * _WriteMesh_
   * _WriteNodeMesh_
   * _InitializeMesh_
@@ -19,7 +19,7 @@ The application offers the functionalities listed below. If there is an Object w
   * _CloseResultFile_
   
 ### Utilities
-* __MeshTransfer2D__ & __MeshTransfer3D__
+* __MeshTransfer2D__ & __MeshTransfer3D__:
   * _DirectModelPartInterpolation_
   * _DirectScalarVarInterpolation_
   * _DirectVectorialVarInterpolation_
@@ -35,7 +35,7 @@ The application offers the functionalities listed below. If there is an Object w
 * __LocalRefineSPrismMesh__: Refines a SPrism Mesh.
 * __LocalRefineTetrahedraMesh__: Refines a Tetrahedra Mesh.
 
-* __Cutting_Isosurface_Application__
+* __Cutting_Isosurface_Application__:
   * _GenerateScalarVarCut_
   * _GenerateVectorialComponentVarCut_
   * _GenerateVectorialVarCut_
@@ -45,16 +45,16 @@ The application offers the functionalities listed below. If there is an Object w
   * _DeleteCutData_
 
 ### Meshers:
-* __TriGenPFEMModeler__
+* __TriGenPFEMModeler__:
   * _ReGenerateMesh_
   
-* __TriGenGLASSModeler__
+* __TriGenGLASSModeler__:
   * _ReGenerateMeshGlass_
   
-* __TriGenPFEMModelerVMS__
+* __TriGenPFEMModelerVMS__:
   * _ReGenerateMesh_
   
-* __TriGenPFEMSegment__
+* __TriGenPFEMSegment__:
   * _ReGenerateMesh_
 
 ### Processes
@@ -87,7 +87,7 @@ interface shown. You can find information about these libs in their respective p
 [TetGen](http://wias-berlin.de/software/index.jsp?id=TetGen&lang=1) project.
 Please note that Tetgen is not free, and hence it is not included as part of Kratos. You must indicate to kratos where it can find your tetgen.
 
-* __TetgenVolumeMesher__
+* __TetgenVolumeMesher__:
   * _AddHole_
   * _GenerateMesh_
     
