@@ -102,7 +102,7 @@ interface shown. You can find information about these libs in their respective p
 
 ### TetGen
 [TetGen](http://wias-berlin.de/software/index.jsp?id=TetGen&lang=1) is a program to generate tetrahedral meshes of any 3D polyhedral domains. 
-Please note that Tetgen license is not compatible with Kratos, and hence it is not included as part of Kratos. You must indicate in compile time where it can find a tetgen already in your system.
+Please note that __Tetgen license is not compatible__ with Kratos, and hence it is not included as part of Kratos. You must indicate in compile time where it can find a tetgen already in your system.
 
 Tetgen enables to use the following __utilities__:
 
