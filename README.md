@@ -32,7 +32,7 @@ Some main modules are:
 - [External Solvers](applications/ExternalSolversApplication/README.md)
 - [Trilinos](applications/trilinos_application/README.md)
 - [Metis](applications/metis_application/README.md)
-- [Meshing](applications/meshing_application/README.md)
+- [Meshing](applications/MeshingApplication/README.md)
 
 # Examples of use
 Kratos has been used for simulation of many different problems in a wid variaty of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
