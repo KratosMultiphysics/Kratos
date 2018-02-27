@@ -4,10 +4,10 @@ CONDITION: Body_Part
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces
-QUESTION: Bathymetry#CB#(From_digital_model,Constant,By_function)
+QUESTION: Bathymetry#CB#(From_digital_model,By_function)
 VALUE: From_digital_model
-DEPENDENCIES: (From_digital_model,HIDE,Data,#CURRENT#)(Constant,RESTORE,Data,#CURRENT#)(By_function,RESTORE,Data,#CURRENT#)
-QUESTION: Data
+DEPENDENCIES: (From_digital_model,HIDE,Expression,#CURRENT#)(By_function,RESTORE,Expression,#CURRENT#)
+QUESTION: Expression
 VALUE: 0.0
 END CONDITION
 
@@ -56,19 +56,17 @@ CONDITION: Imposed_flux
 CONDTYPE: over groups
 CONDMESHTYPE: over nodes
 GROUPALLOW: lines
-QUESTION: Flux_value
+QUESTION: Variable#CB#(VELOCITY,MOMENTUM)
+VALUE: VELOCITY
+QUESTION: Modulus
 VALUE: 0.0
 HELP: Units in IS: m
-QUESTION: Fixed#CB#(true,false)
-VALUE: true
-HELP: Fixed: it is not a DOF, it is an imposed value. Unfixed: it is an initial value for the DOF
-DEPENDENCIES: (false,HIDE,Imposed_flux,Constant)(true,RESTORE,Imposed_flux,#CURRENT#)
-QUESTION: Imposed_flux#CB#(Constant,Table_Interpolation)
-VALUE: Constant
-DEPENDENCIES: (Constant,HIDE,Flux_Table,#CURRENT#)(Table_Interpolation,RESTORE,Flux_Table,#CURRENT#)
-QUESTION: Flux_Table(Time,Value)
-VALUE: #N# 2 0.0 0.0
-HELP: If Pressure_Distribution is set to Uniform, Value means Pressure_Value. If Pressure_Distribution is Hydrostatic, Value means Reference_Coordinate.
+QUESTION: Direction#CB#(X,Y)
+VALUE: X
+QUESTION: Fixed_X#CB#(true,false)
+VALUE: false
+QUESTION: Fixed_Y#CB#(true,false)
+VALUE: false
 END CONDITION
 
 

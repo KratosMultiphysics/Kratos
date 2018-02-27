@@ -119,8 +119,8 @@ proc WriteMdpa { basename dir problemtypedir } {
     ## SubModelParts
     # Body_Part
     WriteElementSubmodelPart FileVar Body_Part
-    # Initial_water_height
-    WriteConstraintSubmodelPart FileVar Initial_water_height
+    # Initial_water_level
+    WriteConstraintSubmodelPart FileVar Initial_water_level
     # Slip_condition
     WriteConstraintSubmodelPart FileVar Slip_condition
     # Water_height
