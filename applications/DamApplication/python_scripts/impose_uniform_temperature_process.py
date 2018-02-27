@@ -20,10 +20,13 @@ class ImposeUniformTemperatureProcess(Process):
             param = Parameters("{}")
             param.AddValue("model_part_name",settings["model_part_name"])
             param.AddValue("mesh_id",settings["mesh_id"])
-            param.AddEmptyValue("is_fixed").SetBool(False)
+            param.AddValue("is_fixed",settings["is_fixed"])
             param.AddValue("variable_name",settings["variable_name"])
             param.AddValue("value",settings["value"])
-            self.process = ApplyConstantScalarValueProcess(model_part, param) 
+            if settings["is_fixed"].GetBool():
+                self.process = DamFixTemperatureConditionProcess(model_part, settings)
+            else:
+                self.process = ApplyConstantScalarValueProcess(model_part, param)
         else:
             self.process = DamFixTemperatureConditionProcess(model_part, settings)
 
