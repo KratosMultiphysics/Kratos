@@ -19,12 +19,14 @@ The application offers the functionalities listed below. If there is an Object w
   * _CloseResultFile_
   
 ### Utilities
-* __MeshTransfer2D__ & __MeshTransfer3D__:
+* __MeshTransferDD__
+* __MeshTransfer3D__:
   * _DirectModelPartInterpolation_
   * _DirectScalarVarInterpolation_
   * _DirectVectorialVarInterpolation_
 
-* __BinBasedMeshTransfer2D__ & __BinBasedMeshTransfer3D__: Alternative implementation of the MeshTransfer utility based on bins. Inherits the procedures from __MeshTransfer__ and also adds:
+* __BinBasedMeshTransfer2D__
+* __BinBasedMeshTransfer3D__: Alternative implementation of the __MeshTransfer__ utility based on bins. Inherits the procedures from __MeshTransfer__ and also adds:
   * _MappingFromMovingMesh_ScalarVar_
   * _MappingFromMovingMesh_VectorialVar_
   * _MappingFromMovingMesh_VariableMeshes_ScalarVar_
@@ -87,6 +89,8 @@ interface shown. You can find information about these libs in their respective p
 [TetGen](http://wias-berlin.de/software/index.jsp?id=TetGen&lang=1) is a program to generate tetrahedral meshes of any 3D polyhedral domains. 
 Please note that Tetgen license is not compatible with Kratos, and hence it is not included as part of Kratos. You must indicate in compile time where it can find a tetgen already in your system.
 
+Tetgen enables to use the following __utilities__:
+
 * __TetgenVolumeMesher__:
   * _AddHole_
   * _GenerateMesh_
@@ -101,7 +105,7 @@ Please note that Tetgen license is not compatible with Kratos, and hence it is n
   * _setBlockSize_
   * _isaValidMesh_
   
-Tetgen also enable to use the following meshers:
+Tetgen also enable to use the following __meshers__:
 
 * __TetGenPfemModeler__:
   * _ReGenerateMesh_
