@@ -1,4 +1,4 @@
-# Meshing Solvers Application
+# Meshing Application
 
 Meshing Application provides several tools to create, manipulate and interact with meshes. It containts several interfaces to both Kratos
 thrid party libraries (Triangle, TetGen, MMG)
