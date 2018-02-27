@@ -310,7 +310,7 @@ public:
 
     /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
-    void AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex = 0);
+    void AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIndex = 0);
     
     /** Inserts a list of pointers to nodes
      */    
@@ -709,7 +709,7 @@ public:
     
     /** Inserts a list of elements to a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
-    void AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIndex = 0);
+    void AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex = 0);
     
     /** Inserts a list of pointers to nodes
      */    
@@ -872,7 +872,7 @@ public:
     
     /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
-    void AddConditions(std::vector<IndexType>& ConditionIds, IndexType ThisIndex = 0);
+    void AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex = 0);
     
     /** Inserts a list of pointers to nodes
      */    

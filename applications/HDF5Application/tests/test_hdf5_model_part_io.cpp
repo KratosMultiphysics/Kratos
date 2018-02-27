@@ -32,8 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadNodes, KratosHDF5TestSuite)
     ModelPart write_model_part("test_write");
     TestModelPartFactory::CreateModelPart(write_model_part);
     KRATOS_CHECK(write_model_part.NumberOfNodes() > 0);
-    HDF5::File::Pointer p_file = pGetTestSerialFile();
-    HDF5::ModelPartIO model_part_io(p_file, "/Step");
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
     ModelPart read_model_part("test_read");
     model_part_io.ReadNodes(read_model_part.Nodes());
@@ -45,8 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements1, KratosHDF5TestSuite)
     ModelPart write_model_part("test_write");
     TestModelPartFactory::CreateModelPart(write_model_part, {{"Element2D3N"}});
     KRATOS_CHECK(write_model_part.NumberOfElements() > 0);
-    HDF5::File::Pointer p_file = pGetTestSerialFile();
-    HDF5::ModelPartIO model_part_io(p_file, "/Step");
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
     model_part_io.WriteElements(write_model_part.Elements());
     ModelPart read_model_part("test_read");
@@ -61,8 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements2, KratosHDF5TestSuite)
     TestModelPartFactory::CreateModelPart(write_model_part,
                                           {{"Element2D3N"}, {"Element2D4N"}});
     KRATOS_CHECK(write_model_part.NumberOfElements() > 0);
-    HDF5::File::Pointer p_file = pGetTestSerialFile();
-    HDF5::ModelPartIO model_part_io(p_file, "/Step");
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
     model_part_io.WriteElements(write_model_part.Elements());
     ModelPart read_model_part("test_read");
@@ -76,8 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions1, KratosHDF5TestSuite)
     ModelPart write_model_part("test_write");
     TestModelPartFactory::CreateModelPart(write_model_part, {}, {{"SurfaceCondition3D3N"}});
     KRATOS_CHECK(write_model_part.NumberOfConditions() > 0);
-    HDF5::File::Pointer p_file = pGetTestSerialFile();
-    HDF5::ModelPartIO model_part_io(p_file, "/Step");
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
     model_part_io.WriteConditions(write_model_part.Conditions());
     ModelPart read_model_part("test_read");
@@ -93,8 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions2, KratosHDF5TestSuite)
         write_model_part, {},
         {{"SurfaceCondition3D3N"}, {"SurfaceCondition3D4N"}});
     KRATOS_CHECK(write_model_part.NumberOfConditions() > 0);
-    HDF5::File::Pointer p_file = pGetTestSerialFile();
-    HDF5::ModelPartIO model_part_io(p_file, "/Step");
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
     model_part_io.WriteNodes(write_model_part.Nodes());
     model_part_io.WriteConditions(write_model_part.Conditions());
     ModelPart read_model_part("test_read");
@@ -109,8 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties, KratosHDF5TestSuite)
     ModelPart read_model_part("test_read");
     HDF5::PropertiesContainerType& r_write_properties = write_model_part.rProperties();
     HDF5::PropertiesContainerType& r_read_properties = read_model_part.rProperties();
-    HDF5::File::Pointer p_file = pGetTestSerialFile();
-    HDF5::ModelPartIO model_part_io(p_file, "/Step");
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
 
     r_write_properties[1][DOMAIN_SIZE] = 2;
     r_write_properties[3][TIME] = 1.2345;
@@ -131,5 +125,16 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties, KratosHDF5TestSuite)
             KRATOS_CHECK(r_read_properties[4][LOCAL_AXES_MATRIX](i, j) == r_write_properties[4][LOCAL_AXES_MATRIX](i, j));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadModelPart, KratosHDF5TestSuite)
+{
+    ModelPart model_part_out;
+    TestModelPartFactory::CreateModelPart(model_part_out, {{"Element2D3N"}},
+                                          {{"SurfaceCondition3D3N"}});
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/ModelData");
+    model_part_io.WriteModelPart(model_part_out);
+    ModelPart model_part_in;
+    model_part_io.ReadModelPart(model_part_in);
+    CompareModelParts(model_part_in, model_part_out);
+}
 } // namespace Testing
 } // namespace Kratos.

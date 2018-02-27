@@ -47,6 +47,7 @@ void TestModelPartFactory::CreateModelPart(ModelPart& rTestModelPart,
         model_part_factory.AddElements(r_name, num_elems_and_conds);
     for (const auto& r_name : rConditions)
         model_part_factory.AddConditions(r_name, num_elems_and_conds);
+    model_part_factory.AddSubModelParts();
     model_part_factory.SetBufferSize(2);
     model_part_factory.AssignNodalTestData(rNodalVariables);
 }
@@ -159,6 +160,28 @@ std::size_t TestModelPartFactory::AddConditions(std::string const& rCondition, s
     return mrTestModelPart.NumberOfConditions();
 }
 
+void TestModelPartFactory::AddSubModelParts()
+{
+    ModelPart& sub_model_part =
+        *mrTestModelPart.CreateSubModelPart("SubModelPart1");
+    if (mrTestModelPart.NumberOfElements() > 0)
+    {
+        auto p_elem = *mrTestModelPart.Elements().ptr_begin();
+        sub_model_part.AddElement(p_elem);
+        for (auto it = p_elem->GetGeometry().ptr_begin();
+             it != p_elem->GetGeometry().ptr_end(); ++it)
+            sub_model_part.AddNode(*it);
+    }
+    if (mrTestModelPart.NumberOfConditions() > 0)
+    {
+        auto p_cond = *mrTestModelPart.Conditions().ptr_begin();
+        sub_model_part.AddCondition(p_cond);
+        for (auto it = p_cond->GetGeometry().ptr_begin();
+             it != p_cond->GetGeometry().ptr_end(); ++it)
+            sub_model_part.AddNode(*it);
+    }
+}
+
 void CompareNodes(HDF5::NodesContainerType& rNodes1, HDF5::NodesContainerType& rNodes2)
 {
     KRATOS_CHECK(rNodes1.size() == rNodes2.size());
@@ -210,6 +233,7 @@ void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2)
     CompareNodes(rModelPart1.Nodes(), rModelPart2.Nodes());
     CompareElements(rModelPart1.Elements(), rModelPart2.Elements());
     CompareConditions(rModelPart1.Conditions(), rModelPart2.Conditions());
+    KRATOS_CHECK(rModelPart1.NumberOfSubModelParts() == rModelPart2.NumberOfSubModelParts());
     for (ModelPart& sub_model_part_1 : rModelPart1.SubModelParts())
     {
         ModelPart& sub_model_part_2 = rModelPart2.GetSubModelPart(sub_model_part_1.Name());

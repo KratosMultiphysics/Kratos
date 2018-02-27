@@ -79,6 +79,8 @@ class TestModelPartFactory
 
         std::size_t AddConditions(std::string const& rCondition, std::size_t NumConds);
 
+        void AddSubModelParts();
+
         ModelPart& mrTestModelPart;
 };
 

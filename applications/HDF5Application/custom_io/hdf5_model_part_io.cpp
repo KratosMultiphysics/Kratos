@@ -179,17 +179,9 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());
+    WriteSubModelParts(rModelPart);
 
-    for (auto it = rModelPart.SubModelPartsBegin(); it != rModelPart.SubModelPartsEnd(); ++it)
-    {
-        WriteInfo info;
-        WriteContainerIds(*mpFile, mPrefix + "/SubModelParts/" + it->Name() + "/ElementIds", it->Elements(), info);
-        StoreWriteInfo(mPrefix + "/SubModelParts/" + it->Name() + "/ElementIds", info);
-        WriteContainerIds(*mpFile, mPrefix + "/SubModelParts/" + it->Name() + "/ConditionIds", it->Conditions(), info);
-        StoreWriteInfo(mPrefix + "/SubModelParts/" + it->Name() + "/ConditionIds", info);
-    }
-
-     if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
+    if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
         std::cout << "Time to write model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
     KRATOS_CATCH("");
@@ -207,6 +199,7 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
     Internals::ReadAndAssignVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
+    ReadSubModelParts(rModelPart);
 
     if (mpFile->GetEchoLevel() == 1 && mpFile->GetPID() == 0)
         std::cout << "Time to read model part \"" << rModelPart.Name() << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
@@ -229,6 +222,48 @@ void ModelPartIO::StoreWriteInfo(std::string const& rPath, WriteInfo const& rInf
     const int size = rInfo.TotalSize;
     mpFile->WriteAttribute(rPath, "Size", size);
     KRATOS_CATCH("");
+}
+
+std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath) const
+{
+    unsigned start_index, block_size;
+    std::tie(start_index, block_size) = StartIndexAndBlockSize(rPath);
+    Vector<int> id_buf;
+    mpFile->ReadDataSet(rPath, id_buf, start_index, block_size);
+    std::vector<std::size_t> ids(id_buf.size());
+#pragma omp parallel for
+    for (std::size_t i = 0; i < ids.size(); ++i)
+        ids[i] = id_buf[i];
+    return ids;
+}
+
+void ModelPartIO::WriteSubModelParts(ModelPart const& rModelPart)
+{
+    mpFile->AddPath(mPrefix + "/SubModelParts");
+    for (auto it = rModelPart.SubModelPartsBegin(); it != rModelPart.SubModelPartsEnd(); ++it)
+    {
+        WriteInfo info;
+        const std::string sub_model_part_path = mPrefix + "/SubModelParts/" + it->Name();
+        WriteContainerIds(*mpFile, sub_model_part_path + "/NodeIds", it->Nodes(), info);
+        StoreWriteInfo(sub_model_part_path + "/NodeIds", info);
+        WriteContainerIds(*mpFile, sub_model_part_path + "/ElementIds", it->Elements(), info);
+        StoreWriteInfo(sub_model_part_path + "/ElementIds", info);
+        WriteContainerIds(*mpFile, sub_model_part_path + "/ConditionIds", it->Conditions(), info);
+        StoreWriteInfo(sub_model_part_path + "/ConditionIds", info);
+    }
+}
+
+void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart)
+{
+    auto sub_model_parts = mpFile->GetGroupNames(mPrefix + "/SubModelParts");
+    for (const auto& r_name : sub_model_parts)
+    {
+        const std::string sub_model_part_path = mPrefix + "/SubModelParts/" + r_name;
+        auto p_sub_model_part = rModelPart.CreateSubModelPart(r_name);
+        p_sub_model_part->AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
+        p_sub_model_part->AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
+        p_sub_model_part->AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
+    }
 }
 
 } // namespace HDF5.

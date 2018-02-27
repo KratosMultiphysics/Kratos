@@ -269,7 +269,7 @@ void ModelPart::AddNode(ModelPart::NodeType::Pointer pNewNode, ModelPart::IndexT
 
 /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
 */
-void ModelPart::AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex)
+void ModelPart::AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIndex)
 {
     KRATOS_TRY
     if(IsSubModelPart()) //does nothing if we are on the top model part
@@ -694,7 +694,7 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
 
 /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
 */
-void ModelPart::AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIndex)
+void ModelPart::AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex)
 {
     KRATOS_TRY
     if(IsSubModelPart()) //does nothing if we are on the top model part
@@ -917,7 +917,7 @@ void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, Mo
 
 /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
 */
-void ModelPart::AddConditions(std::vector<IndexType>& ConditionIds, IndexType ThisIndex)
+void ModelPart::AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex)
 {
     KRATOS_TRY
     if(IsSubModelPart()) //does nothing if we are on the top model part

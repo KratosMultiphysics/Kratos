@@ -103,8 +103,15 @@ protected:
 
     ///@}
 
+private:
     ///@name Private Operations
     ///@{
+
+    std::vector<std::size_t> ReadContainerIds(std::string const& rPath) const;
+
+    void WriteSubModelParts(ModelPart const& rModelPart);
+
+    void ReadSubModelParts(ModelPart& rModelPart);
 
     ///@}
 };
