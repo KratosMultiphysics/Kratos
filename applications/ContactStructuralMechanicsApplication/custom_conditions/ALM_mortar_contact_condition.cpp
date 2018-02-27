@@ -48,7 +48,7 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 {
     KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
     
-    return boost::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -62,7 +62,7 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 {
     KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
     
-    return boost::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, pGeom, pProperties );
+    return Kratos::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
@@ -77,7 +77,7 @@ Condition::Pointer AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNode
 {
     KRATOS_ERROR << "You are calling to the base class method Create, check your condition declaration" << std::endl;
     
-    return boost::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, pGeom, pProperties, pMasterGeom );
+    return Kratos::make_shared< AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation> >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
@@ -287,8 +287,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     MortarConditionMatrices rThisMortarConditionMatrices;
     
     // We call the exact integration utility
-    // TODO: Think about the limit
-    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder, this->GetGeometry().Length());
+    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder, distance_threshold);
     
     // If we consider the normal variation
     const NormalDerivativesComputation consider_normal_variation = static_cast<NormalDerivativesComputation>(rCurrentProcessInfo[CONSIDER_NORMAL_VARIATION]);
@@ -446,8 +446,8 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
     MortarConditionMatrices rThisMortarConditionMatrices;
     
     // We call the exact integration utility
-    // TODO: Think about the limit
-    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder, this->GetGeometry().Length());
+    const double distance_threshold = rCurrentProcessInfo[DISTANCE_THRESHOLD];
+    IntegrationUtility integration_utility = IntegrationUtility (mIntegrationOrder, distance_threshold);
     
     // The master geometry
     GeometryType& master_geometry = this->GetPairedGeometry();

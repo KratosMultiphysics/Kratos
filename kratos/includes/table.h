@@ -23,7 +23,6 @@
 
 
 // External includes
-#include <boost/array.hpp>
 
 
 // Project includes
@@ -72,7 +71,7 @@ public:
     typedef TArgumentType argument_type; // To be STL conformance.
     typedef TResultType result_type; // To be STL conformance.
 
-    typedef boost::array<TResultType, TResultsColumns>  result_row_type;
+    typedef std::array<TResultType, TResultsColumns>  result_row_type;
 
     typedef std::pair<argument_type, result_row_type> RecordType;
 
@@ -368,6 +367,40 @@ private:
     ///@name Private Operations
     ///@{
 
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        std::size_t  local_size = mData.size();
+
+        rSerializer.save("size", local_size);
+
+        for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
+            rSerializer.save("Argument", i_row->first);
+            for(auto j = i_row->second.begin() ; j != i_row->second.end(); j++)
+                rSerializer.save("Column", j);
+        }
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        std::size_t local_size;
+
+        rSerializer.load("size", local_size);
+
+        mData.resize(local_size);
+
+        for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
+            rSerializer.load("Argument", i_row->first);
+            for(auto j = i_row->second.begin() ; j != i_row->second.end() ; j++)
+                rSerializer.load("Column", j);
+        }
+    }
+
 
     ///@}
     ///@name Private  Access
@@ -404,7 +437,7 @@ public:
     typedef double argument_type; // To be STL conformance.
     typedef double result_type; // To be STL conformance.
 
-    typedef boost::array<result_type, 1>  result_row_type;
+    typedef std::array<result_type, 1>  result_row_type;
 
     typedef std::pair<argument_type, result_row_type> RecordType;
 
@@ -736,6 +769,40 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const
+    {
+        std::size_t  local_size = mData.size();
+
+        rSerializer.save("size", local_size);
+
+        for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
+            rSerializer.save("Argument", i_row->first);
+            for(auto j = i_row->second.begin() ; j != i_row->second.end(); j++)
+                rSerializer.save("Column", *j);
+        }
+    }
+
+    void load(Serializer& rSerializer)
+    {
+        std::size_t local_size;
+
+        rSerializer.load("size", local_size);
+
+        mData.resize(local_size);
+
+        for(auto i_row = mData.begin() ; i_row != mData.end() ; i_row++){
+            rSerializer.load("Argument", i_row->first);
+            for(auto j = i_row->second.begin() ; j != i_row->second.end() ; j++)
+                rSerializer.load("Column", *j);
+        }
+   }
 
 
     ///@}

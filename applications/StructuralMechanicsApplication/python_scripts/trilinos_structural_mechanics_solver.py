@@ -34,15 +34,15 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(TrilinosMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Construction finished")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         super(TrilinosMechanicalSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Variables ADDED")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
 
     def ImportModelPart(self):
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Importing model part.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
         # Construct the Trilinos import model part utility.
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
@@ -54,7 +54,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         super(TrilinosMechanicalSolver, self)._set_and_fill_buffer()
         # Construct the communicators
         TrilinosModelPartImporter.CreateCommunicators()
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Finished importing model part.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
     #### Specific internal functions ####
 
@@ -66,7 +66,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def print_on_rank_zero(self, *args):
         KratosMPI.mpi.world.barrier()
         if KratosMPI.mpi.rank == 0:
-            print(" ".join(map(str,args)))
+            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Private functions ####
 
@@ -95,7 +95,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def _create_builder_and_solver(self):
         if self.settings["multi_point_constraints_used"].GetBool():
             raise Exception("MPCs not yet implemented in MPI")
-            
+
         linear_solver = self.get_linear_solver()
         epetra_communicator = self.get_epetra_communicator()
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
@@ -117,13 +117,13 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
-        return TrilinosApplication.TrilinosLinearStrategy(computing_model_part, 
-                                                          mechanical_scheme, 
-                                                          linear_solver, 
-                                                          builder_and_solver, 
-                                                          self.settings["compute_reactions"].GetBool(), 
-                                                          self.settings["reform_dofs_at_each_step"].GetBool(), 
-                                                          False, 
+        return TrilinosApplication.TrilinosLinearStrategy(computing_model_part,
+                                                          mechanical_scheme,
+                                                          linear_solver,
+                                                          builder_and_solver,
+                                                          self.settings["compute_reactions"].GetBool(),
+                                                          self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                          False,
                                                           self.settings["move_mesh_flag"].GetBool())
 
     def _create_newton_raphson_strategy(self):

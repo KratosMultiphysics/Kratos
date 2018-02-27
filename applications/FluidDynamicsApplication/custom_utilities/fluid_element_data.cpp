@@ -15,6 +15,33 @@ FluidElementData<TDim,TNumNodes, TElementIntegratesInTime>::~FluidElementData()
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Initialize(
+    const Element& rElement,
+    const ProcessInfo& rProcessInfo) {
+
+    ConstitutiveLawValues = ConstitutiveLaw::Parameters(rElement.GetGeometry(),rElement.GetProperties(),rProcessInfo);
+
+    if (StrainRate.size() != StrainSize) {
+        StrainRate.resize(StrainSize);
+    }
+    if (ShearStress.size() != StrainSize) {
+        ShearStress.resize(StrainSize);
+    }
+    if (C.size1() != StrainSize || C.size2() != StrainSize) {
+        C.resize(StrainSize,StrainSize);
+    }
+
+    // Set constitutive law flags:
+    Flags& cl_options = ConstitutiveLawValues.GetOptions();
+    cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+    ConstitutiveLawValues.SetStrainVector(StrainRate);   //this is the input parameter
+    ConstitutiveLawValues.SetStressVector(ShearStress);  //this is an ouput parameter
+    ConstitutiveLawValues.SetConstitutiveMatrix(C);      //this is an ouput parameter
+}
+
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 int FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Check(
     const Element& rElement, const ProcessInfo& rProcessInfo)
 {
@@ -104,14 +131,23 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromElemen
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProperties(double& rData,
-    const Variable<double>& rVariable, const Element& rElement)
+    const Variable<double>& rVariable, const Properties& rProperties)
 {
-    rData = rElement.GetProperties().GetValue(rVariable);
+    rData = rProperties.GetValue(rVariable);
 }
 
+// Triangles
 template class FluidElementData<2,3,false>;
 template class FluidElementData<2,3,true>;
+
+// Quadrilaterals
+template class FluidElementData<2,4,false>;
+
+// Tetrahedra
 template class FluidElementData<3,4,false>;
 template class FluidElementData<3,4,true>;
+
+// Hexahedra
+template class FluidElementData<3,8,false>;
 
 }

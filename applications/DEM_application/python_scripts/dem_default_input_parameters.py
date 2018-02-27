@@ -31,6 +31,12 @@ def GetDefaultInputParameters():
             "PotentialEnergyReferencePointZ"   : 0.0,
            
             "VelocityTrapOption"               : false,
+            "VelocityTrapMaxX"                 : 0.0,
+            "VelocityTrapMaxY"                 : 0.0,
+            "VelocityTrapMaxZ"                 : 0.0,
+            "VelocityTrapMinX"                 : 0.0,
+            "VelocityTrapMinY"                 : 0.0,
+            "VelocityTrapMinZ"                 : 0.0,
             "RotationOption"                   : true,
             "CleanIndentationsOption"          : false,
             "RemoveBallsInEmbeddedOption"      : false,
@@ -43,6 +49,7 @@ def GetDefaultInputParameters():
             "ModelDataInfo"                    : false,
             "VirtualMassCoefficient"           : 1.0,
             "RollingFrictionOption"            : false,
+            "ComputeStressTensorOption"        : false,
             "GlobalDamping"                    : 0.0,
             "PoissonEffectOption"              : true,
             "ShearStrainParallelToBondOption"  : true,
@@ -60,7 +67,17 @@ def GetDefaultInputParameters():
             "MaxTimeStep"                      : 5e-5,
             "FinalTime"                        : 0.05,
             "ControlTime"                      : 4.0,
-            "NeighbourSearchFrequency"         : 50,                        
+            "NeighbourSearchFrequency"         : 50,   
+            
+            "TestType"                         : false,
+            "ConfinementPressure"              : 0.0,
+            "LoadingVelocityTop"               : -0.10,
+            "LoadingVelocityBot"               : 0.0,
+            "MeshType"                         : "1",
+            "MeshPath"                         : "0",
+            "SpecimenLength"                   : 0.3,
+            "SpecimenDiameter"                 : 0.15,
+            "MeasuringSurface"                 : 0.01767145867644375,                                             
 
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,
@@ -77,13 +94,14 @@ def GetDefaultInputParameters():
             "PostParticleMoment"               : false,
             "PostEulerAngles"                  : false,
             "PostRollingResistanceMoment"      : false,
+            "PostCharacteristicLength"         : false,
             "PostElasticForces"                : false,
             "PostContactForces"                : false,
             "PostTangentialElasticForces"      : false,
             "PostShearStress"                  : false,
             "PostReactions"                    : false,
             "PostPressure"                     : false,
-            "PostNonDimensionalVolumeWear"     : false,            
+            "PostNonDimensionalVolumeWear"     : false,
             "PostNodalArea"                    : false,
             "PostStressStrainOption"           : false,
             "PostContactSigma"                 : false,
@@ -97,9 +115,9 @@ def GetDefaultInputParameters():
             "PostAppliedForces"                : false,
             "PostGroupId"                      : false,
             "PostExportId"                     : false,
-            
+                      
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
-
+            
             "problem_name" : "dummy_name.Provide_a_real_one"
             }""")
             

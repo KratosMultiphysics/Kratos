@@ -29,10 +29,14 @@
 
 /* Adding truss element */
 #include "custom_elements/truss_element_3D2N.hpp"
+#include "custom_elements/truss_element_linear_3D2N.hpp"
+#include "custom_elements/cable_element_3D2N.hpp"
 
 /* Adding beam element */
 #include "custom_elements/cr_beam_element_3D2N.hpp"
+#include "custom_elements/cr_beam_element_linear_3D2N.hpp"
 #include "custom_elements/cr_beam_element_2D2N.hpp"
+#include "custom_elements/cr_beam_element_linear_2D2N.hpp"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -247,13 +251,14 @@ private:
 
     // Adding the truss element
     const TrussElement3D2N mTrussElement3D2N; 
-    const TrussElement3D2N mTrussLinearElement3D2N;
+    const TrussElementLinear3D2N mTrussLinearElement3D2N;
+    const CableElement3D2N mCableElement3D2N;
 
     // Adding the beam element 
     const CrBeamElement3D2N mCrBeamElement3D2N;
-    const CrBeamElement3D2N mCrLinearBeamElement3D2N;
+    const CrBeamElementLinear3D2N mCrLinearBeamElement3D2N;
     const CrBeamElement2D2N mCrBeamElement2D2N;
-    const CrBeamElement2D2N mCrLinearBeamElement2D2N;
+    const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
 
 
     // Adding the shells elements 

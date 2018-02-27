@@ -51,7 +51,7 @@ namespace Kratos
  * Calculate the NODAL_H for all the nodes by means of the element sides minimum length
 */
 
-class FindNodalHProcess : public Process
+class KRATOS_API(KRATOS_CORE) FindNodalHProcess : public Process
 {
 public:
     ///@name Type Definitions

@@ -101,6 +101,7 @@ public:
     constexpr static unsigned int NumNodes = FluidElement<TElementData>::NumNodes;
     constexpr static unsigned int BlockSize = FluidElement<TElementData>::BlockSize;
     constexpr static unsigned int LocalSize = FluidElement<TElementData>::LocalSize;
+    constexpr static unsigned int StrainSize = FluidElement<TElementData>::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -152,9 +153,9 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new QSVMS element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
@@ -164,9 +165,9 @@ public:
     /// Create a new element of this type using given geometry
     /**
      * Returns a pointer to a new FluidElement element, created using given input
-     * @param NewId: the ID of the new element
-     * @param pGeom: a pointer to the geomerty to be used to create the element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId,
@@ -280,17 +281,28 @@ protected:
 
     void AddVelocitySystem(
         TElementData& rData,
-        MatrixType& rLHS,
-        VectorType& rRHS) override;
+        MatrixType& rLocalLHS,
+        VectorType& rLocalRHS) override;
 
     void AddMassLHS(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
-
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix);
+
+    // This function integrates the traction over a cut. It is only required to implement embedded formulations
+    void AddBoundaryIntegral(
+        TElementData& rData,
+        const Vector& rUnitNormal,
+        MatrixType& rLHS,
+        VectorType& rRHS) override;
+
+    void AddViscousTerm(
+        const TElementData& rData,
+        boost::numeric::ublas::bounded_matrix<double,LocalSize,LocalSize>& rLHS,
+        VectorType& rRHS);
 
     /**
      * @brief EffectiveViscosity Evaluate the total kinematic viscosity at a given integration point.
@@ -299,7 +311,7 @@ protected:
      * @param ElemSize Characteristic length representing the element (for Smagorinsky, this is the filter width)
      * @return Kinematic viscosity at the integration point.
      */
-    virtual double EffectiveViscosity(
+    KRATOS_DEPRECATED virtual double EffectiveViscosity(
         TElementData& rData,
         double ElementSize);
 
@@ -309,7 +321,6 @@ protected:
         double Density,
         double DynamicViscosity,
         const array_1d<double,3> &Velocity,
-        double ElemSize,
         double &TauOne,
         double &TauTwo);    
 
@@ -334,7 +345,7 @@ protected:
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale);
 
-        virtual void ASGSMomentumResidual(
+    virtual void ASGSMomentumResidual(
         TElementData& rData,
         array_1d<double,3>& rMomentumRes);
 
@@ -460,12 +471,6 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 
 namespace Internals {
-
-template <unsigned int TDim>
-void AddViscousTerm(double DynamicViscosity,
-                    double GaussWeight,
-                    const Kratos::Matrix& rDN_DX,
-                    Kratos::Matrix& rLHS);
 
 template <class TElementData, bool TDataKnowsAboutTimeIntegration>
 class SpecializedAddTimeIntegratedSystem {

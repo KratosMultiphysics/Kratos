@@ -155,7 +155,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THist>::AssemblyMortar
         for (unsigned int i_node = 0; i_node < TDim; ++i_node) {
             PointType global_point;
             SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointSlave[i_geom][i_node]);
-            points_array[i_node] = boost::make_shared<PointType>( global_point );
+            points_array[i_node] = Kratos::make_shared<PointType>( global_point );
         }
 
         DecompType decomp_geom( points_array );
@@ -225,7 +225,7 @@ inline bounded_matrix<double, TNumNodes, TNumNodes> SimpleMortarMapperProcess<TD
         for (unsigned int i_node = 0; i_node < TDim; ++i_node) {
             PointType global_point;
             SlaveGeometry.GlobalCoordinates(global_point, ConditionsPointsSlave[i_geom][i_node]);
-            points_array[i_node] = boost::make_shared<PointType>( global_point );
+            points_array[i_node] = Kratos::make_shared<PointType>( global_point );
         }
 
         DecompType decomp_geom( points_array );

@@ -150,7 +150,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             project_parameters_mapper.AddEmptyValue("interface_submodel_part_origin").SetString(fluid_submodelpart_name)
             project_parameters_mapper.AddEmptyValue("interface_submodel_part_destination").SetString(structure_submodelpart_name)
 
-            self.interface_mapper = KratosMapping.MapperFactory(self.fluid_solver.main_model_part,
+            self.interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
 				                                                self.structure_solver.main_model_part,
 				                                                project_parameters_mapper)
 
@@ -238,8 +238,8 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             # Get the previous step fluid interface nodal fluxes
             self.interface_mapper.Map(KratosMultiphysics.REACTION,
                                       KratosStructural.POINT_LOAD,
-                                      KratosMapping.MapperFactory.SWAP_SIGN |
-                                      KratosMapping.MapperFactory.CONSERVATIVE)
+                                      KratosMapping.Mapper.SWAP_SIGN |
+                                      KratosMapping.Mapper.CONSERVATIVE)
 
             # Solve the current step structure problem with the previous step fluid interface nodal fluxes
             self.structure_solver.SolveSolutionStep()

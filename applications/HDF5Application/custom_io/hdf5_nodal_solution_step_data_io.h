@@ -54,7 +54,7 @@ public:
     ///@{
 
     /// Constructor.
-    NodalSolutionStepDataIO(Parameters& rParams, File::Pointer pFile);
+    NodalSolutionStepDataIO(Parameters Settings, File::Pointer pFile);
 
     ///@}
     ///@name Operations
@@ -80,7 +80,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    std::tuple<unsigned, unsigned> GetStartIndexAndBlockSize() const;
 
     /// Divide nodes into local and ghost.
     void DivideNodes(NodesContainerType const& rNodes,

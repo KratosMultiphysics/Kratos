@@ -1,12 +1,20 @@
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("ALEApplication", "FluidDynamicsApplication","TrilinosApplication")
+
+# Import applications
 import KratosMultiphysics.ALEApplication as ALEApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
-from KratosMultiphysics.mpi import *
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-KratosMultiphysics.CheckForPreviousImport()
+
+# Other imports
 import trilinos_navier_stokes_solver_fractionalstep
-import mesh_solver_base
+#import trilinos_mesh_solver_base
+import KratosMultiphysics.mpi as KratosMPI
 
 def CreateSolver(model_part, custom_settings):
     return ALETrilinosNavierStokesSolverFractionalStep(model_part, custom_settings)
@@ -20,14 +28,15 @@ class ALETrilinosNavierStokesSolverFractionalStep(trilinos_navier_stokes_solver_
         navier_stokes_settings["solver_type"].SetString("FractionalStep")
         super(ALETrilinosNavierStokesSolverFractionalStep, self).__init__(model_part, navier_stokes_settings)
         # create ale solver
-        ale_solver_type = custom_settings["ale_solver_type"].GetString()
-        valid_ale_solver_types = ["trilinos_mesh_solver_structural_similarity"]
-        if self.ale_solver_type not in valid_ale_solver_types:
-            raise Exception("Invalid ale_solver_type: " + self.ale_solver_type)
+        custom_settings.AddEmptyValue("problem_data")
+        custom_settings["problem_data"].AddEmptyValue("parallel_type")
+        custom_settings["problem_data"]["parallel_type"].SetString("MPI")
+        custom_settings.AddValue("solver_settings", custom_settings["ale_settings"])
+        custom_settings.RemoveValue("ale_settings")
 
-        ale_solver_module = __import__(ale_solver_type)
-        self.ale_solver = ale_solver_module.CreateSolver(self.main_model_part, custom_settings["ale_settings"])
-        if mpi.rank == 0:
+        import python_solvers_wrapper_mesh_motion
+        self.ale_solver = python_solvers_wrapper_mesh_motion.CreateSolver(self.main_model_part, custom_settings)
+        if KratosMPI.mpi.rank == 0:
             print("::[ALETrilinosNavierStokesSolverFractionalStep]:: Construction finished")
 
     def AddVariables(self):
@@ -35,7 +44,7 @@ class ALETrilinosNavierStokesSolverFractionalStep(trilinos_navier_stokes_solver_
         super(ALETrilinosNavierStokesSolverFractionalStep, self).AddVariables()
         # add ale variables
         self.ale_solver.AddVariables()
-        if mpi.rank == 0:
+        if KratosMPI.mpi.rank == 0:
             print("::[ALETrilinosNavierStokesSolverFractionalStep]:: Variables ADDED.")
 
     def AddDofs(self):
@@ -43,13 +52,13 @@ class ALETrilinosNavierStokesSolverFractionalStep(trilinos_navier_stokes_solver_
         super(ALETrilinosNavierStokesSolverFractionalStep, self).AddDofs()
         # add ale dofs
         self.ale_solver.AddDofs()
-        if mpi.rank == 0:
+        if KratosMPI.mpi.rank == 0:
             print("::[ALETrilinosNavierStokesSolverFractionalStep]:: DOFs ADDED.")
 
     def Initialize(self):
         super(ALETrilinosNavierStokesSolverFractionalStep, self).Initialize()
         self.ale_solver.Initialize()
-        if mpi.rank == 0:
+        if KratosMPI.mpi.rank == 0:
             print("::[ALETrilinosNavierStokesSolverFractionalStep]:: Finished initialization.")
 
     def GetFluidSolver(self):

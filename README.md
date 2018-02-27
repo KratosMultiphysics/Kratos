@@ -11,8 +11,10 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 [license-image]: https://img.shields.io/badge/license-BSD-green.svg?style=flat
 [license]: https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/license.txt
+
 [kratos-master-status]: https://travis-ci.org/KratosMultiphysics/Kratos.svg?branch=master
 [travis-branches]: https://travis-ci.org/KratosMultiphysics/Kratos/branches
+
 
 # Main Features
 **Kratos** is __multiplatform__ and available for __Windows,Linux__ (several distros) and can be compiled in __OSX__.
@@ -87,3 +89,4 @@ In Kratos Core:
 In applications
 - [Trilinos](https://trilinos.org/) for MPI linear algebra and solvers used in trilinos application
 - [METIS](http://glaros.dtc.umn.edu/gkhome/views/metis) for partitioning in metis application
+

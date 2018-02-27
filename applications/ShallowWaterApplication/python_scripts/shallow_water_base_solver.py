@@ -36,6 +36,8 @@ class ShallowWaterBaseSolver(object):
             "calculate_norm_dx"            : true,
             "move_mesh_flag"               : false,
             "volume_model_part_name"       : "volume_model_part",
+            "skin_parts"                   : [""],
+            "no_skin_parts"                : [""],
             "linear_solver_settings"       : {
                     "solver_type"     : "SkylineLUFactorizationSolver"
             },
