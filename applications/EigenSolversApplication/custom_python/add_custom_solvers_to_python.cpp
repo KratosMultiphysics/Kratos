@@ -48,7 +48,7 @@ void AddCustomSolversToPython()
 		.def(init<Parameters>())
 	;
 
-	#if defined EIGEN_USE_MKL
+	#if defined USE_EIGEN_MKL
 	using PardisoLLTSolver = EigenDirectSolver<PardisoLLT, SparseSpaceType, LocalSpaceType>;
 	class_<PardisoLLTSolver, bases<DirectSolverType>, boost::noncopyable>
 		("PardisoLLTSolver", init<>())
@@ -66,7 +66,7 @@ void AddCustomSolversToPython()
 		("PardisoLUSolver", init<>())
 		.def(init<Parameters>())
 	;	
-	#endif // defined EIGEN_USE_MKL
+	#endif // defined USE_EIGEN_MKL
 
 	using SparseQRSolver = EigenDirectSolver<SparseQR, SparseSpaceType, LocalSpaceType>;
 	class_<SparseQRSolver, bases<DirectSolverType>, boost::noncopyable>
@@ -76,11 +76,11 @@ void AddCustomSolversToPython()
 
 	// --- eigensystem solver
 
-	#if defined EIGEN_USE_MKL
+	#if defined USE_EIGEN_MKL
 	using EigensystemSolverType = EigensystemSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
-	#else  // defined EIGEN_USE_MKL
+	#else  // defined USE_EIGEN_MKL
 	using EigensystemSolverType = EigensystemSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
-	#endif // defined EIGEN_USE_MKL
+	#endif // defined USE_EIGEN_MKL
 	class_<EigensystemSolverType, EigensystemSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable>
     	("EigensystemSolver", init<Parameters>())
     	.def("Solve", &EigensystemSolverType::Solve)

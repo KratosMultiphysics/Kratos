@@ -291,8 +291,8 @@ namespace Kratos {
 
             Matrix53Double object_to_be_saved_1;
             Matrix53Double object_to_be_loaded_1;
-            Matrix53Double object_to_be_saved_2;
-            Matrix53Double object_to_be_loaded_2;
+            Matrix26Int object_to_be_saved_2;
+            Matrix26Int object_to_be_loaded_2;
 
             FillMatrixWithValues(object_to_be_saved_1);
             FillMatrixWithValues(object_to_be_saved_2);
