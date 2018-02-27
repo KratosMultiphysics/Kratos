@@ -34,8 +34,14 @@ Some main modules are:
 - [Metis](applications/metis_application/README.md)
 - [Meshing](applications/MeshingApplication/README.md)
 
-# [Examples of use](https://kratosmultiphysics.github.io/Examples/)
+# Examples of use
 Kratos has been used for simulation of many different problems in a wid variaty of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
+
+<span>
+<img align="center" src="https://github.com/KratosMultiphysics/Examples/raw/master/fluid_dynamics/use_cases/barcelona_wind/resources/BarcelonaVelocityVector.png" width="288">
+  Barcelona Wind Simulation
+</span>
+<br>
 
 # Contributors
 Organizations contributing to Kratos: 
