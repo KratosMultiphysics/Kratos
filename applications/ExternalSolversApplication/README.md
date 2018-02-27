@@ -1,9 +1,8 @@
 ## External Solvers Application
 
-External Solvers application is the place where solvers that do not directly to the Kratos project are localed. 
-This application provides different interfaces to these solvers which make use of third party libraries or codes not directly integrated in Kratos.
+External Solvers application is the place where interface to third party solvers are located. 
 
-In the following list you can find which solvers are currently in kratos and links to the library projects or algortihms in which are bases:
+In the following list you can find which solvers are currently supported by kratos and links to the library projects or algortihms in which are bases:
 
 ### Direct Solvers
 * __SuperLUSolver__: Based on [SuperLu](http://crd-legacy.lbl.gov/~xiaoye/SuperLU/) project.
