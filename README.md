@@ -63,6 +63,11 @@ Some users of the technologies developed in Kratos are:
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/onera_logo.png" width="128">
 <p>ONERA, The French Aerospace Lab<br>Applied Aerodynamics Department</p>
 </span>
+<span>
+<img align="left" src="https://github.com/KratosMultiphysics/Documentation/blob/master/Wiki_files/Logos/altair-sponsor-logo.png" width="128">
+<p>Altair Engineering</p>
+</span>
+
 
 Looking forward to seeing your logo here! 
 
