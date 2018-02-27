@@ -200,7 +200,7 @@ namespace Testing {
    * triangle. The baricentre of the triangle is selected due to its known
    * solution.
    */
-/*KRATOS_TEST_CASE_IN_SUITE(Triangle2D3PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+  KRATOS_TEST_CASE_IN_SUITE(Triangle2D3PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
 
     auto geom = GenerateIrregularTriangle2D3<Node<3>>();
 
@@ -216,7 +216,7 @@ namespace Testing {
     KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
     KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
     KRATOS_CHECK_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
-  }*/ // TEMPORARILY DISABLED ONLY!!!
+  }
 
   /** Tests the area using 'GI_GAUSS_1' integration method.
    * Tests the area using 'GI_GAUSS_1' integration method.
