@@ -261,7 +261,7 @@ public:
 
     bool const HasTables()
     {
-        return (mTables.size() > 0);
+        return !mTables.empty();
     }
 
     bool const IsEmpty()
