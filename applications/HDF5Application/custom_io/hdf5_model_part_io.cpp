@@ -13,7 +13,8 @@ namespace Kratos
 {
 namespace HDF5
 {
-
+namespace
+{
 template <typename TContainer>
 void WriteContainerIds(File& rFile, std::string const& rPath, TContainer const& rContainer, WriteInfo& rInfo)
 {
@@ -28,6 +29,28 @@ void WriteContainerIds(File& rFile, std::string const& rPath, TContainer const& 
     }
     rFile.WriteDataSet(rPath, ids, rInfo);
     KRATOS_CATCH("");
+}
+
+int GlobalNumberOfNodes(ModelPart const& rModelPart)
+{
+    int number_of_nodes = rModelPart.NumberOfNodes();
+    rModelPart.GetCommunicator().SumAll(number_of_nodes);
+    return number_of_nodes;
+}
+
+int GlobalNumberOfElements(ModelPart const& rModelPart)
+{
+    int number_of_elems = rModelPart.NumberOfElements();
+    rModelPart.GetCommunicator().SumAll(number_of_elems);
+    return number_of_elems;
+}
+
+int GlobalNumberOfConditions(ModelPart const& rModelPart)
+{
+    int number_of_conds = rModelPart.NumberOfConditions();
+    rModelPart.GetCommunicator().SumAll(number_of_conds);
+    return number_of_conds;
+}
 }
 
 ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix)
@@ -244,12 +267,22 @@ void ModelPartIO::WriteSubModelParts(ModelPart const& rModelPart)
     {
         WriteInfo info;
         const std::string sub_model_part_path = mPrefix + "/SubModelParts/" + it->Name();
-        WriteContainerIds(*mpFile, sub_model_part_path + "/NodeIds", it->Nodes(), info);
-        StoreWriteInfo(sub_model_part_path + "/NodeIds", info);
-        WriteContainerIds(*mpFile, sub_model_part_path + "/ElementIds", it->Elements(), info);
-        StoreWriteInfo(sub_model_part_path + "/ElementIds", info);
-        WriteContainerIds(*mpFile, sub_model_part_path + "/ConditionIds", it->Conditions(), info);
-        StoreWriteInfo(sub_model_part_path + "/ConditionIds", info);
+        mpFile->AddPath(sub_model_part_path);
+        if (GlobalNumberOfNodes(*it) > 0)
+        {
+            WriteContainerIds(*mpFile, sub_model_part_path + "/NodeIds", it->Nodes(), info);
+            StoreWriteInfo(sub_model_part_path + "/NodeIds", info);
+        }
+        if (GlobalNumberOfElements(*it) > 0)
+        {
+            WriteContainerIds(*mpFile, sub_model_part_path + "/ElementIds", it->Elements(), info);
+            StoreWriteInfo(sub_model_part_path + "/ElementIds", info);
+        }
+        if (GlobalNumberOfConditions(*it) > 0)
+        {
+            WriteContainerIds(*mpFile, sub_model_part_path + "/ConditionIds", it->Conditions(), info);
+            StoreWriteInfo(sub_model_part_path + "/ConditionIds", info);
+        }
     }
 }
 
@@ -260,9 +293,12 @@ void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart)
     {
         const std::string sub_model_part_path = mPrefix + "/SubModelParts/" + r_name;
         auto p_sub_model_part = rModelPart.CreateSubModelPart(r_name);
-        p_sub_model_part->AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
-        p_sub_model_part->AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
-        p_sub_model_part->AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
+        if (mpFile->HasPath(sub_model_part_path + "/NodeIds"))
+            p_sub_model_part->AddNodes(ReadContainerIds(sub_model_part_path + "/NodeIds"));
+        if (mpFile->HasPath(sub_model_part_path + "/ElementIds"))
+            p_sub_model_part->AddElements(ReadContainerIds(sub_model_part_path + "/ElementIds"));
+        if (mpFile->HasPath(sub_model_part_path + "/ConditionIds"))
+            p_sub_model_part->AddConditions(ReadContainerIds(sub_model_part_path + "/ConditionIds"));
     }
 }
 
