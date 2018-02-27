@@ -123,7 +123,7 @@ Tetgen also enable to use the following __meshers__:
   * _ReGenerateMesh_
   
 ### MMG
-[MMG](https://www.mmgtools.org/) is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries. In Kratos it provides the following additioanl procedures to the Meshing Application
+[MMG](https://www.mmgtools.org/) is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries. In Kratos it provides the following additioanl __procedures__:
 
 * __MmgProcess2D__:
 * __MmgProcess3D__:
