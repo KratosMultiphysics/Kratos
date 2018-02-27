@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_DAM_T_SOL_AIR_HEAT_FLUX_PROCESS)
-#define KRATOS_DAM_T_SOL_AIR_HEAT_FLUX_PROCESS
+#if !defined(KRATOS_DAM_FIX_TEMPERATURE_CONDITION_PROCESS)
+#define KRATOS_DAM_FIX_TEMPERATURE_CONDITION_PROCESS
 
 #include <cmath>
 
@@ -21,63 +21,54 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
-// Application include
+// Application includes
 #include "dam_application_variables.h"
 
 namespace Kratos
 {
 
-class DamTSolAirHeatFluxProcess : public Process
+class DamFixTemperatureConditionProcess : public Process
 {
 
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(DamTSolAirHeatFluxProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(DamFixTemperatureConditionProcess);
 
     typedef Table<double, double> TableType;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
-    DamTSolAirHeatFluxProcess(ModelPart &rModelPart,
-                              Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
+    DamFixTemperatureConditionProcess(ModelPart &rModelPart,
+                                      Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
     {
         KRATOS_TRY
 
         //only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters(R"(
             {
-                "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
-                "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "h_0"                             : 0.0,
-                "ambient_temperature"             : 0.0,
-                "table_ambient_temperature"       : 0,
-                "emisivity"                       : 0.0,
-                "delta_R"                         : 0.0,
-                "absorption_index"                : 0.0,
-                "total_insolation"                : 0.0               
+                "model_part_name" : "PLEASE_CHOOSE_MODEL_PART_NAME",
+                "mesh_id"         : 0,
+                "variable_name"   : "PLEASE_PRESCRIBE_VARIABLE_NAME",
+                "is_fixed"        : false,
+                "value"           : 0.0,
+                "table"           : 0
             }  )");
 
         // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
-        rParameters["h_0"];
-        rParameters["delta_R"];
-        rParameters["absorption_index"];
+        rParameters["variable_name"];
+        rParameters["model_part_name"];
 
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
-        mH0 = rParameters["h_0"].GetDouble();
-        mAmbientTemperature = rParameters["ambient_temperature"].GetDouble();
-        mEmisivity = rParameters["emisivity"].GetDouble();
-        mDeltaR = rParameters["delta_R"].GetDouble();
-        mAbsorption_index = rParameters["absorption_index"].GetDouble();
-        mTotalInsolation = rParameters["total_insolation"].GetDouble();
+        mIsFixed = rParameters["is_fixed"].GetBool();
+        mTemperature = rParameters["value"].GetDouble();
 
         mTimeUnitConverter = mrModelPart.GetProcessInfo()[TIME_UNIT_CONVERTER];
-        mTableId = rParameters["table_ambient_temperature"].GetInt();
+        mTableId = rParameters["table"].GetInt();
 
         if (mTableId != 0)
             mpTable = mrModelPart.pGetTable(mTableId);
@@ -88,20 +79,17 @@ class DamTSolAirHeatFluxProcess : public Process
     ///------------------------------------------------------------------------------------
 
     /// Destructor
-    virtual ~DamTSolAirHeatFluxProcess() {}
+    virtual ~DamFixTemperatureConditionProcess() {}
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitialize()
+    void Execute()
     {
 
         KRATOS_TRY;
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-
-        // Computing the t_soil_air according to t_sol_air criteria
-        double t_sol_air = mAmbientTemperature + (mAbsorption_index * mTotalInsolation / mH0) - (mEmisivity * mDeltaR / mH0);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
 
         if (nnodes != 0)
         {
@@ -112,9 +100,12 @@ class DamTSolAirHeatFluxProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
-                const double heat_flux = mH0 * (t_sol_air - temp_current);
-                it->FastGetSolutionStepValue(var) = heat_flux;
+                if (mIsFixed)
+                {
+                    it->Fix(var);
+                }
+
+                it->FastGetSolutionStepValue(var) = mTemperature;
             }
         }
 
@@ -128,7 +119,6 @@ class DamTSolAirHeatFluxProcess : public Process
 
         KRATOS_TRY;
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         // Getting the values of table in case that it exist
@@ -136,11 +126,10 @@ class DamTSolAirHeatFluxProcess : public Process
         {
             double time = mrModelPart.GetProcessInfo()[TIME];
             time = time / mTimeUnitConverter;
-            mAmbientTemperature = mpTable->GetValue(time);
+            mTemperature = mpTable->GetValue(time);
         }
 
-        // Computing the t_soil_air according to t_sol_air criteria
-        double t_sol_air = mAmbientTemperature + (mAbsorption_index * mTotalInsolation / mH0) - (mEmisivity * mDeltaR / mH0);
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
 
         if (nnodes != 0)
         {
@@ -151,27 +140,55 @@ class DamTSolAirHeatFluxProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                const double temp_current = it->FastGetSolutionStepValue(TEMPERATURE);
-                const double heat_flux = mH0 * (t_sol_air - temp_current);
-                it->FastGetSolutionStepValue(var) = heat_flux;
+                if (mIsFixed)
+                {
+                    it->Fix(var);
+                }
+
+                it->FastGetSolutionStepValue(var) = mTemperature;
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+    
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteFinalizeSolutionStep()
+    {
+
+        KRATOS_TRY;
+
+        Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
+
+        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+
+        if (nnodes != 0)
+        {
+            
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+
+            #pragma omp parallel for
+            for (int i = 0; i < nnodes; i++)
+            {
+                ModelPart::NodesContainerType::iterator it = it_begin + i;
+                it->Free(var);
             }
         }
 
         KRATOS_CATCH("");
     }
 
-    ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Turn back information as a string.
     std::string Info() const
     {
-        return "DamTSolAirHeatFluxProcess";
+        return "FixTemperatureConditionProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream &rOStream) const
     {
-        rOStream << "DamTSolAirHeatFluxProcess";
+        rOStream << "FixTemperatureConditionProcess";
     }
 
     /// Print object's data.
@@ -183,15 +200,13 @@ class DamTSolAirHeatFluxProcess : public Process
 
   protected:
     /// Member Variables
+
     ModelPart &mrModelPart;
     std::size_t mMeshId;
     std::string mVariableName;
-    double mH0;
-    double mAmbientTemperature;
-    double mEmisivity;
-    double mDeltaR;
-    double mAbsorption_index;
-    double mTotalInsolation;
+    std::string mGravityDirection;
+    bool mIsFixed;
+    double mTemperature;
     double mTimeUnitConverter;
     TableType::Pointer mpTable;
     int mTableId;
@@ -200,17 +215,17 @@ class DamTSolAirHeatFluxProcess : public Process
 
   private:
     /// Assignment operator.
-    DamTSolAirHeatFluxProcess &operator=(DamTSolAirHeatFluxProcess const &rOther);
+    DamFixTemperatureConditionProcess &operator=(DamFixTemperatureConditionProcess const &rOther);
 
 }; //Class
 
 /// input stream function
 inline std::istream &operator>>(std::istream &rIStream,
-                                DamTSolAirHeatFluxProcess &rThis);
+                                DamFixTemperatureConditionProcess &rThis);
 
 /// output stream function
 inline std::ostream &operator<<(std::ostream &rOStream,
-                                const DamTSolAirHeatFluxProcess &rThis)
+                                const DamFixTemperatureConditionProcess &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -221,4 +236,4 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_DAM_T_SOL_AIR_HEAT_FLUX_PROCESS defined */
+#endif /* KRATOS_DAM_FIX_TEMPERATURE_CONDITION_PROCESS defined */
