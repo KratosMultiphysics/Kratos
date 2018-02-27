@@ -84,8 +84,8 @@ Meshing application can make use of several third party libs as an alternative (
 interface shown. You can find information about these libs in their respective pages which are listed below:
 
 ### TetGen
-[TetGen](http://wias-berlin.de/software/index.jsp?id=TetGen&lang=1) project.
-Please note that Tetgen is not free, and hence it is not included as part of Kratos. You must indicate to kratos where it can find your tetgen.
+[TetGen](http://wias-berlin.de/software/index.jsp?id=TetGen&lang=1) is a program to generate tetrahedral meshes of any 3D polyhedral domains. 
+Please note that Tetgen license is not compatible with Kratos, and hence it is not included as part of Kratos. You must indicate in compile time where it can find a tetgen already in your system.
 
 * __TetgenVolumeMesher__:
   * _AddHole_
@@ -119,9 +119,7 @@ Tetgen also enable to use the following meshers:
   * _ReGenerateMesh_
   
 ### MMG
-* [MMG](https://www.mmgtools.org/) project.
-
-MMG is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries. In Kratos it provides the following additioanl procedures to the Meshing Application
+[MMG](https://www.mmgtools.org/) is an open source software for simplicial remeshing. It provides 3 applications and 4 libraries. In Kratos it provides the following additioanl procedures to the Meshing Application
 
 * __MmgProcess2D__:
 * __MmgProcess3D__:
