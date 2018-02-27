@@ -15,9 +15,9 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 [travis-branches]: https://travis-ci.org/KratosMultiphysics/Kratos/branches
 
 # Main Features
-**Kratos** is multiplatform and available for Windows,Linux (several distros) and can be compiled in OSX.
+**Kratos** is __multiplatform__ and available for __Windows,Linux__ (several distros) and can be compiled in __OSX__.
 
-**Kratos** is OpenMP and MPI parallel and scalable up to thousands of cores.
+**Kratos** is __OpenMP__ and __MPI__ parallel and scalable up to thousands of cores.
 
 **Kratos** provides a core which defines the common framework and several application which work like plug-ins and extend it in different fields.
 
@@ -34,7 +34,7 @@ Some main modules are:
 - [Metis](applications/metis_application/README.md)
 - [Meshing](applications/MeshingApplication/README.md)
 
-# Examples of use
+# [Examples of use](https://kratosmultiphysics.github.io/Examples/)
 Kratos has been used for simulation of many different problems in a wid variaty of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
 
 # Contributors
