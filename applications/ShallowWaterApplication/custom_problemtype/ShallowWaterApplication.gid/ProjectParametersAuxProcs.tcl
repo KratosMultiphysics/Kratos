@@ -89,13 +89,11 @@ proc WriteConstantVectorConditionProcess {FileVar GroupNum Groups EntityType Num
             puts $MyFileVar "            \"model_part_name\" : \"[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "            \"variable_name\"   : \"[lindex [lindex $Groups $i] 3]\","
             puts $MyFileVar "            \"modulus\"         : [lindex [lindex $Groups $i] 4],"
-            if {[lindex [lindex $Groups $i] 5] eq "X"} {
-                puts $MyFileVar "            \"direction\"       : \[1.0, 0.0, 0.0\],"
-            } elseif {[lindex [lindex $Groups $i] 5] eq "Y"} {
-                puts $MyFileVar "            \"direction\"       : \[0.0, 1.0, 0.0\],"
-            } else {
-                puts $MyFileVar "            \"direction\"       : \[0.0, 0.0, 1.0\],"
-            }
+            set pi 3.1415926535897931
+            set alpha [expr {[lindex [lindex $Groups $i] 5] * $pi / 180 }]
+            set ux [expr {cos($alpha)}]
+            set uy [expr {sin($alpha)}]
+            puts $MyFileVar "            \"direction\"       : \[$ux, $uy, 0.0\],"
             puts $MyFileVar "            \"is_fixed_x\"      : [lindex [lindex $Groups $i] 6],"
             puts $MyFileVar "            \"is_fixed_y\"      : [lindex [lindex $Groups $i] 7]"
             puts $MyFileVar "        \}"

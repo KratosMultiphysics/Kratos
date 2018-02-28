@@ -61,8 +61,9 @@ VALUE: VELOCITY
 QUESTION: Modulus
 VALUE: 0.0
 HELP: Units in IS: m
-QUESTION: Direction#CB#(X,Y)
-VALUE: X
+QUESTION: Direction
+VALUE: 0
+HELP: Units: degrees
 QUESTION: Fixed_X#CB#(true,false)
 VALUE: false
 QUESTION: Fixed_Y#CB#(true,false)
