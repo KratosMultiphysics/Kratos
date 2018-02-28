@@ -1,5 +1,7 @@
 proc WriteProjectParameters { basename dir problemtypedir } {
 
+    ## Source auxiliar procedures
+    source [file join $problemtypedir ProjectParametersAuxProcs.tcl]
 
     # Start ProjectParameters.json file
     set filename [file join $dir ProjectParameters.json]
@@ -51,7 +53,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "        \"compute_reactions\"        : [GiD_AccessValue get gendata Compute_Reactions],"
     puts $FileVar "        \"reform_dofs_at_each_step\" : [GiD_AccessValue get gendata Reform_Dofs_At_Each_Step],"
     puts $FileVar "        \"move_mesh_flag\"           : [GiD_AccessValue get gendata Move_Mesh],"
-    puts $FileVar "        \"volume_model_part_name\"   : \"fluid_model\","
+    puts $FileVar "        \"volume_model_part_name\"   : \"shallow_water_model\","
     # linear_solver_settings
     puts $FileVar "        \"linear_solver_settings\"   : \{"
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
@@ -116,10 +118,10 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "    \"output_configuration\" : \{"
     puts $FileVar "        \"result_file_configuration\" : \{"
     puts $FileVar "            \"gidpost_flags\"         : \{"
-    puts $FileVar "                \"GidPostMode\"           : \"[GiD_AccessValue get gendata GiD_post_mode]\","
+    puts $FileVar "                \"GiDPostMode\"           : \"[GiD_AccessValue get gendata GiD_post_mode]\","
     puts $FileVar "                \"WriteDeformedMeshFlag\" : \"[GiD_AccessValue get gendata Write_deformed_mesh]\","
     puts $FileVar "                \"WriteConditionsFlag\"   : \"[GiD_AccessValue get gendata Write_conditions]\","
-    puts $FileVar "                \"MultifileFlag\"         : \"[GiD_AccessValue get gendata Multi_file_flag]\""
+    puts $FileVar "                \"MultiFileFlag\"         : \"[GiD_AccessValue get gendata Multi_file_flag]\""
     puts $FileVar "            \},"
     puts $FileVar "            \"output_control_type\"   : \"[GiD_AccessValue get gendata Output_control_type]\","
     puts $FileVar "            \"output_frequency\"      : [GiD_AccessValue get gendata Output_frequency],"
@@ -132,27 +134,49 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     if {[GiD_AccessValue get gendata Variables] eq "Conserved"} {
     append PutStrings \"MOMENTUM\" ,
     }
-    append PutStrings \"VELOCITY\",\"HEIGHT\",\"FREE_SURFECE_ELEVATION\",\"BATHYMETRY\"
+    append PutStrings \"VELOCITY\",\"HEIGHT\",\"FREE_SURFACE_ELEVATION\",\"BATHYMETRY\"
     set PutStrings [string trimright $PutStrings ,]
     append PutStrings \]
     puts $FileVar "            \"nodal_results\"         : $PutStrings,"
     puts $FileVar "            \"gauss_point_results\"   : \[\]"
     puts $FileVar "        \},"
     puts $FileVar "        \"point_data_configuration\"  :  \[\]"
-    puts $FileVar "    \}"
+    puts $FileVar "    \},"
 
 
     # initial conditions
     set Groups [GiD_Info conditions Initial_water_level groups]
     set NumGroups [llength $Groups]
     set iGroup 0
-    puts $FileVar "    \"initial_conditions_process_list\"  :\[\{"
+    puts $FileVar "    \"initial_conditions_process_list\"   : \[\{"
     WriteInitialWaterLevelProcess FileVar iGroup $Groups surfaces $NumGroups
 
     # boundary conditions
+    set Groups [GiD_Info conditions Slip_condition groups]
+    set NumGroups [llength $Groups]
+    set Groups [GiD_Info conditions Water_height groups]
+    incr NumGroups [llength $Groups]
+    set Groups [GiD_Info conditions Imposed_flux groups]
+    incr NumGroups [llength $Groups]
+    set iGroup 0
+    puts $FileVar "    \"boundary_conditions_process_list\"  : \[\{"
+    ## Slip conditions
+    set Groups [GiD_Info conditions Slip_condition groups]
+    WriteSlipConditionProcess FileVar iGroup $Groups lines $NumGroups
+    ## Imposed water height
+    set Groups [GiD_Info conditions Water_height groups]
+    WriteConstantScalarConditionProcess FileVar iGroup $Groups lines $NumGroups
+    ## Imposed water flux
+    set Groups [GiD_Info conditions Imposed_flux groups]
+    WriteConstantVectorConditionProcess FileVar iGroup $Groups lines $NumGroups
 
 
     # bathymetry
+    set Groups [GiD_Info conditions Body_Part groups]
+    set NumGroups [llength $Groups]
+    set iGroup 0
+    puts $FileVar "    \"bathymetry_process_list\"  : \[\{"
+    WriteBathymetryProcess FileVar iGroup $Groups surfaces $NumGroups
 
 
     # Finish ProjectParameters.json file
