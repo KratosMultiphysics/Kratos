@@ -91,23 +91,29 @@
     },
     "optimization_settings" : {
         "objectives" : [{
-                "identifier"    : "eigenfrequency",
-                "use_kratos"    : true,
-                "gradient_mode" : "semi_analytic",
-                "step_size"     : 1e-8,
-                "traced_eigenfrequency": [1,2],
-                "weighting_method": "linear_scaling",
-                "KS_parameter": 1,
-                "weighting_factors": [1.0, 1.0]
-
+            "identifier" : "eigenfrequency",
+            "type"       : "maximization",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "gradient_mode"          : "semi_analytic",
+                "step_size"              : 1e-8,
+                "traced_eigenfrequency"  : [1,2],
+                "weighting_method"       : "linear_scaling",
+                "KS_parameter"           : 1,
+                "weighting_factors"      : [1.0, 1.0],
+                "consider_discretization": false
+            }
         }],
         "constraints" : [{
-                "identifier"    : "mass",
-                "type"          : "equality",
-                "use_kratos"    : true,
-                "gradient_mode" : "finite_differencing",
-                "step_size"     : 1e-8,
-                "discretization_weighting": false
+            "identifier" : "mass",
+            "type"       : "=",
+            "reference"  : "initial_value",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "gradient_mode"          : "finite_differencing",
+                "step_size"              : 1e-8,
+                "consider_discretization": false
+            }
         }],
         "design_variables" : {
             "design_variables_type"     : "vertex_morphing",
