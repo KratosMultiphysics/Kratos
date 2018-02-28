@@ -107,6 +107,36 @@ void CrBeamElementLinear3D2N::CalculateLeftHandSide(
   KRATOS_CATCH("")
 }
 
+void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
+                                            ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY;
+  if (rMassMatrix.size1() != msElementSize) {
+    rMassMatrix.resize(msElementSize, msElementSize, false);
+  }
+  rMassMatrix = ZeroMatrix(msElementSize, msElementSize);
+
+  bool use_consistent_mass_matrix = false;
+
+  if (this->GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
+    use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
+  }
+
+  if (!use_consistent_mass_matrix) {
+    this->CalculateLumpedMassMatrix(rMassMatrix, rCurrentProcessInfo);
+  } else {
+    this->CalculateConsistentMassMatrix(rMassMatrix, rCurrentProcessInfo);
+    bounded_matrix<double, msElementSize, msElementSize> rotation_matrix =
+        this->CalculateInitialLocalCS();
+ 
+    bounded_matrix<double, msElementSize, msElementSize> aux_matrix =
+        prod(rotation_matrix, rMassMatrix);
+    rMassMatrix = prod(aux_matrix, Matrix(trans(rotation_matrix)));
+  }
+
+  KRATOS_CATCH("")
+}
+
+
 bounded_matrix<double, CrBeamElement3D2N::msLocalSize,
                CrBeamElement3D2N::msLocalSize>
 CrBeamElementLinear3D2N::CalculateDeformationStiffness() {
