@@ -386,12 +386,14 @@ public:
     template<class TDataType>
     TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return (TDataType*)Position(rThisVariable);
     }
 
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)Position(rThisVariable, QueueIndex);
     }
@@ -399,6 +401,7 @@ public:
     template<class TDataType>
     TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
     {    
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         KRATOS_DEBUG_ERROR_IF((QueueIndex + 1) > mQueueSize) << "Trying to access data from step " << QueueIndex << " but only " << mQueueSize << " steps are stored." << std::endl;
         return *(TDataType*)(Position(QueueIndex) + ThisPosition);
     }
@@ -406,6 +409,7 @@ public:
     template<class TDataType>
     TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpVariablesList->Has(rThisVariable)) << "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:" << rThisVariable << std::endl;
         return *(TDataType*)(mpCurrentPosition + ThisPosition);
     }
 
