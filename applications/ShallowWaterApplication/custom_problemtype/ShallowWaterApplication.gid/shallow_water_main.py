@@ -40,7 +40,7 @@ else:
 # Water height unit converter
 if   water_height_scale == "meters":
     water_height_unit_converter = 1.0
-elif water_height_scale == "milimeters":
+elif water_height_scale == "millimeters":
     water_height_unit_converter = 0.001
 else:
     raise Exception("unknown water height scale")
@@ -70,30 +70,14 @@ solver.AddDofs()
 
 # Initialize GiD I/O
 from gid_output_process import GiDOutputProcess
-gid_output = GiDOutputProcess(solver.GetComputingModelPart(),
-                              ProjectParameters["problem_data"]["problem_name"].GetString() ,
+gid_output = GiDOutputProcess(main_model_part,
+                              ProjectParameters["problem_data"]["problem_name"].GetString(),
                               ProjectParameters["output_configuration"])
 gid_output.ExecuteInitialize()
 
 # Create the Kratos model
 ShallowModel = KratosMultiphysics.Model()
 ShallowModel.AddModelPart(main_model_part)
-
-# Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-## Get the list of the initial conditions submodel parts in the object Model
-for i in range(ProjectParameters["initial_conditions_process_list"].size()):
-    initial_cond_part_name = ProjectParameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-    ShallowModel.AddModelPart(main_model_part.GetSubModelPart(initial_cond_part_name))
-
-## Get the list of the boundary conditions submodel parts in the object Model
-for i in range(ProjectParameters["boundary_conditions_process_list"].size()):
-    boundary_cond_part_name = ProjectParameters["boundary_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-    ShallowModel.AddModelPart(main_model_part.GetSubModelPart(boundary_cond_part_name))
-
-## Get the batymetry submodel part in the object Model
-for i in range(ProjectParameters["bathymetry"].size()):
-    bathymetry_part_name = ProjectParameters["bathymetry"][i]["Parameters"]["model_part_name"].GetString()
-    ShallowModel.AddModelPart(main_model_part.GetSubModelPart(bathymetry_part_name))
 
 # Print model_part and properties
 if(echo_level > 1):
@@ -107,9 +91,9 @@ if(echo_level > 1):
 # Construct processes to be applied
 import process_factory
 # "list_of_processes" contains all the processes already constructed (boundary conditions, initial conditions and gravity)
-# Note 1: batymetry is fistly constructed. Initial conditions might need its information.
+# Note 1: bathymetry is firstly constructed. Initial conditions might need its information.
 # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-list_of_processes  = process_factory.KratosProcessFactory(ShallowModel).ConstructListOfProcesses( ProjectParameters["bathymetry"] )
+list_of_processes  = process_factory.KratosProcessFactory(ShallowModel).ConstructListOfProcesses( ProjectParameters["bathymetry_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(ShallowModel).ConstructListOfProcesses( ProjectParameters["initial_conditions_process_list"] )
 list_of_processes += process_factory.KratosProcessFactory(ShallowModel).ConstructListOfProcesses( ProjectParameters["boundary_conditions_process_list"] )
 
