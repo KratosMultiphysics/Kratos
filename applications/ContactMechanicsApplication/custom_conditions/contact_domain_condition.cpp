@@ -735,12 +735,12 @@ namespace Kratos
     rVariables.N=row( Ncontainer, rPointNumber);
 
     // UL
-    // //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-    // Matrix InvJ;
-    // MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+    //Matrix InvJ;
+    //MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-    // //Compute cartesian derivatives [dN/dx_n]
-    // rVariables.DN_DX = prod( DN_De[rPointNumber] , InvJ );
+    //Compute cartesian derivatives [dN/dx_n]
+    //rVariables.DN_DX = prod( DN_De[rPointNumber] , InvJ );
 
     // SL
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
@@ -1155,10 +1155,10 @@ namespace Kratos
 
     // UL
     //Calculate Delta Position
-    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+    //rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    rVariables.J = MasterGeometry.Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+    //rVariables.J = MasterGeometry.Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
     // SL
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
@@ -1173,6 +1173,8 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    GeometryType & MasterGeometry = mContactVariables.GetMasterGeometry();
+    
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -1180,8 +1182,8 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+        array_1d<double, 3 > & CurrentDisplacement  = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement = MasterGeometry[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
         for ( unsigned int j = 0; j < dimension; j++ )
 	  {
@@ -1637,8 +1639,8 @@ namespace Kratos
 
     rLeftHandSideMatrix *= rIntegrationWeight;
     
-    // std::cout<<std::endl;
-    // std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
+    std::cout<<std::endl;
+    std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
   }
