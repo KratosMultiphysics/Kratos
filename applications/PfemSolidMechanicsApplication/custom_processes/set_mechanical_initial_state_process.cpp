@@ -461,6 +461,9 @@ namespace Kratos
       std::cout << " number " << OverLoad / 10.0 / (MixtureDensity +WaterDensity) << std::endl;
       std::cout << " olverLoad " << OverLoad << std::endl; */
 
+      double sign = 1.0;
+      if ( (rModelPart.NodesBegin() )->SolutionStepsDataHas( WATER_DISPLACEMENT_X) )
+         sign = -1.0;
       for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(); pNode != rModelPart.NodesEnd() ; pNode++) {
 
          WaterPressure = 10.0*WaterDensity * ( pNode->Y() -rYmax ) + WaterOverLoad;
@@ -472,7 +475,7 @@ namespace Kratos
             WaterPressure = 0.0;
 
          double& rWaterPressure = pNode->FastGetSolutionStepValue( WATER_PRESSURE );
-         rWaterPressure = WaterPressure ;
+         rWaterPressure = sign * WaterPressure ;
       }
 
       double VerticalStress, HorizontalStress;
