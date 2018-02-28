@@ -699,6 +699,7 @@ namespace Kratos
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
             rRightHandSideVector(i*dofs_per_node + iDim) += rIntegrationWeight * density_mixture *  rN(i) * rVolumeForce(iDim);
+            rRightHandSideVector(i*dofs_per_node + dimension + iDim) += rIntegrationWeight * density_water *  rN(i) * rVolumeForce(iDim);
          }
       }
 
