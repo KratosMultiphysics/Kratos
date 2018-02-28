@@ -92,7 +92,7 @@ class ConstraintEquation
         }
     };
 
-    std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator> mMasterDataVector;
+    std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator> mMasterDataSet;
 
     const size_t mId;
     const size_t mKey;
@@ -123,19 +123,19 @@ class ConstraintEquation
     void AddMaster(DofType const &rMasterDof, double Weight)
     {
         MasterDataPointerType master_data = Kratos::make_shared<MasterData>(rMasterDof, Weight);
-        auto res = mMasterDataVector.find(master_data);
-        if (res != mMasterDataVector.end())
+        auto res = mMasterDataSet.find(master_data);
+        if (res != mMasterDataSet.end())
         {
             (*res)->MasterWeight() += Weight;
         } else {
-            mMasterDataVector.insert(master_data);
+            mMasterDataSet.insert(master_data);
         }
     }
 
     // Get number of masters for this slave
     size_t NumberOfMasters()
     {
-        return mMasterDataVector.size();
+        return mMasterDataSet.size();
     }
 
     void PrintInfo()
@@ -147,7 +147,7 @@ class ConstraintEquation
         std::cout << "Constant :: " << Constant() << std::endl;
         int index = 0;
         std::cout << "############################## :: Masters" << std::endl;
-        for (auto &master : mMasterDataVector)
+        for (auto &master : mMasterDataSet)
         {
             std::cout << index << " Master  ID :: " << (*master).MasterDofId() << ", weight :: " << (*master).MasterWeight() << std::endl;
             index++;
@@ -156,8 +156,8 @@ class ConstraintEquation
     }
 
     // To make this class object iterate over all the master data vector.
-    iterator begin() { return mMasterDataVector.begin(); }
-    iterator end() { return mMasterDataVector.end(); }
+    iterator begin() { return mMasterDataSet.begin(); }
+    iterator end() { return mMasterDataSet.end(); }
 
 }; // End of ConstraintEquation class
 
