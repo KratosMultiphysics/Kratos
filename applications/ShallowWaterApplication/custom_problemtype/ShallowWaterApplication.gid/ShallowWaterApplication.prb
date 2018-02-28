@@ -42,7 +42,7 @@ VALUE: false
 QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
 VALUE: false
 QUESTION: Move_Mesh#CB#(true,false)
-VALUE: true
+VALUE: false
 QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
 VALUE: AMGCL
 HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.

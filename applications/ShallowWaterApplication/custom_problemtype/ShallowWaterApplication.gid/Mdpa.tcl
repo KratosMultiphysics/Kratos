@@ -18,7 +18,7 @@ proc WriteMdpa { basename dir problemtypedir } {
         incr PropertyId
         dict set PropertyDict [lindex [lindex $Groups $i] 1] $PropertyId
         puts $FileVar "Begin Properties $PropertyId"
-        puts $FileVar "  MANNING [lindex [lindex $Groups $i] 4]"
+        puts $FileVar "  MANNING [lindex [lindex $Groups $i] 3]"
         puts $FileVar "End Properties"
         puts $FileVar ""
     }

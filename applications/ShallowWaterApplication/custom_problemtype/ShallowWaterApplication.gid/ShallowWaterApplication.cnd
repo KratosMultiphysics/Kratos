@@ -18,8 +18,8 @@ CONDITION: Initial_water_level
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
 GROUPALLOW: surfaces
-QUESTION: Variable#CB#(Free_surface_elevation,Height)
-VALUE: Free_surface_elevation
+QUESTION: Variable#CB#(FREE_SURFACE_ELEVATION,HEIGHT)
+VALUE: FREE_SURFACE_ELEVATION
 QUESTION: Value
 VALUE: 0.0
 END CONDITION
