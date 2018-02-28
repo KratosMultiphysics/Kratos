@@ -1,4 +1,4 @@
-<img src="https://github.com/KratosMultiphysics/Kratos/tree/Brep_Application/applications/IGAStructuralMechanicsApplication/readme_application_description/IGA_symbol.png">
+![IGA](https://github.com/KratosMultiphysics/Kratos/tree/Brep_Application/applications/IGAStructuralMechanicsApplication/readme_application_description/IGA_symbol.png)
 
 # IGA Structural Mechanics Application
 
