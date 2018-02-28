@@ -70,7 +70,7 @@ namespace Kratos
         /**
          * This method computes the water height as FREE_SURFACE_ELEVATION - BATHYMETRY
          */
-        void ComputeHeightFromFreeSurface()
+        void ComputeHeightFromInitialFreeSurface()
         {
             KRATOS_TRY
 
