@@ -740,7 +740,7 @@ namespace Kratos
     // MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     // //Compute cartesian derivatives [dN/dx_n]
-    // noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
+    // rVariables.DN_DX = prod( DN_De[rPointNumber] , InvJ );
 
     // SL
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
@@ -776,16 +776,16 @@ namespace Kratos
     //std::cout<<" StressVector "<<rVariables.StressVector<<std::endl;
     
     //Get Current Strain
-    std::vector<Matrix> StrainTensor ( integration_points_number );
-    StrainTensor[rPointNumber]=ZeroMatrix(dimension,dimension);
-    MasterElement.GetValueOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR,StrainTensor,rCurrentProcessInfo);
-    std::vector<Vector> StrainVector ( integration_points_number );
-    for(unsigned int i=1; i<integration_points_number; i++)
-      {
-	StrainVector[i] = MathUtils<double>::StrainTensorToVector( StrainTensor[i], voigtsize );
-      }
+    // std::vector<Matrix> StrainTensor ( integration_points_number );
+    // StrainTensor[rPointNumber]=ZeroMatrix(dimension,dimension);
+    // MasterElement.GetValueOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR,StrainTensor,rCurrentProcessInfo);
+    // std::vector<Vector> StrainVector ( integration_points_number );
+    // for(unsigned int i=1; i<integration_points_number; i++)
+    //   {
+    // 	StrainVector[i] = MathUtils<double>::StrainTensorToVector( StrainTensor[i], voigtsize );
+    //   }
 
-    SetContactIntegrationVariable( rVariables.StrainVector, StrainVector, rPointNumber );
+    // SetContactIntegrationVariable( rVariables.StrainVector, StrainVector, rPointNumber );
 
 
     //Get Current Constitutive Matrix 
@@ -909,14 +909,14 @@ namespace Kratos
     bool test_tangent = false;
     if( test_tangent ){
       
-      //std::cout<<" ["<<this->Id()<<"] MATRIX "<<rLeftHandSideMatrix<<std::endl;
+      std::cout<<" ["<<this->Id()<<"] MATRIX "<<rLeftHandSideMatrix<<std::endl;
     
       MatrixType PerturbedLeftHandSideMatrix( rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2() );
       noalias(PerturbedLeftHandSideMatrix) = ZeroMatrix( rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2() );
 
       this->CalculatePerturbedLeftHandSide( PerturbedLeftHandSideMatrix, rCurrentProcessInfo );
 
-      //std::cout<<" ["<<this->Id()<<"] PERTURBED MATRIX "<<PerturbedLeftHandSideMatrix<<std::endl;
+      std::cout<<" ["<<this->Id()<<"] PERTURBED MATRIX "<<PerturbedLeftHandSideMatrix<<std::endl;
 
       //std::cout<<" ["<<this->Id()<<"] DIFFERENCES "<<PerturbedLeftHandSideMatrix-rLeftHandSideMatrix<<std::endl;
 
@@ -1155,10 +1155,10 @@ namespace Kratos
 
     // UL
     //Calculate Delta Position
-    //rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
 
     //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
-    //rVariables.J = MasterGeometry.Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+    rVariables.J = MasterGeometry.Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
     // SL
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
@@ -1367,21 +1367,33 @@ namespace Kratos
 	//Calculate Functions for the Contact Tangent Matrix construction
 	this->CalculateDomainShapeN(Variables);
 
+	double IntegrationWeight = 1.0;
+	if(dimension == 3){
+	    // UL (ask for the last known configuration size)
+	    IntegrationWeight = (1.0/3.0) * Variables.Contact.Tangent.ReferenceArea;
+	    // SL (ask for the current configuration size) (not passes patch test area is changing...)
+	    //IntegrationWeight = (1.0/3.0) * Variables.Contact.Tangent.CurrentArea;
 
-	// UL (ask for the last known configuration size)
-        //double IntegrationWeight =0.5 * Variables.Contact.ReferenceBase[0].L;  //all components are multiplied by this
+	    // std::cout<<" C1 "<<Variables.Contact.Tangent.EquivalentHeigh;
+	    // if( this->Is(SELECTED) )
+	    // 	Variables.Contact.Tangent.EquivalentHeigh = Variables.Contact.Tangent.CurrentArea/Variables.Contact.CurrentBase[0].L;
+	    // std::cout<<" c1 "<<Variables.Contact.Tangent.EquivalentHeigh<<std::endl;
+				   
+	    // std::cout<<" A "<<Variables.Contact.Tangent.ReferenceArea<<" a "<<Variables.Contact.Tangent.CurrentArea<<std::endl;
+	}
+	else{
+	    // UL (ask for the last known configuration size)
+	    //IntegrationWeight =0.5 * Variables.Contact.ReferenceBase[0].L;  //all components are multiplied by this
 
-	// SL (ask for the current configuration size)
-	double IntegrationWeight = 0.5 * Variables.Contact.CurrentBase[0].L;  //all components are multiplied by this
-
-	if(dimension == 3)
-	  IntegrationWeight = (1.0/3.0) * Variables.Contact.Tangent.ReferenceArea;
+	    // SL (ask for the current configuration size)
+	    IntegrationWeight = 0.5 * Variables.Contact.CurrentBase[0].L;  //all components are multiplied by this
+	}
 	  
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
         if(Variables.Contact.Options.Is(ACTIVE))
-	{	    
-	    rLocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX,true); //take a look on strategy and impose it
+	{
+	    //rLocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX,true); //take a look on strategy and impose it
 
 	    if ( rLocalSystem.CalculationFlags.Is(ContactDomainUtilities::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	      {
@@ -1396,6 +1408,7 @@ namespace Kratos
 
 		if( rLocalSystem.CalculationFlags.Is(ContactDomainUtilities::COMPUTE_NODAL_CONTACT_FORCES) )
 		  this->AddExplicitContribution( rLocalSystem.GetRightHandSideVector(), CONTACT_FORCES_VECTOR, CONTACT_FORCE, rCurrentProcessInfo);
+		  
 	      }
 
 
@@ -1660,14 +1673,14 @@ namespace Kratos
         StrainSize = 6;
       }
 
-    Vector StrainVector( StrainSize );
+    Vector StressVector( StrainSize );
 
     if ( rVariable == PK2_STRESS_TENSOR )
       {
         for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
 	  {
-            if ( rOutput[ii].size() != StrainVector.size() )
-	      rOutput[ii].resize( StrainVector.size(), false );
+            if ( rOutput[ii].size() != StressVector.size() )
+	      rOutput[ii].resize( StressVector.size(), false );
 
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
 	  }

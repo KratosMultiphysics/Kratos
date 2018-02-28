@@ -60,7 +60,7 @@ namespace Kratos
 
         void ContactDomainUtilities::CalculateEdgeDistances (std::vector<BaseLengths>& BaseVector,
 							     const PointType& P1,
-							     const  PointType& P2,
+							     const PointType& P2,
 							     const PointType& PS1,
 							     const PointType& PS2,
 							     const PointType& Normal)
@@ -117,8 +117,8 @@ namespace Kratos
 	  BaseVector[1].A = BaseVector[1].L-BaseVector[1].B;
 
 
-	  //std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
-	  //std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
+	  // std::cout<<" BaseVector 0-> L: "<<BaseVector[0].L<<" A: "<<BaseVector[0].A<<" B: "<<BaseVector[0].B<<std::endl;
+	  // std::cout<<" BaseVector 1-> L: "<<BaseVector[1].L<<" A: "<<BaseVector[1].A<<" B: "<<BaseVector[1].B<<std::endl;
 	
 
 	}
@@ -330,26 +330,74 @@ namespace Kratos
 	}
 
 
+       //************************************************************************************
+       //************************************************************************************
+    
+       ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent, PointType& Normal) 
+       { 
+           //counter clock-wise movement 
+	   Tangent.clear(); 
+	   Tangent[0] =  - Normal[1]; 
+	   Tangent[1] =    Normal[0]; 
+	   Tangent[2] =    0.00; 
+	   
+	   if(norm_2(Tangent)!=0) 
+	       Tangent/=norm_2(Tangent);
 
+	   return Tangent;
+
+       }
+
+    
        //************************************************************************************
        //************************************************************************************
 
-
-	ContactDomainUtilities::PointType & ContactDomainUtilities::CalculateFaceTangent(PointType &Tangent, PointType& Normal)
+        void ContactDomainUtilities::GetOppositeEdge(unsigned int& i, unsigned int& j, unsigned int& k, unsigned int& l)
 	{
-	        //counter clock-wise movement
-		Tangent.clear();
-		Tangent[0] =  - Normal[1];
-		Tangent[1] =    Normal[0];
-		Tangent[2] =    0.00;
+	    std::vector<std::vector<std::vector<unsigned int> > > Edges;
+	    BuildEdgeVector(Edges);
 
-		if(norm_2(Tangent)!=0)
-			Tangent/=norm_2(Tangent);
-
-		return Tangent;
-
+	    if( i<j ){
+		k = Edges[i][j-i-1][0];
+		l = Edges[i][j-i-1][1];
+	    }
+	    else{
+		k = Edges[j][i-j-1][1];
+		l = Edges[j][i-j-1][0];
+	    }			        
 	}
 
+       //************************************************************************************
+       //************************************************************************************
+
+        void ContactDomainUtilities::BuildEdgeVector(std::vector<std::vector<std::vector<unsigned int> > >& rEdges)
+	{
+	    std::vector<unsigned int> Edge(2);
+	    std::vector<std::vector<unsigned int> > Edge1;
+	    Edge[0] = 2;
+	    Edge[1] = 3;
+	    Edge1.push_back(Edge);
+	    Edge[0] = 3;
+	    Edge[1] = 1;
+	    Edge1.push_back(Edge);
+	    Edge[0] = 1;
+	    Edge[1] = 2;
+	    Edge1.push_back(Edge);
+	    rEdges.push_back(Edge1);
+	    std::vector<std::vector<unsigned int> > Edge2;
+	    Edge[0] = 0;
+	    Edge[1] = 3;
+	    Edge2.push_back(Edge);
+	    Edge[0] = 2;
+	    Edge[1] = 0;
+	    Edge2.push_back(Edge);
+	    rEdges.push_back(Edge2);
+	    std::vector<std::vector<unsigned int> > Edge3;
+	    Edge[0] = 0;
+	    Edge[1] = 1;
+	    Edge3.push_back(Edge);
+	    rEdges.push_back(Edge3);    
+	}
 
 
 } // Namespace Kratos

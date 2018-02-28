@@ -493,20 +493,31 @@ void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
 	SetValueToChildren(MASTER_ELEMENTS);
 	SetValueToChildren(MASTER_NODES);
 
-	bool set_geometry = false;
+	bool set_geometry = false;  //check direct order
 	for( unsigned int i=0; i<this->GetGeometry().size(); i++ )
 	  {
  	    if( cn->GetGeometry()[i].Id() != this->GetGeometry()[i].Id() )
 	      set_geometry = true;
 	  }
 
+	if( set_geometry ){ //check reverse order
+	    set_geometry = false;
+	    unsigned int size = this->GetGeometry().size()-1;
+	    for( unsigned int i=0; i<this->GetGeometry().size(); i++ )
+	    {
+		if( cn->GetGeometry()[i].Id() != this->GetGeometry()[size].Id() )
+		    set_geometry = true;
+		--size;
+	    }
+	}
+
 	if( set_geometry ){
 	  
 	  std::cout<<" Set Geometry ( Something is wrong with children conditions ) "<<std::endl;
 	  
-	  // std::cout<<" Master "<<this->Id()<<" Geometry ["<<this->GetGeometry()[0].Id()<<", "<<this->GetGeometry()[1].Id()<<"] "<<std::endl;
+	  std::cout<<" Master "<<this->Id()<<" Geometry ["<<this->GetGeometry()[0].Id()<<", "<<this->GetGeometry()[1].Id()<<"] "<<std::endl;
 
-	  // std::cout<<" Pre Child "<<cn->Id()<<" Geometry ["<<cn->GetGeometry()[0].Id()<<", "<<cn->GetGeometry()[1].Id()<<"] "<<std::endl;
+	  std::cout<<" Pre Child "<<cn->Id()<<" Geometry ["<<cn->GetGeometry()[0].Id()<<", "<<cn->GetGeometry()[1].Id()<<"] "<<std::endl;
 
 	  // GeometryType::PointsArrayType GeometryPoints = this->GetGeometry().Points();
 

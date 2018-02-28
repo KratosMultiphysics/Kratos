@@ -93,7 +93,9 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
     Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
     mContactVariables.SetMasterNode(MasterNode);
 
-     int  slave=-1;
+    // std::cout<<" Master Nodes "<<GetValue(MASTER_NODES)<<std::endl;
+    
+    int  slave=-1;
     for(unsigned int i=0; i<MasterElement.GetGeometry().PointsNumber(); i++)
     {
         if(MasterNode.Id()==MasterElement.GetGeometry()[i].Id())
@@ -109,7 +111,7 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
 	mContactVariables.nodes.resize(0);
 	mContactVariables.slaves.resize(0);
 	
-        NodesArrayType vertex;
+        //NodesArrayType vertex;
 	mContactVariables.order.resize(GetGeometry().PointsNumber(),false);
 	
 	int counter = 0;
@@ -171,7 +173,9 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
 
     }
 
-    
+    // std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")"<<std::endl;
+
+    // std::cout<<" MASTER  ("<<MasterElement.GetGeometry()[0].Id()<<")("<<MasterElement.GetGeometry()[1].Id()<<")("<<MasterElement.GetGeometry()[2].Id()<<")"<<std::endl;
 }
 
 //************************************************************************************
@@ -994,8 +998,8 @@ double& ContactDomainLM2DCondition::CalculateIntegrationWeight(double& rIntegrat
 
     if ( dimension == 2 ){   
       ElementType& MasterElement = mContactVariables.GetMasterElement();
-      if ( MasterElement.GetProperties()[THICKNESS] > 0)
-	rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
+      if ( MasterElement.GetProperties().Has(THICKNESS) )
+	  rIntegrationWeight *= MasterElement.GetProperties()[THICKNESS];
     }
 	
     return rIntegrationWeight;
@@ -1007,7 +1011,6 @@ double& ContactDomainLM2DCondition::CalculateIntegrationWeight(double& rIntegrat
 
 void ContactDomainLM2DCondition::CalculateNormalForce (double &F,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {    
-
     F = rVariables.Contact.Multiplier.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
 
 }
@@ -1074,7 +1077,8 @@ void ContactDomainLM2DCondition::CalculateContactStiffness (double &Kcont,Condit
 
     //KII:
     Kcont+= rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Nsigma[ndj][jdir];
-
+   
+    
     if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
       {
 

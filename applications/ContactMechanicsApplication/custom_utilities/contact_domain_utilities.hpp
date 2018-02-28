@@ -258,6 +258,10 @@ public:
 				     PointType& Normal);
 
 
+    void GetOppositeEdge(unsigned int& i, unsigned int& j, unsigned int& k, unsigned int& l); 
+
+
+    void BuildEdgeVector(std::vector<std::vector<std::vector<unsigned int> > >& rEdges);
     ///@}
     ///@name Access
     ///@{

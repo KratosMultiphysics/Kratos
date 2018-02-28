@@ -92,6 +92,9 @@ namespace Kratos
     Element::NodeType&    rMasterNode  = GetValue(MASTER_NODES).front();
     mContactVariables.SetMasterNode(rMasterNode);
 
+    std::cout<<" Master Nodes "<<GetValue(MASTER_NODES)<<std::endl;
+
+
     int slave = -1;
 
     Geometry< Node<3> >& rMasterGeometry = rMasterElement.GetGeometry();
@@ -106,52 +109,6 @@ namespace Kratos
 	  }
       }
 
-    //set the second slave in order
-    // unsigned int node_a = 0, node_b = 0;
-    // unsigned int slave_a = 0, slave_b = 0;
-    // if( this->Is(SELECTED) ){
-    // 	unsigned int slave_a = GetValue(MASTER_NODES).front().Id(), slave_b = GetValue(MASTER_NODES).back().Id();
-    // 	for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
-    // 	{
-
-    // 	    if(slave_a==rMasterGeometry[j].Id())
-    // 	    {
-    // 		node_a = j;
-    // 		break;
-    // 	    }
-    // 	}
-    // 	for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
-    // 	{
-
-    // 	    if(slave_b==rMasterGeometry[j].Id())
-    // 	    {
-    // 		node_b = j;
-    // 		break;
-    // 	    }
-    // 	}
-
-    // 	mContactUtilities.GetOppositeEdge(node_a, node_b, slave_a, slave_b);
-
-    // 	for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
-    // 	{
-
-    // 	    if(rMasterGeometry[slave_a].Id()==GetGeometry()[j].Id())
-    // 	    {
-    // 		node_a = j;
-    // 		break;
-    // 	    }
-    // 	}
-    // 	for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
-    // 	{
-
-    // 	    if(rMasterGeometry[slave_b].Id()==GetGeometry()[j].Id())
-    // 	    {
-    // 		node_b = j;
-    // 		break;
-    // 	    }
-    // 	}
-    // }
-
 
     //set conectivities a-b-c-d correspondence with 1-2-3-4 (local contact element):
     //nodes 1/2/3 and slave for FaceType (PATCH-A)
@@ -159,61 +116,32 @@ namespace Kratos
 
     //order contains the relationship between contact element and body element condident nodes numeration
 
-    if(slave>=0)
-      {
+    if(slave>=0){
+	
 	// Clear nodes and slaves before push back quantities
 	mContactVariables.nodes.resize(0);
 	mContactVariables.slaves.resize(0);
-
-	// Master element positions [0m,1m,2m,3m]
-	// Current contact element positions [0c,1c,2c,3c] (i.e. [0c=1m,1c=3m,2c=0m,3c=2m])
-	mContactVariables.order.resize(rGeometry.PointsNumber(),false);
-
+	mContactVariables.order.resize(0);
+	
 	bool iset = false;
-        for(unsigned int i=0; i<GetGeometry().PointsNumber(); i++)
-	  {
+	for(unsigned int i=0; i<GetGeometry().PointsNumber(); i++)
+	{
 	    iset = false;
 	    for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
-	      {
-
-                if(rGeometry[i].Id()==rMasterGeometry[j].Id())
-		  {
-                    mContactVariables.order[i] = j;
- 		    //std::cout<<" order master ["<<i<<"] = "<<j<<std::endl;
-                    iset=true;
-		    break;
-		  }
-
-	      }
-
-            if(iset==false)
-	      {
-         	mContactVariables.order[i] = slave;
-                mContactVariables.slaves.push_back(i);
-	      }
-
-	  }
-
-	//set the second slave in order
-	if( this->Is(SELECTED) ){
-
-	  for(unsigned int i=0; i<GetGeometry().PointsNumber(); i++)
 	    {
-	      iset = false;
-	      for(unsigned int j=0; j<mContactVariables.order.size(); j++)
-	  	{
-	  	  if(mContactVariables.order[j] == i)
-	  	    {
-	  	      iset = true;
-	  	      break;
-	  	    }
-	  	}
-
-	      if(iset==false)
-	  	mContactVariables.order[mContactVariables.slaves.back()] = i;
+		if(rGeometry[i].Id()==rMasterGeometry[j].Id())
+		{
+		    iset = true;
+		    break;
+		}
 	    }
 
+	    if(iset==false){
+		mContactVariables.slaves.push_back(i);	
+	    }
 	}
+   
+
 
 	//Permute
 	std::vector<unsigned int> permute (7);
@@ -240,103 +168,124 @@ namespace Kratos
 
 	  mContactVariables.nodes.push_back(mContactVariables.slaves.front());
 
+	  //1 3 2 5 ORDER II TYPE.A
+	  std::vector<unsigned int> position = {0, 2, 1};
+	  for(unsigned int i=0; i<position.size(); i++)
+	  {
+	      for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
+	      {
+		  if(rGeometry[mContactVariables.nodes[position[i]]].Id()==rMasterGeometry[j].Id())
+		  {
+		      mContactVariables.order.push_back(j);
+		      break;
+		  }
+	      }
+	  }
+
+	  
+	  for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
+	  {
+	      if(rMasterNode.Id()==rMasterGeometry[j].Id())
+	      {
+		  mContactVariables.order.push_back(j);
+		  break;
+	      }
+	  }
+	  std::cout<<" TYPE A "<<std::endl;
 	}
 	else if(mContactVariables.slaves.size() == 2){
 
-	    // mContactUtilities.GetOppositeEdge(node_a, node_b, slave_a, slave_b);
-	    // mContactVariables.nodes.push_back(node_a);
-	    // mContactVariables.nodes.push_back(node_b);
-	    // mContactVariables.slaves.front() = slave_a;
-	    // mContactVariables.slaves.back()  = slave_b;
+	  if( mContactVariables.slaves.back() < mContactVariables.slaves.front() )
+	      std::iter_swap(mContactVariables.slaves.begin(), mContactVariables.slaves.begin()+1);
 
-	    if( mContactVariables.slaves.back() < mContactVariables.slaves.front() )
-		std::iter_swap(mContactVariables.slaves.begin(), mContactVariables.slaves.begin()+1);
+	  //now slave.front() < slave.back(): possible order
+	  if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+1] ){
 
-	    //now slave.front() < slave.back(): possible order
-	    if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+1] ){
-
-		if( mContactVariables.slaves.front() != 1 ){
-		    //slaves[3,4]: (0,1) (2,3) | masters[1,2]: (2,3) (0,1)
-		    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
-		    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
-		}
-		else{
-		    //slaves[3,4]: (1,2) | masters[1,2]: (0,3)
-		    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
-		    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
-		}
-	    }
-	    else if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+2] ){
-
-		if( mContactVariables.slaves.front() == 0 ){
-		    //slaves[3,4]: (0,2) | masters[1,2]: (3,1)
-		    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
-		    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
-		}
-		else{
-		    //slaves[3,4]: (1,3) | masters[1,2]: (2,0)
-		    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
-		    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
-		}
-
-	    }
-	    else if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+3] ){
-
-		//slaves[3,4]: (0,3) | masters[1,2]: (1,2)
-		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
-		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()-1]);
+	    if( mContactVariables.slaves.front() != 1 ){
+		//slaves[3,4]: (0,1) (2,3) | masters[1,2]: (2,3) (0,1)
+		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
+		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
 	    }
 	    else{
-		std::cout<<" Something is wrong with EDGE slaves distribution "<<std::endl;
+		//slaves[3,4]: (1,2) | masters[1,2]: (0,3)
+		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
+		mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
 	    }
+	  }
+	  else if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+2] ){
 
-	    // if( mContactVariables.slaves.back() < mContactVariables.slaves.front() ){
-	    // 	std::iter_swap(mContactVariables.slaves.begin(), mContactVariables.slaves.begin()+1);
-	    // }
+	      if( mContactVariables.slaves.front() == 0 ){
+		  //slaves[3,4]: (0,2) | masters[1,2]: (3,1)
+		  mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
+		  mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
+	      }
+	      else{
+		  //slaves[3,4]: (1,3) | masters[1,2]: (2,0)
+		  mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
+		  mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
+	      }
 
-	    // //now slave.front() < slave.back(): possible order
-	    // if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+1] ){
+	  }
+	  else if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+3] ){
 
-	    // 	//(0,1) (1,2) (2,3) | (2,3) (3,0) (0,1)
-	    // 	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
-	    // 	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+2]);
-	    // }
-	    // else if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+2] ){
+	    //slaves[3,4]: (0,3) | masters[1,2]: (1,2)
+	    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
+	    mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()-1]);
+	  }
+	  else{
+	    std::cout<<" Something is wrong with EDGE slaves distribution "<<std::endl;
+	  }
 
-	    // 	//(1,3) (0,2) | (0,2) (1,3)
-	    // 	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()+1]);
-	    // 	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()-1]);
-	    // }
-	    // else if( mContactVariables.slaves.back() == permute[mContactVariables.slaves.front()+3] ){
 
-	    // 	//(0,3) | (2,1)
-	    // 	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.back()-1]);
-	    // 	mContactVariables.nodes.push_back(permute[mContactVariables.slaves.front()+1]);
-	    // }
-	    // else{
-	    // 	std::cout<<" Something is wrong with EDGE slaves distribution "<<std::endl;
-	    // }
+	  mContactVariables.nodes.push_back(mContactVariables.slaves.front());
+	  mContactVariables.nodes.push_back(mContactVariables.slaves.back());
 
-	    mContactVariables.nodes.push_back(mContactVariables.slaves.front());
-	    mContactVariables.nodes.push_back(mContactVariables.slaves.back());
+	  
+	  //check correct slave edge orientation:
 
-	    //check correct slave edge orientation:
+	  //Reference Position
+	  PointType V1 = GetGeometry()[mContactVariables.nodes[1]].Coordinates()-GetGeometry()[mContactVariables.nodes[0]].Coordinates();
+	  PointType V2 = GetGeometry()[mContactVariables.nodes[2]].Coordinates()-GetGeometry()[mContactVariables.nodes[3]].Coordinates();
 
-	    //Reference Position
-	    PointType V1 = GetGeometry()[mContactVariables.nodes[1]].Coordinates()-GetGeometry()[mContactVariables.nodes[0]].Coordinates();
-	    PointType V2 = GetGeometry()[mContactVariables.nodes[2]].Coordinates()-GetGeometry()[mContactVariables.nodes[3]].Coordinates();
+	  //Compute Reference Normal
+	  PointType Normal = mContactUtilities.CalculateSurfaceNormal(Normal,V1,V2);
 
-	    //Compute Reference Normal
-	    PointType Normal = mContactUtilities.CalculateSurfaceNormal(Normal,V1,V2);
+	  V2 = GetGeometry()[mContactVariables.nodes[0]].FastGetSolutionStepValue(NORMAL);
 
-	    V2 = GetGeometry()[mContactVariables.nodes[0]].FastGetSolutionStepValue(NORMAL);
+	  if( (inner_prod(V2,Normal)) <0 )
+	  { //change the slaves nodes order for consistency of element orientation
+	    std::iter_swap(mContactVariables.slaves.begin(), mContactVariables.slaves.begin()+1);
+	    std::iter_swap(mContactVariables.nodes.end()-2, mContactVariables.nodes.end()-1);
+	  }
 
-	    if((inner_prod(V2,Normal))<0){ //change the slaves nodes order for consistency of element orientation
-		std::cout<<" normal away "<<std::endl;
-		std::iter_swap(mContactVariables.slaves.begin(), mContactVariables.slaves.begin()+1);
-		std::iter_swap(mContactVariables.nodes.end()-2, mContactVariables.nodes.end()-1);
-	    }
 
+	  //1 2 5 6 ORDER II TYPE.B
+	  std::vector<unsigned int> position = {0, 1};
+	  for(unsigned int i=0; i<position.size(); i++)
+	  {
+	      for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
+	      {
+		  if(rGeometry[mContactVariables.nodes[position[i]]].Id()==rMasterGeometry[j].Id())
+		  {
+		      mContactVariables.order.push_back(j);
+		      break;
+		  }
+	      }
+	  }
+
+	  //BODY ELEMENT
+	  for(unsigned int i=0; i<GetValue(MASTER_NODES).size(); i++)
+	  {
+	      for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
+	      {	  
+		  if(GetValue(MASTER_NODES)[i].Id()==rMasterGeometry[j].Id())
+		  {
+		      mContactVariables.order.push_back(j);
+		      break;
+		  }
+	      }
+	  }
+	  //here the order of the master nodes must be checked.
 
 	}
 	else{
@@ -348,7 +297,7 @@ namespace Kratos
       }
     else{
       KRATOS_THROW_ERROR( std::invalid_argument, "MASTERNODE do not belongs to MASTER ELEMENT", "" )
-	}
+    }
 
     if( this->Is(SELECTED) )
 	std::cout<<" CONTACT EDGE("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
@@ -356,6 +305,7 @@ namespace Kratos
 	std::cout<<" CONTACT ("<<GetGeometry()[0].Id()<<")("<<GetGeometry()[1].Id()<<")("<<GetGeometry()[2].Id()<<")("<<GetGeometry()[3].Id()<<")"<<std::endl;
 
     std::cout<<" MASTER  ("<<rMasterElement.GetGeometry()[0].Id()<<")("<<rMasterElement.GetGeometry()[1].Id()<<")("<<rMasterElement.GetGeometry()[2].Id()<<")("<<rMasterElement.GetGeometry()[3].Id()<<")"<<std::endl;
+
     std::cout<<" nodes:["<<mContactVariables.nodes[0]<<" "<<mContactVariables.nodes[1]<<" "<<mContactVariables.nodes[2]<<" "<<mContactVariables.nodes[3]<<"]"<<" slaves:["<<mContactVariables.slaves[0]<<" "<<mContactVariables.slaves[1]<<"]"<<std::endl;
 
     std::cout<<" order:["<<mContactVariables.order[0]<<" "<<mContactVariables.order[1]<<" "<<mContactVariables.order[2]<<" "<<mContactVariables.order[3]<<"]"<<std::endl;
@@ -386,8 +336,6 @@ namespace Kratos
   void ContactDomainLM3DCondition::TransformCovariantToContravariantBase(SurfaceBase& Covariant,SurfaceBase& Contravariant) //prediction of the lagrange multiplier face type element
   {
 
-    // Convariant metric
-
     Covariant.Metric.resize(2,2);
 
     Covariant.Metric(0,0) = inner_prod(Covariant.DirectionA, Covariant.DirectionA);
@@ -395,31 +343,15 @@ namespace Kratos
     Covariant.Metric(1,0) = inner_prod(Covariant.DirectionB, Covariant.DirectionA);
     Covariant.Metric(1,1) = inner_prod(Covariant.DirectionB, Covariant.DirectionB);
 
-    // Contravariant vectors and contravariant metric
-    Contravariant.Metric.resize(2,2);   
+
     double MetricDet;
     MathUtils<double>::InvertMatrix2(Covariant.Metric,Contravariant.Metric, MetricDet);
 
     //transform DirectionA to the contravariant base
-    Contravariant.DirectionA = Covariant.DirectionA * Contravariant.Metric(0,0) + Covariant.DirectionB * Contravariant.Metric(1,0);
+    Contravariant.DirectionA = Covariant.DirectionA * Contravariant.Metric(0,0) + Covariant.DirectionB * Contravariant.Metric(0,1);
 
     //transform DirectionB to the contravariant base
-    Contravariant.DirectionB = Covariant.DirectionA * Contravariant.Metric(0,1) + Covariant.DirectionB * Contravariant.Metric(1,1);
-
-    // check:
-    // array_1d<double, 3> DirectionC;
-    // MathUtils<double>::CrossProduct(DirectionC,Covariant.DirectionA,Covariant.DirectionB);
-    // double V = norm_2(DirectionC);
-    // Contravariant.Metric(0,0) = inner_prod(Contravariant.DirectionA, Contravariant.DirectionA);
-    // Contravariant.Metric(0,1) = inner_prod(Contravariant.DirectionA, Contravariant.DirectionB);
-    // Contravariant.Metric(1,0) = inner_prod(Contravariant.DirectionB, Contravariant.DirectionA);
-    // Contravariant.Metric(1,1) = inner_prod(Contravariant.DirectionB, Contravariant.DirectionB);
-    
-    // std::cout<<" Check "<<inner_prod(Contravariant.DirectionA, Covariant.DirectionB)<<" "<<inner_prod(Contravariant.DirectionB, Covariant.DirectionA)<<" Det "<<1.0/MathUtils<double>::Det(Contravariant.Metric)<<" "<<MathUtils<double>::Det(Covariant.Metric)<<std::endl;
-    
-    // std::cout<<" CvMetric "<<Covariant.Metric<<" CvA "<<Covariant.DirectionA<<" CvB "<<Covariant.DirectionB<<std::endl;
-    // std::cout<<" CnMetric "<<Contravariant.Metric<<" CnA "<<Contravariant.DirectionA<<" CnB "<<Contravariant.DirectionB<<std::endl;
-
+    Contravariant.DirectionB = Covariant.DirectionA * Contravariant.Metric(1,0) + Covariant.DirectionB * Contravariant.Metric(1,1);
 
   }
 
@@ -1211,6 +1143,7 @@ namespace Kratos
     //   EffectiveGapN = 0;
     //decimal correction from tension vector calculation
 
+    // std::cout<<" ID "<<this->Id()<<std::endl;
     // std::cout<<" PreviousGapN  "<< mContactVariables.PreviousGap.Normal <<std::endl;
     // std::cout<<" ReferenceGapN "<< ReferenceGapN <<std::endl;
     // std::cout<<" EffectiveGapN "<< EffectiveGapN <<std::endl;
@@ -1669,7 +1602,6 @@ namespace Kratos
     }
 
     //Set discrete variations of the shape function on the normal and tangent directions:
-
     Matrix DN_DX = rVariables.DN_DX;
     for(unsigned int i=0;i<DN_DX.size1();i++)
       {
@@ -1904,6 +1836,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
+
   void ContactDomainLM3DCondition::FSigmaPnd(ConditionVariables& rVariables, std::vector<Vector >& rSigmaP, PointType& rDirVector,unsigned int &ndi,unsigned int &ndj)
   {
     //Computation with the ndi and storage to ndj
@@ -1913,16 +1846,15 @@ namespace Kratos
     //simplify nomenclature
     PointType& Normal = mContactVariables.ReferenceSurface.Normal;
 
-    //n0N0*(S00*Ni0+S01*Ni1+S02*Ni2)+n0N1*(S11*Ni1+S01*Ni0+S12*Ni2)+n0N2*(S22*Ni2+S12*Ni1+S02*Ni0)
     //part1:
     rSigmaP[ndj][0]= rDirVector[0]*Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[3]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2))+
       rDirVector[0]*Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
       rDirVector[0]*Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2));
-    //n1N1*(S11*Ni1+S01*Ni0+S12*Ni2)+n1N0*(S00*Ni0+S01*Ni1+S02*Ni2)+n1N2*(S22*Ni2+S12*Ni1+S02*Ni0)
+
     rSigmaP[ndj][1]= rDirVector[1]*Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
-      rDirVector[1]*Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[3]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2))+
+      rDirVector[1]*Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2))+
       rDirVector[1]*Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2));
-    //n2N2*(S22*Ni2+S12*Ni1+S02*Ni0)+n2N1*(S11*Ni1+S01*Ni0+S12*Ni2)+n2N0*(S00*Ni0+S01*Ni1+S02*Ni2)
+
     rSigmaP[ndj][2]= rDirVector[2]*Normal[2]*(rVariables.StressVector[5]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[2]*rVariables.DN_DX(ndi,2))+
       rDirVector[2]*Normal[1]*(rVariables.StressVector[3]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[1]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[4]*rVariables.DN_DX(ndi,2))+
       rDirVector[2]*Normal[0]*(rVariables.StressVector[0]*rVariables.DN_DX(ndi,0)+rVariables.StressVector[3]*rVariables.DN_DX(ndi,1)+rVariables.StressVector[5]*rVariables.DN_DX(ndi,2));
@@ -1930,6 +1862,7 @@ namespace Kratos
 
     //part2:
     std::vector<Vector> FD(9);
+
 
     FD[0].resize(9);
     FD[0][0]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,0)+rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,0)+rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,0));
@@ -2030,107 +1963,6 @@ namespace Kratos
     FD[8][7]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,5)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,5));
     FD[8][8]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,5)+rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,5)+rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,5));
 
-    // simpler
-    // FD[0].resize(9);
-    // FD[0][0]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,0));
-    // FD[0][1]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,1));
-    // FD[0][2]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(0,2));
-    // FD[0][3]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[0][4]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[0][5]= 0.0;
-    // FD[0][6]= 0.0;
-    // FD[0][7]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,5));
-    // FD[0][8]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(5,5));
-
-    // FD[1].resize(9);
-    // FD[1][0]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,0));
-    // FD[1][1]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,1));
-    // FD[1][2]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(1,2));
-    // FD[1][3]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[1][4]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[1][5]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[1][6]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[1][7]= 0.0;
-    // FD[1][8]= 0.0;
-
-    // FD[2].resize(9);
-    // FD[2][0]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,0));
-    // FD[2][1]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,1));
-    // FD[2][2]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(2,2));
-    // FD[2][3]= 0.0;
-    // FD[2][4]= 0.0;
-    // FD[2][5]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[2][6]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[2][7]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,5));
-    // FD[2][8]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(5,5));
-
-    // FD[3].resize(9);
-    // FD[3][0]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,0));
-    // FD[3][1]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,1));
-    // FD[3][2]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(1,2));
-    // FD[3][3]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[3][4]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[3][5]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[3][6]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[3][7]= 0.0;
-    // FD[3][8]= 0.0;
-
-    // FD[4].resize(9);
-    // FD[4][0]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,0));
-    // FD[4][1]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,1));
-    // FD[4][2]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(0,2));
-    // FD[4][3]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[4][4]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[4][5]= 0.0;
-    // FD[4][6]= 0.0;
-    // FD[4][7]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,5));
-    // FD[4][8]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(5,5));
-
-    // FD[5].resize(9);
-    // FD[5][0]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,0));
-    // FD[5][1]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,1));
-    // FD[5][2]=(rVariables.F(1,2)*rVariables.ConstitutiveMatrix(2,2));
-    // FD[5][3]= 0.0;
-    // FD[5][4]= 0.0;
-    // FD[5][5]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[5][6]=(rVariables.F(1,1)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[5][7]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,5));
-    // FD[5][8]=(rVariables.F(1,0)*rVariables.ConstitutiveMatrix(5,5));
-
-    // FD[6].resize(9);
-    // FD[6][0]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,0));
-    // FD[6][1]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,1));
-    // FD[6][2]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(1,2));
-    // FD[6][3]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[6][4]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[6][5]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[6][6]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[6][7]= 0.0;
-    // FD[6][8]= 0.0;
-
-    // FD[7].resize(9);
-    // FD[7][0]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,0));
-    // FD[7][1]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,1));
-    // FD[7][2]=(rVariables.F(0,2)*rVariables.ConstitutiveMatrix(2,2));
-    // FD[7][3]= 0.0;
-    // FD[7][4]= 0.0;
-    // FD[7][5]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[7][6]=(rVariables.F(0,1)*rVariables.ConstitutiveMatrix(4,4));
-    // FD[7][7]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,5));
-    // FD[7][8]=(rVariables.F(0,0)*rVariables.ConstitutiveMatrix(5,5));
-
-    // FD[8].resize(9);
-    // FD[8][0]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,0));
-    // FD[8][1]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,1));
-    // FD[8][2]=(rVariables.F(2,0)*rVariables.ConstitutiveMatrix(0,2));
-    // FD[8][3]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[8][4]=(rVariables.F(2,1)*rVariables.ConstitutiveMatrix(3,3));
-    // FD[8][5]= 0.0;
-    // FD[8][6]= 0.0;
-    // FD[8][7]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,5));
-    // FD[8][8]=(rVariables.F(2,2)*rVariables.ConstitutiveMatrix(5,5));
-
-
     std::vector<Vector> FDB(9);
 
     FDB[0].resize(3);   FDB[1].resize(3);   FDB[2].resize(3);
@@ -2148,11 +1980,11 @@ namespace Kratos
 	  {
 
 	    FDB[i][j]= FD[i][0]*rVariables.F(j,0)*rVariables.DN_DX(ndi,0)+
-	      FD[i][1]*rVariables.F(j,1)*rVariables.DN_DX(ndi,1)+
-	      FD[i][2]*rVariables.F(j,2)*rVariables.DN_DX(ndi,2)+
-	      (FD[i][3]+FD[i][4])*(0.5)*(rVariables.F(j,0)*rVariables.DN_DX(ndi,1)+rVariables.F(j,1)*rVariables.DN_DX(ndi,0))+
-	      (FD[i][5]+FD[i][6])*(0.5)*(rVariables.F(j,1)*rVariables.DN_DX(ndi,2)+rVariables.F(j,2)*rVariables.DN_DX(ndi,1))+
-	      (FD[i][7]+FD[i][8])*(0.5)*(rVariables.F(j,2)*rVariables.DN_DX(ndi,0)+rVariables.F(j,0)*rVariables.DN_DX(ndi,2));
+		       FD[i][1]*rVariables.F(j,1)*rVariables.DN_DX(ndi,1)+
+	               FD[i][2]*rVariables.F(j,2)*rVariables.DN_DX(ndi,2)+
+		       (FD[i][3]+FD[i][4])*(0.5)*(rVariables.F(j,0)*rVariables.DN_DX(ndi,1)+rVariables.F(j,1)*rVariables.DN_DX(ndi,0))+
+	               (FD[i][5]+FD[i][6])*(0.5)*(rVariables.F(j,1)*rVariables.DN_DX(ndi,2)+rVariables.F(j,2)*rVariables.DN_DX(ndi,1))+
+	               (FD[i][7]+FD[i][8])*(0.5)*(rVariables.F(j,2)*rVariables.DN_DX(ndi,0)+rVariables.F(j,0)*rVariables.DN_DX(ndi,2));
 	  }
 
       }
@@ -2165,22 +1997,23 @@ namespace Kratos
 
     for(unsigned int i=0; i<3; i++)
       {
-    	rSigmaP[ndj][i] += rDirVector[0]*Normal[0]*(FDB[0][i])+
-    	  rDirVector[1]*Normal[1]*(FDB[1][i])+
-    	  rDirVector[2]*Normal[2]*(FDB[2][i])+
+	rSigmaP[ndj][i]+= rDirVector[0]*Normal[0]*(FDB[0][i])+
+	                  rDirVector[1]*Normal[1]*(FDB[1][i])+
+	                  rDirVector[2]*Normal[2]*(FDB[2][i])+
 
-    	  rDirVector[0]*Normal[1]*(FDB[3][i])+
-    	  rDirVector[1]*Normal[0]*(FDB[4][i])+
-    	  rDirVector[1]*Normal[2]*(FDB[5][i])+
+	                  rDirVector[0]*Normal[1]*(FDB[3][i])+
+	                  rDirVector[1]*Normal[0]*(FDB[4][i])+
+	                  rDirVector[1]*Normal[2]*(FDB[5][i])+
 
-    	  rDirVector[2]*Normal[1]*(FDB[6][i])+
-    	  rDirVector[0]*Normal[2]*(FDB[7][i])+
-    	  rDirVector[2]*Normal[0]*(FDB[8][i]);
+	                  rDirVector[2]*Normal[1]*(FDB[6][i])+
+	                  rDirVector[0]*Normal[2]*(FDB[7][i])+
+	                  rDirVector[2]*Normal[0]*(FDB[8][i]);
 
       }
 
-  }
 
+
+  }
 
   //***********************************************************************************
   //************************************************************************************
@@ -2199,6 +2032,7 @@ namespace Kratos
     KRATOS_TRY
 
     F  = rVariables.Contact.Multiplier.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
+
     KRATOS_CATCH(" ")
   }
 
@@ -2261,7 +2095,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void ContactDomainLM3DCondition::CalculateContactStiffness (double &Kcont,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
+  void ContactDomainLM3DCondition::CalculateContactStiffness(double &Kcont,ConditionVariables& rVariables,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir)
   {
     KRATOS_TRY
 
@@ -2271,39 +2105,24 @@ namespace Kratos
 
     //Normal contact contribution:
     //KI:
-    Kcont = (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal)) *
-      (rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir] )-
-      (rVariables.Contact.Multiplier.Normal * rVariables.Contact.CurrentGap.Normal ) *
+    Kcont =  (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal)) *
+    	(rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir] );
+
+    Kcont -= (rVariables.Contact.Multiplier.Normal * rVariables.Contact.CurrentGap.Normal) *
       (rVariables.Contact.Tangent.ContravariantBase.Metric(0,0)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
        rVariables.Contact.Tangent.ContravariantBase.Metric(0,1)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
        rVariables.Contact.Tangent.ContravariantBase.Metric(1,0)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-       rVariables.Contact.Tangent.ContravariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
-      (rVariables.Contact.Multiplier.Normal) *
+       rVariables.Contact.Tangent.ContravariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
+
+    Kcont -= (rVariables.Contact.Multiplier.Normal) *
       (rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[jdir]+
        rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[jdir]+
        rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-       rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
-      (rVariables.Contact.dN_dn[ndi] * rVariables.Contact.CurrentSurface.Normal[idir]) *
+       rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
+
+    Kcont -= (rVariables.Contact.dN_dn[ndi] * rVariables.Contact.CurrentSurface.Normal[idir]) *
       (rVariables.Contact.Tangent.A.CurrentTensil.Contravariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
        rVariables.Contact.Tangent.B.CurrentTensil.Contravariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
-
-    //covariant instead of contravariant in fortran implementation
-    // Kcont = (athird*rVariables.Contact.Tangent.EquivalentHeigh/(rVariables.Contact.ContactFactor.Normal)) *
-    //     (rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir] );
-    // Kcont-= (rVariables.Contact.Multiplier.Normal * rVariables.Contact.CurrentGap.Normal ) *
-    //    (rVariables.Contact.Tangent.CovariantBase.Metric(0,0)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-    //     rVariables.Contact.Tangent.CovariantBase.Metric(0,1)*rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-    //     rVariables.Contact.Tangent.CovariantBase.Metric(1,0)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-    //     rVariables.Contact.Tangent.CovariantBase.Metric(1,1)*rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
-    // Kcont -= (rVariables.Contact.Multiplier.Normal) *
-    //   (rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionA[jdir]+
-    //    rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.Tangent.CovariantBase.DirectionB[jdir]+
-    //    rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.CovariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-    //    rVariables.Contact.dN_dn[ndi]*rVariables.Contact.Tangent.CovariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
-    // Kcont -= (rVariables.Contact.dN_dn[ndi] * rVariables.Contact.CurrentSurface.Normal[idir]) *
-    //   (rVariables.Contact.Tangent.A.CurrentTensil.Covariant*rVariables.Contact.Tangent.A.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+
-    //    rVariables.Contact.Tangent.B.CurrentTensil.Covariant*rVariables.Contact.Tangent.B.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
-
 
     // rstiff = cte*geofct_n/tau_n*hdNn_a(in)*ne_a(idime)*hdNn_a(jn)*ne_a(jdime)
 
@@ -2311,10 +2130,9 @@ namespace Kratos
     // std::cout<<" Kg "<<Kcont;
     // //std::cout<<" constant "<<constant<<" Kg "<<Kcont*constant;
     // double K1=Kcont;
-    //std::cout<<" Ka "<<Kcont;
+
     //KII:
-    Kcont+= rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Nsigma[ndj][jdir];
-    //std::cout<<" Kb "<<Kcont;
+    Kcont += rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.Nsigma[ndj][jdir];
 
     rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS,false); //friction needs an special treatment --> correct linearization is needed.
 
@@ -2322,10 +2140,10 @@ namespace Kratos
     if(rVariables.Contact.Options.Is(NOT_SLIP))
       {
 
-	//std::cout<<" + stick ";
+	  //std::cout<<" + stick ";
 	if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
 	  {
-	    //std::cout<<"(mu_on)";
+	      //std::cout<<"(mu_on)";
 	    //KI:
 	    double raux=rVariables.Contact.CurrentGap.Normal*rVariables.Contact.CurrentSurface.Normal[idir]+
 	      rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionA[idir]+
@@ -2374,8 +2192,7 @@ namespace Kratos
 	    // 			  raux*dNt2_a(in)*t2cv(jdime)*dNt2_a(jn) )
 
 	    //std::cout<<" Kc "<<Kcont;
-
-            //KII:
+	    //KII:
 	    Kcont+= ((rVariables.Contact.CurrentGap.Normal*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.Tangent.A.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionA[idir]+rVariables.Contact.Tangent.B.CurrentGap.Contravariant*rVariables.Contact.Tangent.CovariantBase.DirectionB[idir])*
 		     (rVariables.Contact.Tangent.A.dN_dt[ndi]*rVariables.Contact.Tangent.A.Tsigma[ndj][jdir]+rVariables.Contact.Tangent.B.dN_dt[ndi]*rVariables.Contact.Tangent.B.Tsigma[ndj][jdir])+
 		     (rVariables.Contact.dN_drn[ndi]*(rVariables.Contact.Tangent.ContravariantBase.DirectionA[idir]*rVariables.Contact.Tangent.A.Tsigma[ndj][jdir]+rVariables.Contact.Tangent.ContravariantBase.DirectionB[idir]*rVariables.Contact.Tangent.B.Tsigma[ndj][jdir])));
@@ -2385,6 +2202,7 @@ namespace Kratos
 	    // rstiff = rstiff + ( he_a*ne_a(idime) + gt1_cn*t1cv(idime) + gt2_cn*t2cv(idime) )*
 	    //                               ( dNt1_a(in)*raux1 + dNt2_a(in)*raux2 ) +                        &
 	    //                               hdNn_n(in)*( t1cn(idime)*raux1 + t2cn(idime)*raux2 )
+
 	  }
       }
     else
@@ -2395,9 +2213,9 @@ namespace Kratos
 	  {
 
 
-	    //          raux = he_a*ne_a(idime) + gt1_cn*t1cv(idime) + gt2_cn*t2cv(idime)
+	    // raux = he_a*ne_a(idime) + gt1_cn*t1cv(idime) + gt2_cn*t2cv(idime)
 
-	    //std::cout<<"(mu_on)";
+	    // std::cout<<"(2.mu_on)";
             //KI:
 	    //     rstiff = rstiff + (raux*dNt1_a(in) + t1cn(idime)*hdNn_n(in))*
 	    //                                   ( cte*geofct_n/tau_t*t1cv(jdime)*hdNn_n(jn) +
@@ -2414,19 +2232,12 @@ namespace Kratos
 	    //                                   raux*dNt1_a(in)*t1cv(jdime)*dNt2_a(jn) - raux*dNt2_a(in)*t2cv(jdime)*dNt2_a(jn) -
 	    //                                   t1cn(idime)*hdNn_n(in)*t1cv(jdime)*dNt2_a(jn) - t2cn(idime)*hdNn_n(in)*t2cv(jdime)*dNt2_a(jn)
 
-            //KII:
-
-
-	  }
+ 	  }
       }
 
 
     // std::cout<<" ndi "<<ndi<<" ndj "<<ndj<<" i "<<idir<<" j "<<jdir<<std::endl;
     // std::cout<<" Kcont "<<Kcont;
-    // std::cout<<" constant "<<athird * rVariables.Contact.Tangent.CurrentArea<<std::endl;
-
-    //std::cout<<" Ks "<<Kcont-K1<<std::endl;
-
 
     KRATOS_CATCH(" ")
   }
