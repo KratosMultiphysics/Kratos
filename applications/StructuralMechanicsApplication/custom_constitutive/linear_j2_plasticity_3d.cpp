@@ -11,7 +11,7 @@ LinearJ2Plasticity3D::LinearJ2Plasticity3D()
 {
 }
 
-//********************************COPY CONSTRUCTOR***********************************************
+//********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
 LinearJ2Plasticity3D::LinearJ2Plasticity3D(const LinearJ2Plasticity3D &rOther)
@@ -28,12 +28,15 @@ ConstitutiveLaw::Pointer LinearJ2Plasticity3D::Clone() const
     return p_clone;
 }
 
-//********************************DESTRUCTOR***********************************************
+//************************************************************************************
 //************************************************************************************
 
 LinearJ2Plasticity3D::~LinearJ2Plasticity3D()
 {
 }
+
+//************************************************************************************
+//************************************************************************************
 
 bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
 {
@@ -46,16 +49,16 @@ bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
     return false;
 }
 
+//************************************************************************************
+//************************************************************************************
+
 double& LinearJ2Plasticity3D::GetValue(const Variable<double>& rThisVariable,
                                                         double& rValue)
 {
-    if(rThisVariable == STRAIN_ENERGY){
-        rValue = mStrainEnergy;
-        //TODO (marcelo); fix Bbar element to use CalculateValue to get StrainEnergy value
-    }
     if(rThisVariable == INELASTIC_FLAG){
         rValue = mInelasticFlag;
     }
+
     return rValue;
 }
 
@@ -210,25 +213,20 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
 double& LinearJ2Plasticity3D::CalculateValue(Parameters& rParameterValues,
         const Variable<double>& rThisVariable, double& rValue) {
 
-    //const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
-    //Vector& StrainVector                  = rParameterValues.GetStrainVector();
-    //Vector& StressVector                  = rParameterValues.GetStressVector();
-    //const double& E          = MaterialProperties[YOUNG_MODULUS];
-    //const double& NU    = MaterialProperties[POISSON_RATIO];
-
-    //if (rThisVariable == STRAIN_ENERGY)
-    //{
-    //    CalculateCauchyGreenStrain(rParameterValues, StrainVector);
-    //    CalculatePK2Stress( StrainVector, StressVector, E, NU );
-
-    //    rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
-    //}
+    //const Properties& MaterialProperties = rParameterValues.GetMaterialProperties();
+    //Vector& StrainVector = rParameterValues.GetStrainVector();
+    //Vector& StressVector = rParameterValues.GetStressVector();
+    //const double& E = MaterialProperties[YOUNG_MODULUS];
+    //const double& NU = MaterialProperties[POISSON_RATIO];
 
     if(rThisVariable == STRAIN_ENERGY){
+        //TODO (marcelo): calculate STRAIN_ENERGY here and remove mStrainEnergy
+        //CalculateCauchyGreenStrain(rParameterValues, StrainVector);
+        //CalculatePK2Stress( StrainVector, StressVector, E, NU );
+        //rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
         rValue = mStrainEnergy;
-        KRATOS_WATCH("CALCULATE")
     }
-    return( rValue );
+    return(rValue);
 }
 
 void LinearJ2Plasticity3D::FinalizeMaterialResponsePK1(Parameters& rValues)
@@ -254,9 +252,7 @@ double LinearJ2Plasticity3D::GetSaturationHardening(const Properties& rMaterialP
     double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
     double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
     double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
-    //mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld;
-        double k_new =
-            yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrain) +
+    double k_new = yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrain) +
                 delta_k * (1. - std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
     return k_new;
 }

@@ -10,7 +10,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearJ2Plasticity3D
 {
 public:
 
-    // public:
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;

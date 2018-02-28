@@ -205,9 +205,9 @@ public:
         void CalculateAndAddResidualVector(
                 VectorType& rRightHandSideVector,
                 const KinematicVariables& rThisKinematicVariables,
-                const ProcessInfo& CurrentProcessInfo,
-                const Vector& BodyForce,
-                const Vector& StressVector,
+                const ProcessInfo& rCurrentProcessInfo,
+                const Vector& rBodyForce,
+                const Vector& rStressVector,
                 const double IntegrationWeight
         );
 
