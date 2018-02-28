@@ -6,7 +6,8 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Marcelo Raschi
+//                   Manuel Caicedo
 //
 
 #if !defined(KRATOS_SMALL_DISPLACEMENT_BBAR_H_INCLUDED )
@@ -15,15 +16,15 @@
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
-#include "includes/serializer.h"
-#include "includes/ublas_interface.h"
 #include "includes/variables.h"
-#include "includes/constitutive_law.h"
+//#include "includes/serializer.h"
+//#include "includes/ublas_interface.h"
+//#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
@@ -35,26 +36,17 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
 ///@}
 ///@name  Functions
 ///@{
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Total Lagrangian element for 2D and 3D geometries.
-
-/**
- * Implements a total Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 2D and 3D
- */
-
-    class SmallDisplacementBbar
-            : public BaseSolidElement
-    {
-    public:
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementBbar
+        : public BaseSolidElement
+{
+public:
         ///@name Type Definitions
         ///@{
         ///Reference type definition for constitutive laws
@@ -76,7 +68,7 @@ namespace Kratos
         SmallDisplacementBbar(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
         /// Destructor.
-        virtual ~SmallDisplacementBbar();
+        ~SmallDisplacementBbar() override;
 
         ///@}
         ///@name Operators
@@ -90,6 +82,15 @@ namespace Kratos
          */
         //TODO: ADD THE OTHER CREATE FUNCTION
         Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+
+    /**
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * Calculate a Matrix Variable on the Element Constitutive Law
@@ -187,6 +188,11 @@ namespace Kratos
         {
         }
 
+     /**
+     * @brief This method returns if the element provides the strain
+     */
+    bool UseElementProvidedStrain() override;
+
         /**
          * This functions updates the kinematics variables
          * @param rThisKinematicVariables: The kinematic variables to be calculated
@@ -230,8 +236,7 @@ namespace Kratos
                 ConstitutiveLaw::Parameters& rValues,
                 const unsigned int PointNumber,
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                const ConstitutiveLaw::StressMeasure ThisStressMeasure,
-                const Vector Displacements
+                const ConstitutiveLaw::StressMeasure ThisStressMeasure
         );
 
         /**
@@ -280,11 +285,11 @@ namespace Kratos
          * @param B: The deformation matrix
          * @param DN_DX: The derivatives of the shape functions
          */
-        virtual void CalculateMatrixBbar(
-                Matrix& rB,
-                Vector& rBh,
-                const Matrix& DN_DX,
-                const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+        virtual void CalculateBbar(
+                Matrix &rB,
+                Vector &rBh,
+                const Matrix &DN_DX,
+                const GeometryType::IntegrationPointsArrayType &IntegrationPoints,
                 const unsigned int PointNumber
         );
 
