@@ -27,6 +27,7 @@
 #include "custom_processes/parametric_wall_contact_search_process.hpp"
 
 #include "custom_conditions/hydraulic_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/hydraulic_axisym_rigid_contact_penalty_2D_condition.hpp"
 #include "custom_conditions/hydraulic_v2_rigid_contact_penalty_3D_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"
@@ -335,6 +336,9 @@ namespace Kratos
 
             if ( ConditionName == "HydraulicPointContactCondition2D1N" ) {
                return  ConditionType::Pointer (new HydraulicRigidContactPenalty3DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall)); 
+            } 
+            else if ( ConditionName == "HydraulicAxisymPointContactCondition2D1N") {
+               return  ConditionType::Pointer (new HydraulicAxisymRigidContactPenalty2DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall)); 
             }
             else if ( ConditionName == "HydraulicV2PointContactCondition2D1N" ) {
                return  ConditionType::Pointer (new HydraulicV2RigidContactPenalty3DCondition(LastConditionId, pGeometry, mpProperties, mpParametricWall));

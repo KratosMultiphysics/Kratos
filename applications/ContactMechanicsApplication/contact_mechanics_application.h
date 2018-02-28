@@ -56,6 +56,7 @@
 
 
 #include "custom_conditions/hydraulic_rigid_contact_penalty_3D_condition.hpp"
+#include "custom_conditions/hydraulic_axisym_rigid_contact_penalty_2D_condition.hpp"
 
 // friction laws
 #include "custom_friction/friction_law.hpp"
@@ -241,6 +242,7 @@ private:
 	const EPPointRigidContactPenalty3DCondition       mEPPointRigidContactPenalty3DCondition;
 	const EPAxisymPointRigidContactPenalty2DCondition mEPAxisymPointRigidContactPenalty2DCondition;
    const HydraulicRigidContactPenalty3DCondition mHydraulicRigidContactPenalty3DCondition;
+   const HydraulicAxisymRigidContactPenalty2DCondition mHydraulicAxisymRigidContactPenalty2DCondition;
 
 	//friction laws
 	const FrictionLaw                                                       mFrictionLaw;

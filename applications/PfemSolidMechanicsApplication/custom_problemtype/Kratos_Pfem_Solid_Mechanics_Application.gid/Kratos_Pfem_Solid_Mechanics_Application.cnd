@@ -704,7 +704,7 @@ QUESTION: Hydraulic_Condition#CB#(False,True)
 VALUE: False
 DEPENDENCIES: (False,HIDE,Hydraulic_Contact_Condition,#CURRENT#)
 DEPENDENCIES: (True,RESTORE,Hydraulic_Contact_Condition,#CURRENT#)
-QUESTION: Hydraulic_Contact_Condition#CB#(HydraulicPointContactCondition2D1N)
+QUESTION: Hydraulic_Contact_Condition#CB#(HydraulicPointContactCondition2D1N,HydraulicAxisymPointContactCondition2D1N)
 VALUE: HydraulicPointContactCondition2D1N
 QUESTION: Imposed_Movement#CB#(False,True)
 VALUE: False
