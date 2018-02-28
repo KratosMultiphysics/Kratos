@@ -24,9 +24,6 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 
-//default builder and solver
-#include "custom_strategies/custom_builder_and_solver/explicit_builder_and_solver.hpp"
-
 
 namespace Kratos
 {
@@ -54,19 +51,16 @@ public:
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
-
     typedef typename BaseType::TSchemeType TSchemeType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+    typedef typename BaseType::ElementsArrayType ElementsArrayType;
+    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
+    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
 
 
@@ -102,11 +96,6 @@ public:
         //saving the linear solver
         mpLinearSolver = pNewLinearSolver; //Not used in explicit strategies
 
-        //setting up the default builder and solver
-        mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
-                             (
-                                 new ExplicitBuilderAndSolver <TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
-                             );
 
         //set flags to start correcty the calculations
         mSolutionStepIsInitialized  = false;
@@ -130,7 +119,7 @@ public:
     /** Destructor.
      */
 
-    //Set and Get Scheme ... containing Builder, Update and other
+    //Set and Get Scheme ... containing Update and other
 
     void SetScheme(typename TSchemeType::Pointer pScheme)
     {
@@ -142,17 +131,6 @@ public:
         return mpScheme;
     };
 
-     //Set and Get the BuilderAndSolver
-
-    void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
-    {
-        mpBuilderAndSolver = pNewBuilderAndSolver;
-    };
-
-    typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
-    {
-        return mpBuilderAndSolver;
-    };
 
     //Ser and Get Flags
 
@@ -209,7 +187,6 @@ public:
         KRATOS_TRY
         //pointers needed in the solution
         typename TSchemeType::Pointer pScheme                     = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
         TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
@@ -226,9 +203,40 @@ public:
         if (pScheme->ConditionsAreInitialized() == false)
             pScheme->InitializeConditions(BaseType::GetModelPart());
 
-        pBuilderAndSolver->BuildLHS(pScheme, r_model_part, matrix_a_dummy); //calculate Mass Matrix
-        TSystemVectorType mb  = TSystemVectorType();
-        pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb); //calculate Residual for scheme initialization
+
+        //Set Nodal Mass to zero
+        NodesArrayType& r_nodes             = r_model_part.Nodes();
+        ElementsArrayType& r_elements       = r_model_part.Elements();
+        ProcessInfo& r_current_process_info   = r_model_part.GetProcessInfo();
+
+
+        auto it_node = r_model_part.NodesBegin();
+        #pragma omp parallel for firstprivate(it_node)
+        for(int i=0;i<static_cast<int>(r_nodes.size());++i)
+        {
+            (it_node+i)->SetValue(NODAL_MASS,0.00);
+        }
+
+        if (r_model_part.NodesBegin()->HasDofFor(ROTATION_Z))
+        {
+            #pragma omp parallel for
+            for(int i=0;i<static_cast<int>(r_nodes.size());++i)
+                {
+                    array_1d<double,3>& r_nodal_inertia = (it_node+i)->GetValue(NODAL_INERTIA);
+                    noalias(r_nodal_inertia) = ZeroVector(3);
+                }
+        }
+
+        auto it_elem = r_model_part.ElementsBegin();
+        #pragma omp parallel for firstprivate(it_elem)
+        for (int i=0;i<static_cast<int>(r_elements.size());++i)
+        {
+            //Getting nodal mass and inertia from element
+            Vector dummy_vector;
+            // this function needs to be implemented in the respective
+            // element to provide inertias and nodal masses
+            (it_elem+i)->AddExplicitContribution(dummy_vector,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
+        }
 
         mInitializeWasPerformed = true;
 
@@ -244,7 +252,6 @@ public:
     {
         KRATOS_TRY
         typename TSchemeType::Pointer pScheme                     = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
         TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
@@ -254,15 +261,62 @@ public:
         //initial operations ... things that are constant over the Solution Step
         pScheme->InitializeSolutionStep(BaseType::GetModelPart(), matrix_a_dummy, mDx, mb);
 
+        ProcessInfo& r_current_process_info   = r_model_part.GetProcessInfo();
+        ElementsArrayType& r_elements       = r_model_part.Elements();
+
         if(BaseType::mRebuildLevel > 0)
         {
-	        pBuilderAndSolver->BuildLHS(pScheme, r_model_part, matrix_a_dummy); //calculate Mass Matrix
+            auto it_elem = r_model_part.ElementsBegin();
+            #pragma omp parallel for firstprivate(it_elem)
+            for (int i=0;i<static_cast<int>(r_elements.size());++i)
+            {
+                //Getting nodal mass and inertia from element
+                Vector dummy_vector;
+                // this function needs to be implemented in the respective
+                // element to provide inertias and nodal masses
+                (it_elem+i)->AddExplicitContribution(dummy_vector,RESIDUAL_VECTOR,NODAL_INERTIA,r_current_process_info);
+            }
 	    }
 
         mSolutionStepIsInitialized = true;
 
         KRATOS_CATCH( "" )
     }
+
+
+    void CalculateAndAddRHS(typename TSchemeType::Pointer pScheme, ModelPart& rModelPart )
+    {
+        KRATOS_TRY
+
+        ProcessInfo& rCurrentProcessInfo        = rModelPart.GetProcessInfo();
+        ConditionsArrayType& pConditions        = rModelPart.Conditions();
+        ElementsArrayType& pElements            = rModelPart.Elements();
+
+        typename ConditionsArrayType::ptr_iterator it_begin_condition =pConditions.ptr_begin();
+        #pragma omp parallel for firstprivate(it_begin_condition)
+        for (int i =0;i<static_cast<int>(pConditions.size());++i)
+        {
+            LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
+            Element::EquationIdVectorType equation_id_vector_dummy; //Dummy
+
+            pScheme->Condition_Calculate_RHS_Contribution(*(it_begin_condition+i), RHS_Condition_Contribution,
+            equation_id_vector_dummy, rCurrentProcessInfo);
+        }
+
+        typename ElementsArrayType::ptr_iterator it_begin_element=pElements.ptr_begin();
+        #pragma omp parallel for firstprivate(it_begin_element)
+        for (int i =0;i<static_cast<int>(pElements.size());++i)
+        {
+            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+            Element::EquationIdVectorType equation_id_vector_dummy; //Dummy
+
+            pScheme->Calculate_RHS_Contribution(*(it_begin_element+i), RHS_Contribution,
+                equation_id_vector_dummy, rCurrentProcessInfo);
+        }
+        KRATOS_CATCH("")
+    }
+
+
 
 
     //**********************************************************************
@@ -283,32 +337,31 @@ public:
 
         //pointers needed in the solution
         typename TSchemeType::Pointer pScheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+        ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if(mInitializeWasPerformed == false) Initialize();
 
         //prints informations about the current time
-        if (this->GetEchoLevel() == 2 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
+        if (this->GetEchoLevel() == 2 && r_model_part.GetCommunicator().MyPID() == 0 )
         {
             std::cout << " " << std::endl;
-            std::cout << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
+            std::cout << "CurrentTime = " << r_model_part.GetProcessInfo()[TIME] << std::endl;
         }
 
         //initialize solution step
         if(mSolutionStepIsInitialized == false) InitializeSolutionStep();
 
+        CalculateAndAddRHS(pScheme,r_model_part);
 
-        pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
 
-
-        pScheme->Update(BaseType::GetModelPart(), dof_set_dummy, mA, mDx, mb); // Explicitly integrates the equation of motion.
+        pScheme->Update(r_model_part, dof_set_dummy, mA, mDx, mb); // Explicitly integrates the equation of motion.
         //Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
         //Final Residual Vector (mb) has to be saved in there
         //to avoid error accumulation
-        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
+        pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
 
 
         //move the mesh if needed
@@ -421,8 +474,6 @@ protected:
     typename TSchemeType::Pointer mpScheme;
 
     typename TLinearSolver::Pointer mpLinearSolver;
-
-    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver;
 
     TSystemVectorPointerType mpDx;
     TSystemVectorPointerType mpb;
