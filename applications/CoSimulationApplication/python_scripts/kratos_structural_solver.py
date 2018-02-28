@@ -7,15 +7,18 @@ import KratosMultiphysics.CoSimulationApplication as CoSimApp
 import os
 import process_factory
 
-class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseApplication):
+def Create(settings):
+    return KratosStructuralCoSimulationSolver(settings)
+
+class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseSolver):
 
     def __init__(self, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "name": "dummy",
-            "type": ""
+            "type": "",
             "geometry_list": [],
-            "io_type": "kratos_io",            
+            "io_type": "kratos_io",
             "settings":{
                 "input_file":""
             }
@@ -26,12 +29,15 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseApplication):
         self.geometry = {}
 
         self.project_parameters_file_name = self.settings['settings']['input_file'].GetString()
-        self.geometry = {}
 
         '''iOModule = __import__(self.settings['io'].GetString())
         self.io = iOModule.CreateIo(self.settings['io'])
         super(KratosDummySolver, self).SetIo(self.io) '''
 
+        self.geometry = self.settings['geometry_list'][0].GetString() #has to be extended to more than one interface model part
+
+
+        #print(self.geometry)
 
     def Initialize(self):
         self.ImportAndCreateSolver()
@@ -40,40 +46,64 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseApplication):
         self.ExecuteBeforeSolutionLoop()
 
     def Finalize(self):
-        self.ExecuteFinalize()        
+        self.ExecuteFinalize()
 
     def SolveTimeStep(self):
+        self.ConvertReactionToPointLoad()
+        #self.RelaxDisplacements()
         self.SolveSolutionStep();
 
     def InitializeTimeStep(self):
-        # This function is not needed in this solver
-        pass
+        self.ExecuteInitializeSolutionStep()
+        #pass
     def FinalizeTimeStep(self):
-        # This function is not needed in this solver
-        pass
+        self.ExecuteFinalizeSolutionStep()
+        #pass
 
     def ImportData(self, DataName, FromClient):
-        pass
+        model_part = FromClient.ExportMesh(self.geometry, self)
+        data = KratosMultiphysics.Vector(3)
+        for node in model_part.Nodes:
+            data = node.GetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(DataName), 0)
+            #print(self.name, DataName, data)
+        for node in self.main_model_part.GetSubModelPart(self.geometry).Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(DataName),0, data)
+            print(DataName, node.GetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(DataName)))
     def ImportMesh(self, MeshName, FromClient):
         pass
 
     def ExportData(self, DataName, ToClient):
         pass
     def ExportMesh(self, MeshName, ToClient):
-        pass
+        return self.main_model_part.GetSubModelPart(self.geometry)
 
     def MakeDataAvailable(self, DataName, ToClient):
         pass
     def MakeMeshAvailable(self, MeshName, ToClient):
         pass
 
+    def ConvertReactionToPointLoad(self):
+        reaction = KratosMultiphysics.Vector(3)
+        torque = KratosMultiphysics.Vector(3)
+        for node in self.main_model_part.GetSubModelPart(self.geometry).Nodes:
+            reaction = node.GetSolutionStepValue(KratosMultiphysics.REACTION,0)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD, 0,-1 * reaction)
+            print("POINT_LOAD",node.GetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD))
+
+    def RelaxDisplacements(self):
+        for node in self.main_model_part.GetSubModelPart(self.geometry).Nodes:
+            displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, 1.0 * displacement)
+
+
+
     ###########################################################################
     def SolveSolutionStep(self):
-        self.ExecuteInitializeSolutionStep()
+        #self.ExecuteInitializeSolutionStep()
         self.ExecuteBeforeSolve()
-        self.Solve()
+        self.solver.Solve()
         self.ExecuteAfterSolve()
-        self.ExecuteFinalizeSolutionStep()
+        #self.ExecuteFinalizeSolutionStep()
         self.ExecuteBeforeOutputStep()
         self.PrintOutput()
         self.ExecuteAfterOutputStep()
@@ -84,13 +114,13 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseApplication):
 
     def ExecuteAfterSolve(self):
         # This function is not needed in this solver
-        pass    
+        pass
 
     def ImportAndCreateSolver(self):
         parameter_file = open(self.project_parameters_file_name,'r')
         self.ProjectParameters = KratosMultiphysics.Parameters( parameter_file.read())
 
-        self.ProjectParameters = ProjectParameters
+        #self.ProjectParameters = ProjectParameters
 
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
@@ -115,10 +145,10 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseApplication):
 
     def InitializeIO(self):
         # ### Output settings start ####
-        self.output_post = ProjectParameters.Has("output_configuration")
+        self.output_post = self.ProjectParameters.Has("output_configuration")
         if (self.output_post == True):
             from gid_output_process import GiDOutputProcess
-            output_settings = ProjectParameters["output_configuration"]
+            output_settings = self.ProjectParameters["output_configuration"]
             self.gid_output = GiDOutputProcess(self.solver.GetComputingModelPart(),
                                                self.ProjectParameters["problem_data"]["problem_name"].GetString(),
                                                output_settings)
@@ -128,14 +158,14 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseApplication):
         # Obtain the list of the processes to be applied
         self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["constraints_process_list"])
         self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["loads_process_list"])
-        if (ProjectParameters.Has("list_other_processes") == True): 
+        if (self.ProjectParameters.Has("list_other_processes") == True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
-        if (ProjectParameters.Has("json_check_process") == True): 
-            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"]) 
-        if (ProjectParameters.Has("check_analytic_results_process") == True): 
-            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["check_analytic_results_process"]) 
-        if (ProjectParameters.Has("json_output_process") == True): 
-            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"]) 
+        if (self.ProjectParameters.Has("json_check_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"])
+        if (self.ProjectParameters.Has("check_analytic_results_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["check_analytic_results_process"])
+        if (self.ProjectParameters.Has("json_output_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"])
 
         for process in self.list_of_processes:
             process.ExecuteInitialize()
@@ -144,8 +174,8 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseApplication):
 
         # Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
-        self.solver.SetEchoLevel(0) # Avoid to print anything 
-        
+        self.solver.SetEchoLevel(0) # Avoid to print anything
+
     def ExecuteBeforeSolutionLoop(self):
         if (self.output_post == True):
             self.gid_output.ExecuteBeforeSolutionLoop()
@@ -164,18 +194,18 @@ class KratosStructuralCoSimulationSolver(CoSimApp.CoSimulationBaseApplication):
         self.end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
     def ExecuteInitializeSolutionStep(self):
-        time = time + delta_time
+        self.time = self.time + self.delta_time
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-        self.main_model_part.CloneTimeStep(time)
+        self.main_model_part.CloneTimeStep(self.time)
 
         for process in self.list_of_processes:
             process.ExecuteInitializeSolutionStep()
-            
+
         if (self.output_post == True):
             self.gid_output.ExecuteInitializeSolutionStep()
 
-                        
-    def ExecuteFinalizeSolutionStep(self):            
+
+    def ExecuteFinalizeSolutionStep(self):
         if (self.output_post == True):
             self.gid_output.ExecuteFinalizeSolutionStep()
 
