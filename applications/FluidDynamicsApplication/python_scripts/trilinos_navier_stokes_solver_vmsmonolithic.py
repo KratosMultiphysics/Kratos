@@ -207,7 +207,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         elem_num_nodes = 0
         if self.main_model_part.NumberOfElements() != 0:
             elem_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
-        
+
         gather_vect = KratosMPI.mpi.allgather(KratosMPI.mpi.world, elem_num_nodes)
         return max(gather_vect)
 
