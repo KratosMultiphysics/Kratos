@@ -142,20 +142,20 @@ class NavierStokesBaseSolver(object):
         return EstimateDeltaTimeUtility
 
     def _replace_elements_and_conditions(self):
-        ## Get element number of nodes and domain size
+        ## Get number of nodes and domain size
+        elem_num_nodes = self._get_element_num_nodes()
+        cond_num_nodes = self._get_condition_num_nodes()
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        elem_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
-        cond_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
 
         ## Complete the element name
         if (self.element_name is not None):
-            new_elem_name = self.element_name + str(domain_size) + "D" + str(elem_num_nodes) + "N"
+            new_elem_name = self.element_name + str(int(domain_size)) + "D" + str(int(elem_num_nodes)) + "N"
         else:
             raise Exception("There is no element name. Implement the self.element_name string variable in your derived solver.")
 
         ## Complete the condition name
         if (self.condition_name is not None):
-            new_cond_name = self.condition_name + str(domain_size) + "D" + str(cond_num_nodes) + "N"
+            new_cond_name = self.condition_name + str(int(domain_size)) + "D" + str(int(cond_num_nodes)) + "N"
         else:
             raise Exception("There is no condition name. Implement the self.condition_name string variable in your derived solver.")
 
@@ -167,3 +167,15 @@ class NavierStokesBaseSolver(object):
 
         ## Call the replace elements and conditions process
         KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+
+    def _get_element_num_nodes(self):
+        if self.main_model_part.NumberOfElements() != 0:
+            return len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
+        else:
+            raise Exception("There is no element in main_model_part.")
+
+    def _get_condition_num_nodes(self):
+        if self.main_model_part.NumberOfConditions() != 0:
+            return len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
+        else:
+            raise Exception("There is no conditions in main_model_part.")
