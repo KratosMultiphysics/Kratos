@@ -12,7 +12,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	
+
 	#outfitted python laws
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/python_outfitted_constitutive_law.cpp
 
@@ -32,10 +32,12 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	#elasticity models
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/linear_elastic_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/hyperelastic_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/ogden_model.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/mooney_rivlin_model.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/elasticity_models/borja_model.cpp
 
 	#plasticity models (template, all in headers)
-	
+
 	#yield criteria (template, all in headers)
 
 	#hardening rules
@@ -48,7 +50,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/modified_exponential_damage_hardening_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_models/plasticity_models/hardening_rules/cam_clay_hardening_rule.cpp
 
-	
+
 )
 
 # define library Kratos which defines the basic python interface
