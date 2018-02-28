@@ -61,23 +61,14 @@ public:
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-
+    
 
     /** Constructors.
      */
-    ExplicitStrategy(
-        ModelPart& rModelPart,
-        bool MoveMeshFlag = true
-    )
-        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag)
-    {
-    }
 
     ExplicitStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = true
@@ -87,19 +78,19 @@ public:
         KRATOS_TRY
 
         //set flags to default values
-        mCalculateReactionsFlag = CalculateReactions;
-        mReformDofSetAtEachStep = ReformDofSetAtEachStep;
+        this->mCalculateReactionsFlag = CalculateReactions;
+        this->mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
 	    //saving the scheme
-        mpScheme = pScheme;
+        this->mpScheme = pScheme;
 
         //saving the linear solver
-        mpLinearSolver = pNewLinearSolver; //Not used in explicit strategies
+        //mpLinearSolver = pNewLinearSolver; //Not used in explicit strategies
 
 
         //set flags to start correcty the calculations
-        mSolutionStepIsInitialized  = false;
-        mInitializeWasPerformed     = false;
+        this->mSolutionStepIsInitialized  = false;
+        this->mInitializeWasPerformed     = false;
 
         //set EchoLevel to the deffault value (only time is displayed)
         SetEchoLevel(1);
@@ -123,12 +114,12 @@ public:
 
     void SetScheme(typename TSchemeType::Pointer pScheme)
     {
-        mpScheme = pScheme;
+        this->mpScheme = pScheme;
     };
 
     typename TSchemeType::Pointer GetScheme()
     {
-        return mpScheme;
+        return this->mpScheme;
     };
 
 
@@ -136,34 +127,34 @@ public:
 
     void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
     {
-      mInitializeWasPerformed = InitializePerformedFlag;
+      this->mInitializeWasPerformed = InitializePerformedFlag;
     }
 
     bool GetInitializePerformedFlag()
     {
-      return mInitializeWasPerformed;
+      return this->mInitializeWasPerformed;
     }
 
     void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
     {
-        mCalculateReactionsFlag = CalculateReactionsFlag;
+        this->mCalculateReactionsFlag = CalculateReactionsFlag;
     }
 
     bool GetCalculateReactionsFlag()
     {
-        return mCalculateReactionsFlag;
+        return this->mCalculateReactionsFlag;
     }
 
     void SetReformDofSetAtEachStepFlag(bool flag)
     {
 
-          mReformDofSetAtEachStep = flag;
+          this->mReformDofSetAtEachStep = flag;
 
     }
 
     bool GetReformDofSetAtEachStepFlag()
     {
-        return mReformDofSetAtEachStep;
+        return this->mReformDofSetAtEachStep;
     }
 
     //level of echo for the solving strategy
@@ -175,7 +166,7 @@ public:
 
     void SetEchoLevel(int Level)
     {
-        BaseType::mEchoLevel = Level;
+        this->BaseType::mEchoLevel = Level;
 
     }
 
@@ -193,15 +184,15 @@ public:
 
         //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
         if (pScheme->SchemeIsInitialized() == false)
-            pScheme->Initialize(BaseType::GetModelPart());
+            pScheme->Initialize(r_model_part);
 
         //Initialize The Elements - OPERATIONS TO BE DONE ONCE
         if (pScheme->ElementsAreInitialized() == false)
-            pScheme->InitializeElements(BaseType::GetModelPart());
+            pScheme->InitializeElements(r_model_part);
 
         //Initialize The Conditions- OPERATIONS TO BE DONE ONCE
         if (pScheme->ConditionsAreInitialized() == false)
-            pScheme->InitializeConditions(BaseType::GetModelPart());
+            pScheme->InitializeConditions(r_model_part);
 
 
         //Set Nodal Mass to zero
@@ -259,7 +250,7 @@ public:
         TSystemVectorType mb = TSystemVectorType();
 
         //initial operations ... things that are constant over the Solution Step
-        pScheme->InitializeSolutionStep(BaseType::GetModelPart(), matrix_a_dummy, mDx, mb);
+        pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, mDx, mb);
 
         ProcessInfo& r_current_process_info   = r_model_part.GetProcessInfo();
         ElementsArrayType& r_elements       = r_model_part.Elements();
@@ -353,8 +344,7 @@ public:
         //initialize solution step
         if(mSolutionStepIsInitialized == false) InitializeSolutionStep();
 
-        CalculateAndAddRHS(pScheme,r_model_part);
-
+        this->CalculateAndAddRHS(pScheme,r_model_part);
 
         pScheme->Update(r_model_part, dof_set_dummy, mA, mDx, mb); // Explicitly integrates the equation of motion.
         //Finalisation of the solution step,

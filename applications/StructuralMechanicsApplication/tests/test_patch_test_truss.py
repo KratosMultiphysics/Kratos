@@ -655,11 +655,10 @@ def _add_explicit_variables(mp):
     mp.AddNodalSolutionStepVariable(KratosMultiphysics.MOMENT_RESIDUAL)
 
 def _create_dynamic_explicit_strategy(mp):
-    linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
     scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
 
     strategy = StructuralMechanicsApplication.ExplicitStrategy(mp,
-                                        scheme,linear_solver,0,0,1)
+                                        scheme,0,0,1)
     strategy.SetEchoLevel(0)
     return strategy 
 

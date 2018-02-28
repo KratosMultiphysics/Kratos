@@ -70,20 +70,13 @@ namespace Kratos
 
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
-
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-
     typedef ModelPart::ElementsContainerType ElementsArrayType;
-
-
     typedef ModelPart::NodesContainerType NodesArrayType;
-
     typedef std::size_t SizeType;
+    typedef typename ModelPart::NodeIterator NodeIterator;
 
 
     ExplicitCentralDifferencesScheme(
@@ -386,8 +379,7 @@ namespace Kratos
     }
 
 
-    template<typename T>
-    void UpdateTranslationalDegreesOfFreedom(T CurrentNode)
+    void UpdateTranslationalDegreesOfFreedom(NodeIterator CurrentNode)
       {
         const double numerical_limit                  = std::numeric_limits<double>::epsilon();
         const double& nodal_mass                      = (CurrentNode)->GetValue(NODAL_MASS);
@@ -430,9 +422,7 @@ namespace Kratos
       }
 
     
-    
-    template<typename T>
-    void UpdateRotationalDegreesOfFreedom(T CurrentNode)
+    void UpdateRotationalDegreesOfFreedom(NodeIterator CurrentNode)
       {
         const double numerical_limit                  = std::numeric_limits<double>::epsilon();
         SizeType DoF = 3;
@@ -468,149 +458,128 @@ namespace Kratos
         }
       }
 
-      
+    virtual void SchemeCustomInitialization(ModelPart& rModelPart)
+    {
+      KRATOS_TRY
+      NodesArrayType& r_nodes            = rModelPart.Nodes();
+      const double numerical_limit = std::numeric_limits<double>::epsilon();
 
-
-
-      virtual void SchemeCustomInitialization(ModelPart& rModelPart)
+      auto i_begin = rModelPart.NodesBegin();
+      const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
+      #pragma omp parallel for firstprivate(i_begin)
+      for(int i=0;i<static_cast<int>(r_nodes.size());++i)
       {
-        KRATOS_TRY
-        NodesArrayType& r_nodes            = rModelPart.Nodes();
-        const double numerical_limit = std::numeric_limits<double>::epsilon();
+        //Current step information "N+1" (before step update).
 
-        auto i_begin = rModelPart.NodesBegin();
-        const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
-        #pragma omp parallel for firstprivate(i_begin)
-        for(int i=0;i<static_cast<int>(r_nodes.size());++i)
+        const double& nodal_mass                        = (i_begin+i)->GetValue(NODAL_MASS);
+        array_1d<double,3>& r_current_residual          = (i_begin+i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+        array_1d<double,3>& r_current_velocity          = (i_begin+i)->FastGetSolutionStepValue(VELOCITY);
+        //array_1d<double,3>& r_current_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double,3>& r_middle_velocity           = (i_begin+i)->GetValue(MIDDLE_VELOCITY);
+
+        array_1d<double,3>& r_current_acceleration      = (i_begin+i)->FastGetSolutionStepValue(ACCELERATION);
+
+
+        //Solution of the explicit equation:
+        if (nodal_mass > numerical_limit)  r_current_acceleration = r_current_residual/nodal_mass;
+        else r_current_acceleration = ZeroVector(3);
+
+        SizeType DoF = 3;
+        bool fix_displacements[3] = {false, false, false};
+
+        fix_displacements[0] = ((i_begin+i)->pGetDof(DISPLACEMENT_X))->IsFixed();
+        fix_displacements[1] = ((i_begin+i)->pGetDof(DISPLACEMENT_Y))->IsFixed();
+        fix_displacements[2] = ((i_begin+i)->pGetDof(DISPLACEMENT_Z))->IsFixed();
+
+
+        for (SizeType j = 0; j < DoF; j++)
         {
-          //Current step information "N+1" (before step update).
+            if (fix_displacements[j])
+            {
+              r_current_acceleration[j]  = 0.0;
+              r_middle_velocity[j]       = 0.0;
+            }
 
-          const double& nodal_mass                        = (i_begin+i)->GetValue(NODAL_MASS);
-          array_1d<double,3>& r_current_residual          = (i_begin+i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-          array_1d<double,3>& r_current_velocity          = (i_begin+i)->FastGetSolutionStepValue(VELOCITY);
-          //array_1d<double,3>& r_current_displacement    = i->FastGetSolutionStepValue(DISPLACEMENT);
-          array_1d<double,3>& r_middle_velocity           = (i_begin+i)->GetValue(MIDDLE_VELOCITY);
-
-          array_1d<double,3>& r_current_acceleration      = (i_begin+i)->FastGetSolutionStepValue(ACCELERATION);
+          r_middle_velocity[j]       = 0.0 + (mTime.Middle - mTime.Previous) * r_current_acceleration[j] ;
+          r_current_velocity[j]      = r_middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_acceleration[j]; //+ actual_velocity;
+          //r_current_displacement[j]  = 0.0;
 
 
-          //Solution of the explicit equation:
-          if (nodal_mass > numerical_limit)  r_current_acceleration = r_current_residual/nodal_mass;
-          else r_current_acceleration = ZeroVector(3);
 
-          SizeType DoF = 3;
-          bool fix_displacements[3] = {false, false, false};
+        }//for DoF
+        ////// ROTATION DEGRESS OF FREEDOM
+        if (has_dof_for_rot_z)
+        {
 
-          fix_displacements[0] = ((i_begin+i)->pGetDof(DISPLACEMENT_X))->IsFixed();
-          fix_displacements[1] = ((i_begin+i)->pGetDof(DISPLACEMENT_Y))->IsFixed();
-          fix_displacements[2] = ((i_begin+i)->pGetDof(DISPLACEMENT_Z))->IsFixed();
+          const array_1d<double,3>& nodal_inertia                       = (i_begin+i)->GetValue(NODAL_INERTIA);
+          array_1d<double,3>& r_current_residual_moment          = (i_begin+i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+          array_1d<double,3>& r_current_angular_velocity         = (i_begin+i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          //array_1d<double,3>& current_rotation                 = i_begin->FastGetSolutionStepValue(ROTATION);
+          array_1d<double,3>& r_middle_angular_velocity          = (i_begin+i)->GetValue(MIDDLE_ANGULAR_VELOCITY);
+          array_1d<double,3>& r_current_angular_acceleration     = (i_begin+i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+
+
+          for (SizeType kk = 0; kk<DoF; ++kk)
+          {
+            if (nodal_inertia[kk] > numerical_limit)  r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
+            else r_current_angular_acceleration[kk] = 0.00;
+          }
+
+          DoF = 3;
+          bool fix_rotation[3] = {false, false, false};
+          fix_rotation[0] = ((i_begin+i)->pGetDof(ROTATION_X))->IsFixed();
+          fix_rotation[1] = ((i_begin+i)->pGetDof(ROTATION_Y))->IsFixed();
+          fix_rotation[2] = ((i_begin+i)->pGetDof(ROTATION_Z))->IsFixed();
+
 
 
           for (SizeType j = 0; j < DoF; j++)
           {
-              if (fix_displacements[j])
-              {
-                r_current_acceleration[j]  = 0.0;
-                r_middle_velocity[j]       = 0.0;
-              }
-
-            r_middle_velocity[j]       = 0.0 + (mTime.Middle - mTime.Previous) * r_current_acceleration[j] ;
-            r_current_velocity[j]      = r_middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_acceleration[j]; //+ actual_velocity;
-            //r_current_displacement[j]  = 0.0;
-
-
-
-          }//for DoF
-          ////// ROTATION DEGRESS OF FREEDOM
-          if (has_dof_for_rot_z)
-          {
-
-            const array_1d<double,3>& nodal_inertia                       = (i_begin+i)->GetValue(NODAL_INERTIA);
-            array_1d<double,3>& r_current_residual_moment          = (i_begin+i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-            array_1d<double,3>& r_current_angular_velocity         = (i_begin+i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-            //array_1d<double,3>& current_rotation                 = i_begin->FastGetSolutionStepValue(ROTATION);
-            array_1d<double,3>& r_middle_angular_velocity          = (i_begin+i)->GetValue(MIDDLE_ANGULAR_VELOCITY);
-            array_1d<double,3>& r_current_angular_acceleration     = (i_begin+i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
-
-
-            for (SizeType kk = 0; kk<DoF; ++kk)
+            if (fix_rotation[j])
             {
-              if (nodal_inertia[kk] > numerical_limit)  r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
-              else r_current_angular_acceleration[kk] = 0.00;
+              r_current_angular_acceleration[j] = 0.00;
+              r_middle_angular_velocity[j] = 0.00;
             }
 
-            DoF = 3;
-            bool fix_rotation[3] = {false, false, false};
-            fix_rotation[0] = ((i_begin+i)->pGetDof(ROTATION_X))->IsFixed();
-            fix_rotation[1] = ((i_begin+i)->pGetDof(ROTATION_Y))->IsFixed();
-            fix_rotation[2] = ((i_begin+i)->pGetDof(ROTATION_Z))->IsFixed();
+            r_middle_angular_velocity[j]   = 0.00 + (mTime.Middle - mTime.Previous) * r_current_angular_acceleration[j] ;
+            r_current_angular_velocity[j]  = r_middle_angular_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_angular_acceleration[j];
+            //current_rotation[j]          = 0.00;
+          }//trans DoF
+        }// Rot DoF
+      }//for node parallel
 
 
-
-            for (SizeType j = 0; j < DoF; j++)
-            {
-              if (fix_rotation[j])
-              {
-                r_current_angular_acceleration[j] = 0.00;
-                r_middle_angular_velocity[j] = 0.00;
-              }
-
-              r_middle_angular_velocity[j]   = 0.00 + (mTime.Middle - mTime.Previous) * r_current_angular_acceleration[j] ;
-              r_current_angular_velocity[j]  = r_middle_angular_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_angular_acceleration[j];
-              //current_rotation[j]          = 0.00;
-            }//trans DoF
-          }// Rot DoF
-        }//for node parallel
-
-
-        mTime.Previous = mTime.Current;
-        mTime.PreviousMiddle = mTime.Middle;
-        KRATOS_CATCH("")
-      }
-
-
+      mTime.Previous = mTime.Current;
+      mTime.PreviousMiddle = mTime.Middle;
+      KRATOS_CATCH("")
+    }
     //***************************************************************************
     //***************************************************************************
     void Calculate_RHS_Contribution(Element::Pointer pCurrentElement,
             LocalSystemVectorType& RHS_Contribution,
             Element::EquationIdVectorType& EquationId,
-            ProcessInfo& rCurrentProcessInfo)
+            ProcessInfo& rCurrentProcessInfo) override
     {
-
       KRATOS_TRY
-
-      //basic operations for the element considered
-      Matrix dummy_lhs;
-      pCurrentElement -> CalculateLocalSystem(dummy_lhs,RHS_Contribution,rCurrentProcessInfo);
-
-      //add explicit contribution of the Element Residual (RHS) to nodal Force Residual (nodal RHS)
-      (pCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-      (pCurrentElement) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
-
+      this->TCalculate_RHS_Contribution(pCurrentElement,RHS_Contribution,rCurrentProcessInfo); 
       KRATOS_CATCH( "" )
     }
 
 
-  //***************************************************************************
-  //***************************************************************************
+    //***************************************************************************
+    //***************************************************************************
 
-  virtual void Condition_Calculate_RHS_Contribution(
-                Condition::Pointer pCurrentCondition,
-                LocalSystemVectorType& RHS_Contribution,
-                Element::EquationIdVectorType& EquationId,
-                ProcessInfo& rCurrentProcessInfo)
-  {
-    KRATOS_TRY
-
-    (pCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-
-    (pCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-    (pCurrentCondition) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
-
-    KRATOS_CATCH( "" )
-  }
-
+    void Condition_Calculate_RHS_Contribution(
+                  Condition::Pointer pCurrentCondition,
+                  LocalSystemVectorType& RHS_Contribution,
+                  Element::EquationIdVectorType& EquationId,
+                  ProcessInfo& rCurrentProcessInfo) override
+    {
+      KRATOS_TRY
+      this->TCalculate_RHS_Contribution(pCurrentCondition,RHS_Contribution,rCurrentProcessInfo);
+      KRATOS_CATCH( "" )
+    }
 
 
   //***************************************************************************
@@ -696,6 +665,10 @@ namespace Kratos
     /*@} */
 
   private:
+
+    
+
+
     /**@name Static Member Variables */
     /*@{ */
 
@@ -710,7 +683,17 @@ namespace Kratos
     /*@} */
     /**@name Private Operations*/
     /*@{ */
+    template <typename TObjectType>
+    void TCalculate_RHS_Contribution(TObjectType pCurrentEntity,
+            LocalSystemVectorType& RHS_Contribution,
+            ProcessInfo& rCurrentProcessInfo)
+    {
+      Matrix dummy_lhs;
+      (pCurrentEntity) -> CalculateLocalSystem(dummy_lhs,RHS_Contribution,rCurrentProcessInfo);
 
+      (pCurrentEntity) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+      (pCurrentEntity) -> AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
+    }
     /*@} */
     /**@name Private  Access */
     /*@{ */

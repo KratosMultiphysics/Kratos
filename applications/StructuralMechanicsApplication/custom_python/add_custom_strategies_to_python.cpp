@@ -131,9 +131,9 @@ void  AddCustomStrategiesToPython()
     class_< ExplicitStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
         (
         "ExplicitStrategy",
-        init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())
+        init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
 
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
+        .def(init < ModelPart&, BaseSchemeType::Pointer,  bool, bool, bool >())
         .def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
         .def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
         ;
