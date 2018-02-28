@@ -89,9 +89,9 @@ proc WriteConstantVectorConditionProcess {FileVar GroupNum Groups EntityType Num
             puts $MyFileVar "            \"model_part_name\" : \"[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "            \"variable_name\"   : \"[lindex [lindex $Groups $i] 3]\","
             puts $MyFileVar "            \"modulus\"         : [lindex [lindex $Groups $i] 4],"
-            if {[lindex [lindex $Groups] 5] eq "X"} {
+            if {[lindex [lindex $Groups $i] 5] eq "X"} {
                 puts $MyFileVar "            \"direction\"       : \[1.0, 0.0, 0.0\],"
-            } elseif {[lindex [lindex $Groups] 5] eq "Y"} {
+            } elseif {[lindex [lindex $Groups $i] 5] eq "Y"} {
                 puts $MyFileVar "            \"direction\"       : \[0.0, 1.0, 0.0\],"
             } else {
                 puts $MyFileVar "            \"direction\"       : \[0.0, 0.0, 1.0\],"
@@ -122,12 +122,12 @@ proc WriteBathymetryProcess {FileVar GroupNum Groups EntityType NumGroups} {
             puts $MyFileVar "        \"Parameters\"      : \{"
             puts $MyFileVar "            \"model_part_name\" : \"[lindex [lindex $Groups $i] 1]\","
             puts $MyFileVar "            \"variable_name\"   : \"BATHYMETRY\","
-            if {[lindex [lindex $Groups] 3] eq "From_digital_model"} {
-                puts $MyFileVar "            \"value\"         : \"z\""
-            } elseif {[lindex [lindex $Groups] 3] eq "Expression"} {
-                puts $MyFileVar "            \"value\"         : \"[lindex [lindex $Groups $i] 4]\""
+            if {[lindex [lindex $Groups $i] 3] eq "From_digital_model"} {
+                puts $MyFileVar "            \"value\"           : \"z\""
+            } elseif {[lindex [lindex $Groups $i] 3] eq "Expression"} {
+                puts $MyFileVar "            \"value\"           : \"[lindex [lindex $Groups $i] 4]\""
             } else {
-                puts $MyFileVar "            \"value\"         : \"0.0\""
+                puts $MyFileVar "            \"value\"           : \"0.0\""
             }
             puts $MyFileVar "        \}"
             if {$MyGroupNum < $NumGroups} {

@@ -19,7 +19,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     puts $FileVar "        \"end_time\"             : [GiD_AccessValue get gendata End_Time],"
     puts $FileVar "        \"parallel_type\"        : \"[GiD_AccessValue get gendata Parallel_Configuration]\","
     puts $FileVar "        \"number_of_threads\"    : [GiD_AccessValue get gendata Number_of_threads],"
-    puts $FileVar "        \"gravity\"              : [GiD_AccessValue get gendata Start_Time],"
+    puts $FileVar "        \"gravity\"              : [GiD_AccessValue get gendata Gravity],"
     puts $FileVar "        \"time_scale\"           : \"seconds\","
     puts $FileVar "        \"water_height_scale\"   : \"meters\""
     puts $FileVar "    \},"
@@ -175,7 +175,7 @@ proc WriteProjectParameters { basename dir problemtypedir } {
     set Groups [GiD_Info conditions Body_Part groups]
     set NumGroups [llength $Groups]
     set iGroup 0
-    puts $FileVar "    \"bathymetry_process_list\"  : \[\{"
+    puts $FileVar "    \"bathymetry_process_list\"     : \[\{"
     WriteBathymetryProcess FileVar iGroup $Groups surfaces $NumGroups
 
 
