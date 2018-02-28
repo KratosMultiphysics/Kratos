@@ -4,7 +4,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 import sys
 
-# This test example is from M. Hojjat, E. Stavropoulou, 
+# This test example is from M. Hojjat, E. Stavropoulou,
 # K.-U. Bletzinger, The Vertex Morphing method for node-based
 # shape optimization, Comput. Methods Appl. Mech. Engrg. 268
 # (2014) 494-513.
@@ -13,13 +13,13 @@ import sys
 #
 #                    z=1
 #                     /\
-#                    /  \ 
+#                    /  \
 #                   /    \
 #  |--> x          /      \           z=0
 #  _______________/        \_______________
 #  |----- 15 -----|-- 10 --|----- 15 -----|
 #
-# 
+#
 
 # ======================================================================================================================================
 # Model part and solver
@@ -37,13 +37,13 @@ Optimizer = OptimizerFactory.CreateOptimizer( OptimizationModelPart, ProjectPara
 # ======================================================================================================================================
 
 class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
-    
+
     # --------------------------------------------------------------------------
     def analyzeDesignAndReportToCommunicator( self, currentDesign, OptimizationIteration, Communicator ):
-        if Communicator.isRequestingFunctionValueOf("targetDeviation"): 
-            Communicator.reportFunctionValue("targetDeviation", self.ObjectiveFunction(currentDesign))    
-        if Communicator.isRequestingGradientOf("targetDeviation"): 
-            Communicator.reportGradient("targetDeviation", self.ObjectiveGradient(currentDesign))   
+        if Communicator.isRequestingValueOf("targetDeviation"):
+            Communicator.reportValue("targetDeviation", self.ObjectiveFunction(currentDesign))
+        if Communicator.isRequestingGradientOf("targetDeviation"):
+            Communicator.reportGradient("targetDeviation", self.ObjectiveGradient(currentDesign))
 
     # --------------------------------------------------------------------------
     def ObjectiveFunction( self, currentDesign ):
