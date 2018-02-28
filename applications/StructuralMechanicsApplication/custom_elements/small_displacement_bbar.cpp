@@ -22,8 +22,8 @@
 namespace Kratos
 {
     SmallDisplacementBbar::SmallDisplacementBbar(IndexType NewId,
-                                                             GeometryType::Pointer pGeometry)
-            : SmallDisplacement(NewId, pGeometry)
+                                                 GeometryType::Pointer pGeometry)
+            : BaseSolidElement(NewId, pGeometry)
     {
         // DO NOT ADD DOFS HERE!!!
     }
@@ -34,7 +34,7 @@ namespace Kratos
     SmallDisplacementBbar::SmallDisplacementBbar(IndexType NewId,
                                                              GeometryType::Pointer pGeometry,
                                                              PropertiesType::Pointer pProperties)
-            : SmallDisplacement(NewId, pGeometry, pProperties)
+            : BaseSolidElement(NewId, pGeometry, pProperties)
     {
     }
 
@@ -247,7 +247,7 @@ namespace Kratos
         //}
         else
         {
-            SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+            BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
         }
     }
 
@@ -373,7 +373,7 @@ namespace Kratos
         }
         else
         {
-            SmallDisplacement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+            BaseSolidElement::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
         }
         //{
         //    for ( unsigned int point_number = 0; point_number < mConstitutiveLawVector.size(); point_number++ )
@@ -998,13 +998,12 @@ namespace Kratos
     {
         // Compute strain
         noalias(rThisConstitutiveVariables.StrainVector) = prod(rThisKinematicVariables.B, Displacements);
-        //KRATOS_WATCH(rThisKinematicVariables.B)
-        //KRATOS_WATCH(Displacements)
+
         // Compute equivalent F
         rThisKinematicVariables.F = ComputeEquivalentF(rThisConstitutiveVariables.StrainVector);
 
         // Here we essentially set the input parameters
-        rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
+        rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F); //TODO(marcelo): check if this line is necessary
         rValues.SetDeterminantF(rThisKinematicVariables.detF); //assuming the determinant is computed somewhere else
         rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
 
@@ -1015,6 +1014,34 @@ namespace Kratos
         // Actually do the computations in the ConstitutiveLaw
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
     }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Matrix SmallDisplacementBbar::ComputeEquivalentF(const Vector& rStrainTensor)
+{
+    const unsigned int dim = GetGeometry().WorkingSpaceDimension();
+    Matrix F(dim,dim);
+
+    if(dim == 2) {
+        F(0,0) = 1.0+rStrainTensor(0);
+        F(0,1) = 0.5*rStrainTensor(2);
+        F(1,0) = 0.5*rStrainTensor(2);
+        F(1,1) = 1.0+rStrainTensor(1);
+    } else {
+        F(0,0) = 1.0+rStrainTensor(0);
+        F(0,1) = 0.5*rStrainTensor(3);
+        F(0,2) = 0.5*rStrainTensor(5);
+        F(1,0) = 0.5*rStrainTensor(3);
+        F(1,1) = 1.0+rStrainTensor(1);
+        F(1,2) = 0.5*rStrainTensor(4);
+        F(2,0) = 0.5*rStrainTensor(5);
+        F(2,1) = 0.5*rStrainTensor(4);
+        F(2,2) = 1.0+rStrainTensor(2);
+    }
+
+    return F;
+}
 
     //************************************************************************************
     //************************************************************************************
@@ -1074,7 +1101,7 @@ namespace Kratos
     void SmallDisplacementBbar::save(Serializer& rSerializer) const
     {
         rSerializer.save("Name", "SmallDisplacementBbar");
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallDisplacement);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseSolidElement);
     }
 
 //************************************************************************************
@@ -1082,7 +1109,7 @@ namespace Kratos
 
     void SmallDisplacementBbar::load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallDisplacement);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseSolidElement);
     }
 
 } // Namespace Kratos

@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/small_displacement.h"
+#include "custom_elements/base_solid_element.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
@@ -52,7 +52,7 @@ namespace Kratos
  */
 
     class SmallDisplacementBbar
-            : public SmallDisplacement
+            : public BaseSolidElement
     {
     public:
         ///@name Type Definitions
@@ -183,7 +183,7 @@ namespace Kratos
         ///@}
         ///@name Protected Operators
         ///@{
-        SmallDisplacementBbar() : SmallDisplacement()
+        SmallDisplacementBbar() : BaseSolidElement()
         {
         }
 
@@ -261,7 +261,7 @@ namespace Kratos
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                 const unsigned int PointNumber
         );
-
+        virtual Matrix ComputeEquivalentF(const Vector& rStrainTensor);
 
         /**
          * This functions updates the kinematics variables
