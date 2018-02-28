@@ -289,10 +289,13 @@ namespace Kratos
 
       }
 
+
+      if (mDeltaTime.PredictionLevel >1)
+      {
       std::cout<< "  [EXPLICIT PREDICTION LEVEL " << mDeltaTime.PredictionLevel
         << " ] : (computed stable time step = "<< stable_delta_time <<" s)"<< std::endl;
       std::cout<< "  Using  = "<< r_current_process_info[DELTA_TIME] <<" s as time step DELTA_TIME)"<< std::endl;
-
+      }
       KRATOS_CATCH("")
     }
 

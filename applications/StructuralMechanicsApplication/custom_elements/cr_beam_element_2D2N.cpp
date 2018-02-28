@@ -825,7 +825,7 @@ void CrBeamElement2D2N::AddExplicitContribution(
     ProcessInfo temp_process_information; // cant pass const ProcessInfo
     this->CalculateDampingMatrix(damping_matrix, temp_process_information);
     // current residual contribution due to damping
-    damping_residual_contribution =
+    noalias(damping_residual_contribution) =
         prod(damping_matrix, current_nodal_velocities);
   }
 
