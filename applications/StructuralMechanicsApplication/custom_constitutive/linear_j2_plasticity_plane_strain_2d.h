@@ -1,6 +1,19 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
+//
+//  Main authors:    Marcelo Raschi
+//                   Manuel Caicedo
+//                   Alfredo Huespe
+
 #if !defined(KRATOS_LINEAR_J2_PLASTIC_PLANE_STRAIN_2D_H_INCLUDED)
 #define KRATOS_LINEAR_J2_PLASTIC_PLANE_STRAIN_2D_H_INCLUDED
 
+#include "includes/checks.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos

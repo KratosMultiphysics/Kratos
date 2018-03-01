@@ -1,3 +1,15 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
+//
+//  Main authors:    Marcelo Raschi
+//                   Manuel Caicedo
+//                   Alfredo Huespe
+
 #include "linear_j2_plasticity_plane_strain_2d.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -426,35 +438,13 @@ int LinearJ2PlasticityPlaneStrain2D::Check(const Properties& rMaterialProperties
                                                   const GeometryType& rElementGeometry,
                                                   const ProcessInfo& rCurrentProcessInfo)
 {
-    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS] <= 0.0) {
-        KRATOS_ERROR << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
-    }
-
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
-    if(POISSON_RATIO.Key() == 0 || check) {
-        KRATOS_ERROR << "POISSON_RATIO has Key zero or invalid value " << std::endl;
-    }
-
-    if(YIELD_STRESS.Key() == 0 || rMaterialProperties[YIELD_STRESS] <= 0.0) {
-        KRATOS_ERROR << "YIELD_STRESS has Key zero or invalid value " << std::endl;
-    }
-
-    if(REFERENCE_HARDENING_MODULUS.Key() == 0) {
-        KRATOS_ERROR << "REFERENCE_HARDENING_MODULUS has Key zero" << std::endl;
-    }
-
-    if(ISOTROPIC_HARDENING_MODULUS.Key() == 0) {
-        KRATOS_ERROR << "ISOTROPIC_HARDENING_MODULUS has Key zero" << std::endl;
-    }
-
-    if(INFINITY_HARDENING_MODULUS.Key() == 0) {
-        KRATOS_ERROR << "INFINITY_HARDENING_MODULUS has Key zero" << std::endl;
-    }
-
-    if(HARDENING_EXPONENT.Key() == 0) {
-        KRATOS_ERROR << "HARDENING_EXPONENT has Key zero" << std::endl;
-    }
+    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
+    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
+    KRATOS_CHECK_VARIABLE_KEY(REFERENCE_HARDENING_MODULUS);
+    KRATOS_CHECK_VARIABLE_KEY(ISOTROPIC_HARDENING_MODULUS);
+    KRATOS_CHECK_VARIABLE_KEY(INFINITY_HARDENING_MODULUS);
+    KRATOS_CHECK_VARIABLE_KEY(HARDENING_EXPONENT);
 
     return 0;
 }
