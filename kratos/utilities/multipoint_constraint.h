@@ -94,7 +94,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
 
             for (auto &master_data : *constraint_eq_data)
             {
-                size_t master_dof_key = master_data->MasterKey();
+                size_t master_dof_key = master_data->MasterDofKey();
                 double weight = master_data->MasterWeight();
                 NodeType &r_master_node = rNodes[master_data->MasterDofId()]; // DofId and nodeId are same
                 Node<3>::DofsContainerType::iterator it_master = r_master_node.GetDofs().find(master_dof_key);
@@ -124,7 +124,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
             constraint_eq_data->SetSlaveEquationId(it->EquationId());
             for (auto &master_data : *constraint_eq_data)
             {
-                size_t master_dof_key = master_data->MasterKey();
+                size_t master_dof_key = master_data->MasterDofKey();
                 size_t master_dof_id = master_data->MasterDofId();
 
                 NodeType &master_node = rNodes[master_dof_id];
@@ -332,10 +332,10 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
             for (auto &master_data : constraint_eq_data)
             { // Loop over all the masters the slave has
                 double weight = master_data->MasterWeight();
-                const double constant = constraint_eq_data.Constant();
+                const double constant_update = constraint_eq_data.ConstantUpdate();
                 for (auto &intern_index : local_intern_indices)
                 {
-                    rRHS_Contribution(intern_index) += -rLHS_Contribution(intern_index, slave_index) * constant;
+                    rRHS_Contribution(intern_index) += -rLHS_Contribution(intern_index, slave_index) * constant_update;
                 }
 
                 // For K(m,i) and K(i,m)
@@ -349,8 +349,8 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 for (auto &slave_index_other : local_slave_indices)
                 {
                     auto& slave_data_other = this->GetData().GetConstraintEquation(*element_dofs[slave_index_other]);
-                    double constant_other = slave_data_other.Constant();
-                    rRHS_Contribution(local_master_index) += rLHS_Contribution(slave_index, slave_index_other) * weight * constant_other;
+                    double constant_update_other = slave_data_other.ConstantUpdate();
+                    rRHS_Contribution(local_master_index) += rLHS_Contribution(slave_index, slave_index_other) * weight * constant_update_other;
                 }
 
                 rEquationId.push_back(master_data->MasterEqId());
@@ -383,7 +383,7 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
         }
 
         // For K(i,s) and K(s,i)
-        for (auto slave_index : local_slave_indices)
+        for (auto& slave_index : local_slave_indices)
         { // Loop over all the slaves for this node
             for (auto &intern_index : local_intern_indices)
             { // Loop over all the local equation ids
@@ -391,6 +391,17 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 rLHS_Contribution(intern_index, slave_index) = 0.0;
             }
         } // Loop over all the slaves for this node
+
+
+        // For K(s,s) = I
+        for (auto& slave_index : local_slave_indices)
+        { // Loop over all the slaves for this node
+            for (auto& slave_index_other : local_slave_indices)
+            { // Loop over all the local equation ids
+                rLHS_Contribution(slave_index, slave_index_other) = 0.0;
+            }
+            rLHS_Contribution(slave_index, slave_index) = 1.0;
+        } // Loop over all the slaves for this node        
 
         KRATOS_CATCH("Applying Multipoint constraints failed ..")
     }
@@ -481,10 +492,10 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
             for (auto &master_data : constraint_eq_data)
             { // Loop over all the masters the slave has
                 double weight = master_data->MasterWeight();
-                const double constant = constraint_eq_data.Constant();
+                const double constant_update = constraint_eq_data.ConstantUpdate();
                 for (auto &intern_index : local_intern_indices)
                 {
-                    rRHS_Contribution(intern_index) += -rLHS_Contribution(intern_index, slave_index) * constant;
+                    rRHS_Contribution(intern_index) += -rLHS_Contribution(intern_index, slave_index) * constant_update;
                 }
 
                 // For K(m,i) and K(i,m)
@@ -498,8 +509,8 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 for (auto &slave_index_other : local_slave_indices)
                 {
                     auto slave_data_other = this->GetData().GetConstraintEquation(*element_dofs[slave_index_other]);
-                    double constant_other = slave_data_other.Constant();
-                    rRHS_Contribution(local_master_index) += rLHS_Contribution(slave_index, slave_index_other) * weight * constant_other;
+                    double constant_update_other = slave_data_other.ConstantUpdate();
+                    rRHS_Contribution(local_master_index) += rLHS_Contribution(slave_index, slave_index_other) * weight * constant_update_other;
                 }
 
                 rEquationId.push_back(master_data->MasterEqId());
@@ -540,6 +551,16 @@ class MultipointConstraint : public Constraint<TSparseSpace, TDenseSpace>
                 rLHS_Contribution(intern_index, slave_index) = 0.0;
             }
         } // Loop over all the slaves for this node
+
+        // For K(s,s) = I
+        for (auto& slave_index : local_slave_indices)
+        { // Loop over all the slaves for this node
+            for (auto& slave_index_other : local_slave_indices)
+            { // Loop over all the local equation ids
+                rLHS_Contribution(slave_index, slave_index_other) = 0.0;
+            }
+            rLHS_Contribution(slave_index, slave_index) = 1.0;
+        } // Loop over all the slaves for this node        
 
         KRATOS_CATCH("Applying Multipoint constraints failed ..")
     }
