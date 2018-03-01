@@ -125,7 +125,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
     typedef Node<3> NodeType;
     typedef typename ModelPart::NodesContainerType NodesContainerType;
     typedef typename Constraint<TSparseSpace, TDenseSpace>::Pointer ConstraintPointerType;
-    typedef boost::shared_ptr<std::vector<ConstraintPointerType>> ConstraintSharedPointerVectorType;
+    typedef Kratos::shared_ptr<std::vector<ConstraintPointerType>> ConstraintSharedPointerVectorType;
 
     typedef ProcessInfo ProcessInfoType;
 
