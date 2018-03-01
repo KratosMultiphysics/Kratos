@@ -44,8 +44,5 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
 # Do NOT remove these tests, they are there that the Execution script is being tested in the SmallTests 
 # (aka by the continuous integration tool before merging to master) !!!
-class DynamicBossakTests(StructuralMechanichsTestFactory):
-    file_name = "dynamic_test/dynamic_bossak_test"
-
-class DynamicNewmarkTests(StructuralMechanichsTestFactory):
-    file_name = "dynamic_test/dynamic_newmark_test"
+class SimpleMeshMovingTest(StructuralMechanichsTestFactory):
+    file_name = "mesh_moving_test/simple_mesh_moving_test"

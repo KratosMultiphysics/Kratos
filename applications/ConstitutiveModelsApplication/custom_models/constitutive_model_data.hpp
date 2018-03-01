@@ -538,32 +538,46 @@ namespace Kratos
 
       rValues.MaterialParameters.LameMu        = rValues.MaterialParameters.YoungModulus/(2.0*(1.0+rValues.MaterialParameters.PoissonCoefficient));
       rValues.MaterialParameters.LameLambda    = (rValues.MaterialParameters.YoungModulus*rValues.MaterialParameters.PoissonCoefficient)/((1.0+rValues.MaterialParameters.PoissonCoefficient)*(1.0-2.0*rValues.MaterialParameters.PoissonCoefficient));
-      rValues.MaterialParameters.BulkModulus   = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
 
-      //std::cout<<" Mu "<<rValues.MaterialParameters.LameMu<<" Lambda "<<rValues.MaterialParameters.LameLambda<<" BulkModulus "<<rValues.MaterialParameters.BulkModulus<<std::endl;
+      //rValues.MaterialParameters.BulkModulus   = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
 
       //hyperelastic model parameters
-      if( rProperties.Has(C10) ){
-	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C10]);
-
-	//make neo-hookean consistent with the parameters:
-	rValues.MaterialParameters.LameMu = 2.0 * rProperties[C10];
+      if( rProperties.Has(MATERIAL_PARAMETERS) ){
+	  Vector ModelParameters = rProperties[MATERIAL_PARAMETERS];
+	  for(unsigned int i=0; i<ModelParameters.size(); i++)
+	  {
+	      rValues.MaterialParameters.ModelParameters.push_back(ModelParameters[i]);
+	  }
       }
+      else{
+      
+	  if( rProperties.Has(C10) ){
+	      rValues.MaterialParameters.ModelParameters.push_back(rProperties[C10]);
 
+	      //make neo-hookean consistent with the parameters:
+	      rValues.MaterialParameters.LameMu = 2.0 * rProperties[C10];
+	  }
+      
+	  if( rProperties.Has(C20) )
+	      rValues.MaterialParameters.ModelParameters.push_back(rProperties[C20]);
+
+	  if( rProperties.Has(C30) )
+	      rValues.MaterialParameters.ModelParameters.push_back(rProperties[C30]);
+
+      }
+      
       if( rProperties.Has(BULK_MODULUS) ){
-	rValues.MaterialParameters.BulkModulus = rProperties[BULK_MODULUS];
+	  rValues.MaterialParameters.BulkModulus = rProperties[BULK_MODULUS];
 
-	//make neo-hookean consistent with the parameters:
-	rValues.MaterialParameters.LameLambda = rValues.MaterialParameters.BulkModulus - (2.0/3.0) * rValues.MaterialParameters.LameMu;
+	  //make neo-hookean consistent with the parameters:
+	  rValues.MaterialParameters.LameLambda = rValues.MaterialParameters.BulkModulus - (2.0/3.0) * rValues.MaterialParameters.LameMu;
       }
+      else{
+	  rValues.MaterialParameters.BulkModulus = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
+      }
+      
+      //std::cout<<" Mu "<<rValues.MaterialParameters.LameMu<<" Lambda "<<rValues.MaterialParameters.LameLambda<<" BulkModulus "<<rValues.MaterialParameters.BulkModulus<<std::endl;
 
-      //rValues.MaterialParameters.BulkModulus = rValues.MaterialParameters.LameLambda + (2.0/3.0) * rValues.MaterialParameters.LameMu;
-
-      if( rProperties.Has(C20) )
-	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C20]);
-
-      if( rProperties.Has(C30) )
-	rValues.MaterialParameters.ModelParameters.push_back(rProperties[C30]);
 
       //infinitessimal strain (plasticity mu_bar := mu)
       rValues.MaterialParameters.LameMuBar     = rValues.MaterialParameters.LameMu;

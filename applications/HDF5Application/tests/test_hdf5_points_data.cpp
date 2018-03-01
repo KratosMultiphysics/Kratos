@@ -17,7 +17,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "custom_io/hdf5_file_serial.h"
-#include "custom_utilities/hdf5_points_data.h"
+#include "custom_io/hdf5_points_data.h"
 
 namespace Kratos
 {
@@ -40,8 +40,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadData, KratosHDF5TestSuite)
         ids[i] = i + 1;
         coords[i] = array_1d<double, 3>(3, 1.2345);
     }
-    test_file.WriteDataSet("/Nodes/Ids", ids);
-    test_file.WriteDataSet("/Nodes/Coordinates", coords);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/Nodes/Ids", ids, info);
+    test_file.WriteDataSet("/Nodes/Coordinates", coords, info);
     HDF5::Internals::PointsData data;
     data.ReadData(test_file, "/Nodes", 0, 3);
     for (unsigned i = 0; i < 3; ++i)
@@ -68,8 +69,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_CreateNodes, KratosHDF5TestSuite)
         ids[i] = i + 1;
         coords[i] = array_1d<double, 3>(3, 1.2345);
     }
-    test_file.WriteDataSet("/Nodes/Ids", ids);
-    test_file.WriteDataSet("/Nodes/Coordinates", coords);
+    HDF5::WriteInfo info;
+    test_file.WriteDataSet("/Nodes/Ids", ids, info);
+    test_file.WriteDataSet("/Nodes/Coordinates", coords, info);
     HDF5::Internals::PointsData data;
     data.ReadData(test_file, "/Nodes", 0, 3);
     HDF5::NodesContainerType nodes;
@@ -121,7 +123,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_WriteData, KratosHDF5TestSuite)
     }
     HDF5::Internals::PointsData data;
     data.SetData(nodes);
-    data.WriteData(test_file, "/Nodes");
+    HDF5::WriteInfo info;
+    data.WriteData(test_file, "/Nodes", info);
     HDF5::Vector<int> ids(3);
     HDF5::Vector<array_1d<double, 3>> coords(3);
     test_file.ReadDataSet("/Nodes/Ids", ids, 0, 3);

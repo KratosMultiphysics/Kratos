@@ -46,17 +46,14 @@ from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 # Harmonic analysis tests
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
-
+# Dynamic basic tests
+from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 
 ##### SMALL TESTS #####
-# Dynamic basic tests (leave these in the smallSuite to have the Exection script tested)
-from SmallTests import DynamicBossakTests as TDynamicBossakTests
-from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
-
+# Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
+from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 
 ##### NIGHTLY TESTS #####
-# Basic moving mesh test
-from NightlyTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 # Patch test Small Displacements
 from NightlyTests import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from NightlyTests import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -192,13 +189,13 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
+    # Membranes
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
     # Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     # Beams
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam3D2N]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeam2D2N])) # TODO should be in smallSuite but is too slow
-    # Membranes
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
     # Loading Conditions
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsPoint]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestLoadingConditionsLine]))
@@ -207,15 +204,14 @@ def AssambleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Multipoint Constraint
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
+    # Dynamic basic tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
 
     ### Adding Small Tests
-    # Dynamic basic tests (leave these in the smallSuite to have the Exection script tested)
-    smallSuite.addTest(TDynamicBossakTests('test_execution'))
-    smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
+    # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
+    smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
 
     ### Adding Nightly Tests
-    # Basic moving mesh test
-    nightSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Patch test Small Displacements
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
