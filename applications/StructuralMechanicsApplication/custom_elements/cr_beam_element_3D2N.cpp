@@ -290,7 +290,7 @@ void CrBeamElement3D2N::CalculateDampingMatrix(
 
   Matrix mass_matrix = ZeroMatrix(msElementSize, msElementSize);
 
-  this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
+  this->CalculateLumpedMassMatrix(mass_matrix, rCurrentProcessInfo);
 
   double alpha = 0.0;
   if (this->GetProperties().Has(RAYLEIGH_ALPHA)) {
@@ -1515,42 +1515,83 @@ void CrBeamElement3D2N::AddExplicitContribution(
     Variable<array_1d<double, 3>> &rDestinationVariable,
     const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
+
+  bounded_vector<double, msElementSize> damping_residual_contribution =
+      ZeroVector(msElementSize);
+  // calculate damping contribution to residual -->
+  if ((this->GetProperties().Has(RAYLEIGH_ALPHA) ||
+       this->GetProperties().Has(RAYLEIGH_BETA)) &&
+      (rDestinationVariable != NODAL_INERTIA)) {
+    Vector current_nodal_velocities = ZeroVector(msElementSize);
+    this->GetFirstDerivativesVector(current_nodal_velocities);
+    Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
+    ProcessInfo temp_process_information; // cant pass const ProcessInfo
+    this->CalculateDampingMatrix(damping_matrix, temp_process_information);
+    // current residual contribution due to damping
+    noalias(damping_residual_contribution) =
+        prod(damping_matrix, current_nodal_velocities);
+  }
+
   if (rRHSVariable == RESIDUAL_VECTOR &&
       rDestinationVariable == FORCE_RESIDUAL) {
 
-    for (int i = 0; i < msNumberOfNodes; ++i) {
-      int index = msLocalSize * i;
-
-      GetGeometry()[i].SetLock();
+    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
+      SizeType index = msLocalSize * i;
 
       array_1d<double, 3> &r_force_residual =
           GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-      for (int j = 0; j < msDimension; ++j) {
-        r_force_residual[j] += rRHSVector[index + j];
+      for (SizeType j = 0; j < msDimension; ++j) {
+#pragma omp atomic
+        r_force_residual[j] +=
+            rRHSVector[index + j] - damping_residual_contribution[index + j];
       }
-      GetGeometry()[i].UnSetLock();
     }
   }
 
   if (rRHSVariable == RESIDUAL_VECTOR &&
       rDestinationVariable == MOMENT_RESIDUAL) {
 
-    for (int i = 0; i < msNumberOfNodes; ++i) {
-      int index = (msLocalSize * i) + msDimension;
-
-      GetGeometry()[i].SetLock();
+    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
+      SizeType index = (msLocalSize * i) + msDimension;
 
       array_1d<double, 3> &r_moment_residual =
           GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
-      for (int j = 0; j < msDimension; ++j) {
-        r_moment_residual[j] += rRHSVector[index + j];
+      for (SizeType j = 0; j < msDimension; ++j) {
+#pragma omp atomic
+        r_moment_residual[j] +=
+            rRHSVector[index + j] - damping_residual_contribution[index + j];
       }
-      GetGeometry()[i].UnSetLock();
     }
   }
 
+  if (rDestinationVariable == NODAL_INERTIA) {
+
+    Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
+    ProcessInfo temp_info; // Dummy
+    this->CalculateMassMatrix(element_mass_matrix, temp_info);
+
+    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
+      GetGeometry()[i].SetLock();
+      double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+      array_1d<double, msDimension> &r_nodal_inertia =
+          GetGeometry()[i].GetValue(NODAL_INERTIA);
+      SizeType index = i * msLocalSize;
+
+      for (SizeType j = 0; j < msElementSize; ++j) {
+        r_nodal_mass += element_mass_matrix(index, j);
+
+        for (SizeType k = 0; k < msDimension; ++k) {
+          r_nodal_inertia[k] += element_mass_matrix(index + msDimension + k, j);
+        }
+      }
+      for (SizeType k = 0; k < msDimension; ++k)
+        r_nodal_inertia[k] = std::abs(r_nodal_inertia[k]);
+
+      GetGeometry()[i].UnSetLock();
+    }
+  }
   KRATOS_CATCH("")
 }
 

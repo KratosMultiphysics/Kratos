@@ -387,7 +387,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
 //         Hinv = ZeroMatrix(condensed_strain_size, condensed_strain_size);
     }
 
-    
+
     // compute the generalized strain vector in section coordinate system
     Vector generalizedStrainVector_element;
     if(mOrientation != 0.0)
@@ -884,7 +884,7 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties::Pointer
     }
 
     this->EndStack();
-    KRATOS_ERROR_IF_NOT(pProps->GetValue(THICKNESS) == accum_thickness) << "The sum of ply thicknesses ( " << accum_thickness 
+    KRATOS_ERROR_IF_NOT(pProps->GetValue(THICKNESS) == accum_thickness) << "The sum of ply thicknesses ( " << accum_thickness
                 << " ) is different from the element property THICKNESS ( " << pProps->GetValue(THICKNESS) << std::endl;
 }
 
@@ -918,7 +918,7 @@ void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Stren
 	else
 	{
 		KRATOS_ERROR <<
-			"The laminate material data has not been properly defined!\n" 
+			"The laminate material data has not been properly defined!\n"
 			<< "Make sure you have included material strengths.\n"
 			<< "Material strengths consider (T)ension, (C)ompression and (S)hear "
 			<< "strengths along local (1,2,3) lamina material coordinates.\n\n"
@@ -1173,7 +1173,7 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
     rVariables.DeterminantF0 = 1.0;
 
     // calculate the material response
-
+    rMaterialValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     rPoint.GetConstitutiveLaw()->CalculateMaterialResponse(rMaterialValues, rStressMeasure);
 
     // compute stress resultants and stress couples
