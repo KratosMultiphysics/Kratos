@@ -1,7 +1,9 @@
 ﻿from __future__ import print_function, absolute_import, division
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+import KratosMultiphysics.kratos_utilities as kratos_utils
 from gid_output_process import GiDOutputProcess
 
 import os
@@ -177,14 +179,14 @@ class TestGidIO(KratosUnittest.TestCase):
         gid_io_2 = None
 
     def tearDown(self):
-        KratosUnittest.DeleteFileIfExisting("all_active_out_0.post.msh")
-        KratosUnittest.DeleteFileIfExisting("all_active_out_0.post.res")
-        KratosUnittest.DeleteFileIfExisting("deactivated_out_0.post.msh")
-        KratosUnittest.DeleteFileIfExisting("deactivated_out_0.post.res")
-        KratosUnittest.DeleteFileIfExisting("results_out_0.post.msh")
-        KratosUnittest.DeleteFileIfExisting("results_out_0.post.res")
-        KratosUnittest.DeleteFileIfExisting("python_scripts.post.lst")
-        KratosUnittest.DeleteFileIfExisting("tests.post.lst")
+        kratos_utils.DeleteFileIfExisting("all_active_out_0.post.msh")
+        kratos_utils.DeleteFileIfExisting("all_active_out_0.post.res")
+        kratos_utils.DeleteFileIfExisting("deactivated_out_0.post.msh")
+        kratos_utils.DeleteFileIfExisting("deactivated_out_0.post.res")
+        kratos_utils.DeleteFileIfExisting("results_out_0.post.msh")
+        kratos_utils.DeleteFileIfExisting("results_out_0.post.res")
+        kratos_utils.DeleteFileIfExisting("python_scripts.post.lst")
+        kratos_utils.DeleteFileIfExisting("tests.post.lst")
 
 
 if __name__ == '__main__':

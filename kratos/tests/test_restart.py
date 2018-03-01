@@ -1,7 +1,9 @@
 from __future__ import print_function, absolute_import, division
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import os
 import sys
@@ -16,7 +18,7 @@ class TestRestart(KratosUnittest.TestCase):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
     def tearDown(self):
-        KratosUnittest.DeleteFileIfExisting("test_restart_file.rest")
+        kratos_utils.DeleteFileIfExisting("test_restart_file.rest")
 
     def _check_modelpart(self, model_part):
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
