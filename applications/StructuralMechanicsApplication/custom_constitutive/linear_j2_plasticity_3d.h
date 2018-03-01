@@ -1,6 +1,19 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:		 BSD License
+//					 license: structural_mechanics_application/license.txt
+//
+//  Main authors:    Marcelo Raschi
+//                   Manuel Caicedo
+//                   Alfredo Huespe
+
 #if !defined(KRATOS_LINEAR_J2_PLASTIC_3D_H_INCLUDED)
 #define KRATOS_LINEAR_J2_PLASTIC_3D_H_INCLUDED
 
+#include "includes/checks.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -63,11 +76,11 @@ private:
     double mAccumulatedPlasticStrain;
     double mAccumulatedPlasticStrainOld;
     double yieldFunction(const double, const Properties& rMaterialProperties);
-    double GetDeltaGamma(double norm_s_trial, const Properties& rMaterialProperties);
+    double GetDeltaGamma(double NormSTrial, const Properties& rMaterialProperties);
     double GetSaturationHardening(const Properties& rMaterialProperties);
     double GetPlasticPotential(const Properties& rMaterialProperties);
     virtual void CalculateTangentTensor(double dgamma,
-                                        double norm_s_trial,
+                                        double NormSTrial,
                                         const Vector& N_new,
                                         const Properties& props,
                                         Matrix& D);
