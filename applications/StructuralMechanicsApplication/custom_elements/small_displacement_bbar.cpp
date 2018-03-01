@@ -8,6 +8,9 @@
 //
 //  Main authors:    Manuel Caicedo
 //                   Marcelo Raschi
+//                   Javier Mroginski
+
+
 // System includes
 
 // External includes

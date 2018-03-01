@@ -8,7 +8,7 @@
 //
 //  Main authors:    Marcelo Raschi
 //                   Manuel Caicedo
-//
+//                   Javier Mroginski
 
 #if !defined(KRATOS_SMALL_DISPLACEMENT_BBAR_H_INCLUDED )
 #define  KRATOS_SMALL_DISPLACEMENT_BBAR_H_INCLUDED
@@ -16,15 +16,11 @@
 // System includes
 
 // External includes
-//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
 #include "includes/variables.h"
-//#include "includes/serializer.h"
-//#include "includes/ublas_interface.h"
-//#include "includes/constitutive_law.h"
 
 namespace Kratos
 {
