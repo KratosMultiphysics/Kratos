@@ -790,12 +790,14 @@ namespace Kratos
 
     //Get Current Constitutive Matrix 
     std::vector<Matrix> ConstitutiveMatrix(mConstitutiveLawVector.size());   
-    // UL (ask for the last known configuration constitutive matrix)
-    // SL (ask for the current configuration constitutive matrix)
+       // SL (ask for the current configuration constitutive matrix)
     MasterElement.CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX,ConstitutiveMatrix,rCurrentProcessInfo);
 
     rVariables.ConstitutiveMatrix = ConstitutiveMatrix[rPointNumber];
-
+    
+    // UL (ask for the last known configuration constitutive matrix)
+    //mConstitutiveLawVector[0]->PullBackConstitutiveMatrix(rVariables.ConstitutiveMatrix,rVariables.F); 
+    
     //Calculate Explicit Lagrange Multipliers or Penalty Factors
     this->CalculateExplicitFactors( rVariables, rCurrentProcessInfo );
 
@@ -1639,8 +1641,8 @@ namespace Kratos
 
     rLeftHandSideMatrix *= rIntegrationWeight;
     
-    std::cout<<std::endl;
-    std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
+    // std::cout<<std::endl;
+    // std::cout<<" Kcontact ["<<this->Id()<<"]"<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
   }
