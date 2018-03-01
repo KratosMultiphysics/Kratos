@@ -7,7 +7,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import Kratos_Execute_Structural_Test as Execute_Test
 
-# This utiltiy will control the execution scope in case we need to acces files or we depend
+# This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
 # TODO: Should we move this to KratosUnittest?
@@ -42,9 +42,6 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
-        
-class SimpleMeshMovingTest(StructuralMechanichsTestFactory):
-    file_name = "mesh_moving_test/simple_mesh_moving_test"
 
 class SDTwoDShearQuaPatchTest(StructuralMechanichsTestFactory):
     file_name = "patch_test/small_disp/patch_test_2D_shear_qua"

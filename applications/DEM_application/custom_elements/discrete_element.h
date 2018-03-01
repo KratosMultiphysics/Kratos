@@ -51,6 +51,11 @@ namespace Kratos {
         virtual ~DiscreteElement() {
         }
 
+        DiscreteElement& operator=(const DiscreteElement& rOther) {
+            Element::operator=(rOther);
+            return *this;
+        }
+
         virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override {
             if (rRightHandSideVector.size() != 0)
                 rRightHandSideVector.resize(0);

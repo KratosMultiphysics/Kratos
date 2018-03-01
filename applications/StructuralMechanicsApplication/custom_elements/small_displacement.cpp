@@ -57,6 +57,14 @@ SmallDisplacement::~SmallDisplacement()
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool SmallDisplacement::UseElementProvidedStrain()
+{
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void SmallDisplacement::CalculateAll( 
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -99,16 +107,12 @@ void SmallDisplacement::CalculateAll(
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     
     // If strain has to be computed inside of the constitutive law with PK2
     Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
-
-    // Displacements vector
-    Vector displacements;
-    GetValuesVector(displacements);
     
     for ( unsigned int point_number = 0; point_number < integration_points.size(); point_number++ ) {
         // Contribution to external forces
@@ -118,7 +122,7 @@ void SmallDisplacement::CalculateAll(
         CalculateKinematicVariables(this_kinematic_variables, point_number, integration_points);
         
         // Compute material reponse
-        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure(), displacements);
+        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
         
         // Calculating weights for integration on the reference configuration
         double int_to_reference_weight = GetIntegrationWeight(integration_points, point_number, this_kinematic_variables.detJ0); 
@@ -157,6 +161,13 @@ void SmallDisplacement::CalculateKinematicVariables(
     
     // Compute B
     CalculateB( rThisKinematicVariables.B, rThisKinematicVariables.DN_DX, IntegrationPoints, PointNumber );
+    
+    // Compute equivalent F
+    Vector displacements;
+    GetValuesVector(displacements);
+    Vector strain_vector = prod(rThisKinematicVariables.B, displacements);
+    rThisKinematicVariables.F = ComputeEquivalentF(strain_vector);
+    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
 }
 
 /***********************************************************************************/
@@ -168,18 +179,17 @@ void SmallDisplacement::CalculateConstitutiveVariables(
     ConstitutiveLaw::Parameters& rValues,
     const unsigned int PointNumber,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure,
-    const Vector Displacements
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure
     )
 {        
+    // Displacements vector
+    Vector displacements;
+    GetValuesVector(displacements);
+    
     // Compute strain
-    noalias(rThisConstitutiveVariables.StrainVector) = prod(rThisKinematicVariables.B, Displacements);
-
-    // Compute equivalent F
-    rThisKinematicVariables.F = ComputeEquivalentF(rThisConstitutiveVariables.StrainVector);
+    noalias(rThisConstitutiveVariables.StrainVector) = prod(rThisKinematicVariables.B, displacements);
 
     // Here we essentially set the input parameters
-    rThisKinematicVariables.detF = MathUtils<double>::Det(rThisKinematicVariables.F);
     rValues.SetDeterminantF(rThisKinematicVariables.detF); //assuming the determinant is computed somewhere else
     rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
     

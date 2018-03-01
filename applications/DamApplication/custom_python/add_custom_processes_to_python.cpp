@@ -18,6 +18,7 @@
 #include "includes/kratos_parameters.h"
 
 // Processes
+#include "custom_processes/dam_fix_temperature_condition_process.hpp"
 #include "custom_processes/dam_bofang_condition_temperature_process.hpp"
 #include "custom_processes/dam_reservoir_constant_temperature_process.hpp"
 #include "custom_processes/dam_hydro_condition_load_process.hpp"
@@ -41,8 +42,12 @@ namespace Python
 
 using namespace boost::python;
 
-void  AddCustomProcessesToPython() 
-{    
+void  AddCustomProcessesToPython()
+{
+    // Fix Temperature
+    class_< DamFixTemperatureConditionProcess, bases< Process >, boost::noncopyable > ( "DamFixTemperatureConditionProcess",
+        init < ModelPart&, Parameters&>());
+    
     // Bofang Process
     class_< DamBofangConditionTemperatureProcess, bases< Process >, boost::noncopyable > ( "DamBofangConditionTemperatureProcess",
         init < ModelPart&, Parameters&>());

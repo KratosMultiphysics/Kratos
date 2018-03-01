@@ -16,6 +16,8 @@
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
 #include "utilities/openmp_utils.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
+#include<unordered_set>
 
 namespace Kratos
 {
@@ -240,17 +242,6 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-
-    /***********************************************************************************/
-    /***********************************************************************************/
-
-    template<typename FirstElementType, typename SecondElementType>
-    struct IsSameElement
-    { 
-        static const bool value = 
-            std::is_same<typename std::remove_reference<FirstElementType>::type,typename std::remove_cv<typename std::remove_reference<SecondElementType>::type>::type>::value ||
-            std::is_same<typename std::remove_cv<typename std::remove_reference<FirstElementType>::type>::type,typename std::remove_reference<SecondElementType>::type>::value; 
-    };
     
     /***********************************************************************************/
     /***********************************************************************************/
@@ -260,18 +251,12 @@ namespace Kratos
         // We are going to procede like the following, we are going to iterate over all the elements and compare with the components, we will save the type and we will compare until we get that the type of element has changed
         if (rThisElements.size() > 0) {
             std::string element_name;
+
+            auto it_element = rThisElements.begin();
             auto elements_components = KratosComponents<Element>::GetComponents();
             
-            auto element_type = rThisElements.begin()->GetGeometry().GetGeometryType();
-            
             // Fisrt we do the first element
-            for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                if (IsSameElement<decltype(*(rThisElements.begin())), decltype(*(it_comp->second))>::value &&
-                    (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
-                    element_name = it_comp->first;
-                    break;
-                }
-            }
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it_element, element_name);
             
             (*mpStream) << "Begin Elements\t" << element_name << std::endl;
             (*mpStream) << "\t" << rThisElements.begin()->Id() << "\t" << (rThisElements.begin()->pGetProperties())->Id() << "\t";
@@ -283,11 +268,8 @@ namespace Kratos
             for(std::size_t i = 1; i < rThisElements.size(); i++) {
                 auto it_elem_previous = rThisElements.begin() + i - 1;
                 auto it_elem_current = rThisElements.begin() + i;
-                
-                const auto previous_element_geometry_type = it_elem_previous->GetGeometry().GetGeometryType();
-                const auto current_element_geometry_type = it_elem_current->GetGeometry().GetGeometryType();
-                
-                if (IsSameElement<decltype(*it_elem_previous), decltype(*it_elem_current)>::value && (previous_element_geometry_type == current_element_geometry_type)) {
+
+                if(GeometricalObject::IsSame(*it_elem_previous, *it_elem_current)) {
                     (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_elem_current->GetGeometry().size(); i_node++)
                         (*mpStream) << it_elem_current->GetGeometry()[i_node].Id() << "\t";
@@ -295,15 +277,7 @@ namespace Kratos
                 } else {
                     (*mpStream) << "End Elements" << std::endl << std::endl;;
                     
-                    element_type = it_elem_current->GetGeometry().GetGeometryType();
-                        
-                    for(auto it_comp = elements_components.begin(); it_comp != elements_components.end() ; it_comp++) {
-                        if (IsSameElement<decltype(*it_elem_current), decltype(*(it_comp->second))>::value &&
-                            (element_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
-                            element_name = it_comp->first;
-                            break;
-                        }
-                    }
+                    CompareElementsAndConditionsUtility::GetRegisteredName(*it_elem_current, element_name);
                     
                     (*mpStream) << "Begin Elements\t" << element_name << std::endl;
                     (*mpStream) << "\t" << it_elem_current->Id() << "\t" << (it_elem_current->pGetProperties())->Id() << "\t";
@@ -366,19 +340,13 @@ namespace Kratos
         
         if (rThisConditions.size() > 0) {
             std::string condition_name;
+
+            auto it_condition = rThisConditions.begin();
             auto conditions_components = KratosComponents<Condition>::GetComponents();
             
-            auto condition_type = rThisConditions.begin()->GetGeometry().GetGeometryType();
-            
             // Fisrt we do the first condition
-            for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                if (IsSameElement<decltype(*(rThisConditions.begin())), decltype(*(it_comp->second))>::value &&
-                    (condition_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
-                    condition_name = it_comp->first;
-                    break;
-                }
-            }
-            
+            CompareElementsAndConditionsUtility::GetRegisteredName(*it_condition, condition_name);
+
             (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
             (*mpStream) << "\t" << rThisConditions.begin()->Id() << "\t" << (rThisConditions.begin()->pGetProperties())->Id() << "\t";
             for (std::size_t i_node = 0; i_node < rThisConditions.begin()->GetGeometry().size(); i_node++)
@@ -389,27 +357,16 @@ namespace Kratos
             for(std::size_t i = 1; i < rThisConditions.size(); i++) {
                 auto it_cond_previous = rThisConditions.begin() + i - 1;
                 auto it_cond_current = rThisConditions.begin() + i;
-                
-                const auto previous_condition_geometry_type = it_cond_previous->GetGeometry().GetGeometryType();
-                const auto current_condition_geometry_type = it_cond_current->GetGeometry().GetGeometryType();
-                
-                if (IsSameElement<decltype(*it_cond_previous), decltype(*it_cond_current)>::value && (previous_condition_geometry_type == current_condition_geometry_type)) {
+
+                if(GeometricalObject::IsSame(*it_cond_previous, *it_cond_current)) {
                     (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
                     for (std::size_t i_node = 0; i_node < it_cond_current->GetGeometry().size(); i_node++)
                         (*mpStream) << it_cond_current->GetGeometry()[i_node].Id() << "\t";
                     (*mpStream) << std::endl;
                 } else {
                     (*mpStream) << "End Conditions" << std::endl << std::endl;;
-                    
-                    condition_type = it_cond_current->GetGeometry().GetGeometryType();
-                        
-                    for(auto it_comp = conditions_components.begin(); it_comp != conditions_components.end() ; it_comp++) {
-                        if (IsSameElement<decltype(*it_cond_current), decltype(*(it_comp->second))>::value &&
-                            (condition_type == (it_comp->second)->GetGeometry().GetGeometryType())) {
-                            condition_name = it_comp->first;
-                            break;
-                        }
-                    }
+
+                    CompareElementsAndConditionsUtility::GetRegisteredName(*it_cond_current, condition_name);
                     
                     (*mpStream) << "Begin Conditions\t" << condition_name << std::endl;
                     (*mpStream) << "\t" << it_cond_current->Id() << "\t" << (it_cond_current->pGetProperties())->Id() << "\t";
@@ -529,8 +486,8 @@ namespace Kratos
         WriteTableBlock(rThisModelPart.Tables());
         WriteMesh(rThisModelPart.GetMesh());
         WriteNodalDataBlock(rThisModelPart); // TODO: FINISH ME
-//         WriteElementalDataBlock(rThisModelPart.Elements()); // TODO: FINISH ME
-//         WriteConditionalDataBlock(rThisModelPart.Conditions()); // TODO: FINISH ME
+        WriteDataBlock(rThisModelPart.Elements(), "Element");
+        WriteDataBlock(rThisModelPart.Conditions(),"Condition"); 
 //         WriteCommunicatorDataBlock(); // TODO: FINISH ME
 //         WriteMeshBlock(rThisModelPart); // TODO: FINISH ME
         WriteSubModelPartBlock(rThisModelPart, "");
@@ -1818,6 +1775,60 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
+    template<class TObjectsContainerType>
+    void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName){
+        typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+        std::unordered_set<std::string> variables;
+        
+        for(auto& object :rThisObjectContainer){
+            for(auto& var:object.GetData()){
+                auto const& is_included = variables.find(var.first->Name());
+                if(is_included == variables.end()){
+                    variables.insert(var.first->Name());
+                    // determine variable type
+                    if(KratosComponents<Variable<bool>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<bool>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<int>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<int>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<double>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<double>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<array_1d_component_type>::Has(var.first->Name())){
+                        WriteDataBlock<array_1d_component_type>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<array_1d<double,3>>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<array_1d<double,3>>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<Quaternion<double>>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<Quaternion<double>>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<Vector>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<Vector>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else if(KratosComponents<Variable<Matrix>>::Has(var.first->Name())){
+                        WriteDataBlock<Variable<Matrix>, TObjectsContainerType>(rThisObjectContainer, var.first, rObjectName);
+                    }
+                    else
+                        std::cout << var.first->Name() << " is not a valid variable for output!!!" << std::endl;
+                    
+                }
+            }
+        }
+    }
+
+    template<class TVariableType, class TObjectsContainerType>
+    void ModelPartIO::WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName){
+        const TVariableType variable = KratosComponents<TVariableType>::Get(rVariable->Name());
+        (*mpStream) << "Begin "<<rObjectName<<"alData "<<variable.Name()<<std::endl;
+        for(auto& object : rThisObjectContainer){
+            if(object.Has(variable)){
+                (*mpStream)<<object.Id()<<"\t"<<object.GetValue(variable)<<std::endl;
+            }
+        }
+        (*mpStream)<<"End "<<rObjectName<<"alData\n"<<std::endl;
+    }
 
     template<class TVariableType>
     void ModelPartIO::ReadNodalDofVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable)
@@ -2003,6 +2014,10 @@ namespace Kratos
         {
             ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
         }
+        else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+        {
+            ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
+        }
         else
         {
             std::stringstream buffer;
@@ -2118,6 +2133,10 @@ namespace Kratos
         else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
         {
             ReadConditionalVectorialVariableData(rThisConditions, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
+        }
+        else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+        {
+            ReadConditionalVectorialVariableData(rThisConditions, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
         }
         else
         {
@@ -4461,13 +4480,14 @@ namespace Kratos
 
 
 
-
-    // Basically it starts to read the character sequence until reaching a
-    // "(" and then goes until corresponding ")" which means the vector or
-    // matrix value is completely read. It can be used to read any kind of
-    // vector or matrix with operator >> defined and writtern in following
-    // format for a vector: [size] ( value1, value2,...., valueN )
-    // format for a matrix: [size1,size2] ( )( )...( ) //look props read
+    /**
+    * @note Basically it starts to read the character sequence until reaching a
+    *       "(" and then goes until corresponding ")" which means the vector or
+    *       matrix value is completely read. It can be used to read any kind of
+    *       vector or matrix with operator >> defined and writtern in following
+    *       format for a vector: [size] ( value1, value2,...., valueN )
+    *       format for a matrix: [size1,size2] (( )( )...( )) //look props read
+    */
     template<class TValueType>
     TValueType& ModelPartIO::ReadVectorialValue(TValueType& rValue)
     {

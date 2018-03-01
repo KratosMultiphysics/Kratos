@@ -44,8 +44,12 @@ namespace Kratos
 ///@{
 
 /**
+ * @class SmallDisplacement
+ * @ingroup StructuralMechanicsApplication
  * @brief Small displacement element for 2D and 3D geometries.
  * @details Implements a small displacement definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacement
@@ -138,6 +142,11 @@ protected:
     {
     }
 
+     /**
+     * @brief This method returns if the element provides the strain
+     */
+    bool UseElementProvidedStrain() override;
+    
     /**
      * @brief This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix The LHS
@@ -173,7 +182,6 @@ protected:
      * @param PointNumber The integration point considered
      * @param IntegrationPoints The list of integration points
      * @param ThisStressMeasure The stress measure considered
-     * @param Displacements The displacements vector
      */ 
     void CalculateConstitutiveVariables(
         KinematicVariables& rThisKinematicVariables, 
@@ -181,8 +189,7 @@ protected:
         ConstitutiveLaw::Parameters& rValues,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure,
-        const Vector Displacements
+        const ConstitutiveLaw::StressMeasure ThisStressMeasure
         ) override;
 
     /**

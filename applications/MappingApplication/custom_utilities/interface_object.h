@@ -168,6 +168,18 @@ public:
         return mIsBeingSent;
     }
 
+    virtual Node<3>* pGetBaseNode()
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return nullptr;
+    }
+
+    virtual Geometry<Node<3>>* pGetBaseGeometry()
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return nullptr;
+    }
+
     virtual bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords,
                                 double& rMinDistance, const double Distance,
                                 std::vector<double>& rShapeFunctionValues)

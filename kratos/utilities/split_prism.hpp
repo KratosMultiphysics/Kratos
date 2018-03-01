@@ -51,7 +51,7 @@
 /***********************************************************************************/
 
 /** This function computes the splitting mode for the prism
- * @param aux_ids: Contains a vector with the input Ids, organized as follows:
+ * @param aux_ids Contains a vector with the input Ids, organized as follows
  *   aux_ids[0] = id of FIRST node of the original prism
  *   aux_ids[1] = id of SECOND node of the original prism
  *   aux_ids[2] = id of THIRD node of the original prism
@@ -65,7 +65,7 @@
  *   aux_ids[10] = id of new node to be used for the upper edge 12 (-1 if edge not to be splitted)
  *   aux_ids[11] = id of new node to be used for the upper edge 20 (-1 if edge not to be splitted)
  *   Given this data it fills an auxiliary vector of size 6 that will be used in the splitting
- * @param edge_ids: This is an auxiliary array with the local numbering. It is necessary for the split_prism function
+ * @param edge_ids This is an auxiliary array with the local numbering. It is necessary for the split_prism function
  */
 
 void PrismSplitMode(
@@ -137,15 +137,15 @@ void PrismSplitMode(
 
 /**
 * Utility function to get the global ids for the new prisms to be generated
-* @param prism_index: the index of the new prism to be generated (Should be less than the number number_elem provided by Split_Prism)
- *@param t: integer array provided by Split_Prism
-* @param aux_ids: array used in constructing the edge_ids (contains the Global Ids of the new nodes)
-* @param id0: Global ID of node0 of the new prism
-* @param id1: Global ID of node1 of the new prism
-* @param id2: Global ID of node2 of the new prism
-* @param id3: Global ID of node3 of the new prism
-* @param id4: Global ID of node4 of the new prism
-* @param id5: Global ID of node5 of the new prism
+* @param prism_index the index of the new prism to be generated (Should be less than the number number_elem provided by Split_Prism)
+ *@param t integer array provided by Split_Prism
+* @param aux_ids array used in constructing the edge_ids (contains the Global Ids of the new nodes)
+* @param id0 Global ID of node0 of the new prism
+* @param id1 Global ID of node1 of the new prism
+* @param id2 Global ID of node2 of the new prism
+* @param id3 Global ID of node3 of the new prism
+* @param id4 Global ID of node4 of the new prism
+* @param id5 Global ID of node5 of the new prism
 */
 
 inline void PrismGetNewConnectivityGID(
@@ -171,11 +171,11 @@ inline void PrismGetNewConnectivityGID(
 
 /**
 * Utility to split prisms
-* @param edges: (input) int c array of size 6
-* @param t: (output) int c array of size 24 (6*4)
-* @param number_elem: (output) number of elements in the subdivision
-* @param splitted_edges: (output) provides the number of splitted edges
-* @param nint: (output)  internal node (not needed for prisms)
+* @param edges (input) int c array of size 6
+* @param t (output) int c array of size 24 (6*4)
+* @param number_elem (output) number of elements in the subdivision
+* @param splitted_edges (output) provides the number of splitted edges
+* @param nint (output)  internal node (not needed for prisms)
 * @return 1-->splitting needed    0-->no splitting needed
 */
 

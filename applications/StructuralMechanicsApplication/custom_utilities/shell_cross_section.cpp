@@ -387,7 +387,7 @@ void ShellCrossSection::CalculateSectionResponse(SectionParameters& rValues, con
 //         Hinv = ZeroMatrix(condensed_strain_size, condensed_strain_size);
     }
 
-    
+
     // compute the generalized strain vector in section coordinate system
     Vector generalizedStrainVector_element;
     if(mOrientation != 0.0)
@@ -884,7 +884,7 @@ void ShellCrossSection::ParseOrthotropicPropertyMatrix(const Properties::Pointer
     }
 
     this->EndStack();
-    KRATOS_ERROR_IF_NOT(pProps->GetValue(THICKNESS) == accum_thickness) << "The sum of ply thicknesses ( " << accum_thickness 
+    KRATOS_ERROR_IF_NOT(pProps->GetValue(THICKNESS) == accum_thickness) << "The sum of ply thicknesses ( " << accum_thickness
                 << " ) is different from the element property THICKNESS ( " << pProps->GetValue(THICKNESS) << std::endl;
 }
 
@@ -918,7 +918,7 @@ void ShellCrossSection::GetLaminaeStrengths(std::vector<Matrix> & rLaminae_Stren
 	else
 	{
 		KRATOS_ERROR <<
-			"The laminate material data has not been properly defined!\n" 
+			"The laminate material data has not been properly defined!\n"
 			<< "Make sure you have included material strengths.\n"
 			<< "Material strengths consider (T)ension, (C)ompression and (S)hear "
 			<< "strengths along local (1,2,3) lamina material coordinates.\n\n"
@@ -1048,10 +1048,10 @@ void ShellCrossSection::UpdateIntegrationPointParameters(IntegrationPoint& rPoin
         {
             // get elastic data for the trasverse shear part (treated elastically)
             const Properties& props = rMaterialValues.GetMaterialProperties();
-            if(props.Has(SHEAR_MODULUS_YZ) && props.Has(SHEAR_MODULUS_XZ))
+            if(props.Has(SHELL_ORTHOTROPIC_LAYERS))
             {
-                rVariables.GYZ = props[SHEAR_MODULUS_YZ];
-                rVariables.GXZ = props[SHEAR_MODULUS_XZ];
+                rVariables.GXZ = props[SHELL_ORTHOTROPIC_LAYERS](0,5);
+                rVariables.GYZ = props[SHELL_ORTHOTROPIC_LAYERS](0,6);
             }
             else if(props.Has(YOUNG_MODULUS) && props.Has(POISSON_RATIO))
             {
@@ -1061,7 +1061,7 @@ void ShellCrossSection::UpdateIntegrationPointParameters(IntegrationPoint& rPoin
             }
             else
             {
-                // This should NEVER happen!
+                KRATOS_ERROR << "This should NEVER happen, something went wrong!" << std::endl;
                 rVariables.GYZ = 0.0;
                 rVariables.GXZ = 0.0;
             }
@@ -1173,7 +1173,7 @@ void ShellCrossSection::CalculateIntegrationPointResponse(IntegrationPoint& rPoi
     rVariables.DeterminantF0 = 1.0;
 
     // calculate the material response
-
+    rMaterialValues.GetOptions().Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     rPoint.GetConstitutiveLaw()->CalculateMaterialResponse(rMaterialValues, rStressMeasure);
 
     // compute stress resultants and stress couples
@@ -1479,28 +1479,15 @@ void ShellCrossSection::PrivateCopy(const ShellCrossSection & other)
 void ShellCrossSection::Ply::RecoverOrthotropicProperties(const unsigned int currentPly, Properties& laminaProps)
 {
     // Composite mechanical properties material definition
-    //
+    // Copying current ply properties
     // Arranged as: (thickness), (RZangle), density, E1, E2, Poisson_12, G12, G13, G23
 
-    laminaProps.SetValue(DENSITY,
-        (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 2));    //DENSITY
+    Matrix current_ply_properties = ZeroMatrix(1,7);
 
-    laminaProps.SetValue(YOUNG_MODULUS_X,
-        (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 3));    //E1
+    for (SizeType i=0; i<7; ++i)
+        current_ply_properties(0,i) = (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, i+2);
 
-    laminaProps.SetValue(YOUNG_MODULUS_Y,
-        (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 4));    //E2
-
-    laminaProps.SetValue(POISSON_RATIO_XY,
-        (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 5));    //Nu_12
-
-    laminaProps.SetValue(SHEAR_MODULUS_XY,
-        (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 6));    //G12
-
-    laminaProps.SetValue(SHEAR_MODULUS_XZ,
-        (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 7));    //G13
-
-    laminaProps.SetValue(SHEAR_MODULUS_YZ,
-        (*mpProperties)[SHELL_ORTHOTROPIC_LAYERS](currentPly, 8));    //G23
+    laminaProps[SHELL_ORTHOTROPIC_LAYERS] = current_ply_properties;
 }
+
 }
