@@ -11,6 +11,9 @@
 #define  KRATOS_CONSTITUTIVE_MODEL_UTILITIES
 
 // System includes
+#include <cmath>
+#include <limits>
+#include <algorithm>
 
 // External includes
 
@@ -989,7 +992,212 @@ namespace Kratos
             }
         }
     }
+
+
+    /**
+     * Computes fourth order unit tensor
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderUnitTensor( double& rValue,
+							  const unsigned int& a, const unsigned int& b,
+							  const unsigned int& c, const unsigned int& d )
+    {
+      MatrixType IdentityMatrix;
+      noalias(IdentityMatrix) = identity_matrix<double>(3);
+
+      rValue = CalculateFourthOrderUnitTensor(IdentityMatrix,rValue,a,b,c,d);
+      
+      return rValue;      
+    }
+
+    /**
+     * Computes fourth order unit tensor
+     * @param rIdentityMatrix input tensor identity matrix 3x3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderUnitTensor( const MatrixType& rIdentityMatrix, double& rValue,
+							  const unsigned int& a, const unsigned int& b,
+							  const unsigned int& c, const unsigned int& d )
+    {
+      rValue = 0.5*(rIdentityMatrix(a,c)*rIdentityMatrix(b,d)+rIdentityMatrix(a,d)*rIdentityMatrix(b,c));
+      
+      return rValue;      
+    }
+
+
+    /**
+     * Computes fourth order unit tensor
+     * @param rMatrix input tensor identity matrix 3x3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderTensor(const MatrixType& rMatrix,
+						     double& rValue,
+						     const double& a,
+						     const double& b,
+						     const double& c,
+						     const double& d)
+    {
+	rValue = 0.5*(rMatrix(a,c)*rMatrix(b,d)+rMatrix(a,d)*rMatrix(b,c));
+	
+	return rValue;
+    }
     
+    /**
+     * Computes the Square Tensor Derivative
+     * @param rMatrix input tensor matrix 3x3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateSquareTensorDerivative( const MatrixType& rMatrix, double& rValue,
+							   const unsigned int& a, const unsigned int& b,
+							   const unsigned int& c, const unsigned int& d )
+    {
+      MatrixType IdentityMatrix;
+      noalias(IdentityMatrix) = identity_matrix<double>(3);
+
+      rValue = CalculateSquareTensorDerivative(rMatrix,IdentityMatrix,rValue,a,b,c,d);
+      
+      return rValue;     
+    }
+    
+    /**
+     * Computes the Square Tensor Derivative
+     * @param rMatrix input tensor matrix 3x3
+     * @param rIdentityMatrix input tensor identity matrix 3x3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateSquareTensorDerivative( const MatrixType& rMatrix, const MatrixType& rIdentityMatrix, double& rValue,
+							   const unsigned int& a, const unsigned int& b,
+							   const unsigned int& c, const unsigned int& d )
+    {
+      rValue = 0.5*(rIdentityMatrix(a,c)*rMatrix(d,b)+rIdentityMatrix(a,d)*rMatrix(c,b)+rIdentityMatrix(b,d)*rMatrix(a,c)+rIdentityMatrix(c,b)*rMatrix(a,d));
+
+      return rValue;      
+    }
+
+    
+    /**
+     * Computes the FourthOrder Tensor Product
+     * @param rMatrixA input tensor matrix 3x3
+     * @param rMatrixB input tensor matrix 3x3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderTensorProduct( const MatrixType& rMatrixA, const MatrixType& rMatrixB, double& rValue,
+							     const unsigned int& a, const unsigned int& b,
+							     const unsigned int& c, const unsigned int& d )
+    {
+      rValue = rMatrixA(a,b)*rMatrixB(c,d);
+
+      return rValue;      
+    }
+    
+     /**
+     * Computes the FourthOrder Tensor Product
+     * @param rVectorA input vector 3
+     * @param rVectorB input vector 3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderTensorProduct( const array_1d<double,3>& rVectorA, const array_1d<double,3>& rVectorB, double& rValue,
+							     const unsigned int& a, const unsigned int& b,
+							     const unsigned int& c, const unsigned int& d )
+    {
+      rValue = (rVectorA[a]*rVectorA[b])*(rVectorB[c]*rVectorB[d]);
+
+      return rValue;      
+    }
+
+
+     /**
+     * Computes the FourthOrder Tensor Product
+     * @param rMatrixA input tensor matrix 3x3
+     * @param rVectorB input vector 3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderTensorProduct( const MatrixType& rMatrixA, const array_1d<double,3>& rVectorB, double& rValue,
+							     const unsigned int& a, const unsigned int& b,
+							     const unsigned int& c, const unsigned int& d )
+    {
+      rValue = rMatrixA(a,b)*(rVectorB[c]*rVectorB[d]);
+
+      return rValue;      
+    }
+    
+     /**
+     * Computes the FourthOrder Tensor Product
+     * @param rVectorA input vector 3
+     * @param rMatrixB input tensor matrix 3x3
+     * @param rValue output double
+     * @param a index for the fourth order tensor
+     * @param b index for the fourth order tensor
+     * @param c index for the fourth order tensor
+     * @param d index for the fourth order tensor
+     */
+    static inline double& CalculateFourthOrderTensorProduct( const array_1d<double,3>& rVectorA, const MatrixType& rMatrixB, double& rValue,
+							     const unsigned int& a, const unsigned int& b,
+							     const unsigned int& c, const unsigned int& d )
+    {
+      rValue = (rVectorA[a]*rVectorA[b])*rMatrixB(c,d);
+
+      return rValue;      
+    }
+
+    
+     /**
+     * Checks if two doubles are equal
+     * @param rA input double
+     * @param rB input double
+     */
+    static inline bool AreEqual( const double& rA, const double& rB )
+    {
+	//different sign
+	if( rA*rB < 0 )
+	    return false;
+
+	//different order of magnitude
+	double absDiff = std::fabs(rA - rB);
+	if(absDiff <= std::numeric_limits<double>::epsilon())
+	{
+	    return true;
+	}
+
+	//similar order of magnitude
+	double maxAbs  = std::max(std::fabs(rA), std::fabs(rB));
+	return (absDiff/maxAbs) < 1E-8;
+	
+    }
+    
+
     ///@}
     ///@name Access
     ///@{
