@@ -400,6 +400,8 @@ public:
     Node& operator=(const Node& rOther)
     {
         BaseType::operator=(rOther);
+        Flags::operator =(rOther);
+        IndexedObject::operator=(rOther);
 
         // Deep copying the dofs
         for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
@@ -1006,7 +1008,7 @@ public:
     template<class TVariableType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable)
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
         
 #ifdef KRATOS_DEBUG
         if(rDofVariable.Key() == 0) 
@@ -1029,13 +1031,13 @@ public:
 
         return p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
+        KRATOS_CATCH(*this);
     }
 
     /** adds a Dof to the node and return new added dof or existed one. */
     inline typename DofType::Pointer pAddDof(DofType const& SourceDof)
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
         
         typename DofsContainerType::iterator it_dof = mDofs.find(SourceDof.GetVariable());
         if(it_dof != mDofs.end())
@@ -1060,14 +1062,14 @@ public:
 
         return p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
+        KRATOS_CATCH(*this);
     }
 
     /** adds a Dof to the node and return new added dof or existed one. */
     template<class TVariableType, class TReactionType>
     inline typename DofType::Pointer pAddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
         
 #ifdef KRATOS_DEBUG
         if(rDofVariable.Key() == 0) 
@@ -1095,7 +1097,7 @@ public:
 
         return p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
+        KRATOS_CATCH(*this);
 
     }
 
@@ -1103,7 +1105,7 @@ public:
     template<class TVariableType>
     inline DofType& AddDof(TVariableType const& rDofVariable)
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
         
 #ifdef KRATOS_DEBUG
         if(rDofVariable.Key() == 0)
@@ -1126,7 +1128,7 @@ public:
 
         return *p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
+        KRATOS_CATCH(*this);
 
     }
 
@@ -1134,7 +1136,7 @@ public:
     template<class TVariableType, class TReactionType>
     inline DofType& AddDof(TVariableType const& rDofVariable, TReactionType const& rDofReaction)
     {
-        KRATOS_TRY_LEVEL_3
+        KRATOS_TRY
         
 #ifdef KRATOS_DEBUG
         if(rDofVariable.Key() == 0) 
@@ -1162,7 +1164,7 @@ public:
 
         return *p_new_dof;
 
-        KRATOS_CATCH_LEVEL_3(*this);
+        KRATOS_CATCH(*this);
 
     }
 

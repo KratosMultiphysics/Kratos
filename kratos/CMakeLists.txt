@@ -43,7 +43,9 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/find_intersected_geometrical_objects_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_discontinuous_distance_to_skin_process.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp	
+	${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp;	
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp;    
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp;  
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -51,7 +53,8 @@ set( KRATOS_CORE_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
-	${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp
+	    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_utils.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/modified_shape_functions/modified_shape_functions.cpp;
@@ -64,10 +67,7 @@ set( KRATOS_CORE_SOURCES
 
 ## Kratos python interface code
 set( KRATOS_PYTHON_SOURCES
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_banded_matrix_to_python.cpp #to remove
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_part_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_compressed_matrix_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constant_matrix_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_points_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_deprecated_variables_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_c2c_variables_to_python.cpp
@@ -81,25 +81,14 @@ set( KRATOS_PYTHON_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_containers_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_constitutive_law_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_processes_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_coordinate_matrix_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_quadratures_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_geometries_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_scalar_matrix_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_hermitian_matrix_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_sparse_matrix_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_identity_matrix_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_integration_points_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_symmetric_matrix_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_io_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_triangular_matrix_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kernel_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_vector_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_application_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_zero_matrix_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_mesh_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_modeler_to_python.cpp
-# 	${CMAKE_CURRENT_SOURCE_DIR}/python/vectorial_spaces_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_properties_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_node_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp
@@ -126,7 +115,7 @@ file(GLOB_RECURSE KRATOS_CORE_INPUT_OUTPUT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/i
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-	file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define library KratosCore to be included in all of the others
@@ -134,21 +123,11 @@ add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGIN
 target_link_libraries(KratosCore gidpost) #${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
-## Define library KratosTests if enabled
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    add_library(KratosTests SHARED ${KRATOS_TEST_SOURCES})
-	target_link_libraries(KratosTests KratosCore)
-	set_target_properties(KratosTests PROPERTIES COMPILE_DEFINITIONS "KRATOS_TESTS=IMPORT,API")
-    set_target_properties(KratosTests PROPERTIES PREFIX "")
-    set(KRATOS_TEST_LIBRARIES KratosTests)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
-
 ## Define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos MODULE ${KRATOS_PYTHON_SOURCES})
 # add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos ${KRATOS_TEST_LIBRARIES} KratosCore)
 # set_target_properties(Kratos PROPERTIES PREFIX "")
-
 
 if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
@@ -185,12 +164,9 @@ endif(USE_COTIRE MATCHES ON)
 # endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 install(TARGETS Kratos DESTINATION libs )
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    install(TARGETS KratosTests DESTINATION libs)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 install(TARGETS KratosCore DESTINATION libs)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
-	get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-	install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/ FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
+    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/ FILES_MATCHING PATTERN "*.py" PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)

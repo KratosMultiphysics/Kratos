@@ -81,6 +81,8 @@ namespace Kratos
 
     void VariableData::Print(const void* pSource, std::ostream& rOStream) const {}
 
+    void VariableData::PrintData(const void* pSource, std::ostream& rOStream) const {}
+
     void VariableData::Allocate(void** pData) const
     {
     }

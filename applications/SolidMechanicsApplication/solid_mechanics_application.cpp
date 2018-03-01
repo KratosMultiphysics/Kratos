@@ -280,7 +280,10 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication()
       mGeometricallyExactRodElement3D2N(
           0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(
                  Element::GeometryType::PointsArrayType(2)))),
-
+      mLargeDisplacementBeamElement2D2N(
+          0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(
+                 Element::GeometryType::PointsArrayType(2)))),
+      
       mShellThickElement3D4N(0,
           Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(
               Element::GeometryType::PointsArrayType(4))),
@@ -446,6 +449,7 @@ void KratosSolidMechanicsApplication::Register() {
 
     //explicit schemes
     KRATOS_REGISTER_VARIABLE( TIME_INTEGRATION_METHOD )
+    KRATOS_REGISTER_VARIABLE( ANGULAR_TIME_INTEGRATION_METHOD )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
     //solution
@@ -717,6 +721,8 @@ void KratosSolidMechanicsApplication::Register() {
         mLargeDisplacementBeamSEMCElement3D2N)
     KRATOS_REGISTER_ELEMENT(
         "GeometricallyExactRodElement3D2N", mGeometricallyExactRodElement3D2N)
+    KRATOS_REGISTER_ELEMENT(
+        "LargeDisplacementBeamElement2D2N", mLargeDisplacementBeamElement2D2N)
 
     //Register shells
     KRATOS_REGISTER_ELEMENT("ShellThickElement3D4N", mShellThickElement3D4N)

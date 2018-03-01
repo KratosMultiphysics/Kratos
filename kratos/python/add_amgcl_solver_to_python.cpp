@@ -27,9 +27,10 @@
 #include "spaces/ublas_space.h"
 #include "add_amgcl_solver_to_python.h"
 
+#ifndef KRATOS_DISABLE_AMGCL
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
-
+#endif
 
 namespace Kratos
 {
@@ -38,6 +39,7 @@ namespace Python
 {
 void  AddAMGCLSolverToPython(pybind11::module& m)
 {
+#ifndef KRATOS_DISABLE_AMGCL
     typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
@@ -67,7 +69,6 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     .value("SA_EMIN",SA_EMIN)
     ;
 
-
     typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
     class_<AMGCLSolverType,  std::shared_ptr<AMGCLSolverType>, LinearSolverType>
     (m, "AMGCLSolver")
@@ -84,6 +85,7 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
     (m, "AMGCL_NS_Solver")
     .def(init<Parameters>())
     ;
+#endif
 
 
 }

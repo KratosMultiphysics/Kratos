@@ -62,6 +62,10 @@ void AddUtilitiesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+    
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
     class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >(m,"PythonGenericFunctionUtility")
     .def(init<const std::string&>() )
@@ -85,9 +89,19 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
     ;
 
+    // This is required to recognize the different overloads of ConditionNumberUtility::GetConditionNumber
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef double (ConditionNumberUtility::*InputGetConditionNumber)(SparseSpaceType::MatrixType&, LinearSolverType::Pointer, LinearSolverType::Pointer);
+    typedef double (ConditionNumberUtility::*DirectGetConditionNumber)(SparseSpaceType::MatrixType&);
+
+    InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
+    DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
+    
     class_<ConditionNumberUtility>(m,"ConditionNumberUtility")
     .def(init<>())
-    .def("GetConditionNumber",&ConditionNumberUtility::GetConditionNumber)
+    .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
+    .def("GetConditionNumber", ThisGetConditionNumber)
+    .def("GetConditionNumber", ThisDirectGetConditionNumber)
     ;
 
     class_<VariableUtils > (m,"VariableUtils")
@@ -95,6 +109,29 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("SetVectorVar", &VariableUtils::SetVectorVar)
     .def("SetScalarVar", &VariableUtils::SetScalarVar< Variable<double> >)
     .def("SetScalarVar", &VariableUtils::SetScalarVar< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("SetNonHistoricalVectorVar", &VariableUtils::SetNonHistoricalVectorVar)
+    .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar< Variable<double> >)
+    .def("SetNonHistoricalScalarVar", &VariableUtils::SetNonHistoricalScalarVar< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("SetVariable", &VariableUtils::SetVariable< bool >)
+    .def("SetVariable", &VariableUtils::SetVariable< double >)
+    .def("SetVariable", &VariableUtils::SetVariable< array_1d<double, 3> >)
+    .def("SetVariable", &VariableUtils::SetVariable< Vector >)
+    .def("SetVariable", &VariableUtils::SetVariable< Matrix >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< bool, ModelPart::NodesContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< double, ModelPart::NodesContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< array_1d<double, 3>, ModelPart::NodesContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Vector, ModelPart::NodesContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Matrix, ModelPart::NodesContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< bool, ModelPart::ConditionsContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< double, ModelPart::ConditionsContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< array_1d<double, 3>, ModelPart::ConditionsContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Vector, ModelPart::ConditionsContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Matrix, ModelPart::ConditionsContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< bool, ModelPart::ElementsContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< double, ModelPart::ElementsContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< array_1d<double, 3>, ModelPart::ElementsContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Vector, ModelPart::ElementsContainerType >)
+    .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariable< Matrix, ModelPart::ElementsContainerType >)
     .def("SetFlag", &VariableUtils::SetFlag< ModelPart::NodesContainerType >)
     .def("SetFlag", &VariableUtils::SetFlag< ModelPart::ConditionsContainerType >)
     .def("SetFlag", &VariableUtils::SetFlag< ModelPart::ElementsContainerType >)
@@ -106,7 +143,9 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("SetToZero_VectorVar", &VariableUtils::SetToZero_VectorVar)
     .def("SetToZero_ScalarVar", &VariableUtils::SetToZero_ScalarVar)
     // .def("SetToZero_VelocityVectorVar", &VariableUtils::SetToZero_VelocityVectorVar)
-    // .def("CheckVariableExists", &VariableUtils::SetToZero_VelocityVectorVar)
+    // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< Variable<double> >)
+    // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
+    // .def("CheckVariableExists", &VariableUtils::CheckVariableExists< Variable<array_1d<double, 3> > > )
     .def("ApplyFixity", &VariableUtils::ApplyFixity< Variable<double> >)
     .def("ApplyFixity", &VariableUtils::ApplyFixity< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > > )
     .def("ApplyVector", &VariableUtils::ApplyVector< Variable<double> >)

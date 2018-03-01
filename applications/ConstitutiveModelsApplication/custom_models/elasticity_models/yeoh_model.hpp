@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/mooney_rivlin_model.hpp"
 
 namespace Kratos
 {
@@ -120,6 +120,8 @@ namespace Kratos
       if( C30.Key() == 0 || rMaterialProperties[C30] <= 0.00 )
 	KRATOS_ERROR << "C30 has an invalid key or value" << std::endl;
 	    
+      if( BULK_MODULUS.Key() == 0 || rMaterialProperties[BULK_MODULUS] <= 0.00 )
+	KRATOS_ERROR << "BULK_MODULUS has an invalid key or value" << std::endl;
 	  
       KRATOS_CATCH(" ")	  
     }

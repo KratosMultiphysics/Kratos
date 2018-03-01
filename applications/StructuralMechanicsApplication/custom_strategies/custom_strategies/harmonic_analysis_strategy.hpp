@@ -385,7 +385,7 @@ public:
                 }
                 KRATOS_ERROR_IF(down < std::numeric_limits<double>::epsilon()) << "No valid effective "
                     << "material damping ratio could be computed. Are all elements to be damped available "
-                    << "in the submodelparts? Are the modal vectors available? " << std::endl;
+                    << "in the submodelparts? Are the modal vectors available?" << std::endl;
                 
                 mMaterialDampingRatios(i) = up / down;
             }
@@ -436,7 +436,8 @@ public:
 
         for( std::size_t i = 0; i < n_modes; ++i )
         {
-
+            KRATOS_ERROR_IF(eigenvalues[i] < std::numeric_limits<double>::epsilon()) << "No valid eigenvalue "
+                    << "for mode " << i << std::endl;
             modal_damping = mSystemDamping + mRayleighAlpha / (2 * eigenvalues[i]) + mRayleighBeta * eigenvalues[i] / 2;
             
             if( mUseMaterialDamping )
@@ -450,6 +451,7 @@ public:
             TDenseSpace::GetColumn(i, r_modal_matrix, modal_vector);
 
             ComplexType factor( eigenvalues[i] - std::pow( excitation_frequency, 2.0 ), 2 * modal_damping * std::sqrt(eigenvalues[i]) * excitation_frequency );
+            KRATOS_ERROR_IF( std::abs(factor) < std::numeric_limits<double>::epsilon() ) << "No valid modal weight" << std::endl;
             mode_weight = inner_prod( modal_vector, f ) / factor;
 
             // compute the modal displacement as a superposition of modal_weight * eigenvector
@@ -666,14 +668,24 @@ private:
             {
                 if( !it_dof->IsFixed() )
                 {
-                    //absolute displacement
-                    it_dof->GetSolutionStepValue(step) = std::abs(rModalDisplacement(it_dof->EquationId()));
+                    const auto modal_displacement = rModalDisplacement( it_dof->EquationId() );
+                    //displacement
+                    if( std::real( modal_displacement ) < 0 )
+                    {
+                        it_dof->GetSolutionStepValue(step) = -1 * std::abs( modal_displacement );
+                    }
+                    else
+                    {
+                        it_dof->GetSolutionStepValue(step) = std::abs( modal_displacement );
+                    }
+
                     //phase angle
-                    it_dof->GetSolutionStepReactionValue(step) = std::abs(std::arg(rModalDisplacement(it_dof->EquationId())));
+                    it_dof->GetSolutionStepReactionValue(step) = std::arg( modal_displacement );
                 }
                 else
                 {
                     it_dof->GetSolutionStepValue(step) = 0.0;
+                    it_dof->GetSolutionStepReactionValue(step) = 0.0;
                 }
             }
         }

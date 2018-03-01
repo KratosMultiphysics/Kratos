@@ -57,6 +57,9 @@ namespace Kratos
     typedef ResidualBasedDisplacementNewmarkScheme<TSparseSpace,TDenseSpace>  DerivedType;
 
     typedef typename DerivedType::IntegrationTypePointer           IntegrationTypePointer;
+
+    typedef typename DerivedType::NodeType                                       NodeType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -70,7 +73,6 @@ namespace Kratos
     /// Copy Constructor.
     ResidualBasedDisplacementBossakScheme(ResidualBasedDisplacementBossakScheme& rOther)
       :DerivedType(rOther)
-
     {
     }
 
@@ -90,7 +92,24 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
- 
+
+    /**
+    this is the place to initialize the Scheme.
+    This is intended to be called just once when the strategy is initialized
+     */
+    virtual void Initialize(ModelPart& rModelPart) override
+    {
+        KRATOS_TRY
+
+	DerivedType::Initialize(rModelPart);  
+
+	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+	
+	this->mVector.ap.resize(NumThreads);
+
+	KRATOS_CATCH("")
+    }
+    
     ///@}
     ///@name Access
     ///@{
@@ -146,9 +165,18 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
     
-    void SetIntegrationMethod() override
+    void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo) override
     {
       this->mpIntegrationMethod = IntegrationTypePointer( new BossakMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+
+      // Set scheme variables
+      this->mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);
+
+      // Set scheme parameters
+      this->mpIntegrationMethod->SetParameters(rCurrentProcessInfo);
+
+      // Modify ProcessInfo scheme parameters
+      this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
     }
     
     /**

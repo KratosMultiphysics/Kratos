@@ -183,7 +183,6 @@ Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType co
 {
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
     return Kratos::make_shared< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
-//     return Element::Pointer( new ShellThinElement3D3N(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom)) );
 }
 
 ShellThinElement3D3N::IntegrationMethod ShellThinElement3D3N::GetIntegrationMethod() const

@@ -48,7 +48,6 @@ Element::Pointer MembraneElement::Create(
 
 {
     return Kratos::make_shared< MembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
-//     return Element::Pointer( new MembraneElement( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 //***********************************************************************************

@@ -159,13 +159,13 @@ public:
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
+        return Kratos::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
         KRATOS_TRY
-        return boost::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
+        return Kratos::make_shared< EmbeddedAusasNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
@@ -282,6 +282,86 @@ public:
         return 0;
 
         KRATOS_CATCH("");
+    }
+
+    void Calculate(
+        const Variable<array_1d<double, 3 > >& rVariable,
+        array_1d<double, 3 > & rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override {
+
+        rOutput = ZeroVector(3);
+
+        // If the element is split, integrate sigma·n over the interface
+        // Note that in the ausas formulation, both interface sides need to be integrated
+        if (rVariable == DRAG_FORCE) {
+
+            EmbeddedAusasElementDataStruct data;
+            this->FillEmbeddedAusasElementData(data, rCurrentProcessInfo);
+
+            // Check if the element is split
+            if (data.n_pos != 0 && data.n_neg != 0){
+
+                // Integrate positive interface side drag
+                const unsigned int n_int_pos_gauss = (data.w_gauss_pos_int).size();
+                for (unsigned int i_gauss = 0; i_gauss < n_int_pos_gauss; ++i_gauss) {
+                    // Get Gauss pt. data
+                    const double w_gauss = data.w_gauss_pos_int(i_gauss);
+                    const array_1d<double, TNumNodes> aux_N = row(data.N_pos_int, i_gauss);
+                    const array_1d<double, 3> side_normal = data.pos_int_unit_normals[i_gauss];
+
+                    // Obtain Gauss pt. pressure
+                    const double p_gauss = inner_prod(aux_N, data.p);
+
+                    // Call the constitutive law to compute the shear contribution
+                    // Recall to set data.N and data.DN_DX (required by the constitutive law)
+                    noalias(data.N) = aux_N;
+                    noalias(data.DN_DX) = data.DN_DX_pos_int[i_gauss];
+                    this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+
+                    // Get the Voigt notation normal projection matrix
+                    bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
+                    this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
+                
+                    // Add the shear and pressure drag contributions
+                    const array_1d<double, TDim> shear_proj = w_gauss * prod(normal_proj_mat, data.stress);
+                    for (unsigned int i = 0; i < TDim ; ++i){
+                        rOutput(i) -= shear_proj(i);
+                    }
+                    rOutput += w_gauss*p_gauss*side_normal;
+                }
+
+                // Integrate negative interface side drag
+                const unsigned int n_int_neg_gauss = (data.w_gauss_neg_int).size();
+                for (unsigned int i_gauss = 0; i_gauss < n_int_neg_gauss; ++i_gauss) {
+                    // Get Gauss pt. data
+                    const double w_gauss = data.w_gauss_neg_int(i_gauss);
+                    const array_1d<double, TNumNodes> aux_N = row(data.N_neg_int, i_gauss);
+                    const array_1d<double, 3> side_normal = data.neg_int_unit_normals[i_gauss];
+
+                    // Obtain Gauss pt. pressure
+                    const double p_gauss = inner_prod(aux_N, data.p);
+
+                    // Call the constitutive law to compute the shear contribution
+                    // Recall to set data.N and data.DN_DX (required by the constitutive law)
+                    noalias(data.N) = aux_N;
+                    noalias(data.DN_DX) = data.DN_DX_neg_int[i_gauss];
+                    this->ComputeConstitutiveResponse(data, rCurrentProcessInfo);
+
+                    // Get the Voigt notation normal projection matrix
+                    bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
+                    this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
+                
+                    // Add the shear and pressure drag contributions
+                    const array_1d<double, TDim> shear_proj = w_gauss * prod(normal_proj_mat, data.stress);
+                    for (unsigned int i = 0; i < TDim ; ++i){
+                        rOutput(i) -= shear_proj(i);
+                    }
+                    rOutput += w_gauss*p_gauss*side_normal;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "Calculate method not implemented for the requested variable.";
+        }
     }
 
     ///@}
@@ -428,21 +508,17 @@ protected:
             }
         }
 
-        if (rData.n_pos != 0 && rData.n_neg != 0) {
-            this->Set(TO_SPLIT, true);
-        }
-
         // If the element is split, get the modified shape functions
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             GeometryPointerType p_geom = this->pGetGeometry();
 
             // Construct the modified shape fucntions utility
             ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
             if (TNumNodes == 4) {
-                p_ausas_modified_sh_func = boost::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_geom, distances);
             } else {
-                p_ausas_modified_sh_func = boost::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, distances);
+                p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, distances);
             }
 
             // Call the positive side modified shape functions calculator
@@ -531,7 +607,7 @@ protected:
         bounded_matrix<double, MatrixSize, MatrixSize> lhs_local;
 
         // Decide if the element is wether split or not and add the contribution accordingly
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
             const unsigned int n_pos_gauss = (rData.w_gauss_pos_side).size();
@@ -608,7 +684,7 @@ protected:
         array_1d<double, MatrixSize> rhs_local;
 
         // Decide if the element is wether split or not and add the contribution accordingly
-        if (this->Is(TO_SPLIT)) {
+        if (rData.n_pos != 0 && rData.n_neg != 0){
 
             // Add the positive side volume contribution
             const unsigned int n_pos_gauss = (rData.w_gauss_pos_side).size();
@@ -668,9 +744,9 @@ protected:
     /**
     * This function adds the local system contribution of the interface pressure boundary terms,
     * coming from the integration by parts.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSystemBoundaryTermsContribution(
         MatrixType &rLeftHandSideMatrix,
@@ -797,8 +873,8 @@ protected:
     /**
     * This function adds the RHS contribution of the interface boundary terms,
     * coming from the integration by parts.
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddRHSBoundaryTermsContribution(
         VectorType &rRightHandSideVector,
@@ -920,9 +996,9 @@ protected:
 
     /**
     * This function adds the local system contribution of the penalty no penetration imposition.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSystemNormalVelocityPenaltyContribution(
         MatrixType &rLeftHandSideMatrix,
@@ -1021,8 +1097,8 @@ protected:
 
     /**
     * This function adds the RHS contribution of the penalty no penetration imposition.
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddRHSNormalVelocityPenaltyContribution(
         VectorType &rRightHandSideVector,
@@ -1114,9 +1190,9 @@ protected:
     /**
     * This function adds the local system contribution of the no penetration imposition,
     * by means of the pressure acting as a Lagrange multiplier.
-    * @param rLeftHandSideMatrix: reference to the LHS matrix
-    * @param rRightHandSideVector: reference to the RHS vector
-    * @param rData: reference to element data structure
+    * @param rLeftHandSideMatrix reference to the LHS matrix
+    * @param rRightHandSideVector reference to the RHS vector
+    * @param rData reference to element data structure
     */
     void AddSystemNormalVelocityLagrangeMultiplierContribution(
         MatrixType &rLeftHandSideMatrix,
@@ -1221,7 +1297,7 @@ protected:
 
     /**
     * Auxiliar function to compute the element size
-    * @return h: characteristic element size computed using the gradients
+    * @return Characteristic element size computed using the gradients
     */
     double ComputeH() {
 
@@ -1247,7 +1323,7 @@ protected:
 
     /**
     * This function computes the penalty coefficient for the level set normal velocity imposition
-    * @param rData: reference to element data structure
+    * @param rData reference to element data structure
     */
     double ComputePenaltyCoefficient(const EmbeddedAusasElementDataStruct &rData) {
 
@@ -1288,8 +1364,8 @@ protected:
 
     /**
     * This functions sets a vector containing the element previous solution
-    * @param rData: reference to the element data structure
-    * @param rPrevSolVector: reference to the previous solution vector
+    * @param rData reference to the element data structure
+    * @param rPrevSolVector reference to the previous solution vector
     */
     void GetPreviousSolutionVector(
         const EmbeddedAusasElementDataStruct& rData,
@@ -1307,8 +1383,8 @@ protected:
 
     /**
     * This functions computes the strain rate in Voigt notation
-    * @param rData: reference to the element data structure
-    * @param StrainSize: strain size (3 in 2D and 6 in 3D)
+    * @param rData reference to the element data structure
+    * @param StrainSize strain size (3 in 2D and 6 in 3D)
     */
     void ComputeStrain(
         EmbeddedAusasElementDataStruct& rData,
@@ -1336,8 +1412,8 @@ protected:
 
     /**
     * This function calls the constitutive law to get the stress value
-    * @param rData: reference to the element data structure
-    * @param rCurrentProcessInfo: reference to the ProcessInfo
+    * @param rData reference to the element data structure
+    * @param rCurrentProcessInfo reference to the ProcessInfo
     */
     void ComputeConstitutiveResponse(
         EmbeddedAusasElementDataStruct &rData,
@@ -1383,8 +1459,8 @@ protected:
 
     /**
     * This function computes the effective viscosity as the average of the lower diagonal constitutive tensor
-    * @param rData: reference to the element data structure
-    * @return mu_eff: computed effective viscosity value
+    * @param rData reference to the element data structure
+    * @return Computed effective viscosity value
     */
     double ComputeEffectiveViscosity(const EmbeddedAusasElementDataStruct& rData) {
         double mu_eff = 0.0;
@@ -1397,8 +1473,8 @@ protected:
 
     /**
     * This functions sets the auxiliar matrix to compute the normal projection in Voigt notation
-    * @param rUnitNormal: reference to Gauss pt. unit normal vector
-    * @return rVoigtNormProjMatrix: reference to the computed normal projection auxiliar matrix
+    * @param rUnitNormal reference to Gauss pt. unit normal vector
+    * @param[out] rVoigtNormProjMatrix reference to the computed normal projection auxiliar matrix
     */
     void SetVoigtNormalProjectionMatrix(
         const array_1d<double, 3>& rUnitNormal,
@@ -1426,8 +1502,8 @@ protected:
 
     /**
     * This functions sets the B strain matrix (pressure columns are set to zero)
-    * @param rData: reference to element data structure (it contains the shape functions derivatives)
-    * @return rBmatrix: reference to the computed B strain matrix
+    * @param rData reference to element data structure (it contains the shape functions derivatives)
+    * @param[out] rBmatrix reference to the computed B strain matrix
     */
     void SetExpandedStrainMatrix(
         const bounded_matrix<double, TNumNodes, TDim> &rDN_DX,
@@ -1461,8 +1537,8 @@ protected:
 
     /**
     * This functions sets the test function matrix given the Gauss pt. shape function values
-    * @param rN: shape function values on a Gauss pt.
-    * @return rTestMatrix: computed test function matrix
+    * @param rN shape function values on a Gauss pt.
+    * @return Computed test function matrix
     */
     void SetTestMatrix(
         const array_1d<double, TNumNodes> &rN,

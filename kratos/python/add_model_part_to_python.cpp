@@ -610,7 +610,12 @@ void AddModelPartToPython(pybind11::module& m)
         
         ;
 
+<<<<<<< HEAD
 	class_<ModelPart, ModelPart::Pointer, DataValueContainer, Flags >(m,"ModelPart")
+=======
+
+	class_<ModelPart, ModelPart::Pointer, bases<DataValueContainer, Flags>, boost::noncopyable >("ModelPart")
+>>>>>>> master
 		.def(init<std::string const&>())
 		.def(init<>())
 		.def_property("Name", GetModelPartName, SetModelPartName)
@@ -708,9 +713,15 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels2)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels3)
 		.def("RemoveConditionFromAllLevels", ModelPartRemoveConditionFromAllLevels4)
+<<<<<<< HEAD
 		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart, return_value_policy::reference_internal)
 		.def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
 		.def("GetSubModelPart", &ModelPart::GetSubModelPart, return_value_policy::reference_internal)
+=======
+		.def("CreateSubModelPart", &ModelPart::CreateSubModelPart)
+		.def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
+		.def("GetSubModelPart", &ModelPart::pGetSubModelPart)
+>>>>>>> master
 		.def("RemoveSubModelPart", RemoveSubModelPart1)
 		.def("RemoveSubModelPart", RemoveSubModelPart2)
 		.def("HasSubModelPart", &ModelPart::HasSubModelPart)

@@ -3,16 +3,32 @@
 # Import TestFactory
 import TestFactory as TF
 
+# Import KratosUnittest
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+# Check external dependencies
+try:
+  import KratosMultiphysics 
+  import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+  missing_external_dependencies = False
+  missing_application = ''
+except ImportError as e:
+    missing_external_dependencies = True
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''','{0}'.format(e)).group(1)
+
+
 # Tests for elements:
 
 # Small displacement elements SDE
 class SD_Element2D4N_ShearTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_2D4N_shear"
-    file_parameters = "element_tests/shear_2D_parameters.json"
+    file_parameters = "element_tests/shear_2D_inputs.json"
     
 class SD_Element2D3N_ShearTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_2D3N_shear"
-    file_parameters = "element_tests/shear_2D_parameters.json"
+    file_parameters = "element_tests/shear_2D_parameters_material.json"
     
 class SD_Element2D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/small_displacement_elements/patch_test_2D4N_tension"
@@ -118,7 +134,7 @@ class Thin_Shell3D3N_BendingRollUpTest(TF.TestFactory):
     file_name = "element_tests/shell_elements/Shell_T3_Thin__BendingRollUp"
     file_parameters = None
 
-class Thin_Shell3D3M_DrillingRollUpTest(TF.TestFactory):
+class Thin_Shell3D3N_DrillingRollUpTest(TF.TestFactory):
     file_name = "element_tests/shell_elements/Shell_T3_Thin__DrillingRollUp"
     file_parameters = None
     
@@ -134,3 +150,58 @@ class EigenTL3D8NCubeTests(TF.TestFactory):
 class Eigen3D3NThinCircleTests(TF.TestFactory):
     file_name = "eigen_tests/Eigen_3D3N_Thin_Circle"
     file_parameters = None
+
+
+def SetTestSuite(suites):
+    small_suite = suites['small']
+    
+    small_suite.addTests(
+        KratosUnittest.TestLoader().loadTestsFromTestCases([
+            #SDE
+            SD_Element2D4N_ShearTest,
+            SD_Element2D3N_ShearTest,
+            SD_Element2D4N_TensionTest,
+            SD_Element2D3N_TensionTest,
+            SD_Element3D8N_ShearTest,
+            SD_Element3D4N_ShearTest,
+            SD_Element3D8N_TensionTest,
+            SD_Element3D4N_TensionTest,
+            #TLE
+            TL_Element2D4N_ShearTest,
+            TL_Element2D3N_ShearTest,
+            TL_Element2D4N_TensionTest,
+            TL_Element2D3N_TensionTest,
+            TL_Element3D8N_ShearTest,
+            TL_Element3D4N_ShearTest,
+            TL_Element3D8N_TensionTest,
+            TL_Element3D4N_TensionTest,
+            #ULE
+            UL_Element2D4N_ShearTest,
+            UL_Element2D3N_ShearTest,
+            UL_Element2D4N_TensionTest,
+            UL_Element2D3N_TensionTest,
+            UL_Element3D8N_ShearTest,
+            UL_Element3D4N_ShearTest,
+            UL_Element3D8N_TensionTest,
+            UL_Element3D4N_TensionTest,
+            #SHE
+            Thick_Shell3D4N_BendingRollUpTest,
+            Thick_Shell3D4N_DrillingRollUpTest,
+            Thin_Shell3D3N_BendingRollUpTest,
+            Thin_Shell3D3N_DrillingRollUpTest
+        ])
+    )
+    
+    if (missing_external_dependencies == False):
+        if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
+            small_suite.addTests(
+                KratosUnittest.TestLoader().loadTestsFromTestCases([
+                    EigenQ4Thick2x2PlateTests,
+                    EigenTL3D8NCubeTests,
+                    Eigen3D3NThinCircleTests
+                ])
+            )
+        else:
+            print("FEASTSolver solver is not included in the compilation of the External Solvers Application")
+
+    return small_suite

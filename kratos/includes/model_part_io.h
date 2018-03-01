@@ -78,6 +78,9 @@ public:
     typedef std::vector<std::ostream*>            OutputFilesContainerType;
     typedef std::size_t                           SizeType;
 
+    // Prevents this class from hidding IO::WriteProperties(Properties)
+    using BaseType::WriteProperties;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -135,7 +138,7 @@ public:
 
     std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
-    virtual void WriteConditions(ConditionsContainerType const& rThisConditions);
+    virtual void WriteConditions(ConditionsContainerType const& rThisConditions) override;
 
     void ReadInitialValues(ModelPart& rThisModelPart) override;
 
@@ -351,8 +354,10 @@ protected:
     void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy);
 
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
-    
-    void WriteElementalDataBlock(ElementsContainerType& rThisElements);
+    template<class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName);
+    template<class TVariableType, class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName);
 
     template<class TVariableType>
     void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable);
@@ -361,8 +366,6 @@ protected:
     template<class TVariableType, class TDataType>
     void ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, TVariableType& rVariable, TDataType Dummy);
     void ReadConditionalDataBlock(ConditionsContainerType& rThisConditions);
-    
-    void WriteConditionalDataBlock(ConditionsContainerType& rThisConditions);
 
     template<class TVariableType>
     void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, TVariableType& rVariable);

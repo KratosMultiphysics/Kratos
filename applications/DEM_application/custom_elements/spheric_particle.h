@@ -42,6 +42,7 @@ typedef WeakPointerVector<Element> ParticleWeakVectorType;
 typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
 typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 /// Default constructor.
+SphericParticle();
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
 SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
 SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
@@ -50,6 +51,8 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 
 /// Destructor.
 virtual ~SphericParticle();
+
+SphericParticle& operator=(const SphericParticle& rOther);  
 
 class ParticleDataBuffer
 {
@@ -100,7 +103,7 @@ array_1d<double, 3> mDomainMax;
 SphericParticle* mpThisParticle;
 SphericParticle* mpOtherParticle;
 
-std::vector<DEMWall*> mNeighbourRigidFaces;
+std::vector<DEMWall*> mNeighbourRigidFaces; // why repeated? it is in the sphere as well!
 
 };
 
@@ -287,8 +290,6 @@ std::vector<int> mFemOldNeighbourIds;
 
 protected:
 
-SphericParticle();
-
 virtual void ComputeBallToRigidFaceContactForce(ParticleDataBuffer & data_buffer,
                                                 array_1d<double, 3>& rElasticForce,
                                                 array_1d<double, 3>& rContactForce,
@@ -403,9 +404,12 @@ virtual void AddUpMomentsAndProject(double LocalCoordSystem[3][3],
                                     double ElasticLocalRotationalMoment[3],
                                     double ViscoLocalRotationalMoment[3]) final;
 
-virtual void ComputeWear(double LocalCoordSystem[3][3], array_1d<double, 3>& vel, double tangential_vel[3],
-                         double mTimeStep, bool sliding, double inverse_of_volume,
-                         double LocalElasticContactForce, DEMWall* cast_neighbour);
+virtual void ComputeWear(double LocalRelVel[3],
+                         double mTimeStep, 
+                         bool sliding, 
+                         double inverse_of_volume,
+                         double LocalElasticContactForce, 
+                         DEMWall* cast_neighbour);
 
 virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info);
 

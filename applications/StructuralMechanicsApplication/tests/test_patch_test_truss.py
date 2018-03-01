@@ -255,6 +255,20 @@ class TestTruss3D2N(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(simulated_disp_temp, test_disp_temp,6)
 
+    def _check_results_cable(self,mp,Force_X):
+        
+        disp_u_2 = mp.Nodes[2].GetSolutionStepValue(
+        KratosMultiphysics.DISPLACEMENT_X)
+        r_u_1 = mp.Nodes[1].GetSolutionStepValue(
+        KratosMultiphysics.REACTION_X)
+        r_u_3 = mp.Nodes[3].GetSolutionStepValue(
+        KratosMultiphysics.REACTION_X)
+
+
+        self.assertAlmostEqual(disp_u_2, 0.022296019142446475,6)
+        self.assertAlmostEqual(r_u_1, -Force_X,6)
+        self.assertAlmostEqual(r_u_3, 0.00 ,4)
+
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
         # Set buffer size
         mp.SetBufferSize(buffer_size)
@@ -525,6 +539,44 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._solve_dynamic(mp)  
             self._check_results_dynamic(mp,time_i)
             time_step += 1        
+
+    def test_truss3D2N_cable(self):
+            dim = 3
+            mp = KratosMultiphysics.ModelPart("solid_part")
+            self._add_variables(mp)
+            self._apply_material_properties(mp,dim)
+
+            #create nodes
+            mp.CreateNewNode(1,0.0,0.0,0.0)
+            mp.CreateNewNode(2,0.5,0.0,0.0)
+            mp.CreateNewNode(3,1.0,0.0,0.0)
+            #add dofs
+            self._add_dofs(mp)
+            #create condition
+            mp.CreateNewCondition("PointLoadCondition3D1N",1,[2],mp.GetProperties()[0])
+            #create submodelparts for dirichlet boundary conditions
+            bcs_xyz = mp.CreateSubModelPart("Dirichlet_XYZ")
+            bcs_xyz.AddNodes([1,3])
+            bcs_yz = mp.CreateSubModelPart("Dirichlet_YZ")
+            bcs_yz.AddNodes([2])
+            #create a submodalpart for neumann boundary conditions
+            bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
+            bcs_neumann.AddNodes([2])
+            bcs_neumann.AddConditions([1]) 
+            #create Elements
+            mp.CreateNewElement("CableElement3D2N", 1, [1,2], mp.GetProperties()[0])
+            mp.CreateNewElement("CableElement3D2N", 2, [2,3], mp.GetProperties()[0])
+            #apply constant boundary conditions
+            Force_X = 100000000
+            self._apply_BCs(bcs_xyz,'xyz')
+            self._apply_BCs(bcs_yz,'yz')
+            self._apply_Neumann_BCs(bcs_neumann,'x',Force_X)
+
+            self._solve_nonlinear(mp)  
+            self._check_results_cable(mp,Force_X)
+
+
+     
 
         
 if __name__ == '__main__':

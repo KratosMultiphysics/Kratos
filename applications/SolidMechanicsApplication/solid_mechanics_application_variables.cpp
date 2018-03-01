@@ -31,6 +31,7 @@ namespace Kratos
 
   //explicit schemes
   KRATOS_CREATE_VARIABLE( TimeIntegrationMethodComponentType::Pointer, TIME_INTEGRATION_METHOD )
+  KRATOS_CREATE_VARIABLE( TimeIntegrationMethodComponentType::Pointer, ANGULAR_TIME_INTEGRATION_METHOD )
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MIDDLE_VELOCITY )
 
   //solution

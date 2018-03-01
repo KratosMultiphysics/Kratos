@@ -1,9 +1,13 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:                July 2013 $
-//   Revision:            $Revision:                  0.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Riccardo Rossi
 //
 
 #if !defined (KRATOS_BINGHAM_LAW_3D_H_INCLUDED)
@@ -14,19 +18,19 @@
 // External includes
 
 // Project includes
-#include "includes/constitutive_law.h"
+#include "fluid_constitutive_law.h"
 
 namespace Kratos
 {
 /**
- * Defines a bingham non-newtonian constitutive law
+ * Defines a 3D Bingham non-Newtonian constitutive law
  * This material law is defined by the parameters:
  * 1) DYNAMIC_VISCOSITY
  * 2) YIELD_STRESS
  * 3) REGULARIZATION_COEFFICIENT
  */
 
-class Bingham3DLaw : public ConstitutiveLaw
+class Bingham3DLaw : public FluidConstitutiveLaw
 {
 public:
     /**
@@ -63,13 +67,6 @@ public:
 
 
     /**
-     * Assignment operator.
-     */
-
-    //Bingham3DLaw& operator=(const Bingham3DLaw& rOther);
-
-
-    /**
      * Destructor.
      */
     ~Bingham3DLaw() override;
@@ -81,14 +78,18 @@ public:
     /**
      * Operations needed by the base class:
      */
-    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
     /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures
+     * @return Working space dimension constitutive law
      */
-    void GetLawFeatures(Features& rFeatures) override;
+    SizeType WorkingSpaceDimension() override;
 
+    /**
+     * @return Size of the strain vector (in Voigt notation) for the constitutive law
+     */
+    SizeType GetStrainSize() override;
+
+    void CalculateMaterialResponseCauchy (Parameters& rValues) override;
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -107,15 +108,8 @@ public:
     /**
      * Turn back information as a string.
      */
-    //virtual String Info() const;
-    /**
-     * Print information about this object.
-     */
-    //virtual void PrintInfo(std::ostream& rOStream) const;
-    /**
-     * Print object's data.
-     */
-    //virtual void PrintData(std::ostream& rOStream) const;
+    virtual std::string Info() const;
+
 
 protected:
 
@@ -130,6 +124,10 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+
     ///@}
 
 
@@ -163,15 +161,9 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw  )
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
-    }
+    void load(Serializer& rSerializer) override;
 
 
 }; // Class Bingham3DLaw

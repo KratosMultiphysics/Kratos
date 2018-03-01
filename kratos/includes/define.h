@@ -16,43 +16,28 @@
 /* System includes */
 #include <stdexcept>
 #include <sstream>
-#include <memory>
 
 
 /* External includes */
-// #include "boost/smart_ptr.hpp"
-#include "boost/current_function.hpp"
+#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
-#include "includes/kratos_config.h"
 #include "includes/kratos_export_api.h"
+#include "includes/shared_pointers.h"
 #include "includes/exception.h"
 
-namespace Kratos
-{
-template<class T>
-    using shared_ptr = std::shared_ptr<T>;
 
-template<class T>
-    using weak_ptr = std::weak_ptr<T>;
-    
-template<typename C, typename...Args>
-    shared_ptr<C> make_shared(Args &&...args) {
-        return std::make_shared<C>(std::forward<Args>(args)...);
-    }
+#if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
+    #define KRATOS_COMPILED_IN_LINUX
 
-}
-    
+#elif defined(__APPLE__) && defined(__MACH__)
+    #define KRATOS_COMPILED_IN_OSX
 
+#elif defined(_WIN32)
+    #define KRATOS_COMPILED_IN_WINDOWS
+#endif
 
-#define KRATOS_CLASS_POINTER_DEFINITION(a) typedef Kratos::shared_ptr<a > Pointer; \
-typedef Kratos::shared_ptr<a > SharedPointer; \
-typedef Kratos::weak_ptr<a > WeakPointer
-
-#define KRATOS_CLASS_POINTER_DEFINITION_WITHTYPENAME(a) typedef Kratos::shared_ptr<a > Pointer; \
-typedef typename Kratos::shared_ptr<a > SharedPointer; \
-typedef typename Kratos::weak_ptr<a > WeakPointer
 
 //-----------------------------------------------------------------
 //
@@ -69,70 +54,6 @@ typedef typename Kratos::weak_ptr<a > WeakPointer
 // Exceptions
 //
 //-----------------------------------------------------------------
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_1)
-#define KRATOS_EXCEPTION_LEVEL_1
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_2)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_3)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#define KRATOS_EXCEPTION_LEVEL_3
-#endif
-
-#if defined(KRATOS_SET_EXCEPTION_LEVEL_TO_4)
-#define KRATOS_EXCEPTION_LEVEL_1
-#define KRATOS_EXCEPTION_LEVEL_2
-#define KRATOS_EXCEPTION_LEVEL_3
-#define KRATOS_EXCEPTION_LEVEL_4
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_1)
-#define KRATOS_TRY_LEVEL_1 try {
-#define KRATOS_CATCH_LEVEL_1(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_1 {
-#define KRATOS_CATCH_LEVEL_1(MoreInfo) }
-#endif
-
-
-#if defined(KRATOS_EXCEPTION_LEVEL_2)
-#define KRATOS_TRY_LEVEL_2 try {
-#define KRATOS_CATCH_LEVEL_2(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_2 {
-#define KRATOS_CATCH_LEVEL_2(MoreInfo) }
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_3)
-#define KRATOS_TRY_LEVEL_3 try {
-#define KRATOS_CATCH_LEVEL_3(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_3 {
-#define KRATOS_CATCH_LEVEL_3(MoreInfo) }
-#endif
-
-#if defined(KRATOS_EXCEPTION_LEVEL_4)
-#define KRATOS_TRY_LEVEL_4 try {
-#define KRATOS_CATCH_LEVEL_4(MoreInfo) \
-KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
-#else
-#define KRATOS_TRY_LEVEL_4 {
-#define KRATOS_CATCH_LEVEL_4(MoreInfo) }
-#endif
-
-#ifndef KRATOS_CURRENT_FUNCTION
-#define KRATOS_CURRENT_FUNCTION BOOST_CURRENT_FUNCTION
-#endif
-
 
 #define KRATOS_CATCH_AND_THROW(ExceptionType, MoreInfo, Block) \
 catch(ExceptionType& e)                                        \
@@ -174,11 +95,11 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 
 #define KRATOS_CATCH(MoreInfo) { };
 #endif
+
 //-----------------------------------------------------------------
 //
 // variables
 //
-
 //-----------------------------------------------------------------
 
 #define KRATOS_EXPORT_MACRO KRATOS_NO_EXPORT
@@ -345,35 +266,34 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<Condition >::Add(name, reference); \
     Serializer::Register(name, reference);
 
-/*
-// #ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
-// #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
-// #endif
-// #define KRATOS_REGISTER_IN_PYTHON_VARIABLE(variable) \
-// 	scope().attr(#variable) = boost::ref(variable);
-// 
-// #ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
-// #undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
-// #endif
-// #define KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(name) \
-//     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name) \
-//     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_X) \
-//     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Y) \
-//     KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Z)
-// 
-// #ifdef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
-// #undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
-// #endif
-// #define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
-//     scope().attr(#flag) = boost::ref(flag)      \
-//  
-// #ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
-// #undef KRATOS_REGISTER_IN_PYTHON_FLAG
-// #endif
-// #define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
-//     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
-//     KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
-*/
+#ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
+#undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_VARIABLE(variable) \
+	scope().attr(#variable) = boost::ref(variable);
+
+#ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
+#undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(name) \
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name) \
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_X) \
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Y) \
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(name##_Z)
+
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
+    scope().attr(#flag) = boost::ref(flag)      \
+ 
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
+
     
     
     
@@ -398,9 +318,6 @@ namespace Kratos
 
 /**@name Type Definitions */
 /*@{ */
-/** Pointer to char
- */
-typedef const char* PointerToConstCharType;
 
 /*@} */
 
@@ -425,26 +342,10 @@ typedef const char* PointerToConstCharType;
 /* #define KRATOS_REGISTER_LINEAR_SOLVER_BEGIN \ */
 /* template<class TFunction> ApplyToLinearSolver(String Name){ */
 
-
-
-
 //Print Trace if defined
-//#define KRATOS_PRINT_TRACE
-#ifdef KRATOS_PRINT_TRACE
-
-#define KRATOS_TRACE(A,B) gTrace.Inform(A,B)
-
-#else
-
-#define KRATOS_TRACE(A,B)
-#endif
-
-#define KRATOS_WATCH(variable) \
-  std::cout << #variable << " : " << variable << std::endl;
+#define KRATOS_WATCH(variable) std::cout << #variable << " : " << variable << std::endl;
 
 }  /* namespace Kratos.*/
-
-
 
 #define KRATOS_SERIALIZE_SAVE_BASE_CLASS(Serializer, BaseType) \
 	Serializer.save_base("BaseClass",*static_cast<const BaseType *>(this));

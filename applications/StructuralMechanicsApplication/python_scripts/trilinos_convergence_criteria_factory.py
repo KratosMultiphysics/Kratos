@@ -5,11 +5,10 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","MetisApplication","TrilinosApplication")
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","TrilinosApplication")
 
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 
@@ -28,8 +27,7 @@ class convergence_criterion:
         echo_level = convergence_criterion_parameters["echo_level"].GetInt()
         
         if(echo_level >= 1 and KratosMPI.mpi.rank == 0):
-            print("::[Mechanical Solver]:: MPI CONVERGENCE CRITERION : ", 
-                  convergence_criterion_parameters["convergence_criterion"].GetString())
+            KratosMultiphysics.Logger.PrintInfo("::[Mechanical Solver]::", "MPI CONVERGENCE CRITERION : " + convergence_criterion_parameters["convergence_criterion"].GetString())
 
         if(convergence_crit == "displacement_criterion"):
             self.mechanical_convergence_criterion = TrilinosApplication.TrilinosDisplacementCriteria(D_RT, D_AT)

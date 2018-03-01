@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+<<<<<<< HEAD
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
@@ -22,13 +23,13 @@
 // #include "spaces/ublas_space.h"
 // #include "linear_solvers/linear_solver.h"
 
+=======
+#include "includes/define.h"
+#include "custom_python/add_custom_utilities_to_python.h"
+
+>>>>>>> master
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-
-//Processes
-#include "custom_processes/apply_multi_point_constraints_process.h"
-#include "custom_processes/postprocess_eigenvalues_process.h"
-
 
 namespace Kratos
 {
@@ -45,6 +46,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
 
+<<<<<<< HEAD
     /// Processes
     class_<ApplyMultipointConstraintsProcess,/*typename ApplyMultipointConstraintsProcess::Pointer,*/ Process>(m,"ApplyMultipointConstraintsProcess")
     .def(init<ModelPart&>())
@@ -59,6 +61,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     class_<PostprocessEigenvaluesProcess, /*typename PostprocessEigenvaluesProcess::Pointer,*/ Process>(m,"PostprocessEigenvaluesProcess")
     .def(init<ModelPart&, Parameters>());
 
+=======
+>>>>>>> master
 }
 
 }  // namespace Python.  

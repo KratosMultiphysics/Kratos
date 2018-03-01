@@ -5,6 +5,7 @@
         "echo_level"      : *GenData(Echo_Level)
     },
     "model_settings"           : {
+        "model_name": "Main_Domain",
         "dimension"       : *GenData(DIMENSION,INT),
 	"bodies_list":[
 *set cond group_DeformableBodies *groups
@@ -853,7 +854,7 @@
 				      "WATER_ACCELERATION",
 				      "WATER_PRESSURE",
 				      "WATER_PRESSURE_VELOCITY",
-				      "WATER_PRESSURE_ACCELERATIONN",
+				      "WATER_PRESSURE_ACCELERATION",
 *endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)

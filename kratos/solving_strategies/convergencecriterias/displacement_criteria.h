@@ -135,8 +135,6 @@ public:
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
-            //TDataType mFinalCorrectionNorm = sqrt(std::inner_product(Dx.begin(),Dx.end(),Dx.begin(),TDataType()));
-            //TDataType mFinalCorrectionNorm = sqrt(Dot(Dx,Dx));
             TDataType mFinalCorrectionNorm = TSparseSpace::TwoNorm(Dx);
 
             TDataType ratio = 0.00;
