@@ -74,6 +74,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         
         #create constitutive law
         self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())
+
+        print( self.material_law )
         
         self.properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, self.material_law.Clone())
 
@@ -133,7 +135,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                 if i != len(splitted)-2:
                     module_name += "."
             module = importlib.import_module(module_name)
-            return getattr(module,splitted[-1])
+            material_law = module_name+"."+splitted[-1]+"()"
+            return eval(material_law)
         elif(len(splitted) == 4):
             module_name = ""
             for i in range(len(splitted)-2):

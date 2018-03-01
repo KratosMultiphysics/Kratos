@@ -208,7 +208,7 @@ namespace Kratos
     
     //************// dW
         
-    virtual double& GetVolumetricFunction1srtDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
+    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 
@@ -216,7 +216,7 @@ namespace Kratos
 	
       rDerivative = rValues.GetPressure();
       
-      return rDerivative;
+      return rDerivative;      
 
       KRATOS_CATCH(" ")
     };
