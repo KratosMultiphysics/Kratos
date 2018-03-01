@@ -142,10 +142,6 @@ def runTests(tests):
         result = not TextTestRunner(verbosity=verbosity, buffer=True).run(tests[level]).wasSuccessful()
         sys.exit(result)
 
-def DeleteFileIfExisting(file_name):
-    if os.path.isfile(file_name):
-        os.remove(file_name)
-
 
 KratosSuites = {
     'small': TestSuite(),
