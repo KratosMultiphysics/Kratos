@@ -68,10 +68,8 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
     # --------------------------------------------------------------------------
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
 
-        eigenfrequency_factor = -1.0 # maximization of eigenvalues -> negative factor
-
-        # Calculation of value of objective function
-        if communicator.isRequestingFunctionValueOf("eigenfrequency"):
+        # Calculation of eigenfrequency
+        if communicator.isRequestingValueOf("eigenfrequency"):
 
             print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
@@ -83,9 +81,9 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             listOfResponseFunctions["eigenfrequency"].CalculateValue()
             print("> Time needed for calculation of eigenfrequency = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("eigenfrequency", eigenfrequency_factor * listOfResponseFunctions["eigenfrequency"].GetValue())
+            communicator.reportValue("eigenfrequency", listOfResponseFunctions["eigenfrequency"].GetValue())
 
-        # Calculation of gradient of objective function
+        # Calculation of gradient of eigenfrequency
         if communicator.isRequestingGradientOf("eigenfrequency"):
 
             print("\n> Starting calculation of gradients of eigenfrequency")
@@ -94,23 +92,20 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             print("> Time needed for calculating gradients of eigenfrequency = ",round(timer.time() - startTime,2),"s")
 
             gradientForCompleteModelPart = listOfResponseFunctions["eigenfrequency"].GetGradient()
-            for node_id in gradientForCompleteModelPart:
-                gradient = gradientForCompleteModelPart[node_id]
-                gradientForCompleteModelPart[node_id] = [eigenfrequency_factor*gradient[0], eigenfrequency_factor*gradient[1], eigenfrequency_factor*gradient[2]]
             communicator.reportGradient("eigenfrequency", gradientForCompleteModelPart)
 
-        # Calculation of value of constraint function
-        if communicator.isRequestingFunctionValueOf("mass"):
+        # Calculation of mass
+        if communicator.isRequestingValueOf("mass"):
 
             print("\n> Starting calculation of mass")
+            startTime = timer.time()
             listOfResponseFunctions["mass"].CalculateValue()
-            constraintFunctionValue = listOfResponseFunctions["mass"].GetValue() - listOfResponseFunctions["mass"].GetInitialValue()
+            constraintValue = listOfResponseFunctions["mass"].GetValue()
             print("> Time needed for calculation of mass = ",round(timer.time() - startTime,2),"s")
 
-            communicator.reportFunctionValue("mass", constraintFunctionValue)
-            communicator.setFunctionReferenceValue("mass", listOfResponseFunctions["mass"].GetInitialValue())
+            communicator.reportValue("mass", constraintValue)
 
-        # Calculation of gradients of constraint function
+        # Calculation of gradient of mass
         if communicator.isRequestingGradientOf("mass"):
 
             print("\n> Starting calculation of gradient of mass")
