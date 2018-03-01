@@ -607,8 +607,7 @@ proc ::wkcf::WriteAppliedLoadsData {AppId} {
     }
 }
 
-proc ::wkcf::WriteBoundingBoxDefaults {fileid} {
-	
+proc ::wkcf::WriteBoundingBoxDefaults {fileid} {	
 	global KPriv
 
 	if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
