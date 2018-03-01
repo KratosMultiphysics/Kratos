@@ -277,16 +277,6 @@ void LargeDisplacementUPElement::InitializeElementVariables (ElementVariables & 
 
     LargeDisplacementElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
-    //stabilization factor
-    double StabilizationFactor = 1.0;
-    if( GetProperties().Has(STABILIZATION_FACTOR) ){
-      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
-    }
-    else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR) ){
-      StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR];
-    }
-    GetProperties().SetValue(STABILIZATION_FACTOR, StabilizationFactor);
-
     KRATOS_CATCH( "" )
 }
 
@@ -655,8 +645,11 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
     // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
     //use of this variable for the complete parameter:
-    double AlphaStabilization  = 1.0; 
-    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    double AlphaStabilization  = 1.0;
+    double StabilizationFactor = 1.0;
+    if( GetProperties().Has(STABILIZATION_FACTOR) ){
+      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    }
     AlphaStabilization *= StabilizationFactor;
 
     double LameMu = 0.0;    
@@ -984,7 +977,10 @@ void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSi
     unsigned int indexpi = dimension;
     
     double AlphaStabilization  = 1.0; 
-    double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    double StabilizationFactor = 1.0;
+    if( GetProperties().Has(STABILIZATION_FACTOR) ){
+      StabilizationFactor = GetProperties()[STABILIZATION_FACTOR];
+    }
     AlphaStabilization *= StabilizationFactor;
 
     double LameMu = 0.0;    

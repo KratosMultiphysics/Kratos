@@ -117,7 +117,7 @@ class MechanicalSolver(object):
 
     def SetComputingModelPart(self, computing_model_part):
         self.model_part = computing_model_part
-        
+
 
     def GetEndTime(self):
         return (self.settings["time_settings"]["end_time"].GetDouble())
@@ -140,9 +140,10 @@ class MechanicalSolver(object):
                 initial_time = self.process_info.GetValue(KratosMultiphysics.TIME)
         self.process_info.SetValue(KratosMultiphysics.TIME, initial_time)
 
-
-        if not self.solving_strategy_settings["stabilization_factor"].IsNull():
-            self.process_info.SetValue(KratosMultiphysics.STABILIZATION_FACTOR, self.solving_strategy_settings["stabilization_factor"].GetDouble() )
+        #deprecated assignation
+        for properties in self.main_model_part.Properties:
+            if not self.solving_strategy_settings["stabilization_factor"].IsNull():
+                properties.SetValue(KratosMultiphysics.STABILIZATION_FACTOR, self.solving_strategy_settings["stabilization_factor"].GetDouble() )
 
 
         # Create integration information (needed in other processes)
@@ -151,10 +152,10 @@ class MechanicalSolver(object):
         # Set buffer
         if( self._is_not_restarted() ):
             self._set_and_fill_buffer()
-        
+
         print("  [Time Step:", self.process_info[KratosMultiphysics.DELTA_TIME]," End_time:", time_settings["end_time"].GetDouble(),"]")
 
-        
+
     def ExecuteBeforeSolutionLoop(self):
 
         # The mechanical solver is created here if it does not already exist.
@@ -228,7 +229,7 @@ class MechanicalSolver(object):
                 return False
         else:
             return True
-        
+
     def _get_solution_scheme(self):
         if not hasattr(self, '_solution_scheme'):
             self._solution_scheme = self._create_solution_scheme()
