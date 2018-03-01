@@ -752,9 +752,11 @@ void PrestressMembraneElement::CalculateAll(
 
         // Constitutive Matrices D
         Matrix D(3, 3);
-        //boost::numeric::ublas::bounded_matrix<double, 3, 3> D;
 
         Values.SetConstitutiveMatrix(D); // this is an output parameter
+
+        //Deformation Gradient
+        Values.SetDeformationGradientF(CalculateDeformationGradient(PointNumber));
 
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
 
@@ -1400,6 +1402,10 @@ void PrestressMembraneElement::ModifyPrestress(const unsigned int PointNumber,
     prestress_modified(2,PointNumber) = rTensor(1,0);
 
 }
+
+//***********************************************************************************
+//***********************************************************************************
+
 void PrestressMembraneElement::PrestressComputation(const unsigned int PointNumber){
     // initialize prestress matrix and prestress directions
     Matrix& prestress_variable = this->GetValue(MEMBRANE_PRESTRESS);
@@ -1442,6 +1448,10 @@ void PrestressMembraneElement::PrestressComputation(const unsigned int PointNumb
             }
         }
 }
+
+//***********************************************************************************
+//***********************************************************************************
+
 void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints){
     // compute Jacobian
     GeometryType::JacobiansType J0;
@@ -1491,15 +1501,8 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
         mGab0[PointNumber][1] = std::pow(G2[0], 2) + std::pow(G2[1], 2) + std::pow(G2[2], 2);
         mGab0[PointNumber][2] = G1[0] * G2[0] + G1[1] * G2[1] + G1[2] * G2[2];
 
-        double inverse_determinant_Gab = 1.0 / (mGab0[PointNumber][0] * mGab0[PointNumber][1] - mGab0[PointNumber][2] * mGab0[PointNumber][2]);
-
-        array_1d<double, 3> Gab_contravariant;
-        Gab_contravariant[0] = inverse_determinant_Gab*mGab0[PointNumber][1];
-        Gab_contravariant[1] = -inverse_determinant_Gab*mGab0[PointNumber][2];
-        Gab_contravariant[2] = inverse_determinant_Gab*mGab0[PointNumber][0];
-
-        array_1d<double, 3> Gab_contravariant_1 = G1*Gab_contravariant[0] + G2*Gab_contravariant[1];
-        array_1d<double, 3> Gab_contravariant_2 = G1*Gab_contravariant[1] + G2*Gab_contravariant[2];
+        array_1d<double, 3> Gab_contravariant_1, Gab_contravariant_2;
+        ComputeContravariantBaseVectors(Gab_contravariant_1,Gab_contravariant_2, PointNumber);
 
         // build local cartesian coordinate system
         double lg1 = norm_2(G1);
@@ -1528,6 +1531,59 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
 
 //***********************************************************************************
 //***********************************************************************************
+
+void PrestressMembraneElement::ComputeContravariantBaseVectors(
+                        array_1d<double, 3>& rG1Contra, 
+                        array_1d<double, 3>& rG2Contra,
+                        const unsigned int& rPointNumber){
+    // determinant metric
+    double det_metric = mGab0[rPointNumber][0]*mGab0[rPointNumber][1]- mGab0[rPointNumber][2]*mGab0[rPointNumber][2];
+    
+    // contravariant metric
+    array_1d<double, 3> metric_contra;
+    metric_contra[0]= 1.0/det_metric * mGab0[rPointNumber][1];
+    metric_contra[1]= 1.0/det_metric * mGab0[rPointNumber][0];
+    metric_contra[2]= -1.0/det_metric * mGab0[rPointNumber][2];
+
+    // contravariant base vectors
+    rG1Contra = metric_contra[0]*mG1[rPointNumber] + metric_contra[2]*mG2[rPointNumber];
+    rG2Contra = metric_contra[2]*mG1[rPointNumber] + metric_contra[1]*mG2[rPointNumber];
+}
+//***********************************************************************************
+//***********************************************************************************
+
+const Matrix PrestressMembraneElement::CalculateDeformationGradient(const unsigned int& rPointNumber)
+{
+    // Compute contravariant base vectors in reference configuration
+    array_1d<double, 3> G1_contra, G2_contra;
+    ComputeContravariantBaseVectors(G1_contra, G2_contra, rPointNumber);
+
+    // Compute G3
+    array_1d<double, 3> G3;
+    MathUtils<double>::CrossProduct(G3, mG1[rPointNumber], mG2[rPointNumber]);
+    G3 = G3/ norm_2(G3);
+
+    // Compute g1, g2, g3
+    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = GetGeometry().ShapeFunctionsLocalGradients();
+    Matrix DN_De = DN_DeContainer[rPointNumber];
+    array_1d<double, 3> g1, g2, g3, gab;
+    CalculateMetricDeformed(rPointNumber, DN_De, gab, g1, g2);
+
+    MathUtils<double>::CrossProduct(g3,g1,g2);
+    g3 /= norm_2(g3);
+    
+    bounded_matrix<double,3,3> deformation_gradient;
+    for(unsigned int i=0; i<3; i++){
+        for(unsigned int j=0; j<3; j++){
+            deformation_gradient(i,j) = G1_contra(j)*g1(i) + G2_contra(j)*g2(i) + G3(j)*g3(i);
+        }
+    }
+    return deformation_gradient;
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
 int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

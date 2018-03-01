@@ -48,6 +48,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  BaseLoadCondition
 public:
 
     ///@name Type Definitions
+    typedef std::size_t SizeType;
     ///@{
     
     // Counted pointer of BaseLoadCondition
@@ -96,26 +97,26 @@ public:
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rCurrentProcessInfo the current process info instance
      */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
     
     /**
      * Called at the end of eahc solution step
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rCurrentProcessInfo the current process info instance
      */
     void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
     
     /**
      * Sets on rResult the ID's of the element degrees of freedom
-     * @param rResult: The vector containing the equation id
-     * @param rCurrentProcessInfo: The current process info instance
+     * @param rResult The vector containing the equation id
+     * @param rCurrentProcessInfo The current process info instance
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
@@ -124,8 +125,8 @@ public:
     
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     * @param rElementalDofList: The vector containing the dof of the element
-     * @param rCurrentProcessInfo: The current process info instance
+     * @param rElementalDofList The vector containing the dof of the element
+     * @param rCurrentProcessInfo The current process info instance
      */
     void GetDofList(
         DofsVectorType& ElementalDofList,
@@ -134,8 +135,8 @@ public:
 
     /**
      * Sets on rValues the nodal displacements
-     * @param rValues: The values of displacements
-     * @param Step: The step to be computed
+     * @param rValues The values of displacements
+     * @param Step The step to be computed
      */
     void GetValuesVector(
         Vector& rValues,
@@ -144,8 +145,8 @@ public:
 
     /**
      * Sets on rValues the nodal velocities
-     * @param rValues: The values of velocities
-     * @param Step: The step to be computed
+     * @param rValues The values of velocities
+     * @param Step The step to be computed
      */
     void GetFirstDerivativesVector(
         Vector& rValues,
@@ -154,8 +155,8 @@ public:
     
     /**
      * Sets on rValues the nodal accelerations
-     * @param rValues: The values of accelerations
-     * @param Step: The step to be computed
+     * @param rValues The values of accelerations
+     * @param Step The step to be computed
      */
     void GetSecondDerivativesVector(
         Vector& rValues,
@@ -165,10 +166,10 @@ public:
     /**
      * This function provides a more general interface to the element. 
      * It is designed so that rLHSvariables and rRHSvariables are passed to the element thus telling what is the desired output
-     * @param rLeftHandSideMatrices: container with the output left hand side matrices
-     * @param rLHSVariables: paramter describing the expected LHSs
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
+     * @param rLeftHandSideMatrices container with the output left hand side matrices
+     * @param rLHSVariables paramter describing the expected LHSs
+     * @param rRightHandSideVectors container for the desired RHS output
+     * @param rRHSVariables parameter describing the expected RHSs
      */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix, 
@@ -178,8 +179,8 @@ public:
 
     /**
       * This is called during the assembling process in order to calculate the elemental right hand side vector only
-      * @param rRightHandSideVector: the elemental right hand side vector
-      * @param rCurrentProcessInfo: the current process info instance
+      * @param rRightHandSideVector the elemental right hand side vector
+      * @param rCurrentProcessInfo the current process info instance
       */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector, 
@@ -188,8 +189,8 @@ public:
         
     /**
       * This is called during the assembling process in order to calculate the elemental mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: The current process info instance
+      * @param rMassMatrix the elemental mass matrix
+      * @param rCurrentProcessInfo The current process info instance
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
@@ -199,13 +200,27 @@ public:
     /**
       * This is called during the assembling process in order
       * to calculate the elemental damping matrix
-      * @param rDampingMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: The current process info instance
+      * @param rDampingMatrix the elemental damping matrix
+      * @param rCurrentProcessInfo The current process info instance
       */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo 
         ) override;
+
+     /**
+     * this function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled 
+      * @param rCurrentProcessInfo the current process info instance
+     */      
+    virtual void AddExplicitContribution(const VectorType& rRHS, 
+        const Variable<VectorType>& rRHSVariable, 
+        Variable<array_1d<double,3> >& rDestinationVariable, 
+        const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
