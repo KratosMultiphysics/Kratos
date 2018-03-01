@@ -54,25 +54,25 @@ class ConstraintEquation
         MasterData(DofType const &rMasterDof, double Weight = 0.0) : mMasterWeight(Weight), mId(rMasterDof.Id()), mKey(rMasterDof.GetVariable().Key())
         {
         }
-        size_t MasterKey() { return mKey; }
+        std::size_t MasterKey() { return mKey; }
         double MasterWeight() const { return mMasterWeight; }
         double& MasterWeight() { return mMasterWeight; }
-        size_t MasterDofId() { return mId; }
-        size_t MasterEqId() { return mEquationId; }
-        void SetMasterEqId(size_t Id) { mEquationId = Id; }
+        std::size_t MasterDofId() { return mId; }
+        std::size_t MasterEqId() { return mEquationId; }
+        void SetMasterEqId(std::size_t Id) { mEquationId = Id; }
 
       private:
         double mMasterWeight;
-        const size_t mId;
-        const size_t mKey;
-        size_t mEquationId;
+        const std::size_t mId;
+        const std::size_t mKey;
+        std::size_t mEquationId;
     };
     typedef MasterData::Pointer MasterDataPointerType;
 
     // Custom hash function to store MasterData objects in a unordered_set
     struct MasterHasher
     {
-        size_t
+        std::size_t
         operator()(const MasterDataPointerType &rObj) const
         {
             std::size_t seed = 0;
@@ -94,9 +94,9 @@ class ConstraintEquation
 
     std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator> mMasterDataSet;
 
-    const size_t mId;
-    const size_t mKey;
-    size_t mEquationId;
+    const std::size_t mId;
+    const std::size_t mKey;
+    std::size_t mEquationId;
     double mConstant;
     double mConstantUpdate;
 
@@ -114,10 +114,10 @@ class ConstraintEquation
     void SetConstantUpdate(double ConstantUpdate) { mConstantUpdate = ConstantUpdate; }
     double Constant() { return mConstant; }
     double ConstantUpdate() { return mConstantUpdate; }
-    size_t SlaveDofId() { return mId; }
-    size_t SlaveDofKey() { return mKey; }
-    size_t SlaveEquationId() { return mEquationId; }
-    void SetSlaveEquationId(size_t Id) { mEquationId = Id; }
+    std::size_t SlaveDofId() { return mId; }
+    std::size_t SlaveDofKey() { return mKey; }
+    std::size_t SlaveEquationId() { return mEquationId; }
+    void SetSlaveEquationId(std::size_t Id) { mEquationId = Id; }
 
     // Add a master or update a master(if already present) to this slave given are the masterDofId, masterDofKey, weight
     void AddMaster(DofType const &rMasterDof, double Weight)
@@ -133,7 +133,7 @@ class ConstraintEquation
     }
 
     // Get number of masters for this slave
-    size_t NumberOfMasters()
+    std::size_t NumberOfMasters()
     {
         return mMasterDataSet.size();
     }
@@ -181,14 +181,14 @@ class ConstraintEquationContainer
     KRATOS_CLASS_POINTER_DEFINITION(ConstraintEquationContainer);
 
     typedef Dof<double> DofType;
-    typedef size_t IndexType;
+    typedef std::size_t IndexType;
     typedef Node<3> NodeType;
     typedef ConstraintEquation::Pointer ConstraintEquationPointerType;
 
     // Custom hash function to store Constraint equation objects in a unordered_set
     struct EquationHasher
     {
-        size_t
+        std::size_t
         operator()(const ConstraintEquationPointerType &rObj) const
         {
             std::size_t seed = 0;

@@ -433,7 +433,7 @@ namespace Kratos
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef Constraint<SparseSpaceType,LocalSpaceType>::Pointer ConstraintPointerType;
-    typedef kratos::shared_ptr<std::vector<ConstraintPointerType>>ConstraintSharedPointerVectorType;
+    typedef Kratos::shared_ptr<std::vector<ConstraintPointerType>>ConstraintSharedPointerVectorType;
     KRATOS_DEFINE_VARIABLE(ConstraintSharedPointerVectorType, CONSTRAINTS_CONTAINER)    
 
 }  // namespace Kratos.
