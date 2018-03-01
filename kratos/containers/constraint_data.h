@@ -275,7 +275,7 @@ class ConstraintEquationContainer
         }
         else
         {
-            KRATOS_THROW_ERROR("Runtime error :: ", "No constraint equation found for given slave dof.\nThere is something worng", "");
+            KRATOS_ERROR<<"No constraint equation found for given slave dof.\nThere is something worng"<<std::endl;
         }
     }
 

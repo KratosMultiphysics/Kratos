@@ -14,12 +14,6 @@
 #if !defined(CONSTRAINT_H)
 #define CONSTRAINT_H
 // System includes
-#include <vector>
-#include <unordered_map>
-#include <iostream>
-#include <tuple>
-#include <utility>
-#include <assert.h>
 
 // project includes
 #include "includes/define.h"
