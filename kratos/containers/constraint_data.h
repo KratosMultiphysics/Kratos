@@ -54,9 +54,13 @@ class ConstraintEquation
         MasterData(DofType const &rMasterDof, double Weight = 0.0) : mMasterWeight(Weight), mId(rMasterDof.Id()), mKey(rMasterDof.GetVariable().Key())
         {
         }
-        std::size_t MasterKey() { return mKey; }
+        // This is only for serializer. This is not meant to be used anywhere else
+        MasterData(std::size_t Id, std::size_t Key, double Weight = 0.0) : mMasterWeight(Weight), mId(Id), mKey(Key)
+        {
+        }
+        std::size_t MasterDofKey() { return mKey; }
         double MasterWeight() const { return mMasterWeight; }
-        double& MasterWeight() { return mMasterWeight; }
+        double &MasterWeight() { return mMasterWeight; }
         std::size_t MasterDofId() { return mId; }
         std::size_t MasterEqId() { return mEquationId; }
         void SetMasterEqId(std::size_t Id) { mEquationId = Id; }
@@ -67,8 +71,12 @@ class ConstraintEquation
         const std::size_t mKey;
         std::size_t mEquationId;
     };
+
+  public:
+    KRATOS_CLASS_POINTER_DEFINITION(ConstraintEquation);
     typedef MasterData::Pointer MasterDataPointerType;
 
+  private:
     // Custom hash function to store MasterData objects in a unordered_set
     struct MasterHasher
     {
@@ -77,7 +85,7 @@ class ConstraintEquation
         {
             std::size_t seed = 0;
             boost::hash_combine(seed, rObj->MasterDofId());
-            boost::hash_combine(seed, rObj->MasterKey());
+            boost::hash_combine(seed, rObj->MasterDofKey());
             return seed;
         }
     };
@@ -88,23 +96,20 @@ class ConstraintEquation
         bool
         operator()(const MasterDataPointerType &rObj1, const MasterDataPointerType &rObj2) const
         {
-            return (rObj1->MasterDofId() == rObj2->MasterDofId()) && (rObj1->MasterKey() == rObj2->MasterKey());
+            return (rObj1->MasterDofId() == rObj2->MasterDofId()) && (rObj1->MasterDofKey() == rObj2->MasterDofKey());
         }
     };
 
-    std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator> mMasterDataSet;
-
-    const std::size_t mId;
-    const std::size_t mKey;
-    std::size_t mEquationId;
-    double mConstant;
-    double mConstantUpdate;
-
   public:
-    KRATOS_CLASS_POINTER_DEFINITION(ConstraintEquation);
-    typedef std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator>::iterator iterator;
-
+    typedef std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator>::iterator iterator;  
     ConstraintEquation(DofType const &rSlaveDof) : mId(rSlaveDof.Id()), mKey(rSlaveDof.GetVariable().Key())
+    {
+        SetConstant(0.0);
+        SetConstantUpdate(0.0);
+    }
+
+    // This is only for serializer. This is not meant to be used anywhere else
+    ConstraintEquation(std::size_t Id, std::size_t Key) : mId(Id), mKey(Key)
     {
         SetConstant(0.0);
         SetConstantUpdate(0.0);
@@ -127,7 +132,24 @@ class ConstraintEquation
         if (res != mMasterDataSet.end())
         {
             (*res)->MasterWeight() += Weight;
-        } else {
+        }
+        else
+        {
+            mMasterDataSet.insert(master_data);
+        }
+    }
+
+    // This is only for serializer. Not to be used outside
+    void AddMaster(std::size_t MasterDofId, std::size_t MasterDofKey, double Weight)
+    {
+        MasterDataPointerType master_data = Kratos::make_shared<MasterData>(MasterDofId, MasterDofKey, Weight);
+        auto res = mMasterDataSet.find(master_data);
+        if (res != mMasterDataSet.end())
+        {
+            (*res)->MasterWeight() += Weight;
+        }
+        else
+        {
             mMasterDataSet.insert(master_data);
         }
     }
@@ -158,6 +180,15 @@ class ConstraintEquation
     // To make this class object iterate over all the master data vector.
     iterator begin() { return mMasterDataSet.begin(); }
     iterator end() { return mMasterDataSet.end(); }
+
+  private:
+    std::unordered_set<MasterDataPointerType, MasterHasher, MasterComparator> mMasterDataSet;
+
+    const std::size_t mId;
+    const std::size_t mKey;
+    std::size_t mEquationId;
+    double mConstant;
+    double mConstantUpdate;
 
 }; // End of ConstraintEquation class
 
@@ -205,7 +236,7 @@ class ConstraintEquationContainer
         operator()(const ConstraintEquationPointerType &rObj1, const ConstraintEquationPointerType &rObj2) const
         {
             return (rObj1->SlaveDofId() == rObj2->SlaveDofId()) && (rObj1->SlaveDofKey() == rObj2->SlaveDofKey());
-        }     
+        }
     };
 
     typedef std::unordered_set<ConstraintEquationPointerType, EquationHasher, EquationComparator> ConstraintEquationSetType;
@@ -214,7 +245,6 @@ class ConstraintEquationContainer
 
     ///@name Life Cycle
     ///@{
-
 
     ///@}
 
@@ -238,14 +268,14 @@ class ConstraintEquationContainer
     ConstraintEquation &GetConstraintEquation(DofType &rSlaveDof)
     {
         //ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsSet.find( Kratos::make_shared<ConstraintEquation>(rSlaveDof) );
+        auto res = mConstraintEquationsSet.find(Kratos::make_shared<ConstraintEquation>(rSlaveDof));
         if (res != mConstraintEquationsSet.end())
         {
             return *(*res);
         }
         else
         {
-            KRATOS_THROW_ERROR("Runtime error :: ","No constraint equation found for given slave dof.\nThere is something worng","");
+            KRATOS_THROW_ERROR("Runtime error :: ", "No constraint equation found for given slave dof.\nThere is something worng", "");
         }
     }
 
@@ -256,7 +286,7 @@ class ConstraintEquationContainer
     int GetNumberOfMasterDofsForSlave(DofType const &rSlaveDof)
     {
         //ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
-        auto res = mConstraintEquationsSet.find( Kratos::make_shared<ConstraintEquation>(rSlaveDof) );
+        auto res = mConstraintEquationsSet.find(Kratos::make_shared<ConstraintEquation>(rSlaveDof));
         int numMasters = -1;
         if (res != mConstraintEquationsSet.end())
         {
@@ -281,12 +311,14 @@ class ConstraintEquationContainer
     // Takes in a slave dof and a master dof
     void AddConstraint(DofType const &rSlaveDof, DofType const &rMasterDof, double Weight, double Constant = 0.0)
     {
-        auto res = mConstraintEquationsSet.find( Kratos::make_shared<ConstraintEquation>(rSlaveDof) );
+        auto res = mConstraintEquationsSet.find(Kratos::make_shared<ConstraintEquation>(rSlaveDof));
         if (res != mConstraintEquationsSet.end())
         { // Equation already exists
             ((*res))->AddMaster(rMasterDof, Weight);
-        } else {
-            ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);            
+        }
+        else
+        {
+            ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(rSlaveDof);
             equation->AddMaster(rMasterDof, Weight);
             equation->SetConstant(Constant);
             mConstraintEquationsSet.insert(equation);
@@ -319,10 +351,50 @@ class ConstraintEquationContainer
 
     virtual void save(Serializer &rSerializer) const
     {
+        rSerializer.save("NumConstraintEquations", mConstraintEquationsSet.size());
+        for (const auto &equation : mConstraintEquationsSet)
+        {
+            rSerializer.save("slave_id", equation->SlaveDofId());            // saving the vector of the slave id
+            rSerializer.save("slave_key", equation->SlaveDofKey());          // saving the vector of the slave key
+            rSerializer.save("constant", equation->Constant());              // saving the id of the master
+            rSerializer.save("constant_update", equation->ConstantUpdate()); // saving the id of the master
+            rSerializer.save("num_masters", equation->NumberOfMasters());    // Writint number of masters for this slave
+            for (const auto &master_data : *equation)
+            {
+                rSerializer.save("master_id", master_data->MasterDofId());   // saving the id of the master
+                rSerializer.save("master_key", master_data->MasterDofKey()); // saving the id of the master
+                rSerializer.save("weight", master_data->MasterWeight());     // saving the id of the master
+            }
+        }
     }
 
     virtual void load(Serializer &rSerializer)
     {
+        std::size_t num_constraint_equations = 0;
+        rSerializer.load("NumConstraintEquations", num_constraint_equations);
+        for (std::size_t i = 0; i < num_constraint_equations; i++)
+        {
+            std::size_t slave_id(0), slave_key(0), num_masters(0);
+            double constant(0.0), constant_update(0.0);
+            rSerializer.load("slave_id", slave_id);
+            rSerializer.load("slave_key", slave_key);
+            rSerializer.load("constant", constant);
+            rSerializer.load("constant_update", constant_update);
+            rSerializer.load("num_masters", num_masters);
+
+            ConstraintEquationPointerType equation = Kratos::make_shared<ConstraintEquation>(slave_id, slave_key);
+
+            for (std::size_t j = 0; j < num_masters; j++)
+            {
+                std::size_t master_id(0), master_key(0);
+                double weight(0);
+                rSerializer.load("master_id", master_id);
+                rSerializer.load("master_key", master_key);
+                rSerializer.load("weight", weight);
+                equation->AddMaster(master_id, master_key, weight);
+            }
+            mConstraintEquationsSet.insert(equation);
+        }
     }
 
   private:
