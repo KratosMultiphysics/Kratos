@@ -68,12 +68,7 @@ class ApplyMultipointConstraintsProcess : public Process
             }  )");
         mParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-        //if(mParameters["variable_names"].size() == 0)
-            //KRATOS_THROW_ERROR("","In ApplyMultipointConstraintsProcess class constructor :: No DOFs specified for applying Multipoint constraints."," ")
-
         KRATOS_ERROR_IF(mParameters["variable_names"].size() == 0) << "No DOFs specified for applying Multipoint constraints. " << std::endl;
-
-
 
         ProcessInfoPointerType info = mrModelPart.pGetProcessInfo();
         if (!info->Has(CONSTRAINTS_CONTAINER))    
