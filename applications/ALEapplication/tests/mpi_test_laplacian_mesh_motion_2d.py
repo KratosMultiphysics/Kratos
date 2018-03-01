@@ -1,7 +1,7 @@
 import os
 from KratosMultiphysics import *
-import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 import test_MainKratos
 
 class ControlledExecutionScope:
@@ -17,13 +17,6 @@ class ControlledExecutionScope:
 
 class TestCase(KratosUnittest.TestCase):
 
-    def setUp(self):
-        pass
-
-    def removeFile(self, filepath):
-        if os.path.isfile(filepath):
-            os.remove(filepath)
-
     def createTest(self, parameter_file_name):
         with open(parameter_file_name + '_parameters.json', 'r') as parameter_file:
             project_parameters = Parameters(parameter_file.read())
@@ -35,23 +28,14 @@ class TestCase(KratosUnittest.TestCase):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             test = self.createTest('test_laplacian_mesh_motion_2d/mpi_rectangle_2D3N_test')
             test.Solve()
-            KratosMPI.mpi.world.barrier()
-            rank = KratosMPI.mpi.rank
-            # remove files
-            if rank == 0:
-                self.removeFile("./test_mdpa_files/rectangle_2D3N_test.time")
+            kratos_utils.DeleteFileIfExisting("./test_mdpa_files/rectangle_2D3N_test.time")
 
     def test_Rectangle_2D4N(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             test = self.createTest('test_laplacian_mesh_motion_2d/mpi_rectangle_2D4N_test')
             test.Solve()
-            KratosMPI.mpi.world.barrier()
-            rank = KratosMPI.mpi.rank
-            # remove files
-            if rank == 0:
-                self.removeFile("./test_mdpa_files/rectangle_2D4N_test.time")
-    def tearDown(self):
-        pass
+            kratos_utils.DeleteFileIfExisting("./test_mdpa_files/rectangle_2D4N_test.time")
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
