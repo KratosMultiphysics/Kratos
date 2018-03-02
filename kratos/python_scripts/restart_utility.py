@@ -48,23 +48,23 @@ class RestartUtility(object):
 
     def LoadRestart(self):
         # Get file name
-        restart_path = self.__GetFileNameLoad()
+        restart_path = self._GetFileNameLoad()
         # Check path
         if (os.path.exists(restart_path+".rest") == False):
             raise Exception("Restart file not found: " + restart_path + ".rest")
-        self.__PrintOnRankZero("Restart Utility", "Loading Restart file: ", restart_path + ".rest")
+        self._PrintOnRankZero("Restart Utility", "Loading Restart file: ", restart_path + ".rest")
 
         # Load the ModelPart
         serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
         serializer.Load(self.model_part.Name, self.model_part)
 
-        self.__ExecuteAfterLaod()
+        self._ExecuteAfterLaod()
 
         self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         load_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
         self.model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
 
-        self.__PrintOnRankZero("Restart Utility", "Finished loading model part from restart file.")
+        self._PrintOnRankZero("Restart Utility", "Finished loading model part from restart file.")
 
     def SaveRestart(self):
         """
@@ -72,7 +72,7 @@ class RestartUtility(object):
         """
         if self.__IsRestartOutputStep():
             time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            file_name = self.__GetFileNameSave(time)
+            file_name = self._GetFileNameSave(time)
 
             # Save the ModelPart
             serializer = KratosMultiphysics.Serializer(file_name, self.serializer_flag)
@@ -83,20 +83,20 @@ class RestartUtility(object):
                 while self.next_output <= time:
                     self.next_output += self.output_frequency
 
-    def __IsRestartOutputStep(self):
-        return (self.model_part.ProcessInfo[KratosMultiphysics.TIME] > self.next_output)
-
-    def __GetFileNameLoad(self):
+    def _GetFileNameLoad(self):
         problem_path = os.getcwd()
         return os.path.join(problem_path, self.input_filename + "_" + str(self.input_file_label))
 
-    def __GetFileNameSave(self, time):
+    def _GetFileNameSave(self, time):
         return self.input_filename + '_' + str(time)
 
-    def __ExecuteAfterLaod(self):
+    def _ExecuteAfterLaod(self):
         """This function creates the communicators in MPI/trilinos"""
         pass
 
-    def __PrintOnRankZero(self, *args):
+    def _PrintOnRankZero(self, *args):
         # This function will be overridden in the trilinos-version
         KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
+
+    def __IsRestartOutputStep(self):
+        return (self.model_part.ProcessInfo[KratosMultiphysics.TIME] > self.next_output)
