@@ -1330,6 +1330,10 @@ namespace Kratos
             {
                 ReadVectorialValue(temp_properties[KratosComponents<Variable<Matrix> >::Get(variable_name)]);
             }
+            else if(KratosComponents<Variable<ConstitutiveLaw::Pointer> >::Has(variable_name))
+            {
+                ReadConstitutiveLawValue(temp_properties[KratosComponents<Variable<ConstitutiveLaw::Pointer> >::Get(variable_name)]);
+            }
             else
             {
                 std::stringstream buffer;
@@ -4524,6 +4528,12 @@ namespace Kratos
         value >> rValue;
 
         return rValue;
+    }
+
+    void ModelPartIO::ReadConstitutiveLawValue(ConstitutiveLaw::Pointer& rValue) {
+        std::string value;
+        ReadWord(value);
+        rValue = KratosComponents<ConstitutiveLaw>::Get(value).Clone();
     }
 
 
