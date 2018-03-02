@@ -116,9 +116,6 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
     Vector& StressVector = rValues.GetStressVector();
 
 
-    if (Options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-    }
-
     if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(ConstitutiveMatrix, rMaterialProperties);
@@ -142,16 +139,13 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
         mPlasticStrain = mPlasticStrainOld;
         mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld;
 
-        ElasticTensor.resize(6, 6);
+        ElasticTensor.resize(6, 6, false);
         CalculateElasticMatrix(ElasticTensor, rMaterialProperties);
-        Vector sigma_trial;
-        sigma_trial.resize(6);
-        sigma_trial = prod(ElasticTensor, StrainVector - mPlasticStrainOld);
+        Vector sigma_trial(6);
+        noalias(sigma_trial) = prod(ElasticTensor, StrainVector - mPlasticStrainOld);
 
         // StressTrialDev = sigma - 1/3 tr(sigma) * I
-        Vector StressTrialDev;
-        StressTrialDev.resize(6);
-        StressTrialDev = sigma_trial;
+        Vector StressTrialDev = sigma_trial;
 
         const double trace = 1.0/3.0 * (sigma_trial(0) + sigma_trial(1) + sigma_trial(2));
         StressTrialDev(0) -= trace;
@@ -336,9 +330,9 @@ void LinearJ2Plasticity3D::CalculateElasticMatrix(Matrix &D, const Properties &p
         E * poisson_ratio / ((1. + poisson_ratio) * (1. - 2. * poisson_ratio));
     const double mu = E / (2. + 2. * poisson_ratio);
 
+    if (D.size1() != 6 || D.size2() != 6)
+        D.resize(6, 6, false);
     D.clear();
-    D.resize(6, 6, false);
-    D = ZeroMatrix(6, 6);
 
     D(0, 0) = lambda + 2. * mu;
     D(0, 1) = lambda;
