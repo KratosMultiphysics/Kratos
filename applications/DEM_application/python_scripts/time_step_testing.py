@@ -12,18 +12,53 @@ class TimeStepTester(object):
         else:
             os.environ['OMP_NUM_THREADS']='1'
 
-    def Run(self):
-        list_of_time_step_values = [1e-5, 1e-4, 5e-4, 1e-3, 2e-3]
+    def Run(self):                
         
-        for dt in list_of_time_step_values:
-            self.RunTestCaseWithCustomizedDt(dt)
-            
+        self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
+        self.schemes_list = ["Symplectic_Euler", "Velocity_Verlet"]
+        self.stable_time_steps_list = []
+
+        for scheme in self.schemes_list:
+            print("################################3------------------")
+            self.RunForACertainScheme(scheme)
+
         self.Finalize()
+
+    def RunForACertainScheme(self, scheme):
+        print("Computing stable time step for scheme: "+ scheme)
+        tolerance = 1e-6
+        dt = 1e-2
+        previous_dt = 0.0
+        while dt > previous_dt + tolerance:
+            try:
+                self.RunTestCaseWithCustomizedDtAndScheme(dt, scheme)
+            except:
+                factor = min(0.5, 0.5*(dt-previous_dt))
+                dt = factor * dt
+                print("decreasing dt by " + str(factor))
+                continue
+
+            previous_dt = dt
+            dt = dt * 1.5
+            print("increasing dt by 1.5")
             
-    def RunTestCaseWithCustomizedDt(self, dt):
-        CustomizedSolutionForTimeStepTesting(dt).Run()
+        self.stable_time_steps_list.append(previous_dt)
+        
+            
+    def RunTestCaseWithCustomizedDtAndScheme(self, dt, scheme):
+        CustomizedSolutionForTimeStepTesting(dt, scheme).Run()
         
     def Finalize(self):
+
+        print("\n")
+        print("#############################")
+        print("List of tested schemes:")
+        print(self.schemes_list)
+        print("List of stable time steps:")
+        print(self.stable_time_steps_list)
+        print("#############################")
+        print("\n")
+
         if platform.system()=="Windows":
             os.system("setenv OMP_NUM_THREADS ") # Trying to set a 'default' value
         else:
@@ -32,8 +67,9 @@ class TimeStepTester(object):
         
 class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
     
-    def __init__(self, dt):
+    def __init__(self, dt, scheme):
         self.customized_time_step = dt
+        self.customized_scheme = scheme
         super(CustomizedSolutionForTimeStepTesting,self).__init__()
     
     def LoadParametersFile(self):
@@ -41,9 +77,6 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
             """
             {
                 "Dimension"                        : 3,
-                "drag_modifier_type"               : 3,
-                "project_from_particles_option"    : false,
-                "consider_lift_force_option"       : false,
                 "BoundingBoxOption"                : true,
                 "BoundingBoxEnlargementFactor"     : 1.1,
                 "AutomaticBoundingBoxOption"       : false,
@@ -60,7 +93,6 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
                 "GravityZ"                         : 0.0,
                 "VelocityTrapOption"               : false,
                 "RotationOption"                   : true,
-                "Dempack"                          : false,
                 "CleanIndentationsOption"          : true,
                 "RemoveBallsInEmbeddedOption"      : true,
                 "DeltaOption"                      : "Absolute",
@@ -74,36 +106,14 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
                 "ContactMeshOption"                : false,
                 "OutputFileType"                   : "Binary",
                 "Multifile"                        : "multiple_files",
-                "HorizontalFixVel"                 : true,
                 "IntegrationScheme"                : "Forward_Euler",
                 "AutomaticTimestep"                : false,
                 "DeltaTimeSafetyFactor"            : 1.0,
                 "MaxTimeStep"                      : 1e-4,
-                "FinalTime"                        : 5e-1,
+                "FinalTime"                        : 4.0,
                 "ControlTime"                      : 100,
                 "NeighbourSearchFrequency"         : 1,
-                "PeriodicDomainOption"             : false,
-                "MaterialModel"                    : "Hertz",
-                "G1"                               : 0.0,
-                "G2"                               : 0.0,
-                "G3"                               : 0.0,
-                "MaxDef"                           : 0.0,
-                "FailureCriterionType"             : "Uncoupled",
-                "AreaFactor"                       : 1,
-                "LocalContactDamping"              : "Normal",
-                "LocalDampingFactor"               : 1.0,
-                "GlobalForceReduction"             : 0.0,
-                "TestType"                         : "None",
-                "ConfinementPressure"              : 0.0,
-                "LoadingVelocityTop"               : 0.0,
-                "LoadingVelocityBot"               : 0.0,
-                "FemPlates"                        : false,
-                "StressStrainOption"               : false,
-                "MeshType"                         : "Current",
-                "MeshPath"                         : "0",
-                "SpecimenLength"                   : 0.30,
-                "SpecimenDiameter"                 : 0.15,
-                "MeasuringSurface"                 : 0.01767145867644375,
+                "PeriodicDomainOption"             : false,               
                 "ElementType"                      : "SphericPartDEMElement3D",
                 "GraphExportFreq"                  : 1e-5,
                 "VelTrapGraphExportFreq"           : 1e-3,
@@ -125,7 +135,6 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
                 "PostRadius"                       : false,
                 "PostGroupId"                      : false,
                 "PostExportId"                     : false,
-                "PostExportSkinSphere"             : false,
                 "PostAngularVelocity"              : false,
                 "PostParticleMoment"               : false,
                 "PostEulerAngles"                  : false,
@@ -136,16 +145,21 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
                 "PostContactFailureId"             : false,
                 "PostMeanContactArea"              : false,
                 "PostStressStrainOption"           : false,
-                "PredefinedSkinOption"             : false,
                 "PostRollingResistanceMoment"      : false,
-                "MeanRadius"                       : 0.0001,
+                "TranslationalIntegrationScheme"   : "Taylor_Scheme",
+                "RotationalIntegrationScheme"      :  "Direct_Integration",
 
                 "problem_name"                     : "TimeStepTests"
                 }
             """
             )
             
+        self.DEM_parameters["TranslationalIntegrationScheme"].SetString(self.customized_scheme)
+
         self.DEM_parameters["MaxTimeStep"].SetDouble(self.customized_time_step)
+
+        default_input_parameters = self.GetDefaultInputParameters()
+        self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
             
     def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
         
@@ -159,8 +173,11 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
         DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
         DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
         DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
-        scheme = SymplecticEulerScheme()        
-        scheme.SetIntegrationSchemeInProperties(properties, False)
+
+        translational_scheme = ForwardEulerScheme()
+        translational_scheme.SetTranslationalIntegrationSchemeInProperties(properties, True)            
+        rotational_scheme = ForwardEulerScheme()
+        rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
                 
         element_name = "SphericParticle3D"
         PropertiesProxiesManager().CreatePropertiesProxies(self.spheres_model_part)
@@ -184,7 +201,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
             node.SetSolutionStepValue(Kratos.VELOCITY_Y, 5.0)
             node.SetSolutionStepValue(Kratos.VELOCITY_Z, 0.0)
             
-        self.ComputeEnergy()
+        self.initial_test_energy = self.ComputeEnergy()
         
         self.rigid_face_model_part.CreateNewNode(11, -0.5, -0.5, -0.5)
         self.rigid_face_model_part.CreateNewNode(12, -0.5, -0.5,  0.5)
@@ -214,12 +231,14 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
             
         
     def ComputeEnergy(self):
-        self.this_test_total_energy = 0.0
+        this_test_total_energy = 0.0
         
         for element in self.spheres_model_part.Elements:            
-            self.this_test_total_energy += element.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
-            self.this_test_total_energy += element.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
-            self.this_test_total_energy += element.Calculate(PARTICLE_ELASTIC_ENERGY, self.spheres_model_part.ProcessInfo)
+            this_test_total_energy += element.Calculate(PARTICLE_TRANSLATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
+            this_test_total_energy += element.Calculate(PARTICLE_ROTATIONAL_KINEMATIC_ENERGY, self.spheres_model_part.ProcessInfo)
+            this_test_total_energy += element.Calculate(PARTICLE_ELASTIC_ENERGY, self.spheres_model_part.ProcessInfo)
+
+        return this_test_total_energy
             
                     
     def SetHardcodedProperties(self, properties, properties_walls):
@@ -242,21 +261,25 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
         properties_walls[IMPACT_WEAR_SEVERITY] = 0.001
         properties_walls[BRINELL_HARDNESS] = 200.0
         properties_walls[Kratos.YOUNG_MODULUS] = 7.0e10
-        properties_walls[Kratos.POISSON_RATIO] = 0.30                                                                                                                                                                     
+        properties_walls[Kratos.POISSON_RATIO] = 0.30
         
         
     def FinalizeTimeStep(self, time):
         super(CustomizedSolutionForTimeStepTesting,self).FinalizeTimeStep(time)
-        old_energy = self.this_test_total_energy
-        self.ComputeEnergy()
-        print(self.this_test_total_energy)
-        if self.this_test_total_energy/old_energy > 1.01 :
+
+        current_test_energy = self.ComputeEnergy()
+        #if not self.step%200:
+        #    print("Energy: "+str(current_test_energy))
+        
+        if current_test_energy/self.initial_test_energy > 1.5 :
             print("GAINING ENERGY!!")
             print("time step is:" + str(self.customized_time_step))
-            lele
+            import sys
+            sys.exit()
     
     def PrintResultsForGid(self, time):
         pass
+
 
 if __name__ == '__main__':
     TimeStepTester().Run()
