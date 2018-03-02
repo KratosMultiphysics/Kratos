@@ -179,23 +179,23 @@ class NavierStokesBaseSolver(object):
     def _get_element_num_nodes(self):
         if self.main_model_part.NumberOfElements() != 0:
             if sys.version_info[0] >= 3: # python3 syntax
-                element_num_nodes = self.main_model_part.Elements.__iter__().__next__().GetNodes()
+                element_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
             else: # python2 sytax
-                element_num_nodes = self.main_model_part.Elements.__iter__().next().GetNodes()
+                element_num_nodes = len(self.main_model_part.Elements.__iter__().next().GetNodes())
         else:
             element_num_nodes = 0
 
-        self.main_model_part.GetCommunicator().MaxAll(element_num_nodes)
-        return int(element_num_nodes)
+        element_num_nodes = self.main_model_part.GetCommunicator().MaxAll(element_num_nodes)
+        return element_num_nodes
 
     def _get_condition_num_nodes(self):
         if self.main_model_part.NumberOfConditions() != 0:
             if sys.version_info[0] >= 3: # python3 syntax
-                condition_num_nodes = self.main_model_part.Conditions.__iter__().__next__().GetNodes()
+                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
             else: # python2 sytax
-                condition_num_nodes = self.main_model_part.Conditions.__iter__().next().GetNodes()
+                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().next().GetNodes())
         else:
             condition_num_nodes = 0
 
-        self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
-        return int(condition_num_nodes)
+        condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
+        return condition_num_nodes
