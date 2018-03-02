@@ -21,10 +21,10 @@ static void AddToProperties(TVariableType const& rV, typename TVariableType::Typ
 }
 
 #define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON(TClassName) \
-.def_static("AddToProperties", &TClassName::AddToProperties< Variable< TClassName > >)
+.def("AddToProperties", &TClassName::AddToProperties< Variable< TClassName > >).staticmethod("AddToProperties")
 
 #define DECLARE_ADD_THIS_TYPE_TO_PROPERTIES_PYTHON_AS_POINTER(TClassName) \
-.def_static("AddToProperties", &TClassName::AddToProperties< Variable< TClassName::Pointer > >)
+.def("AddToProperties", &TClassName::AddToProperties< Variable< TClassName::Pointer > >).staticmethod("AddToProperties")
 
 
 
@@ -36,10 +36,10 @@ static typename TVariableType::Type GetFromProperties(TVariableType const& rV, P
 }
 
 #define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON(TClassName) \
-.def_static("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName > >)
+.def("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName > >).staticmethod("GetFromProperties")
 
 #define DECLARE_GET_THIS_TYPE_FROM_PROPERTIES_PYTHON_AS_POINTER(TClassName) \
-.def_static("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName::Pointer > >)
+.def("GetFromProperties", &TClassName::GetFromProperties< Variable< TClassName::Pointer > >).staticmethod("GetFromProperties")
 
 
 

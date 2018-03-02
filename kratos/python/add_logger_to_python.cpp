@@ -12,25 +12,17 @@
 //
 
 // External includes
+#include <boost/python.hpp>
+#include <boost/python/raw_function.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "input_output/logger.h"
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 
 using namespace boost::python;
 
-<<<<<<< HEAD
-namespace Python
-{
-using namespace pybind11;
-=======
 namespace Kratos {
 namespace Python {
->>>>>>> master
 
 /**
  * Prints the arguments from the python script using the Kratos Logger class. Implementation
@@ -116,11 +108,6 @@ object printWarning(tuple args, dict kwargs) {
 
 void  AddLoggerToPython() {
 
-<<<<<<< HEAD
-  class_<Logger, Kratos::shared_ptr<Logger>>(m,"Logger")
-  .def("Print", raw_function(print,1))
-  .staticmethod("Print");
-=======
     class_<LoggerOutput, boost::shared_ptr<LoggerOutput>, boost::noncopyable>("LoggerOutput", no_init)
     .def("SetMaxLevel", &LoggerOutput::SetMaxLevel)
     .def("GetMaxLevel", &LoggerOutput::GetMaxLevel)
@@ -155,7 +142,6 @@ void  AddLoggerToPython() {
     .value("STATISTICS", Logger::Category::STATISTICS)
     .value("PROFILING", Logger::Category::PROFILING)
     .value("CHECKING", Logger::Category::CHECKING);
->>>>>>> master
 }
 
 }  // namespace Python.

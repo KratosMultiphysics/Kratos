@@ -31,8 +31,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             u = A*xvec
             u += b
             
-            print("u = ",u, type(u))
-            
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u)
 
     def _apply_material_properties(self,mp,dim):
@@ -42,7 +40,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
         
-        g = KratosMultiphysics.Vector( [0,0,0] )
+        g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         if(dim == 2):
@@ -90,9 +88,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-14,1e-20)
         
-        print(scheme)
-        print(convergence_criterion)
-        
         max_iters = 20
         compute_reactions = True
         reform_step_dofs = True
@@ -107,7 +102,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                                                                         calculate_norm_dx,
                                                                         move_mesh_flag)
         
-        
+
         #strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
                                                                         #scheme, 
                                                                         #linear_solver, 

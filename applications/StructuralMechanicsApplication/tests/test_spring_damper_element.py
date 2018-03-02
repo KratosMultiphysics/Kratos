@@ -41,12 +41,12 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
     def _apply_harmonic_cosine_load(self,amplitude,frequency,nodes,time):
         for node in nodes:
             force = amplitude * cos(2*pi*frequency*time)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,KratosMultiphysics.Vector([0,force,0]))
+            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[0,force,0])
 
     def _apply_harmonic_sine_load(self,amplitude,frequency,nodes,time):
         for node in nodes:
             force = amplitude * sin(2*pi*frequency*time)
-            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,KratosMultiphysics.Vector([0,force,0]))
+            node.SetSolutionStepValue(StructuralMechanicsApplication.POINT_LOAD,0,[0,force,0])
         
     def _solve(self,mp):
 
@@ -112,15 +112,15 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         e04 = mp.CreateNewElement("SpringDamperElement3D2N",     4, [2,3],mp.GetProperties()[1])
         e05 = mp.CreateNewElement("SpringDamperElement3D2N",     5, [1,3],mp.GetProperties()[1])
 
-        e01.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,0.0,0.0]))
+        e01.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
         e01.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
-        e02.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,0.0,0.0]))
+        e02.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
         e02.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
-        e03.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,0.0,0.0]))
+        e03.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
         e03.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
-        e04.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,0.0,0.0]))
+        e04.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
         e04.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
-        e05.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,0.0,0.0]))
+        e05.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
         e05.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
         
         #add dofs and set bcs
@@ -144,9 +144,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         e01 = mp.CreateNewElement("NodalConcentratedElement3D1N",1,[1],mp.GetProperties()[1])
         e02 = mp.CreateNewElement("SpringDamperElement3D2N",2,[1,2],mp.GetProperties()[1])
 
-        e01.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,0.0,0.0]))
+        e01.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
         e01.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
-        e02.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,0.0,0.0]))
+        e02.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,0.0,0.0])
         e02.SetValue(KratosMultiphysics.NODAL_MASS,0.0)
 
         #create condition
@@ -166,9 +166,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
         #set parameters
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,80.0)
-        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,200.0,0.0]))
+        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,200.0,0.0])
         mp.Elements[3].SetValue(KratosMultiphysics.NODAL_MASS,8.0)
-        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,125.0,0.0]))
+        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,125.0,0.0])
 
         #set initial conditions
         mp.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,-1.0)
@@ -221,7 +221,7 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
         init_u = 0.0
         init_v = 0.0
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,mass)
-        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,stiffness,0.0]))
+        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,stiffness,0.0])
         
         #time integration parameters
         dt = 0.01
@@ -253,12 +253,12 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
         #set parameters
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,1.0)
-        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,1.0,0.0]))
-        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,KratosMultiphysics.Vector([0.0,0.05,0.0]))
+        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,1.0,0.0])
+        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0.0,0.05,0.0])
         mp.Elements[3].SetValue(KratosMultiphysics.NODAL_MASS,2.0)
-        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([0.0,2.0,0.0]))
-        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,KratosMultiphysics.Vector([0.0,0.4,0.0]))
-        mp.Elements[5].SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,KratosMultiphysics.Vector([0.0,0.15,0.0]))
+        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[0.0,2.0,0.0])
+        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0.0,0.4,0.0])
+        mp.Elements[5].SetValue(StructuralMechanicsApplication.NODAL_DAMPING_RATIO,[0.0,0.15,0.0])
 
         #set initial conditions
         mp.Nodes[1].SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,2.0)
@@ -296,9 +296,9 @@ class SpringDamperElementTests(KratosUnittest.TestCase):
 
         #set parameters
         mp.Elements[1].SetValue(KratosMultiphysics.NODAL_MASS,20.0)
-        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([200.0,200.0,200.0]))
+        mp.Elements[2].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[200.0,200.0,200.0])
         mp.Elements[3].SetValue(KratosMultiphysics.NODAL_MASS,40.0)
-        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,KratosMultiphysics.Vector([400.0,400.0,400.0]))
+        mp.Elements[4].SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[400.0,400.0,400.0])
         
         #create solver
         eigen_solver_parameters = KratosMultiphysics.Parameters("""

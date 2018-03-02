@@ -48,7 +48,7 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS, 1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY, 1.0)
 
-        g = KratosMultiphysics.Vector([0, 0, 0])
+        g = [0, 0, 0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,
                                        g)
 
