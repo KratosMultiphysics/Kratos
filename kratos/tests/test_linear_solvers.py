@@ -4,64 +4,64 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestLinearSolvers(KratosUnittest.TestCase):
-    
+
     def _RunParametrized(self, my_params_string ):
         all_settings = KratosMultiphysics.Parameters( my_params_string )
-        
+
         for i in range(all_settings["test_list"].size()):
             settings = all_settings["test_list"][i]
             self._auxiliary_test_function(settings)
-    
+
     def _auxiliary_test_function(self, settings, matrix_name="A.mm"):
         space = KratosMultiphysics.UblasSparseSpace()
-        
+
         #read the matrices
         A = KratosMultiphysics.CompressedMatrix()
         KratosMultiphysics.ReadMatrixMarketMatrix(GetFilePath(matrix_name),A)
-        
+
         Aoriginal = KratosMultiphysics.CompressedMatrix(A) #create a copy of A
-        
+
         n = A.Size1()
         b = KratosMultiphysics.Vector(n)
         space.SetToZeroVector(b)
-        
+
         for i in range(len(b)):
             b[i] = i/len(b)
-        
+
         x = KratosMultiphysics.Vector(n)
         #KratosMultiphysics.ReadMatrixMarketVector("b.mm",b)
 
         boriginal = KratosMultiphysics.Vector(b) #create a copy of b
-        
+
         space.SetToZeroVector(x)
         #space.SetToZeroVector(boriginal)
-        #space.UnaliasedAdd(boriginal, 1.0, b) #boriginal=1*bs          
+        #space.UnaliasedAdd(boriginal, 1.0, b) #boriginal=1*bs
 
         #construct the solver
         import new_linear_solver_factory
         linear_solver = new_linear_solver_factory.ConstructSolver(settings)
-        
+
         #solve
-        linear_solver.Solve(A,x,b)    
-        
+        linear_solver.Solve(A,x,b)
+
         #test the results
         tmp = KratosMultiphysics.Vector(n)
         tmp *= 0.0
         space.Mult(Aoriginal,x,tmp)
-        
+
         check = KratosMultiphysics.Vector(n)
         check = boriginal - tmp
- 
+
         achieved_norm = space.TwoNorm(check)
-        
+
         tolerance = 1e-9
         if(settings.Has("tolerance")):
-            tolerance = settings["tolerance"].GetDouble() 
-        
+            tolerance = settings["tolerance"].GetDouble()
+
         target_norm = tolerance*space.TwoNorm(boriginal)
 
         if(not (achieved_norm <= target_norm)):
@@ -71,7 +71,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             print("target_norm",target_norm)
         self.assertTrue(achieved_norm <= target_norm)
 
-        
+
     def test_tfqmr_in_core(self):
         self._RunParametrized("""
             {
@@ -96,7 +96,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                     }
                 ]
             }
-            """)    
+            """)
 
     def test_cg_in_core(self):
         self._RunParametrized("""
@@ -117,7 +117,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-        
+
     def test_deflated_cg_in_core(self):
         self._RunParametrized("""
             {
@@ -162,7 +162,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-        
+
     def test_skyline_lu(self):
         self._RunParametrized("""
             {
@@ -206,10 +206,10 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             import KratosMultiphysics.ExternalSolversApplication
         except:
             self.skipTest("ExternalSolversApplication is not available")
-            
+
         if( not hasattr(KratosMultiphysics.ExternalSolversApplication,  "PastixSolver") ):
             self.skipTest("Pastix solver is not included in the compilation of the External Solvers Application")
-        
+
         self._RunParametrized("""
             {
                 "test_list" : [
@@ -229,7 +229,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-        
+
     def test_bicgstab_iluk(self):
         self._RunParametrized("""
             {
@@ -253,7 +253,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-        
+
     def test_lgmres_iluk(self):
         self._RunParametrized("""
             {
@@ -277,7 +277,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-    
+
     def test_amgcl_bicgstab_ilu0(self):
         self._RunParametrized("""
             {
@@ -323,7 +323,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-        
+
     def test_amgcl_bicgstab_spai0(self):
         self._RunParametrized("""
             {
@@ -346,7 +346,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-        
+
     def test_cg_spai0(self):
         self._RunParametrized("""
             {
@@ -370,8 +370,8 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 ]
             }
             """)
-        
-        
+
+
     def test_amgcl_bicgstabl(self):
         self._RunParametrized("""
             {
@@ -394,6 +394,6 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                 }]
             }
             """)
-        
+
 if __name__ == '__main__':
     KratosUnittest.main()
