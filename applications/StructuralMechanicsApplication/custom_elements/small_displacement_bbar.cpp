@@ -48,8 +48,8 @@ Element::Pointer SmallDisplacementBbar::Create(IndexType NewId,
                                                      NodesArrayType const& ThisNodes,
                                                      PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SmallDisplacementBbar(
-            NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<SmallDisplacementBbar>(
+            NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 //************************************************************************************
@@ -82,10 +82,7 @@ void SmallDisplacementBbar::CalculateAll(
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int strain_size = 4; // necessary include component zz in the computation of kinematic variables
-    if (dimension == 3) {
-        strain_size = 6;
-    }
+    const unsigned int strain_size = (dimension == 3)? 6 : 4; // necessary include component zz in the computation of kinematic variables
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
