@@ -152,7 +152,7 @@ class NavierStokesBaseSolver(object):
         ## This only affects the input name (if there are no elements or conditions to replace, nothing is replaced).
         if elem_num_nodes == 0:
             elem_num_nodes = domain_size + 1
-        if condition_num_nodes == 0:
+        if cond_num_nodes == 0:
             cond_num_nodes = domain_size
 
         ## Complete the element name
