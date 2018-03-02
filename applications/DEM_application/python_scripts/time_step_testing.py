@@ -2,9 +2,6 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.DEMApplication import *
 import main_script as DEM_main_script
 
-import platform
-import os
-
 class TimeStepTester(object):
     def __init__(self):
         #self.schemes_list = ["Forward_Euler", "Taylor_Scheme", "Symplectic_Euler", "Velocity_Verlet"]
@@ -38,7 +35,7 @@ class TimeStepTester(object):
 
         self.stable_time_steps_list.append(previous_dt)
 
-
+    @classmethod
     def RunTestCaseWithCustomizedDtAndScheme(self, dt, scheme):
         CustomizedSolutionForTimeStepTesting(dt, scheme).Run()
 
@@ -229,7 +226,7 @@ class CustomizedSolutionForTimeStepTesting(DEM_main_script.Solution):
 
         return this_test_total_energy
 
-
+    @classmethod
     def SetHardcodedProperties(self, properties, properties_walls):
 
         properties[PARTICLE_DENSITY] = 2650.0
