@@ -20,7 +20,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
 
         ##set the variable values
         viscosity = 0.1
-        displacement = Array3() # Vector(3)
+        displacement = Vector(3)
         displacement[0] = 1.0
         displacement[1] = 2.0
         displacement[2] = 3.0
