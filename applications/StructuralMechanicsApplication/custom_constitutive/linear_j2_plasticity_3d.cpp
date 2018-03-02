@@ -439,13 +439,13 @@ int LinearJ2Plasticity3D::Check(const Properties& rMaterialProperties,
                                                  const GeometryType& rElementGeometry,
                                                  const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
-    KRATOS_CHECK_VARIABLE_KEY(POISSON_RATIO);
-    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
-    KRATOS_CHECK_VARIABLE_KEY(REFERENCE_HARDENING_MODULUS);
-    KRATOS_CHECK_VARIABLE_KEY(ISOTROPIC_HARDENING_MODULUS);
-    KRATOS_CHECK_VARIABLE_KEY(INFINITY_HARDENING_MODULUS);
-    KRATOS_CHECK_VARIABLE_KEY(HARDENING_EXPONENT);
+    KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
+    KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
+    KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS));
+    KRATOS_CHECK(rMaterialProperties.Has(REFERENCE_HARDENING_MODULUS));
+    KRATOS_CHECK(rMaterialProperties.Has(ISOTROPIC_HARDENING_MODULUS));
+    KRATOS_CHECK(rMaterialProperties.Has(INFINITY_HARDENING_MODULUS));
+    KRATOS_CHECK(rMaterialProperties.Has(HARDENING_EXPONENT));
 
     return 0;
 }
