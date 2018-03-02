@@ -120,6 +120,7 @@ class MpcData
     {
         mSlaveEquationIdConstantsMap.clear();
         mEquationIdToWeightsMap.clear();
+        mDofConstraints.clear();
     }
 
     /**

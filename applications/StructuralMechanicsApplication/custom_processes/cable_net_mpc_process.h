@@ -100,6 +100,9 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
             DoubleVector nodal_neighbor_weights( number_of_neighbors );
             this->CalculateNodalWeights(resulting_squared_distances,nodal_neighbor_weights);
             this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,nodal_neighbor_weights,number_of_neighbors);
+
+            //std::cout << "slave: " << node_i.Id() << " has " << number_of_neighbors << " masters " << std::endl;
+            //std::cout << "###################################################" << std::endl;
         }
     }
 
@@ -120,12 +123,14 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
         for(SizeType dof_iterator=0;dof_iterator<m_parameters["variable_names"].size();++dof_iterator)
         {
             VariableComponentType current_dof = KratosComponents<VariableComponentType>::Get(m_parameters["variable_names"][dof_iterator].GetString());
+            //KRATOS_WATCH(current_dof);
 
             for(SizeType master_iterator =0;master_iterator<rNumberOfNeighbors;++master_iterator)
             {
                 ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents(
                     r_nodes_master[rNeighborNodes[master_iterator]->Id()],current_dof,
                     r_nodes_slave[rCurrentSlaveNode.Id()],current_dof,rNodalNeighborWeights[master_iterator],0);
+                //std::cout << rNeighborNodes[master_iterator]->Id() << "-----" << rCurrentSlaveNode.Id() << "-----" << rNodalNeighborWeights[master_iterator] << std::endl;
             } // each master node
         }  // each dof
 
@@ -157,14 +162,16 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     void CalculateNodalWeights(const DoubleVector& rResultingSquaredDistances, DoubleVector& rNodalNeighborWeights)
     {
         const double numerical_limit = std::numeric_limits<double>::epsilon();
+        double total_nodal_distance = 0.00;
 
         if((rNodalNeighborWeights.size()==1)&&(std::abs(rResultingSquaredDistances[0])<numerical_limit))
          {rNodalNeighborWeights[0] = 1.00;}
         else
-        {            
+        {   
+            for (SizeType i=0;i<rNodalNeighborWeights.size();++i) total_nodal_distance+=std::sqrt(rResultingSquaredDistances[i]);   
             for (SizeType i=0;i<rNodalNeighborWeights.size();++i)
             {
-                rNodalNeighborWeights[i] = std::sqrt(rResultingSquaredDistances[i]);
+                rNodalNeighborWeights[i] = std::sqrt(rResultingSquaredDistances[i])/total_nodal_distance;
             }
         }
     }
