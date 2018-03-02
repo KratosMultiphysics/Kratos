@@ -22,6 +22,7 @@
 
 //Processes
 #include "custom_processes/apply_multi_point_constraints_process.h"
+#include "custom_processes/cable_net_mpc_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 
@@ -55,7 +56,9 @@ void  AddCustomProcessesToPython()
     )
     .def("Execute", &TotalStructuralMassProcess::Execute)
     ;
-    
+
+    class_<CableNetMpcProcess, boost::noncopyable, bases<ApplyMultipointConstraintsProcess>>("CableNetMpcProcess", init<ModelPart&,Parameters&>())
+    .def("CoupleModelParts", &CableNetMpcProcess::CoupleModelParts);    
 
 }
 
