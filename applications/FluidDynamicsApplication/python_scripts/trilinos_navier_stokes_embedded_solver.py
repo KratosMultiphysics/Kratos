@@ -194,3 +194,19 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+
+    def _get_element_num_nodes(self):
+        elem_num_nodes = 0
+        if self.main_model_part.NumberOfElements() != 0:
+            elem_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
+
+        gather_vect = KratosMPI.mpi.allgather(KratosMPI.mpi.world, elem_num_nodes)
+        return max(gather_vect)
+
+    def _get_condition_num_nodes(self):
+        cond_num_nodes = 0
+        if self.main_model_part.NumberOfConditions() != 0:
+            cond_num_nodes =  len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
+
+        gather_vect = KratosMPI.mpi.allgather(KratosMPI.mpi.world, cond_num_nodes)
+        return max(gather_vect)

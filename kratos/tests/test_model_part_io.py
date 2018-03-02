@@ -1,9 +1,9 @@
 ﻿from __future__ import print_function, absolute_import, division
 
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import testing_utilities as test_utils
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 import os
 import sys
@@ -140,9 +140,9 @@ class TestModelPartIO(KratosUnittest.TestCase):
         self.assertEqual(value, True)
 
         # Clean up temporary files
-        test_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
-        test_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
-        test_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
+        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
+        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
+        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):

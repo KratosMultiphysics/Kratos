@@ -115,6 +115,11 @@ namespace Kratos
 			MatrixType& rLeftHandSideMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
 
+		void AddExplicitContribution(const VectorType& rRHSVector,
+			const Variable<VectorType>& rRHSVariable,
+			Variable<array_1d<double, 3> >& rDestinationVariable,
+			const ProcessInfo& rCurrentProcessInfo) override;
+
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 	/////////////////////////////////////////////////
@@ -238,6 +243,10 @@ namespace Kratos
          */
 		bounded_vector<double,msElementSize> ReturnElementForces_Local();
 
+
+		/**
+         * @brief This function calculates the element contributions to an explicit time integration
+         */
 
 		void GetValueOnIntegrationPoints(
 			const Variable<array_1d<double, 3 > >& rVariable,
