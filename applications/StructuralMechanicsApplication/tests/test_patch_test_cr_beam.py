@@ -170,9 +170,9 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
         disp_y_analytical = -400000.00*(1.2**3)/(3*210e9*0.00001)
 
-        self.assertAlmostEqual(0.00, displacement_cantilever_tip[0])
-        self.assertAlmostEqual(disp_y_analytical, displacement_cantilever_tip[1])
-        self.assertAlmostEqual(0.00, displacement_cantilever_tip[2])
+        self.assertAlmostEqual(0.00, displacement_cantilever_tip[0],6)
+        self.assertAlmostEqual(disp_y_analytical, displacement_cantilever_tip[1],6)
+        self.assertAlmostEqual(0.00, displacement_cantilever_tip[2],6)
 
     def _check_results_nonlinear(self,mp,timestep,Moment_i,endNode):
         ##node at cantilever tip
@@ -192,6 +192,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
         if (timestep == 5):
             self.assertAlmostEqual(displacement_x, -0.0008214481371826507,5)
             self.assertAlmostEqual(displacement_y, 0.03560205297258129,5)
+
 
     def _check_results_dynamic(self,mp,time_i,nr_nodes,time_step):
         #check free vibration of cantilever tip
@@ -217,7 +218,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             -0.0004929004674252967,-0.0005314362205181631,-0.0005721203453514332,
             -0.0006117811911574032]
 
-        self.assertAlmostEqual(disp_y_analytical[time_step], disp_y_simulated)
+        self.assertAlmostEqual(disp_y_analytical[time_step], disp_y_simulated,6)
 
 
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):

@@ -287,7 +287,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                  -0.20665783067442736, -0.14257695438336992, -0.08331538499080232,
                   -0.04276029659491523, -0.03225900075675591]
  
-        self.assertAlmostEqual(simulated_disp_temp, test_disp_temp[time_step])
+        self.assertAlmostEqual(simulated_disp_temp, test_disp_temp[time_step],6)
 
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
         # Set buffer size
