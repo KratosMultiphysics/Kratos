@@ -1,12 +1,4 @@
 GiD Post Results File 1.0
-GaussPoints "quad4_element_gp" ElemType Quadrilateral
-Number Of Gauss Points: 4
-Natural Coordinates: Given
--0.57735 -0.57735
-0.57735 -0.57735
-0.57735 0.57735
--0.57735 0.57735
-End GaussPoints
 Result "1_EigenFrequency_[Hz]_55.0004_DISPLACEMENT" "EigenVector_Animation" 0 Vector OnNodes
 Values
 1 2.81628 1.93619 1.4752

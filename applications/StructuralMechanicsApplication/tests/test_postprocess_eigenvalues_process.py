@@ -12,6 +12,17 @@ import os
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
+def CreateNodes(model_part):
+    model_part.CreateNewNode(1, -0.5, - 0.45,  0.1)
+    model_part.CreateNewNode(2,  0.7,  -0.5,   0.2)
+    model_part.CreateNewNode(3,  0.55,  0.6,   0.15)
+    model_part.CreateNewNode(4, -0.48,  0.65,  0.0)
+    model_part.CreateNewNode(5,  0.02, -0.01, -0.15)
+    model_part.CreateNewNode(6, -0.03, -0.5,   0.0)
+    model_part.CreateNewNode(7,  0.51,  0.02,  0.03)
+    model_part.CreateNewNode(8, -0.01,  0.52, -0.05)
+    model_part.CreateNewNode(9, -0.49, -0.0,   0.0)
+
 def GetEigenValueVector(num_eigenvalues):
     # this function creates "random" eigenvalues
     eigenval_vector = KratosMultiphysics.Vector(num_eigenvalues)
@@ -44,8 +55,8 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-        mdpa_path = os.path.join("eigen_test", "Eigen_Q4_Thick_2x2_Plate")
-        KratosMultiphysics.ModelPartIO(GetFilePath(mdpa_path)).ReadModelPart(model_part)
+
+        CreateNodes(model_part)
 
         # adding dofs is needed for the process internally
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
