@@ -82,16 +82,16 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             raise Exception(err_msg)
         return mechanical_scheme
 
-    def _create_mechanical_solver(self):
+    def _create_mechanical_solution_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self.get_solution_scheme()
 
-        mechanical_solver = StructuralMechanicsApplication.ExplicitStrategy(computing_model_part,
+        mechanical_solution_strategy = StructuralMechanicsApplication.ExplicitStrategy(computing_model_part,
                                             mechanical_scheme,
                                             self.settings["compute_reactions"].GetBool(),
                                             self.settings["reform_dofs_at_each_step"].GetBool(),
                                             self.settings["move_mesh_flag"].GetBool())
 
-        mechanical_solver.SetRebuildLevel(0)
-        return mechanical_solver
+        mechanical_solution_strategy.SetRebuildLevel(0)
+        return mechanical_solution_strategy
 

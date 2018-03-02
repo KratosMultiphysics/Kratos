@@ -31,10 +31,10 @@ class MechanicalSolver(object):
     _create_convergence_criterion
     _create_linear_solver
     _create_builder_and_solver
-    _create_mechanical_solver
+    _create_mechanical_solution_strategy
 
-    The mechanical_solver, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_mechanical_solver, get_builder_and_solver,
+    The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
+    using the getter functions get_mechanical_solution_strategy, get_builder_and_solver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -198,18 +198,18 @@ class MechanicalSolver(object):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Initializing ...")
-        # The mechanical solver is created here if it does not already exist.
+        # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solver = self.get_mechanical_solver()
-        mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         if (self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
-            mechanical_solver.Initialize()
+            mechanical_solution_strategy.Initialize()
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
-            if hasattr(mechanical_solver, SetInitializePerformedFlag):
-                mechanical_solver.SetInitializePerformedFlag(True)
+            if hasattr(mechanical_solution_strategy, SetInitializePerformedFlag):
+                mechanical_solution_strategy.SetInitializePerformedFlag(True)
         self.Check()
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
@@ -228,30 +228,30 @@ class MechanicalSolver(object):
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solver = self.get_mechanical_solver()
-        mechanical_solver.Solve()
+        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy.Solve()
 
     def InitializeSolutionStep(self):
-        self.get_mechanical_solver().InitializeSolutionStep()
+        self.get_mechanical_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):
-        self.get_mechanical_solver().Predict()
+        self.get_mechanical_solution_strategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solver().SolveSolutionStep()
+        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
         return is_converged
 
     def FinalizeSolutionStep(self):
-        self.get_mechanical_solver().FinalizeSolutionStep()
+        self.get_mechanical_solution_strategy().FinalizeSolutionStep()
 
     def SetEchoLevel(self, level):
-        self.get_mechanical_solver().SetEchoLevel(level)
+        self.get_mechanical_solution_strategy().SetEchoLevel(level)
 
     def Clear(self):
-        self.get_mechanical_solver().Clear()
+        self.get_mechanical_solution_strategy().Clear()
 
     def Check(self):
-        self.get_mechanical_solver().Check()
+        self.get_mechanical_solution_strategy().Check()
 
     #### Specific internal functions ####
 
@@ -275,10 +275,10 @@ class MechanicalSolver(object):
             self._builder_and_solver = self._create_builder_and_solver()
         return self._builder_and_solver
 
-    def get_mechanical_solver(self):
-        if not hasattr(self, '_mechanical_solver'):
-            self._mechanical_solver = self._create_mechanical_solver()
-        return self._mechanical_solver
+    def get_mechanical_solution_strategy(self):
+        if not hasattr(self, '_mechanical_solution_strategy'):
+            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
+        return self._mechanical_solution_strategy
 
     def import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -356,7 +356,7 @@ class MechanicalSolver(object):
     def print_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
-        
+
     def print_warning_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintWarning(" ".join(map(str,args)))
@@ -464,33 +464,33 @@ class MechanicalSolver(object):
         """
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
-    def _create_mechanical_solver(self):
+    def _create_mechanical_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
-            mechanical_solver = self._create_linear_strategy()
+            mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
             if(self.settings["line_search"].GetBool() == False):
-                mechanical_solver = self._create_newton_raphson_strategy()
+                mechanical_solution_strategy = self._create_newton_raphson_strategy()
             else:
-                mechanical_solver = self._create_line_search_strategy()
+                mechanical_solution_strategy = self._create_line_search_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
-        return mechanical_solver
+        return mechanical_solution_strategy
 
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part, 
-                                                              mechanical_scheme, 
-                                                              linear_solver, 
-                                                              builder_and_solver, 
-                                                              self.settings["compute_reactions"].GetBool(), 
-                                                              self.settings["reform_dofs_at_each_step"].GetBool(), 
-                                                              False, 
+        return KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
+                                                              mechanical_scheme,
+                                                              linear_solver,
+                                                              builder_and_solver,
+                                                              self.settings["compute_reactions"].GetBool(),
+                                                              self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                              False,
                                                               self.settings["move_mesh_flag"].GetBool())
 
     def _create_newton_raphson_strategy(self):
@@ -499,31 +499,31 @@ class MechanicalSolver(object):
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part, 
-                                                                     mechanical_scheme, 
-                                                                     linear_solver, 
-                                                                     mechanical_convergence_criterion, 
+        return KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(computing_model_part,
+                                                                     mechanical_scheme,
+                                                                     linear_solver,
+                                                                     mechanical_convergence_criterion,
                                                                      builder_and_solver,
                                                                      self.settings["max_iteration"].GetInt(),
                                                                      self.settings["compute_reactions"].GetBool(),
                                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                      self.settings["move_mesh_flag"].GetBool())
- 
+
     def _create_line_search_strategy(self):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         mechanical_convergence_criterion = self.get_convergence_criterion()
         builder_and_solver = self.get_builder_and_solver()
-        return KratosMultiphysics.LineSearchStrategy(computing_model_part, 
-                                                     mechanical_scheme, 
-                                                     linear_solver, 
-                                                     mechanical_convergence_criterion, 
+        return KratosMultiphysics.LineSearchStrategy(computing_model_part,
+                                                     mechanical_scheme,
+                                                     linear_solver,
+                                                     mechanical_convergence_criterion,
                                                      builder_and_solver,
                                                      self.settings["max_iteration"].GetInt(),
                                                      self.settings["compute_reactions"].GetBool(),
                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                      self.settings["move_mesh_flag"].GetBool())
- 
-    
-    
+
+
+
