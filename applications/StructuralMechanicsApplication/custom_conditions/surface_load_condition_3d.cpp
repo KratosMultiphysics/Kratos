@@ -63,7 +63,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const
     {
-        return boost::make_shared<SurfaceLoadCondition3D>(NewId, pGeom, pProperties);
+        return Kratos::make_shared<SurfaceLoadCondition3D>(NewId, pGeom, pProperties);
     }
 
     //***********************************************************************************
@@ -75,7 +75,7 @@ namespace Kratos
         PropertiesType::Pointer pProperties
         ) const
     {
-        return boost::make_shared<SurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        return Kratos::make_shared<SurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
 
     //******************************* DESTRUCTOR *****************************************
@@ -276,7 +276,8 @@ namespace Kratos
             ge[2] = J[point_number](2, 0);
             gn[2] = J[point_number](2, 1);
 
-            const array_1d<double, 3 > normal = MathUtils<double>::UnitCrossProduct(ge, gn);
+            array_1d<double, 3 > normal;
+            MathUtils<double>::UnitCrossProduct(normal, gn, ge);
             
             // Calculating the pressure on the gauss point
             double pressure = 0.0;
@@ -304,7 +305,7 @@ namespace Kratos
             }
 
             //generic load on gauss point
-            array_1d<double,3> gauss_load = surface_load;
+            array_1d<double, 3> gauss_load = surface_load;
             for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
             {
                 if( GetGeometry()[ii].SolutionStepsDataHas( SURFACE_LOAD ) )

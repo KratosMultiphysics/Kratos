@@ -12,10 +12,9 @@
 #include <iostream>
 
 // External includes
-#include<cmath>
+// #include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 
 #include "structural_mechanics_application_variables.h"
@@ -69,7 +68,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     const double& NU    = MaterialProperties[POISSON_RATIO];
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
+    if(Options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
         CalculateCauchyGreenStrain(rValues, StrainVector);
     }

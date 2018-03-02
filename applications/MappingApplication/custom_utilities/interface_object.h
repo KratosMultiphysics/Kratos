@@ -168,6 +168,18 @@ public:
         return mIsBeingSent;
     }
 
+    virtual Node<3>* pGetBaseNode()
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return nullptr;
+    }
+
+    virtual Geometry<Node<3>>* pGetBaseGeometry()
+    {
+        KRATOS_ERROR << "Base class function called!" << std::endl;
+        return nullptr;
+    }
+
     virtual bool EvaluateResult(const array_1d<double, 3>& rGlobalCoords,
                                 double& rMinDistance, const double Distance,
                                 std::vector<double>& rShapeFunctionValues)
@@ -327,12 +339,12 @@ private:
 
     friend class Serializer;
     
-    virtual void save(Serializer& rSerializer) const 
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);
     }
-    virtual void load(Serializer& rSerializer) 
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_ERROR << "This object is not supposed to be used with serialization!" << std::endl;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point);

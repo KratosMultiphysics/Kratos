@@ -7,7 +7,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import Kratos_Execute_Contact_Structural_Test as Execute_Test
 
-# This utiltiy will control the execution scope in case we need to acces files or we depend
+# This utility will control the execution scope in case we need to access files or we depend
 # on specific relative locations of the files.
 
 # TODO: Should we move this to KratosUnittest?
@@ -42,18 +42,9 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
-
-class ALMMeshMovingMatchingTestContact(StructuralMechanichsTestFactory):
-    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_matching_test"
-    
-class ALMMeshMovingNotMatchingTestContact(StructuralMechanichsTestFactory):
-    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test"
     
 class ALMTaylorPatchTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/taylor_patch_test"
-
-class ALMTaylorPatchDynamicTestContact(StructuralMechanichsTestFactory):
-    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_dynamic_test"
     
 class ALMHertzSimpleSphereTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test"

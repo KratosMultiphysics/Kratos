@@ -26,6 +26,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   
   ## PROCESSES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/aalm_adapt_penalty_value_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/master_slave_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_fast_init_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_variables_calculation_process.cpp
   
@@ -33,6 +34,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   
   ## CONDITIONS
   # Mortar condition
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/paired_condition.cpp # Mesh tying
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mesh_tying_mortar_condition.cpp # Mesh tying
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_mortar_contact_condition.cpp # Base class
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_condition.cpp # Frictionless
@@ -42,7 +44,7 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 )
 
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    file(GLOB_RECURSE KRATOS_CONTACT_STRUCTURAL_MECHANICS_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################

@@ -54,7 +54,7 @@ Begin Conditions SurfaceLoadCondition3D4N// GUI group identifier: Load on surfac
 4 0 5 1 7 13
 End Conditions
 
-Begin SubModelPart Parts_Parts_Auto2 // Group Parts Auto2 // Subtree Parts
+Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto2 // Subtree Parts
     Begin SubModelPartNodes
          1
          2

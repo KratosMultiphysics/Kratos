@@ -72,7 +72,7 @@ public:
     ///@{
 
     /// Counted pointer of FSStrategy
-    typedef boost::shared_ptr< FSStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(FSStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 

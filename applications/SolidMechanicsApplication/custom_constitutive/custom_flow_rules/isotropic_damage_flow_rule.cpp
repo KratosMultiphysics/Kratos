@@ -163,14 +163,11 @@ bool IsotropicDamageFlowRule::UpdateInternalVariables( RadialReturnVariables& rR
         {
             mInternalVariables.EquivalentPlasticStrain = NewEquivalentStrain;
         }
-        mInternalVariables.EquivalentPlasticStrainOld = mInternalVariables.EquivalentPlasticStrain;
         
         Restore = false;
     }
     else // There was no convergence
-    {
-        mInternalVariables.EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrainOld;
-        
+    {   
         Restore = true;
     }
 
@@ -202,7 +199,6 @@ bool IsotropicDamageFlowRule::CalculateInternalVariables(RadialReturnVariables& 
     bool Tangent;
     if(NewEquivalentStrain >= mInternalVariables.EquivalentPlasticStrain)
     {
-        mInternalVariables.EquivalentPlasticStrain = NewEquivalentStrain;
         rReturnMappingVariables.Options.Set(PLASTIC_REGION,true); //loading with growing damage
         Tangent = true;
     }

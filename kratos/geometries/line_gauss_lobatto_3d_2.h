@@ -270,7 +270,7 @@ public:
         //making a copy of the nodes TO POINTS (not Nodes!!!)
 
         for ( IndexType i = 0 ; i < BaseType::Points().size() ; i++ )
-            NewPoints.push_back(boost::make_shared< Point >((*this)[i]));
+            NewPoints.push_back(Kratos::make_shared< Point >((*this)[i]));
 
         //creating a geometry with the new points
        Geometry< Point >::Pointer p_clone( new LineGaussLobatto3D2< Point >( NewPoints ) );
@@ -922,5 +922,5 @@ const GeometryData LineGaussLobatto3D2<TPointType>::msGeometryData( 3,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_GL_3D_2_H_INCLUDED  defined 
+#endif // KRATOS_LINE_GAUSS_LOBATTO_3D_2_H_INCLUDED  defined 
 

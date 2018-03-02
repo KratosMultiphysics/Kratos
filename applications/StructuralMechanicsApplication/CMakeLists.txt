@@ -15,18 +15,30 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ## CUSTOM PYTHON
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/structural_mechanics_python_application.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_cross_sections_to_python.cpp
 
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/static_condensation_utility.cpp
+
+  ## PROCESSES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/postprocess_eigenvalues_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/total_structural_mass_process.cpp
 
   ##CONSTITUTIVE LAW
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/beam_constitutive_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_stress.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_plane_strain.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_isotropic_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/axisym_elastic_isotropic.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_orthotropic_2D_law.cpp
@@ -34,9 +46,15 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ## ELEMENTS
   #Adding truss element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_3D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_linear_3D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cable_element_3D2N.cpp
    
   # Adding the beam element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_3D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_2D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_2D2N.cpp
+  
 
   # Adding shells and membranes elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
@@ -66,14 +84,14 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spring_damper_element_3D2N.cpp  
 
   ## CONDITIONS
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp # Beam's moment conditions
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_torque_3D_condition.cpp # Torques conditions
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_load_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_condition.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_contact_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_point_load_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_condition_3d.cpp
 )
 
 ###############################################################
@@ -82,7 +100,6 @@ add_library(KratosStructuralMechanicsApplication SHARED ${KRATOS_STRUCTURAL_MECH
 target_link_libraries(KratosStructuralMechanicsApplication KratosCore) # KratosSolidMechanicsApplication)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
-install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
 
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
@@ -110,6 +127,12 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosStructuralMechanicsApplication)
+endif(USE_COTIRE MATCHES ON)
+
+install(TARGETS KratosStructuralMechanicsApplication DESTINATION libs )
+
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StructuralMechanicsApplication.py" DESTINATION KratosMultiphysics )

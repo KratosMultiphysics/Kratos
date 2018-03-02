@@ -115,7 +115,7 @@ class EPPointRigidContactPenalty3DCondition
      * @return a Pointer to the new condition
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const&
-                              ThisNodes,  PropertiesType::Pointer pProperties) const;
+                              ThisNodes,  PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected condition variables, creating a new one
@@ -125,23 +125,23 @@ class EPPointRigidContactPenalty3DCondition
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone(IndexType NewId, 
-			     NodesArrayType const& ThisNodes) const;
+			     NodesArrayType const& ThisNodes) const override;
 
     /**
      * Called at the end of each solution step
      */
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Called at the end of each solution step
      */
-    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     
     /**
      * Called at the beginning of each iteration
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@name Access
     ///@{
@@ -166,6 +166,11 @@ protected:
 
     GeometricalInformation mCurrentInfo;
     GeometricalInformation mSavedInfo;
+
+    double mElasticYoungModulus; // using MCC + IMPLEX, at the finalizeSolutionStep the Contact Forces are correctly ingrated with the finalized of the Young Modulus at the continuum elements, that is quite different from the one used during the implex step.
+
+    bool mImplex;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -175,22 +180,27 @@ protected:
     ///@{
 
     virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
-				     double& rIntegrationWeight);
+				     ConditionVariables& rVariables,
+				     double& rIntegrationWeight) override;
 
 
 
 
-    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight);
+    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, ConditionVariables& rVariables, double& rIntegrationWeight) override;
 
 
-    bool CalculateFrictionLaw( GeneralVariables & rVariables, ConstitutiveVariables & rConstitutiveVariables, Vector & rTangentForce);
+    bool CalculateFrictionLaw( ConditionVariables & rVariables, ConstitutiveVariables & rConstitutiveVariables, Vector & rTangentForce);
 
     virtual double CalculateSomeSortOfArea();
 
     double CalculateEffectiveNormalForceModulus( const double& rNormalForceModulus, const double & rArea);
 
+    Matrix ConvertToTheAppropriateSize( const Matrix & rForceMatrix);
 
+    /**
+     * Calculation of the Contact Force Factors
+     */
+    virtual void CalculateContactFactors(ConditionVariables &rContact) override;
     ///@}
     ///@name Protected  Access
     ///@{
@@ -235,12 +245,12 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
+    virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointRigidContactPenalty3DCondition )
     }
 
-    virtual void load(Serializer& rSerializer)
+    virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointRigidContactPenalty3DCondition )
     }

@@ -1,11 +1,11 @@
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: Massimo Petracca $
-//   Date:                $Date: 2013-06-06 10:37:00 $
-//   Revision:            $Revision: 1.00 $
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Created by:          $Author:       Massimo Petracca $
+//   Last modified by:    $Co-Author:                     $
+//   Date:                $Date:                 May 2013 $
+//   Revision:            $Revision:                  0.0 $
 //
 //
-
 
 #if !defined(PROPERTIES_EXTENSIONS_H_INCLUDED)
 #define PROPERTIES_EXTENSIONS_H_INCLUDED

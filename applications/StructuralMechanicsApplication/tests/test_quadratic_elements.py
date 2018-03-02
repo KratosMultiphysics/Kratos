@@ -15,7 +15,7 @@ class TestQuadraticElements(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)        
         
     
-    def _apply_BCs(self,mp):
+    def _apply_BCs(self,mp, coeff = 1.0):
         for node in mp.Nodes:
             node.Fix(KratosMultiphysics.DISPLACEMENT_X)
             node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
@@ -23,9 +23,9 @@ class TestQuadraticElements(KratosUnittest.TestCase):
         
         for node in mp.Nodes:
             u = KratosMultiphysics.Vector(3)
-            u[0] = node.X0**2
-            u[1] = node.Y0**2
-            u[2] = node.Z0**2
+            u[0] = coeff * node.X0**2
+            u[1] = coeff * node.Y0**2
+            u[2] = coeff * node.Z0**2
             
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,u)
 
@@ -82,13 +82,13 @@ class TestQuadraticElements(KratosUnittest.TestCase):
         strategy.Check()
         strategy.Solve()
             
-    def _check_outputs(self,mp,dim):
+    def _check_outputs(self,mp,dim, coeff = 1.0):
         for elem in mp.Elements:
             strains = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, mp.ProcessInfo)
             coords = elem.CalculateOnIntegrationPoints(KratosMultiphysics.INTEGRATION_COORDINATES, mp.ProcessInfo)
             for strain,coord in zip(strains, coords):
                 for i in range(2):
-                    self.assertAlmostEqual((coord[i] - 0.5 * strain[i])/coord[i], 0.0 , 1)
+                    self.assertLessEqual(abs((coord[i] - 0.5 * strain[i]/coeff)/coord[i]), 5.0e-2)
 
     def test_Quad8(self):
         dim = 2
@@ -166,10 +166,9 @@ class TestQuadraticElements(KratosUnittest.TestCase):
         mp.CreateNewNode(64,2.0000000000,0.6250000000,0.0000000000)
         mp.CreateNewNode(65,2.0000000000,0.5000000000,0.0000000000)
 
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
         # Create Element
         mp.CreateNewElement("SmallDisplacementElement2D8N",1, [45,28,27,49,37,26,38,46], mp.GetProperties()[0])
@@ -189,9 +188,10 @@ class TestQuadraticElements(KratosUnittest.TestCase):
         mp.CreateNewElement("SmallDisplacementElement2D8N",15, [34,29,14,18,31,21,16,24], mp.GetProperties()[0])
         mp.CreateNewElement("SmallDisplacementElement2D8N",16, [56,52,29,34,53,40,31,43], mp.GetProperties()[0])
         
-        self._apply_BCs(mp)
+        coeff = 1.0e-2
+        self._apply_BCs(mp, coeff)
         self._solve(mp)
-        self._check_outputs(mp,dim)
+        self._check_outputs(mp,dim, coeff)
         
         #self.__post_process(mp)
         

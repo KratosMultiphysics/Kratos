@@ -1,14 +1,18 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-#import kratos core and applications
-import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.mpi as mpi
-import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-import KratosMultiphysics.MetisApplication as MetisApplication
-import structural_mechanics_solver
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Importing the Kratos Library
+import KratosMultiphysics
+import KratosMultiphysics.mpi as KratosMPI
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication","TrilinosApplication")
+
+# Import applications
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+
+# Import base class file
+import structural_mechanics_solver
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -30,15 +34,15 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(TrilinosMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        print("::[TrilinosMechanicalSolver]:: Construction finished")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
         super(TrilinosMechanicalSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        print("::[TrilinosMechanicalSolver]:: Variables ADDED")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
 
     def ImportModelPart(self):
-        print("::[TrilinosMechanicalSolver]:: Importing model part.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
         # Construct the Trilinos import model part utility.
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
@@ -50,7 +54,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         super(TrilinosMechanicalSolver, self)._set_and_fill_buffer()
         # Construct the communicators
         TrilinosModelPartImporter.CreateCommunicators()
-        print ("::[TrilinosMechanicalSolver]:: Finished importing model part.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
     #### Specific internal functions ####
 
@@ -58,6 +62,11 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         if not hasattr(self, '_epetra_communicator'):
             self._epetra_communicator = self._create_epetra_communicator()
         return self._epetra_communicator
+
+    def print_on_rank_zero(self, *args):
+        KratosMPI.mpi.world.barrier()
+        if KratosMPI.mpi.rank == 0:
+            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Private functions ####
 
@@ -70,7 +79,6 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
         conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
         conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("component_wise",self.settings["component_wise"])
         conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
@@ -87,7 +95,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def _create_builder_and_solver(self):
         if self.settings["multi_point_constraints_used"].GetBool():
             raise Exception("MPCs not yet implemented in MPI")
-            
+
         linear_solver = self.get_linear_solver()
         epetra_communicator = self.get_epetra_communicator()
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
@@ -109,13 +117,13 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
-        return TrilinosApplication.TrilinosLinearStrategy(computing_model_part, 
-                                                          mechanical_scheme, 
-                                                          linear_solver, 
-                                                          builder_and_solver, 
-                                                          self.settings["compute_reactions"].GetBool(), 
-                                                          self.settings["reform_dofs_at_each_step"].GetBool(), 
-                                                          False, 
+        return TrilinosApplication.TrilinosLinearStrategy(computing_model_part,
+                                                          mechanical_scheme,
+                                                          linear_solver,
+                                                          builder_and_solver,
+                                                          self.settings["compute_reactions"].GetBool(),
+                                                          self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                          False,
                                                           self.settings["move_mesh_flag"].GetBool())
 
     def _create_newton_raphson_strategy(self):

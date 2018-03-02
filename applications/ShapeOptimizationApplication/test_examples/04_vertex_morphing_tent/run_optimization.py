@@ -1,8 +1,10 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 import sys
 
-# This test example is from M. Hojjat, E. Stavropoulou, 
+# This test example is from M. Hojjat, E. Stavropoulou,
 # K.-U. Bletzinger, The Vertex Morphing method for node-based
 # shape optimization, Comput. Methods Appl. Mech. Engrg. 268
 # (2014) 494-513.
@@ -11,37 +13,37 @@ import sys
 #
 #                    z=1
 #                     /\
-#                    /  \ 
+#                    /  \
 #                   /    \
 #  |--> x          /      \           z=0
 #  _______________/        \_______________
 #  |----- 15 -----|-- 10 --|----- 15 -----|
 #
-# 
+#
 
 # ======================================================================================================================================
 # Model part and solver
 # ======================================================================================================================================
 
-parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( parameter_file.read())
-inputModelPart = ModelPart( ProjectParameters["optimization_settings"]["design_variables"]["input_model_part_name"].GetString() )
+ParameterFile = open("ProjectParameters.json",'r')
+ProjectParameters = Parameters( ParameterFile.read())
+OptimizationModelPart = ModelPart( ProjectParameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString() )
 
-optimizerFactory = __import__("optimizer_factory")
-optimizer = optimizerFactory.CreateOptimizer( inputModelPart, ProjectParameters["optimization_settings"] )
+OptimizerFactory = __import__("optimizer_factory")
+Optimizer = OptimizerFactory.CreateOptimizer( OptimizationModelPart, ProjectParameters["optimization_settings"] )
 
 # ======================================================================================================================================
 # Solver preparation
 # ======================================================================================================================================
 
 class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
-    
+
     # --------------------------------------------------------------------------
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
-        if communicator.isRequestingFunctionValueOf("targetDeviation"): 
-            communicator.reportFunctionValue("targetDeviation", self.ObjectiveFunction(currentDesign))    
-        if communicator.isRequestingGradientOf("targetDeviation"): 
-            communicator.reportGradient("targetDeviation", self.ObjectiveGradient(currentDesign))   
+    def analyzeDesignAndReportToCommunicator( self, currentDesign, OptimizationIteration, Communicator ):
+        if Communicator.isRequestingValueOf("targetDeviation"):
+            Communicator.reportValue("targetDeviation", self.ObjectiveFunction(currentDesign))
+        if Communicator.isRequestingGradientOf("targetDeviation"):
+            Communicator.reportGradient("targetDeviation", self.ObjectiveGradient(currentDesign))
 
     # --------------------------------------------------------------------------
     def ObjectiveFunction( self, currentDesign ):
@@ -84,8 +86,7 @@ newAnalyzer = externalAnalyzer()
 # Optimization
 # ======================================================================================================================================
 
-optimizer.importAnalyzer( newAnalyzer )
-optimizer.importModelPart()
-optimizer.optimize()
+Optimizer.importAnalyzer( newAnalyzer )
+Optimizer.optimize()
 
 # ======================================================================================================================================

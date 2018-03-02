@@ -136,7 +136,7 @@ word  logsize;    /* log base 2 of the size of the hash table */
 }
 
 /* hdestroy - destroy the hash table and free all its memory */
-void hdestroy( t)
+void htabdestroy( t)
 htab  *t;    /* the table */
 {
   /* hitem *h; */

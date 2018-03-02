@@ -23,7 +23,6 @@
 #include "containers/data_value_container.h"
 //#include "containers/hash_data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
-#include "containers/fix_data_value_container.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 //#include "containers/all_variables_data_value_container.h"
@@ -140,6 +139,16 @@ void  AddDeprecatedVariablesToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(   IS_DIVIDED )
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( xi_c )
+
+	//for Thermo Mechanical Application
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODE_PROPERTY_ID)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(REF_ID)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(PARTICLE_RADIUS)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(POSETIVE_DISTANCE)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NAGATIVE_DISTANCE)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_ESCAPED)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_SOLIDIFIED)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_GRAVITY_FILLING)
 
 }
 } // namespace Python.

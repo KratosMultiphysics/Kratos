@@ -33,6 +33,7 @@
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
+
 //hardening laws
 #include "custom_constitutive/custom_hardening_laws/cam_clay_hardening_law.hpp"
 
@@ -40,35 +41,18 @@
 #include "custom_constitutive/custom_yield_criteria/cam_clay_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/J2_yield_criterion.hpp"
 #include "custom_constitutive/custom_yield_criteria/tresca_yield_criterion.hpp"
-#include "custom_constitutive/custom_yield_criteria/mohr_coulomb_yield_criterion.hpp"
-#include "custom_constitutive/custom_yield_criteria/matsuoka_nakai_yield_criterion.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
-//#include "custom_constitutive/custom_flow_rules/cam_clay_explicit_plastic_flow_rule.hpp"
-//#include "custom_constitutive/custom_flow_rules/linear_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/borja_cam_clay_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/J2_explicit_plastic_flow_rule.hpp"
 #include "custom_constitutive/custom_flow_rules/tresca_explicit_plastic_flow_rule.hpp"
-#include "custom_constitutive/custom_flow_rules/mohr_coulomb_explicit_plastic_flow_rule.hpp"
 
-//#include "custom_constitutive/custom_flow_rules/non_associative_plastic_flow_rule.hpp"
-//#include "custom_constitutive/custom_flow_rules/matsuoka_nakai_flow_rule.hpp"
 
 
 
 //constitutive laws
-//#include "custom_constitutive/hencky_plastic_3d_law.hpp"
-//#include "custom_constitutive/hencky_plastic_plane_strain_2d_law.hpp"
-//#include "custom_constitutive/hencky_plastic_axisym_2d_law.hpp"
-//#include "custom_constitutive/hencky_matsuoka_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/hencky_matsuoka_axisym_2D_law.hpp"
-//#include "custom_constitutive/hencky_von_eekelen_axisym_2D_law.hpp"
-//#include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/hencky_cam_clay_axisym_2D_law.hpp"
-//#include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
-//#include "custom_constitutive/linear_hencky_cam_clay_axisym_2D_law.hpp"
-
+#include "custom_constitutive/borja_hencky_cam_clay_3D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_axisym_2D_law.hpp"
 #include "custom_constitutive/borja_hencky_cam_clay_plane_strain_2D_law.hpp"
 
@@ -76,8 +60,7 @@
 #include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_tresca_plane_strain_2D_law.hpp"
-#include "custom_constitutive/hencky_mohr_coulomb_axisym_2D_law.hpp"
-#include "custom_constitutive/hencky_mohr_coulomb_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_tresca_3D_law.hpp"
 
 #include "custom_constitutive/hencky_U_P_J2_axisym_2D_law.hpp"
 #include "custom_constitutive/hencky_U_P_J2_plane_strain_2D_law.hpp"
@@ -114,68 +97,12 @@ namespace Kratos
     {
       // class_< MaterialsContainer >( "MaterialsContainer", init<>() )
       // 	.def( "PushBack", Push_Back_Constitutive_Laws )
-/*    class_<HenckyElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyElasticPlastic3DLaw",
+
+    class_<BorjaHenckyCamClayPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "BorjaHenckyCamClayPlastic3DLaw",
       init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
-
-
-    class_<HenckyElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyElasticPlasticPlaneStrain2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-*/
-/*    class_<HenckyElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyElasticPlasticPlaneStrain2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-
-*/
-/*    class_<HenckyMatsuokaPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMatsuokaPlasticPlaneStrain2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-
-    class_<HenckyMatsuokaPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMatsuokaPlasticAxisym2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-
-    class_<HenckyVonEekelenPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyVonEekelenPlasticAxisym2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-*/
-
-   /* class_<NonLinearHenckyCamClayPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "NonLinearHenckyCamClayPlasticPlaneStrain2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-
-    class_<LinearHenckyCamClayPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "LinearHenckyCamClayPlasticPlaneStrain2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-
-    class_<NonLinearHenckyCamClayPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "NonLinearHenckyCamClayPlasticAxisym2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-    class_<LinearHenckyCamClayPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "LinearHenckyCamClayPlasticAxisym2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;*/
-
     class_<BorjaHenckyCamClayPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "BorjaHenckyCamClayPlasticAxisym2DLaw",
       init<>() )
@@ -227,20 +154,13 @@ namespace Kratos
       init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
-      // 	;
+    class_<HenckyTresca3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HenckyTresca3DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
     class_<HenckyTrescaPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HenckyTrescaPlasticPlaneStrain2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-    class_<HenckyMohrCoulombPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMohrCoulombPlasticAxisym2DLaw",
-      init<>() )
-      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    ;
-      // 	;
-    class_<HenckyMohrCoulombPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HenckyMohrCoulombPlasticPlaneStrain2DLaw",
       init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;

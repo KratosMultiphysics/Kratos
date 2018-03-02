@@ -19,8 +19,8 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/constitutive_law.h"
-#include "properties_extensions.hpp"
 #include "containers/flags.h"
+#include "custom_utilities/properties_extensions.hpp"
 
 namespace Kratos
 {
@@ -460,7 +460,7 @@ public:
 	
 protected:
 	
-	struct GeneralVariables
+	struct ElementVariables
 	{
 		double DeterminantF;
 		double DeterminantF0;
@@ -1087,14 +1087,14 @@ private:
     ///@name Private Methods
     ///@{
 	
-	void InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
+	void InitializeParameters(Parameters& rValues, ConstitutiveLaw::Parameters& rMaterialValues, ElementVariables& rVariables);
 	
-	void UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, GeneralVariables& rVariables);
+	void UpdateIntegrationPointParameters(IntegrationPoint& rPoint, ConstitutiveLaw::Parameters& rMaterialValues, ElementVariables& rVariables);
 	
 	void CalculateIntegrationPointResponse(IntegrationPoint& rPoint, 
 										   ConstitutiveLaw::Parameters& rMaterialValues,
 										   Parameters& rValues, 
-										   GeneralVariables& rVariables,
+										   ElementVariables& rVariables,
 										   const ConstitutiveLaw::StressMeasure& rStressMeasure);
 
 	/**

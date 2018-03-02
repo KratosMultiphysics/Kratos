@@ -164,7 +164,7 @@ Element::Pointer SprismElement3D6N::Create(
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new SprismElement3D6N(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Kratos::make_shared<SprismElement3D6N>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 /*********************************** CLONE ******************************************/
@@ -210,7 +210,7 @@ Element::Pointer SprismElement3D6N::Clone(
 
     NewElement.mid_vec = mid_vec;
 
-    return Element::Pointer( new SprismElement3D6N(NewElement));
+    return Kratos::make_shared<SprismElement3D6N>(NewElement);
 }
 
 //******************************* GETTING METHODS *********************************//
@@ -861,7 +861,7 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         /* Set constitutive law flags: */
         Flags &ConstitutiveLawOptions = Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
         /* Reading integration points */
@@ -929,7 +929,7 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         // Set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY, true);
 
@@ -990,7 +990,7 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         // Set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN_ENERGY, true);
 
@@ -1101,7 +1101,7 @@ void SprismElement3D6N::CalculateOnIntegrationPoints(
         // Set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         /* Reading integration points */
@@ -1843,7 +1843,7 @@ void SprismElement3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
     // Get constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -2027,7 +2027,7 @@ void SprismElement3D6N::CalculateElementalSystem(
     /* Set constitutive law flags: */
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 

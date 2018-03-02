@@ -23,6 +23,7 @@ namespace Kratos {
 
   //Application Constructor:
   KratosContactMechanicsApplication::KratosContactMechanicsApplication():
+    KratosApplication("ContactMechanicsApplication"),
     mContactDomainLMCondition3D4N( 0, Condition::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Condition::GeometryType::PointsArrayType( 4 ) ) ) ),
     mContactDomainLMCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
     mContactDomainPenaltyCondition2D3N( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -60,6 +61,10 @@ namespace Kratos {
       Serializer::Register( "PointRigidContactPenalty2DCondition", mPointRigidContactPenalty2DCondition);
       Serializer::Register( "PointRigidContactPenalty3DCondition", mPointRigidContactPenalty3DCondition);
       Serializer::Register( "AxisymPointRigidContactPenalty2DCondition", mAxisymPointRigidContactPenalty2DCondition);
+
+      Serializer::Register( "EPPointRigidContactPenalty2DCondition", mEPPointRigidContactPenalty2DCondition);
+      Serializer::Register( "EPPointRigidContactPenalty3DCondition", mEPPointRigidContactPenalty3DCondition);
+      Serializer::Register( "EPAxisymPointRigidContactPenalty2DCondition", mEPAxisymPointRigidContactPenalty2DCondition);
 
       //Register friction laws 
       Serializer::Register( "FrictionLaw", mFrictionLaw );

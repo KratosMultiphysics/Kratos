@@ -265,7 +265,7 @@ public:
     {
         return typename BaseType::Pointer( new Line2D2( ThisPoints ) );
     }
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -273,7 +273,7 @@ public:
     //     //making a copy of the nodes TO POINTS (not Nodes!!!)
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
-    //         NewPoints.push_back(boost::make_shared< Point<3> >((*this)[i]));
+    //         NewPoints.push_back(Kratos::make_shared< Point<3> >((*this)[i]));
     //     }
 
     //     //creating a geometry with the new points
@@ -792,27 +792,25 @@ public:
     }
 
     /**
-     * It computes the unit normal of the geometry, if possible
-     * @return The normal of the geometry
+     * It computes the area normal of the geometry
+     * @param rPointLocalCoordinates Refernce to the local coordinates of the
+     * point in where the unit normal is to be computed
+     * @return The area normal in the given point
      */
-    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) override
+    array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const override
     {
         // We define the normal
         array_1d<double,3> normal;
-        
+
         // We get the local points
         const TPointType& first_point  = BaseType::GetPoint(0);
         const TPointType& second_point = BaseType::GetPoint(1);
-        
+
         // We compute the normal
         normal[0] = second_point[1] -  first_point[1];
         normal[1] =  first_point[0] - second_point[0];
         normal[2] = 0.0;
-        
-        // We normalize
-        const double norm = std::sqrt(normal[0] * normal[0] + normal[1] * normal[1]);
-        normal /= norm;
-        
+
         return normal;
     }
 
@@ -855,17 +853,17 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
-        const double Tolerance = std::numeric_limits<double>::epsilon() 
+    virtual bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
         PointLocalCoordinates( rResult, rPoint );
@@ -874,19 +872,19 @@ public:
         {
             return true;
         }
-        
+
         return false;
     }
-    
+
     /**
      * Returns the local coordinates of a given arbitrary point
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
     virtual CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint 
+            const CoordinatesArrayType& rPoint
             ) override
     {
         rResult.clear();
@@ -925,7 +923,7 @@ public:
 
         return( rResult );
     }
-    
+
     ///@}
     ///@name Friends
     ///@{

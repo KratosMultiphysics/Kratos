@@ -29,10 +29,14 @@
 
 /* Adding truss element */
 #include "custom_elements/truss_element_3D2N.hpp"
+#include "custom_elements/truss_element_linear_3D2N.hpp"
+#include "custom_elements/cable_element_3D2N.hpp"
 
 /* Adding beam element */
 #include "custom_elements/cr_beam_element_3D2N.hpp"
-
+#include "custom_elements/cr_beam_element_linear_3D2N.hpp"
+#include "custom_elements/cr_beam_element_2D2N.hpp"
+#include "custom_elements/cr_beam_element_linear_2D2N.hpp"
 
 /* Adding shells and membranes elements */
 #include "custom_elements/isotropic_shell_element.hpp"
@@ -59,28 +63,33 @@
 #include "custom_elements/axisym_updated_lagrangian.h"
 
 /* CONDITIONS */
-#include "custom_conditions/point_moment_3D_condition.hpp"
-#include "custom_conditions/point_torque_3D_condition.hpp"
 #include "custom_conditions/base_load_condition.h"
 #include "custom_conditions/point_load_condition.h"
+#include "custom_conditions/point_contact_condition.h"
 #include "custom_conditions/axisym_point_load_condition.h"
 #include "custom_conditions/line_load_condition_2d.h"
 #include "custom_conditions/axisym_line_load_condition_2d.h"
 #include "custom_conditions/surface_load_condition_3d.h"
+#include "custom_conditions/point_moment_condition_3d.h"
 
 /* CONSTITUTIVE LAWS */
+#include "custom_constitutive/truss_constitutive_law.h"
+#include "custom_constitutive/beam_constitutive_law.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
+#include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
-#include "custom_constitutive/linear_elastic_orthotropic_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 
 /* UTILITIES */
 // Cross sections
-#include "custom_utilities/shell_cross_section.hpp"
-#include "custom_utilities/multipoint_constraint_data.hpp"
+// #include "custom_utilities/shell_cross_section.hpp"
+// #include "custom_utilities/multipoint_constraint_data.hpp"
 
 namespace Kratos
 {
@@ -242,11 +251,14 @@ private:
 
     // Adding the truss element
     const TrussElement3D2N mTrussElement3D2N; 
-    const TrussElement3D2N mTrussLinearElement3D2N;
+    const TrussElementLinear3D2N mTrussLinearElement3D2N;
+    const CableElement3D2N mCableElement3D2N;
 
     // Adding the beam element 
     const CrBeamElement3D2N mCrBeamElement3D2N;
-    const CrBeamElement3D2N mCrLinearBeamElement3D2N;
+    const CrBeamElementLinear3D2N mCrLinearBeamElement3D2N;
+    const CrBeamElement2D2N mCrBeamElement2D2N;
+    const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
 
 
     // Adding the shells elements 
@@ -340,6 +352,8 @@ private:
     // Point load
     const PointLoadCondition mPointLoadCondition2D1N;
     const PointLoadCondition mPointLoadCondition3D1N;
+    const PointContactCondition mPointContactCondition2D1N;
+    const PointContactCondition mPointContactCondition3D1N;
     
     const AxisymPointLoadCondition mAxisymPointLoadCondition2D1N;
     
@@ -357,20 +371,23 @@ private:
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D8N;
     const SurfaceLoadCondition3D mSurfaceLoadCondition3D9N;
     
-    // Beam moment condition
-    const PointMoment3DCondition mPointMomentCondition3D1N;
-    // Torque condition
-    const PointTorque3DCondition mPointTorqueCondition3D1N;
+    // Point moment
+    const PointMomentCondition3D mPointMomentCondition3D1N;
     
     /* CONSTITUTIVE LAWS */
     // Linear elastics laws
+    const TrussConstitutiveLaw mTrussConstitutiveLaw;
+    const BeamConstitutiveLaw mBeamConstitutiveLaw;
     const ElasticIsotropic3D mElasticIsotropic3D;
     const AxisymElasticIsotropic mAxisymElasticIsotropic;
     const LinearPlaneStrain  mLinearPlaneStrain;
     const LinearPlaneStress  mLinearPlaneStress;
+    const HyperElasticIsotropicKirchhoff3D  mHyperElasticIsotropicKirchhoff3D;
+    const HyperElasticIsotropicKirchhoffPlaneStress2D  mHyperElasticIsotropicKirchhoffPlaneStress2D;
+    const HyperElasticIsotropicKirchhoffPlaneStrain2D  mHyperElasticIsotropicKirchhoffPlaneStrain2D;
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
-	  const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
+    const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
 
     ///@}
     ///@name Private Operators

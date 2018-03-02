@@ -156,10 +156,10 @@ public:
 
     /**
      * The power iteration algorithm
-     * @param K: The stiffness matrix
-     * @param M: The mass matrix
-     * @param Eigenvalues: The vector containing the eigen values
-     * @param Eigenvectors: The matrix containing the eigen vectors
+     * @param K The stiffness matrix
+     * @param M The mass matrix
+     * @param Eigenvalues The vector containing the eigen values
+     * @param Eigenvectors The matrix containing the eigen vectors
      */
     void Solve(
         SparseMatrixType& K,
@@ -259,8 +259,8 @@ public:
     
     /**
      * This method returns directly the first eigen value obtained
-     * @param K: The stiffness matrix
-     * @param M: The mass matrix
+     * @param K The stiffness matrix
+     * @param M The mass matrix
      * @return The first eigenvalue
      */
     double GetEigenValue(

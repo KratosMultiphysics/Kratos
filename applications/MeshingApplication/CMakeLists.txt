@@ -2,8 +2,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosMeshingApplication ****")
 
-
-
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/external_libraries/triangle )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
@@ -34,6 +32,11 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/mmg_process.cpp
 )
 else(${INCLUDE_MMG} MATCHES ON)
@@ -46,16 +49,23 @@ set( KRATOS_MESHING_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/external_includes/mesh_suites.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/local_refine_geometry_mesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_levelset_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/internal_variables_interpolation_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metric_fast_init_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/metrics_hessian_process.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/nodal_values_interpolation_process.cpp
 )
 endif(${INCLUDE_MMG} MATCHES ON)
 
-
-
+if(${KRATOS_BUILD_TESTING} MATCHES ON) 
+    file(GLOB_RECURSE KRATOS_MESHING_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp) 
+endif(${KRATOS_BUILD_TESTING} MATCHES ON) 
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
+add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosMeshingApplication KratosCore triangle tetMeshOpt)
+
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )
     target_link_libraries(KratosMeshingApplication ${TETGEN_LIBRARIES})
@@ -84,6 +94,10 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosMeshingApplication)
+endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosMeshingApplication DESTINATION libs )
 

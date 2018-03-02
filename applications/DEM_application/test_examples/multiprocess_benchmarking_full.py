@@ -46,9 +46,9 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
                   "Running DEM Benchmark 24... Shear test of two identical spheres by applying rotation\n",\
                   "Running DEM Benchmark 25... Shear test of two identical spheres by applying rotation and radius expansion\n",\
                   "","","","",
-                  "Running DEM Benchmark 30... Cylinder cluster with imposed angular velocity in two axis (Verlet velocity + Zhao scheme)\n",
+                  "Running DEM Benchmark 30... Cylinder cluster with imposed angular velocity in two axis (Velocity Verlet + Zhao scheme)\n",
                   "Running DEM Benchmark 31... Cylinder cluster with imposed angular velocity in two axis (Symplectic Euler + Runge-Kutta scheme)\n",
-                  "Running DEM Benchmark 32... Fiber cluster bouncing without any damping (Verlet velocity + Zhao scheme)\n",
+                  "Running DEM Benchmark 32... Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n",
                   "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n"]
 
 def run(benchmark): 
@@ -100,7 +100,7 @@ def main():
     q = queue.Queue()
 
     #Discontinuum Tests. From 1 to 17
-    D_DEM_Benchmarks_list = list(range(1,12))
+    D_DEM_Benchmarks_list = list(range(1,18))
         
     #Continuum Tests
     C_DEM_Benchmarks_list = list(range(20,26))
@@ -151,9 +151,9 @@ def main():
     g.write("Benchmark 24. Shear test of two identical spheres by applying rotation\n")
     g.write("Benchmark 25. Shear test of two identical spheres by applying rotation and radius expansion\n")
     g.write("\nDISCONTINUUM CLUSTERS TESTS:\n")
-    g.write("Benchmark 30. Cylinder cluster with imposed angular velocity in two axis (Verlet velocity + Zhao scheme)\n")
+    g.write("Benchmark 30. Cylinder cluster with imposed angular velocity in two axis (Velocity Verlet + Zhao scheme)\n")
     g.write("Benchmark 31. Cylinder cluster with imposed angular velocity in two axis (Symplectic Euler + Runge-Kutta scheme)\n")
-    g.write("Benchmark 32. Fiber cluster bouncing without any damping (Verlet velocity + Zhao scheme)\n")
+    g.write("Benchmark 32. Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n")
     g.write("Benchmark 33. Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n")
     g.close()
     
