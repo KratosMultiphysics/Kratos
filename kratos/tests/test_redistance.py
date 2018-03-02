@@ -3,10 +3,10 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 import math
+import os
 
 def GetFilePath(fileName):
-    import os
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestRedistance(KratosUnittest.TestCase):
 
@@ -16,7 +16,7 @@ class TestRedistance(KratosUnittest.TestCase):
             d = 0.2
         if( d < -0.2):
             d = -0.2
-        return x 
+        return x
         #return -(math.sqrt(x**2+y**2+z**2) - 0.4)
 
     def test_model_part_sub_model_parts(self):
@@ -31,7 +31,7 @@ class TestRedistance(KratosUnittest.TestCase):
 
         import new_linear_solver_factory
         linear_solver = new_linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "SkylineLUFactorizationSolver" } """ ) )
-                
+
         model_part.CloneTimeStep(1.0)
 
         max_iterations = 2
@@ -46,7 +46,7 @@ class TestRedistance(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(max_distance, 0.44733610591604156)
         self.assertAlmostEqual(min_distance,-0.5049981495922843)
-        
-        
+
+
 if __name__ == '__main__':
     KratosUnittest.main()
