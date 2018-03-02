@@ -24,21 +24,12 @@ namespace Kratos
 
 namespace Python
 {
-<<<<<<< HEAD
     using namespace pybind11;
 
     void  AddMappingVariablesToPython(pybind11::module& m)
     {
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TANGENT_FACTOR)
     }
-=======
-using namespace boost::python;
-
-void  AddMappingVariablesToPython()
-{
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(TANGENT_FACTOR)                       // The factor between the tangent and normal behaviour
-}
->>>>>>> master
 }  // namespace Python.
 } // Namespace Kratos
 

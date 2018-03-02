@@ -86,6 +86,8 @@ namespace Python
                                     tmp[i] = cast<double>(input[i]);
                                 return tmp;
                                 }));
+        implicitly_convertible<list, Vector>();
+        implicitly_convertible<array_1d<double,3>, Vector>();
 
 
 
@@ -116,6 +118,9 @@ namespace Python
                                     tmp[i] = cast<double>(input[i]);
                                 return tmp;
                                 }) );
+        implicitly_convertible<list, array_1d<double,3>>();
+        implicitly_convertible<Vector, array_1d<double,3>>();
+
     }
 }  // namespace Python.
 

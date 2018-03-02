@@ -53,6 +53,33 @@ template< class TContainerType, class TVariableType > void SetValueHelperFunctio
     el.SetValue(rVar,Data);
 }
 
+void SetArrayValue(
+    Properties& el,
+    const Variable<array_1d<double,3>>& rVar,
+    const std::vector<double> Data)
+{
+    if(Data.size() != 3)
+        KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input is " << Data << std::endl;
+    
+    array_1d<double,3> tmp;
+    for(unsigned int i=0;i<3; ++i)
+        tmp[i] = Data[i];
+    
+    el.SetValue(rVar,tmp);
+}
+
+void SetVectorValue(
+    Properties& el,
+    const Variable<Vector>& rVar,
+    const std::vector<double> Data)
+{
+    Vector tmp(Data.size());
+    for(unsigned int i=0;i<tmp.size(); ++i)
+        tmp[i] = Data[i];
+    
+    el.SetValue(rVar,tmp);
+}
+
 template< class TContainerType, class TVariableType >
 typename TVariableType::Type GetValueHelperFunction1( TContainerType& el,
         const TVariableType& rVar )
@@ -96,11 +123,13 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("__setitem__", [](Properties& self, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){self.SetValue(rV, array_1d<double,3>(rValue));} )
     .def("SetValue", [](Properties& self, const Variable<array_1d<double, 3> > & rV, const Vector& rValue){self.SetValue(rV, array_1d<double,3>(rValue));} )
+//     .def("SetValue", SetArrayValue)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Vector > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Vector > >)
     .def("Has", HasHelperFunction_Element< Properties, Variable< Vector > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< Vector > >)
+//     .def("SetValue", SetVectorValue)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< Vector > >)
 
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Matrix > >)

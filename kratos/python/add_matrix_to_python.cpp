@@ -20,6 +20,7 @@
 #include "includes/define_python.h"
 #include "includes/ublas_interface.h"
 #include "add_matrix_to_python.h"
+#include "containers/array_1d.h"
 // #include "python/matrix_python_interface.h"
 // #include "python/matrix_scalar_operator_python.h"
 // #include "python/matrix_scalar_assignment_operator_python.h"

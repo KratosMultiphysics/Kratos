@@ -126,7 +126,7 @@ PYBIND11_MODULE(Kratos, m)
 // 
 //     AddSearchStrategiesToPython();
      AddTestingToPython(m);
-// // // // // // //      AddLoggerToPython(m); //TO BE SPOKEN WITH POOYAN
+     AddLoggerToPython(m); //TO BE SPOKEN WITH POOYAN
 
 //     AddBandedMatrixToPython();
 //     AddTriangularMatrixToPython();
