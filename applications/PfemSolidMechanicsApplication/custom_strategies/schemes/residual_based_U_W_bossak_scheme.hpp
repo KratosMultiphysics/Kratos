@@ -216,6 +216,24 @@ namespace Kratos
 
             KRATOS_CATCH("")
          }
+
+
+         virtual void IntegrationMethodPredict(NodeType& rNode) override
+         {
+            KRATOS_TRY
+
+            this->mpIntegrationMethod->Predict(rNode);
+
+            mpWaterDisplacementIntegrationMethod->Predict(rNode);
+
+            if ( rNode.HasDofFor(WATER_PRESSURE) )
+            {
+               mpWaterPressureIntegrationMethod->Predict( rNode);
+            }
+
+            KRATOS_CATCH("")
+         }
+
          ///@}
          ///@name Protected  Access
          ///@{
