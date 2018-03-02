@@ -65,8 +65,7 @@ class TestGidIO(KratosUnittest.TestCase):
         params = KratosMultiphysics.Parameters("""
             {
                 "reference_file_name"   : "",
-                "output_file_name"      : "",
-                "comparison_type"       : "deterministic"
+                "output_file_name"      : ""
             }
         """)
 
