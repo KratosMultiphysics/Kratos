@@ -169,9 +169,7 @@ public:
      */
     virtual void SetEchoLevel(int Level)
     {
-        KRATOS_WATCH(Level)
         mEchoLevel = Level;
-        KRATOS_WATCH(mEchoLevel)
     }
 
     int GetEchoLevel()
