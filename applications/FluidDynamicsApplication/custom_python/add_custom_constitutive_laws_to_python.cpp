@@ -13,13 +13,12 @@
 
 
 // System includes
-#include <boost/python.hpp>
 
 // External includes
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/constitutive_law.h"
 
 //Application includes
@@ -41,23 +40,29 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
 
-void  AddCustomConstitutiveLawsToPython()
+void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
 
-    class_< Euler2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Euler2DLaw",  init<>() );
+    class_< Euler2DLaw, ConstitutiveLaw >(m,"Euler2DLaw")
+    .def(  init<>() );
 
-    class_< Euler3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Euler3DLaw",  init<>() );
+    class_< Euler3DLaw, ConstitutiveLaw >(m,"Euler3DLaw")
+    .def( init<>() );
     
-    class_< Bingham3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Bingham3DLaw",init<>() );
+    class_< Bingham3DLaw, ConstitutiveLaw >(m,"Bingham3DLaw")
+    .def( init<>() );
 
-    class_< Newtonian2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian2DLaw",  init<>() );
+    class_< Newtonian2DLaw, ConstitutiveLaw >(m,"Newtonian2DLaw")
+    .def( init<>() );
      
-    class_< Newtonian3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian3DLaw",  init<>() );
+    class_< Newtonian3DLaw, ConstitutiveLaw >(m,"Newtonian3DLaw")
+    .def( init<>() );
   
-    class_< HerschelBulkey3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "HerschelBulkey3DLaw",  init<>() );
+    class_< HerschelBulkey3DLaw, ConstitutiveLaw >(m,"HerschelBulkey3DLaw")
+    .def( init<>() );
     
 }
 
