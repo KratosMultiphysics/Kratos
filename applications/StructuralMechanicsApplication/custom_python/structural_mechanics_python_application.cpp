@@ -44,11 +44,11 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
             .def(init<>())
             ;
 
-    AddCustomStrategiesToPython();
-    AddCustomProcessesToPython();
-    AddCustomUtilitiesToPython();
-    AddCustomConstitutiveLawsToPython();
-    AddCrossSectionsToPython();
+    AddCustomStrategiesToPython(m);
+    AddCustomProcessesToPython(m);
+    AddCustomUtilitiesToPython(m);
+    AddCustomConstitutiveLawsToPython(m);
+    AddCrossSectionsToPython(m);
 
     //registering variables in python
     // Generalized eigenvalue problem

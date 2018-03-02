@@ -32,9 +32,6 @@ namespace Python
 {
 
   void  AddCustomStrategiesToPython(pybind11::module& m);
-  /* { */
-  /*   using namespace boost::python; */
-  /* } */
 
 }  // namespace Python.
 
