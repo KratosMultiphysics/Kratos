@@ -52,6 +52,7 @@ class MechanicalSolver(object):
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
+                "perform_partitioning": true,
                 "input_file_label": 0
             },
             "computing_model_part_name" : "computing_domain",
