@@ -169,6 +169,13 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
         }
     }
 
+
+
+    void ExecuteInitializeSolutionStep() override
+    {
+        if (m_parameters["reform_every_step"].GetBool()) CoupleModelParts();
+    }
+
   protected:
 
   private:
