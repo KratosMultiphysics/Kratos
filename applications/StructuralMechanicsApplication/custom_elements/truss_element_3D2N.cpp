@@ -634,22 +634,58 @@ void TrussElement3D2N::AddExplicitContribution(
     Variable<array_1d<double, 3>> &rDestinationVariable,
     const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
+
+  bounded_vector<double, msLocalSize> damping_residual_contribution =
+      ZeroVector(msLocalSize);
+  // calculate damping contribution to residual -->
+  if ((this->GetProperties().Has(RAYLEIGH_ALPHA) ||
+       this->GetProperties().Has(RAYLEIGH_BETA)) &&
+      (rDestinationVariable != NODAL_INERTIA)) {
+    Vector current_nodal_velocities = ZeroVector(msLocalSize);
+    this->GetFirstDerivativesVector(current_nodal_velocities);
+    Matrix damping_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+    ProcessInfo temp_process_information; // cant pass const ProcessInfo
+    this->CalculateDampingMatrix(damping_matrix, temp_process_information);
+    // current residual contribution due to damping
+    noalias(damping_residual_contribution) =
+        prod(damping_matrix, current_nodal_velocities);
+  }
+
   if (rRHSVariable == RESIDUAL_VECTOR &&
       rDestinationVariable == FORCE_RESIDUAL) {
 
-    for (int i = 0; i < msNumberOfNodes; ++i) {
-      int index = msDimension * i;
-
-      GetGeometry()[i].SetLock();
-
+    for (size_t i = 0; i < msNumberOfNodes; ++i) {
+      size_t index = msDimension * i;
       array_1d<double, 3> &r_force_residual =
           GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-      for (int j = 0; j < msDimension; ++j) {
-        r_force_residual[j] += rRHSVector[index + j];
+      for (size_t j = 0; j < msDimension; ++j) {
+#pragma omp atomic
+        r_force_residual[j] +=
+            rRHSVector[index + j] - damping_residual_contribution[index + j];
       }
+    }
+  }
 
-      GetGeometry()[i].UnSetLock();
+  if (rDestinationVariable == NODAL_INERTIA) {
+
+    Matrix element_mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+    ProcessInfo temp_info; // Dummy
+    this->CalculateMassMatrix(element_mass_matrix, temp_info);
+
+    for (int i = 0; i < msNumberOfNodes; ++i) {
+      double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+      array_1d<double, msDimension> &r_nodal_inertia =
+          GetGeometry()[i].GetValue(NODAL_INERTIA);
+      int index = i * msDimension;
+
+      for (SizeType j = 0; j < msLocalSize; ++j) {
+#pragma omp atomic
+        r_nodal_mass += element_mass_matrix(index, j);
+      }
+      for (int k = 0; k < msDimension; ++k) {
+#pragma omp atomic
+        r_nodal_inertia[k] += 0.00;
+      }
     }
   }
   KRATOS_CATCH("")

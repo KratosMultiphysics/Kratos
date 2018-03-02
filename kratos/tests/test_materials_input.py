@@ -2,10 +2,10 @@
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-from  os.path import dirname, realpath
+import os
 
 def GetFilePath(fileName):
-    return dirname(realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestMaterialsInput(KratosUnittest.TestCase):
 
@@ -14,18 +14,18 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
         except:
             self.skipTest("KratosMultiphysics.FluidDynamicsApplication is not available")
-            
+
         try:
             import KratosMultiphysics.StructuralMechanicsApplication
         except:
             self.skipTest("KratosMultiphysics.StructuralMechanicsApplication is not available")
-        
+
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read")) #reusing the file that is already in the directory
         model_part_io.ReadModelPart(model_part)
-    
+
         #define a Model TODO: replace to use the real Model once available
         Model = {
             "Main" : model_part,
@@ -34,7 +34,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
             "Inlet2" : model_part.GetSubModelPart("Inlets").GetSubModelPart("Inlet2"),
             "Outlet" : model_part.GetSubModelPart("Outlet")
             }
-        
+
         test_settings = KratosMultiphysics.Parameters("""
             {
                     "Parameters": {
@@ -42,13 +42,13 @@ class TestMaterialsInput(KratosUnittest.TestCase):
                     }
             }
             """)
-        
-        #assign the real path 
+
+        #assign the real path
         test_settings["Parameters"]["materials_filename"].SetString(GetFilePath("materials.json"))
-        
+
         import read_materials_process
         read_materials_process.Factory(test_settings,Model)
-        
+
         #test if the element properties are assigned correctly to the elements and conditions
         for elem in Model["Inlets"].Elements:
             self.assertTrue(elem.Properties.Id == 1)
@@ -57,8 +57,8 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         for elem in Model["Outlet"].Elements:
             self.assertTrue(elem.Properties.Id == 2)
         for cond in Model["Outlet"].Conditions:
-            self.assertTrue(cond.Properties.Id == 2)   
-                    
+            self.assertTrue(cond.Properties.Id == 2)
+
         #test that the properties are read correctly
         self.assertTrue(model_part.Properties[1].GetValue(KratosMultiphysics.YOUNG_MODULUS) == 200.0)
         self.assertTrue(model_part.Properties[1].GetValue(KratosMultiphysics.POISSON_RATIO) == 0.3)
@@ -89,7 +89,7 @@ class TestMaterialsInput(KratosUnittest.TestCase):
         self.assertAlmostEqual(table.GetValue(1.5),11.0)
         self.assertAlmostEqual(table.GetNearestValue(1.1),10.0)
         self.assertAlmostEqual(table.GetDerivative(1.2),2.0)
-        
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
