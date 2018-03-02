@@ -102,7 +102,7 @@ set( KRATOS_PYTHON_SOURCES
 # 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_kratos_parameters_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_testing_to_python.cpp
-#####TO BE SPOKEN WITH POOYAN        ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/python/add_logger_to_python.cpp
  	${CMAKE_CURRENT_SOURCE_DIR}/python/add_model_to_python.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 )
