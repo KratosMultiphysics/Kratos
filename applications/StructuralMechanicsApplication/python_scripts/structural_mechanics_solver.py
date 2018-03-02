@@ -115,7 +115,7 @@ class MechanicalSolver(object):
             custom_settings["model_import_settings"].RemoveValue("input_file_label")
             warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified [model_import_settings][input_file_label], '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_on_rank_zero("Input file label", warning)
+            self.print_warning_on_rank_zero("Input file label", warning)
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
@@ -125,8 +125,6 @@ class MechanicalSolver(object):
         self.main_model_part = main_model_part
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
-        set the is_restarted to the modelpart hereits done twice then but I guess this is ok ...
-        also maybe I change the function ...?
         if self.settings["restart_settings"]["load_restart"].GetBool() == True:
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
 
@@ -369,12 +367,7 @@ class MechanicalSolver(object):
                 origin_settings.RemoveValue(name)
 
     def is_restarted(self):
-        # I cannot check in the ProcessInfo here bcs the info abt the analysis
-        # being restarted might not be set there yet!
-        if self.settings["restart_settings"]["load_restart"].GetBool() == True:
-            return True
-        else:
-            return False
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True:
 
     def print_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers

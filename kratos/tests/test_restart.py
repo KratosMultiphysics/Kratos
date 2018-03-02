@@ -29,6 +29,7 @@ class TestRestart(KratosUnittest.TestCase):
 
     def tearDown(self):
         kratos_utils.DeleteFileIfExisting("test_restart_file.rest")
+        kratos_utils.DeleteFileIfExisting("test_restart_file_5.3.rest")
 
     def _check_modelpart(self, model_part):
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
