@@ -29,8 +29,8 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # Initialize GiD  I/O
-            parameter_file = open(self.file_name + "_parameters.json", 'r')
-            ProjectParameters = Parameters(parameter_file.read())
+            with open(self.file_name + "_parameters.json", 'r') as parameter_file:
+                ProjectParameters = Parameters(parameter_file.read())
 
             # Creating the model part
             self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
@@ -42,13 +42,13 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
-    
+
 class SprismPanTests(StructuralMechanichsTestFactory):
     file_name = "sprism_test/pan_test"
-    
+
 class PendulusTLTest(StructuralMechanichsTestFactory):
     file_name = "pendulus_test/pendulus_TL_test"
-    
+
 class PendulusULTest(StructuralMechanichsTestFactory):
     file_name = "pendulus_test/pendulus_UL_test"
 
