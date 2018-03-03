@@ -199,9 +199,10 @@ namespace Kratos
 
             //********************************************************************
             //********************************************************************
-        typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+            typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 	    typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
 	    typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+            typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFDisplacementSchemeType;
 
             class_< BaseSchemeType, typename BaseSchemeType::Pointer >(m,"Scheme")
             .def(init< >())
@@ -249,10 +250,15 @@ namespace Kratos
 	    // Residual Based Newmark Scheme Type
 	    class_< ResidualBasedNewmarkDisplacementSchemeType,
             typename ResidualBasedNewmarkDisplacementSchemeType::Pointer,
-             BaseSchemeType >
-            (m,"ResidualBasedNewmarkDisplacementScheme")
-            .def(init< >() )
-            .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+             BaseSchemeType >(m,"ResidualBasedNewmarkDisplacementScheme")
+                .def(init< >() )
+                .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
+            
+            // Residual Based BDF displacement Scheme Type
+            class_< ResidualBasedBDFDisplacementSchemeType,typename ResidualBasedBDFDisplacementSchemeType::Pointer, BaseSchemeType  >(m,"ResidualBasedBDFDisplacementScheme")
+                .def(init<  >() )
+                .def(init <const std::size_t>())
             ;
 
             //********************************************************************
