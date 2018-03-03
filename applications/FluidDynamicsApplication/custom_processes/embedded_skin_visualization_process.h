@@ -207,12 +207,23 @@ private:
     ///@name Private Operations
     ///@{
 
+    void ComputeNewNodesInterpolation();
+
+    void CopyOriginNodes();
+
+    void CopyOriginNodalValues();
+
+    void CreateVisualizationGeometries();
+
     const bool ElementIsSplit(
         Geometry<Node<3>>::Pointer pGeometry,
-        Vector& rNodalDistances);
+        const Vector &rNodalDistances);
 
     const bool ElementIsPositive(
-        Geometry<Node<3>>::Pointer pGeometry);
+        Geometry<Node<3>>::Pointer pGeometry,
+        const Vector &rNodalDistances);
+
+    const Vector SetDistancesVector(ModelPart::ElementIterator ItElem);
 
     ModifiedShapeFunctions::Pointer SetModifiedShapeFunctionsUtility(
         const Geometry<Node<3>>::Pointer pGeometry,
@@ -221,6 +232,8 @@ private:
     Geometry< Node<3> >::Pointer SetNewConditionGeometry(
         const GeometryData::KratosGeometryType &rOriginGeometryType,
         const Condition::NodesArrayType &rNewNodesArray);
+
+    std::tuple< Properties::Pointer , Properties::Pointer > SetVisualizationProperties();
 
     ///@}
     ///@name Private  Access

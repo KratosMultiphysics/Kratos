@@ -122,6 +122,86 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     }
 }
 
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::Calculate(
+    const Variable<double> &rVariable,
+    double& rOutput,
+    const ProcessInfo &rCurrentProcessInfo) {
+
+    rOutput = 0.0;
+
+    TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::Calculate(
+    const Variable<array_1d<double, 3>> &rVariable,
+    array_1d<double, 3> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo) {
+
+    rOutput = ZeroVector(3);
+
+    // If the element is split, integrate sigma·n over the interface
+    // Note that in the ausas formulation, both interface sides need to be integrated
+    if (rVariable == DRAG_FORCE) {
+
+        EmbeddedElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        this->InitializeGeometryData(data);
+
+        if ( data.IsCut() ){
+            // Integrate positive interface side drag
+            const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
+            for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
+
+                // Update the Gauss pt. data
+                data.UpdateGeometryValues(data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
+
+                // Get the interface Gauss pt. unit noromal
+                const auto &aux_unit_normal = data.PositiveInterfaceUnitNormals[g];
+
+                // Compute Gauss pt. pressure
+                const double p_gauss = inner_prod(data.N, data.Pressure);
+
+                // Call the constitutive law to compute the shear contribution
+                this->CalculateMaterialResponse(data);
+
+                // Get the normal projection matrix in Voigt notation
+                bounded_matrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
+                FluidElementUtilities<NumNodes>::VoigtTransformForProduct(aux_unit_normal, voigt_normal_proj_matrix);
+
+                // Add the shear and pressure drag contributions
+                const array_1d<double, Dim> shear_proj = data.Weight * prod(voigt_normal_proj_matrix, data.ShearStress);
+                for (unsigned int i = 0; i < Dim ; ++i){
+                    rOutput(i) -= shear_proj(i);
+                }
+                rOutput += data.Weight * p_gauss * aux_unit_normal;
+            }
+        }
+
+    } else {
+        TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::Calculate(
+    const Variable<Vector> &rVariable,
+    Vector& rOutput,
+    const ProcessInfo &rCurrentProcessInfo) {
+
+    TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::Calculate(
+    const Variable<Matrix> &rVariable,
+    Matrix& rOutput,
+    const ProcessInfo &rCurrentProcessInfo) {
+
+    TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 

@@ -2,11 +2,10 @@
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-from  os.path import dirname, realpath
 import os
 
 def GetFilePath(fileName):
-    return dirname(realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestMaterialsInput(KratosUnittest.TestCase):
 

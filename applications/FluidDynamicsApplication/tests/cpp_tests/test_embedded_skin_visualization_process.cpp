@@ -84,6 +84,19 @@ namespace Kratos {
 
             }
 
+            // Copy the nodal distance to ELEMENTAL_DISTANCES variable
+            // (needed in case the Ausas functions are tested)
+            // for (unsigned int i_elem = 0; i_elem < main_model_part.NumberOfElements(); ++i_elem){
+            //     auto it_elem = main_model_part.ElementsBegin() + i_elem;
+            //     auto &r_geom = it_elem->GetGeometry();
+            //     const unsigned int elem_n_nodes = r_geom.PointsNumber();
+            //     Vector elem_dist(elem_n_nodes);
+            //     for (unsigned int i_node = 0; i_node < elem_n_nodes; ++i_node){
+            //         elem_dist[i_node] = r_geom[i_node].GetSolutionStepValue(DISTANCE);
+            //     }
+            //     it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+            // }
+
             // Create the visualization model part
             ModelPart visualization_model_part("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -108,15 +121,14 @@ namespace Kratos {
             skin_visualization_process.ExecuteBeforeOutputStep();
             skin_visualization_process.ExecuteFinalizeSolutionStep();
 
-            // GidIO<> gid_io_fluid("/home/rzorrilla/Kratos/tests/visualizaton_model_part_2d", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-            // gid_io_fluid.InitializeMesh(0);
-            // gid_io_fluid.WriteMesh(visualization_model_part.GetMesh());
-            // gid_io_fluid.FinalizeMesh();
-            // gid_io_fluid.InitializeResults(0, visualization_model_part.GetMesh());
-            // gid_io_fluid.WriteNodalResults(DISTANCE, visualization_model_part.Nodes(), 0, 0);
-            // gid_io_fluid.WriteNodalResults(VELOCITY, visualization_model_part.Nodes(), 0, 0);
-            // gid_io_fluid.WriteNodalResults(PRESSURE, visualization_model_part.Nodes(), 0, 0);
-            // gid_io_fluid.FinalizeResults();
+            GidIO<> gid_io_fluid("/home/rzorrilla/Kratos/tests/visualizaton_model_part_2d", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+            gid_io_fluid.InitializeMesh(0);
+            gid_io_fluid.WriteMesh(visualization_model_part.GetMesh());
+            gid_io_fluid.FinalizeMesh();
+            gid_io_fluid.InitializeResults(0, visualization_model_part.GetMesh());
+            gid_io_fluid.WriteNodalResults(VELOCITY, visualization_model_part.Nodes(), 0, 0);
+            gid_io_fluid.WriteNodalResults(PRESSURE, visualization_model_part.Nodes(), 0, 0);
+            gid_io_fluid.FinalizeResults();
         }
 
 	    /** 
@@ -176,6 +188,19 @@ namespace Kratos {
 
             }
 
+            // Copy the nodal distance to ELEMENTAL_DISTANCES variable
+            // (needed in case the Ausas functions are tested)
+            // for (unsigned int i_elem = 0; i_elem < main_model_part.NumberOfElements(); ++i_elem){
+            //     auto it_elem = main_model_part.ElementsBegin() + i_elem;
+            //     auto &r_geom = it_elem->GetGeometry();
+            //     const unsigned int elem_n_nodes = r_geom.PointsNumber();
+            //     Vector elem_dist(elem_n_nodes);
+            //     for (unsigned int i_node = 0; i_node < elem_n_nodes; ++i_node){
+            //         elem_dist[i_node] = r_geom[i_node].GetSolutionStepValue(DISTANCE);
+            //     }
+            //     it_elem->SetValue(ELEMENTAL_DISTANCES, elem_dist);
+            // }
+
             // Create the visualization model part
             ModelPart visualization_model_part("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
@@ -200,15 +225,14 @@ namespace Kratos {
             skin_visualization_process.ExecuteBeforeOutputStep();
             skin_visualization_process.ExecuteFinalizeSolutionStep();
 
-            // GidIO<> gid_io_fluid("/home/rzorrilla/Kratos/tests/visualizaton_model_part_3d", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
-            // gid_io_fluid.InitializeMesh(0.0);
-            // gid_io_fluid.WriteMesh(visualization_model_part.GetMesh());
-            // gid_io_fluid.FinalizeMesh();
-            // gid_io_fluid.InitializeResults(0, visualization_model_part.GetMesh());
-            // gid_io_fluid.WriteNodalResults(DISTANCE, visualization_model_part.Nodes(), 0, 0);
-            // gid_io_fluid.WriteNodalResults(VELOCITY, visualization_model_part.Nodes(), 0, 0);
-            // gid_io_fluid.WriteNodalResults(PRESSURE, visualization_model_part.Nodes(), 0, 0);
-            // gid_io_fluid.FinalizeResults();
+            GidIO<> gid_io_fluid("/home/rzorrilla/Kratos/tests/visualizaton_model_part_3d", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+            gid_io_fluid.InitializeMesh(0.0);
+            gid_io_fluid.WriteMesh(visualization_model_part.GetMesh());
+            gid_io_fluid.FinalizeMesh();
+            gid_io_fluid.InitializeResults(0, visualization_model_part.GetMesh());
+            gid_io_fluid.WriteNodalResults(VELOCITY, visualization_model_part.Nodes(), 0, 0);
+            gid_io_fluid.WriteNodalResults(PRESSURE, visualization_model_part.Nodes(), 0, 0);
+            gid_io_fluid.FinalizeResults();
 
 	    }
     } // namespace Testing

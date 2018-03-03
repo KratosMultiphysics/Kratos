@@ -37,7 +37,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
 
-        KratosMultiphysics.Logger.PrintInfo("::Reading materials process:: ", "Started")
+        KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Started")
 
         with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
             materials = KratosMultiphysics.Parameters(parameter_file.read())
@@ -90,14 +90,16 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         constitutive_law_name = splitted[-1]
         application_name = splitted[-2]
 
-        if application_name == "KratosMultiphysics":
+        if module_name == "KratosMultiphysics":
             return getattr(KratosMultiphysics, constitutive_law_name)
         else:
-            # Check that application was imported in the main script
-            KratosMultiphysics.CheckRegisteredApplications(application_name)
-            application = __import__("Kratos" + application_name)
+            application_name = "Kratos" + module_name
+            if application_name not in KratosMultiphysics.KratosGlobals.RequestedApplications:
+                raise ImportError(module_name + " is not imported!")
+            module1 = KratosMultiphysics.KratosGlobals.RequestedApplications[application_name]
+            module2 = sys.modules[application_name]
 
-            return getattr(application, constitutive_law_name)
+            return getattr(module2, constitutive_law_name)
 
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
