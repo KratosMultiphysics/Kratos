@@ -28,8 +28,8 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # Initialize GiD  I/O
-            parameter_file = open(self.file_name + "_parameters.json", 'r')
-            ProjectParameters = Parameters(parameter_file.read())
+            with open(self.file_name + "_parameters.json", 'r') as parameter_file:
+                ProjectParameters = Parameters(parameter_file.read())
 
             # Creating the model part
             self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
@@ -42,7 +42,7 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         pass
 
-# Do NOT remove these tests, they are there that the Execution script is being tested in the SmallTests 
+# Do NOT remove these tests, they are there that the Execution script is being tested in the SmallTests
 # (aka by the continuous integration tool before merging to master) !!!
 class SimpleMeshMovingTest(StructuralMechanichsTestFactory):
     file_name = "mesh_moving_test/simple_mesh_moving_test"
