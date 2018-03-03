@@ -18,6 +18,7 @@ namespace Kratos {
 
     ParticleCreatorDestructor::ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher) : mGreatestParticleId(0) {
         mScaleFactor = 1.0;
+        mMaxNodeId = 0;
         mHighPoint[0] = 10e18;
         mHighPoint[1] = 10e18;
         mHighPoint[2] = 10e18;
@@ -749,7 +750,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             r_modelpart.Nodes().push_back(pnew_node);
             r_modelpart.Elements().push_back(p_particle);
         }
-
+        
+        if (r_Elem_Id > (int) (mMaxNodeId)) mMaxNodeId = (unsigned int) (r_Elem_Id);
+        
         return p_particle;
 
     }
@@ -784,8 +787,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
             }
         }
-
-
+        if (r_Elem_Id > (int) (mMaxNodeId)) mMaxNodeId = (unsigned int) (r_Elem_Id);
+        
         return spheric_p_particle;
 
     }
