@@ -136,7 +136,6 @@ namespace Kratos
     std::vector< array_1d<double, 3> > mG3Initial;            // Base vector 2 in initial reference configuration
 
 
-
     void CalculateAll(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
@@ -149,7 +148,6 @@ namespace Kratos
       Matrix& msB,
       Matrix& msD,
       double weight);
-
 
     void InitializeNonLinearIteration();
 
@@ -257,6 +255,11 @@ namespace Kratos
 
     void InitializeMaterial(const unsigned int NumberIntegrationPoints);
 
+    void ComputeContravariantBaseVectors(
+                        array_1d<double, 3>& rG1Contra, 
+                        array_1d<double, 3>& rG2Contra,
+                        const unsigned int& rPointNumber);
+
     void ComputeRelevantCoSys(const unsigned int PointNumber,
              array_1d<double, 3>& rg1,array_1d<double, 3>& rg2,array_1d<double, 3>& rg3, array_1d<double, 3>& rgab,
              array_1d<double, 3>& rG3,
@@ -283,6 +286,8 @@ namespace Kratos
                     const array_1d<double, 3>& rE1, const array_1d<double, 3>& rE2, const array_1d<double, 3>& rE3, const array_1d<double, 3>& rG3,
                     const array_1d<double, 3>& rg1, const array_1d<double, 3>& rg2, const array_1d<double, 3>& rg3, const bounded_matrix<double,3,3>& rNAct,
                     const double Lambda1, const double Lambda2);
+
+    const Matrix CalculateDeformationGradient(const unsigned int& rPointNumber);
 
     int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 

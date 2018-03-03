@@ -29,10 +29,12 @@
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
+#include "custom_strategies/custom_strategies/explicit_strategy.hpp" 
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
+#include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 
 // Builder and solvers
@@ -78,11 +80,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
+    typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
+
 
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
+    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
     
+
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
@@ -116,12 +122,21 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag)
         ;
 
+/*
+    class_< ExplicitStrategyType,  typename ExplicitStrategyType::Pointer, BaseSolvingStrategyType > (m,"ExplicitStrategy")
+        .def(init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
+        .def(init < ModelPart&, BaseSchemeType::Pointer,  bool, bool, bool >())
+        .def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
+        .def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
+        ;*/
+
     // harmonic Analysis Strategy
     class_< HarmonicAnalysisStrategyType,typename HarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"HarmonicAnalysisStrategy")
     .def(init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
             .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
             .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
             ;
+
 
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
@@ -137,6 +152,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     class_< EigensolverDynamicSchemeType,typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m,"EigensolverDynamicScheme")
     .def(init<>() )
             ;
+    
+    // Explicit Central Differences Scheme Type
+    class_< ExplicitCentralDifferencesSchemeType,typename ExplicitCentralDifferencesSchemeType::Pointer, BaseSchemeType >(m,"ExplicitCentralDifferencesScheme")
+    .def(init< const double, const double, const double>() );
 
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************

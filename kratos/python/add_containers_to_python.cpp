@@ -500,6 +500,9 @@ void  AddContainersToPython(pybind11::module& m)
     // For MeshingApplication
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_ERROR )
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, NODAL_ERROR_COMPONENTS )
+
+    // For explicit time integration
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RESIDUAL_VECTOR )
     
     //for PFEM application TO BE REMOVED
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, NODAL_AREA )

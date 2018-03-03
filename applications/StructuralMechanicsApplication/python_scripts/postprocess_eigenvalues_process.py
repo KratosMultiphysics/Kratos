@@ -29,7 +29,7 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process):
                 "label_type" : "frequency"
             }
             """
-        );
+        )
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -38,19 +38,19 @@ class PostProcessEigenvaluesProcess(KratosMultiphysics.Process):
         settings.RemoveValue("computing_model_part_name")
         self.post_eigen_process = StructuralMechanicsApplication.PostprocessEigenvaluesProcess(
                                     model_part, settings)
-                                                                              
+
     def ExecuteInitialize(self):
         self.post_eigen_process.ExecuteInitialize()
-    
+
     def ExecuteBeforeSolutionLoop(self):
         self.post_eigen_process.ExecuteBeforeSolutionLoop()
-    
+
     def ExecuteInitializeSolutionStep(self):
         pass
 
     def ExecuteFinalizeSolutionStep(self):
         pass
-              
+
     def ExecuteBeforeOutputStep(self):
         pass
 
