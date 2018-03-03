@@ -46,22 +46,22 @@ using namespace pybind11;
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
 
-    class_< Euler2DLaw, ConstitutiveLaw >(m,"Euler2DLaw")
+    class_< Euler2DLaw, Euler2DLaw::Pointer, ConstitutiveLaw >(m,"Euler2DLaw")
     .def(  init<>() );
 
-    class_< Euler3DLaw, ConstitutiveLaw >(m,"Euler3DLaw")
+    class_< Euler3DLaw, Euler3DLaw::Pointer, ConstitutiveLaw >(m,"Euler3DLaw")
     .def( init<>() );
     
-    class_< Bingham3DLaw, ConstitutiveLaw >(m,"Bingham3DLaw")
+    class_< Bingham3DLaw, Bingham3DLaw::Pointer, ConstitutiveLaw >(m,"Bingham3DLaw")
     .def( init<>() );
 
-    class_< Newtonian2DLaw, ConstitutiveLaw >(m,"Newtonian2DLaw")
+    class_< Newtonian2DLaw, Newtonian2DLaw::Pointer, ConstitutiveLaw >(m,"Newtonian2DLaw")
     .def( init<>() );
      
-    class_< Newtonian3DLaw, ConstitutiveLaw >(m,"Newtonian3DLaw")
+    class_< Newtonian3DLaw, Newtonian3DLaw::Pointer, ConstitutiveLaw >(m,"Newtonian3DLaw")
     .def( init<>() );
   
-    class_< HerschelBulkey3DLaw, ConstitutiveLaw >(m,"HerschelBulkey3DLaw")
+    class_< HerschelBulkey3DLaw, HerschelBulkey3DLaw::Pointer, ConstitutiveLaw >(m,"HerschelBulkey3DLaw")
     .def( init<>() );
     
 }

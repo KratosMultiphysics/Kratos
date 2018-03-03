@@ -41,6 +41,7 @@ PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
     class_<KratosFluidDynamicsApplication,
            KratosFluidDynamicsApplication::Pointer,
            KratosApplication >(m,"KratosFluidDynamicsApplication")
+           .def(init<>())
            ;
 
     AddCustomConstitutiveLawsToPython(m);

@@ -63,11 +63,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 
     class_< ResidualBasedBlockBuilderAndSolverPeriodic< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+            typename ResidualBasedBlockBuilderAndSolverPeriodic< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
             ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >
             (m,"ResidualBasedBlockBuilderAndSolverPeriodic")
             .def(init<LinearSolverType::Pointer, const Variable<int>& >());
 
-    class_< FSStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >, BaseSolvingStrategyType >
+    class_< FSStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >,
+            typename FSStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >::Pointer,
+            BaseSolvingStrategyType >
             (m,"FSStrategy")
             .def(init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
             .def(init< ModelPart&, SolverSettings< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
@@ -79,6 +82,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
     class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< SparseSpaceType, LocalSpaceType >,
+            typename ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< SparseSpaceType, LocalSpaceType >::Pointer,
             BaseSchemeType  >
             (m,"ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent")
             .def(init<double,double,unsigned int,Process::Pointer >() )
@@ -89,6 +93,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef ResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType > ResidualBasedSimpleSteadySchemeType;
     class_< ResidualBasedSimpleSteadySchemeType,
+            typename ResidualBasedSimpleSteadySchemeType::Pointer,
             BaseSchemeType >
         (m,"ResidualBasedSimpleSteadyScheme")
         .def(init<double,double,unsigned int,Process::Pointer >() )
@@ -101,6 +106,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
     class_< ResidualBasedPredictorCorrectorBDFSchemeTurbulent< SparseSpaceType, LocalSpaceType >,
+            typename ResidualBasedPredictorCorrectorBDFSchemeTurbulent< SparseSpaceType, LocalSpaceType >::Pointer,
             BaseSchemeType >
             (m,"ResidualBasedPredictorCorrectorBDFSchemeTurbulent")
             .def(init<unsigned int,Process::Pointer >() )
@@ -109,6 +115,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
 
     class_<ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction<SparseSpaceType, LocalSpaceType>,
+            typename ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction<SparseSpaceType, LocalSpaceType>::Pointer,
 		 ResidualBasedPredictorCorrectorBDFSchemeTurbulent<SparseSpaceType, LocalSpaceType>  >
 		(m,"ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction")
                 .def(init<unsigned int, Process::Pointer >())
@@ -117,6 +124,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 		;
             
     class_< GearScheme< SparseSpaceType, LocalSpaceType >,
+            typename GearScheme< SparseSpaceType, LocalSpaceType >::Pointer,
             BaseSchemeType >
             (m,"GearScheme").
             def(init<>()) // default constructor
@@ -125,6 +133,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 	// Convergence criteria
     class_< VelPrCriteria< SparseSpaceType, LocalSpaceType >,
+            typename VelPrCriteria< SparseSpaceType, LocalSpaceType >::Pointer,
             ConvergenceCriteria< SparseSpaceType, LocalSpaceType  >>
             (m,"VelPrCriteria")
             .def(init< double, double, double, double>())
