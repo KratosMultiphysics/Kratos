@@ -37,7 +37,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
 
-        KratosMultiphysics.Logger.PrintInfo("::Reading materials process:: ", "Started")
+        KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Started")
 
         with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
             materials = KratosMultiphysics.Parameters(parameter_file.read())

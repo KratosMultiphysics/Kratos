@@ -47,12 +47,12 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
 
-        self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
-        self.projectionOnNormalsIsSpecified = OptimizationSettings["optimization_algorithm"]["project_gradients_on_surface_normals"].GetBool()
-        self.onlyObjective = OptimizationSettings["objectives"][0]["identifier"].GetString()
-        self.onlyConstraint = OptimizationSettings["constraints"][0]["identifier"].GetString()
+        self.onlyObjectiveId = OptimizationSettings["objectives"][0]["identifier"].GetString()
+        self.onlyConstraintId = OptimizationSettings["constraints"][0]["identifier"].GetString()
         self.typeOfOnlyConstraint = OptimizationSettings["constraints"][0]["type"].GetString()
+        self.projectionOnNormalsIsSpecified = OptimizationSettings["optimization_algorithm"]["project_gradients_on_surface_normals"].GetBool()
         self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
+        self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
 
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
@@ -81,18 +81,12 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ", self.optimizationIteration)
             print(">===================================================================\n")
 
-            self.__initializeModelPartForNewSolutionStep()
+            self.__initializeNewShape()
 
-            self.__updateMeshAccordingCurrentShapeUpdate()
-
-            self.__callCoumminicatorToCreateNewRequests()
-
-            self.__callAnalyzerToPerformRequestedAnalyses()
-
-            self.__storeResultOfSensitivityAnalysisOnNodes()
+            self.__analyzeShape()
 
             if self.projectionOnNormalsIsSpecified:
-                self.__projectSensitivitiesOnLocalSurfaceNormal()
+                self.__projectSensitivitiesOnSurfaceNormals()
 
             if self.dampingIsSpecified:
                 self.__dampSensitivities()
@@ -117,53 +111,46 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.Analyzer.finalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def __initializeModelPartForNewSolutionStep( self ):
+    def __initializeNewShape( self ):
         self.ModelPartController.CloneTimeStep( self.optimizationIteration )
-
-    # --------------------------------------------------------------------------
-    def __updateMeshAccordingCurrentShapeUpdate( self ):
         self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
         self.ModelPartController.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
-    def __callCoumminicatorToCreateNewRequests( self ):
+    def __analyzeShape( self ):
         self.Communicator.initializeCommunication()
-        self.Communicator.requestFunctionValueOf( self.onlyObjective )
-        self.Communicator.requestFunctionValueOf( self.onlyConstraint )
-        self.Communicator.requestGradientOf( self.onlyObjective )
-        self.Communicator.requestGradientOf( self.onlyConstraint )
+        self.Communicator.requestValueOf( self.onlyObjectiveId )
+        self.Communicator.requestValueOf( self.onlyConstraintId )
+        self.Communicator.requestGradientOf( self.onlyObjectiveId )
+        self.Communicator.requestGradientOf( self.onlyConstraintId )
 
-    # --------------------------------------------------------------------------
-    def __callAnalyzerToPerformRequestedAnalyses( self ):
         self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
-        self.__ResetPossibleShapeModificationsDuringAnalysis()
 
-    # --------------------------------------------------------------------------
-    def __ResetPossibleShapeModificationsDuringAnalysis( self ):
-        self.ModelPartController.SetMeshToReferenceMesh()
-        self.ModelPartController.SetDeformationVariablesToZero()
+        self.__storeResultOfSensitivityAnalysisOnNodes()
+        self.__RevertPossibleShapeModificationsDuringAnalysis()
 
     # --------------------------------------------------------------------------
     def __storeResultOfSensitivityAnalysisOnNodes( self ):
-        gradientOfObjectiveFunction = self.Communicator.getReportedGradientOf ( self.onlyObjective )
-        gradientOfConstraintFunction = self.Communicator.getReportedGradientOf ( self.onlyConstraint )
+        gradientOfObjectiveFunction = self.Communicator.getStandardizedGradient( self.onlyObjectiveId )
+        gradientOfConstraintFunction = self.Communicator.getStandardizedGradient( self.onlyConstraintId )
         self.__storeGradientOnNodalVariable( gradientOfObjectiveFunction, OBJECTIVE_SENSITIVITY )
         self.__storeGradientOnNodalVariable( gradientOfConstraintFunction, CONSTRAINT_SENSITIVITY )
 
     # --------------------------------------------------------------------------
-    def __storeGradientOnNodalVariable( self, gradients, variable_name ):
-        for nodeId in gradients:
-            gradient = Vector(3)
-            gradient[0] = gradients[nodeId][0]
-            gradient[1] = gradients[nodeId][1]
-            gradient[2] = gradients[nodeId][2]
-            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(variable_name,0,gradient)
+    def __storeGradientOnNodalVariable( self, gradient, variable_name ):
+        for nodeId, tmp_gradient in gradient.items():
+            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(variable_name,0,tmp_gradient)
 
     # --------------------------------------------------------------------------
-    def __projectSensitivitiesOnLocalSurfaceNormal( self ):
-            self.GeometryUtilities.ComputeUnitSurfaceNormals()
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( CONSTRAINT_SENSITIVITY )
+    def __RevertPossibleShapeModificationsDuringAnalysis( self ):
+        self.ModelPartController.SetMeshToReferenceMesh()
+        self.ModelPartController.SetDeformationVariablesToZero()
+
+    # --------------------------------------------------------------------------
+    def __projectSensitivitiesOnSurfaceNormals( self ):
+        self.GeometryUtilities.ComputeUnitSurfaceNormals()
+        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
+        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( CONSTRAINT_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
@@ -173,14 +160,12 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __computeShapeUpdate( self ):
         self.__mapSensitivitiesToDesignSpace()
-
-        constraintValue = self.Communicator.getReportedFunctionValueOf( self.onlyConstraint )
-        if self.__isConstraintActive( constraintValue ):
+        constraint_value = self.Communicator.getStandardizedValue( self.onlyConstraintId )
+        if self.__isConstraintActive( constraint_value ):
             self.OptimizationUtilities.ComputeProjectedSearchDirection()
-            self.OptimizationUtilities.CorrectProjectedSearchDirection( constraintValue )
+            self.OptimizationUtilities.CorrectProjectedSearchDirection( constraint_value )
         else:
             self.OptimizationUtilities.ComputeSearchDirectionSteepestDescent()
-
         self.OptimizationUtilities.ComputeControlPointUpdate()
         self.__mapDesignUpdateToGeometrySpace()
 
@@ -191,7 +176,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __isConstraintActive( self, constraintValue ):
-        if self.typeOfOnlyConstraint == "equality":
+        if self.typeOfOnlyConstraint == "=":
             return True
         elif constraintValue > 0:
             return True
@@ -232,11 +217,6 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
                 print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
                 return True
-
-            # Check if value of objective increases
-            if relativeChangeOfObjectiveValue > 0:
-                print("\n> Value of objective function increased!")
-                return False
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges( self ):
