@@ -48,6 +48,8 @@ from test_spring_damper_element import SpringDamperElementTests as TSpringDamper
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
 # Dynamic basic tests
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
+# Eigenvalues Postprocessing Process test
+from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -206,6 +208,8 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
     # Dynamic basic tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
+    # Eigenvalues Postprocessing Process test
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
