@@ -86,7 +86,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         computing_model_part = self.GetComputingModelPart()
         mechanical_scheme = self.get_solution_scheme()
 
-        mechanical_solver = StructuralMechanicsApplication.MechanicalExplicitStrategy(computing_model_part,
+        mechanical_solution_strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(computing_model_part,
                                             mechanical_scheme,
                                             self.settings["compute_reactions"].GetBool(),
                                             self.settings["reform_dofs_at_each_step"].GetBool(),
