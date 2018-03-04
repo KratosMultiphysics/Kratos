@@ -515,7 +515,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             bcs_neumann.AddConditions([1])
             #create Element
             for i in range(nr_elements):
-                mp.CreateNewElement("CrBeamElement3D2N", i+1, [i+1,i+2],
+                mp.CreateNewElement("CrLinearBeamElement3D2N", i+1, [i+1,i+2],
                 mp.GetProperties()[0])
 
             #apply constant boundary conditions
@@ -526,9 +526,9 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
             #loop over time
             time_start = 0.00
-            time_end = 0.0004
-            # time_delta = 0.001
             time_delta = 0.000015
+            time_end = time_delta*12
+            # time_delta = 0.001
             time_i = time_start
             time_step = 0
             self._set_and_fill_buffer(mp,2,time_delta)
