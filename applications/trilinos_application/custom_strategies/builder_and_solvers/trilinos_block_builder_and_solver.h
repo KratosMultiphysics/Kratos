@@ -619,10 +619,12 @@ public:
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
-        std::cout << rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize << std::endl;
-        std::cout << rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl;
-        std::cout << rank << " : free_offset = " << free_offset << std::endl;
-        //std::cout << rank << " : fixed_offset = " << fixed_offset << std::endl;
+        if(BaseType::GetEchoLevel()>0){
+            std::cout << rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize << std::endl;
+            std::cout << rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl;
+            std::cout << rank << " : free_offset = " << free_offset << std::endl;
+            //std::cout << rank << " : fixed_offset = " << fixed_offset << std::endl;
+        }
 
         //by Riccardo ... it may be wrong!
         mFirstMyId = free_offset-mLocalSystemSize;

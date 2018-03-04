@@ -3,6 +3,8 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as UnitTest
 
+import KratosMultiphysics.kratos_utilities as kratos_utils
+
 try:
     from KratosMultiphysics.FluidDynamicsApplication import *
     have_fluid_dynamics = True
@@ -35,10 +37,8 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
     def tearDown(self):
         with WorkFolderScope(self.workFolder):
             for suffix in ['_0.post.res', '_0.post.msh']:
-                try:
-                    os.remove(self.output_file_name+suffix)
-                except FileNotFoundError:
-                    pass
+                kratos_utils.DeleteFileIfExisting(self.output_file_name+suffix)
+
 
     def setModelPart(self):
         modelPart = ModelPart("Test ModelPart")

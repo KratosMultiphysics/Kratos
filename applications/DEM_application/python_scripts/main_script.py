@@ -47,19 +47,19 @@ class Solution(object):
         self.PreUtilities = PreUtilities()
 
         # Set the print function TO_DO: do this better...
-        self.KRATOSprint   = self.procedures.KRATOSprint
-        
+        self.KRATOSprint = self.procedures.KRATOSprint
+
         # Creating necessary directories:
         self.main_path = os.getcwd()
         problem_name = self.GetProblemTypeFilename()
         [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(problem_name))
 
         self.SetGraphicalOutput()
-        self.report        = DEM_procedures.Report()
+        self.report = DEM_procedures.Report()
         self.parallelutils = DEM_procedures.ParallelUtils()
-        self.materialTest  = DEM_procedures.MaterialTest()
+        self.materialTest = DEM_procedures.MaterialTest()
         self.translational_scheme = self.SetTranslationalScheme()
-        self.rotational_scheme    = self.SetRotationalScheme()
+        self.rotational_scheme = self.SetRotationalScheme()
 
         # Define control variables
         self.p_frequency = 100   # activate every 100 steps
@@ -98,14 +98,14 @@ class Solution(object):
         if self.step_count == self.p_count:
            self.p_count += self.p_frequency
            return True
-        else:
-            return False
+
+        return False
 
     def SetAnalyticParticleWatcher(self):
         self.main_path = os.getcwd()  #revisar
         from analytic_tools import analytic_data_procedures
         self.particle_watcher = AnalyticParticleWatcher()
-        self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher = self.particle_watcher, path = self.main_path)
+        self.particle_watcher_analyser = analytic_data_procedures.ParticleWatcherAnalyzer(analytic_particle_watcher=self.particle_watcher, path=self.main_path)
 
     def SetFinalTime(self):
         self.final_time = self.DEM_parameters["FinalTime"].GetDouble()
@@ -139,7 +139,7 @@ class Solution(object):
             return SymplecticEulerScheme()
         elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Taylor_Scheme':
             return TaylorScheme()
-        elif (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
+        elif self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet':
             return VelocityVerletScheme()
 
         return None
@@ -229,7 +229,9 @@ class Solution(object):
 
         self.ReadModelParts()
 
-        self.FillAnalyticSubModelParts()
+        if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
+                self.FillAnalyticSubModelParts()
 
         # Setting up the buffer size
         self.procedures.SetUpBufferSizeInAllModelParts(self.spheres_model_part, 1, self.cluster_model_part, 1, self.DEM_inlet_model_part, 1, self.rigid_face_model_part, 1)
@@ -287,18 +289,18 @@ class Solution(object):
         self.report.total_steps_expected = int(self.final_time / self.dt)
         self.KRATOSprint(self.report.BeginReport(timer))
         os.chdir(self.main_path)
-        
+
     def AddAllDofs(self):
         self.solver.AddDofs(self.spheres_model_part)
         self.solver.AddDofs(self.cluster_model_part)
         self.solver.AddDofs(self.DEM_inlet_model_part)
-        
+
     def SetSearchStrategy(self):
         self.solver.search_strategy = self.parallelutils.GetSearchStrategy(self.solver, self.spheres_model_part)
-        
+
     def SolverBeforeInitialize(self):
         self.solver.BeforeInitialize()
-        
+
     def SolverInitialize(self):
         self.solver.Initialize() # Possible modifications of number of elements and number of nodes
 
@@ -337,14 +339,14 @@ class Solution(object):
         max_elem_Id += self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
         old_max_elem_Id_spheres = max_elem_Id
         max_cond_Id += self.creator_destructor.FindMaxConditionIdInModelPart(self.spheres_model_part)
-        rigidFace_mp_filename   = self.GetFemFilename()
+        rigidFace_mp_filename = self.GetFemFilename()
         model_part_io_fem = self.model_part_reader(rigidFace_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_fem.ReadModelPart(self.rigid_face_model_part)
 
         max_node_Id = self.creator_destructor.FindMaxNodeIdInModelPart(self.rigid_face_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.rigid_face_model_part)
         max_cond_Id = self.creator_destructor.FindMaxConditionIdInModelPart(self.rigid_face_model_part)
-        clusters_mp_filename   = self.GetClusterFilename()
+        clusters_mp_filename = self.GetClusterFilename()
         model_part_io_clusters = self.model_part_reader(clusters_mp_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_clusters.ReadModelPart(self.cluster_model_part)
         max_elem_Id = self.creator_destructor.FindMaxElementIdInModelPart(self.spheres_model_part)
@@ -357,7 +359,7 @@ class Solution(object):
         DEM_Inlet_filename = self.GetInletFilename()
         model_part_io_demInlet = self.model_part_reader(DEM_Inlet_filename, max_node_Id + 1, max_elem_Id + 1, max_cond_Id + 1)
         model_part_io_demInlet.ReadModelPart(self.DEM_inlet_model_part)
-        
+
         self.model_parts_have_been_read = True
         self.all_model_parts.ComputeMaxIds()
 
@@ -482,7 +484,7 @@ class Solution(object):
         self.KRATOSprint(self.report.FinalReport(timer))
 
     def SetGraphicalOutput(self):
-        self.demio         = DEM_procedures.DEMIo(self.DEM_parameters, self.post_path)
+        self.demio = DEM_procedures.DEMIo(self.DEM_parameters, self.post_path)
 
     def GraphicalOutputInitialize(self):
         self.demio.Initialize(self.DEM_parameters)
