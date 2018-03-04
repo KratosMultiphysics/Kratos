@@ -71,7 +71,7 @@ public:
         .def("__setitem__", [](TContainerType& self, typename TContainerType::value_type& value){self[value.Id()] = value;} ) 
         .def("__setitem__", [](TContainerType& self, typename TContainerType::pointer& pvalue){self(pvalue->Id()) = pvalue;} ) 
         .def("__getitem__", [](TContainerType& self, unsigned int i){return self(i);} )
-        .def("__iter__",    [](TContainerType& self){return make_iterator(self.begin(), self.end());},  keep_alive<0,1>()) 
+        .def("__iter__",    [](TContainerType& self){return make_iterator(self.ptr_begin(), self.ptr_end());},  keep_alive<0,1>())  //TODO: decide if here we should use ptr_iterators or iterators
         .def("append",    [](TContainerType& self, typename TContainerType::pointer value){self.push_back(value);}  ) 
         ;
     }
