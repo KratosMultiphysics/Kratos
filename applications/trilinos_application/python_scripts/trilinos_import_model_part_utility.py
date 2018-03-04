@@ -44,11 +44,11 @@ class TrilinosImportModelPartUtility():
                 partitioner = KratosMetis.MetisDivideHeterogeneousInputProcess(model_part_io, number_of_partitions , domain_size, verbosity, sync_conditions)
                 partitioner.Execute()
 
-                print("Metis divide finished.")
+                KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis divide finished.")
 
             else:
                 if (KratosMPI.mpi.rank == 0):
-                    print("Metis partitioning not executed.")
+                    KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "Metis partitioning not executed.")
 
             KratosMPI.mpi.world.barrier()
 
@@ -71,4 +71,4 @@ class TrilinosImportModelPartUtility():
         ParallelFillCommunicator.Execute()
 
         if KratosMPI.mpi.rank == 0 :
-            print("MPI communicators constructed.")
+            KratosMultiphysics.Logger.PrintInfo("::[TrilinosImportModelPartUtility]::", "MPI communicators constructed.")
