@@ -42,7 +42,8 @@ namespace Kratos
  * @class ResidualBasedBossakDisplacementScheme
  * @ingroup KratosCore
  * @brief Bossak integration scheme (for dynamic problems) for displacements
- * @details This is a dynamic implicit scheme based of the Bossak algorithm for displacements
+ * @details This is a dynamic implicit scheme based of the Bossak algorithm for displacements.
+ * The parameter Alpha of Bossak introduces damping, the value of Bossak is from 0 to -0.3 (negative)
  * @author Josep Maria Carbonell
  * @author Vicente Mataix Ferrandiz
  */
@@ -86,9 +87,9 @@ public:
     ///@{
 
     /**
-     * Constructor.
-     * The bossak method
-     * @rAlpham The Bossak parameter
+     * @brief Constructor.
+     * @detail The bossak method
+     * @rAlpham The Bossak parameter. Default value is 0, which is the Newmark method
      */
     explicit ResidualBasedBossakDisplacementScheme(const double rAlpham = 0.0)
         :ImplicitBaseType()
@@ -113,7 +114,8 @@ public:
         KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
     }
 
-    /** Copy Constructor.
+    /** 
+     * @brief Copy Constructor.
      */
     ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
         :ImplicitBaseType(rOther)
@@ -124,7 +126,7 @@ public:
     }
 
     /**
-     * Clone
+     * @brief Clone method
      */
     BaseTypePointer Clone() override
     {
@@ -191,7 +193,7 @@ public:
         }
         
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>(rModelPart.Nodes().size());
+        const int num_nodes = static_cast<int>(rModelPart.NumberOfNodes());
 
         #pragma omp parallel for
         for(int i = 0;  i < num_nodes; ++i) {
@@ -204,11 +206,11 @@ public:
             array_1d<double, 3>& current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3>& previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
 
-            array_1d<double, 3>& current_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            const array_1d<double, 3>& previous_aceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            array_1d<double, 3>& current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
+            const array_1d<double, 3>& previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
             
-            UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_aceleration);
-            UpdateAcceleration(current_aceleration, delta_displacement, previous_velocity, previous_aceleration);
+            UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_acceleration);
+            UpdateAcceleration(current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
         }
 
         KRATOS_CATCH( "" );
@@ -239,7 +241,7 @@ public:
         const double delta_time = current_process_info[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.Nodes().size() );
+        const int num_nodes = static_cast<int>( rModelPart.NumberOfNodes() );
 
         #pragma omp parallel for
         for(int i = 0;  i< num_nodes; ++i) {
@@ -414,12 +416,20 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    struct GeneralAlphaMethod
+    /**
+     * @brief The Generalized Alpha components
+     * @detail For more about it:
+     * J. Chung, G.M.Hubert. "A Time Integration Algorithm for Structural Dynamics with Improved Numerical Dissipation: The Generalized-α Method" ASME Journal of Applied Mechanics, 60, 371:375, 1993. 
+     */
+    struct GeneralizedAlphaMethod
     {
         double f; /// Alpha Hilbert
-        double m; /// Alpha Bosssak
+        double m; /// Alpha Bosssak 
     };
 
+    /**
+     * @brief The Newmark parameters used during integration
+     */
     struct NewmarkMethod
     {
         // Newmark constants
@@ -429,6 +439,9 @@ protected:
         double c0, c1, c2, c3, c4, c5;
     };
 
+    /**
+     * @brief Vector containing the velocity and acceleration used on integration
+     */
     struct GeneralVectors
     {
         std::vector< Vector > v;  /// Velocity
@@ -436,9 +449,9 @@ protected:
         std::vector< Vector > ap; /// Previous acceleration
     };
     
-    GeneralAlphaMethod mAlpha; /// The structure containing the Generalized alpha components
-    NewmarkMethod mNewmark; /// The structure containing the Newmark parameters
-    GeneralVectors mVector; /// The structure containing the velocities and accelerations
+    GeneralizedAlphaMethod mAlpha; /// The structure containing the Generalized alpha components
+    NewmarkMethod mNewmark;        /// The structure containing the Newmark parameters
+    GeneralVectors mVector;        /// The structure containing the velocities and accelerations
 
     ///@}
     ///@name Protected Operators
