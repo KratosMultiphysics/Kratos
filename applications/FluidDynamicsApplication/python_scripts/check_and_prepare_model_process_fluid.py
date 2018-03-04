@@ -36,15 +36,10 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         fluid_computational_model_part.ProcessInfo = self.main_model_part.ProcessInfo
         
         print("adding nodes and elements to fluid_computational_model_part")
-        node_ids = []
         for node in self.volume_model_part.Nodes:
-            node_ids.append(node.Id)
-        fluid_computational_model_part.AddNodes(node_ids)
-        
-        elem_ids = []
+            fluid_computational_model_part.AddNode(node,0)
         for elem in self.volume_model_part.Elements:
-            elem_ids.append(elem.Id)
-        fluid_computational_model_part.AddElements(elem_ids)
+            fluid_computational_model_part.AddElement(elem,0)
             
         #do some gymnastics to have this done fast. - create an ordered list to be added
         list_of_ids = set()
