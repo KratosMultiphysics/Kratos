@@ -203,6 +203,15 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(disp_y_analytical[time_step], disp_y_simulated)
 
+    def _check_results_dynamic_lumped(self,mp,time_i,nr_nodes,time_step):
+        #check free vibration of cantilever tip
+        disp_y_simulated = mp.Nodes[nr_nodes].GetSolutionStepValue(
+            KratosMultiphysics.DISPLACEMENT_Y)
+        disp_y_analytical = [-4.162518390580818e-05,-0.00017969144438005632,
+        -0.00039846788371390653,-0.0006674048593190372,-0.000980511641724115]
+
+        self.assertAlmostEqual(disp_y_analytical[time_step], disp_y_simulated)
+
     def _check_results_dynamic_explicit(self,mp,time_i,nr_nodes,time_step):
         #check free vibration of cantilever tip
         disp_y_simulated = mp.Nodes[nr_nodes].GetSolutionStepValue(
@@ -218,7 +227,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             -0.0004929004674252967,-0.0005314362205181631,-0.0005721203453514332,
             -0.0006117811911574032]
 
-        self.assertAlmostEqual(disp_y_analytical[time_step], disp_y_simulated)
+        self.assertAlmostEqual(disp_y_analytical[time_step], disp_y_simulated,6)
 
 
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
@@ -425,7 +434,7 @@ class TestCrBeam3D2N(KratosUnittest.TestCase):
             mp.CloneTimeStep(time_i)
             #solve + compare
             self._solve_dynamic(mp)
-            self._check_results_dynamic(mp,time_i,nr_nodes,time_step)
+            self._check_results_dynamic_lumped(mp,time_i,nr_nodes,time_step)
             time_step += 1
 
     def test_cr_beam_dynamic_consistent_mass_matrix(self):
