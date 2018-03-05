@@ -5,8 +5,8 @@ from KratosMultiphysics.ExternalSolversApplication  import *
 from KratosMultiphysics.StructuralMechanicsApplication  import *
 
 ## Import define_output
-parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( parameter_file.read())
+with open("ProjectParameters.json",'r') as parameter_file:
+    ProjectParameters = Parameters(parameter_file.read())
 
 ## Get echo level and parallel type
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
