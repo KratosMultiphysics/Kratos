@@ -67,6 +67,10 @@ namespace Kratos
 				MatrixType& rLeftHandSideMatrix,
 				ProcessInfo& rCurrentProcessInfo) override;
 
+			void CalculateMassMatrix(
+				MatrixType& rMassMatrix,
+				ProcessInfo& rCurrentProcessInfo) override;
+
 			/**
 			 * @brief This function calculates the element stiffness w.r.t. deformation modes
 			 */

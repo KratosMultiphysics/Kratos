@@ -806,6 +806,98 @@ double CrBeamElement2D2N::Modulus2Pi(double A) {
   KRATOS_CATCH("")
 }
 
+void CrBeamElement2D2N::AddExplicitContribution(
+    const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
+    Variable<array_1d<double, 3>> &rDestinationVariable,
+    const ProcessInfo &rCurrentProcessInfo) {
+  // FORCE- & Moment- Residual is 3D vector
+  KRATOS_TRY;
+
+  bounded_vector<double, msElementSize> damping_residual_contribution =
+      ZeroVector(msElementSize);
+  // calculate damping contribution to residual -->
+  if ((this->GetProperties().Has(RAYLEIGH_ALPHA) ||
+       this->GetProperties().Has(RAYLEIGH_BETA)) &&
+      (rDestinationVariable != NODAL_INERTIA)) {
+    Vector current_nodal_velocities = ZeroVector(msElementSize);
+    this->GetFirstDerivativesVector(current_nodal_velocities);
+    Matrix damping_matrix = ZeroMatrix(msElementSize, msElementSize);
+    ProcessInfo temp_process_information; // cant pass const ProcessInfo
+    this->CalculateDampingMatrix(damping_matrix, temp_process_information);
+    // current residual contribution due to damping
+    noalias(damping_residual_contribution) =
+        prod(damping_matrix, current_nodal_velocities);
+  }
+
+  if (rRHSVariable == RESIDUAL_VECTOR &&
+      rDestinationVariable == FORCE_RESIDUAL) {
+
+    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
+      SizeType index = msLocalSize * i;
+
+      GetGeometry()[i].SetLock();
+
+      array_1d<double, 3> &r_force_residual =
+          GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+      for (SizeType j = 0; j < msDimension; ++j) {
+        r_force_residual[j] +=
+            rRHSVector[index + j] - damping_residual_contribution[index + j];
+      }
+
+      r_force_residual[msDimension] = 0.00;
+      GetGeometry()[i].UnSetLock();
+    }
+  }
+
+  if (rRHSVariable == RESIDUAL_VECTOR &&
+      rDestinationVariable == MOMENT_RESIDUAL) {
+
+    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
+      SizeType index = (msLocalSize * i) + msDimension;
+
+      GetGeometry()[i].SetLock();
+
+      array_1d<double, 3> &r_moment_residual =
+          GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
+
+      for (SizeType j = 0; j < msDimension; ++j) {
+        r_moment_residual[j] = 0.00;
+      }
+      r_moment_residual[msDimension] +=
+          rRHSVector[index] - damping_residual_contribution[index];
+      GetGeometry()[i].UnSetLock();
+    }
+  }
+
+  if (rDestinationVariable == NODAL_INERTIA) {
+
+    Matrix element_mass_matrix = ZeroMatrix(msElementSize, msElementSize);
+    ProcessInfo temp_info; // Dummy
+    this->CalculateMassMatrix(element_mass_matrix, temp_info);
+
+    for (SizeType i = 0; i < msNumberOfNodes; ++i) {
+      GetGeometry()[i].SetLock();
+      double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+      array_1d<double, msLocalSize> &r_nodal_inertia =
+          GetGeometry()[i].GetValue(NODAL_INERTIA);
+      SizeType index = i * msLocalSize;
+
+      for (SizeType j = 0; j < msElementSize; ++j) {
+        r_nodal_mass += element_mass_matrix(index, j);
+        r_nodal_inertia[msDimension] +=
+            element_mass_matrix(index + msDimension, j);
+      }
+      for (SizeType k = 0; k < msLocalSize; ++k)
+        r_nodal_inertia[k] = std::abs(r_nodal_inertia[k]);
+
+      GetGeometry()[i].UnSetLock();
+    }
+  }
+
+  KRATOS_CATCH("")
+}
+
 int CrBeamElement2D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY
   const double numerical_limit = std::numeric_limits<double>::epsilon();

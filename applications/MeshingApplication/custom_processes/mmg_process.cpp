@@ -999,12 +999,12 @@ std::vector<unsigned int> MmgProcess<3>::CheckElements1()
 /***********************************************************************************/
 /***********************************************************************************/
 
-// template<>  // NOTE: Not yet avalaible in the official API
-// void MmgProcess<2>::BlockNode(unsigned int iNode)
-// {
-//     if (MMG2D_Set_requiredVertex(mmgMesh, iNode) != 1 )
-//         exit(EXIT_FAILURE);
-// }
+template<>
+void MmgProcess<2>::BlockNode(unsigned int iNode)
+{
+    if (MMG2D_Set_requiredVertex(mmgMesh, iNode) != 1 )
+        exit(EXIT_FAILURE);
+}
 
 /***********************************************************************************/
 /***********************************************************************************/
