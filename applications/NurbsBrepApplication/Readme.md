@@ -15,7 +15,7 @@ Please add following instructions to the configure file for the correct compilat
 If it is wished to do structural mechanics simulation with Isogeometric Analysis the *IGAStructuralMechanicsApplication* provides necessary element and condition formulations for thin walled structures.
 
 ## Preparation of Geometries
-Generally the geometries are stored in the geometry.json file. This file is a standardized B-Rep based NURBS geometry file. It is recommended to use this standard. Anyways read in of geometries with different input formats is possible, too.
+Generally the geometries are stored in the geometry.json file. This file is a standardized B-Rep based NURBS geometry file. It is recommended to use this standard. Anyways, read in of geometries with different input formats is possible, too.
 ```
 #import define_output
 cad_geometry_file = open("geometry.json",'r')
@@ -36,7 +36,7 @@ After reading in the geometries, the generation of the integration domain can be
 ```
 modeler.CreateIntegrationDomain(order, model_part_integration_domain)
 ```
-It has to be passed a model part which is used as data holder for the integration points. Additionally the wished number of derivatives of shape functions can be given. If it is chosen as -1, no shape functions are enhanced. With the order being 0 only the shape functions are given.
+It has to be passed a model part which is used as data holder for the integration points. Additionally, the wished number of derivatives of NURBS shape functions can be given. If it is chosen as -1, no shape functions are enhanced. With the order being 0 only the non-derived shape functions are given.
 
 ![Creation of integration domain](readme_application_description/integration_domain.png?raw=true)
 
