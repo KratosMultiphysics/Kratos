@@ -23,7 +23,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/array_1d.h"
-#include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 
 // Application includes
@@ -31,6 +30,9 @@
 
 namespace Kratos
 {
+
+class Parameters;
+
 namespace HDF5
 {
 ///@addtogroup HDF5Application
@@ -89,17 +91,17 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
     explicit File(Parameters Settings);
 
-    // Copy constructor.
     File(const File& rOther) = delete;
 
-    /// Destructor.
+    File(File&& rOther);
+
     virtual ~File();
 
-    // Assignment operator.
     File& operator=(const File& rOther) = delete;
+
+    File& operator=(File&& rOther);
 
     ///@}
     ///@name Operations
@@ -114,13 +116,13 @@ public:
 
     bool HasAttribute(const std::string& rObjectPath, const std::string& rName) const;
 
-    void GetAttributeNames(const std::string& rObjectPath, std::vector<std::string>& rNames) const;
+    std::vector<std::string> GetAttributeNames(const std::string& rObjectPath) const;
 
     void CreateGroup(const std::string& rPath);
 
-    void GetLinkNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const;
+    std::vector<std::string> GetLinkNames(const std::string& rGroupPath) const;
 
-    void GetGroupNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const;
+    std::vector<std::string> GetGroupNames(const std::string& rGroupPath) const;
 
     void AddPath(const std::string& rPath);
 
@@ -134,6 +136,8 @@ public:
     void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<TScalar>& rValue);
 
     void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::string& rValue);
+
+    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const array_1d<double, 3>& rValue);
 
     /// Write a data set to the HDF5 file.
     /**
@@ -202,6 +206,8 @@ public:
     void ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<TScalar>& rValue);
 
     void ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::string& rValue);
+
+    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, array_1d<double, 3>& rValue);
 
     /// Read a data set from the HDF5 file.
     /**
