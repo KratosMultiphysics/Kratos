@@ -39,6 +39,20 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class SmallDisplacementBbar
+ * @ingroup StructuralMechanicsApplication
+ * @brief Infinitesimal strain definition with mixed B-bar formulation
+ * @details Implements an infinitesimal strain definition with mixed B-bar
+formulation, that avoids volumetric locking in elastic-plastic response
+in nearly incompressible deformations (Hughes TJR, "The Finite Element Method:
+Linear Static and Dynamic Finite Element Analysis" 1st Edition, section 4.5.2,
+page 232)
+ * @author Marcelo Raschi
+ * @author Manuel caicedo
+ * @author Javier Mroginski
+ */
+
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementBbar
         : public BaseSolidElement
 {

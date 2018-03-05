@@ -18,9 +18,6 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/small_displacement_bbar.h"
-//#include "utilities/math_utils.h"
-//#include "includes/constitutive_law.h"
-//#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
