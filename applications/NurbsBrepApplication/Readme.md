@@ -38,7 +38,7 @@ modeler.CreateIntegrationDomain(order, model_part_integration_domain)
 ```
 It has to be passed a model part which is used as data holder for the integration points. Additionally the wished number of derivatives of shape functions can be given. If it is chosen as -1, no shape functions are enhanced. With the order being 0 only the shape functions are given.
 
-[Creation of integration domain]<img src="https://github.com/KratosMultiphysics/Kratos/tree/Brep_Application/applications/NurbsBrepApplication/readme_application_description/integration_domain.png">
+![Creation of integration domain](readme_application_description/integration_domain.png?raw=true)
 
 ## Meshless formulations
 Meshless formulations require a precomputation of numerical data. This means in general, the definition of shape functions, shape function derivatives and the integration weight. Some conditions might need extra information.
