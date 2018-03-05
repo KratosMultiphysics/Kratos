@@ -110,33 +110,33 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     
                 if (variable_type == "Double" or variable_type == "Component"):
                     if (self.resultant_solution == False):
-                        data["NODE_" + str(node.Id)][out.GetString()] = []
+                        data["NODE_" + str(node.Id)][variable_name] = []
                     else:
                         if (count == 0):
-                            data["RESULTANT"][out.GetString()] = []
+                            data["RESULTANT"][variable_name] = []
                 elif variable_type == "Array":
                     if (self.__check_variable_type(variable_name + "_X") == "Component"):
                         if (self.resultant_solution == False):
-                            data["NODE_" + str(node.Id)][out.GetString() + "_X"] = []
-                            data["NODE_" + str(node.Id)][out.GetString() + "_Y"] = []
-                            data["NODE_" + str(node.Id)][out.GetString() + "_Z"] = []
+                            data["NODE_" + str(node.Id)][variable_name + "_X"] = []
+                            data["NODE_" + str(node.Id)][variable_name + "_Y"] = []
+                            data["NODE_" + str(node.Id)][variable_name + "_Z"] = []
                         else:
                             if (count == 0):
-                                data["RESULTANT"][out.GetString() + "_X"] = []
-                                data["RESULTANT"][out.GetString() + "_Y"] = []
-                                data["RESULTANT"][out.GetString() + "_Z"] = []
+                                data["RESULTANT"][variable_name + "_X"] = []
+                                data["RESULTANT"][variable_name + "_Y"] = []
+                                data["RESULTANT"][variable_name + "_Z"] = []
                     else:
                         if (self.resultant_solution == False):
-                            data["NODE_" + str(node.Id)][out.GetString()] = []
+                            data["NODE_" + str(node.Id)][variable_name] = []
                         else:
                             if (count == 0):
-                                data["RESULTANT"][out.GetString()] = []
+                                data["RESULTANT"][variable_name] = []
                 elif variable_type == "Vector":
                     if (self.resultant_solution == False):
-                        data["NODE_" + str(node.Id)][out.GetString()] = []
+                        data["NODE_" + str(node.Id)][variable_name] = []
                     else:
                         if (count == 0):
-                            data["RESULTANT"][out.GetString()] = []
+                            data["RESULTANT"][variable_name] = []
 
                 # TODO: Add pending classes
 
@@ -159,49 +159,49 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
                 if (variable_type == "Double" or variable_type == "Component"):
                     if (self.resultant_solution == False):
-                        data["ELEMENT_" + str(elem.Id)][out.GetString()] = {}
+                        data["ELEMENT_" + str(elem.Id)][variable_name] = {}
                         for gp in range(gauss_point_number):
-                            data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)] = []
+                            data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)] = []
                     else:
                         if (count == 0):
-                            data["RESULTANT"][out.GetString()] = {}
+                            data["RESULTANT"][variable_name] = {}
                             for gp in range(gauss_point_number):
-                                data["RESULTANT"][out.GetString()][str(gp)] = []
+                                data["RESULTANT"][variable_name][str(gp)] = []
                 elif variable_type == "Array":
                     if (self.__check_variable_type(variable_name + "_X") == "Component"):
                         if (self.resultant_solution == False):
-                            data["ELEMENT_" + str(elem.Id)][out.GetString() + "_X"] = {}
-                            data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Y"] = {}
-                            data["ELEMENT_" + str(node.Id)][out.GetString() + "_Z"] = {}
+                            data["ELEMENT_" + str(elem.Id)][variable_name + "_X"] = {}
+                            data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"] = {}
+                            data["ELEMENT_" + str(node.Id)][variable_name + "_Z"] = {}
                             for gp in range(gauss_point_number):
-                                data["ELEMENT_" + str(elem.Id)][out.GetString() + "_X"][str(gp)] = []
-                                data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Y"][str(gp)] = []
-                                data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Z"][str(gp)] = []
+                                data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)] = []
+                                data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"][str(gp)] = []
+                                data["ELEMENT_" + str(elem.Id)][variable_name + "_Z"][str(gp)] = []
                         else:
                             if (count == 0):
-                                data["RESULTANT"][out.GetString() + "_X"] = {}
-                                data["RESULTANT"][out.GetString() + "_Y"] = {}
-                                data["RESULTANT"][out.GetString() + "_Z"] = {}
+                                data["RESULTANT"][variable_name + "_X"] = {}
+                                data["RESULTANT"][variable_name + "_Y"] = {}
+                                data["RESULTANT"][variable_name + "_Z"] = {}
                                 for gp in range(gauss_point_number):
-                                    data["RESULTANT"][out.GetString() + "_X"][str(gp)] = []
+                                    data["RESULTANT"][variable_name + "_X"][str(gp)] = []
                     else:
                         if (self.resultant_solution == False):
-                            data["ELEMENT_" + str(elem.Id)][out.GetString()] = {}
+                            data["ELEMENT_" + str(elem.Id)][variable_name] = {}
                             for gp in range(gauss_point_number):
-                                data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)] = []
+                                data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)] = []
                         else:
                             if (count == 0):
-                                data["RESULTANT"][out.GetString()] = {}
+                                data["RESULTANT"][variable_name] = {}
                 elif variable_type == "Vector":
                     if (self.resultant_solution == False):
-                        data["ELEMENT_" + str(elem.Id)][out.GetString()] = {}
+                        data["ELEMENT_" + str(elem.Id)][variable_name] = {}
                         for gp in range(gauss_point_number):
-                            data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)] = []
+                            data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)] = []
                     else:
                         if (count == 0):
-                            data["RESULTANT"][out.GetString()] = {}
+                            data["RESULTANT"][variable_name] = {}
                             for gp in range(gauss_point_number):
-                                data["RESULTANT"][out.GetString()][str(gp)] = []
+                                data["RESULTANT"][variable_name][str(gp)] = []
 
                 # TODO: Add pending classes
 
@@ -251,45 +251,45 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
                     if (variable_type == "Double" or variable_type == "Component"):
                         if (self.resultant_solution == False):
-                            data["NODE_" + str(node.Id)][out.GetString()].append(value)
+                            data["NODE_" + str(node.Id)][variable_name].append(value)
                         else:
                             if (count == 0):
-                                data["RESULTANT"][out.GetString()].append(value)
+                                data["RESULTANT"][variable_name].append(value)
                             else:
-                                data["RESULTANT"][out.GetString()][-1] += value
+                                data["RESULTANT"][variable_name][-1] += value
                     elif variable_type == "Array":
                         if (self.__check_variable_type(variable_name + "_X") == "Component"):
                             if (self.resultant_solution == False):
-                                data["NODE_" + str(node.Id)][out.GetString() + "_X"].append(value[0])
-                                data["NODE_" + str(node.Id)][out.GetString() + "_Y"].append(value[1])
-                                data["NODE_" + str(node.Id)][out.GetString() + "_Z"].append(value[2])
+                                data["NODE_" + str(node.Id)][variable_name + "_X"].append(value[0])
+                                data["NODE_" + str(node.Id)][variable_name + "_Y"].append(value[1])
+                                data["NODE_" + str(node.Id)][variable_name + "_Z"].append(value[2])
                             else:
                                 if (count == 0):
-                                    data["RESULTANT"][out.GetString() + "_X"].append(value[0])
-                                    data["RESULTANT"][out.GetString() + "_Y"].append(value[1])
-                                    data["RESULTANT"][out.GetString() + "_Z"].append(value[2])
+                                    data["RESULTANT"][variable_name + "_X"].append(value[0])
+                                    data["RESULTANT"][variable_name + "_Y"].append(value[1])
+                                    data["RESULTANT"][variable_name + "_Z"].append(value[2])
                                 else:
-                                    data["RESULTANT"][out.GetString() + "_X"][-1] += value[0]
-                                    data["RESULTANT"][out.GetString() + "_Y"][-1] += value[1]
-                                    data["RESULTANT"][out.GetString() + "_Z"][-1] += value[2]
+                                    data["RESULTANT"][variable_name + "_X"][-1] += value[0]
+                                    data["RESULTANT"][variable_name + "_Y"][-1] += value[1]
+                                    data["RESULTANT"][variable_name + "_Z"][-1] += value[2]
                         else:
                             if (self.resultant_solution == False):
                                 list = self.__kratos_vector_to__python_list(value)
-                                data["NODE_" + str(node.Id)][out.GetString() ].append(list)
+                                data["NODE_" + str(node.Id)][variable_name ].append(list)
                             else:
                                 aux = 0.0
                                 for index in range(len(value)):
                                     aux += value[index]
                                 if (count == 0):
-                                    data["RESULTANT"][out.GetString() ].append(aux)
+                                    data["RESULTANT"][variable_name ].append(aux)
                                 else:
-                                    data["RESULTANT"][out.GetString() ][-1] += aux
+                                    data["RESULTANT"][variable_name ][-1] += aux
                     elif variable_type == "Vector":
                         if (self.resultant_solution == False):
-                            data["NODE_" + str(node.Id)][out.GetString()].append(value)
+                            data["NODE_" + str(node.Id)][variable_name].append(value)
                         else:
                             if (count == 0):
-                                data["RESULTANT"][out.GetString()][-1] += value
+                                data["RESULTANT"][variable_name][-1] += value
 
                     # TODO: Add pending classes
 
@@ -307,55 +307,60 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     if (variable_type == "Double" or variable_type == "Component"):
                         if (self.resultant_solution == False):
                             for gp in range(gauss_point_number):
-                                data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)].append(value)
+                                data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(value[gp])
                         else:
                             if (count == 0):
                                 for gp in range(gauss_point_number):
-                                    data["RESULTANT"][out.GetString()][str(gp)].append(value)
+                                    data["RESULTANT"][variable_name][str(gp)].append(value[gp])
                             else:
                                 for gp in range(gauss_point_number):
-                                    data["RESULTANT"][out.GetString()][str(gp)][-1] += value
+                                    data["RESULTANT"][variable_name][str(gp)][-1] += value[gp]
                     elif variable_type == "Array":
                         if (self.__check_variable_type(variable_name + "_X") == "Component"):
                             if (self.resultant_solution == False):
                                 for gp in range(gauss_point_number):
-                                    data["ELEMENT_" + str(elem.Id)][out.GetString() + "_X"][str(gp)].append(value[0])
-                                    data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Y"][str(gp)].append(value[1])
-                                    data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Z"][str(gp)].append(value[2])
+                                    data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)].append(value[gp][0])
+                                    data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"][str(gp)].append(value[gp][1])
+                                    data["ELEMENT_" + str(elem.Id)][variable_name + "_Z"][str(gp)].append(value[gp][2])
                             else:
                                 if (count == 0):
                                     for gp in range(gauss_point_number):
-                                        data["RESULTANT"][out.GetString() + "_X"][str(gp)].append(value[0])
-                                        data["RESULTANT"][out.GetString() + "_Y"][str(gp)].append(value[1])
-                                        data["RESULTANT"][out.GetString() + "_Z"][str(gp)].append(value[2])
+                                        data["RESULTANT"][variable_name + "_X"][str(gp)].append(value[gp][0])
+                                        data["RESULTANT"][variable_name + "_Y"][str(gp)].append(value[gp][1])
+                                        data["RESULTANT"][variable_name + "_Z"][str(gp)].append(value[gp][2])
                                 else:
                                     for gp in range(gauss_point_number):
-                                        data["RESULTANT"][out.GetString() + "_X"][str(gp)][-1] += value[0]
-                                        data["RESULTANT"][out.GetString() + "_Y"][str(gp)][-1] += value[1]
-                                        data["RESULTANT"][out.GetString() + "_Z"][str(gp)][-1] += value[2]
+                                        data["RESULTANT"][variable_name + "_X"][str(gp)][-1] += value[gp][0]
+                                        data["RESULTANT"][variable_name + "_Y"][str(gp)][-1] += value[gp][1]
+                                        data["RESULTANT"][variable_name + "_Z"][str(gp)][-1] += value[gp][2]
                         else:
                             if (self.resultant_solution == False):
                                 list = self.__kratos_vector_to__python_list(value)
                                 for gp in range(gauss_point_number):
-                                    data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)].append(list)
+                                    data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(list)
                             else:
-                                aux = 0.0
-                                for index in range(len(value)):
-                                    aux += value[index]
                                 if (count == 0):
                                     for gp in range(gauss_point_number):
-                                        data["RESULTANT"][out.GetString()][str(gp)].append(aux)
+                                        aux = 0.0
+                                        for index in range(len(value[gp])):
+                                            aux += value[index]
+                                        data["RESULTANT"][variable_name][str(gp)].append(aux)
                                 else:
                                     for gp in range(gauss_point_number):
-                                        data["RESULTANT"][out.GetString()][str(gp)][-1] += aux
+                                        aux = 0.0
+                                        for index in range(len(value[gp])):
+                                            aux += value[index]
+                                        data["RESULTANT"][variable_name][str(gp)][-1] += aux
                     elif variable_type == "Vector":
                         if (self.resultant_solution == False):
                             for gp in range(gauss_point_number):
-                                data["NODE_" + str(node.Id)][out.GetString()][str(gp)].append(value)
+                                list = self.__kratos_vector_to__python_list(value[gp])
+                                data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(list)
                         else:
                             if (count == 0):
                                 for gp in range(gauss_point_number):
-                                    data["RESULTANT"][out.GetString()][str(gp)][-1] += value
+                                    list = self.__kratos_vector_to__python_list(value[gp])
+                                    data["RESULTANT"][variable_name][str(gp)][-1] += list
                                     
                         # TODO: Add pending classes
                 count += 1
