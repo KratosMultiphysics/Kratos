@@ -15,7 +15,8 @@ class RestartUtility(object):
             "restart_load_file_label" : 0.0,
             "save_restart"            : false,
             "restart_save_frequency"  : 0.0,
-            "serializer_trace"        : "no_trace"
+            "serializer_trace"        : "no_trace",
+            "echo_level"              : 0
         }
         """)
 
@@ -46,13 +47,15 @@ class RestartUtility(object):
 
         self.next_output = 0.0
 
+        self.echo_level = settings["echo_level"].GetDouble()
+
     def LoadRestart(self):
         # Get file name
         restart_path = self._GetFileNameLoad()
         # Check path
         if (os.path.exists(restart_path+".rest") == False):
             raise Exception("Restart file not found: " + restart_path + ".rest")
-        self._PrintOnRankZero("Restart Utility", "Loading Restart file: ", restart_path + ".rest")
+        self._PrintOnRankZero("::[Restart Utility]::", "Loading restart file:", restart_path + ".rest")
 
         # Load the ModelPart
         serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
@@ -64,7 +67,7 @@ class RestartUtility(object):
         load_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
         self.model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
 
-        self._PrintOnRankZero("Restart Utility", "Finished loading model part from restart file.")
+        self._PrintOnRankZero("::[Restart Utility]::", "Finished loading model part from restart file.")
 
     def SaveRestart(self):
         """
@@ -77,6 +80,8 @@ class RestartUtility(object):
             # Save the ModelPart
             serializer = KratosMultiphysics.Serializer(file_name, self.serializer_flag)
             serializer.Save(self.model_part.Name, self.model_part)
+            if self.echo_level > 0:
+                self._PrintOnRankZero("::[Restart Utility]::", "Saved restart file", file_name + ".rest")
 
             # Schedule next output
             if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
