@@ -53,7 +53,7 @@ class MechanicalSolver(object):
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name",
-                "perform_partitioning": true,
+                "perform_partitioning": true
             },
             "restart_settings" : {
                 "load_restart"            : false,
@@ -114,7 +114,7 @@ class MechanicalSolver(object):
             self.print_warning_on_rank_zero("Time integration method", warning)
         if custom_settings["model_import_settings"].Has("input_file_label"):
             custom_settings["model_import_settings"].RemoveValue("input_file_label")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified [model_import_settings][input_file_label], '
+            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "model_import_settings/input_file_label", '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
             self.print_warning_on_rank_zero("Input file label", warning)
 
@@ -126,8 +126,9 @@ class MechanicalSolver(object):
         self.main_model_part = main_model_part
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
-        if self.settings["restart_settings"]["load_restart"].GetBool() == True:
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
+        # Set if the analysis is restarted
+        load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
+        self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
 
     def AddVariables(self):
         if not self.is_restarted():
@@ -181,9 +182,9 @@ class MechanicalSolver(object):
             self.get_restart_utility().LoadRestart()
         elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("ModelpartIO", "\tReading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            KratosMultiphysics.Logger.PrintInfo("ModelpartIO", "\tFinished reading model part from mdpa file.")
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
@@ -368,7 +369,7 @@ class MechanicalSolver(object):
                 origin_settings.RemoveValue(name)
 
     def is_restarted(self):
-        return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True:
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
 
     def print_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
@@ -446,9 +447,10 @@ class MechanicalSolver(object):
 
     def _get_restart_settings(self):
         # add the name of the input file to the restart settings
-        restart_settings = self.settings["restart_settings"]
-        if not restart_settings.Has("input_filename"):
-            restart_settings.AddValue("input_filename", self.settings["model_import_settings"]["input_filename"])
+        restart_settings = self.settings["restart_settings"].Clone()
+        restart_settings.AddValue("input_filename", self.settings["model_import_settings"]["input_filename"])
+        restart_settings.AddValue("echo_level", self.settings["echo_level"])
+
         return restart_settings
 
     def _create_convergence_criterion(self):
