@@ -21,6 +21,7 @@
 
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
@@ -120,11 +121,8 @@ public:
     mTime.Previous = mTime.Current - mTime.Delta;
     mTime.PreviousMiddle = mTime.Current - 1.5 * mTime.Delta;
 
-    if (mSchemeIsInitialized == false) {
-      InitializeExplicitScheme(rModelPart);
-    } else {
-      SchemeCustomInitialization(rModelPart);
-    }
+    if (!mSchemeIsInitialized)InitializeExplicitScheme(rModelPart);
+    else SchemeCustomInitialization(rModelPart);
 
     mSchemeIsInitialized = true;
     KRATOS_CATCH("")
@@ -137,15 +135,9 @@ public:
                                       TSystemVectorType &rDx,
                                       TSystemVectorType &rb) {
     KRATOS_TRY
-
     BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-    if (mDeltaTime.PredictionLevel > 1) {
-      CalculateDeltaTime(rModelPart);
-    }
-
+    if (mDeltaTime.PredictionLevel > 1)CalculateDeltaTime(rModelPart);
     InitializeResidual(rModelPart);
-
     KRATOS_CATCH("")
   }
 
@@ -153,21 +145,9 @@ public:
 
   void InitializeResidual(ModelPart &rModelPart) {
     KRATOS_TRY
-
     NodesArrayType &r_nodes = rModelPart.Nodes();
-
-    auto i_begin = rModelPart.NodesBegin();
-#pragma omp parallel for firstprivate(i_begin)
-    for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-      array_1d<double, 3> &r_node_rhs =
-          (i_begin + i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
-      noalias(r_node_rhs) = ZeroVector(3);
-
-      array_1d<double, 3> &r_node_rhs_moment =
-          (i_begin + i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-      noalias(r_node_rhs_moment) = ZeroVector(3);
-    }
-
+    VariableUtils().SetVectorVar(FORCE_RESIDUAL,ZeroVector(3),r_nodes);
+    VariableUtils().SetVectorVar(MOMENT_RESIDUAL,ZeroVector(3),r_nodes);
     KRATOS_CATCH("")
   }
 
