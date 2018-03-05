@@ -260,28 +260,51 @@ public:
     SizeType dim(3);
 
     auto i_begin = rModelPart.NodesBegin();
+    //allocating memory outside of omp
+    for (SizeType i=0;i<r_nodes.size();++i)
+    {     
+      (i_begin + i)->SetValue(MIDDLE_VELOCITY,ZeroVector(3));
+      (i_begin + i)->SetValue(MIDDLE_ANGULAR_VELOCITY,ZeroVector(3));
+      (i_begin + i)->SetValue(NODAL_INERTIA,ZeroVector(3));
+    }
+
     const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
 #pragma omp parallel for firstprivate(i_begin)
     for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+      array_1d<double, 3> &r_middle_velocity =
+          (i_begin + i)->GetValue(MIDDLE_VELOCITY);
       array_1d<double, 3> &r_current_velocity =
           (i_begin + i)->FastGetSolutionStepValue(VELOCITY);
-      (i_begin + i)->SetValue(MIDDLE_VELOCITY,r_current_velocity);
       array_1d<double, 3> &r_current_residual =
           (i_begin + i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
+      // array_1d<double,3>& r_current_displacement  =
+      // i_begin->FastGetSolutionStepValue(DISPLACEMENT);
 
+      for (SizeType j = 0; j < dim; j++) {
 
-      for (SizeType j = 0; j < dim; j++) r_current_residual[j] = 0.0;
-
+        r_middle_velocity[j] = r_current_velocity[j];
+        r_current_residual[j] = 0.0;
+        // r_current_displacement[j] = 0.0; // this might be wrong for presribed
+        // displacement
+      }
 
       if (has_dof_for_rot_z) {
+        array_1d<double, 3> &r_middle_angular_velocity =
+            (i_begin + i)->GetValue(MIDDLE_ANGULAR_VELOCITY);
         array_1d<double, 3> &r_current_angular_velocity =
             (i_begin + i)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        (i_begin + i)->SetValue(MIDDLE_ANGULAR_VELOCITY,r_current_angular_velocity);
         array_1d<double, 3> &r_current_residual_moment =
             (i_begin + i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+        // array_1d<double,3>& current_rotation              =
+        // i->FastGetSolutionStepValue(ROTATION);
 
+        for (SizeType j = 0; j < dim; j++) {
 
-        for (SizeType j = 0; j < dim; j++) r_current_residual_moment[j] = 0.0;
+          r_middle_angular_velocity[j] = r_current_angular_velocity[j];
+          r_current_residual_moment[j] = 0.0;
+          // current_rotation[j] = 0.0; // this might be wrong for presribed
+          // rotations
+        }
       }
     }
 
