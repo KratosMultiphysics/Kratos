@@ -20,6 +20,7 @@
 
 // Project includes
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 #include "includes/enums.h"
 #include "includes/model_part.h"
 #include "geometries/point.h"
@@ -759,13 +760,7 @@ inline void MortarUtilities::ResetValue<Variable<double>, Historical>(
         ) 
 {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
-    // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        it_node->FastGetSolutionStepValue(ThisVariable) = 0.0;
-    }
+    VariableUtils().SetScalarVar(ThisVariable, 0.0, nodes_array);
 }
 
 template<> 
@@ -775,13 +770,7 @@ inline void MortarUtilities::ResetValue<ComponentType, Historical>(
         ) 
 {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
-    // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        it_node->FastGetSolutionStepValue(ThisVariable) = 0.0;
-    }
+    VariableUtils().SetScalarVar(ThisVariable, 0.0, nodes_array);
 }
 
 template<> 
@@ -790,14 +779,7 @@ inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, Historica
         Variable<array_1d<double, 3>>& ThisVariable
         ) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
-    // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        array_1d<double, 3>& aux_value = it_node->FastGetSolutionStepValue(ThisVariable);
-        noalias(aux_value) = ZeroVector(3);
-    }
+    VariableUtils().SetVectorVar(ThisVariable, ZeroVector(3), nodes_array);
 }
 
 template<> 
@@ -806,13 +788,7 @@ inline void MortarUtilities::ResetValue<Variable<double>, NonHistorical>(
         Variable<double>& ThisVariable
         ) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
-    // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        it_node->SetValue(ThisVariable, 0.0);
-    }
+    VariableUtils().SetNonHistoricalScalarVar(ThisVariable, 0.0, nodes_array);
 }
 
 template<> 
@@ -821,70 +797,34 @@ inline void MortarUtilities::ResetValue<ComponentType, NonHistorical>(
         ComponentType& ThisVariable
         ) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
-    // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        it_node->SetValue(ThisVariable, 0.0);
-    }
+    VariableUtils().SetNonHistoricalScalarVar(ThisVariable, 0.0, nodes_array);
 }
 
 template<> 
 inline void MortarUtilities::ResetValue<Variable<array_1d<double, 3>>, NonHistorical>(
         ModelPart& rThisModelPart,
         Variable<array_1d<double, 3>>& ThisVariable
-        ) {
-    // Zero vector
-    const array_1d<double, 3> zero_vector(3, 0.0);
-    
+        ) {    
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
-    // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        it_node->SetValue(ThisVariable, zero_vector);
-    }
+    VariableUtils().SetNonHistoricalVectorVar(ThisVariable, ZeroVector(3), nodes_array);
 }
 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<Variable<double>>(ModelPart& rThisModelPart) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
-    // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        it_node->SetValue(NODAL_MAUX, 0.0);
-    }
+    VariableUtils().SetNonHistoricalScalarVar(NODAL_MAUX, 0.0, nodes_array);
 }
 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<ComponentType>(ModelPart& rThisModelPart) {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
-    // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        it_node->SetValue(NODAL_VAUX_X, 0.0);
-    }
+    VariableUtils().SetNonHistoricalScalarVar(NODAL_VAUX_X, 0.0, nodes_array);
 }
 
 template<>
 inline void MortarUtilities::ResetAuxiliarValue<Variable<array_1d<double, 3>>>(ModelPart& rThisModelPart) {
-    // Zero vector
-    const array_1d<double, 3> zero_vector(3, 0.0);
-    
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
-    // We set to zero
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
-        it_node->SetValue(NODAL_VAUX, zero_vector);
-    }
+    VariableUtils().SetNonHistoricalVectorVar(NODAL_VAUX, ZeroVector(3), nodes_array);
 }
 
 template< >
