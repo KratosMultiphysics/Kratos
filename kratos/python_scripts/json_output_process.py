@@ -295,13 +295,13 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
             # Gauss points values
             for elem in self.sub_model_part.Elements:
-                for i in range(self.params["output_variables"].size()):
-                    out = self.params["output_variables"][i]
+                for i in range(self.params["gauss_points_output_variables"].size()):
+                    out = self.params["gauss_points_output_variables"][i]
                     variable_name = out.GetString()
                     variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                     variable_type = self.__check_variable_type(variable_name)
                     value = elem.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
-
+                    
                     gauss_point_number = len(value)
 
                     if (variable_type == "Double" or variable_type == "Component"):
