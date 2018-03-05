@@ -161,12 +161,12 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     if (self.resultant_solution == False):
                         data["ELEMENT_" + str(elem.Id)][out.GetString()] = {}
                         for gp in range(gauss_point_number):
-                            data["ELEMENT_" + str(elem.Id)][out.GetString()][gp] = []
+                            data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)] = []
                     else:
                         if (count == 0):
                             data["RESULTANT"][out.GetString()] = {}
                             for gp in range(gauss_point_number):
-                                data["RESULTANT"][out.GetString()][gp] = []
+                                data["RESULTANT"][out.GetString()][str(gp)] = []
                 elif variable_type == "Array":
                     if (self.__check_variable_type(variable_name + "_X") == "Component"):
                         if (self.resultant_solution == False):
@@ -174,21 +174,21 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Y"] = {}
                             data["ELEMENT_" + str(node.Id)][out.GetString() + "_Z"] = {}
                             for gp in range(gauss_point_number):
-                                data["ELEMENT_" + str(elem.Id)][out.GetString() + "_X"][gp] = []
-                                data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Y"][gp] = []
-                                data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Z"][gp] = []
+                                data["ELEMENT_" + str(elem.Id)][out.GetString() + "_X"][str(gp)] = []
+                                data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Y"][str(gp)] = []
+                                data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Z"][str(gp)] = []
                         else:
                             if (count == 0):
                                 data["RESULTANT"][out.GetString() + "_X"] = {}
                                 data["RESULTANT"][out.GetString() + "_Y"] = {}
                                 data["RESULTANT"][out.GetString() + "_Z"] = {}
                                 for gp in range(gauss_point_number):
-                                    data["RESULTANT"][out.GetString() + "_X"][gp] = []
+                                    data["RESULTANT"][out.GetString() + "_X"][str(gp)] = []
                     else:
                         if (self.resultant_solution == False):
                             data["ELEMENT_" + str(elem.Id)][out.GetString()] = {}
                             for gp in range(gauss_point_number):
-                                data["ELEMENT_" + str(elem.Id)][out.GetString()][gp] = []
+                                data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)] = []
                         else:
                             if (count == 0):
                                 data["RESULTANT"][out.GetString()] = {}
@@ -196,12 +196,12 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     if (self.resultant_solution == False):
                         data["ELEMENT_" + str(elem.Id)][out.GetString()] = {}
                         for gp in range(gauss_point_number):
-                            data["ELEMENT_" + str(elem.Id)][out.GetString()][gp] = []
+                            data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)] = []
                     else:
                         if (count == 0):
                             data["RESULTANT"][out.GetString()] = {}
                             for gp in range(gauss_point_number):
-                                data["RESULTANT"][out.GetString()][gp] = []
+                                data["RESULTANT"][out.GetString()][str(gp)] = []
 
                 # TODO: Add pending classes
 
@@ -301,61 +301,61 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
                     variable_type = self.__check_variable_type(variable_name)
                     value = elem.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
-                    
+
                     gauss_point_number = len(value)
 
                     if (variable_type == "Double" or variable_type == "Component"):
                         if (self.resultant_solution == False):
                             for gp in range(gauss_point_number):
-                                data["ELEMENT_" + str(elem.Id)][out.GetString()][gp].append(value)
+                                data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)].append(value)
                         else:
                             if (count == 0):
                                 for gp in range(gauss_point_number):
-                                    data["RESULTANT"][out.GetString()][gp].append(value)
+                                    data["RESULTANT"][out.GetString()][str(gp)].append(value)
                             else:
                                 for gp in range(gauss_point_number):
-                                    data["RESULTANT"][out.GetString()][gp][-1] += value
+                                    data["RESULTANT"][out.GetString()][str(gp)][-1] += value
                     elif variable_type == "Array":
                         if (self.__check_variable_type(variable_name + "_X") == "Component"):
                             if (self.resultant_solution == False):
                                 for gp in range(gauss_point_number):
-                                    data["ELEMENT_" + str(elem.Id)][out.GetString() + "_X"][gp].append(value[0])
-                                    data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Y"][gp].append(value[1])
-                                    data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Z"][gp].append(value[2])
+                                    data["ELEMENT_" + str(elem.Id)][out.GetString() + "_X"][str(gp)].append(value[0])
+                                    data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Y"][str(gp)].append(value[1])
+                                    data["ELEMENT_" + str(elem.Id)][out.GetString() + "_Z"][str(gp)].append(value[2])
                             else:
                                 if (count == 0):
                                     for gp in range(gauss_point_number):
-                                        data["RESULTANT"][out.GetString() + "_X"][gp].append(value[0])
-                                        data["RESULTANT"][out.GetString() + "_Y"][gp].append(value[1])
-                                        data["RESULTANT"][out.GetString() + "_Z"][gp].append(value[2])
+                                        data["RESULTANT"][out.GetString() + "_X"][str(gp)].append(value[0])
+                                        data["RESULTANT"][out.GetString() + "_Y"][str(gp)].append(value[1])
+                                        data["RESULTANT"][out.GetString() + "_Z"][str(gp)].append(value[2])
                                 else:
                                     for gp in range(gauss_point_number):
-                                        data["RESULTANT"][out.GetString() + "_X"][gp][-1] += value[0]
-                                        data["RESULTANT"][out.GetString() + "_Y"][gp][-1] += value[1]
-                                        data["RESULTANT"][out.GetString() + "_Z"][gp][-1] += value[2]
+                                        data["RESULTANT"][out.GetString() + "_X"][str(gp)][-1] += value[0]
+                                        data["RESULTANT"][out.GetString() + "_Y"][str(gp)][-1] += value[1]
+                                        data["RESULTANT"][out.GetString() + "_Z"][str(gp)][-1] += value[2]
                         else:
                             if (self.resultant_solution == False):
                                 list = self.__kratos_vector_to__python_list(value)
                                 for gp in range(gauss_point_number):
-                                    data["ELEMENT_" + str(elem.Id)][out.GetString()][gp].append(list)
+                                    data["ELEMENT_" + str(elem.Id)][out.GetString()][str(gp)].append(list)
                             else:
                                 aux = 0.0
                                 for index in range(len(value)):
                                     aux += value[index]
                                 if (count == 0):
                                     for gp in range(gauss_point_number):
-                                        data["RESULTANT"][out.GetString()][gp].append(aux)
+                                        data["RESULTANT"][out.GetString()][str(gp)].append(aux)
                                 else:
                                     for gp in range(gauss_point_number):
-                                        data["RESULTANT"][out.GetString()][gp][-1] += aux
+                                        data["RESULTANT"][out.GetString()][str(gp)][-1] += aux
                     elif variable_type == "Vector":
                         if (self.resultant_solution == False):
                             for gp in range(gauss_point_number):
-                                data["NODE_" + str(node.Id)][out.GetString()][gp].append(value)
+                                data["NODE_" + str(node.Id)][out.GetString()][str(gp)].append(value)
                         else:
                             if (count == 0):
                                 for gp in range(gauss_point_number):
-                                    data["RESULTANT"][out.GetString()][gp][-1] += value
+                                    data["RESULTANT"][out.GetString()][str(gp)][-1] += value
                                     
                         # TODO: Add pending classes
                 count += 1
