@@ -383,10 +383,6 @@ public:
         // Check for admissible value of the AlphaBossak
         KRATOS_ERROR_IF(mAlpha.m > 0.0 || mAlpha.m < -0.3) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha.m << std::endl;
 
-        // Check for minimum value of the buffer index
-        // Verify buffer size
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
-
         return 0;
         KRATOS_CATCH( "" );
     }
