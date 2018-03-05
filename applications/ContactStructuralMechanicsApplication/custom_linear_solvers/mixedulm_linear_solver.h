@@ -281,9 +281,6 @@ public:
         // Get the u and lm residuals
         GetUPart (rB, mResidualDisp);
         
-        KRATOS_DETAIL("mKDispModified") << mKDispModified << std::endl;
-        KRATOS_DETAIL("mResidualDisp") << mResidualDisp << std::endl;
-        
         // Solve u block
         if (mDisp.size() != total_disp_size)
             mDisp.resize(total_disp_size, false);
@@ -296,25 +293,25 @@ public:
         if (lm_active_size > 0) {
             // Now we compute the residual of the LM
             GetLMAPart (rB, mResidualLMActive);
-            KRATOS_DETAIL("mKLMAModified") << mKLMAModified << std::endl;
-            KRATOS_DETAIL("mResidualLMActive") << mResidualLMActive << std::endl;
+            
             // LM = D⁻1*rLM
             if (mLMActive.size() != lm_active_size)
                 mLMActive.resize(lm_active_size, false);
             TSparseSpaceType::Mult (mKLMAModified, mResidualLMActive, mLMActive);
+            
             // Write back solution
             SetLMAPart(rX, mLMActive);
         }
         
         if (lm_inactive_size > 0) {
             // Now we compute the residual of the LM
-            GetLMIPart (rB, mResidualLMInactive);
-            KRATOS_DETAIL("mKLMIModified") << mKLMIModified << std::endl;
-            KRATOS_DETAIL("mResidualLMInactive") << mResidualLMInactive << std::endl;
+            GetLMIPart (rB, mResidualLMInactive); 
+            
             // LM = D⁻1*rLM
             if (mLMInactive.size() != lm_inactive_size)
                 mLMInactive.resize(lm_inactive_size, false);
             TSparseSpaceType::Mult (mKLMIModified, mResidualLMInactive, mLMInactive);
+            
             // Write back solution
             SetLMIPart(rX, mLMInactive);
         }
