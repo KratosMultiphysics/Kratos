@@ -75,7 +75,7 @@
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/euler_3d_law.h"
-#include "custom_constitutive/herschel_bulkey_3d_law.h"
+#include "custom_constitutive/herschel_bulkley_3d_law.h"
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
 
@@ -353,7 +353,7 @@ private:
     const Bingham3DLaw mBingham3DLaw;
     const Euler2DLaw mEuler2DLaw;
     const Euler3DLaw mEuler3DLaw;
-    const HerschelBulkey3DLaw mHerschelBulkley3DLaw;
+    const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
     const Newtonian2DLaw mNewtonian2DLaw;
     const Newtonian3DLaw mNewtonian3DLaw;
 
