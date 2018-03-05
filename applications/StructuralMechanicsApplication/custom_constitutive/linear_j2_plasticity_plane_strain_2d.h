@@ -41,13 +41,13 @@ public:
     bool Has(const Variable<double>& rThisVariable) override;
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
-    virtual void InitializeMaterial(const Properties& rMaterialProperties,
-                                    const GeometryType& rElementGeometry,
-                                    const Vector& rShapeFunctionsValues);
-    virtual void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                                      const GeometryType& rElementGeometry,
-                                      const Vector& rShapeFunctionsValues,
-                                      const ProcessInfo& rCurrentProcessInfo);
+    void InitializeMaterial(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues) override;
+    void FinalizeSolutionStep(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues,
+                            const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateMaterialResponsePK1(Parameters& rValues) override;
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
     void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
@@ -60,8 +60,8 @@ public:
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
     int Check(const Properties& rMaterialProperties,
-              const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) override;
+                      const GeometryType& rElementGeometry,
+                      const ProcessInfo& rCurrentProcessInfo) override;
     void PrintData(std::ostream& rOStream) const override {
         rOStream << "Linear J2 Plasticity Plane Strain 2D constitutive law\n";
     };
@@ -69,43 +69,32 @@ public:
 protected:
 
 private:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-
-    ///@name Protected member Variables
-    ///@{
-    // bool flag_C = false;
-    int mInelasticFlag = 0;
+    double mInelasticFlag;
     double mStrainEnergy;
     Vector mPlasticStrain;
     Vector mPlasticStrainOld;
     double mAccumulatedPlasticStrain;
     double mAccumulatedPlasticStrainOld;
     double yieldFunction(const double, const Properties& rMaterialProperties);
-    double GetDeltaGamma(double norm_s_trial, const Properties& rMaterialProperties);
+    double GetDeltaGamma(double NormSTrial, const Properties& rMaterialProperties);
     double GetSaturationHardening(const Properties& rMaterialProperties);
     double GetPlasticPotential(const Properties& rMaterialProperties);
     virtual void CalculateTangentTensor(double dgamma,
-                                        double norm_s_trial,
+                                        double NormSTrial,
                                         const Vector& N_new,
                                         const Properties& props,
                                         Matrix& D);
-    virtual void CalculateElasticityTensor(const Properties& props, Matrix& ElasticityTensor);
+    virtual void CalculateElasticMatrix(Matrix &ElasticityTensor, const Properties &props);
 
     friend class Serializer;
     virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     }
-
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     }
-
-    ///@}
-
 }; /* class LinearJ2PlasticityPlaneStrain2D */
 } /* namespace Kratos */
 #endif
