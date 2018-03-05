@@ -26,7 +26,6 @@
 #include "includes/model_part.h"
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/iterative_solver.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "utilities/openmp_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "custom_utilities/sparse_matrix_multiplication_utility.h"
@@ -277,7 +276,7 @@ public:
         // Auxiliar size
         const SizeType lm_active_size = mLMActiveIndices.size();
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
-        const SizeType total_size = mOtherIndices.size() + mMasterIndices.size() + mSlaveInactiveIndices.size() + mSlaveActiveIndices.size();
+        const SizeType total_disp_size = mOtherIndices.size() + mMasterIndices.size() + mSlaveInactiveIndices.size() + mSlaveActiveIndices.size();
         
         // Get the u and lm residuals
         GetUPart (rB, mResidualDisp);
@@ -286,8 +285,8 @@ public:
         KRATOS_DETAIL("mResidualDisp") << mResidualDisp << std::endl;
         
         // Solve u block
-        if (mDisp.size() != total_size)
-            mDisp.resize(total_size, false);
+        if (mDisp.size() != total_disp_size)
+            mDisp.resize(total_disp_size, false);
         mpSolverDispBlock->Solve (mKDispModified, mDisp, mResidualDisp);
         
         // Write back solution
@@ -479,16 +478,24 @@ public:
         KRATOS_ERROR_IF(tot_active_dofs != rA.size1()) << "Total system size does not coincide with the free dof map" << std::endl;
 
         // Resize arrays as needed
-        mMasterIndices.resize (n_master_dofs,false);
-        mSlaveInactiveIndices.resize (n_slave_inactive_dofs,false);
-        mSlaveActiveIndices.resize (n_slave_active_dofs,false);
-        mLMInactiveIndices.resize (n_lm_inactive_dofs,false);
-        mLMActiveIndices.resize (n_lm_active_dofs,false);
+        if (mMasterIndices.size() != n_master_dofs)
+            mMasterIndices.resize (n_master_dofs,false);
+        if (mSlaveInactiveIndices.size() != n_slave_inactive_dofs)
+            mSlaveInactiveIndices.resize (n_slave_inactive_dofs,false);
+        if (mSlaveActiveIndices.size() != n_slave_active_dofs)
+            mSlaveActiveIndices.resize (n_slave_active_dofs,false);
+        if (mLMInactiveIndices.size() != n_lm_inactive_dofs)
+            mLMInactiveIndices.resize (n_lm_inactive_dofs,false);
+        if (mLMActiveIndices.size() != n_lm_active_dofs)
+            mLMActiveIndices.resize (n_lm_active_dofs,false);
 
         const SizeType n_other_dofs = tot_active_dofs - n_lm_inactive_dofs - n_lm_active_dofs - n_master_dofs - n_slave_inactive_dofs - n_slave_active_dofs;
-        mOtherIndices.resize (n_other_dofs, false);
-        mGlobalToLocalIndexing.resize (tot_active_dofs,false);
-        mWhichBlockType.resize(tot_active_dofs, false);
+        if (mOtherIndices.size() != n_other_dofs)
+            mOtherIndices.resize (n_other_dofs, false);
+        if (mGlobalToLocalIndexing.size() != tot_active_dofs)
+            mGlobalToLocalIndexing.resize (tot_active_dofs,false);
+        if (mWhichBlockType.size() != tot_active_dofs)
+            mWhichBlockType.resize(tot_active_dofs, false);
         
         // Size check
         KRATOS_ERROR_IF_NOT(n_lm_active_dofs == n_slave_active_dofs) << "The number of active LM dofs: " << n_slave_active_dofs << " and active slave nodes dofs: " << n_slave_active_dofs << " does not coincide" << std::endl;
