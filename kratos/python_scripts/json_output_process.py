@@ -424,25 +424,25 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self -- It signifies an instance of a class.
         variable -- The name of the variable to create
         """
-        if KratosMultiphysics.HasBoolVariable(variable):
+        if KratosMultiphysics.KratosGlobals.Kernel.HasBoolVariable(variable):
             return "Bool"
-        elif KratosMultiphysics.HasIntVariable(variable):
+        elif KratosMultiphysics.KratosGlobals.Kernel.HasIntVariable(variable):
             return "Integer"
-        elif KratosMultiphysics.HasUnsignedIntVariable(variable):
+        elif KratosMultiphysics.KratosGlobals.Kernel.HasUnsignedIntVariable(variable):
             return "Unsigned Integer"
-        elif KratosMultiphysics.HasDoubleVariable(variable):
+        elif KratosMultiphysics.KratosGlobals.Kernel.HasDoubleVariable(variable):
             return "Double"
-        elif KratosMultiphysics.HasArrayVariable(variable):
+        elif KratosMultiphysics.KratosGlobals.Kernel.HasArrayVariable(variable):
             return "Array"
-        elif KratosMultiphysics.HasVectorVariable(variable):
+        elif KratosMultiphysics.KratosGlobals.Kernel.HasVectorVariable(variable):
             return "Vector"
-        elif KratosMultiphysics.HasMatrixVariable(variable):
+        elif KratosMultiphysics.KratosGlobals.Kernel.HasMatrixVariable(variable):
             return "Matrix"
-        elif KratosMultiphysics.HasStringVariable(variable):
+        elif KratosMultiphysics.KratosGlobals.Kernel.HasStringVariable(variable):
             return "String"
-        elif KratosMultiphysics.HasVariableComponent(variable):
+        elif KratosMultiphysics.KratosGlobals.Kernel.HasVariableComponent(variable):
             return "Component"
-        elif KratosMultiphysics.HasFlagsVariable(variable):
+        elif KratosMultiphysics.KratosGlobals.Kernel.HasFlagsVariable(variable):
             return "Flag"
         else:
             return "NONE"
