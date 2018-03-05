@@ -89,7 +89,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         self.mortar_mapping_double.Execute()
         self.mortar_mapping_vector.Execute()
 
-        ### DEBUG
+        # Debug postprocess file
         #self.__post_process()
 
         import from_json_check_result_process
@@ -110,6 +110,8 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
 
+
+        # The following is used to create the solution database
         #import json_output_process
 
         #out_parameters = KratosMultiphysics.Parameters("""
