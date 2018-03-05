@@ -40,7 +40,7 @@ ConstitutiveLaw::Pointer LinearJ2Plasticity3D::Clone() const
     return p_clone;
 }
 
-//************************************************************************************
+//********************************DESTRUCTOR******************************************
 //************************************************************************************
 
 LinearJ2Plasticity3D::~LinearJ2Plasticity3D()
@@ -65,7 +65,7 @@ bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
 //************************************************************************************
 
 double& LinearJ2Plasticity3D::GetValue(const Variable<double>& rThisVariable,
-                                                        double& rValue)
+                                       double& rValue)
 {
     if(rThisVariable == INELASTIC_FLAG){
         rValue = mInelasticFlag;
@@ -115,7 +115,6 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
     Vector& strain_vector = rValues.GetStrainVector();
     Vector& stress_vector = rValues.GetStressVector();
 
-
     if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
         Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix(ConstitutiveMatrix, rMaterialProperties);
@@ -130,11 +129,12 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
         const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
         const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
         const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
-        double trial_yield_function;
         const double E = rMaterialProperties[YOUNG_MODULUS];
         const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
         const double mu = E / (2. + 2. * poisson_ratio);
         const double volumetric_modulus = E / (3. * (1. - 2. * poisson_ratio));
+        const double sqrt_two_thirds = std::sqrt(2.0 / 3.0); // =0.8164965809277260
+        double trial_yield_function;
 
         mPlasticStrain = mPlasticStrainOld;
         mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld;
@@ -147,11 +147,11 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
         // stress_trial_dev = sigma - 1/3 tr(sigma) * I
         Vector stress_trial_dev = sigma_trial;
 
-        const double trace = 1.0/3.0 * (sigma_trial(0) + sigma_trial(1) + sigma_trial(2));
+        const double trace = 1.0 / 3.0 * (sigma_trial(0) + sigma_trial(1) + sigma_trial(2));
         stress_trial_dev(0) -= trace;
         stress_trial_dev(1) -= trace;
         stress_trial_dev(2) -= trace;
-        double norm_dev_stress = std::sqrt(stress_trial_dev(0) * stress_trial_dev(0) +
+        const double norm_dev_stress = std::sqrt(stress_trial_dev(0) * stress_trial_dev(0) +
                                            stress_trial_dev(1) * stress_trial_dev(1) +
                                            stress_trial_dev(2) * stress_trial_dev(2) +
                                            2. * stress_trial_dev(3) * stress_trial_dev(3) +
@@ -202,11 +202,12 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
             mPlasticStrain(3) = mPlasticStrainOld(3) + dgamma * yield_function_normal_vector(3) * 2;
             mPlasticStrain(4) = mPlasticStrainOld(4) + dgamma * yield_function_normal_vector(4) * 2;
             mPlasticStrain(5) = mPlasticStrainOld(5) + dgamma * yield_function_normal_vector(5) * 2;
-            mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld + 0.8164965809277260 * dgamma;
+            mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld + sqrt_two_thirds * dgamma;
 
             // Update derivative of the hardening-softening modulus
 
-            CalculateTangentTensor(dgamma, norm_dev_stress, yield_function_normal_vector, rMaterialProperties, tangent_tensor);
+            CalculateTangentTensor(dgamma, norm_dev_stress, yield_function_normal_vector,
+                                   rMaterialProperties, tangent_tensor);
         }
 
     // Linear + exponential hardening
@@ -257,7 +258,8 @@ double LinearJ2Plasticity3D::GetSaturationHardening(const Properties& rMaterialP
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
     const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
-    double k_new = yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrain) +
+
+    const double k_new = yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrain) +
                 delta_k * (1. - std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
     return k_new;
 }
@@ -269,7 +271,7 @@ double LinearJ2Plasticity3D::GetPlasticPotential(const Properties& rMaterialProp
     const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
 
-    double wp_new = 0.5*(theta * hardening_modulus * std::pow(mAccumulatedPlasticStrain, 2.0)) +
+    const double wp_new = 0.5*(theta * hardening_modulus * std::pow(mAccumulatedPlasticStrain, 2.0)) +
                     delta_k * (mAccumulatedPlasticStrain -
                     (1/hardening_exponent) * (1- std::exp(-hardening_exponent * mAccumulatedPlasticStrain)));
     return wp_new;
@@ -287,7 +289,7 @@ double LinearJ2Plasticity3D::GetDeltaGamma(double NormSTrial,
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
     const double tolerance = 1e-6 * yield_stress;
     const double mu = E / (2. * (1. + poisson_ratio));
-    const double sqrt_two_thirds = std::sqrt(2.0 / 3.0);
+    const double sqrt_two_thirds = std::sqrt(2.0 / 3.0); // =0.8164965809277260
     double dgamma = 0.0;
     double norm_yieldfunction = 1.0;
 
@@ -430,8 +432,8 @@ void LinearJ2Plasticity3D::GetLawFeatures(Features& rFeatures)
 }
 
 int LinearJ2Plasticity3D::Check(const Properties& rMaterialProperties,
-                                                 const GeometryType& rElementGeometry,
-                                                 const ProcessInfo& rCurrentProcessInfo)
+                                const GeometryType& rElementGeometry,
+                                const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));

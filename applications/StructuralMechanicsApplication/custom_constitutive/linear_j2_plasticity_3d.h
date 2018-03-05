@@ -39,15 +39,15 @@ public:
     };
 
     bool Has(const Variable<double>& rThisVariable) override;
-    double& GetValue(const Variable<double>& rThisVariable, double& rValue);
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
-    virtual void InitializeMaterial(const Properties& rMaterialProperties,
-                                    const GeometryType& rElementGeometry,
-                                    const Vector& rShapeFunctionsValues);
-    virtual void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                                      const GeometryType& rElementGeometry,
-                                      const Vector& rShapeFunctionsValues,
-                                      const ProcessInfo& rCurrentProcessInfo);
+    void InitializeMaterial(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues) override;
+    void FinalizeSolutionStep(const Properties& rMaterialProperties,
+                            const GeometryType& rElementGeometry,
+                            const Vector& rShapeFunctionsValues,
+                            const ProcessInfo& rCurrentProcessInfo) override;
     void CalculateMaterialResponsePK1(Parameters& rValues) override;
     void CalculateMaterialResponsePK2(Parameters& rValues) override;
     void CalculateMaterialResponseKirchhoff(Parameters& rValues) override;
