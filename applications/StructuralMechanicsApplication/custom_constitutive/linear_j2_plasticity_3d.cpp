@@ -158,7 +158,6 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
                                            2. * stress_trial_dev(4) * stress_trial_dev(4) +
                                            2. * stress_trial_dev(5) * stress_trial_dev(5));
         trial_yield_function = this->yieldFunction(norm_dev_stress, rMaterialProperties);
-        double dgamma = 0;
 
         if (trial_yield_function <= 0.) {
             // ELASTIC
@@ -169,6 +168,7 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
         else {
             // INELASTIC
             mInelasticFlag = 1;
+            double dgamma = 0;
             Vector yield_function_normal_vector = stress_trial_dev / norm_dev_stress;
             if (delta_k != 0.0 && hardening_exponent != 0.0) {
                 // Exponential softening
