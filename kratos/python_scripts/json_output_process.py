@@ -451,5 +451,3 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             return "Flag"
         else:
             return "NONE"
-
-
