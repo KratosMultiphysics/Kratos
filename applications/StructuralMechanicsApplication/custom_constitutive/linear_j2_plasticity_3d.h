@@ -69,7 +69,7 @@ public:
 protected:
 
 private:
-    double mInelasticFlag;
+    bool mInelasticFlag;
     double mStrainEnergy;
     Vector mPlasticStrain;
     Vector mPlasticStrainOld;
