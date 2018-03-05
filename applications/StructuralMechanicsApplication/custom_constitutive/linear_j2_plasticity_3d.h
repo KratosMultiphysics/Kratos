@@ -18,6 +18,22 @@
 
 namespace Kratos
 {
+    /**
+     * Defines a Simo J2 plasticity constitutive law in 3D
+     *
+     * This material law is defined by the parameters:
+     * YOUNG_MODULUS
+     * POISSON_RATIO
+     * YIELD_STRESS
+     * REFERENCE_HARDENING_MODULUS (kinematic hardening modulus)
+     * ISOTROPIC_HARDENING_MODULUS
+     * INFINITY_HARDENING_MODULUS (saturation hardening modulus)
+     * HARDENING_EXPONENT
+     *
+     * Valid for small strains, linear hexahedra
+     * Requires B-bar element
+     **/
+
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearJ2Plasticity3D
     : public ConstitutiveLaw
 {
