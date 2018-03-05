@@ -309,7 +309,7 @@ void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
     // Normalize the normals
     // Note: we calculate h here (and we don't use the value in rData.ElementSize)
     // because rData.ElementSize might still be uninitialized: some data classes define it at the Gauss point.
-    double h = ElementSizeCalculator<Dim,NumNodes>::GradientsElementSize(rData.PositiveSideDNDX[0]);
+    double h = ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
     const double tolerance = std::pow(1e-3 * h,Dim-1);
     this->NormalizeInterfaceNormals(rData.PositiveInterfaceUnitNormals, tolerance);
 }

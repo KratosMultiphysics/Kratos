@@ -43,15 +43,22 @@ namespace Kratos
 
         Vector RHS_Contribution;
         Matrix LHS_Contribution;
-        ProcessInfo& rCurrentProcessInfo = root_model_part.GetProcessInfo();
-        const unsigned int domain_size = rCurrentProcessInfo[DOMAIN_SIZE];
+        ProcessInfo& r_current_process_info = root_model_part.GetProcessInfo();
+        const unsigned int domain_size = r_current_process_info[DOMAIN_SIZE];
+
+        // Fractional step case: set the step index to compute the momentum equation
+        int current_step = 0;
+        if (r_current_process_info.Has(FRACTIONAL_STEP)) {
+            current_step = r_current_process_info[FRACTIONAL_STEP];
+            r_current_process_info[FRACTIONAL_STEP] = 1;
+        }
 
         #pragma omp parallel for private(RHS_Contribution, LHS_Contribution) firstprivate(domain_size)
         for (int i_elem = 0; i_elem < static_cast<int>(root_model_part.NumberOfElements()); ++i_elem){
             auto it_elem = root_model_part.ElementsBegin() + i_elem;
 
             // Build local system
-            it_elem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
+            it_elem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, r_current_process_info);
 
             // Get geometry
             Element::GeometryType& r_geom = it_elem->GetGeometry();
@@ -75,6 +82,11 @@ namespace Kratos
         VariableUtils variable_utils;
         array_1d<double, 3> drag_force = variable_utils.SumHistoricalNodeVectorVariable(REACTION, rModelPart, 0);
         drag_force *= -1.0;
+
+        // Fractional step case: restore the step index
+        if (r_current_process_info.Has(FRACTIONAL_STEP)) {
+            r_current_process_info[FRACTIONAL_STEP] = current_step;
+        }
 
         return drag_force;
 

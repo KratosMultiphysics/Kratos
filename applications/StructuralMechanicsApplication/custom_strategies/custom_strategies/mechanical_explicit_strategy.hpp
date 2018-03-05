@@ -12,8 +12,8 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_STRATEGY)
-#define KRATOS_EXPLICIT_STRATEGY
+#if !defined(KRATOS_MECHANICAL_EXPLICIT_STRATEGY)
+#define KRATOS_MECHANICAL_EXPLICIT_STRATEGY
 
 /* System includes */
 
@@ -26,7 +26,7 @@
 namespace Kratos {
 
 /**
- * @class ExplicitStrategy
+ * @class MechanicalExplicitStrategy
  *
  * @brief This strategy is used for the explicit time integration
  *
@@ -37,12 +37,12 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class ExplicitStrategy
+class MechanicalExplicitStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> {
 public:
   /** Counted pointer of ClassName */
 
-  KRATOS_CLASS_POINTER_DEFINITION(ExplicitStrategy);
+  KRATOS_CLASS_POINTER_DEFINITION(MechanicalExplicitStrategy);
 
   typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -60,7 +60,7 @@ public:
   /** Constructors.
    */
 
-  ExplicitStrategy(ModelPart &rModelPart, typename TSchemeType::Pointer pScheme,
+  MechanicalExplicitStrategy(ModelPart &rModelPart, typename TSchemeType::Pointer pScheme,
                    bool CalculateReactions = false,
                    bool ReformDofSetAtEachStep = false,
                    bool MoveMeshFlag = true)
@@ -93,7 +93,7 @@ public:
 
   /** Destructor.
    */
-  virtual ~ExplicitStrategy() {}
+  virtual ~MechanicalExplicitStrategy() {}
 
   /** Destructor.
    */
@@ -484,11 +484,11 @@ protected:
 
   /** Copy constructor.
    */
-  ExplicitStrategy(const ExplicitStrategy &Other){};
+  MechanicalExplicitStrategy(const MechanicalExplicitStrategy &Other){};
 
   /*@} */
 
-}; /* Class ExplicitStrategy */
+}; /* Class MechanicalExplicitStrategy */
 
 /*@} */
 
