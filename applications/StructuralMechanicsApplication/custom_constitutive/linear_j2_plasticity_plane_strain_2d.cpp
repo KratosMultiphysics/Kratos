@@ -158,13 +158,13 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Parameters
 
         if (trial_yield_function <= 0.) {
             // ELASTIC
-            mInelasticFlag = 0;
+            mInelasticFlag = false;
             stress_vector = sigma_trial;
             tangent_tensor = elastic_tensor;
         }
         else {
             // INELASTIC
-            mInelasticFlag = 1;
+            mInelasticFlag = true;
             double dgamma = 0;
             Vector yield_function_normal_vector = stress_trial_dev / norm_dev_stress;
             if (delta_k != 0.0 && hardening_exponent != 0.0) {
@@ -418,4 +418,27 @@ int LinearJ2PlasticityPlaneStrain2D::Check(const Properties& rMaterialProperties
 
     return 0;
 }
+
+void LinearJ2PlasticityPlaneStrain2D::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    rSerializer.save("mInelasticFlag", mInelasticFlag);
+    rSerializer.save("mStrainEnergy", mStrainEnergy);
+    rSerializer.save("mPlasticStrain", mPlasticStrain);
+    rSerializer.save("mPlasticStrainOld", mPlasticStrainOld);
+    rSerializer.save("mAccumulatedPlasticStrain", mAccumulatedPlasticStrain);
+    rSerializer.save("mAccumulatedPlasticStrainOld", mAccumulatedPlasticStrainOld);
+}
+
+void LinearJ2PlasticityPlaneStrain2D::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    rSerializer.load("mInelasticFlag", mInelasticFlag);
+    rSerializer.load("mStrainEnergy", mStrainEnergy);
+    rSerializer.load("mPlasticStrain", mPlasticStrain);
+    rSerializer.load("mPlasticStrainOld", mPlasticStrainOld);
+    rSerializer.load("mAccumulatedPlasticStrain", mAccumulatedPlasticStrain);
+    rSerializer.load("mAccumulatedPlasticStrainOld", mAccumulatedPlasticStrainOld);
+}
+
 } /* namespace Kratos.*/

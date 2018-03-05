@@ -104,14 +104,8 @@ private:
     virtual void CalculateElasticMatrix(Matrix &ElasticityTensor, const Properties &props);
 
     friend class Serializer;
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    }
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; /* class LinearJ2PlasticityPlaneStrain2D */
 } /* namespace Kratos */
 #endif
