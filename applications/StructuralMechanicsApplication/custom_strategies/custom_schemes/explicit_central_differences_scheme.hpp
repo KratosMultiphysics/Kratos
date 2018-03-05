@@ -186,9 +186,8 @@ public:
     double stable_delta_time = 1000.00;
 
     auto it_begin = rModelPart.ElementsBegin();
-#pragma omp parallel firstprivate(it_begin)
-    {
-#pragma omp parallel for private(stable_delta_time)
+
+#pragma omp parallel for firstprivate(it_begin), reduction(min : stable_delta_time)
       for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
         bool check_has_all_variables = true;
         double E(0.00), nu(0.00), roh(0.00), alpha(0.00), beta(0.00);
@@ -216,11 +215,11 @@ public:
 
           // compute courant criterion
           const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
-          const double wavespeed = sqrt(bulk_modulus / roh);
+          const double wavespeed = std::sqrt(bulk_modulus / roh);
           const double w = 2.0 * wavespeed / length; // frequency
 
           const double psi = 0.5 * (alpha / w + beta * w); // critical ratio;
-          stable_delta_time = (2.0 / w) * (sqrt(1.0 + psi * psi) - psi);
+          stable_delta_time = (2.0 / w) * (std::sqrt(1.0 + psi * psi) - psi);
 
           if (stable_delta_time > 0.00) {
             if (stable_delta_time < delta_time) {
@@ -231,7 +230,6 @@ public:
           KRATOS_ERROR << "not enough parameters for prediction level "
                        << mDeltaTime.PredictionLevel << std::endl;
       }
-    }
 
     stable_delta_time = delta_time * safety_factor;
 
@@ -262,7 +260,7 @@ public:
     auto i_begin = rModelPart.NodesBegin();
     //allocating memory outside of omp
     for (SizeType i=0;i<r_nodes.size();++i)
-    {     
+    {
       (i_begin + i)->SetValue(MIDDLE_VELOCITY,ZeroVector(3));
       (i_begin + i)->SetValue(MIDDLE_ANGULAR_VELOCITY,ZeroVector(3));
       (i_begin + i)->SetValue(NODAL_INERTIA,ZeroVector(3));

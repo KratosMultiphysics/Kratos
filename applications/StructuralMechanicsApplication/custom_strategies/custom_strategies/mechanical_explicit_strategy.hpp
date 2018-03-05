@@ -164,6 +164,10 @@ public:
     ElementsArrayType &r_elements = r_model_part.Elements();
     ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
 
+    SetNonHistoricalVariable(NODAL_MASS, 0.0, r_model_part.Nodes());
+    if ...
+        SetNonHistoricalVariable(NODAL_INERTIA, 0.0, r_model_part.Nodes());
+
     auto it_node = r_model_part.NodesBegin();
 #pragma omp parallel for firstprivate(it_node)
     for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
@@ -180,7 +184,7 @@ public:
     }
 
     auto it_elem = r_model_part.ElementsBegin();
-#pragma omp parallel for firstprivate(it_elem)
+// #pragma omp parallel for firstprivate(it_elem)
     for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
       // Getting nodal mass and inertia from element
       Vector dummy_vector;
@@ -218,7 +222,7 @@ public:
 
     if (BaseType::mRebuildLevel > 0) {
       auto it_elem = r_model_part.ElementsBegin();
-#pragma omp parallel for firstprivate(it_elem)
+// #pragma omp parallel for firstprivate(it_elem)
       for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
         // Getting nodal mass and inertia from element
         Vector dummy_vector;
