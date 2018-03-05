@@ -26,8 +26,7 @@ class controlledExecutionScope:
         os.chdir(self.currentPath)
 
 
-class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
-
+class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
