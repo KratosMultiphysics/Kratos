@@ -64,14 +64,13 @@ class TestGidIO(KratosUnittest.TestCase):
         ## Settings string in json format
         params = KratosMultiphysics.Parameters("""
             {
-                "file_name_1"            : "",
-                "file_name_2"            : "",
-                "deterministic"          : true
+                "reference_file_name"   : "",
+                "output_file_name"      : ""
             }
         """)
 
-        params["file_name_1"].SetString(output_file)
-        params["file_name_2"].SetString(GetFilePath(reference_file))
+        params["reference_file_name"].SetString(GetFilePath(reference_file))
+        params["output_file_name"].SetString(output_file)
 
         cmp_process = compare_two_files_check_process.CompareTwoFilesCheckProcess(KratosMultiphysics.ModelPart(), params)
 

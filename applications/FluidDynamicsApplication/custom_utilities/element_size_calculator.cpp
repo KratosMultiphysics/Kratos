@@ -179,8 +179,8 @@ double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& 
 }
 
 // Triangle2D3 version. 
-template<>
-double ElementSizeCalculator<2,3>::GradientsElementSize(const bounded_matrix<double,3,2>& rDN_DX) {
+template<std::size_t TDim, std::size_t TNumNodes>
+double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const bounded_matrix<double,3,2>& rDN_DX) {
 
     double h = 0.0;
     for(unsigned int i = 0; i < 3; ++i){
@@ -194,8 +194,8 @@ double ElementSizeCalculator<2,3>::GradientsElementSize(const bounded_matrix<dou
 }
 
 // Tetrahedra3D4 version. 
-template<>
-double ElementSizeCalculator<3,4>::GradientsElementSize(const bounded_matrix<double,4,3>& rDN_DX) {
+template<std::size_t TDim, std::size_t TNumNodes>
+double ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(const bounded_matrix<double,4,3>& rDN_DX) {
 
     double h = 0.0;
     for(unsigned int i = 0; i < 4; ++i){

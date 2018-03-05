@@ -31,11 +31,11 @@ class MechanicalSolver(object):
     _create_convergence_criterion
     _create_linear_solver
     _create_builder_and_solver
-    _create_mechanical_solver
+    _create_mechanical_solution_strategy
     _create_restart_utility
 
-    The mechanical_solver, builder_and_solver, etc. should alway be retrieved
-    using the getter functions get_mechanical_solver, get_builder_and_solver,
+    The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
+    using the getter functions get_mechanical_solution_strategy, get_builder_and_solver,
     etc. from this base class.
 
     Only the member variables listed below should be accessed directly.
@@ -52,7 +52,8 @@ class MechanicalSolver(object):
             "analysis_type": "non_linear",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name"
+                "input_filename": "unknown_name",
+                "perform_partitioning": true,
             },
             "restart_settings" : {
                 "load_restart"            : false,
@@ -119,7 +120,7 @@ class MechanicalSolver(object):
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
@@ -200,18 +201,18 @@ class MechanicalSolver(object):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Initializing ...")
-        # The mechanical solver is created here if it does not already exist.
+        # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solver = self.get_mechanical_solver()
-        mechanical_solver.SetEchoLevel(self.settings["echo_level"].GetInt())
+        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         if (self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
-            mechanical_solver.Initialize()
+            mechanical_solution_strategy.Initialize()
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
             try:
-                mechanical_solver.SetInitializePerformedFlag(True)
+                mechanical_solution_strategy.SetInitializePerformedFlag(True)
             except AttributeError:
                 pass
         self.Check()
@@ -236,30 +237,30 @@ class MechanicalSolver(object):
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solver = self.get_mechanical_solver()
-        mechanical_solver.Solve()
+        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+        mechanical_solution_strategy.Solve()
 
     def InitializeSolutionStep(self):
-        self.get_mechanical_solver().InitializeSolutionStep()
+        self.get_mechanical_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):
-        self.get_mechanical_solver().Predict()
+        self.get_mechanical_solution_strategy().Predict()
 
     def SolveSolutionStep(self):
-        is_converged = self.get_mechanical_solver().SolveSolutionStep()
+        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
         return is_converged
 
     def FinalizeSolutionStep(self):
-        self.get_mechanical_solver().FinalizeSolutionStep()
+        self.get_mechanical_solution_strategy().FinalizeSolutionStep()
 
     def SetEchoLevel(self, level):
-        self.get_mechanical_solver().SetEchoLevel(level)
+        self.get_mechanical_solution_strategy().SetEchoLevel(level)
 
     def Clear(self):
-        self.get_mechanical_solver().Clear()
+        self.get_mechanical_solution_strategy().Clear()
 
     def Check(self):
-        self.get_mechanical_solver().Check()
+        self.get_mechanical_solution_strategy().Check()
 
     #### Specific internal functions ####
 
@@ -283,10 +284,10 @@ class MechanicalSolver(object):
             self._builder_and_solver = self._create_builder_and_solver()
         return self._builder_and_solver
 
-    def get_mechanical_solver(self):
-        if not hasattr(self, '_mechanical_solver'):
-            self._mechanical_solver = self._create_mechanical_solver()
-        return self._mechanical_solver
+    def get_mechanical_solution_strategy(self):
+        if not hasattr(self, '_mechanical_solution_strategy'):
+            self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
+        return self._mechanical_solution_strategy
 
     def get_restart_utility(self):
         if not hasattr(self, '_restart_utility'):
@@ -487,20 +488,20 @@ class MechanicalSolver(object):
         """
         raise Exception("Solution Scheme creation must be implemented in the derived class.")
 
-    def _create_mechanical_solver(self):
+    def _create_mechanical_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
         if analysis_type == "linear":
-            mechanical_solver = self._create_linear_strategy()
+            mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
             if(self.settings["line_search"].GetBool() == False):
-                mechanical_solver = self._create_newton_raphson_strategy()
+                mechanical_solution_strategy = self._create_newton_raphson_strategy()
             else:
-                mechanical_solver = self._create_line_search_strategy()
+                mechanical_solution_strategy = self._create_line_search_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
             err_msg += "Available options are: \"linear\", \"non_linear\""
             raise Exception(err_msg)
-        return mechanical_solver
+        return mechanical_solution_strategy
 
     def _create_linear_strategy(self):
         computing_model_part = self.GetComputingModelPart()
