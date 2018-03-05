@@ -192,8 +192,8 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                                 self.assertAlmostEqual(value[index], value_json, msg=("Error checking node " + str(node.Id) + " " + variable_name + " results."), delta=tol)
             # Nodal values
             for elem in self.sub_model_part.Elements:
-                for i in range(self.params["check_variables"].size()):
-                    out = self.params["check_variables"][i]
+                for i in range(self.params["gauss_points_check_variables"].size()):
+                    out = self.params["gauss_points_check_variables"][i]
                     variable_name = out.GetString()
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                     variable_type = self.__check_variable_type(variable_name)
