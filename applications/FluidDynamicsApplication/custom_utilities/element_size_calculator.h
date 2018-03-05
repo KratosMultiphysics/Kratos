@@ -88,11 +88,18 @@ public:
      */
     static double MinimumElementSize(const Geometry<Node<3> >& rGeometry);
     
-    /// Element size based on the shape functions gradients.
+    /// Element size based on the shape functions gradients. Triangle element version.
     /** @param rDN_DX The shape functions gradients.
      *  @return The computed size.
      */
-    static double GradientsElementSize(const bounded_matrix<double, TNumNodes, TDim>& rDN_DX);
+    static double GradientsElementSize(const bounded_matrix<double, 3, 2>& rDN_DX);
+
+
+    /// Element size based on the shape functions gradients. Tetrahedral element version.
+    /** @param rDN_DX The shape functions gradients.
+     *  @return The computed size.
+     */
+    static double GradientsElementSize(const bounded_matrix<double, 4, 3>& rDN_DX);
     
     ///@}
 
