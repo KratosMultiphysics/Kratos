@@ -99,17 +99,6 @@ public:
     /// Skyline solver definion
     typedef SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
 
-    /// Skyline solver definion
-    typedef PowerIterationHighestEigenvalueSolver<SparseSpaceType,  LocalSpaceType, LinearSolverType > PowerIterationHighestEigenvalueSolverType;
-
-    typedef PowerIterationEigenvalueSolver<SparseSpaceType,  LocalSpaceType, LinearSolverType > PowerIterationEigenvalueSolverType;
-
-    /// The reorder considered
-    typedef Reorderer<SparseSpaceType,  LocalSpaceType > ReordererType;
-
-    /// Skyline solver definion
-    typedef SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
-
     /// Power iteration solver for the highest eigenvalue
     typedef PowerIterationHighestEigenvalueSolver<SparseSpaceType,  LocalSpaceType, LinearSolverType > PowerIterationHighestEigenvalueSolverType;
 
