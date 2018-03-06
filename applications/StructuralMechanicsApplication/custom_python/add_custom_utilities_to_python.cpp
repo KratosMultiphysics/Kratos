@@ -31,7 +31,7 @@
 #include "custom_utilities/adjoint_utilities/local_stress_response_function.h"
 #include "custom_utilities/adjoint_utilities/nodal_displacement_response_function.h"
 #include "custom_utilities/adjoint_utilities/strain_energy_response_function.h"
-#include "custom_utilities/adjoint_utilities/eigenfrequency_response_function.h"
+// #include "custom_utilities/adjoint_utilities/eigenfrequency_response_function.h"
 
 
 namespace Kratos
@@ -109,8 +109,8 @@ void  AddCustomUtilitiesToPython()
     class_<StrainEnergyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
       ("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>());
 
-    class_<EigenfrequencyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>());
+    // class_<EigenfrequencyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
+    //   ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>());
 
     //For global finite differences
     class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())
