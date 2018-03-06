@@ -38,7 +38,6 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
     """
     def setUp(self):
         # Within this location context:
-        # self.file_name = "patch_test/updated_lagrangian/patch_test_2D_shear_qua"
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # here we read the general parameters and add the load/save specific settings
             with open(self.file_name + "_parameters.json", 'r') as parameter_file:

@@ -5,10 +5,9 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
 # Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("MetisApplication","TrilinosApplication")
+KratosMultiphysics.CheckRegisteredApplications("TrilinosApplication")
 
 # Import applications
-import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 # Other imports
@@ -16,14 +15,22 @@ import restart_utility
 import os
 
 class TrilinosRestartUtility(RestartUtility):
+    """
+    This class overwrites the methods that are different
+    in MPI parallel execution
+
+    See restart_utility.py for more information.
+    """
     def __init__(self, model_part, settings):
         # Construct the base class
         super(TrilinosRestartUtility, self).__init__(model_part, settings)
 
-    def _GetFileLoadLabel(self):
+    #### Protected functions ####
+
+    def _GetFileLabelLoad(self):
         return str(KratosMPI.mpi.rank) + '_' + self.input_file_label
 
-    def _GetFileSaveLabel(self, file_label):
+    def _GetFileLabelSave(self, file_label):
         return str(KratosMPI.mpi.rank) + '_' + str(file_label)
 
     def _ExecuteAfterLaod(self):

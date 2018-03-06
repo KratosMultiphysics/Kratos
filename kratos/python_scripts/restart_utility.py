@@ -7,6 +7,13 @@ import KratosMultiphysics
 import os
 
 class RestartUtility(object):
+    """
+    This class collects the common functionalities needed for
+    saving / loading restart files.
+
+    It can either be integrated into python-solvers or used directly
+    in the main-script
+    """
     def __init__(self, model_part, settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -63,9 +70,14 @@ class RestartUtility(object):
 
         self.move_restart_files_to_folder = settings["move_restart_files_to_folder"].GetBool()
 
+    #### Public functions ####
+
     def LoadRestart(self):
+        """
+        This function loads a restart file into a ModelPart
+        """
         # Get file name
-        restart_path = self._GetFileNameLoad()
+        restart_path = self.__GetFileNameLoad()
         # Check path
         if (os.path.exists(restart_path+".rest") == False):
             raise Exception("Restart file not found: " + restart_path + ".rest")
@@ -86,6 +98,7 @@ class RestartUtility(object):
     def SaveRestart(self):
         """
         This function saves the restart file. It should be called at the end of a time-step.
+        Whether a restart file is being written or not is decided internally
         """
         if self.__IsRestartOutputStep():
             if self.restart_control_type_is_time:
@@ -106,14 +119,12 @@ class RestartUtility(object):
                 while self.next_output <= control_label:
                     self.next_output += self.restart_save_frequency
 
-    def _GetFileNameLoad(self):
-        problem_path = os.getcwd()
-        return os.path.join(problem_path, self.input_filename + "_" + self._GetFileLoadLabel())
+    #### Protected functions ####
 
-    def _GetFileLoadLabel(self):
+    def _GetFileLabelLoad(self):
         return self.input_file_label
 
-    def _GetFileSaveLabel(self, file_label):
+    def _GetFileLabelSave(self, file_label):
         return str(file_label)
 
     def _ExecuteAfterLaod(self):
@@ -124,7 +135,22 @@ class RestartUtility(object):
         # This function will be overridden in the trilinos-version
         KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
-    def _GetOutputFolderName(self):
+    #### Private functions ####
+
+    def __IsRestartOutputStep(self):
+        if self.restart_control_type_is_time:
+            return (self.model_part.ProcessInfo[KratosMultiphysics.TIME] > self.next_output)
+        else:
+            return (self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output)
+
+    def __GetFileNameLoad(self):
+        problem_path = os.getcwd()
+        return os.path.join(problem_path, self.input_filename + "_" + self._GetFileLabelLoad())
+
+    def __GetFileNameSave(self, file_label):
+        return os.path.join(self.__GetOutputFolderName(), self.input_filename + '_' + self._GetFileLabelSave(file_label))
+
+    def __GetOutputFolderName(self):
         if self.move_restart_files_to_folder:
             folder_name = self.input_filename + "__restart_files"
             if not os.path.isdir(folder_name):
@@ -132,12 +158,3 @@ class RestartUtility(object):
             return folder_name
         else:
             return ""
-
-    def __GetFileNameSave(self, file_label):
-        return os.path.join(self._GetOutputFolderName(), self.input_filename + '_' + self._GetFileSaveLabel(file_label))
-
-    def __IsRestartOutputStep(self):
-        if self.restart_control_type_is_time:
-            return (self.model_part.ProcessInfo[KratosMultiphysics.TIME] > self.next_output)
-        else:
-            return (self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output)
