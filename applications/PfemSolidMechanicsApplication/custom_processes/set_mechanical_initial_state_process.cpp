@@ -113,7 +113,6 @@ namespace Kratos
       {
          if ( ( Ymax < in->Y() ) && ( in->IsNot(RIGID) ) ) {
             Ymax = in->Y();
-            std::cout << Ymax << " , " << in->IsNot(RIGID) << std::endl;
          }
       } 
 
@@ -476,6 +475,8 @@ namespace Kratos
 
          double& rWaterPressure = pNode->FastGetSolutionStepValue( WATER_PRESSURE );
          rWaterPressure = sign * WaterPressure ;
+         double& rWaterPressureOld = pNode->FastGetSolutionStepValue( WATER_PRESSURE, 1 );
+         rWaterPressureOld = sign * WaterPressure ;
       }
 
       double VerticalStress, HorizontalStress;
