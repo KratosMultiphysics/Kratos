@@ -184,7 +184,6 @@ class TestRestart(KratosUnittest.TestCase):
         restart_parameters = KratosMultiphysics.Parameters("""
         {
             "input_filename"          : "",
-            "serializer_trace"        : "no_trace",
             "restart_load_file_label" : ""
         }
         """)
