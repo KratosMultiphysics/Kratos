@@ -47,7 +47,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 "contact_residual_relative_tolerance"    : 1.0e-4,
                 "contact_residual_absolute_tolerance"    : 1.0e-9,
                 "use_mixed_ulm_solver"                   : true,
-                "mixed_ulm_solver_parameters" : 
+                "mixed_ulm_solver_parameters" :
                 {
                     "solver_type": "MixedULMLinearSolver",
                     "tolerance" : 1.0e-6,
@@ -160,7 +160,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
     def print_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
         KM.Logger.PrintInfo(" ".join(map(str,args)))
-        
+
     def print_warning_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
         KM.Logger.PrintWarning(" ".join(map(str,args)))
