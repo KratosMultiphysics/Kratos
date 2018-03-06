@@ -4,9 +4,9 @@
 //  License:         BSD License
 //                   license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Fusseder Martin   
+//  Main authors:    Fusseder Martin
 //                   martin.fusseder@tum.de
-//	
+//
 // ==============================================================================
 
 #ifndef STRAIN_ENERGY_RESPONSE_FUNCTION_H
@@ -81,7 +81,7 @@ public:
 	typedef StructuralResponseFunction BaseType;
 	typedef array_1d<double, 3> array_3d;
 
-	
+
 
 	/// Pointer definition of StrainEnergyResponseFunction
 	KRATOS_CLASS_POINTER_DEFINITION(StrainEnergyResponseFunction);
@@ -94,10 +94,8 @@ public:
 	StrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: StructuralResponseFunction(model_part, responseSettings)
 	{
-	
+
 		// Initialize member variables to NULL
-		m_initial_value = 0.0;
-		m_initial_value_defined = false;
 		m_current_response_value = 0.0;
 
 	}
@@ -142,35 +140,28 @@ public:
 	{
 		KRATOS_TRY;
 
-		ModelPart& r_model_part = this->GetModelPart();
+		ModelPart& r_model_part = rModelPart; //TODO this->GetModelPart();
 		ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
 		m_current_response_value = 0.0;
 
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
-		for (ModelPart::ElementIterator elem_i = r_model_part.ElementsBegin(); elem_i != r_model_part.ElementsEnd(); ++elem_i)
+		for (auto& elem_i : r_model_part.Elements())
 		{
 			Matrix LHS;
 			Vector RHS;
 			Vector adjoint_variables;
 
 			// Get state solution relevant for energy calculation
-			elem_i->GetValuesVector(adjoint_variables,0);
+			elem_i.GetValuesVector(adjoint_variables,0);
 
-			elem_i->CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
+			elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
 			// Compute strain energy
-			m_current_response_value += 2.0 * inner_prod(adjoint_variables,prod(LHS,adjoint_variables)); 
+			m_current_response_value += 2.0 * inner_prod(adjoint_variables,prod(LHS,adjoint_variables));
 			// the multiplication with 2.0 instead of 0.5 is due to the fact that GetValuesVector delivers
-			// the adjoint displacements and NOT the primal solution. In Detail here is 
+			// the adjoint displacements and NOT the primal solution. In Detail here is
 			// S = 2.0 * (0.5*u)^T * 0.5*f = 0.5 * (u)^T * f computed.
- 		}	
-
-		// Set initial value if not done yet
-		if(!m_initial_value_defined)
-		{
-			m_initial_value = m_current_response_value;
-			m_initial_value_defined = true;
-		}
+ 		}
 
 		return m_current_response_value;
 
@@ -295,9 +286,9 @@ protected:
 
       	if (rResponseGradient.size() != rDerivativesMatrix.size1())
           	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-		rResponseGradient.clear();	 
+		rResponseGradient.clear();
 
-		// There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces! 
+		// There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces!
 
      	 KRATOS_CATCH("")
 	}
@@ -313,9 +304,9 @@ protected:
 
 		if (rResponseGradient.size() != rDerivativesMatrix.size1())
           	rResponseGradient.resize(rDerivativesMatrix.size1(), false);
-		rResponseGradient.clear();	
+		rResponseGradient.clear();
 
-		// There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces! 
+		// There will be a mistake, if body forces are considered. Because the elements are responsible for the body forces!
 
         KRATOS_CATCH("")
 	}
@@ -338,7 +329,7 @@ protected:
 
 		if (rResponseGradient.size() != rDerivativesMatrix.size2())
 			rResponseGradient.resize(adjoint_variables.size(), false);
-	
+
 		noalias(rResponseGradient) = prod(rDerivativesMatrix, adjoint_variables);
 
 		KRATOS_CATCH("");
@@ -361,8 +352,8 @@ protected:
 			KRATOS_ERROR << "Size of adjoint vector does not fit to the size of the pseudo load!" << std::endl;
 
 		if (rResponseGradient.size() != rDerivativesMatrix.size2())
-			rResponseGradient.resize(adjoint_variables.size(), false);	
-	
+			rResponseGradient.resize(adjoint_variables.size(), false);
+
 		noalias(rResponseGradient) = prod(rDerivativesMatrix, adjoint_variables);
 
 		KRATOS_CATCH("");
@@ -392,9 +383,7 @@ private:
 	///@name Member Variables
 	///@{
 
-	double m_current_response_value; 
-	double m_initial_value;
-	bool m_initial_value_defined;
+	double m_current_response_value;
 
 	///@}
 ///@name Private Operators
