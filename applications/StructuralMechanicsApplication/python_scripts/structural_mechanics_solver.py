@@ -108,7 +108,7 @@ class MechanicalSolver(object):
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
+        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part

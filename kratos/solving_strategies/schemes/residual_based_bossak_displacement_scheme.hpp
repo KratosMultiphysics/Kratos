@@ -235,68 +235,64 @@ public:
         ) override
     {
         KRATOS_TRY;
-
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
         
-        const double delta_time = current_process_info[DELTA_TIME];
+        const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
 
         // Updating time derivatives (nodally for efficiency)
-        const int num_nodes = static_cast<int>( rModelPart.NumberOfNodes() );
+        const int num_nodes = static_cast<int>(rModelPart.NumberOfNodes());
 
-        #pragma omp parallel for
-        for(int i = 0;  i< num_nodes; ++i) {
+        array_1d<double, 3 > delta_displacement;
+        
+        #pragma omp parallel for private(delta_displacement)
+        for(int i = 0;  i < num_nodes; ++i) {
             auto it_node = rModelPart.Nodes().begin() + i;
 
             //Predicting: NewDisplacement = previous_displacement + previous_velocity * delta_time;
             //ATTENTION::: the prediction is performed only on free nodes
 
-            const array_1d<double, 3>& previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-            const array_1d<double, 3>& previous_velocity     = it_node->FastGetSolutionStepValue(VELOCITY,     1);
-            const array_1d<double, 3>& previous_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            array_1d<double, 3>& current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-            array_1d<double, 3>& current_velocity     = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & previous_acceleration = (it_node)->FastGetSolutionStepValue(ACCELERATION, 1);
+            const array_1d<double, 3 > & previous_velocity     = (it_node)->FastGetSolutionStepValue(VELOCITY,     1);
+            const array_1d<double, 3 > & previous_displacement = (it_node)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3 > & current_acceleration        = (it_node)->FastGetSolutionStepValue(ACCELERATION);
+            array_1d<double, 3 > & current_velocity            = (it_node)->FastGetSolutionStepValue(VELOCITY);
+            array_1d<double, 3 > & current_displacement        = (it_node)->FastGetSolutionStepValue(DISPLACEMENT);
 
-            if (it_node->HasDofFor(ACCELERATION_X)) {
-                if (it_node->IsFixed(ACCELERATION_X)) {
-                    current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[0] + mNewmark.beta * current_acceleration[0]);
-            } } else if (it_node->HasDofFor(VELOCITY_X)) {
-                if (it_node->IsFixed(VELOCITY_X)) {
-                    current_displacement[0] = previous_displacement[0] + 0.5 * delta_time * (previous_velocity[0] + current_velocity[0]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
-            } } else if (it_node->IsFixed(DISPLACEMENT_X) == false) {
+            if (it_node -> IsFixed(ACCELERATION_X)) {
+                current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[0] + mNewmark.beta * current_acceleration[0]);
+            } else if (it_node -> IsFixed(VELOCITY_X)) {
+                current_displacement[0] = previous_displacement[0] + 0.5 * delta_time * (previous_velocity[0] + current_velocity[0]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
+            } else if (it_node -> IsFixed(DISPLACEMENT_X) == false) {
                 current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
             }
 
-            if (it_node->HasDofFor(ACCELERATION_Y)) {
-                if (it_node->IsFixed(ACCELERATION_Y)) {
-                    current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
-            } } else if (it_node->HasDofFor(VELOCITY_Y)) {
-                if (it_node->IsFixed(VELOCITY_Y)) {
-                    current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
-            } } else if (it_node->IsFixed(DISPLACEMENT_Y) == false) {
+            if (it_node -> IsFixed(ACCELERATION_Y)) {
+                current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
+            } else if (it_node -> IsFixed(VELOCITY_Y)) {
+                current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
+            } else if (it_node -> IsFixed(DISPLACEMENT_Y) == false) {
                 current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1];
             }
 
             // For 3D cases
-            if (it_node->HasDofFor(DISPLACEMENT_Z)) {
-                if (it_node->HasDofFor(ACCELERATION_Z)) {
-                    if (it_node->IsFixed(ACCELERATION_Z)) {
-                        current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
-                } } else if (it_node->HasDofFor(VELOCITY_Z)) {
-                    if (it_node->IsFixed(VELOCITY_Z)) {
-                        current_displacement[2] = previous_displacement[2] + 0.5 * delta_time * (previous_velocity[2] + current_velocity[2]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2] ;
-                } } else if (it_node->IsFixed(DISPLACEMENT_Z) == false) {
+            if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
+                if (it_node -> IsFixed(ACCELERATION_Z)) {
+                    current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
+                } else if (it_node -> IsFixed(VELOCITY_Z)) {
+                    current_displacement[2] = previous_displacement[2] + 0.5 * delta_time * (previous_velocity[2] + current_velocity[2]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2] ;
+                } else if (it_node -> IsFixed(DISPLACEMENT_Z) == false) {
                     current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2];
                 }
             }
 
+
             // Updating time derivatives ::: Please note that displacements and its time derivatives can not be consistently fixed separately
-            const array_1d<double, 3 > delta_displacement = current_displacement - previous_displacement;
+            noalias(delta_displacement) = current_displacement - previous_displacement;
 
-            UpdateVelocity(current_velocity, delta_displacement, previous_velocity, previous_acceleration);
-            UpdateAcceleration(current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
+            UpdateVelocity     (current_velocity,     delta_displacement, previous_velocity, previous_acceleration);
+
+            UpdateAcceleration (current_acceleration, delta_displacement, previous_velocity, previous_acceleration);
         }
-
+        
         KRATOS_CATCH( "" );
     }
 
