@@ -176,6 +176,8 @@ namespace Kratos
          {
             double & rNodeWaterPressure = pNode->FastGetSolutionStepValue( WATER_PRESSURE );
             rNodeWaterPressure = rWaterPressure;
+            double & rNodeWaterPressureOld = pNode->FastGetSolutionStepValue( WATER_PRESSURE , 1);
+            rNodeWaterPressureOld = rWaterPressure;
          }
 
       }
