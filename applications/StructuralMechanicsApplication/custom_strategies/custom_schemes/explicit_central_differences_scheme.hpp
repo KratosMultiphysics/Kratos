@@ -167,7 +167,7 @@ public:
 
     auto it_begin = rModelPart.ElementsBegin();
 
-#pragma omp parallel for firstprivate(it_begin), reduction(min : stable_delta_time)
+#pragma omp parallel for firstprivate(it_begin)
       for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
         bool check_has_all_variables = true;
         double E(0.00), nu(0.00), roh(0.00), alpha(0.00), beta(0.00);
@@ -200,11 +200,10 @@ public:
 
           const double psi = 0.5 * (alpha / w + beta * w); // critical ratio;
           stable_delta_time = (2.0 / w) * (std::sqrt(1.0 + psi * psi) - psi);
-
+         
           if (stable_delta_time > 0.00) {
-            if (stable_delta_time < delta_time) {
-              delta_time = stable_delta_time;
-            }
+            #pragma omp atomic
+            if (stable_delta_time < delta_time) delta_time = stable_delta_time;
           }
         } else
           KRATOS_ERROR << "not enough parameters for prediction level "
