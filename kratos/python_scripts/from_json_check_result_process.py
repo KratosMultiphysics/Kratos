@@ -125,7 +125,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                     out = self.params["check_variables"][i]
                     variable_name = out.GetString()
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
-                    variable_type = self.__check_variable_type(variable_name)
+                    variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
                     if (self.historical_value == True):
                         value = node.GetSolutionStepValue(variable, 0)
@@ -142,7 +142,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                             self.assertAlmostEqual(value, value_json, msg=("Error checking node " + str(node.Id) + " " + variable_name + " results."), delta=tol)
                     # Array variable
                     elif variable_type == "Array":
-                        if (self.__check_variable_type(variable_name + "_X") == "Component"):
+                        if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                             if (self.iscloseavailable == True):
                                 # X-component
                                 values_json = self.data["NODE_" + str(node.Id)][variable_name + "_X"]
@@ -197,7 +197,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                     out = self.params["gauss_points_check_variables"][i]
                     variable_name = out.GetString()
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
-                    variable_type = self.__check_variable_type(variable_name)
+                    variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
                     value = elem.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
 
@@ -215,7 +215,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                                 self.assertAlmostEqual(value[gp], value_json, msg=("Error checking elem " + str(elem.Id) + " " + variable_name + " results."), delta=tol)
                     # Array variable
                     elif variable_type == "Array":
-                        if (self.__check_variable_type(variable_name + "_X") == "Component"):
+                        if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                             if (self.iscloseavailable == True):
                                 for gp in range(gauss_point_number):
                                     # X-component
@@ -329,33 +329,3 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
 
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
       return [ KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
-
-    def __check_variable_type(self, variable):
-        """ This method checks the type of variable to be saved
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        variable -- The name of the variable to create
-        """
-        if KratosMultiphysics.KratosGlobals.Kernel.HasBoolVariable(variable):
-            return "Bool"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasIntVariable(variable):
-            return "Integer"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasUnsignedIntVariable(variable):
-            return "Unsigned Integer"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasDoubleVariable(variable):
-            return "Double"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasArrayVariable(variable):
-            return "Array"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasVectorVariable(variable):
-            return "Vector"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasMatrixVariable(variable):
-            return "Matrix"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasStringVariable(variable):
-            return "String"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasVariableComponent(variable):
-            return "Component"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasFlagsVariable(variable):
-            return "Flag"
-        else:
-            return "NONE"

@@ -102,7 +102,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                 out = self.params["output_variables"][i]
                 variable_name = out.GetString()
                 variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-                variable_type = self.__check_variable_type(variable_name)
+                variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
                 if (self.historical_value == True):
                     value = node.GetSolutionStepValue(variable, 0)
                 else:
@@ -115,7 +115,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                         if (count == 0):
                             data["RESULTANT"][variable_name] = []
                 elif variable_type == "Array":
-                    if (self.__check_variable_type(variable_name + "_X") == "Component"):
+                    if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                         if (self.resultant_solution == False):
                             data["NODE_" + str(node.Id)][variable_name + "_X"] = []
                             data["NODE_" + str(node.Id)][variable_name + "_Y"] = []
@@ -151,7 +151,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                 out = self.params["gauss_points_output_variables"][i]
                 variable_name = out.GetString()
                 variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-                variable_type = self.__check_variable_type(variable_name)
+                variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
                 value = elem.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
 
@@ -168,7 +168,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             for gp in range(gauss_point_number):
                                 data["RESULTANT"][variable_name][str(gp)] = []
                 elif variable_type == "Array":
-                    if (self.__check_variable_type(variable_name + "_X") == "Component"):
+                    if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                         if (self.resultant_solution == False):
                             data["ELEMENT_" + str(elem.Id)][variable_name + "_X"] = {}
                             data["ELEMENT_" + str(elem.Id)][variable_name + "_Y"] = {}
@@ -243,7 +243,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     out = self.params["output_variables"][i]
                     variable_name = out.GetString()
                     variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-                    variable_type = self.__check_variable_type(variable_name)
+                    variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
                     if (self.historical_value == True):
                         value = node.GetSolutionStepValue(variable, 0)
                     else:
@@ -258,7 +258,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             else:
                                 data["RESULTANT"][variable_name][-1] += value
                     elif variable_type == "Array":
-                        if (self.__check_variable_type(variable_name + "_X") == "Component"):
+                        if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                             if (self.resultant_solution == False):
                                 data["NODE_" + str(node.Id)][variable_name + "_X"].append(value[0])
                                 data["NODE_" + str(node.Id)][variable_name + "_Y"].append(value[1])
@@ -299,7 +299,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     out = self.params["gauss_points_output_variables"][i]
                     variable_name = out.GetString()
                     variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-                    variable_type = self.__check_variable_type(variable_name)
+                    variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
                     value = elem.CalculateOnIntegrationPoints(variable, self.sub_model_part.ProcessInfo)
 
                     gauss_point_number = len(value)
@@ -316,7 +316,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                 for gp in range(gauss_point_number):
                                     data["RESULTANT"][variable_name][str(gp)][-1] += value[gp]
                     elif variable_type == "Array":
-                        if (self.__check_variable_type(variable_name + "_X") == "Component"):
+                        if (KratosMultiphysics.KratosGlobals.GetVariableType(variable_name + "_X") == "Component"):
                             if (self.resultant_solution == False):
                                 for gp in range(gauss_point_number):
                                     data["ELEMENT_" + str(elem.Id)][variable_name + "_X"][str(gp)].append(value[gp][0])
@@ -421,33 +421,3 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
       return [KratosMultiphysics.KratosGlobals.GetVariable(param[i].GetString()) for i in range( 0, param.size())]
-
-    def __check_variable_type(self, variable):
-        """ This method checks the type of variable to be saved
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        variable -- The name of the variable to create
-        """
-        if KratosMultiphysics.KratosGlobals.Kernel.HasBoolVariable(variable):
-            return "Bool"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasIntVariable(variable):
-            return "Integer"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasUnsignedIntVariable(variable):
-            return "Unsigned Integer"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasDoubleVariable(variable):
-            return "Double"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasArrayVariable(variable):
-            return "Array"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasVectorVariable(variable):
-            return "Vector"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasMatrixVariable(variable):
-            return "Matrix"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasStringVariable(variable):
-            return "String"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasVariableComponent(variable):
-            return "Component"
-        elif KratosMultiphysics.KratosGlobals.Kernel.HasFlagsVariable(variable):
-            return "Flag"
-        else:
-            return "NONE"
