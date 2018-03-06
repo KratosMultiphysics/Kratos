@@ -17,6 +17,7 @@
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/fluid_element_utilities.h"
+#include "custom_utilities/element_size_calculator.h"
 
 namespace Kratos
 {
@@ -88,6 +89,38 @@ void FIC<TElementData>::Calculate(const Variable<Vector>& rVariable,
 template <class TElementData>
 void FIC<TElementData>::Calculate(const Variable<Matrix>& rVariable,
     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+
+template <class TElementData>
+void FIC<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
+                                            ProcessInfo& rCurrentProcessInfo)
+{
+    // Resize and intialize output
+    if (rMassMatrix.size1() != LocalSize)
+        rMassMatrix.resize(LocalSize, LocalSize, false);
+
+    noalias(rMassMatrix) = ZeroMatrix(LocalSize, LocalSize);
+
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(
+        gauss_weights, shape_functions, shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
+
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+
+    // Iterate over integration points to evaluate local contribution
+    for (unsigned int g = 0; g < number_of_gauss_points; g++) {
+        data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+            shape_derivatives[g]);
+
+        this->CalculateMaterialResponse(data);
+
+        this->AddMassLHS(data, rMassMatrix);
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
@@ -239,7 +272,75 @@ void FIC<TElementData>::AddMassLHS(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
+    double density = rData.Density;
 
+    // Note: Dof order is (u,v,[w,]p) for each node
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        unsigned int row = i*BlockSize;
+        for (unsigned int j = 0; j < NumNodes; j++)
+        {
+            unsigned int col = j*BlockSize;
+            const double Mij = rData.Weight * density * rData.N[i] * rData.N[j];
+            for (unsigned int d = 0; d < Dim; d++)
+                rMassMatrix(row+d,col+d) += Mij;
+        }
+    }
+
+    /* NOTE: in FIC we have momentum stabilization terms on the mass matrix irregardless of OSS
+        */
+    this->AddMassStabilization(rData,rMassMatrix);
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template< class TElementData >
+void FIC<TElementData>::AddMassStabilization(
+    TElementData& rData,
+    MatrixType &rMassMatrix)
+{
+    double density = rData.Density;
+    double dynamic_viscosity = rData.EffectiveViscosity; //TODO this must go through the constitutive law (JC)
+
+    array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
+
+    double element_size = ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
+    double viscosity = 
+    //TODO: seguir
+
+    double TauOne;
+    double TauTwo;
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
+
+    Vector AGradN;
+    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
+
+    // Multiplying some quantities by density to have correct units
+    AGradN *= density; // Convective term is always multiplied by density
+
+    // Temporary container
+    double K;
+    double weight = rData.Weight * TauOne * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
+
+    // Note: Dof order is (u,v,[w,]p) for each node
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        unsigned int row = i*BlockSize;
+
+        for (unsigned int j = 0; j < NumNodes; j++)
+        {
+            unsigned int col = j*BlockSize;
+
+            K = weight * AGradN[i] * rData.N[j];
+
+            for (unsigned int d = 0; d < Dim; d++)
+            {
+                rMassMatrix(row+d,col+d) += K;
+                rMassMatrix(row+Dim,col+d) += weight*rData.DN_DX(i,d)*rData.N[j];
+            }
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

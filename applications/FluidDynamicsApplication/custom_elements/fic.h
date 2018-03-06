@@ -174,6 +174,15 @@ public:
                             GeometryType::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
+    /**
+     * @brief MassMatrix Calculate the local mass matrix.
+     * @param rMassMatrix Local mass matrix (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void CalculateMassMatrix(
+        MatrixType &rMassMatrix,
+        ProcessInfo &rCurrentProcessInfo) override;
+
 
     void Calculate(
         const Variable<double>& rVariable,
@@ -288,6 +297,10 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
+    void AddMassStabilization(
+        TElementData& rData,
+        MatrixType& rMassMatrix);
+
     // This function integrates the traction over a cut. It is only required to implement embedded formulations
     void AddBoundaryIntegral(
         TElementData& rData,
@@ -296,6 +309,8 @@ protected:
         VectorType& rRHS) override;
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
+
+
 
     ///@}
     ///@name Protected  Access
