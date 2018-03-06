@@ -13,7 +13,7 @@ def Factory(settings, Model):
 # All the processes python processes should be derived from "python_process"
 
 class JsonOutputProcess(KratosMultiphysics.Process):
-    """This class is used in order to create a json file containing 
+    """This class is used in order to create a json file containing
     the solution a given model part with a certain frequency
 
     Only the member variables listed below should be accessed directly.
@@ -107,7 +107,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                     value = node.GetSolutionStepValue(variable, 0)
                 else:
                     value = node.GetValue(variable)
-                    
+
                 if (variable_type == "Double" or variable_type == "Component"):
                     if (self.resultant_solution == False):
                         data["NODE_" + str(node.Id)][variable_name] = []
@@ -361,7 +361,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                 for gp in range(gauss_point_number):
                                     list = self.__kratos_vector_to__python_list(value[gp])
                                     data["RESULTANT"][variable_name][str(gp)][-1] += list
-                                    
+
                         # TODO: Add pending classes
                 count += 1
 

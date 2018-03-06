@@ -15,7 +15,7 @@ def Factory(settings, Model):
     return FromJsonCheckResultProcess(Model, settings["Parameters"])
 
 class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.TestCase):
-    """This class is used in order to check results using a json file 
+    """This class is used in order to check results using a json file
     containing the solution a given model part with a certain frequency
 
     Only the member variables listed below should be accessed directly.
@@ -68,7 +68,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         input_file_name = self.params["input_file_name"].GetString()
         if (len(self.params["sub_model_part_name"].GetString()) > 0):
             self.sub_model_part = self.model_part[self.params["model_part_name"].GetString()].GetSubModelPart(self.params["sub_model_part_name"].GetString())
@@ -88,7 +88,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         pass
 
     def ExecuteInitializeSolutionStep(self):
@@ -97,7 +97,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         pass
 
     def ExecuteFinalizeSolutionStep(self):
@@ -108,7 +108,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         tol = self.params["tolerance"].GetDouble()
         reltol = self.params["relative_tolerance"].GetDouble()
         time = self.sub_model_part.ProcessInfo.GetValue(KratosMultiphysics.TIME)
@@ -118,7 +118,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         if self.time_counter > self.frequency:
             self.time_counter = 0.0
             input_time_list = self.data["TIME"]
-            
+
             # Nodal values
             for node in self.sub_model_part.Nodes:
                 for i in range(self.params["check_variables"].size()):
@@ -126,7 +126,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                     variable_name = out.GetString()
                     variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                     variable_type = self.__check_variable_type(variable_name)
-                    
+
                     if (self.historical_value == True):
                         value = node.GetSolutionStepValue(variable, 0)
                     else:
@@ -277,7 +277,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         pass
 
     def ExecuteAfterOutputStep(self):
@@ -286,7 +286,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         pass
 
     def ExecuteFinalize(self):
@@ -295,11 +295,11 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-        
+
         pass
 
     def __linear_interpolation(self, x, x_list, y_list):
-        """ This method is defined to interpolate values of a 
+        """ This method is defined to interpolate values of a
         list using the PiecewiseLinearTable from Kratos
 
         Keyword arguments:
@@ -308,7 +308,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         x_list -- Values in X axis
         y_list -- Values in Y axis
         """
-        
+
         tb = KratosMultiphysics.PiecewiseLinearTable()
         for i in range(len(x_list)):
             tb.AddRow(x_list[i], y_list[i])
@@ -322,14 +322,14 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
       self -- It signifies an instance of a class.
       value -- The Kratos vector to transform
       """
-      
+
       # At least verify that the input is a string
       if not param.IsArray():
           raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
       return [ KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
-  
+
     def __check_variable_type(self, variable):
         """ This method checks the type of variable to be saved
 
