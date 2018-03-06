@@ -85,9 +85,6 @@ class DamReservoirConstantTemperatureProcess : public Process
         if (mTableIdWater != 0)
             mpTableWater = mrModelPart.pGetTable(mTableIdWater);
 
-        if (mTableIdOuter != 0)
-            mpTableOuter = mrModelPart.pGetTable(mTableIdOuter);
-
         KRATOS_CATCH("");
     }
 
@@ -161,13 +158,6 @@ class DamReservoirConstantTemperatureProcess : public Process
             double time = mrModelPart.GetProcessInfo()[TIME];
             time = time / mTimeUnitConverter;
             mWaterLevel = mpTableWater->GetValue(time);
-        }
-
-        if (mTableIdOuter != 0)
-        {
-            double time = mrModelPart.GetProcessInfo()[TIME];
-            time = time / mTimeUnitConverter;
-            mOuterTemp = mpTableOuter->GetValue(time);
         }
 
         const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
@@ -261,14 +251,11 @@ class DamReservoirConstantTemperatureProcess : public Process
     double mReferenceCoordinate;
     double mWaterTemp;
     double mWaterLevel;
-    double mOuterTemp;
     double mTimeUnitConverter;
     TableType::Pointer mpTableWaterTemp;
     TableType::Pointer mpTableWater;
-    TableType::Pointer mpTableOuter;
     int mTableIdWaterTemp;
     int mTableIdWater;
-    int mTableIdOuter;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

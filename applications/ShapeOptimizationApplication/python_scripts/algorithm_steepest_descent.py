@@ -46,7 +46,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
         self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
         self.projectionOnNormalsIsSpecified = OptimizationSettings["optimization_algorithm"]["project_gradients_on_surface_normals"].GetBool()
-        self.onlyObjective = OptimizationSettings["objectives"][0]["identifier"].GetString()
+        self.onlyObjectiveId = OptimizationSettings["objectives"][0]["identifier"].GetString()
         self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
@@ -76,18 +76,12 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",self.optimizationIteration)
             print(">===================================================================\n")
 
-            self.__initializeModelPartForNewSolutionStep()
+            self.__initializeNewShape()
 
-            self.__updateMeshAccordingCurrentShapeUpdate()
-
-            self.__callCommunicatorToRequestNewAnalyses()
-
-            self.__callAnalyzerToPerformRequestedAnalyses()
-
-            self.__storeResultOfSensitivityAnalysisOnNodes()
+            self.__analyzeShape()
 
             if self.projectionOnNormalsIsSpecified:
-                self.__projectSensitivitiesOnLocalSurfaceNormal()
+                self.__projectSensitivitiesOnSurfaceNormals()
 
             if self.dampingIsSpecified:
                 self.__dampSensitivities()
@@ -112,44 +106,37 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.Analyzer.finalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def __initializeModelPartForNewSolutionStep( self ):
+    def __initializeNewShape( self ):
         self.ModelPartController.CloneTimeStep( self.optimizationIteration )
-
-    # --------------------------------------------------------------------------
-    def __updateMeshAccordingCurrentShapeUpdate( self ):
         self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
         self.ModelPartController.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
-    def __callCommunicatorToRequestNewAnalyses( self ):
+    def __analyzeShape( self ):
         self.Communicator.initializeCommunication()
-        self.Communicator.requestFunctionValueOf( self.onlyObjective )
-        self.Communicator.requestGradientOf( self.onlyObjective )
+        self.Communicator.requestValueOf( self.onlyObjectiveId )
+        self.Communicator.requestGradientOf( self.onlyObjectiveId )
 
-    # --------------------------------------------------------------------------
-    def __callAnalyzerToPerformRequestedAnalyses( self ):
         self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
-        self.__ResetPossibleShapeModificationsDuringAnalysis()
+
+        self.__storeResultOfSensitivityAnalysisOnNodes()
+        self.__RevertPossibleShapeModificationsDuringAnalysis()
 
     # --------------------------------------------------------------------------
-    def __ResetPossibleShapeModificationsDuringAnalysis( self ):
+    def __storeResultOfSensitivityAnalysisOnNodes( self ):
+        gradientOfObjectiveFunction = self.Communicator.getStandardizedGradient ( self.onlyObjectiveId )
+        for nodeId, tmp_gradient in gradientOfObjectiveFunction.items():
+            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,tmp_gradient)
+
+    # --------------------------------------------------------------------------
+    def __RevertPossibleShapeModificationsDuringAnalysis( self ):
         self.ModelPartController.SetMeshToReferenceMesh()
         self.ModelPartController.SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
-    def __storeResultOfSensitivityAnalysisOnNodes( self ):
-        gradientOfObjectiveFunction = self.Communicator.getReportedGradientOf ( self.onlyObjective )
-        for nodeId in gradientOfObjectiveFunction:
-            gradient = Vector(3)
-            gradient[0] = gradientOfObjectiveFunction[nodeId][0]
-            gradient[1] = gradientOfObjectiveFunction[nodeId][1]
-            gradient[2] = gradientOfObjectiveFunction[nodeId][2]
-            self.OptimizationModelPart.Nodes[nodeId].SetSolutionStepValue(OBJECTIVE_SENSITIVITY,0,gradient)
-
-    # --------------------------------------------------------------------------
-    def __projectSensitivitiesOnLocalSurfaceNormal( self ):
-            self.GeometryUtilities.ComputeUnitSurfaceNormals()
-            self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
+    def __projectSensitivitiesOnSurfaceNormals( self ):
+        self.GeometryUtilities.ComputeUnitSurfaceNormals()
+        self.GeometryUtilities.ProjectNodalVariableOnUnitSurfaceNormals( OBJECTIVE_SENSITIVITY )
 
     # --------------------------------------------------------------------------
     def __dampSensitivities( self ):
@@ -200,11 +187,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             if abs(relativeChangeOfObjectiveValue) < relativeTolerance:
                 print("\n> Optimization problem converged within a relative objective tolerance of ",relativeTolerance,"%.")
                 return True
-
-            # Check if value of objective increases
-            if relativeChangeOfObjectiveValue > 0:
-                print("\n> Value of objective function increased!")
-                return False
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges( self ):

@@ -121,7 +121,6 @@ void  AddCustomUtilitiesToPython()
         .def("CalculateValue", &StrainEnergyResponseFunction::CalculateValue)
         .def("CalculateGradient", &StrainEnergyResponseFunction::CalculateGradient)
         .def("GetValue", &StrainEnergyResponseFunction::GetValue)
-        .def("GetInitialValue", &StrainEnergyResponseFunction::GetInitialValue)
         .def("GetGradient", &StrainEnergyResponseFunction::GetGradient)
         ;
     class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters>())
@@ -129,7 +128,6 @@ void  AddCustomUtilitiesToPython()
         .def("CalculateValue", &MassResponseFunction::CalculateValue)
         .def("CalculateGradient", &MassResponseFunction::CalculateGradient)
         .def("GetValue", &MassResponseFunction::GetValue)
-        .def("GetInitialValue", &MassResponseFunction::GetInitialValue)
         .def("GetGradient", &MassResponseFunction::GetGradient)
         ;
 
@@ -138,7 +136,6 @@ void  AddCustomUtilitiesToPython()
         .def("CalculateValue", &EigenfrequencyResponseFunction::CalculateValue)
         .def("CalculateGradient", &EigenfrequencyResponseFunction::CalculateGradient)
         .def("GetValue", &EigenfrequencyResponseFunction::GetValue)
-        .def("GetInitialValue", &EigenfrequencyResponseFunction::GetInitialValue)
         .def("GetGradient", &EigenfrequencyResponseFunction::GetGradient)
         ;
 
@@ -147,7 +144,6 @@ void  AddCustomUtilitiesToPython()
         .def("CalculateValue", &EigenfrequencyResponseFunctionLinScal::CalculateValue)
         .def("CalculateGradient", &EigenfrequencyResponseFunctionLinScal::CalculateGradient)
         .def("GetValue", &EigenfrequencyResponseFunctionLinScal::GetValue)
-        .def("GetInitialValue", &EigenfrequencyResponseFunctionLinScal::GetInitialValue)
         .def("GetGradient", &EigenfrequencyResponseFunctionLinScal::GetGradient)
         ;
 

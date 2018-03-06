@@ -18,7 +18,7 @@ class ImposeReservoirTemperatureConditionProcess(Process):
         
         settings.AddEmptyValue("is_fixed").SetBool(True)
         
-        self.components_process_list = []   
+        self.components_process_list = []
 
         if "Bofang" in settings["model_part_name"].GetString():
             self.components_process_list.append(DamBofangConditionTemperatureProcess(model_part, settings))

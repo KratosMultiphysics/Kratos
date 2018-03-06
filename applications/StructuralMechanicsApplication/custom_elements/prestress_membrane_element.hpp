@@ -129,7 +129,6 @@ namespace Kratos
     std::vector< array_1d<double, 3> > mG3Initial;            // Base vector 2 in initial reference configuration
 
 
-
     void CalculateAll(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,

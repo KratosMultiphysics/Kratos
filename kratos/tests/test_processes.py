@@ -3,9 +3,10 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics import *
 import math
+import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 
 class TestProcesses(KratosUnittest.TestCase):
@@ -481,7 +482,7 @@ class TestProcesses(KratosUnittest.TestCase):
             for node in cond.GetNodes():
                 self.assertEqual(v[i],node.X+node.Y*t+node.Z)
                 i=i+1
-                
+
     def test_assign_scalar_field_component_to_conditions(self):
         model_part = ModelPart("Main")
         model_part_io = ModelPartIO(GetFilePath("test_processes"))

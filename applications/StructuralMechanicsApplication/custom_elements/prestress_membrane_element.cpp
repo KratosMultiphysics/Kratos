@@ -1379,6 +1379,10 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
         }
     }
 }
+
+//***********************************************************************************
+//***********************************************************************************
+
 void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints){
     // compute Jacobian
     GeometryType::JacobiansType J0;

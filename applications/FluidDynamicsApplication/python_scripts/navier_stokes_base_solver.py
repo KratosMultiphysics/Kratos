@@ -1,4 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import sys
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -142,22 +143,29 @@ class NavierStokesBaseSolver(object):
         return EstimateDeltaTimeUtility
 
     def _replace_elements_and_conditions(self):
-        ## Get element number of nodes and domain size
+        ## Get number of nodes and domain size
+        elem_num_nodes = self._get_element_num_nodes()
+        cond_num_nodes = self._get_condition_num_nodes()
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        elem_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
-        cond_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
+
+        ## If there are no elements and/or conditions, default to triangles/tetra meshes to avoid breaking the ReplaceElementsAndConditionsProcess
+        ## This only affects the input name (if there are no elements or conditions to replace, nothing is replaced).
+        if elem_num_nodes == 0:
+            elem_num_nodes = domain_size + 1
+        if cond_num_nodes == 0:
+            cond_num_nodes = domain_size
 
         ## Complete the element name
         if (self.element_name is not None):
-            new_elem_name = self.element_name + str(domain_size) + "D" + str(elem_num_nodes) + "N"
+            new_elem_name = self.element_name + str(int(domain_size)) + "D" + str(int(elem_num_nodes)) + "N"
         else:
-            raise Exception("There is no element name. Implement the self.element_name string variable in your derived solver.")
+            raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
 
         ## Complete the condition name
         if (self.condition_name is not None):
-            new_cond_name = self.condition_name + str(domain_size) + "D" + str(cond_num_nodes) + "N"
+            new_cond_name = self.condition_name + str(int(domain_size)) + "D" + str(int(cond_num_nodes)) + "N"
         else:
-            raise Exception("There is no condition name. Implement the self.condition_name string variable in your derived solver.")
+            raise Exception("There is no condition name. Define the self.condition_name string variable in your derived solver.")
 
         ## Set the element and condition names in the Json parameters
         #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""{}""")
@@ -167,3 +175,27 @@ class NavierStokesBaseSolver(object):
 
         ## Call the replace elements and conditions process
         KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
+
+    def _get_element_num_nodes(self):
+        if self.main_model_part.NumberOfElements() != 0:
+            if sys.version_info[0] >= 3: # python3 syntax
+                element_num_nodes = len(self.main_model_part.Elements.__iter__().__next__().GetNodes())
+            else: # python2 sytax
+                element_num_nodes = len(self.main_model_part.Elements.__iter__().next().GetNodes())
+        else:
+            element_num_nodes = 0
+
+        element_num_nodes = self.main_model_part.GetCommunicator().MaxAll(element_num_nodes)
+        return element_num_nodes
+
+    def _get_condition_num_nodes(self):
+        if self.main_model_part.NumberOfConditions() != 0:
+            if sys.version_info[0] >= 3: # python3 syntax
+                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().__next__().GetNodes())
+            else: # python2 sytax
+                condition_num_nodes = len(self.main_model_part.Conditions.__iter__().next().GetNodes())
+        else:
+            condition_num_nodes = 0
+
+        condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
+        return condition_num_nodes

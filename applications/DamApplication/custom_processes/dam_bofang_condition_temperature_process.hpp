@@ -93,9 +93,6 @@ class DamBofangConditionTemperatureProcess : public Process
         if (mTableIdWater != 0)
             mpTableWater = mrModelPart.pGetTable(mTableIdWater);
 
-        if (mTableIdOuter != 0)
-            mpTableOuter = mrModelPart.pGetTable(mTableIdOuter);
-
         if (mTableIdMonth != 0)
             mpTableMonth = mrModelPart.pGetTable(mTableIdMonth);
 
@@ -167,13 +164,6 @@ class DamBofangConditionTemperatureProcess : public Process
             double time = mrModelPart.GetProcessInfo()[TIME];
             time = time / mTimeUnitConverter;
             mWaterLevel = mpTableWater->GetValue(time);
-        }
-
-        if (mTableIdOuter != 0)
-        {
-            double time = mrModelPart.GetProcessInfo()[TIME];
-            time = time / mTimeUnitConverter;
-            mOuterTemp = mpTableOuter->GetValue(time);
         }
 
         if (mTableIdMonth != 0)
@@ -282,14 +272,11 @@ class DamBofangConditionTemperatureProcess : public Process
     int mDay;
     double mMonth;
     double mWaterLevel;
-    double mOuterTemp;
     double mFreq;
     double mTimeUnitConverter;
     TableType::Pointer mpTableWater;
-    TableType::Pointer mpTableOuter;
     TableType::Pointer mpTableMonth;
     int mTableIdWater;
-    int mTableIdOuter;
     int mTableIdMonth;
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

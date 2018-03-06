@@ -905,7 +905,7 @@ proc ::wkcf::WriteDSOLIDNodalCoordinates {AppId} {
 		GiD_File fprintf $demfemchannel "Begin Nodes // Write DSOLID Nodes"
 		foreach nodeid $nlist {
 		    lassign [GiD_Mesh get node $nodeid] layer x y z
-		    GiD_File fprintf $demfemchannel "$nodeid [format {%.6f %.6f %.6f} $x $y $z]"
+		    GiD_File fprintf $demfemchannel "$nodeid [format {%#.6g %#.6g %#.6g} $x $y $z]"
 		}
 		GiD_File fprintf $demfemchannel "End Nodes"
 		GiD_File fprintf $demfemchannel ""
@@ -1046,12 +1046,12 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
 		if {$ndime == "2D"} {
 		    foreach nodeid $nlist {
 		        lassign [GiD_Mesh get node $nodeid] layer x y
-		        GiD_File fprintf $deminletchannel "$nodeid [format {%.6f %.6f} $x $y] 0"
+		        GiD_File fprintf $deminletchannel "$nodeid [format {%#.6g %#.6g} $x $y] 0"
 		    }
 		} else {
 		    foreach nodeid $nlist {
 		        lassign [GiD_Mesh get node $nodeid] layer x y z
-		        GiD_File fprintf $deminletchannel "$nodeid [format {%.6f %.6f %.6f} $x $y $z]"
+		        GiD_File fprintf $deminletchannel "$nodeid [format {%#.6g %#.6g %#.6g} $x $y $z]"
 		    }
 		}
 		GiD_File fprintf $deminletchannel "End Nodes"
@@ -1085,12 +1085,12 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
 		if {$ndime == "2D"} {
 		    foreach nodeid $nlist {
 		        lassign [GiD_Mesh get node $nodeid] layer x y z
-		        GiD_File fprintf $demfemchannel "$nodeid [format {%.6f %.6f} $x $y] 0"
+		        GiD_File fprintf $demfemchannel "$nodeid [format {%#.6g %#.6g} $x $y] 0"
 		    }
 		} else {
 		    foreach nodeid $nlist {
 		        lassign [GiD_Mesh get node $nodeid] layer x y z
-		        GiD_File fprintf $demfemchannel "$nodeid [format {%.6f %.6f %.6f} $x $y $z]"
+		        GiD_File fprintf $demfemchannel "$nodeid [format {%#.6g %#.6g %#.6g} $x $y $z]"
 		    }
 		}
 		GiD_File fprintf $demfemchannel "End Nodes"
@@ -1224,7 +1224,7 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
 		            set kelemtype [string trim ${KEKWord}${etbf}]
 
 		            if {[dict get [::wkcf::GetFluidMaterialProperties $AppId] "NonNewtonianFluid"] eq "Yes"} {
-		                set kelemtype "BinghamVMS3D"
+		                set kelemtype "HerschelBulkleyVMS3D"
 		            }
 		            
 		            #set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
