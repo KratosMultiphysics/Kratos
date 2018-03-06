@@ -14,15 +14,18 @@
 #define KRATOS_HDF5_MODEL_PART_IO_H_INCLUDED
 
 // System includes
+#include <string>
+#include <tuple>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+#include "includes/io.h"
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_model_part_io_base.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
@@ -34,7 +37,7 @@ namespace HDF5
 ///@{
 
 /// A class for serial IO of a model part in HDF5.
-class ModelPartIO : public ModelPartIOBase
+class ModelPartIO : public IO
 {
 public:
     ///@name Type Definitions
@@ -55,7 +58,15 @@ public:
     ///@{
     bool ReadNodes(NodesContainerType& rNodes) override;
 
+    std::size_t ReadNodesNumber() override;
+
     void WriteNodes(NodesContainerType const& rNodes) override;
+
+    void ReadProperties(PropertiesContainerType& rThisProperties) override;
+
+    void WriteProperties(Properties const& rThisProperties) override;
+
+    void WriteProperties(PropertiesContainerType const& rThisProperties) override;
 
     void ReadElements(NodesContainerType& rNodes,
                       PropertiesContainerType& rProperties,
@@ -69,24 +80,38 @@ public:
 
     void WriteConditions(ConditionsContainerType const& rConditions) override;
 
+    void WriteModelPart(ModelPart& rModelPart) override;
+
+    void ReadModelPart(ModelPart& rModelPart) override;
+
     ///@}
 
 protected:
     ///@name Protected Operations
     ///@{
 
-    void Check();
+    virtual std::tuple<unsigned, unsigned> StartIndexAndBlockSize(std::string const& rPath) const;
+
+    virtual void StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo);
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    File::Pointer mpFile;
+    const std::string mPrefix;
 
     ///@}
 
 private:
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-
     ///@name Private Operations
     ///@{
+
+    std::vector<std::size_t> ReadContainerIds(std::string const& rPath) const;
+
+    void WriteSubModelParts(ModelPart const& rModelPart);
+
+    void ReadSubModelParts(ModelPart& rModelPart);
 
     ///@}
 };

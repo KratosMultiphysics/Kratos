@@ -50,14 +50,15 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
     explicit FileSerial(Parameters& rSettings);
 
-    // Copy constructor.
     FileSerial(const FileSerial& rOther) = delete;
 
-    // Assignment operator.
+    FileSerial(FileSerial&& rOther);
+
     FileSerial& operator=(const FileSerial& rOther) = delete;
+
+    FileSerial& operator=(FileSerial&& rOther);
 
     ///@}
     ///@name Operations
