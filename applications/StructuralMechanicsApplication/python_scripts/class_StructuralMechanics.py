@@ -21,6 +21,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
         with open(project_parameter_file_name,'r') as parameter_file:
             self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+    #### Public functions to run the Analysis ####
     def Run(self):
         self.Initialize()
         self.RunMainTemporalLoop()
@@ -54,6 +55,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
 
     ###########################################################################
     def ImportAndCreateSolver(self, external_model_part=None):
+        """ Importing the Solver and the ModelPart """
         if external_model_part != None:
             # This is a temporary solution until the importing of the ModelPart
             # is removed from the solver (needed e.g. for Optimization)
@@ -104,7 +106,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
         self.structure_model.AddModelPart(self.main_model_part)
 
     def InitializeIO(self):
-        ## Initialize GiD  I/O
+        """ Initialize GiD  I/O """
         self.output_post  = self.ProjectParameters.Has("output_configuration")
         if (self.output_post == True):
             if (self.parallel_type == "OpenMP"):
@@ -119,6 +121,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
             self.gid_output.ExecuteInitialize()
 
     def ExecuteInitialize(self):
+        """ Initializing the Analysis"""
         ## Print model_part and properties
         if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
             KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
@@ -153,6 +156,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
         self.solver.Initialize()
 
     def ExecuteBeforeSolutionLoop(self):
+        """ Perform Operations before the SolutionLoop """
         if (self.output_post == True):
             self.gid_output.ExecuteBeforeSolutionLoop()
 
@@ -180,7 +184,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
             KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
 
     def ExecuteInitializeSolutionStep(self):
-        ## Initialize the timestep and advance in time
+        """ Initialize the timestep and advance in time. Called once per timestep """
         self.time += self.delta_time
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.main_model_part.CloneTimeStep(self.time)
@@ -196,17 +200,21 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
             self.gid_output.ExecuteInitializeSolutionStep()
 
     def ExecuteBeforeSolve(self):
+        """ Function to be called before solving. Can be executed several times per timestep """
         pass
 
     def SolveSolutionStep(self):
+        """ Solving one step. Can be called several times per timestep """
         self.ExecuteBeforeSolve()
         self.solver.Solve()
         self.ExecuteAfterSolve()
 
     def ExecuteAfterSolve(self):
+        """ Function to be called after solving. Can be executed several times per timestep """
         pass
 
     def ExecuteFinalizeSolutionStep(self):
+        """ Finalizing the timestep and printing the output. Called once per timestep """
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
@@ -225,6 +233,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
     def ExecuteFinalize(self):
+        """ Operations to be performed at the end of the Analysis """
         for process in self.list_of_processes:
             process.ExecuteFinalize()
 
