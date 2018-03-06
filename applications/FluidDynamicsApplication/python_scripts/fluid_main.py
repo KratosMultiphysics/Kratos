@@ -2,6 +2,10 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
+try:
+    from KratosMultiphysics.ExternalSolversApplication import *
+except ImportError:
+    pass
 
 class FluidMain(object):
 
@@ -10,7 +14,18 @@ class FluidMain(object):
         with open(parameter_file_name,'r') as parameter_file:
             self.project_parameters = Parameters( parameter_file.read() )
 
-        # If this is an MPI run, load the required modules
+        self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
+        self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
+
+        # If this is an MPI run, load the distributed memory modules
+        if (self.parallel_type == "MPI"):
+            import KratosMultiphysics.mpi.mpi as mpi
+            import KratosMultiphysics.MetisApplication as Metis
+            import KratosMultiphysics.TrilinosApplication as Trilinos
+            self.is_printing_rank = (mpi.rank == 0)
+        else:
+            self.is_printing_rank = True
+
         
     def SetUpModel(self):
         '''Initialize the model part for the problem (stored as self.model_part) and other general model data.'''
@@ -21,41 +36,55 @@ class FluidMain(object):
         self.domain_size = ProjectParameters["problem_data"]["domain_size"].GetInt()
         self.input_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.domain_size)
 
-        #TODO replace this "model" for real one once available
-        self.model = { model_part_name : self.input_model_part }
-
-        solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-        self.solver = solver_module.CreateSolver(self.input_model_part, ProjectParameters["solver_settings"])
+        ## Solver construction
+        import python_solvers_wrapper_fluid
+        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.input_model_part, self.project_parameters)
 
         self.solver.AddVariables()
         self.solver.ImportModelPart()
-
         self.solver.AddDofs()
 
         self.model_part = self.solver.GetComputingModelPart()
 
-        #TODO: replace MODEL for the Kratos one ASAP
-        ##get the list of the skin SubModelParts in the object model
-        skin_part_list = self.project_parameters["solver_settings"]["skin_parts"]
-        for i in range(skin_part_list.size()):
-            part_name = skin_part_list[i].GetString()
-            self.model.update( {part_name: main_model_part.GetSubModelPart(part_name)} )
+        # Fill a Model instance using input
+        self.model = Model()
+        self.model.AddModelPart(self.input_model_part)
 
+        # Add the skin SubModelParts to the model
+        for i in range(project_parameters["solver_settings"]["skin_parts"].size()):
+            skin_part_name = project_parameters["solver_settings"]["skin_parts"][i].GetString()
+            self.model.AddModelPart(self.input_model_part.GetSubModelPart(skin_part_name))
+
+        # Add the no-skin SubModelParts parts to the model (results processes and no-skin conditions)
+        for i in range(project_parameters["solver_settings"]["no_skin_parts"].size()):
+            no_skin_part_name = project_parameters["solver_settings"]["no_skin_parts"][i].GetString()
+            self.model.AddModelPart(self.model_part.GetSubModelPart(no_skin_part_name))
+            
+        # Add the initial conditions SubModelParts to the model
+        for i in range(project_parameters["initial_conditions_process_list"].size()):
+            initial_cond_part_name = project_parameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
+            self.model.AddModelPart(self.input_model_part.GetSubModelPart(initial_cond_part_name))
+
+        # Add the gravity SubModelParts to the model
+        for i in range(project_parameters["gravity"].size()):
+            gravity_part_name = project_parameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
+            self.model.AddModelPart(self.input_model_part.GetSubModelPart(gravity_part_name))
 
     def SetUpConditions(self):
         '''Read the boundary and initial conditions for the problem and initialize the processes that will manage them.'''
 
-        boundary_condition_process_list = self.project_parameters["boundary_conditions_process_list"]
-        self.boundary_condition_processes = list()
+        ## Processes construction
+        from process_factory import KratosProcessFactory
+        factory = KratosProcessFactory(fluid_model)
+        # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
+        # Note 1: gravity is constructed first. Outlet process might need its information.
+        # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
+        self.simulation_processes =  factory.ConstructListOfProcesses( project_parameters["gravity"] )
+        self.simulation_processes += factory.ConstructListOfProcesses( project_parameters["initial_conditions_process_list"] )
+        self.simulation_processes += factory.ConstructListOfProcesses( project_parameters["boundary_conditions_process_list"] )
+        self.simulation_processes += factory.ConstructListOfProcesses( project_parameters["auxiliar_process_list"] )
 
-        for i in range(boundary_condition_process_list.size()):
-            process_settings = boundary_condition_process_list[i]
-            module = __import__(process_settings["kratos_module"].GetString())
-            interface_file = __import__(process_settings["python_module"].GetString())
-            process = interface_file.Factory(process_settings, self.model)
-            self.boundary_condition_processes.append( process )
-
-        for process in self.boundary_condition_processes:
+        for process in self.simulation_processes:
             process.ExecuteInitialize()
 
     def SetUpSolution(self):
@@ -65,31 +94,37 @@ class FluidMain(object):
 
         #TODO this should be generic
         # initialize GiD  I/O
-        from gid_output import GiDOutput
-        output_settings = ProjectParameters["output_configuration"]
-        self.gid_io = GiDOutput(output_settings["output_filename"].GetString(),
-                                output_settings["volume_output"].GetBool(),
-                                output_settings["gid_post_mode"].GetString(),
-                                output_settings["gid_multi_file_flag"].GetString(),
-                                output_settings["gid_write_mesh_flag"].GetBool(),
-                                output_settings["gid_write_conditions_flag"].GetBool())
-        self.output_time = output_settings["output_time"].GetDouble()
+        self._SetUpGiDOutput()
 
-        self.gid_io.initialize_results(self.model_part)
-
-        self.nodal_results = []
-        for i in range(output_settings["nodal_results"].size()):
-            self.nodal_results.append(output_settings["nodal_results"][i].GetString())
-        self.gauss_points_results = []
-        for i in range(output_settings["gauss_points_results"].size()):
-            self.gauss_points_results.append(output_settings["gauss_points_results"][i].GetString())
-
-        for process in self.boundary_condition_processes:
+        for process in self.simulation_processes:
             process.ExecuteBeforeSolutionLoop()
 
         ## Stepping and time settings
         self.dt = self.project_parameters["problem_data"]["time_step"].GetDouble()
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+
+        ## Writing the full ProjectParameters file before solving
+        if self.is_printing_rank and self.echo_level > 1:
+            with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
+                parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
+
+
+    def _SetUpGiDOutput(self):
+        '''Initialize self.output as a GiD output instance.'''
+        self.have_output = self.project_parameters.Has("output_configuration")
+        if self.have_output:
+            if self.parallel_type == "OpenMP":
+                from gid_output_process import GiDOutputProcess
+                self.output = GiDOutputProcess(self.model_part,
+                                               project_parameters["problem_data"]["problem_name"].GetString() ,
+                                               self.project_parameters["output_configuration"])
+            elif parallel_type == "MPI":
+                from Trilinos.gid_output_process_mpi import GiDOutputProcessMPI
+                self.output = GiDOutputProcessMPI(solver.GetComputingModelPart(),
+                                                  project_parameters["problem_data"]["problem_name"].GetString() ,
+                                                  project_parameters["output_configuration"])
+
+            self.output.ExecuteInitialize()
 
     def Solve(self):
         '''The main solution loop.'''
@@ -103,37 +138,45 @@ class FluidMain(object):
             step = step + 1
             
             self.model_part.CloneTimeStep(time)
+            self.model_part.ProcessInfo[STEP] = step
 
             print("STEP = ", step)
             print("TIME = ", time)
             
-            for process in self.boundary_condition_processes:
+            for process in self.simulation_processes:
                 process.ExecuteInitializeSolutionStep()
+
+            if self.have_output:
+                self.output.ExecuteInitializeSolutionStep()
         
             self.solver.Solve()
         
             # shouldn't this go at the end of the iteration???
-            for process in self.boundary_condition_processes:
+            for process in self.simulation_processes:
                 process.ExecuteFinalizeSolutionStep()
 
-            if self.output_time <= out:
-                for process in self.boundary_condition_processes:
+            if self.have_output:
+                self.output.ExecuteFinalizeSolutionStep()
+
+            if self.have_output and self.output.IsOutputStep():
+
+                for process in self.simulation_processes:
                     process.ExecuteBeforeOutputStep()
     
-                self.gid_io.write_results(time,self.model_part,self.nodal_results,self.gauss_points_results)
-                out = 0.0
+                self.output.PrintOutput()
         
-                for process in self.boundary_condition_processes:
+                for process in self.simulation_processes:
                     process.ExecuteAfterOutputStep()
-
-            out = out + self.dt
 
     def FinalizeSolution(self):
         '''Finalize and close open files.'''
         self.gid_io.finalize_results()
 
-        for process in self.boundary_condition_processes:
+        for process in self.simulation_processes:
             process.ExecuteFinalize()
+
+        if self.have_output:
+            self.output.ExecuteFinalize()
 
     def Run(self):
         '''Wrapper function for the solution.'''
