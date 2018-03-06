@@ -209,7 +209,7 @@ class MechanicalSolver(object):
             self.Clear()
         mechanical_solution_strategy = self.get_mechanical_solution_strategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+        if not self.is_restarted():
             mechanical_solution_strategy.Initialize()
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
@@ -371,6 +371,8 @@ class MechanicalSolver(object):
                 origin_settings.RemoveValue(name)
 
     def is_restarted(self):
+        # this function avoids the long call to ProcessInfo and is also safer
+        # in case the detection of a restart is changed later
         return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
 
     def print_on_rank_zero(self, *args):
@@ -421,7 +423,6 @@ class MechanicalSolver(object):
             time = time + delta_time
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
-        self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def _add_dynamic_variables(self):
         # For being consistent for Serial and Trilinos
