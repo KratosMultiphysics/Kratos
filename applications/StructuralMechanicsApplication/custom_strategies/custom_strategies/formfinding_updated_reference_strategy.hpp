@@ -19,14 +19,14 @@
 
 // Project includes
 // Anna please check if all these headers are necessary
-#include "includes/define.h"
-#include "includes/model_part.h"
+//#include "includes/define.h"
+//#include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/openmp_utils.h"
 
 //default builder and solver
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
+//#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 namespace Kratos
 {
@@ -56,27 +56,19 @@ namespace Kratos
     ///@{
 
     // Anna can you please write some small doku here? => Ask Vicente how
-    /// Short class definition.
-
-    /// Detail class definition.
-
-    //URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-    //URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-    //URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-    //URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-    //URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-    //URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-    //URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-    //URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
+/**
+ * @class Serializer
+ *
+ * @ingroup KratosCore
+ *
+ * @brief The serialization consists in storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media.
+ *
+ * @details The serialization consists in storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media.
+ * The idea of serialization is based on saving all object's data consecutively in the file or buffer and then load it in the same order.
+ * In Kratos a serialization mechanism is used for creating the restart file. So for storing an object into restart file and retrieve it afterward on must add the necessary component used by serialization.
+ *
+ * @author Pooyan Dadvand
+ */
 
     template<class TSparseSpace,
     class TDenseSpace, // = DenseSpace<double>,
@@ -572,7 +564,7 @@ namespace Kratos
                 //setting up the Vectors involved to the correct size
                 double system_matrix_resize_begin = OpenMPUtils::GetCurrentTime();
                 pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
-                //pBuilderAndSolver->ResizeAndInitializeVectors(mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
+                
                 if (this->GetEchoLevel() > 0 && rank == 0)
                 {
                     double system_matrix_resize_end = OpenMPUtils::GetCurrentTime();
@@ -588,20 +580,15 @@ namespace Kratos
                 //initialize operations ... things that are constant over the Solution Step
                 pScheme->InitializeSolutionStep(BaseType::GetModelPart(), A, Dx, b);
 
-                ////***************************************************
-                //// Update reference configuration for formfinding
-                //// Initialize the Elements
-                //pScheme->InitializeElements(BaseType::GetModelPart());
-
                 mSolutionStepIsInitialized = true;
             }
 
             //***************************************************
             // Update reference configuration for formfinding
             // Initialize the Elements
-            for(auto& elem : BaseType::GetModelPart().Elements()){
-                elem.InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
-            }
+            //for(auto& elem : BaseType::GetModelPart().Elements()){
+            //    elem.InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+            //}
             KRATOS_CATCH("");
         }
 
@@ -672,7 +659,7 @@ namespace Kratos
 
             if (is_converged == true)
             {
-                //initialisation of the convergence criteria
+                //initialisation of the convergence criteria    
                 mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), pBuilderAndSolver->GetDofSet(), A, Dx, b);
 
                 if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
