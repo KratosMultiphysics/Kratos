@@ -118,10 +118,6 @@ namespace Kratos
     Vector mDetJ0;
     double mTotalDomainInitialSize;
 
-    std::vector< array_1d<double, 3> > mStrainsVector;	      //container of Strain // TODO is this needed?
-    std::vector< array_1d<double, 6> > mStressesVector;	      //container of Stress // TODO is this needed?
-    std::vector< array_1d<double, 6> > mCauchyStressesVector;	//container of Stress // TODO is this needed?
-
     std::vector< Matrix >              mGVector;
     std::vector< array_1d<double, 3> > mGab0;
     std::vector< array_1d<double, 3> > mG1;                   // Base vector 1 in updated reference configuration
@@ -148,7 +144,7 @@ namespace Kratos
       const double& rWeight);
 
 
-    void InitializeNonLinearIteration();
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateAndAddNonlinearKm(
         Matrix& rK,
@@ -210,11 +206,11 @@ namespace Kratos
 
     void InitializeFormfinding(const unsigned int& rIntegrationPointSize);
 
-    void TransformPrestress(const unsigned int& rPointNumber);
+    void ProjectPrestress(const unsigned int& rPointNumber);
 
     void UpdatePrestress(const unsigned int& rPointNumber);
 
-    void PrestressComputation(const unsigned int& rIntegrationPointSize);
+    void ComputePrestress(const unsigned int& rIntegrationPointSize);
 
     void ComputeBaseVectors(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints);
 

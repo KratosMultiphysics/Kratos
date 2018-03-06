@@ -129,9 +129,6 @@ void PrestressMembraneElement::Initialize()
     mGab0.resize(integration_points.size());
     mG1.resize(integration_points.size());
     mG2.resize(integration_points.size());
-    mStrainsVector.resize(integration_points.size());
-    mStressesVector.resize(integration_points.size());
-    mCauchyStressesVector.resize(integration_points.size()); //VM
     mGVector.resize(integration_points.size(), ZeroMatrix(2, 2));
 
     // compute base vectors in reference configuration, metrics
@@ -215,7 +212,7 @@ void PrestressMembraneElement::CalculateMassMatrix(
         rMassMatrix.resize(mat_size, mat_size);
     }
 
-    rMassMatrix = ZeroMatrix(mat_size, mat_size); // Anna noalias?
+    noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
     double total_mass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
 
@@ -524,7 +521,7 @@ void PrestressMembraneElement::CalculateB(
         b(2, index + 2) = 0.5*(DN_De(i, 1) * g1[2] + DN_De(i, 0) * g2[2]);
     }
 
-    rB = prod(rQ, b); // Anna noalias?
+    rB = prod(rQ, b); 
 
     KRATOS_CATCH("")
 }
@@ -544,6 +541,7 @@ void PrestressMembraneElement::CalculateStrain(
     rStrainVector[0] = 0.5 * (rgab[0] - rGab[0]);
     rStrainVector[1] = 0.5 * (rgab[1] - rGab[1]);
     rStrainVector[2] = 0.5 * (rgab[2] - rGab[2]);
+
 
     KRATOS_CATCH("")
 }
@@ -637,7 +635,7 @@ void PrestressMembraneElement::CalculateAll(
 
     // Set constitutive law flags:
     Flags &constitutive_law_options=Values.GetOptions();
-    constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
     constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     // for formfinding: Constitutive Tensor is 0 Tensor
     if(this->Has(IS_FORMFINDING)){
@@ -714,6 +712,11 @@ void PrestressMembraneElement::CalculateAll(
 
         mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
 
+        //Vector cartesian_strain_vector = prod(Q, Values.GetStrainVector()); //in refence configuration
+        //Vector cartesian_strain_vector = prod(Q, strain_vector); //in refence configuration
+        //if(this->Id() ==1){
+        //    std::cout<<"strain computed by the constitutive law: "<<Values.GetStrainVector()<<std::endl;
+        //}
         // Deformations for Non-linear force vector
         Vector strain_deformation;
 
@@ -883,7 +886,7 @@ void PrestressMembraneElement::CalculateMembraneElasticityTensor(
 
 //***********************************************************************************
 //***********************************************************************************
-void PrestressMembraneElement::TransformPrestress(
+void PrestressMembraneElement::ProjectPrestress(
     const unsigned int& rPointNumber){
 
     // definition prestress axes
@@ -955,6 +958,11 @@ void PrestressMembraneElement::TransformPrestress(
 //***********************************************************************************
 
 void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
+    
+}
+//***********************************************************************************
+//***********************************************************************************
+void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo){
     // for formfinding: update basevectors (and prestress in case of anisotropy)
     if(this->Has(IS_FORMFINDING)){
         if(this->GetValue(IS_FORMFINDING)){
@@ -971,10 +979,6 @@ void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
             ComputeBaseVectors(integration_points);
         }
     }
-}
-//***********************************************************************************
-//***********************************************************************************
-void PrestressMembraneElement::InitializeNonLinearIteration(){
 
 }
 //***********************************************************************************
@@ -1363,7 +1367,7 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
                         prestress_axis_2(2,point_number) = 0;
                     }
 
-                    TransformPrestress(point_number);
+                    ProjectPrestress(point_number);
                 }
 
             // in case of isotropic prestress: set prestress in the first step (no transformation necessary)
@@ -1557,7 +1561,7 @@ int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
     // Verify that the constitutive law has the correct dimension
     const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
     if ( dimension == 2 ) {
-        KRATOS_ERROR_IF( strain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << this->Id() << std::endl;
+        KRATOS_ERROR_IF( strain_sizestrain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << this->Id() << std::endl;
     } else {
         KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  this->Id() << std::endl;
     }
@@ -1607,9 +1611,6 @@ void PrestressMembraneElement::save(Serializer& rSerializer) const
       rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
       rSerializer.save("DetJ0", mDetJ0);
       rSerializer.save("TotalDomainInitialSize", mTotalDomainInitialSize);
-      rSerializer.save("StrainsVector", mStrainsVector);
-      rSerializer.save("StressesVector", mStressesVector);
-      rSerializer.save("CauchyStressesVector", mCauchyStressesVector);
       rSerializer.save("G1", mG1);
       rSerializer.save("G2", mG2);
       rSerializer.save("G_ab", mGab0);
@@ -1626,9 +1627,6 @@ void PrestressMembraneElement::save(Serializer& rSerializer) const
       rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
       rSerializer.load("DetJ0", mDetJ0);
       rSerializer.load("TotalDomainInitialSize", mTotalDomainInitialSize);
-      rSerializer.load("StrainsVector", mStrainsVector);
-      rSerializer.load("StressesVector", mStressesVector);
-      rSerializer.load("CauchyStressesVector", mCauchyStressesVector);
       rSerializer.load("G1", mG1);
       rSerializer.load("G2", mG2);
       rSerializer.load("G_ab", mGab0);
