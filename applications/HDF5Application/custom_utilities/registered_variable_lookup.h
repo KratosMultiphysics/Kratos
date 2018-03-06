@@ -71,7 +71,7 @@ public:
   void Execute(Targs&... args)
   {
       bool found = false;
-      int dummy[sizeof...(TVariables)] = {(FunctorWrapper<TFunctor, Targs...>().Execute<TVariables>(mName, found, args...), 0)...};
+      int dummy[sizeof...(TVariables)] = {(FunctorWrapper<TFunctor, Targs...>().template Execute<TVariables>(mName, found, args...), 0)...};
       ignore_unused_variable_warning(dummy);
       KRATOS_ERROR_IF(!found) << "Variable \"" << mName << "\" was not found.\n";
   }

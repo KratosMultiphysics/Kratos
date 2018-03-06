@@ -12,8 +12,8 @@ from KratosMultiphysics.MeshingApplication import *
 ##PARSING THE PARAMETERS
 #import define_output
 
-parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( parameter_file.read())
+with open("ProjectParameters.json",'r') as parameter_file:
+    ProjectParameters = Parameters( parameter_file.read())
 
 
 ## defining a model part for the fluid
