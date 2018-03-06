@@ -21,7 +21,7 @@ class controlledExecutionScope:
     def __enter__(self):
         os.chdir(self.scope)
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, the_type, value, traceback):
         os.chdir(self.currentPath)
 
 class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):

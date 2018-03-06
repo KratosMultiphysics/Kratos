@@ -12,9 +12,8 @@ import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
 # Other imports
 import restart_utility
-import os
 
-class TrilinosRestartUtility(RestartUtility):
+class TrilinosRestartUtility(restart_utility.RestartUtility):
     """
     This class overwrites the methods that are different
     in MPI parallel execution
