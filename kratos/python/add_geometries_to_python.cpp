@@ -22,6 +22,7 @@
 #include "includes/node.h"
 #include "geometries/geometry.h"
 #include "geometries/triangle_2d_3.h"
+#include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "python/add_geometries_to_python.h"
@@ -51,8 +52,11 @@ void  AddGeometriesToPython()
     ;
     
     class_<Triangle2D3<Node3D>, Triangle2D3<Node3D>::Pointer, bases< GeometryType > >("Triangle2D3", init<pNode3D, pNode3D, pNode3D>())
-    ;    
-    
+    ;
+
+    class_<Quadrilateral2D4<Node3D>, Quadrilateral2D4<Node3D>::Pointer, bases< GeometryType > >("Quadrilateral2D4", init<pNode3D, pNode3D, pNode3D, pNode3D>())
+    ;
+
     class_<Tetrahedra3D4<Node3D>, Tetrahedra3D4<Node3D>::Pointer, bases< GeometryType > >("Tetrahedra3D4", init<pNode3D, pNode3D, pNode3D, pNode3D>())
     ;
 
