@@ -1,141 +1,148 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.MeshingApplication import *
 
-######################################################################################
-######################################################################################
-######################################################################################
-##PARSING THE PARAMETERS
-#import define_output
+class FluidMain(object):
 
-with open("ProjectParameters.json",'r') as parameter_file:
-    ProjectParameters = Parameters( parameter_file.read())
+    def __init__(self,parameter_file_name='ProjectParameters.json'):
 
+        with open(parameter_file_name,'r') as parameter_file:
+            self.project_parameters = Parameters( parameter_file.read() )
 
-## defining a model part for the fluid
-main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
-main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
-
-###TODO replace this "model" for real one once available
-Model = {ProjectParameters["problem_data"]["model_part_name"].GetString() : main_model_part}
-
-#construct the solver
-solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
-
-solver.AddVariables()
-
-#obtain the list of the processes to be applied
-process_definition = Parameters(ProjectParameters["boundary_conditions_process_list"])
-
-###read the model - note that SetBufferSize is done here
-solver.ImportModelPart()
-
-###add AddDofs
-solver.AddDofs()
-
-
-##here all of the allocation of the strategies etc is done
-solver.Initialize()
-
-
-##TODO: replace MODEL for the Kratos one ASAP
-##get the list of the submodel part in the object Model
-for i in range(ProjectParameters["solver_settings"]["skin_parts"].size()):
-    part_name = ProjectParameters["solver_settings"]["skin_parts"][i].GetString()
-    Model.update({part_name: main_model_part.GetSubModelPart(part_name)})
-
-#TODO: decide which is the correct place to initialize the processes 
-list_of_processes = []
-process_definition = ProjectParameters["boundary_conditions_process_list"]
-for i in range(process_definition.size()):
-    item = process_definition[i]
-    module = __import__(item["kratos_module"].GetString())
-    interface_file = __import__(item["python_module"].GetString())
-    p = interface_file.Factory(item, Model)
-    list_of_processes.append( p )
-    print("done ",i)
-            
-
-for process in list_of_processes:
-    print("a")
-    process.ExecuteInitialize()
-    print("b")
-
-#TODO: think if there is a better way to do this
-fluid_model_part = solver.GetComputingModelPart()
-
-
-# initialize GiD  I/O
-from gid_output import GiDOutput
-output_settings = ProjectParameters["output_configuration"]
-gid_io = GiDOutput(output_settings["output_filename"].GetString(),
-                   output_settings["volume_output"].GetBool(),
-                   output_settings["gid_post_mode"].GetString(),
-                   output_settings["gid_multi_file_flag"].GetString(),
-                   output_settings["gid_write_mesh_flag"].GetBool(),
-                   output_settings["gid_write_conditions_flag"].GetBool())
-output_time = output_settings["output_time"].GetDouble()
-
-gid_io.initialize_results(fluid_model_part)
-
-for process in list_of_processes:
-    process.ExecuteBeforeSolutionLoop()
-
-## Stepping and time settings
-Dt = ProjectParameters["problem_data"]["time_step"].GetDouble()
-end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
-
-
-time = 0.0
-step = 0
-out = 0.0
-while(time <= end_time):
-
-    time = time + Dt
-    step = step + 1
-    main_model_part.CloneTimeStep(time)
-
-    print("STEP = ", step)
-    print("TIME = ", time)
-
-    for process in list_of_processes:
-        process.ExecuteInitializeSolutionStep()
+        # If this is an MPI run, load the required modules
         
-    solver.Solve()
-        
-    for process in list_of_processes:
-        process.ExecuteFinalizeSolutionStep()
+    def SetUpModel(self):
+        '''Initialize the model part for the problem (stored as self.model_part) and other general model data.'''
 
-    for process in list_of_processes:
-        process.ExecuteBeforeOutputStep()
-    
-    if(output_time <= out):
-        #TODO: following lines shall not be needed once the gid_io is adapted to using the parameters
-        nodal_results = []
+        model_part_name = self.ProjectParameters["problem_data"]["model_part_name"].GetString()
+        self.input_model_part = ModelPart(model_part_name)
+
+        self.domain_size = ProjectParameters["problem_data"]["domain_size"].GetInt()
+        self.input_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.domain_size)
+
+        #TODO replace this "model" for real one once available
+        self.model = { model_part_name : self.input_model_part }
+
+        solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
+        self.solver = solver_module.CreateSolver(self.input_model_part, ProjectParameters["solver_settings"])
+
+        self.solver.AddVariables()
+        self.solver.ImportModelPart()
+
+        self.solver.AddDofs()
+
+        self.model_part = self.solver.GetComputingModelPart()
+
+        #TODO: replace MODEL for the Kratos one ASAP
+        ##get the list of the skin SubModelParts in the object model
+        skin_part_list = self.project_parameters["solver_settings"]["skin_parts"]
+        for i in range(skin_part_list.size()):
+            part_name = skin_part_list[i].GetString()
+            self.model.update( {part_name: main_model_part.GetSubModelPart(part_name)} )
+
+
+    def SetUpConditions(self):
+        '''Read the boundary and initial conditions for the problem and initialize the processes that will manage them.'''
+
+        boundary_condition_process_list = self.project_parameters["boundary_conditions_process_list"]
+        self.boundary_condition_processes = list()
+
+        for i in range(boundary_condition_process_list.size()):
+            process_settings = boundary_condition_process_list[i]
+            module = __import__(process_settings["kratos_module"].GetString())
+            interface_file = __import__(process_settings["python_module"].GetString())
+            process = interface_file.Factory(process_settings, self.model)
+            self.boundary_condition_processes.append( process )
+
+        for process in self.boundary_condition_processes:
+            process.ExecuteInitialize()
+
+    def SetUpSolution(self):
+        '''Initialize the Python solver and its auxiliary tools and processes.'''
+
+        self.solver.Initialize()
+
+        #TODO this should be generic
+        # initialize GiD  I/O
+        from gid_output import GiDOutput
+        output_settings = ProjectParameters["output_configuration"]
+        self.gid_io = GiDOutput(output_settings["output_filename"].GetString(),
+                                output_settings["volume_output"].GetBool(),
+                                output_settings["gid_post_mode"].GetString(),
+                                output_settings["gid_multi_file_flag"].GetString(),
+                                output_settings["gid_write_mesh_flag"].GetBool(),
+                                output_settings["gid_write_conditions_flag"].GetBool())
+        self.output_time = output_settings["output_time"].GetDouble()
+
+        self.gid_io.initialize_results(self.model_part)
+
+        self.nodal_results = []
         for i in range(output_settings["nodal_results"].size()):
-            nodal_results.append(output_settings["nodal_results"][i].GetString())
-        gauss_points_results = []
+            self.nodal_results.append(output_settings["nodal_results"][i].GetString())
+        self.gauss_points_results = []
         for i in range(output_settings["gauss_points_results"].size()):
-            gauss_points_results.append(output_settings["gauss_points_results"][i].GetString())
-            
-        gid_io.write_results(
-            time,
-            fluid_model_part,
-            nodal_results,
-            gauss_points_results)
-        out = 0
+            self.gauss_points_results.append(output_settings["gauss_points_results"][i].GetString())
+
+        for process in self.boundary_condition_processes:
+            process.ExecuteBeforeSolutionLoop()
+
+        ## Stepping and time settings
+        self.dt = self.project_parameters["problem_data"]["time_step"].GetDouble()
+        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+
+    def Solve(self):
+        '''The main solution loop.'''
         
-    for process in list_of_processes:
-        process.ExecuteAfterOutputStep()
+        time = 0.0
+        step = 0
+        out = 0.0
 
-    out = out + Dt
+        while time <= self.end_time:
+            time = time + self.dt
+            step = step + 1
+            
+            self.model_part.CloneTimeStep(time)
 
-gid_io.finalize_results()
+            print("STEP = ", step)
+            print("TIME = ", time)
+            
+            for process in self.boundary_condition_processes:
+                process.ExecuteInitializeSolutionStep()
+        
+            self.solver.Solve()
+        
+            # shouldn't this go at the end of the iteration???
+            for process in self.boundary_condition_processes:
+                process.ExecuteFinalizeSolutionStep()
 
-for process in list_of_processes:
-    process.ExecuteFinalize()
+            if self.output_time <= out:
+                for process in self.boundary_condition_processes:
+                    process.ExecuteBeforeOutputStep()
+    
+                self.gid_io.write_results(time,self.model_part,self.nodal_results,self.gauss_points_results)
+                out = 0.0
+        
+                for process in self.boundary_condition_processes:
+                    process.ExecuteAfterOutputStep()
+
+            out = out + self.dt
+
+    def FinalizeSolution(self):
+        '''Finalize and close open files.'''
+        self.gid_io.finalize_results()
+
+        for process in self.boundary_condition_processes:
+            process.ExecuteFinalize()
+
+    def Run(self):
+        '''Wrapper function for the solution.'''
+        self.SetUpModel()
+        self.SetUpConditions()
+        self.SetUpSolution()
+        self.Solve()
+        self.FinalizeSolution()
+
+if __name__ == '__main__':
+    solver = FluidMain()
+    solver.Run()
