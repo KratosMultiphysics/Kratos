@@ -207,7 +207,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         -70650929.0390236,-71205408.69085957,-71758918.27250087,-72311464.28340018,
         -72863053.1484657,-73413691.21926463,-73963384.77520159,-74512140.02467461,
         -75059963.10620539,]
-        self.assertAlmostEqual(reac_temp[0],reaction_x_node1[timestep])
+        self.assertAlmostEqual(reac_temp[0],reaction_x_node1[timestep], 6)
 
         ##node2
         node_temp = mp.Nodes[2]
@@ -217,7 +217,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         #pointLoad
         self.assertAlmostEqual(load_temp,Force_i)
         #reaction_x
-        self.assertAlmostEqual(reac_temp[0],reaction_x_node1[timestep]*(-1))
+        self.assertAlmostEqual(reac_temp[0],reaction_x_node1[timestep]*(-1), 6)
         #displacement_y
         EA = 210e9*0.01
         L = sqrt(4+1)
@@ -258,7 +258,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(simulated_disp_temp, test_disp_temp,6)
 
     def _check_results_cable(self,mp,Force_X):
-        
+
         disp_u_2 = mp.Nodes[2].GetSolutionStepValue(
         KratosMultiphysics.DISPLACEMENT_X)
         r_u_1 = mp.Nodes[1].GetSolutionStepValue(
@@ -272,7 +272,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
         self.assertAlmostEqual(r_u_3, 0.00 ,4)
 
     def _check_results_dynamic_explicit_nonlinear(self,mp,time_i,time_step):
-             
+
         simulated_disp_temp = mp.Nodes[2].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT_Y)
         test_disp_temp = [-0.02187643575439285,-0.06200584852673985,-0.12659001916294776,
@@ -580,7 +580,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             #create a submodalpart for neumann boundary conditions
             bcs_neumann = mp.CreateSubModelPart("PointLoad3D_neumann")
             bcs_neumann.AddNodes([2])
-            bcs_neumann.AddConditions([1]) 
+            bcs_neumann.AddConditions([1])
             #create Elements
             mp.CreateNewElement("CableElement3D2N", 1, [1,2], mp.GetProperties()[0])
             mp.CreateNewElement("CableElement3D2N", 2, [2,3], mp.GetProperties()[0])
@@ -590,7 +590,7 @@ class TestTruss3D2N(KratosUnittest.TestCase):
             self._apply_BCs(bcs_yz,'yz')
             self._apply_Neumann_BCs(bcs_neumann,'x',Force_X)
 
-            self._solve_nonlinear(mp)  
+            self._solve_nonlinear(mp)
             self._check_results_cable(mp,Force_X)
 
     def test_truss3D2N_dynamic_explicit_nonlinear(self):
@@ -640,8 +640,8 @@ class TestTruss3D2N(KratosUnittest.TestCase):
                     strategy_expl.Solve()
                     self._check_results_dynamic_explicit_nonlinear(mp,time_i,time_step)
                     time_step += 1
-            
-                
+
+
 
 
 
@@ -660,10 +660,10 @@ def _create_dynamic_explicit_strategy(mp):
     strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,
                                         scheme,0,0,1)
     strategy.SetEchoLevel(0)
-    return strategy 
+    return strategy
 
 
-        
+
 if __name__ == '__main__':
     KratosUnittest.main()
 
