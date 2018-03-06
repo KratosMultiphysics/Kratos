@@ -23,7 +23,6 @@
 
 // Project includes
 #include "spaces/ublas_space.h"
-#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
@@ -47,9 +46,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
     
-/// Utility to initialize a random vector
 /**
- * Defines several utility functions
+ * @class RandomInitializeUtility
+ * @ingroup KratosCore
+ * @brief Utility to initialize a random vector
+ * @details Defines several utility functions related with the initialization of random matrixes. The class can be adapted for several types of floating numbers via template
+ * @author Vicente Mataix Ferrandiz
  */
 template<class TDataType>
 class RandomInitializeUtility
@@ -87,7 +89,7 @@ public:
     ///@{
     
     /**
-     * This method initializes a vector using a normal normal distribution
+     * @brief This method initializes a vector using a normal normal distribution
      * @param R The vector to fill with random values
      * @param MeanValue The mean value used in the normal distribution
      * @param VarianceValue The variance value used in the normal distribution
@@ -99,20 +101,18 @@ public:
         )
     {
         // We create a random vector as seed of the method
-        std::random_device this_random_device;
-        std::mt19937 generator(this_random_device());
+        unsigned int seed = 1; // Constant seed
+        std::default_random_engine generator(seed);
         
-        std::normal_distribution<> normal_distribution(MeanValue, VarianceValue);
+        std::normal_distribution<TDataType> normal_distribution(MeanValue, VarianceValue);
         
         for (SizeType i = 0; i < R.size(); ++i)
-        {
             R[i] = normal_distribution(generator);
-        }
     }
     
     
     /**
-     * This method initializes a vector using a normal distribution. The mean and the variance is taken from the norm of the matrix
+     * @brief This method initializes a vector using a normal distribution. The mean and the variance is taken from the norm of the matrix
      * @param K The stiffness matrix
      * @param R The vector to initialize
      * @param Inverse If consider the inverse pf the matrix norm or not
@@ -123,8 +123,9 @@ public:
         const bool Inverse = false 
         )
     {
+        const TDataType threshold = std::numeric_limits<TDataType>::epsilon();
         const TDataType normK = SparseSpaceType::TwoNorm(K);
-        const TDataType aux_value = (Inverse == false) ? normK : 1.0/normK;
+        const TDataType aux_value = (Inverse == false) ? normK : (normK > threshold) ? 1.0/normK : 1.0;
         NormalDestributionRandom(R, aux_value, 0.25 * aux_value);
     }
     

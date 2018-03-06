@@ -1,6 +1,6 @@
-import KratosMultiphysics  
+import KratosMultiphysics
 import sys
-        
+
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -26,7 +26,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         See _AssignPropertyBlock for detail on how properties are imported.
         """
-        KratosMultiphysics.Process.__init__(self) 
+        KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
             {
             "materials_filename" : "please specify the file to be opened"
@@ -37,7 +37,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
 
-        KratosMultiphysics.Logger.PrintInfo("::Reading materials process:: ", "Started")
+        KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Started")
 
         with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
             materials = KratosMultiphysics.Parameters(parameter_file.read())
@@ -83,15 +83,15 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         module_name = splitted[-2]
 
         if module_name == "KratosMultiphysics":
-            return getattr(KratosMultiphysics, constitutive_law_name) 
+            return getattr(KratosMultiphysics, constitutive_law_name)
         else:
             application_name = "Kratos" + module_name
             if application_name not in KratosMultiphysics.KratosGlobals.RequestedApplications:
                 raise ImportError(module_name + " is not imported!")
             module1 = KratosMultiphysics.KratosGlobals.RequestedApplications[application_name]
             module2 = sys.modules[application_name]
-            
-            return getattr(module2, constitutive_law_name) 
+
+            return getattr(module2, constitutive_law_name)
 
     def _AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
