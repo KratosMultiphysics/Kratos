@@ -173,6 +173,26 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 KM.Logger.PrintWarning("Using MixedULMLinearSolver, definition of ALM parameters recommended")
                 name_mixed_solver = self.contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
                 if (name_mixed_solver == "MixedULMLinearSolver"):
+                    linear_solver_name = self.settings["linear_solver_settings"]["solver_type"].GetString()
+                    if (linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver"):
+                        amgcl_param = KM.Parameters("""
+                        {
+                            "solver_type" : "AMGCL",
+                            "smoother_type":"ilu0",
+                            "krylov_type": "lgmres",
+                            "coarsening_type": "aggregation",
+                            "max_iteration": 100,
+                            "provide_coordinates": false,
+                            "gmres_krylov_space_dimension": 100,
+                            "verbosity" : 1,
+                            "tolerance": 1e-6,
+                            "scaling": false,
+                            "block_size": 3,
+                            "use_block_matrices_if_possible" : true,
+                            "coarse_enough" : 500
+                        }
+                        """)
+                        linear_solver = KM.AMGCLSolver(amgcl_param)
                     mixed_ulm_solver = CSMA.MixedULMLinearSolver(linear_solver, self.contact_settings["mixed_ulm_solver_parameters"])
                     return mixed_ulm_solver
                 else:
@@ -208,7 +228,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_builder_and_solver(self):
-        if  self.contact_settings["mortar_type"].GetString() != "":
+        if self.contact_settings["mortar_type"].GetString() != "":
             linear_solver = self.get_linear_solver()
             if self.settings["block_builder"].GetBool():
                 if self.settings["multi_point_constraints_used"].GetBool():
@@ -223,7 +243,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
         return builder_and_solver
 
     def _create_mechanical_solution_strategy(self):
-        if  self.contact_settings["mortar_type"].GetString() != "":
+        if self.contact_settings["mortar_type"].GetString() != "":
             if self.settings["analysis_type"].GetString() == "linear":
                 mechanical_solution_strategy = self._create_linear_strategy()
             else:
