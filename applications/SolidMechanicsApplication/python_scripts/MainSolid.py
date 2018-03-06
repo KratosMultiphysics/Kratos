@@ -163,7 +163,7 @@ class Solution(object):
 
         self.main_model_part.CloneTimeStep(self.time)
 
-        print(" [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
+        print("  [STEP:",self.step," TIME:","{0:1.{1}f}".format(self.time,6),"]")
 
         # Processes to be executed at the begining of the solution step
         self.processes.ExecuteInitializeSolutionStep()

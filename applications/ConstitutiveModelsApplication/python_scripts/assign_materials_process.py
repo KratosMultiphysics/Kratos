@@ -74,8 +74,6 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         
         #create constitutive law
         self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())
-
-        print( self.material_law )
         
         self.properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, self.material_law.Clone())
 
