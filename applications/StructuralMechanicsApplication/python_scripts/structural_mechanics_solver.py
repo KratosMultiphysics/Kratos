@@ -57,7 +57,7 @@ class MechanicalSolver(object):
             },
             "restart_settings" : {
                 "load_restart"                  : false,
-                "restart_load_file_label"       : 0.0,
+                "restart_load_file_label"       : "",
                 "save_restart"                  : false,
                 "restart_save_frequency"        : 1.0,
                 "restart_control_type"          : "time",

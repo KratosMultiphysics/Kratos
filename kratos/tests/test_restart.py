@@ -185,12 +185,12 @@ class TestRestart(KratosUnittest.TestCase):
         {
             "input_filename"          : "",
             "serializer_trace"        : "no_trace",
-            "restart_load_file_label" : 0.0
+            "restart_load_file_label" : ""
         }
         """)
 
         restart_parameters["input_filename"].SetString(os.path.join("test_restart_file__restart_files", "test_restart_file"))
-        restart_parameters["restart_load_file_label"].SetDouble(restart_time)
+        restart_parameters["restart_load_file_label"].SetString(str(restart_time))
 
         rest_utility = restart_utility.RestartUtility(loaded_model_part, restart_parameters)
 

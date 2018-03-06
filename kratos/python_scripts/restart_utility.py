@@ -12,7 +12,7 @@ class RestartUtility(object):
         {
             "input_filename"                : "",
             "load_restart"                  : false,
-            "restart_load_file_label"       : 0.0,
+            "restart_load_file_label"       : "",
             "save_restart"                  : false,
             "restart_save_frequency"        : 0.0,
             "restart_control_type"          : "time",
@@ -34,7 +34,7 @@ class RestartUtility(object):
 
         # load settings
         self.input_filename = settings["input_filename"].GetString()
-        self.input_file_label = settings["restart_load_file_label"].GetDouble()
+        self.input_file_label = settings["restart_load_file_label"].GetString()
 
         # save settings
         self.restart_save_frequency = settings["restart_save_frequency"].GetDouble()
@@ -111,7 +111,7 @@ class RestartUtility(object):
         return os.path.join(problem_path, self.input_filename + "_" + self._GetFileLoadLabel())
 
     def _GetFileLoadLabel(self):
-        return str(self.input_file_label)
+        return self.input_file_label
 
     def _GetFileSaveLabel(self, file_label):
         return str(file_label)
@@ -140,4 +140,4 @@ class RestartUtility(object):
         if self.restart_control_type_is_time:
             return (self.model_part.ProcessInfo[KratosMultiphysics.TIME] > self.next_output)
         else:
-            return (self.model_part.ProcessInfo[KratosMultiphysics.STEP] > self.next_output)
+            return (self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output)

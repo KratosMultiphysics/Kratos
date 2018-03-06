@@ -21,7 +21,7 @@ class TrilinosRestartUtility(RestartUtility):
         super(TrilinosRestartUtility, self).__init__(model_part, settings)
 
     def _GetFileLoadLabel(self):
-        return str(KratosMPI.mpi.rank) + '_' + str(self.input_file_label)
+        return str(KratosMPI.mpi.rank) + '_' + self.input_file_label
 
     def _GetFileSaveLabel(self, file_label):
         return str(KratosMPI.mpi.rank) + '_' + str(file_label)
