@@ -17,9 +17,9 @@ class ClassStructuralMechanics(object):
     It can be imported and used as "black-box"
     """
     def __init__(self, project_parameter_file_name):
-        ## Import define_output
+        # Read the ProjectParameters
         with open(project_parameter_file_name,'r') as parameter_file:
-            ProjectParameters = Parameters(parameter_file.read())
+            self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     def Run(self):
         self.Initialize()
@@ -27,7 +27,7 @@ class ClassStructuralMechanics(object):
         self.Finalize()
 
     def RunMainTemporalLoop():
-        while time < end_time:
+        while self.time < self.end_time:
             self.InitializeTimeStep()
             self.SolveTimeStep()
             self.FinalizeTimeStep()
@@ -64,156 +64,170 @@ class ClassStructuralMechanics(object):
             using_external_model_part = False
 
         ## Get echo level and parallel type
-        echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
-        parallel_type = ProjectParameters["problem_data"]["parallel_type"].GetString()
+        self.echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
+        self.parallel_type = ProjectParameters["problem_data"]["parallel_type"].GetString()
 
         ## Import parallel modules if needed
-        if (parallel_type == "MPI"):
-            from KratosMultiphysics.mpi import *
-            from KratosMultiphysics.MetisApplication import *
-            from KratosMultiphysics.TrilinosApplication import *
+        if (self.parallel_type == "MPI"):
+            import KratosMultiphysics.mpi as KratosMPI
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
         ## Structure model part definition
         if using_external_model_part:
-            main_model_part = external_model_part
+            self.main_model_part = external_model_part
         else:
             main_model_part_name = ProjectParameters["problem_data"]["model_part_name"].GetString()
-            main_model_part = ModelPart(main_model_part_name)
-            main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
+            self.main_model_part = ModelPart(main_model_part_name)
+            self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
         ## Solver construction
         import python_solvers_wrapper_structural
-        solver = python_solvers_wrapper_structural.CreateSolver(main_model_part, ProjectParameters)
+        self.solver = python_solvers_wrapper_structural.CreateSolver(main_model_part, ProjectParameters)
 
         if not using_external_model_part:
-            solver.AddVariables()
+            self.solver.AddVariables()
 
             ## Read the model - note that SetBufferSize is done here
-            solver.ImportModelPart()
+            self.solver.ImportModelPart()
 
             ## Add AddDofs
-            solver.AddDofs()
+            self.solver.AddDofs()
 
         ## Creation of the Kratos model (build sub_model_parts or submeshes)
-        StructureModel = Model()
-        StructureModel.AddModelPart(main_model_part)
+        self.structure_model = KratosMultiphysics.Model()
+        self.structure_model.AddModelPart(self.main_model_part)
 
     def InitializeIO(self):
         ## Initialize GiD  I/O
-        output_post  = ProjectParameters.Has("output_configuration")
-        if (output_post == True):
-            if (parallel_type == "OpenMP"):
-                from gid_output_process import GiDOutputProcess
-                gid_output = GiDOutputProcess(solver.GetComputingModelPart(),
-                                            ProjectParameters["problem_data"]["problem_name"].GetString() ,
-                                            ProjectParameters["output_configuration"])
-            elif (parallel_type == "MPI"):
-                from gid_output_process_mpi import GiDOutputProcessMPI
-                gid_output = GiDOutputProcessMPI(solver.GetComputingModelPart(),
-                                                ProjectParameters["problem_data"]["problem_name"].GetString() ,
-                                                ProjectParameters["output_configuration"])
+        self.output_post  = self.ProjectParameters.Has("output_configuration")
+        if (self.output_post == True):
+            if (self.parallel_type == "OpenMP"):
+                from gid_output_process import GiDOutputProcess as output_process
+            elif (self.parallel_type == "MPI"):
+                from gid_output_process_mpi import GiDOutputProcessMPI as output_process
 
-            gid_output.ExecuteInitialize()
+            self.gid_output = output_process(self.solver.GetComputingModelPart(),
+                                             self.ProjectParameters["problem_data"]["problem_name"].GetString(),
+                                             self.ProjectParameters["output_configuration"])
+
+            self.gid_output.ExecuteInitialize()
 
     def ExecuteInitialize(self):
         ## Print model_part and properties
-        if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
-            Logger.PrintInfo("ModelPart", main_model_part)
-            for properties in main_model_part.Properties:
-                Logger.PrintInfo("Property " + str(properties.Id), properties)
+        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
+            KratosMultiphysics.Logger.PrintInfo("ModelPart", main_model_part)
+            for properties in self.main_model_part.Properties:
+                KratosMultiphysics.Logger.PrintInfo("Property " + str(properties.Id), properties)
 
         ## Processes construction
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["constraints_process_list"])
-        list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["loads_process_list"])
-        if (ProjectParameters.Has("list_other_processes") == True):
-            list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["list_other_processes"])
-        if (ProjectParameters.Has("json_output_process") == True):
-            list_of_processes += process_factory.KratosProcessFactory(StructureModel).ConstructListOfProcesses(ProjectParameters["json_output_process"])
+        self.list_of_processes = process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["constraints_process_list"])
+        self.list_of_processes += process_factory.KratosProcessFactory(structure_model).ConstructListOfProcesses(self.ProjectParameters["loads_process_list"])
+        if (self.ProjectParameters.Has("list_other_processes") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
+        if (self.ProjectParameters.Has("json_output_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"])
+        # Processes for tests
+        if (self.ProjectParameters.Has("json_check_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"])
+        if (self.ProjectParameters.Has("check_analytic_results_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["check_analytic_results_process"])
 
-        if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 1):
+        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
             count = 0
-            for process in list_of_processes:
+            for process in self.list_of_processes:
                 count += 1
-                Logger.PrintInfo("Process " + str(count), process)
+                KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process)
 
         ## Processes initialization
-        for process in list_of_processes:
+        for process in self.list_of_processes:
             process.ExecuteInitialize()
 
         ## Solver initialization
-        solver.Initialize()
-        solver.SetEchoLevel(echo_level)
+        self.solver.Initialize()
+        self.solver.SetEchoLevel(echo_level)
 
     def ExecuteBeforeSolutionLoop():
-        if (output_post == True):
-            gid_output.ExecuteBeforeSolutionLoop()
+        if (self.output_post == True):
+            self.gid_output.ExecuteBeforeSolutionLoop()
 
-        for process in list_of_processes:
+        for process in self.list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
         ## Writing the full ProjectParameters file before solving
-        if ((parallel_type == "OpenMP") or (mpi.rank == 0)) and (echo_level > 0):
+        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 0):
             f = open("ProjectParametersOutput.json", 'w')
-            f.write(ProjectParameters.PrettyPrintJsonString())
+            f.write(self.ProjectParameters.PrettyPrintJsonString())
             f.close()
 
         ## Stepping and time settings
-        delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
-        start_time = ProjectParameters["problem_data"]["start_time"].GetDouble()
-        end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
+        self.delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
+        start_time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
+        self.end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
-        time = start_time
-        main_model_part.ProcessInfo[STEP] = 0
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True:
+            self.time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        else:
+            self.time = start_time
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
 
-        if (parallel_type == "OpenMP") or (mpi.rank == 0):
-            Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
+        if (parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+            KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
 
     def ExecuteInitializeSolutionStep(self):
-        time = time + delta_time
-        main_model_part.ProcessInfo[STEP] += 1
-        main_model_part.CloneTimeStep(time)
+        self.time += self.delta_time
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+        self.main_model_part.CloneTimeStep(self.time)
 
-        if (parallel_type == "OpenMP") or (mpi.rank == 0):
-            Logger.PrintInfo("STEP: ", main_model_part.ProcessInfo[STEP])
-            Logger.PrintInfo("TIME: ", time)
+        if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+            KratosMultiphysics.Logger.PrintInfo("STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
+            KratosMultiphysics.Logger.PrintInfo("TIME: ", self.time)
 
-        for process in list_of_processes:
+        for process in self.list_of_processes:
             process.ExecuteInitializeSolutionStep()
 
-        if (output_post == True):
-            gid_output.ExecuteInitializeSolutionStep()
+        if (self.output_post == True):
+            self.gid_output.ExecuteInitializeSolutionStep()
+
+    def ExecuteBeforeSolve(self):
+        pass
 
     def SolveSolutionStep(self):
         self.ExecuteBeforeSolve()
         self.solver.Solve()
         self.ExecuteAfterSolve()
 
+    def ExecuteAfterSolve(self):
+        pass
+
     def ExecuteFinalizeSolutionStep(self):
-        for process in list_of_processes:
+        for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
 
-        if (output_post == True):
-            gid_output.ExecuteFinalizeSolutionStep()
+        if (self.output_post == True):
+            self.gid_output.ExecuteFinalizeSolutionStep()
 
-        for process in list_of_processes:
+        for process in self.list_of_processes:
             process.ExecuteBeforeOutputStep()
 
-        if (output_post == True) and (gid_output.IsOutputStep()):
-            gid_output.PrintOutput()
+        if (self.output_post == True) and (self.gid_output.IsOutputStep()):
+            self.gid_output.PrintOutput()
 
-        for process in list_of_processes:
+        for process in self.list_of_processes:
             process.ExecuteAfterOutputStep()
 
+        self.solver.SaveRestart()
+
     def ExecuteFinalize(self):
-        for process in list_of_processes:
+        for process in self.list_of_processes:
             process.ExecuteFinalize()
 
-        if (output_post == True):
-            gid_output.ExecuteFinalize()
+        if (self.output_post == True):
+            self.gid_output.ExecuteFinalize()
 
-        if (parallel_type == "OpenMP") or (mpi.rank == 0):
-            Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
+        if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+            KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
 
 
 
