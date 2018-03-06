@@ -4,10 +4,10 @@ import KratosMultiphysics.ShallowWaterApplication as KratosShallow
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return SetInitialHeightProcess(Model, settings["Parameters"])
+    return SetInitialWaterLevelProcess(Model, settings["Parameters"])
 
 ## This process sets the value of a scalar variable using the AssignScalarVariableProcess.
-class SetInitialHeightProcess(KratosMultiphysics.Process):
+class SetInitialWaterLevelProcess(KratosMultiphysics.Process):
 
     def __init__(self, Model, settings):
 

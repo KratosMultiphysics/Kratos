@@ -32,7 +32,7 @@
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
-#include "custom_strategies/custom_strategies/explicit_strategy.hpp" 
+#include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp" 
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -83,7 +83,7 @@ void  AddCustomStrategiesToPython()
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
-    typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
+    typedef MechanicalExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MechanicalExplicitStrategyType;
 
 
     // Custom scheme types
@@ -128,14 +128,14 @@ void  AddCustomStrategiesToPython()
         ;
 
 
-    class_< ExplicitStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
+    class_< MechanicalExplicitStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
         (
-        "ExplicitStrategy",
+        "MechanicalExplicitStrategy",
         init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
 
         .def(init < ModelPart&, BaseSchemeType::Pointer,  bool, bool, bool >())
-        .def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
-        .def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
+        .def("SetInitializePerformedFlag", &MechanicalExplicitStrategyType::SetInitializePerformedFlag)
+        .def("GetInitializePerformedFlag", &MechanicalExplicitStrategyType::GetInitializePerformedFlag)
         ;
 
     // harmonic Analysis Strategy

@@ -104,8 +104,8 @@ public:
 
     struct ConditionDataStruct
     {
-        // double charVel;                // Problem characteristic velocity (used in the outlet inflow prevention)
-        // double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
+        double charVel;                // Problem characteristic velocity (used in the outlet inflow prevention)
+        double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
 
         // Data required in the RHS and LHS calculation
         double wGauss;                              // Gauss point weight
@@ -350,9 +350,9 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Store the outlet inflow prevention constants in the data structure
-        // data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        // const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Loop on gauss points
         if (data.n_pos != 0 && data.n_neg != 0){
@@ -521,9 +521,9 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Store the outlet inflow prevention constants in the data structure
-        // data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        // const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Loop on gauss points
         if (data.n_pos != 0 && data.n_neg != 0){
@@ -717,7 +717,7 @@ protected:
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
     
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
-    // void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
+    void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& rData);
 
     // Auxiliar function to fill the element data structure
     void FillConditionData(ConditionDataStruct &rData)

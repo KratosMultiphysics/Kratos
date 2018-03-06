@@ -1099,7 +1099,7 @@ def _add_explicit_variables(mp):
 def _create_dynamic_explicit_strategy(mp):
     scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(0.00,0.00,0.00)
 
-    strategy = StructuralMechanicsApplication.ExplicitStrategy(mp,
+    strategy = StructuralMechanicsApplication.MechanicalExplicitStrategy(mp,
                                         scheme,0,0,1)
     strategy.SetEchoLevel(0)
     return strategy
