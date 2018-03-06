@@ -59,7 +59,10 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             self.project_parameters_load = self.project_parameters_save.Clone()
 
             # Adding the specific settings (minimal to test the default settings)
-            save_restart_parameters = KratosMultiphysics.Parameters("""{"save_restart" : true}""")
+            save_restart_parameters = KratosMultiphysics.Parameters("""{
+                "save_restart" : true,
+                "move_restart_files_to_folder" : false
+            }""")
             load_restart_parameters = KratosMultiphysics.Parameters("""{
                 "load_restart"              : true,
                 "restart_load_file_label"   : 3.0

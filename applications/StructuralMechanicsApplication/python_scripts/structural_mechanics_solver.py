@@ -56,11 +56,13 @@ class MechanicalSolver(object):
                 "perform_partitioning": true
             },
             "restart_settings" : {
-                "load_restart"            : false,
-                "restart_load_file_label" : 0.0,
-                "save_restart"            : false,
-                "restart_save_frequency"  : 1.0,
-                "serializer_trace"        : "no_trace"
+                "load_restart"                  : false,
+                "restart_load_file_label"       : 0.0,
+                "save_restart"                  : false,
+                "restart_save_frequency"        : 1.0,
+                "restart_control_type"          : "time",
+                "move_restart_files_to_folder"  : true,
+                "serializer_trace"              : "no_trace"
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{

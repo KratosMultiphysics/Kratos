@@ -29,7 +29,10 @@ class TestRestart(KratosUnittest.TestCase):
 
     def tearDown(self):
         kratos_utils.DeleteFileIfExisting("test_restart_file.rest")
-        kratos_utils.DeleteFileIfExisting("test_restart_file_5.3.rest")
+        folder_name = "test_restart_file__restart_files"
+        kratos_utils.DeleteFileIfExisting(os.path.join(folder_name, "test_restart_file_5.3.rest"))
+        if os.path.isdir(folder_name):
+            os.rmdir(folder_name)
 
     def _check_modelpart(self, model_part):
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
@@ -180,12 +183,13 @@ class TestRestart(KratosUnittest.TestCase):
 
         restart_parameters = KratosMultiphysics.Parameters("""
         {
-            "input_filename"          : "test_restart_file",
+            "input_filename"          : "",
             "serializer_trace"        : "no_trace",
             "restart_load_file_label" : 0.0
         }
         """)
 
+        restart_parameters["input_filename"].SetString(os.path.join("test_restart_file__restart_files", "test_restart_file"))
         restart_parameters["restart_load_file_label"].SetDouble(restart_time)
 
         rest_utility = restart_utility.RestartUtility(loaded_model_part, restart_parameters)

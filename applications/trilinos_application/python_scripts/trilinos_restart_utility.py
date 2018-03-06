@@ -20,16 +20,16 @@ class TrilinosRestartUtility(RestartUtility):
         # Construct the base class
         super(TrilinosRestartUtility, self).__init__(model_part, settings)
 
-    def _GetFileNameLoad(self):
-        problem_path = os.getcwd()
-        return os.path.join(problem_path, self.input_filename + '_' + str(KratosMPI.mpi.rank) + "_" + str(self.input_file_label))
+    def _GetFileLoadLabel(self):
+        return str(KratosMPI.mpi.rank) + '_' + str(self.input_file_label)
 
-    def _GetFileNameSave(self, time):
-        return self.input_filename + '_' + str(KratosMPI.mpi.rank) + '_' + str(time)
+    def _GetFileSaveLabel(self, file_label):
+        return str(KratosMPI.mpi.rank) + '_' + str(file_label)
 
     def _ExecuteAfterLaod(self):
         import trilinos_import_model_part_utility
-        trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part, Parameters('''{"model_import_settings":[]}'''))
+        trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part,
+                                                                                                         Parameters('''{"model_import_settings":[]}'''))
         trilinos_model_part_importer.CreateCommunicators() # parallel fill communicator
 
     def _PrintOnRankZero(self, *args):
