@@ -50,7 +50,20 @@ public:
     ~LinearJ2Plasticity3D() override;
 
     void GetLawFeatures(Features& rFeatures) override;
-    SizeType GetStrainSize() override {
+
+    /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() override
+    {
+        return 3;
+    };
+
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize() override
+    {
         return 6;
     };
 

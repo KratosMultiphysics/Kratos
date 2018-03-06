@@ -51,7 +51,19 @@ public:
     ~LinearJ2PlasticityPlaneStrain2D() override;
 
     void GetLawFeatures(Features& rFeatures) override;
-    SizeType GetStrainSize() override {
+    /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() override
+    {
+        return 2;
+    };
+
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize() override
+    {
         return 4;
     };
 
