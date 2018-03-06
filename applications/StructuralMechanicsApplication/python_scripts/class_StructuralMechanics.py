@@ -121,7 +121,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
     def ExecuteInitialize(self):
         ## Print model_part and properties
         if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
-            KratosMultiphysics.Logger.PrintInfo("ModelPart", main_model_part)
+            KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
             for properties in self.main_model_part.Properties:
                 KratosMultiphysics.Logger.PrintInfo("Property " + str(properties.Id), properties)
 
@@ -143,7 +143,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
             count = 0
             for process in self.list_of_processes:
                 count += 1
-                KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process)
+                # KratosMultiphysics.Logger.PrintInfo("Process " + str(count), process) # FIXME
 
         ## Processes initialization
         for process in self.list_of_processes:
@@ -160,7 +160,7 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
             process.ExecuteBeforeSolutionLoop()
 
         ## Writing the full ProjectParameters file before solving
-        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 0):
+        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
             f = open("ProjectParametersOutput.json", 'w')
             f.write(self.ProjectParameters.PrettyPrintJsonString())
             f.close()

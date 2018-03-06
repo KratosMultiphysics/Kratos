@@ -43,4 +43,4 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def tearDown(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.FinalizeTimeStep()
+            self.test.Finalize()
