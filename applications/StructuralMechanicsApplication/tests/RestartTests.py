@@ -65,7 +65,7 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
             }""")
             load_restart_parameters = KratosMultiphysics.Parameters("""{
                 "load_restart"              : true,
-                "restart_load_file_label"   : 3.0
+                "restart_load_file_label"   : "3.0"
             }""")
 
             self.project_parameters_save["solver_settings"].AddValue("restart_settings", save_restart_parameters)
