@@ -7,8 +7,8 @@
 //           license: structural_mechanics_application/license.txt
 //
 //  Main authors: Martin Fusseder
-//                   
-//                   
+//
+//
 //
 #include "custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
 #include "structural_mechanics_application_variables.h"
@@ -20,18 +20,16 @@ namespace Kratos
 {
 
 	CrBeamAdjointElement3D2N::CrBeamAdjointElement3D2N(IndexType NewId,
-		GeometryType::Pointer pGeometry, bool rLinear)
-		: CrBeamElement3D2N(NewId, pGeometry, rLinear)
+		GeometryType::Pointer pGeometry)
+		: CrBeamElement3D2N(NewId, pGeometry)
 	{
-		this->mIsLinearElement = rLinear;
 	}
 
 	CrBeamAdjointElement3D2N::CrBeamAdjointElement3D2N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
-		PropertiesType::Pointer pProperties, bool rLinear)
-		: CrBeamElement3D2N(NewId, pGeometry, pProperties, rLinear)
+		PropertiesType::Pointer pProperties)
+		: CrBeamElement3D2N(NewId, pGeometry, pProperties)
 	{
-		this->mIsLinearElement = rLinear;
 	}
 
 	Element::Pointer CrBeamAdjointElement3D2N::Create(IndexType NewId,
@@ -40,16 +38,16 @@ namespace Kratos
 	{
 		const GeometryType& rGeom = this->GetGeometry();
 		return BaseType::Pointer(new CrBeamAdjointElement3D2N(
-			NewId, rGeom.Create(rThisNodes), pProperties, this->mIsLinearElement));
+			NewId, rGeom.Create(rThisNodes), pProperties));
 	}
 
 	Element::Pointer CrBeamAdjointElement3D2N::Create(IndexType NewId,
             GeometryType::Pointer pGeom,
-            PropertiesType::Pointer pProperties) const 
+            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
         return Element::Pointer(
-                new CrBeamAdjointElement3D2N(NewId, pGeom, pProperties, this->mIsLinearElement));
+                new CrBeamAdjointElement3D2N(NewId, pGeom, pProperties));
         KRATOS_CATCH("")
     }
 
@@ -118,7 +116,7 @@ namespace Kratos
 	{
 		KRATOS_TRY;
 
-		if ( this->GetProperties().Has(rDesignVariable) ) 
+		if ( this->GetProperties().Has(rDesignVariable) )
 		{
 			const double variable_value = this->GetProperties()[rDesignVariable];
 			return variable_value;
@@ -126,14 +124,14 @@ namespace Kratos
 		else
 			return 1.0;
 
-		KRATOS_CATCH("")	
+		KRATOS_CATCH("")
 	}
 
 	double CrBeamAdjointElement3D2N::GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable)
 	{
 		KRATOS_TRY;
 
-		if(rDesignVariable == SHAPE_SENSITIVITY) 
+		if(rDesignVariable == SHAPE_SENSITIVITY)
 		{
 			double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
 			double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
@@ -147,7 +145,7 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	void CrBeamAdjointElement3D2N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
+	void CrBeamAdjointElement3D2N::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
 											const ProcessInfo& rCurrentProcessInfo)
 	{
         KRATOS_TRY;
@@ -157,20 +155,20 @@ namespace Kratos
 		ProcessInfo testProcessInfo = rCurrentProcessInfo;
 
 		// Compute RHS before disturbing
-		this->CalculateRightHandSide(RHS_undist, testProcessInfo); 
+		this->CalculateRightHandSide(RHS_undist, testProcessInfo);
 
 		rOutput.resize(1,RHS_undist.size());
 
 		// Get disturbance measure
-        double delta = this->GetValue(DISTURBANCE_MEASURE); 
+        double delta = this->GetValue(DISTURBANCE_MEASURE);
 		double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
 		delta *= correction_factor;
 
-		if ( this->GetProperties().Has(rDesignVariable) ) 
+		if ( this->GetProperties().Has(rDesignVariable) )
 		{
 			// Save properties and its pointer
-            Properties& r_global_property = this->GetProperties(); 
-            Properties::Pointer p_global_properties = this->pGetProperties(); 
+            Properties& r_global_property = this->GetProperties();
+            Properties::Pointer p_global_properties = this->pGetProperties();
 
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(new Properties(r_global_property));
@@ -179,9 +177,9 @@ namespace Kratos
 			// Disturb the design variable
 			const double current_property_value = this->GetProperties()[rDesignVariable];
             p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
-        
+
 			// Compute RHS after disturbance
-			this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+			this->CalculateRightHandSide(RHS_dist, testProcessInfo);
 
 			rOutput.resize(1,RHS_dist.size());
 
@@ -192,21 +190,21 @@ namespace Kratos
 				rOutput(0, i) = RHS_dist[i];
 
             // Give element original properties back
-            this->SetProperties(p_global_properties);	
+            this->SetProperties(p_global_properties);
 
 			// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
-			this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+			this->CalculateRightHandSide(RHS_dist, testProcessInfo);
 		}
 		else
 		{
-			rOutput.clear();			
+			rOutput.clear();
 		}
-	
+
 		KRATOS_CATCH("")
 
-	} 
+	}
 
-	void CrBeamAdjointElement3D2N::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
+	void CrBeamAdjointElement3D2N::CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput,
 											const ProcessInfo& rCurrentProcessInfo)
 	{
     	KRATOS_TRY;
@@ -215,22 +213,22 @@ namespace Kratos
 		Vector RHS_undist;
 		Vector RHS_dist;
 		ProcessInfo testProcessInfo = rCurrentProcessInfo;
-		
+
 		// Get disturbance measure
-        double delta = this->GetValue(DISTURBANCE_MEASURE); 
+        double delta = this->GetValue(DISTURBANCE_MEASURE);
 		double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
 		delta *= correction_factor;
 
-		if(rDesignVariable == SHAPE_SENSITIVITY) 
+		if(rDesignVariable == SHAPE_SENSITIVITY)
 		{
 			const int number_of_nodes = GetGeometry().PointsNumber();
 			const int dimension = this->GetGeometry().WorkingSpaceDimension();
 			const int local_size = number_of_nodes * dimension * 2;
- 
+
 			rOutput.resize(dimension * number_of_nodes, local_size);
 
 			// compute RHS before disturbing
-			this->CalculateRightHandSide(RHS_undist, testProcessInfo); 
+			this->CalculateRightHandSide(RHS_undist, testProcessInfo);
 
             //TODO: look that this works also for parallel computing
 			for(int j = 0; j < number_of_nodes; j++)
@@ -243,13 +241,13 @@ namespace Kratos
 				this->CalculateInitialLocalCS();
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
 				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++)  
-					rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
+				for(unsigned int i = 0; i < RHS_dist.size(); i++)
+					rOutput( (0 + j*dimension), i) = RHS_dist[i];
 
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
@@ -267,13 +265,13 @@ namespace Kratos
 				this->CalculateInitialLocalCS();
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
 				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
-					rOutput((1 + j*dimension),i) = RHS_dist[i]; 
+				for(unsigned int i = 0; i < RHS_dist.size(); i++)
+					rOutput((1 + j*dimension),i) = RHS_dist[i];
 
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
@@ -291,12 +289,12 @@ namespace Kratos
 				this->CalculateInitialLocalCS();
 
 				// compute RHS after disturbance
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
 
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
 				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
+				for(unsigned int i = 0; i < RHS_dist.size(); i++)
 					rOutput((2 + j*dimension),i) = RHS_dist[i];
 
 				// Reset pertubed vector
@@ -308,14 +306,14 @@ namespace Kratos
 				this->CalculateInitialLocalCS();
 
 				// Compute RHS again in order to ensure that changed member variables like mLHS get back their origin values
-				this->CalculateRightHandSide(RHS_dist, testProcessInfo); 
+				this->CalculateRightHandSide(RHS_dist, testProcessInfo);
 
 				//end: derive w.r.t. z-coordinate-----------------------------------------------------
 
 			}// end loop over element nodes
 		}
 		else
-			KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
+			KRATOS_ERROR << "Unsupported design variable!" << std::endl;
 
 		KRATOS_CATCH("")
 	}
@@ -335,28 +333,28 @@ namespace Kratos
 
     		int direction_1 = 0;
     		std::vector< array_1d<double, 3 > > stress_vector;
-  
-    		if(item_1 == 'M') 
-        		CrBeamElement3D2N::GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
-    		else if(item_1 == 'F') 
-        		CrBeamElement3D2N::GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
-    		else 
-        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;  
 
-    		if(item_2 == 'X')  
-        		direction_1 = 0; 
-    		else if(item_2 == 'Y')  
-        		direction_1 = 1; 
-    		else if(item_2 == 'Z')  
-        		direction_1 = 2;   
-    		else 
-        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;              
+    		if(item_1 == 'M')
+        		CrBeamElement3D2N::GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
+    		else if(item_1 == 'F')
+        		CrBeamElement3D2N::GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
+    		else
+        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
+
+    		if(item_2 == 'X')
+        		direction_1 = 0;
+    		else if(item_2 == 'Y')
+        		direction_1 = 1;
+    		else if(item_2 == 'Z')
+        		direction_1 = 2;
+    		else
+        		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
 
 			if(rVariable == STRESS_ON_GP)
 			{
-				const unsigned int&  GP_num = GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);	
+				const unsigned int&  GP_num = GetGeometry().IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
 
-    			rOutput.resize(GP_num);   
+    			rOutput.resize(GP_num);
     			for(unsigned int i = 0; i < GP_num ; i++)
     			{
         			rOutput(i) = stress_vector[i][direction_1];
@@ -364,17 +362,17 @@ namespace Kratos
 			}
 			else if(rVariable == STRESS_ON_NODE)
 			{
-				rOutput.resize(2);   
+				rOutput.resize(2);
         		rOutput(0) = 2 * stress_vector[0][direction_1] - stress_vector[1][direction_1];
 				rOutput(1) = 2 * stress_vector[2][direction_1] - stress_vector[1][direction_1];
 			}
 		}
 		else
-		{	
+		{
 			rOutput.resize(3);
 			rOutput.clear();
 		}
-			
+
 
     	KRATOS_CATCH("")
 	}
@@ -384,9 +382,9 @@ namespace Kratos
                            const ProcessInfo& rCurrentProcessInfo)
 	{
    		KRATOS_TRY;
-	 
 
-		if(rVariable == STRESS_DISP_DERIV_ON_GP) 
+
+		if(rVariable == STRESS_DISP_DERIV_ON_GP)
 		{
        		this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
     	}
@@ -396,7 +394,7 @@ namespace Kratos
 		}
     	else if(rVariable == STRESS_DV_DERIV_ON_GP)
     	{
-        	std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );	
+        	std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );
 
         	if (KratosComponents<Variable<double>>::Has(design_varible_name) == true)
         	{
@@ -408,12 +406,12 @@ namespace Kratos
         	{
             	const Variable<array_1d<double, 3>>& r_variable =
                 	KratosComponents<Variable<array_1d<double, 3>>>::Get(design_varible_name);
-            	this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);    
-        	}      
+            	this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_GP, rOutput, rCurrentProcessInfo);
+        	}
     	}
 		else if(rVariable == STRESS_DV_DERIV_ON_NODE)
 		{
-        	std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );	
+        	std::string design_varible_name = this->GetValue( DESIGN_VARIABLE_NAME );
 
         	if (KratosComponents<Variable<double>>::Has(design_varible_name) == true)
         	{
@@ -425,38 +423,38 @@ namespace Kratos
         	{
             	const Variable<array_1d<double, 3>>& r_variable =
                 	KratosComponents<Variable<array_1d<double, 3>>>::Get(design_varible_name);
-            	this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_NODE, rOutput, rCurrentProcessInfo);    
-        	}      
+            	this->CalculateStressDesignVariableDerivative(r_variable, STRESS_ON_NODE, rOutput, rCurrentProcessInfo);
+        	}
 		}
    		else
 		{
 			rOutput.clear();
-		}	  
+		}
 
     	KRATOS_CATCH("")
 	}
 
 	void CrBeamAdjointElement3D2N::CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
-									Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)    
+									Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
 
 		const int num_nodes = this->GetGeometry().PointsNumber();
 		const int dimension = this->GetGeometry().WorkingSpaceDimension();
-		const int num_dofs = num_nodes * dimension * 2;   
+		const int num_dofs = num_nodes * dimension * 2;
     	Vector stress_vector_undist;
     	Vector stress_vector_dist;
-		ProcessInfo copy_process_info = rCurrentProcessInfo;	
-		
+		ProcessInfo copy_process_info = rCurrentProcessInfo;
+
 		// Get disturbance measure
-        double dist_measure = this->GetValue(DISTURBANCE_MEASURE); 
+        double dist_measure = this->GetValue(DISTURBANCE_MEASURE);
 		//TODO: is here a correction of delta necessary???
 
     	this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
-	
+
 		DofsVectorType element_dof_list;
     	CrBeamElement3D2N::GetDofList(element_dof_list, copy_process_info);
-			
+
 		unsigned int size_stress_vec = stress_vector_undist.size();
     	rOutput.resize(num_dofs, size_stress_vec);
     	for(int i = 0; i < num_dofs; i++)
@@ -464,13 +462,13 @@ namespace Kratos
         	element_dof_list[i]->GetSolutionStepValue() += dist_measure;
 
     		this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-		
+
         	for(unsigned int j = 0; j < size_stress_vec; j++)
         	{
             	stress_vector_dist[j] -= stress_vector_undist[j];
             	stress_vector_dist[j] /= dist_measure;
             	rOutput(i,j) = stress_vector_dist[j];
-        	}   
+        	}
 
         	element_dof_list[i]->GetSolutionStepValue() -= dist_measure;
         	stress_vector_dist.clear();
@@ -479,8 +477,8 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-    void CrBeamAdjointElement3D2N::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, 
-										const Variable<Vector>& rStressVariable, Matrix& rOutput, 
+    void CrBeamAdjointElement3D2N::CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable,
+										const Variable<Vector>& rStressVariable, Matrix& rOutput,
 											const ProcessInfo& rCurrentProcessInfo)
 	{
 		 KRATOS_TRY;
@@ -492,21 +490,21 @@ namespace Kratos
 		ProcessInfo copy_process_info = rCurrentProcessInfo;
 
 		// Get disturbance measure
-        double delta= this->GetValue(DISTURBANCE_MEASURE); 
+        double delta= this->GetValue(DISTURBANCE_MEASURE);
 		double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-		delta *= correction_factor;	
-	
+		delta *= correction_factor;
+
         // Compute stress before disturbance
 		this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
 		const int stress_vector_size = stress_vector_undist.size();
         rOutput.resize(1, stress_vector_size);
 
-		if( this->GetProperties().Has(rDesignVariable) ) 
+		if( this->GetProperties().Has(rDesignVariable) )
 		{
 			// Save properties and its pointer
-            Properties& r_global_property = this->GetProperties(); 
-            Properties::Pointer p_global_properties = this->pGetProperties(); 
+            Properties& r_global_property = this->GetProperties();
+            Properties::Pointer p_global_properties = this->pGetProperties();
 
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(new Properties(r_global_property));
@@ -517,7 +515,7 @@ namespace Kratos
             p_local_property->SetValue(rDesignVariable, (current_property_value + delta));
 
 			// Update stiffness matrix
-			this->CalculateLeftHandSide(dummy_LHS, copy_process_info); 
+			this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
 
 			// Compute stress on GP after disturbance
 		    this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
@@ -528,21 +526,21 @@ namespace Kratos
 
 			for(int j = 0; j < stress_vector_size; j++)
 			    rOutput(0, j) = stress_vector_dist[j];
-		
+
             // Give element original properties back
             this->SetProperties(p_global_properties);
 
 			// Update stiffness matrix
-			this->CalculateLeftHandSide(dummy_LHS, copy_process_info); 
+			this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
 		}
         else
         	rOutput.clear();
 
     	KRATOS_CATCH("")
 	}
-	
+
     void CrBeamAdjointElement3D2N::CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
-											const Variable<Vector>& rStressVariable, 
+											const Variable<Vector>& rStressVariable,
                                             Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY;
@@ -551,14 +549,14 @@ namespace Kratos
 		Vector stress_vector_undist;
 		Vector stress_vector_dist;
 		Matrix dummy_LHS;
-		ProcessInfo copy_process_info = rCurrentProcessInfo;	
-		
+		ProcessInfo copy_process_info = rCurrentProcessInfo;
+
 		// Get disturbance measure
         double delta= this->GetValue(DISTURBANCE_MEASURE);
 		double correction_factor = this->GetDisturbanceMeasureCorrectionFactor(rDesignVariable);
-		delta *= correction_factor;	 	
+		delta *= correction_factor;
 
-		if(rDesignVariable == SHAPE_SENSITIVITY) 
+		if(rDesignVariable == SHAPE_SENSITIVITY)
 		{
 			const int number_of_nodes = GetGeometry().PointsNumber();
 			const int dimension = this->GetGeometry().WorkingSpaceDimension();
@@ -567,9 +565,9 @@ namespace Kratos
 	    	this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
 			const int stress_vector_size = stress_vector_undist.size();
- 
+
 			rOutput.resize(dimension * number_of_nodes, stress_vector_size);
-    
+
         	//TODO: look that this works also for parallel computing
 			for(int j = 0; j < number_of_nodes; j++)
 			{
@@ -578,9 +576,9 @@ namespace Kratos
 				// disturb the design variable
 				this->GetGeometry()[j].X0() += delta;
 				// Update CS and transformation matrix after geometry change
-				this->CalculateInitialLocalCS(); 
+				this->CalculateInitialLocalCS();
 				// Update stiffness matrix
-				this->CalculateLeftHandSide(dummy_LHS, copy_process_info); 
+				this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
 
 				// Compute stress on GP after disturbance
 				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
@@ -590,7 +588,7 @@ namespace Kratos
 				stress_vector_dist  /= delta;
 
 				for(int i = 0; i < stress_vector_size; i++)
-					rOutput( (0 + j*dimension), i) = stress_vector_dist[i]; 
+					rOutput( (0 + j*dimension), i) = stress_vector_dist[i];
 
 				// Reset pertubed vector
 				stress_vector_dist = Vector(0);
@@ -605,9 +603,9 @@ namespace Kratos
 				// disturb the design variable
 				this->GetGeometry()[j].Y0() += delta;
 				// Update CS and transformation matrix after geometry change
-				this->CalculateInitialLocalCS(); 
+				this->CalculateInitialLocalCS();
 				// Update stiffness matrix
-				this->CalculateLeftHandSide(dummy_LHS, copy_process_info); 
+				this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
 
 				// Compute stress on GP after disturbance
 				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
@@ -617,7 +615,7 @@ namespace Kratos
 				stress_vector_dist  /= delta;
 
 				for(int i = 0; i < stress_vector_size; i++)
-					rOutput((1 + j*dimension),i) = stress_vector_dist[i]; 
+					rOutput((1 + j*dimension),i) = stress_vector_dist[i];
 
 				// Reset pertubed vector
 				stress_vector_dist = Vector(0);
@@ -634,7 +632,7 @@ namespace Kratos
 				// Update CS and transformation matrix after geometry change
 				this->CalculateInitialLocalCS();
 				// Update stiffness matrix
-				this->CalculateLeftHandSide(dummy_LHS, copy_process_info);  
+				this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
 
 				// Compute stress on GP after disturbance
 				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
@@ -654,17 +652,17 @@ namespace Kratos
 				// Update CS and transformation matrix after geometry change
 				this->CalculateInitialLocalCS();
 				// Update stiffness matrix
-				this->CalculateLeftHandSide(dummy_LHS, copy_process_info);  
+				this->CalculateLeftHandSide(dummy_LHS, copy_process_info);
 
 				//end: derive w.r.t. z-coordinate-----------------------------------------------------
 
 			}// end loop over element nodes
 		}
     	else
-			KRATOS_ERROR << "Unsupported design variable!" << std::endl;  
+			KRATOS_ERROR << "Unsupported design variable!" << std::endl;
 
     	KRATOS_CATCH("")
-	}										 
+	}
 
 
 	void CrBeamAdjointElement3D2N::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -672,7 +670,7 @@ namespace Kratos
 					      const ProcessInfo& rCurrentProcessInfo)
     {
 		KRATOS_TRY;
-		
+
 		if(this->Has(rVariable))
 		{
 			// Get result value for output
@@ -681,7 +679,7 @@ namespace Kratos
 			// Resize Output
 			const unsigned int&  write_points_number = GetGeometry()
 				.IntegrationPointsNumber(Kratos::GeometryData::GI_GAUSS_3);
-			if (rOutput.size() != write_points_number) 
+			if (rOutput.size() != write_points_number)
 			{
 				rOutput.resize(write_points_number);
 			}
@@ -689,7 +687,7 @@ namespace Kratos
 			// Write scalar result value on all Gauss-Points
 			for(unsigned int i = 0; i < write_points_number; ++i)
 			{
-				rOutput[i] = output_value; 
+				rOutput[i] = output_value;
 			}
 		}
 		else
@@ -814,8 +812,8 @@ namespace Kratos
 		{
 			KRATOS_ERROR << "I33 not provided for this element" << this->Id()
 				<< std::endl;
-		}		
-		
+		}
+
 
 		//##################################################################################################
 		// Check for specific sensitivity analysis stuff
@@ -845,12 +843,12 @@ namespace Kratos
                     || this->GetGeometry()[iNode].HasDofFor(ADJOINT_ROTATION_Z) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
                         "missing ADJOINT_ROTATION component degree of freedom on node ",
-                        this->GetGeometry()[iNode].Id());	
+                        this->GetGeometry()[iNode].Id());
 
 			if (this->GetGeometry()[iNode].SolutionStepsDataHas(DISPLACEMENT) == false)
                 KRATOS_THROW_ERROR(std::invalid_argument,
                         "missing DISPLACEMENT variable on solution step data for node ",
-                        this->GetGeometry()[iNode].Id());					
+                        this->GetGeometry()[iNode].Id());
         }
 
 		return 0;

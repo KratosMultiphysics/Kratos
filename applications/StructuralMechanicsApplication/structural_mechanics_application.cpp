@@ -140,7 +140,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       // Addint the adjoint elements
       mShellThinAdjointElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ), false ),
       mShellThinAdjointElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4))), false),
-      mCrLinearBeamAdjointElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ), true ),
+      mCrLinearBeamAdjointElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2 ) ) ) ),
       /* CONDITIONS */
       // Adding point load conditions
       mPointLoadCondition2D1N(0, Condition::GeometryType::Pointer(new Point2D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
@@ -159,10 +159,10 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mSurfaceLoadCondition3D6N(0, Condition::GeometryType::Pointer(new Triangle3D6<Node<3> >(Condition::GeometryType::PointsArrayType(6)))),
       mSurfaceLoadCondition3D8N(0, Condition::GeometryType::Pointer(new Quadrilateral3D8<Node<3> >(Condition::GeometryType::PointsArrayType(8)))),
       mSurfaceLoadCondition3D9N(0, Condition::GeometryType::Pointer(new Quadrilateral3D9<Node<3> >(Condition::GeometryType::PointsArrayType(9)))),
-      
+
       // Adding point moment conditions
-      mPointMomentCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))), 
-      
+      mPointMomentCondition3D1N(0, Condition::GeometryType::Pointer(new Point3D<Node<3> >(Condition::GeometryType::PointsArrayType(1)))),
+
       // Adding adjoint conditions
       mPointLoadAdjointCondition2D1N(  0, Condition::GeometryType::Pointer( new Point2D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
       mPointLoadAdjointCondition3D1N(  0, Condition::GeometryType::Pointer( new Point3D <Node<3> >( Condition::GeometryType::PointsArrayType( 1 ) ) ) ),
@@ -257,7 +257,7 @@ void KratosStructuralMechanicsApplication::Register() {
     // Formfinding
     KRATOS_REGISTER_VARIABLE(LAMBDA_MAX)
     KRATOS_REGISTER_VARIABLE(IS_FORMFINDING)
-    
+
 
     // Cross section
     KRATOS_REGISTER_VARIABLE(SHELL_CROSS_SECTION)
@@ -327,15 +327,15 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( YOUNG_MODULUS_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Y_SENSITIVITY );
     KRATOS_REGISTER_VARIABLE( AREA_EFFECTIVE_Z_SENSITIVITY );
- 
+
     // Variables to for computing parts of sensitivity analysis
     KRATOS_REGISTER_VARIABLE( TRACED_STRESS_TYPE );
-    KRATOS_REGISTER_VARIABLE( STRESS_DISP_DERIV_ON_GP ); 
-    KRATOS_REGISTER_VARIABLE( STRESS_DISP_DERIV_ON_NODE); 
-    KRATOS_REGISTER_VARIABLE( STRESS_DV_DERIV_ON_GP ); 
-    KRATOS_REGISTER_VARIABLE( STRESS_DV_DERIV_ON_NODE); 
-    KRATOS_REGISTER_VARIABLE( STRESS_ON_GP  ); 
-    KRATOS_REGISTER_VARIABLE( STRESS_ON_NODE  ); 
+    KRATOS_REGISTER_VARIABLE( STRESS_DISP_DERIV_ON_GP );
+    KRATOS_REGISTER_VARIABLE( STRESS_DISP_DERIV_ON_NODE);
+    KRATOS_REGISTER_VARIABLE( STRESS_DV_DERIV_ON_GP );
+    KRATOS_REGISTER_VARIABLE( STRESS_DV_DERIV_ON_NODE);
+    KRATOS_REGISTER_VARIABLE( STRESS_ON_GP  );
+    KRATOS_REGISTER_VARIABLE( STRESS_ON_NODE  );
     KRATOS_REGISTER_VARIABLE( DESIGN_VARIABLE_NAME );
     //KRATOS_REGISTER_VARIABLE( FINITE_DIFFERENCE_INFORMATION );
 

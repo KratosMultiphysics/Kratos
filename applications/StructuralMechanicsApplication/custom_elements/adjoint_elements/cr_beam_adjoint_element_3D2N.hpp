@@ -7,8 +7,8 @@
 //           license: structural_mechanics_application/license.txt
 //
 //  Main authors: Martin Fusseder
-//                   
-//                   
+//
+//
 //
 
 #if !defined(KRATOS_CR_BEAM_ADJOINT_ELEMENT_3D2N_H_INCLUDED )
@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-	class CrBeamAdjointElement3D2N : public CrBeamElement3D2N 
+	class CrBeamAdjointElement3D2N : public CrBeamElement3D2N
 	{
 	public:
 		KRATOS_CLASS_POINTER_DEFINITION(CrBeamAdjointElement3D2N);
@@ -42,11 +42,9 @@ namespace Kratos
 		typedef BaseType::DofsVectorType DofsVectorType;
 
 
+		CrBeamAdjointElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
 		CrBeamAdjointElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-						bool rLinear = false);
-		CrBeamAdjointElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
-						PropertiesType::Pointer pProperties,
-						bool rLinear = false);
+						PropertiesType::Pointer pProperties);
 
 
 		~CrBeamAdjointElement3D2N() override;
@@ -57,8 +55,8 @@ namespace Kratos
 			NodesArrayType const& rThisNodes,
 			PropertiesType::Pointer pProperties) const override;
 
-		BaseType::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, 
-		 PropertiesType::Pointer pProperties) const override;	
+		BaseType::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,
+		 PropertiesType::Pointer pProperties) const override;
 
 		void EquationIdVector(
 			EquationIdVectorType& rResult,
@@ -72,10 +70,10 @@ namespace Kratos
 
 		double GetDisturbanceMeasureCorrectionFactor(const Variable<array_1d<double,3>>& rDesignVariable);
 
-		void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, 
+		void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
 											const ProcessInfo& rCurrentProcessInfo) override;
-	
-    	void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput, 
+
+    	void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput,
 											const ProcessInfo& rCurrentProcessInfo) override;
 		void Calculate(const Variable<Vector >& rVariable,
                            Vector& rOutput,
@@ -83,30 +81,30 @@ namespace Kratos
 
 		void Calculate(const Variable<Matrix >& rVariable,
                            Matrix& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo) override;	
+                           const ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, Matrix& rOutput, 
-												   const ProcessInfo& rCurrentProcessInfo);    
+		void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable, Matrix& rOutput,
+												   const ProcessInfo& rCurrentProcessInfo);
 
-    	void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, 
-											const Variable<Vector>& rStressVariable, Matrix& rOutput, 
+    	void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable,
+											const Variable<Vector>& rStressVariable, Matrix& rOutput,
 											const ProcessInfo& rCurrentProcessInfo);
-	
-    	void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable, 
+
+    	void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
 											const Variable<Vector>& rStressVariable,
-                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);   				   			   
-						   
+                                            Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
+
 		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override;			 
-				 
-		void GetValuesVector(Vector& rValues, int Step = 0);				 
+					     const ProcessInfo& rCurrentProcessInfo) override;
 
-		int Check(const ProcessInfo& rCurrentProcessInfo) override;	
+		void GetValuesVector(Vector& rValues, int Step = 0);
+
+		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 	protected:
 		CrBeamAdjointElement3D2N(): CrBeamElement3D2N()
@@ -115,8 +113,6 @@ namespace Kratos
 
 
 	private:
-		bool mIsLinearElement = false;
-
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;
 		void load(Serializer& rSerializer) override;
