@@ -1,13 +1,20 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Importing the Kratos Library
+# Importing Kratos
 import KratosMultiphysics
-
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
-# Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+
+# Importing the solvers (if available)
+try:
+    import KratosMultiphysics.ExternalSolversApplication
+    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
+except:
+    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
+try:
+    import KratosMultiphysics.EigenSolversApplication
+    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
+except:
+    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
 
 
 class ClassStructuralMechanics(object): # TODO in the future this could derive from a BaseClass in the Core
@@ -242,3 +249,17 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
 
         if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
             KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
+
+
+if __name__ == "__main__":
+    from sys import argv
+
+    if len(argv) > 2:
+        raise Exception("Wrong number of input arguments")
+
+    if len(argv) == 2: # ProjectParameters is being passed from outside
+        project_parameters_file_name = argv[1]
+    else: # using default name
+        project_parameters_file_name = "ProjectParameters.json"
+
+    ClassStructuralMechanics(project_parameters_file_name).Run()
