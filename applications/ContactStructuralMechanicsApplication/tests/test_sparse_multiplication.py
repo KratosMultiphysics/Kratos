@@ -9,15 +9,15 @@ def GetFilePath(fileName):
     return os.path.dirname(os.path.realpath(__file__)) + "/" + fileName
 
 class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
-    
+
     def setUp(self):
         pass
-    
+
     def __sparse_matrix_multiplication(self, problem = "saad"):
         space = KratosMultiphysics.UblasSparseSpace()
-        
+
         file_name = "../../../kratos/tests/A.mm"
-        
+
         # Read the matrices
         A = KratosMultiphysics.CompressedMatrix()
         A2 = KratosMultiphysics.CompressedMatrix()
@@ -33,26 +33,26 @@ class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
         if (missing_scipy == False):
             A_python = io.mmread(file_name)
             A_python.toarray()
-            
+
             A2_python = np.dot(A_python, A_python)
-            
+
             # Solve
             solver = CSMA.SparseMatrixMultiplicationUtility
             if (problem == "saad"):
                 solver.MatrixMultiplicationSaad(A, A, A2)
             elif (problem == "rmerge"):
                 solver.MatrixMultiplicationRMerge(A, A, A2)
-            
+
             for i, j in np.nditer(A2_python.nonzero()):
                 self.assertAlmostEqual(A2[int(i), int(j)], A2_python[i, j], 1e-3)
         else:
             self.assertTrue(True)
-            
+
     def test_sparse_matrix_multiplication_saad(self):
         self.__sparse_matrix_multiplication("saad")
-        
+
     def test_sparse_matrix_multiplication_rmerge(self):
         self.__sparse_matrix_multiplication("rmerge")
-  
+
 if __name__ == '__main__':
     KratosUnittest.main()
