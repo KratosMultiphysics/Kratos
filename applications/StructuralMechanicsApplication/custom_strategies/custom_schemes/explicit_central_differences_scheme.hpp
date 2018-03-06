@@ -200,9 +200,9 @@ public:
 
           const double psi = 0.5 * (alpha / w + beta * w); // critical ratio;
           stable_delta_time = (2.0 / w) * (std::sqrt(1.0 + psi * psi) - psi);
-         
+
           if (stable_delta_time > 0.00) {
-            #pragma omp atomic
+            #pragma omp critical
             if (stable_delta_time < delta_time) delta_time = stable_delta_time;
           }
         } else
