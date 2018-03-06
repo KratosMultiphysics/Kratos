@@ -76,6 +76,8 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
         ## Import parallel modules if needed
         if (self.parallel_type == "MPI"):
             import KratosMultiphysics.mpi as KratosMPI
+            import KratosMultiphysics.MetisApplication as MetisApplication
+            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
         ## Structure model part definition
         if using_external_model_part:
