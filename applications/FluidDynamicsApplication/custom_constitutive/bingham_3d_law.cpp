@@ -22,6 +22,7 @@
 
 #include "fluid_dynamics_application_variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -30,7 +31,7 @@ namespace Kratos
 //************************************************************************************
 
 Bingham3DLaw::Bingham3DLaw()
-    : ConstitutiveLaw()
+    : FluidConstitutiveLaw()
 {
 }
 
@@ -38,7 +39,7 @@ Bingham3DLaw::Bingham3DLaw()
 //************************************************************************************
 
 Bingham3DLaw::Bingham3DLaw(const Bingham3DLaw& rOther)
-    : ConstitutiveLaw(rOther)
+    : FluidConstitutiveLaw(rOther)
 {
 }
 
@@ -47,8 +48,7 @@ Bingham3DLaw::Bingham3DLaw(const Bingham3DLaw& rOther)
 
 ConstitutiveLaw::Pointer Bingham3DLaw::Clone() const
 {
-    Bingham3DLaw::Pointer p_clone(new Bingham3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<Bingham3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -56,6 +56,14 @@ ConstitutiveLaw::Pointer Bingham3DLaw::Clone() const
 
 Bingham3DLaw::~Bingham3DLaw()
 {
+}
+
+ConstitutiveLaw::SizeType Bingham3DLaw::WorkingSpaceDimension() {
+    return 3;
+}
+
+ConstitutiveLaw::SizeType Bingham3DLaw::GetStrainSize() {
+    return 6;
 }
 
 
@@ -108,17 +116,9 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
-        Matrix& C                  = rValues.GetConstitutiveMatrix();
-        
 //         if(gamma_dot < min_gamma_dot)
 //         {
-            noalias(C)  = ZeroMatrix(6,6);
-			C(0, 0) = 4.0 / 3.0*mu_effective;  C(0, 1) = -2.0 / 3.0*mu_effective; C(0, 2) = -2.0 / 3.0*mu_effective;
-			C(1, 0) = -2.0 / 3.0*mu_effective; C(1, 1) = 4.0 / 3.0*mu_effective;  C(1, 2) = -2.0 / 3.0*mu_effective;
-			C(2, 0) = -2.0 / 3.0*mu_effective; C(2, 1) = -2.0 / 3.0*mu_effective; C(2, 2) = 4.0 / 3.0*mu_effective;
-            C(3,3) = mu_effective;
-            C(4,4) = mu_effective;
-            C(5,5) = mu_effective;
+        this->NewtonianConstitutiveMatrix3D(mu_effective,rValues.GetConstitutiveMatrix());
 //         }
 //         else
 //         {
@@ -209,57 +209,52 @@ void  Bingham3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 	  
 }
 
-
-//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
-//************************************************************************************
-
-void Bingham3DLaw::GetLawFeatures(Features& rFeatures)
-{
-    	//Set the type of law
-	rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
-	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
-	rFeatures.mOptions.Set( ISOTROPIC );
-
-	//Set strain measure required by the consitutive law
-	rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-
-	//Set the strain size
-	rFeatures.mStrainSize = 6;
-
-	//Set the spacedimension
-	rFeatures.mSpaceDimension = 3;
-
+std::string Bingham3DLaw::Info() const {
+    return "Bingham3DLaw";
 }
+
 
 //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 //************************************************************************************
-
-// bool Bingham3DLaw::CheckParameters(Parameters& rValues)
-// {
-//     return rValues.CheckAllParameters();
-// }
 
 
 
 int Bingham3DLaw::Check(const Properties& rMaterialProperties,
                               const GeometryType& rElementGeometry,
                               const ProcessInfo& rCurrentProcessInfo)
-{
+{    
+    KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
+    KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
+    KRATOS_CHECK_VARIABLE_KEY(REGULARIZATION_COEFFICIENT);
 
-    if(DYNAMIC_VISCOSITY.Key() == 0 || rMaterialProperties[DYNAMIC_VISCOSITY]<= 0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"DYNAMIC_VISCOSITY has Key zero or invalid value ", "" )
+    if( rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00 ) {
+        KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Bingham3DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
+    }
 
-    if(YIELD_STRESS.Key() == 0 )
-        KRATOS_THROW_ERROR( std::invalid_argument,"YIELD_STRESS has Key zero invalid value ", "" )
+    if( rMaterialProperties[YIELD_STRESS] <= 0.00 ) {
+        KRATOS_ERROR << "Incorrect or missing YIELD_STRESS provided in process info for Bingham3DLaw: " << rMaterialProperties[YIELD_STRESS] << std::endl;
+    }
 
-    if(REGULARIZATION_COEFFICIENT.Key() == 0 || rMaterialProperties[REGULARIZATION_COEFFICIENT]<=0.00)
-        KRATOS_THROW_ERROR( std::invalid_argument,"REGULARIZATION_COEFFICIENT has Key zero or invalid value ", "" )
-
+    if( rMaterialProperties[REGULARIZATION_COEFFICIENT] <= 0.00 ) {
+        KRATOS_ERROR << "Incorrect or missing REGULARIZATION_COEFFICIENT provided in process info for Bingham3DLaw: " << rMaterialProperties[REGULARIZATION_COEFFICIENT] << std::endl;
+    }
 
     return 0;
 
 }
 
+
+double Bingham3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+    // We are abusing the fact that C(5,5) = mu_effective
+    return rParameters.GetConstitutiveMatrix()(5,5);
+}
+
+void Bingham3DLaw::save(Serializer& rSerializer) const {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
+}
+
+void Bingham3DLaw::load(Serializer& rSerializer) {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
+}
 
 } // Namespace Kratos

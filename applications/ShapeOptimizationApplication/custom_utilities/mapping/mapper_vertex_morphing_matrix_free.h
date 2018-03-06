@@ -100,12 +100,12 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperVertexMorphingMatrixFree( ModelPart& designSurface, Parameters optimizationSettings )
+    MapperVertexMorphingMatrixFree( ModelPart& designSurface, Parameters MapperSettings )
         : mrDesignSurface( designSurface ),
           mNumberOfDesignVariables( designSurface.Nodes().size() ),
-          mFilterType( optimizationSettings["design_variables"]["filter"]["filter_function_type"].GetString() ),
-          mFilterRadius( optimizationSettings["design_variables"]["filter"]["filter_radius"].GetDouble() ),
-          mMaxNumberOfNeighbors( optimizationSettings["design_variables"]["filter"]["max_nodes_in_filter_radius"].GetInt() )
+          mFilterType( MapperSettings["filter_function_type"].GetString() ),
+          mFilterRadius( MapperSettings["filter_radius"].GetDouble() ),
+          mMaxNumberOfNeighbors( MapperSettings["max_nodes_in_filter_radius"].GetInt() )
     {
         CreateListOfNodesOfDesignSurface();
         CreateSearchTreeWithAllNodesOnDesignSurface();
@@ -129,7 +129,150 @@ public:
     ///@name Operations
     ///@{
 
-    // ==============================================================================
+    // --------------------------------------------------------------------------
+    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
+    {
+        boost::timer mapping_time;
+        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;    
+        
+        RecreateSearchTreeIfGeometryHasChanged();
+        ClearVectorsForMappingToDesignSpace();
+        MapVariableComponentwiseToDesignSpace( rNodalVariable );
+        AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
+
+        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
+    {
+        boost::timer mapping_time;
+        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
+
+        RecreateSearchTreeIfGeometryHasChanged();
+        ClearVectorsForMappingToGeometrySpace();
+        MapVariableComponentwiseToGeometrySpace( rNodalVariable );
+        AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
+
+        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
+    }
+
+    // --------------------------------------------------------------------------
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "MapperVertexMorphingMatrixFree";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MapperVertexMorphingMatrixFree";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    // Initialized by class constructor
+    ModelPart& mrDesignSurface;
+    const unsigned int mNumberOfDesignVariables;
+    std::string mFilterType;
+    double mFilterRadius;
+    unsigned int mMaxNumberOfNeighbors;            
+    FilterFunction::Pointer mpFilterFunction;
+
+    // Variables for spatial search
+    unsigned int mBucketSize = 100;
+    NodeVector mListOfNodesOfDesignSurface;
+    KDTree::Pointer mpSearchTree;
+
+    // Variables for mapping
+    Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;    
+    Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
+    double mControlSum = 0.0;
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    // --------------------------------------------------------------------------
     void CreateListOfNodesOfDesignSurface()
     {
         mListOfNodesOfDesignSurface.resize(mNumberOfDesignVariables);
@@ -173,34 +316,6 @@ public:
         unsigned int i = 0;
         for(auto& node_i : mrDesignSurface.Nodes())
             node_i.SetValue(MAPPING_ID,i++);
-    }
-
-    // --------------------------------------------------------------------------
-    void MapToDesignSpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInDesignSpace )
-    {
-        boost::timer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to design space..." << std::endl;    
-        
-        RecreateSearchTreeIfGeometryHasChanged();
-        ClearVectorsForMappingToDesignSpace();
-        MapVariableComponentwiseToDesignSpace( rNodalVariable );
-        AssignResultingDesignVectorsToNodalVariable( rNodalVariableInDesignSpace );
-
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
-    }
-
-    // --------------------------------------------------------------------------
-    void MapToGeometrySpace( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rNodalVariableInGeometrySpace )
-    {
-        boost::timer mapping_time;
-        std::cout << "\n> Starting to map " << rNodalVariable.Name() << " to geometry space..." << std::endl;
-
-        RecreateSearchTreeIfGeometryHasChanged();
-        ClearVectorsForMappingToGeometrySpace();
-        MapVariableComponentwiseToGeometrySpace( rNodalVariable );
-        AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
-
-        std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
     }
 
     // --------------------------------------------------------------------------
@@ -404,127 +519,7 @@ public:
              return false;
     }   
 
-    // ==============================================================================
-
-    ///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "MapperVertexMorphingMatrixFree";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "MapperVertexMorphingMatrixFree";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
-
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    // ==============================================================================
-    // Initialized by class constructor
-    // ==============================================================================
-    ModelPart& mrDesignSurface;
-    const unsigned int mNumberOfDesignVariables;
-    std::string mFilterType;
-    double mFilterRadius;
-    unsigned int mMaxNumberOfNeighbors;            
-    FilterFunction::Pointer mpFilterFunction;
-
-    // ==============================================================================
-    // Variables for spatial search
-    // ==============================================================================
-    unsigned int mBucketSize = 100;
-    NodeVector mListOfNodesOfDesignSurface;
-    KDTree::Pointer mpSearchTree;
-
-    // ==============================================================================
-    // Variables for mapping
-    // ==============================================================================
-    Vector x_variables_in_design_space, y_variables_in_design_space, z_variables_in_design_space;    
-    Vector x_variables_in_geometry_space, y_variables_in_geometry_space, z_variables_in_geometry_space;
-    double mControlSum = 0.0;
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
+    // --------------------------------------------------------------------------
 
     ///@}
     ///@name Private  Access

@@ -124,45 +124,45 @@ namespace Kratos
     void PrimitiveVarElement<TNumNodes>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
-        
+
         // Resize of the Left and Right Hand side
         unsigned int element_size = TNumNodes*3;
         if(rLeftHandSideMatrix.size1() != element_size)
             rLeftHandSideMatrix.resize(element_size,element_size,false); // False says not to preserve existing storage!!
-        
+
         if(rRightHandSideVector.size() != element_size)
             rRightHandSideVector.resize(element_size,false);             // False says not to preserve existing storage!!
-        
+
         // Initialize element variables
         ElementVariables variables;
         this-> InitializeElement(variables, rCurrentProcessInfo);
-        
+
         // Compute the geometry
         bounded_matrix<double,TNumNodes, 2> DN_DX;
         array_1d<double,TNumNodes> N;
         double Area;
         this-> CalculateGeometry(DN_DX,Area);
         double elem_length = this->ComputeElemSize(DN_DX);
-        
+
         // Getting the values of shape functions on Integration Points
         bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;  // In this case, number of Gauss points and number of nodes coincides
         const GeometryType& rGeom = this->GetGeometry();
         Ncontainer = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
-        
+
         // Get nodal values for current step and projected variables (this function inlcudes the units conversion)
         this-> GetNodalValues(variables);
-        
+
         // Get element values (this function inlcudes the units conversion)
         this-> GetElementValues(DN_DX, variables );
         double abs_vel = norm_2(variables.velocity );
         double height43 = std::pow(variables.height, 1.33333 );
-        
+
         // Compute stabilization and discontinuity capturing parameters
         double tau_u;
         double tau_h;
         double k_dc;
         this-> ComputeStabilizationParameters(variables, elem_length, tau_u, tau_h, k_dc);
-        
+
         // Some auxilary definitions
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_q= ZeroMatrix(TNumNodes*3,TNumNodes*3);
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> mass_matrix_w= ZeroMatrix(TNumNodes*3,TNumNodes*3);
@@ -171,42 +171,45 @@ namespace Kratos
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_w_grad_h = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_u_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
         bounded_matrix<double,TNumNodes*3,TNumNodes*3> aux_h_diffus = ZeroMatrix(TNumNodes*3,TNumNodes*3);
-        
+
         this-> ComputeAuxMatrices(Ncontainer, DN_DX, variables, mass_matrix_q, mass_matrix_w, aux_w_grad_h, aux_q_div_u, aux_h_diffus, aux_u_diffus);
-        
+
         noalias(mass_matrix) = mass_matrix_w + mass_matrix_q;
-        
+
         // Build LHS
         // Cross terms
         noalias(rLeftHandSideMatrix)  = variables.height * aux_q_div_u;      // Add <q*h*div(u)> to Mass Eq.
         noalias(rLeftHandSideMatrix) += variables.gravity * aux_w_grad_h;    // Add <w*g*grad(h)> to Momentum Eq.
-        
+
         // Inertia terms
         noalias(rLeftHandSideMatrix) += variables.dt_inv * mass_matrix;      // Add <N,N> to both Eq's
-        
+
         // Stabilization terms
         noalias(rLeftHandSideMatrix) += (k_dc + tau_h) * aux_h_diffus;    // Add art. diff. to Mass Eq.
         noalias(rLeftHandSideMatrix) +=         tau_u  * aux_u_diffus;    // Add art. diff. to Momentum Eq.
-        
+
         // Friction term
         noalias(rLeftHandSideMatrix) += variables.gravity * variables.manning2 * abs_vel / height43 * mass_matrix_w;
-        
+
         // Build RHS
         // Source term (bathymetry contribution)
         noalias(rRightHandSideVector)  = -variables.gravity * prod(aux_w_grad_h, variables.depth);
         
         // Source term (rain contribution)
         noalias(rRightHandSideVector) += prod(mass_matrix, variables.rain);
-        
+
         // Inertia terms
         noalias(rRightHandSideVector) += variables.dt_inv * prod(mass_matrix, variables.proj_unk);
-        
+
+        // Substracting the botton diffusion due to stabilization (eta = h + H)
+        noalias(rRightHandSideVector) -= (k_dc + tau_h) * prod(aux_h_diffus, variables.depth);
+
         // Substracting the Dirichlet term (since we use a residualbased approach)
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, variables.unknown);
-        
+
         rRightHandSideVector *= Area * variables.lumping_factor;
         rLeftHandSideMatrix  *= Area * variables.lumping_factor;
-        
+
         KRATOS_CATCH("")
     }
 
@@ -369,7 +372,7 @@ namespace Kratos
         //~ double residual;
         if (discontinuity_capturing && height_grad_norm > gradient_threshold)
         {
-            rKdc = 0.5*0.4*rElemSize*height_grad_norm;  // Residual formulation
+            rKdc = 0.5*0.1*rElemSize*height_grad_norm;  // Residual formulation
         }
     }
 

@@ -17,7 +17,7 @@
 // ------------------------------------------------------------------------------
 
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 // ------------------------------------------------------------------------------
 // External includes
@@ -45,7 +45,7 @@ namespace Kratos
 {
 
 	///@name Kratos Globals
-	///@{ 
+	///@{
 
 	// Geometry variables
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMALIZED_SURFACE_NORMAL);
@@ -62,7 +62,7 @@ namespace Kratos
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
     KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);	
+    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
 
 	// For edge damping
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
@@ -81,18 +81,16 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Y);
     KRATOS_DEFINE_VARIABLE(Vector,DKDXU_Z);
 
-
-
-	///@} 
+	///@}
 	///@name Type Definitions
-	///@{ 
+	///@{
 
-	///@} 
+	///@}
 	///@name  Enum's
 	///@{
 
 	///@}
-	///@name  Functions 
+	///@name  Functions
 	///@{
 
 	///@}
@@ -107,14 +105,14 @@ namespace Kratos
 	public:
 		///@name Type Definitions
 		///@{
-		
+
 
 		/// Pointer definition of KratosShapeOptimizationApplication
 		KRATOS_CLASS_POINTER_DEFINITION(KratosShapeOptimizationApplication);
 
 		///@}
-		///@name Life Cycle 
-		///@{ 
+		///@name Life Cycle
+		///@{
 
 		/// Default constructor.
 		KratosShapeOptimizationApplication();
@@ -124,7 +122,7 @@ namespace Kratos
 
 
 		///@}
-		///@name Operators 
+		///@name Operators
 		///@{
 
 
@@ -138,7 +136,7 @@ namespace Kratos
 
 		///@}
 		///@name Access
-		///@{ 
+		///@{
 
 
 		///@}
@@ -146,7 +144,7 @@ namespace Kratos
 		///@{
 
 
-		///@}      
+		///@}
 		///@name Input and output
 		///@{
 
@@ -179,7 +177,7 @@ namespace Kratos
       }
 
 
-		///@}      
+		///@}
 		///@name Friends
 		///@{
 
@@ -187,53 +185,53 @@ namespace Kratos
 		///@}
 
 	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+		///@name Protected static Member Variables
+		///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+		///@}
+		///@name Protected member Variables
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+		///@}
+		///@name Protected  Access
+		///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+		///@}
+		///@name Protected Inquiry
+		///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+		///@}
+		///@name Protected LifeCycle
+		///@{
 
 
 		///@}
 
 	private:
-		///@name Static Member Variables 
-		///@{ 
+		///@name Static Member Variables
+		///@{
 
 
 
-		//       static const ApplicationCondition  msApplicationCondition; 
+		//       static const ApplicationCondition  msApplicationCondition;
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
+		///@}
+		///@name Member Variables
+		///@{
 
         // elements
 
@@ -250,29 +248,29 @@ namespace Kratos
 		const ShapeOptimizationCondition mShapeOptimizationCondition3D2N; //fusseder
 
 
-		///@} 
+		///@}
 		///@name Private Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Private Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+		///@}
+		///@name Private  Access
+		///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+		///@}
+		///@name Private Inquiry
+		///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+		///@}
+		///@name Un accessible methods
+		///@{
 
 		/// Assignment operator.
 		KratosShapeOptimizationApplication& operator=(KratosShapeOptimizationApplication const& rOther);
@@ -281,26 +279,26 @@ namespace Kratos
 		KratosShapeOptimizationApplication(KratosShapeOptimizationApplication const& rOther);
 
 
-		///@}    
+		///@}
 
-	}; // Class KratosShapeOptimizationApplication 
+	}; // Class KratosShapeOptimizationApplication
 
-	///@} 
-
-
-	///@name Type Definitions       
-	///@{ 
+	///@}
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+	///@name Type Definitions
+	///@{
 
-	///@} 
+
+	///@}
+	///@name Input and output
+	///@{
+
+	///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SHAPEOPTIMIZATION_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_SHAPEOPTIMIZATION_APPLICATION_H_INCLUDED  defined
 
 

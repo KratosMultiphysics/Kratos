@@ -32,10 +32,12 @@
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
+#include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp" 
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
+#include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 #include "custom_strategies/custom_schemes/adjoint_schemes/adjoint_structural_scheme.h"
 
@@ -82,11 +84,15 @@ void  AddCustomStrategiesToPython()
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
     typedef HarmonicAnalysisStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > HarmonicAnalysisStrategyType;
     typedef FormfindingUpdatedReferenceStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > FormfindingUpdatedReferenceStrategyType;
+    typedef MechanicalExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > MechanicalExplicitStrategyType;
+
 
     // Custom scheme types
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
+    typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
     
+
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
     typedef ResidualDisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > ResidualDisplacementAndOtherDoFCriteriaType;
@@ -122,6 +128,17 @@ void  AddCustomStrategiesToPython()
         .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag)
         ;
 
+
+    class_< MechanicalExplicitStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
+        (
+        "MechanicalExplicitStrategy",
+        init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
+
+        .def(init < ModelPart&, BaseSchemeType::Pointer,  bool, bool, bool >())
+        .def("SetInitializePerformedFlag", &MechanicalExplicitStrategyType::SetInitializePerformedFlag)
+        .def("GetInitializePerformedFlag", &MechanicalExplicitStrategyType::GetInitializePerformedFlag)
+        ;
+
     // harmonic Analysis Strategy
     class_< HarmonicAnalysisStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
             (
@@ -130,6 +147,7 @@ void  AddCustomStrategiesToPython()
             .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
             .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
             ;
+
 
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
@@ -149,6 +167,12 @@ void  AddCustomStrategiesToPython()
             (
                 "EigensolverDynamicScheme", init<>() )
             ;
+    
+    // Explicit Central Differences Scheme Type
+    class_< ExplicitCentralDifferencesSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+            "ExplicitCentralDifferencesScheme", init< const double, const double, const double>() );
 
     class_<AdjointStructuralScheme<SparseSpaceType, LocalSpaceType>, bases<BaseSchemeType>, boost::noncopyable>(
             "AdjointStructuralScheme", init<Parameters&, StructuralResponseFunction::Pointer>())

@@ -41,7 +41,6 @@
 #include "custom_strategies/schemes/forward_euler_scheme.h"
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/taylor_scheme.h"
-#include "custom_strategies/schemes/newmark_beta_scheme.h"
 #include "custom_strategies/schemes/velocity_verlet_scheme.h"
 #include "custom_strategies/schemes/runge_kutta_scheme.h"
 #include "custom_strategies/schemes/quaternion_integration_scheme.h"
@@ -415,12 +414,6 @@ KratosDEMApplication::KratosDEMApplication() : KratosApplication("DEMApplication
       mShipElement3D(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mSingleSphereCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mCubeCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mPillCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mEllipsoidCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mCuboidCluster3D( 0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mCapsuleCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
-      mBeadCluster3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
       mMapCon3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))) {}
 
 void KratosDEMApplication::Register() {
@@ -784,12 +777,6 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShipElement3D", mShipElement3D)
     KRATOS_REGISTER_ELEMENT("Cluster3D", mCluster3D)
     KRATOS_REGISTER_ELEMENT("SingleSphereCluster3D", mSingleSphereCluster3D)
-    KRATOS_REGISTER_ELEMENT("CubeCluster3D", mCubeCluster3D)
-    KRATOS_REGISTER_ELEMENT("PillCluster3D", mPillCluster3D)
-    KRATOS_REGISTER_ELEMENT("EllipsoidCluster3D", mEllipsoidCluster3D)
-    KRATOS_REGISTER_ELEMENT("CuboidCluster3D", mCuboidCluster3D)
-    KRATOS_REGISTER_ELEMENT("CapsuleCluster3D", mCapsuleCluster3D)
-    KRATOS_REGISTER_ELEMENT("BeadCluster3D", mBeadCluster3D)
     
     KRATOS_REGISTER_CONDITION("MAPcond", mMapCon3D3N)
     KRATOS_REGISTER_CONDITION("SolidFace3D", mSolidFace3D3N)
@@ -837,11 +824,9 @@ void KratosDEMApplication::Register() {
     Serializer::Register("ForwardEulerScheme", ForwardEulerScheme());
     Serializer::Register("SymplecticEulerScheme", SymplecticEulerScheme());
     Serializer::Register("TaylorScheme", TaylorScheme());
-    Serializer::Register("NewmarkBetaScheme", NewmarkBetaScheme());
     Serializer::Register("VelocityVerletScheme", VelocityVerletScheme());
     Serializer::Register("RungeKuttaScheme", RungeKuttaScheme());
-    Serializer::Register(
-        "QuaternionIntegrationScheme", QuaternionIntegrationScheme());
+    Serializer::Register("QuaternionIntegrationScheme", QuaternionIntegrationScheme());
     Serializer::Register("DEMIntegrationScheme", DEMIntegrationScheme());
 
     std::cout << " done." << std::endl;

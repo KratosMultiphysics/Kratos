@@ -206,10 +206,10 @@ public:
     }
 
     /** Eigenvalue and eigenvector solve method for derived eigensolvers 
-     * @param K: The stiffness matrix
-     * @param M: The mass matrix
-     * @param Eigenvalues: The vector containing the eigen values
-     * @param Eigenvectors: The matrix containing the eigen vectors
+     * @param K The stiffness matrix
+     * @param M The mass matrix
+     * @param Eigenvalues The vector containing the eigen values
+     * @param Eigenvectors The matrix containing the eigen vectors
      */
     virtual  void Solve(SparseMatrixType& K,
                         SparseMatrixType& M,

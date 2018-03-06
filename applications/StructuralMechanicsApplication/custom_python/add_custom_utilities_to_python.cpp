@@ -16,30 +16,22 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
 #include "custom_utilities/adjoint_utilities/finite_differences_utilities.h" //M.Fusseder TODO: maybe remove this (used only for controlling results)
 
-//Processes
-#include "custom_processes/apply_multi_point_constraints_process.h"
-#include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/output_primal_solution_process.h"
 #include "custom_processes/input_primal_solution_process.h"
 #include "custom_processes/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 
-//Response Functions 
+//Response Functions
 #include "custom_utilities/adjoint_utilities/structural_response_function.h"
 #include "custom_utilities/adjoint_utilities/local_stress_response_function.h"
 #include "custom_utilities/adjoint_utilities/nodal_displacement_response_function.h"
-#include "custom_utilities/adjoint_utilities/strain_energy_response_function.h" 
-#include "custom_utilities/adjoint_utilities/eigenfrequency_response_function.h" 
+#include "custom_utilities/adjoint_utilities/strain_energy_response_function.h"
+#include "custom_utilities/adjoint_utilities/eigenfrequency_response_function.h"
 
 
 namespace Kratos
@@ -67,7 +59,7 @@ void CalculateGradient2(
         ProcessInfo& rProcessInfo)
 {
     rThisUtil.CalculateGradient(rAdjointElem,rAdjointMatrix,rResponseGradient,rProcessInfo);
-}    
+}
 
 void  AddCustomUtilitiesToPython()
 {
@@ -76,26 +68,13 @@ void  AddCustomUtilitiesToPython()
 //     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 //     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 //     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    
+
     class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
     .def("Execute",&SprismNeighbours::Execute)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
 
     /// Processes
-    class_<ApplyMultipointConstraintsProcess, boost::noncopyable, bases<Process>>("ApplyMultipointConstraintsProcess", init<ModelPart&>())
-    .def(init< ModelPart&, Parameters& >())
-	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents)
-    .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariableComponents)
-	.def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariable)
-    .def("AddMasterSlaveRelation", &ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodeIdsAndVariable)
-    .def("SetActive", &ApplyMultipointConstraintsProcess::SetActive)      
-    .def("PrintData", &ApplyMultipointConstraintsProcess::PrintData);
-
-    class_<PostprocessEigenvaluesProcess, boost::noncopyable, bases<Process>>(
-        "PostprocessEigenvaluesProcess", init<ModelPart&, Parameters>());
-
-
     class_< OutputPrimalSolutionProcess, bases<Process> >
     ("OutputPrimalSolutionProcess", init<ModelPart&, Parameters&>());
 
@@ -119,19 +98,19 @@ void  AddCustomUtilitiesToPython()
         .def("CalculateSecondDerivativesGradient",
              &StructuralResponseFunction::CalculateSecondDerivativesGradient)
         .def("CalculateValue", &StructuralResponseFunction::CalculateValue)
-        .def("UpdateSensitivities", &StructuralResponseFunction::UpdateSensitivities);  
+        .def("UpdateSensitivities", &StructuralResponseFunction::UpdateSensitivities);
 
     class_<LocalStressResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("LocalStressResponseFunction", init<ModelPart&, Parameters&>()); 
+      ("LocalStressResponseFunction", init<ModelPart&, Parameters&>());
 
     class_<NodalDisplacementResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("NodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());    
+      ("NodalDisplacementResponseFunction", init<ModelPart&, Parameters&>());
 
     class_<StrainEnergyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>());  
+      ("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>());
 
     class_<EigenfrequencyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-      ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>()); 
+      ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>());
 
     //For global finite differences
     class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())
@@ -144,11 +123,11 @@ void  AddCustomUtilitiesToPython()
         .def("GetStressResultantBeam", &FiniteDifferencesUtilities::GetStressResultantBeam)
         .def("GetStressResultantShell", &FiniteDifferencesUtilities::GetStressResultantShell)
         .def("GetNodalDisplacement", &FiniteDifferencesUtilities::GetNodalDisplacement)
-        .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy);     
+        .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy);
 
 }
 
-}  // namespace Python.  
+}  // namespace Python.
 
 } // Namespace Kratos
 

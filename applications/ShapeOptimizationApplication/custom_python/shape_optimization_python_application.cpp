@@ -37,12 +37,12 @@ namespace Python
   using namespace boost::python;
 
 
-  
+
   BOOST_PYTHON_MODULE(KratosShapeOptimizationApplication)
   {
 
-	  class_<KratosShapeOptimizationApplication, 
-			  KratosShapeOptimizationApplication::Pointer, 
+	  class_<KratosShapeOptimizationApplication,
+			  KratosShapeOptimizationApplication::Pointer,
 			  bases<KratosApplication>, boost::noncopyable >("KratosShapeOptimizationApplication")
 			;
 
@@ -66,7 +66,7 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);    
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
 
     // For edge damping
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
@@ -85,10 +85,10 @@ namespace Python
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAPPING_ID);
   }
-  
-  
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

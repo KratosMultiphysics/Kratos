@@ -81,6 +81,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     // VARIABLES
     /* Mortar method general variables */
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                       // The integration order computed in the contact
+    KRATOS_REGISTER_VARIABLE( DISTANCE_THRESHOLD )                              // The distance threshold considered
     KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                             // The factor employed to serach an active/inactive node
     KRATOS_REGISTER_VARIABLE( PAIRED_GEOMETRY )                                 // The paired geometry with the current condition
     KRATOS_REGISTER_VARIABLE( PAIRED_NORMAL )                                   // The normal of the paired geometry

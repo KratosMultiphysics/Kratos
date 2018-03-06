@@ -15,6 +15,7 @@
 
 // Project includes
 #include "utilities/mortar_utilities.h"
+#include "utilities/variable_utils.h"
 
 /* Custom utilities */
 #include "custom_utilities/contact_utilities.h"
@@ -126,8 +127,11 @@ void TreeContactSearch<TDim, TNumNodes>::ClearScalarMortarConditions()
     NodesArrayType& nodes_array = mrMainModelPart.GetSubModelPart("Contact").Nodes();
     
     #pragma omp parallel for 
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
-        (nodes_array.begin() + i)->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+        auto it_node = nodes_array.begin() + i;
+        if (it_node->Is(ACTIVE) == false)
+            it_node->FastGetSolutionStepValue(SCALAR_LAGRANGE_MULTIPLIER) = 0.0;
+    }
 }
 
 /***********************************************************************************/
@@ -141,8 +145,11 @@ void TreeContactSearch<TDim, TNumNodes>::ClearComponentsMortarConditions()
     NodesArrayType& nodes_array = mrMainModelPart.GetSubModelPart("Contact").Nodes();
     
     #pragma omp parallel for 
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
-        noalias((nodes_array.begin() + i)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+        auto it_node = nodes_array.begin() + i;
+        if (it_node->Is(ACTIVE) == false)
+            noalias((nodes_array.begin() + i)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = ZeroVector(3);
+    }
 }
 
 /***********************************************************************************/
@@ -156,8 +163,11 @@ void TreeContactSearch<TDim, TNumNodes>::ClearALMFrictionlessMortarConditions()
     NodesArrayType& nodes_array = mrMainModelPart.GetSubModelPart("Contact").Nodes();
     
     #pragma omp parallel for 
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
-        (nodes_array.begin() + i)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+        auto it_node = nodes_array.begin() + i;
+        if (it_node->Is(ACTIVE) == false)
+            (nodes_array.begin() + i)->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) = 0.0;
+    }
 }
     
 /***********************************************************************************/
@@ -343,7 +353,19 @@ void TreeContactSearch<TDim, TNumNodes>::UpdateMortarConditions()
     }
 
     // We map the Coordinates to the slave side from the master
-    if (mCheckGap == MappingCheck) CheckPairing(computing_rcontact_model_part, condition_id);
+    if (mCheckGap == MappingCheck) 
+        CheckPairing(computing_rcontact_model_part, condition_id);
+    
+    // Auxiliar gap
+    VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, rcontact_model_part.Nodes());
+    ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
+    ConditionsArrayType& computing_conditions_array = r_computing_contact_model_part.Conditions();
+    auto process_info = mrMainModelPart.GetProcessInfo();
+    #pragma omp parallel for 
+    for(int i = 0; i < static_cast<int>(computing_conditions_array.size()); ++i) {  
+        auto it_cond = computing_conditions_array.begin() + i;
+        it_cond->AddExplicitContribution(process_info);
+    }
 }
 
 /***********************************************************************************/
@@ -501,14 +523,14 @@ inline void TreeContactSearch<TDim, TNumNodes>::InitializeAcceleration()
             auto it_node = nodes_array.begin() + i;
             const array_1d<double, 3>& nodal_volume_acceleration = it_node->FastGetSolutionStepValue(VOLUME_ACCELERATION);
             if (norm_2(volume_acceleration) > 0.0) {
-                if (!it_node->IsFixed(ACCELERATION_X)) it_node->FastGetSolutionStepValue(ACCELERATION_X) = volume_acceleration[0];
-                if (!it_node->IsFixed(ACCELERATION_Y)) it_node->FastGetSolutionStepValue(ACCELERATION_Y) = volume_acceleration[1];
-                if (!it_node->IsFixed(ACCELERATION_Z)) it_node->FastGetSolutionStepValue(ACCELERATION_Z) = volume_acceleration[2];
+                if (!it_node->IsFixed(ACCELERATION_X)) it_node->FastGetSolutionStepValue(ACCELERATION_X, 1) = volume_acceleration[0];
+                if (!it_node->IsFixed(ACCELERATION_Y)) it_node->FastGetSolutionStepValue(ACCELERATION_Y, 1) = volume_acceleration[1];
+                if (!it_node->IsFixed(ACCELERATION_Z)) it_node->FastGetSolutionStepValue(ACCELERATION_Z, 1) = volume_acceleration[2];
             }
             else if (norm_2(nodal_volume_acceleration) > 0.0) {
-                if (!it_node->IsFixed(ACCELERATION_X)) it_node->FastGetSolutionStepValue(ACCELERATION_X) = nodal_volume_acceleration[0];
-                if (!it_node->IsFixed(ACCELERATION_Y)) it_node->FastGetSolutionStepValue(ACCELERATION_Y) = nodal_volume_acceleration[1];
-                if (!it_node->IsFixed(ACCELERATION_Z)) it_node->FastGetSolutionStepValue(ACCELERATION_Z) = nodal_volume_acceleration[2];
+                if (!it_node->IsFixed(ACCELERATION_X)) it_node->FastGetSolutionStepValue(ACCELERATION_X, 1) = nodal_volume_acceleration[0];
+                if (!it_node->IsFixed(ACCELERATION_Y)) it_node->FastGetSolutionStepValue(ACCELERATION_Y, 1) = nodal_volume_acceleration[1];
+                if (!it_node->IsFixed(ACCELERATION_Z)) it_node->FastGetSolutionStepValue(ACCELERATION_Z, 1) = nodal_volume_acceleration[2];
             }
         }
     }
@@ -665,6 +687,9 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
     const double distance_threshold = GetMeanNodalH(); 
 //     const double distance_threshold = GetMaxNodalH(); 
 //     const double distance_threshold = active_check_factor * GetMaxNodalH();
+    
+    // Updating the distance distance threshold
+    mrMainModelPart.GetProcessInfo()[DISTANCE_THRESHOLD] = distance_threshold;
     
     // We set the mapper parameters
     Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );

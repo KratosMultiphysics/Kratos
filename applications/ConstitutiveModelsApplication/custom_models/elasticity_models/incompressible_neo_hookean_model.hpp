@@ -201,14 +201,14 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      return IsochoricHyperElasticModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
+      return IsochoricMooneyRivlinModel::AddVolumetricConstitutiveComponent(rVariables,rCabcd,a,b,c,d);
            
       KRATOS_CATCH(" ")
     }
     
     //************// dW
         
-    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
+    virtual double& GetVolumetricFunction1srtDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 

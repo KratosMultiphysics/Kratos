@@ -203,11 +203,14 @@ class FluidHDF5Loader:
         for i, node in enumerate(self.fluid_model_part.Nodes):
             node.SetSolutionStepValue(variable, self.current_data_array[i, variable_index])
 
+    def GetDatasetName(self, time_index_future):
+        return self.times_str[time_index_future]
+
     def LoadFluid(self, fluid_time):
         Say('\nLoading fluid from hdf5 file...')
         # getting time indices and weights (identifying the two fluid time steps surrounding the current DEM step and assigning correspnding weights)
         time_index_past, alpha_past, time_index_future, alpha_future = self.GetTimeIndicesAndWeights(fluid_time, self.times, self.dt)
-        future_step_dataset_name = self.times_str[time_index_future]
+        future_step_dataset_name = self.GetDatasetName(time_index_future)
         must_load_from_database = self.time_index_past != time_index_past or self.time_index_future != time_index_future# old and future time steps must be updated
 
         if must_load_from_database: # the current time is not between the two already loaded time steps

@@ -49,6 +49,32 @@ AnalyticSphericParticle::AnalyticSphericParticle(Element::Pointer p_spheric_part
     AnalyticSphericParticle(p_spheric_particle->Id(), p_geom, pProperties);
 }
 
+AnalyticSphericParticle& AnalyticSphericParticle::operator=(const AnalyticSphericParticle& rOther) {
+
+    SphericParticle::operator=(rOther);
+
+    NeighboursContactStatus = rOther.NeighboursContactStatus;
+    mNumberOfCollidingSpheres = rOther.mNumberOfCollidingSpheres;
+    mNumberOfCollidingSpheresWithFaces = rOther.mNumberOfCollidingSpheresWithFaces;
+    mNumberOfCollidingSpheresWithEdges = rOther.mNumberOfCollidingSpheresWithEdges;
+    mCollidingIds = rOther.mCollidingIds;
+    mCollidingRadii = rOther.mCollidingRadii;
+    mCollidingNormalVelocities = rOther.mCollidingNormalVelocities;
+    mCollidingTangentialVelocities = rOther.mCollidingTangentialVelocities;
+    mCollidingLinearImpulse = rOther.mCollidingLinearImpulse;
+    mContactingNeighbourIds = rOther.mContactingNeighbourIds;
+    mCollidingFaceIds = rOther.mCollidingFaceIds;
+    mCollidingFaceNormalVelocities = rOther.mCollidingFaceNormalVelocities;
+    mCollidingFaceTangentialVelocities = rOther.mCollidingFaceTangentialVelocities;
+    mCollidingFaceSecondTangentialVelocities = rOther.mCollidingFaceSecondTangentialVelocities;
+    mCollidingFaceCollisionTypes = rOther.mCollidingFaceCollisionTypes;
+    mContactingFaceNeighbourIds = rOther.mContactingFaceNeighbourIds;
+
+    //Nothing done for std::unique_ptr<ParticleDataBuffer> mpDataBuffer;
+
+    return *this;
+}
+
 
 int AnalyticSphericParticle::GetNumberOfCollisions(){return mNumberOfCollidingSpheres;}
 int AnalyticSphericParticle::GetNumberOfCollisionsWithFaces(){return mNumberOfCollidingSpheresWithFaces;}

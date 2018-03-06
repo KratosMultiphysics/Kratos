@@ -306,27 +306,25 @@ private:
     ///@{
 
     template <typename T>
-    static T GetValueOfNode(InterfaceObject* pInterfaceObject, //TODO const
+    static T GetValueOfNode(InterfaceObject::Pointer pInterfaceObject, //TODO const
                             const Variable< T >& rVariable,
                             const Kratos::Flags& rOptions,
                             const std::vector<double>& rShapeFunctionValues)
     {
-        Node<3>* p_base_node = static_cast<InterfaceNode*>(pInterfaceObject)->pGetBase();
-        KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+        Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
 
         return p_base_node->FastGetSolutionStepValue(rVariable);
     }
 
 
     template <typename T>
-    static void SetValueOfNode(InterfaceObject* pInterfaceObject,
+    static void SetValueOfNode(InterfaceObject::Pointer pInterfaceObject,
                                const T& rValue,
                                const Variable< T >& rVariable,
                                const Kratos::Flags& rOptions,
                                const double Factor)
     {
-        Node<3>* p_base_node = static_cast<InterfaceNode*>(pInterfaceObject)->pGetBase();
-        KRATOS_ERROR_IF_NOT(p_base_node) << "Base Pointer is nullptr!!!" << std::endl;
+        Node<3>* p_base_node = pInterfaceObject->pGetBaseNode();
 
         if (rOptions.Is(MapperFlags::ADD_VALUES))
         {

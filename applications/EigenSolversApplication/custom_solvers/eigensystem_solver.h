@@ -129,7 +129,7 @@ class EigensystemSolver
         matrix_t br(nc, nc);
 
         // storage for eigenvalues
-        vector_t prev_eigv(nc);
+        vector_t prev_eigv = vector_t::Zero(nc);
 
         // storage for eigenvectors
         matrix_t r = matrix_t::Zero(nn, nc);
@@ -222,20 +222,15 @@ class EigensystemSolver
 
             r *= eig.eigenvectors();
 
-            bool is_converged = false;
+            bool is_converged = true;
+            for (int i = 0; i != nc; i++) {
+                double eigv = eig.eigenvalues()(i);
+                double dif = eigv - prev_eigv(i);
+                double rtolv = std::abs(dif / eigv);
 
-            if (iteration > 1) {
-                is_converged = true;
-
-                for (int i = 0; i != nc; i++) {
-                    double eigv = eig.eigenvalues()(i);
-                    double dif = eigv - prev_eigv(i);
-                    double rtolv = std::abs(dif / eigv);
-
-                    if (rtolv > tolerance) {
-                        is_converged = false;
-                        break;
-                    }
+                if (rtolv > tolerance) {
+                    is_converged = false;
+                    break;
                 }
             }
 

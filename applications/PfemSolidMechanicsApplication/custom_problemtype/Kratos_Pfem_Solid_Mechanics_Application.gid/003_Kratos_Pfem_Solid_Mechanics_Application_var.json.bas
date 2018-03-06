@@ -854,7 +854,7 @@
 				      "WATER_ACCELERATION",
 				      "WATER_PRESSURE",
 				      "WATER_PRESSURE_VELOCITY",
-				      "WATER_PRESSURE_ACCELERATIONN",
+				      "WATER_PRESSURE_ACCELERATION",
 *endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)

@@ -8,8 +8,8 @@ import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
 
-def CreateSolver(model_part, custom_settings):
-    return MechanicalSolver(model_part, custom_settings)
+def CreateSolver(custom_settings):
+    return MechanicalSolver(custom_settings)
 
 #Base class to develop other solvers
 class MechanicalSolver(object):
@@ -38,7 +38,7 @@ class MechanicalSolver(object):
     settings -- Kratos parameters containing solver settings.
     model_part -- the model part used to construct the solver (computing_model_part).
     """
-    def __init__(self, model_part, custom_settings):
+    def __init__(self, custom_settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "time_settings":{
@@ -108,9 +108,25 @@ class MechanicalSolver(object):
         self.time_integration_settings = self.settings["time_integration_settings"]
         self.solving_strategy_settings = self.settings["solving_strategy_settings"]
 
+        # Echo level
+        self.echo_level = 0
+
+
+    def GetMinimumBufferSize(self):
+        return 2;
+
+    def SetComputingModelPart(self, computing_model_part):
+        self.model_part = computing_model_part
+        
+
+    def GetEndTime(self):
+        return (self.settings["time_settings"]["end_time"].GetDouble())
+
+
+    def ExecuteInitialize(self):
+
         # Main model part and computing model part
-        self.main_model_part = model_part.GetRootModelPart()
-        self.model_part      = model_part
+        self.main_model_part = self.model_part.GetRootModelPart()
 
         # Process information
         self.process_info = self.main_model_part.ProcessInfo
@@ -118,7 +134,11 @@ class MechanicalSolver(object):
         # Set time parameters
         time_settings = self.settings["time_settings"]
         self.process_info.SetValue(KratosMultiphysics.DELTA_TIME, time_settings["time_step"].GetDouble())
-        self.process_info.SetValue(KratosMultiphysics.TIME, time_settings["start_time"].GetDouble())
+        initial_time = time_settings["start_time"].GetDouble()
+        if ( self.process_info.Has(KratosMultiphysics.IS_RESTARTED)):
+            if ( self.process_info[KratosMultiphysics.IS_RESTARTED] == True):
+                initial_time = self.process_info.GetValue(KratosMultiphysics.TIME)
+        self.process_info.SetValue(KratosMultiphysics.TIME, initial_time)
 
 
         if not self.solving_strategy_settings["stabilization_factor"].IsNull():
@@ -128,40 +148,29 @@ class MechanicalSolver(object):
         # Create integration information (needed in other processes)
         self._get_solution_scheme()
 
-        # Echo level
-        self.echo_level = 0
-
+        # Set buffer
+        if( self._is_not_restarted() ):
+            self._set_and_fill_buffer()
+        
         print("  [Time Step:", self.process_info[KratosMultiphysics.DELTA_TIME]," End_time:", time_settings["end_time"].GetDouble(),"]")
 
-
-    def GetMinimumBufferSize(self):
-        return 2;
-
-    def SetBuffer(self):
-        self._set_and_fill_buffer()
-
-    def GetEndTime(self):
-        return (self.settings["time_settings"]["end_time"].GetDouble())
-
-    def Initialize(self):
-
-        #print("::[Mechanical_Solver]:: -START-")
+        
+    def ExecuteBeforeSolutionLoop(self):
 
         # The mechanical solver is created here if it does not already exist.
         if self.solving_strategy_settings["clear_storage"].GetBool():
             self.Clear()
         mechanical_solver = self._get_mechanical_solver()
         mechanical_solver.SetEchoLevel(self.echo_level)
-        if (self.process_info[KratosMultiphysics.IS_RESTARTED] == False):
+        if( self._is_not_restarted() ):
             mechanical_solver.Initialize()
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
-            if hasattr(mechanical_solver, SetInitializePerformedFlag):
+            if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
                 mechanical_solver.SetInitializePerformedFlag(True)
         self.Check()
 
-        #print("::[Mechanical_Solver]:: -END-")
         print("::[Mechanical_Solver]:: Solver Ready")
 
     def GetVariables(self):
@@ -211,7 +220,15 @@ class MechanicalSolver(object):
 
     #### Solver internal methods ####
 
-
+    def _is_not_restarted(self):
+        if( self.process_info.Has(KratosMultiphysics.IS_RESTARTED) ):
+            if( self.process_info[KratosMultiphysics.IS_RESTARTED] == False ):
+                return True
+            else:
+                return False
+        else:
+            return True
+        
     def _get_solution_scheme(self):
         if not hasattr(self, '_solution_scheme'):
             self._solution_scheme = self._create_solution_scheme()

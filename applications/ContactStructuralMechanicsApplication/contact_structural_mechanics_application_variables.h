@@ -49,6 +49,7 @@ namespace Kratos
 // VARIABLES
 /* Mortar method */ 
 KRATOS_DEFINE_VARIABLE( int , INTEGRATION_ORDER_CONTACT )                            // The integration order computed in the contact
+KRATOS_DEFINE_VARIABLE( double, DISTANCE_THRESHOLD )                                 // The distance threshold considered
 KRATOS_DEFINE_VARIABLE( double, ACTIVE_CHECK_FACTOR )                                // The factor employed to search an active/inactive node
 KRATOS_DEFINE_VARIABLE( GeometryType::Pointer, PAIRED_GEOMETRY )                     // The paired geometry with the current condition
 KRATOS_DEFINE_VARIABLE( Vector3, PAIRED_NORMAL )                                     // The normal of the paired geometry

@@ -15,8 +15,18 @@ class Rotator:
         self.a_init = Vector(rotation_axis_initial_point)
         self.a_final = Vector(rotation_axis_final_point)
         self.omega = angular_velocity_module
-        self.axis = Vector(self.Normalize(self.a_final - self.a_init))
+        self.axis = Vector(Rotator.Normalize(self.a_final - self.a_init))
         self.CalculateRodriguesMatrices(self.axis)
+
+    @staticmethod
+    def Normalize(v):
+        mod_2 = sum([x ** 2 for x in v])
+
+        if mod_2 == 0:
+            return v
+        else:
+            mod_inv = 1.0 / math.sqrt(mod_2)
+            return mod_inv * v
 
     def CalculateRodriguesMatrices(self, axis):
         self.I = np.identity(3)
@@ -25,9 +35,7 @@ class Rotator:
                             [axis[2], 0., -axis[0]],
                             [-axis[1], axis[0], 0.]])
 
-    def Rotate(self, model_part, time):
-        Say('Starting mesh movement...')
-
+    def GetRotationMatrices(self, time):
         sin = math.sin(self.omega * time)
         cos = math.cos(self.omega * time)
 
@@ -36,6 +44,12 @@ class Rotator:
 
         # Rotation matrix' (derivative of R with respect to time)
         Rp = - self.omega * sin * self.I + self.omega * cos * self.Ux + self.omega * sin * self.UU
+
+        return R, Rp
+
+    def Rotate(self, model_part, time):
+        Say('Starting mesh movement...')
+        R, Rp = self.GetRotationMatrices(time)
 
         for node in model_part.Nodes:
             P0 = np.array([node.X0, node.Y0, node.Z0])
@@ -52,14 +66,10 @@ class Rotator:
 
         Say('Mesh movement finshed.')
 
-    def Normalize(self, v):
-        mod_2 = sum([x ** 2 for x in v])
-
-        if mod_2 == 0:
-            return v
-        else:
-            mod_inv = 1.0 / math.sqrt(mod_2)
-            return mod_inv * v
+    def UndoRotationOfVectors(self, time, list_of_vectors):
+        R = self.GetRotationMatrices(time)[0]
+        R_inv = np.linalg.inv(R)
+        list_of_vectors = np.dot(R_inv, list_of_vectors)
 
 class Algorithm(BaseAlgorithm):
     def __init__(self, varying_parameters = Parameters("{}")):
@@ -79,16 +89,22 @@ class Algorithm(BaseAlgorithm):
             self.projection_module.UpdateDatabase(self.h_min)
 
     def AssessStationarity(self):
-        BaseAlgorithm.AssessStationarity(self)
+        # BaseAlgorithm.AssessStationarity(self)
+        if self.time > 0.0002:
+           self.stationarity = True
 
         if self.stationarity:
             self.rotator.SetStationaryField(self.fluid_model_part, self.time)
 
-    def FluidSolve(self, time='None', solve_system=True):
-        Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
+    def SetFluidLoader(self):
+        import hdf5_io_tools_PID
+        self.fluid_loader = hdf5_io_tools_PID.FluidHDF5LoaderPID(self.all_model_parts.Get('FluidPart'),
+                                                                 self.all_model_parts.Get('SpheresPart'),
+                                                                 self.pp,
+                                                                 self.main_path)
 
-        if solve_system:
-            self.fluid_solution.fluid_solver.Solve()
-        else:
-            Say("Skipping solving system and rotating stationary velocity field...\n")
+    def FluidSolve(self, time='None', solve_system=True):
+        BaseAlgorithm.FluidSolve(self, time, solve_system)
+
+        if not solve_system:
             self.rotator.RotateFluidVelocities(time)

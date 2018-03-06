@@ -209,7 +209,7 @@ private:
     /**
      * This method creates the conditions for the faces
      * @param rInterfacePart The model part of the interface
-     * @param rThisProperties The properties of the base element
+     * @param prThisProperties The properties of the base element
      * @param FaceGeometry Geometry considered
      * @param SimplestGeometry If consider or not the simplest geometry
      * @param CondCounter The counter of conditions

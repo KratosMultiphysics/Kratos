@@ -48,7 +48,14 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     AddCustomProcessesToPython();
     AddCustomMappersToPython();
 
-    //registering variables in python
+    // Adding enums
+    enum_<NormalDerivativesComputation>("NormalDerivativesComputation")
+    .value("NO_DERIVATIVES_COMPUTATION",NO_DERIVATIVES_COMPUTATION)
+    .value("ELEMENTAL_DERIVATIVES",ELEMENTAL_DERIVATIVES)
+    .value("NODAL_ELEMENTAL_DERIVATIVES",NODAL_ELEMENTAL_DERIVATIVES)
+    ;
+    
+    //Registering variables in python
 
     // CONDITIONS
     // CONTACT
@@ -56,6 +63,7 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )     // Auxiliar coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )        // Delta coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTEGRATION_ORDER_CONTACT )                   // The integration order considered
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DISTANCE_THRESHOLD )                          // The distance threshold considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to search an active/inactive node
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_GAP )                                  // The normal gap employed in contact formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation

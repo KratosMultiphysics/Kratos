@@ -156,10 +156,10 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    void UpdateControlPointChangeByInputVariable( const Variable<array_3d> &rNodalVariable )
+    void AddFirstVariableToSecondVariable( const Variable<array_3d> &rFirstVariable, const Variable<array_3d> &rSecondVariable )
     {
         for (auto & node_i : mrDesignSurface.Nodes())
-            noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_CHANGE)) += node_i.FastGetSolutionStepValue(rNodalVariable);
+            noalias(node_i.FastGetSolutionStepValue(rSecondVariable)) += node_i.FastGetSolutionStepValue(rFirstVariable);
     }
 
     // ==============================================================================

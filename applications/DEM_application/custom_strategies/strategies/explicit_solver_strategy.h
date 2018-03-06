@@ -223,7 +223,7 @@ namespace Kratos {
         void InitializeDEMElements();
         void InitializeFEMElements();
         //void InitializeRigidBodyElements();
-        void InitializeRigidBodyElements(ModelPart::SubModelPartsContainerType::iterator& sub_model_part);
+        void InitializeFEMWallsAsRigidBodyElements(ModelPart::SubModelPartsContainerType::iterator& sub_model_part);
         void ComputeNodalArea();
         void ComputeNormalPressureVectorField();
         virtual void CalculateConditionsRHSAndAdd();

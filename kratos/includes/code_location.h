@@ -31,11 +31,24 @@ namespace Kratos
 	{
 	public:
 
-		CodeLocation() = delete;
+		CodeLocation();
 
 		CodeLocation(CodeLocation const & Other);
 
 		CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber);
+
+         ///@}
+		///@name Private Operators
+	    ///@{
+
+        CodeLocation& operator=(CodeLocation const& Other) {
+			mFileName = Other.mFileName;
+			mFunctionName = Other.mFunctionName;
+            mLineNumber = Other.mLineNumber;
+
+            return *this;
+        }
+			
 
 		///@name Operations
 		///@{
@@ -64,13 +77,13 @@ namespace Kratos
 		///@name Member Variables
 		///@{
 
-		const std::string mFileName;
-		const std::string mFunctionName;
-		const std::size_t mLineNumber;
+		std::string mFileName;
+		std::string mFunctionName;
+		std::size_t mLineNumber;
 
 		///@}
 		///@name Private Operations
-	  ///@{
+	    ///@{
 
 		static void RemoveNamespace(std::string& FunctionName, const std::string& Namespace);
 

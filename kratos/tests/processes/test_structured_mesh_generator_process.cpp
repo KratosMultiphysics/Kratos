@@ -69,7 +69,7 @@ namespace Kratos {
 					<< "," << i_element->GetGeometry()[3].Id() << "] with volume : " << element_volume << std::endl << *i_element;
 				total_volume += element_volume;
 			}
-			KRATOS_CHECK_NEAR(total_volume, 1000., 1.E-6) << "with total_volume = " << total_volume ;
+			KRATOS_CHECK_NEAR(total_volume, 1000., 1.E-6) << "with total_volume = " << total_volume;
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(StructuredMeshGeneratorProcessQuadrilateral, KratosCoreFastSuite)
@@ -107,7 +107,7 @@ namespace Kratos {
 					<< "," << i_element->GetGeometry()[2].Id() << "] with area : " << element_area << std::endl << *i_element;
 				total_area += element_area;
 			}
-			KRATOS_CHECK_EQUAL(total_area, 100.);
+			KRATOS_CHECK_NEAR(total_area, 100., 1.E-6) << "with total_area = " << total_area;
 		}
 	}
 }  // namespace Kratos.
