@@ -79,7 +79,7 @@ void SmallDisplacementBbar::CalculateAll(
 
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int strain_size = (dimension == 3)? 6 : 4; // necessary include component zz in the computation of kinematic variables
+    const unsigned int strain_size = (dimension == 3) ? 6 : 4; // necessary include component zz in the computation of kinematic variables
 
     KinematicVariables this_kinematic_variables(strain_size, dimension, number_of_nodes);
     ConstitutiveVariables this_constitutive_variables(strain_size);
@@ -333,17 +333,14 @@ void SmallDisplacementBbar::CalculateBbar(
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int voigt_size = 4; // added component zz, necessary for plasticity.
-    if (dimension == 3) {
-        voigt_size = 6;
-    }
+    unsigned int strain_size = (dimension == 3) ? 6 : 4; // added component zz, necessary for plasticity.
 
-    if (rB.size1() != voigt_size || rB.size2() != dimension * number_of_nodes)
-        rB.resize(voigt_size, dimension * number_of_nodes, false);
+    if (rB.size1() != strain_size || rB.size2() != dimension * number_of_nodes)
+        rB.resize(strain_size, dimension * number_of_nodes, false);
 
     Matrix rBn;
-    rBn.resize(voigt_size, dimension * number_of_nodes, false);
-    noalias(rBn) = ZeroMatrix(voigt_size, dimension * number_of_nodes);
+    rBn.resize(strain_size, dimension * number_of_nodes, false);
+    noalias(rBn) = ZeroMatrix(strain_size, dimension * number_of_nodes);
 
     this->CalculateB(rB, rDN_DX, IntegrationPoints, PointNumber);
 
