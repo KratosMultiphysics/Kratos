@@ -131,7 +131,6 @@ class FluidMain(object):
         
         time = 0.0
         step = 0
-        out = 0.0
 
         while time <= self.end_time:
             time = time + self.dt
