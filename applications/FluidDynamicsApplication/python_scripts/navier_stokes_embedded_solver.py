@@ -218,7 +218,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
             DistanceUtility = read_distance_from_file.DistanceImportUtility(self.main_model_part, self.settings["distance_reading_settings"])
             DistanceUtility.ImportDistance()
         elif (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_mdpa"):
-            print("Distance function taken from the .mdpa input file.")
+            KratosMultiphysics.Logger.PrintInfo("Navier Stokes Embedded Solver","Distance function taken from the .mdpa input file.")
             # Recall to swap the distance sign (GiD considers d<0 in the fluid region)
             for node in self.main_model_part.Nodes:
                 distance_value = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)

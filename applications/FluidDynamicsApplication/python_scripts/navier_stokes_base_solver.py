@@ -20,9 +20,8 @@ class NavierStokesBaseSolver(object):
         self.element_name = None
         self.condition_name = None
         self.min_buffer_size = 3
-        self.is_printing_rank = True
 
-        if self.is_printing_rank:
+        if self._is_printing_rank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Construction of NavierStokesBaseSolver finished.")
 
     def AddVariables(self):
@@ -38,7 +37,7 @@ class NavierStokesBaseSolver(object):
         ## Set buffer size
         self._set_buffer_size()
 
-        if self.is_printing_rank:
+        if self._is_printing_rank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model reading finished.")
 
     def ExportModelPart(self):
@@ -46,7 +45,7 @@ class NavierStokesBaseSolver(object):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
         KratosMultiphysics.ModelPartIO(name_out_file, KratosMultiphysics.IO.WRITE).WriteModelPart(self.main_model_part)
 
-        if self.is_printing_rank:
+        if self._is_printing_rank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Model export finished.")
 
     def AddDofs(self):
@@ -55,7 +54,7 @@ class NavierStokesBaseSolver(object):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.REACTION_WATER_PRESSURE,self.main_model_part)
 
-        if self.is_printing_rank:
+        if self._is_printing_rank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesBaseSolver", "Fluid solver DOFs added correctly.")
 
     def AdaptMesh(self):
@@ -204,3 +203,6 @@ class NavierStokesBaseSolver(object):
 
         condition_num_nodes = self.main_model_part.GetCommunicator().MaxAll(condition_num_nodes)
         return condition_num_nodes
+
+    def _is_printing_rank(self):
+        return True

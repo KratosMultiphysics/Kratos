@@ -83,9 +83,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        self.is_printing_rank = (KratosMPI.mpi.rank == 0)
-
-        if self.is_printing_rank:
+        if self._is_printing_rank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.Print("Construction of TrilinosNavierStokesSolverMonolithic finished.")
 
@@ -98,7 +96,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         KratosMPI.mpi.world.barrier()
 
-        if self.is_printing_rank:
+        if self._is_printing_rank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.Print("Variables for the VMS fluid Trilinos solver added correctly in each processor.")
 
@@ -120,7 +118,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         ## Construct Trilinos the communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
-        if self.is_printing_rank:
+        if self._is_printing_rank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.Print("MPI model reading finished.")  
 
@@ -130,7 +128,7 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         super(TrilinosNavierStokesSolverMonolithic, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
-        if self.is_printing_rank:
+        if self._is_printing_rank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.Print("DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
@@ -201,6 +199,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
-        if self.is_printing_rank:
+        if self._is_printing_rank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.Print("Monolithic MPI solver initialization finished.")
+
+    def _is_printing_rank(self):
+        return KratosMPI.mpi.rank == 0
