@@ -50,7 +50,7 @@ class Algorithm(BaseAlgorithm):
             original_file_name = self.pp.CFD_DEM["prerun_fluid_file_name"].GetString()
             initial_averaging_time = self.pp.CFD_DEM["initial_averaging_time"].GetDouble()
             steps_per_average_step = self.pp.CFD_DEM["steps_per_average_step"].GetInt()
-                    
+
             averager = average_field.Averager(rotation_axis_initial_point = rotation_axis_initial_point,
                                             rotation_axis_final_point = rotation_axis_final_point,
                                             angular_velocity_module = angular_velocity_module,
@@ -58,7 +58,7 @@ class Algorithm(BaseAlgorithm):
                                             original_file_name = original_file_name,
                                             original_file_path = self.main_path,
                                             initial_time = initial_averaging_time,
-                                            steps_per_average_step = steps_per_average_step)            
+                                            steps_per_average_step = steps_per_average_step)
             self.fluid_loader = hdf5_io_tools_PID.FluidHDF5LoaderPID(self.all_model_parts.Get('FluidPart'),
                                                                     self.all_model_parts.Get('SpheresPart'),
                                                                     self.pp,
@@ -68,7 +68,7 @@ class Algorithm(BaseAlgorithm):
             BaseAlgorithm.SetFluidLoader(self)
 
     def FluidSolve(self, time='None', solve_system=True):
-        rotated_stationary_flow_option = self.pp.CFD_DEM["rotated_stationary_flow_option"].GetBool()        
+        rotated_stationary_flow_option = self.pp.CFD_DEM["rotated_stationary_flow_option"].GetBool()
         averaging_has_already_been_done = self.pp.CFD_DEM["averaging_has_already_been_done"].GetBool()
 
         if rotated_stationary_flow_option and not averaging_has_already_been_done:
