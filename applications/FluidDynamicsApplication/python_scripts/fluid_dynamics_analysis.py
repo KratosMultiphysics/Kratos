@@ -8,6 +8,7 @@ except ImportError:
     pass
 
 class FluidDynamicsAnalysis(object):
+    '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
     def __init__(self,parameter_file_name='ProjectParameters.json'):
         super(FluidDynamicsAnalysis,self).__init__()
@@ -26,7 +27,6 @@ class FluidDynamicsAnalysis(object):
             self.is_printing_rank = (mpi.rank == 0)
         else:
             self.is_printing_rank = True
-
         
     def SetUpModel(self):
         '''Initialize the model part for the problem (stored as self.model_part) and other general model data.'''
@@ -41,9 +41,14 @@ class FluidDynamicsAnalysis(object):
         import python_solvers_wrapper_fluid
         self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
 
-        self.solver.AddVariables()
-        self.solver.ImportModelPart()
-        self.solver.AddDofs()
+        self._SetUpRestart()
+
+        if self.load_restart:
+            pass
+        else:
+            self.solver.AddVariables()
+            self.solver.ImportModelPart()
+            self.solver.AddDofs()
 
         self.model_part = self.solver.GetComputingModelPart()
 
@@ -126,11 +131,37 @@ class FluidDynamicsAnalysis(object):
 
             self.output.ExecuteInitialize()
 
+    def _SetUpRestart(self):
+        """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
+        if self.project_parameters.Has("restart_settings"):
+            if self.parallel_type == "OpenMP":
+                import restart_utility
+            elif self.parallel_type == "MPI":
+                import trilinos_restart_utility as restart_utility
+            
+            restart_settings = self.project_parameters["restart_settings"]
+            self.load_restart = restart_settings["load_restart"].GetBool()
+            self.save_restart = restart_settings["save_restart"].GetBool()
+            restart_settings.RemoveValue("load_restart")
+            restart_settings.RemoveValue("save_restart")
+            restart_settings.AddValue("input_filename", self.project_parameters["problem_data"]["problem_name"])
+            restart_settings.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
+
+            self.restart_utility = restart_utility.RestartUtility(self.main_model_part,
+                                                                  self.project_parameters["restart_settings"])
+        else:
+            self.load_restart = False
+            self.save_restart = False
+
     def Solve(self):
         '''The main solution loop.'''
         
-        time = 0.0
-        step = 0
+        if self.main_model_part.ProcessInfo[IS_RESTARTED]:
+            time = self.main_model_part.ProcessInfo[TIME]
+            step = self.main_model_part.ProcessInfo[STEP]
+        else:
+            time = 0.0
+            step = 0
 
         while time <= self.end_time:
             dt = self.solver.ComputeDeltaTime()
@@ -141,8 +172,8 @@ class FluidDynamicsAnalysis(object):
             self.main_model_part.ProcessInfo[STEP] = step
 
             if self.is_printing_rank:
-                Logger.PrintInfo("Fluid Main","STEP = ", step)
-                Logger.PrintInfo("Fluid Main","TIME = ", time)
+                Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", step)
+                Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", time)
             
             for process in self.simulation_processes:
                 process.ExecuteInitializeSolutionStep()
@@ -168,6 +199,9 @@ class FluidDynamicsAnalysis(object):
         
                 for process in self.simulation_processes:
                     process.ExecuteAfterOutputStep()
+
+            if self.save_restart:
+                self.restart_utility.SaveRestart()
 
     def FinalizeSolution(self):
         '''Finalize and close open files.'''
