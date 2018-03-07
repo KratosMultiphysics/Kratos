@@ -50,30 +50,38 @@ namespace Kratos
 
     void PrintAfterFormfindingProcess::Execute()
     {
-        // erase nodal data
-        mModelPart.GetNodalSolutionStepVariablesList().clear();
-        
-        // erase elemental data
-        for( auto& ele: mModelPart.Elements()){
-            const Variable<Matrix> variable = KratosComponents<Variable<Matrix>>::Get("MEMBRANE_PRESTRESS");
-            if(ele.Has(variable)){
-                const Matrix membrane_prestress(ele.GetValue(MEMBRANE_PRESTRESS));
-                ele.Data().Clear();
-                ele.SetValue(MEMBRANE_PRESTRESS, membrane_prestress);
-            }
-            else
-                ele.Data().Clear();
+        //// erase nodal data
+        //mModelPart.GetNodalSolutionStepVariablesList().clear();
+       // 
+        //// erase elemental data
+        //for( auto& ele: mModelPart.Elements()){
+        //    const Variable<Matrix> variable = KratosComponents<Variable<Matrix>>::Get("MEMBRANE_PRESTRESS");
+        //    if(ele.Has(variable)){
+        //        const Matrix membrane_prestress(ele.GetValue(MEMBRANE_PRESTRESS));
+        //        ele.Data().Clear();
+        //        ele.SetValue(MEMBRANE_PRESTRESS, membrane_prestress);
+        //    }
+        //    else
+        //        ele.Data().Clear();
 
-        }
+        //}
 
-        // erase conditional data
-        for( auto& cond: mModelPart.Conditions()){
-                cond.Data().Clear();
+        //// erase conditional data
+        //for( auto& cond: mModelPart.Conditions()){
+        //        cond.Data().Clear();
 
-        }
+        //}
 
-        ModelPartIO model_part_io("formfinding_out", IO::WRITE);
-        model_part_io.WriteModelPart(mModelPart);
+        //ModelPartIO model_part_io("formfinding_out", IO::WRITE);
+        //model_part_io.WriteModelPart(mModelPart);
+        //const TVariableType variable = KratosComponents<Matrix>::Get(MEMBRANE_PRESTRESS);
+        //(*mpStream) << "Begin "<<rObjectName<<"alData "<<variable.Name()<<std::endl;
+        //for(auto& object : rThisObjectContainer){
+        //    if(object.Has(variable)){
+        //        (*mpStream)<<object.Id()<<"\t"<<object.GetValue(variable)<<std::endl;
+        //    }
+        //}
+        //(*mpStream)<<"End "<<rObjectName<<"alData\n"<<std::endl;
         
     }
 }  // namespace Kratos.

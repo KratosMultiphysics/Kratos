@@ -33,6 +33,7 @@
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
 #include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp" 
+#include "solving_strategies/strategies/line_search_strategy.h"
 
 // Schemes
 #include "solving_strategies/schemes/scheme.h"
@@ -77,6 +78,7 @@ void  AddCustomStrategiesToPython()
     typedef ConvergenceCriteriaType::Pointer ConvergenceCriteriaPointer;
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
+    typedef LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LineSearchStrategyType;
     
     // Custom strategy types
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
@@ -116,15 +118,9 @@ void  AddCustomStrategiesToPython()
             ;
              
 
-    class_< FormfindingUpdatedReferenceStrategyType, bases< BaseSolvingStrategyType >, boost::noncopyable >
+    class_< FormfindingUpdatedReferenceStrategyType, bases< LineSearchStrategyType >, boost::noncopyable >
         ("FormfindingUpdatedReferenceStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool >())
         .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool >())
-        .def("SetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::SetMaxIterationNumber)
-        .def("GetMaxIterationNumber", &FormfindingUpdatedReferenceStrategyType::GetMaxIterationNumber)
-        .def("SetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::SetKeepSystemConstantDuringIterations)
-        .def("GetKeepSystemConstantDuringIterations", &FormfindingUpdatedReferenceStrategyType::GetKeepSystemConstantDuringIterations)
-        .def("SetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::SetInitializePerformedFlag)
-        .def("GetInitializePerformedFlag", &FormfindingUpdatedReferenceStrategyType::GetInitializePerformedFlag)
         ;
 
 
