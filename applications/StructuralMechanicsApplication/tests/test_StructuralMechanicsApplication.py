@@ -157,6 +157,10 @@ from ValidationTests import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnap
 from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests
 from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests
 
+##### RESTART TESTS #####
+from RestartTests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4N
+from RestartTests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
+from RestartTests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -214,6 +218,10 @@ def AssambleTestSuites():
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
+    # Basic restart test (leave these in the smallSuite to have the Exection script tested)
+    smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
+    smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
+    smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
