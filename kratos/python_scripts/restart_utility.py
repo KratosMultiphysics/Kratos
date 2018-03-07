@@ -17,15 +17,14 @@ class RestartUtility(object):
     def __init__(self, model_part, settings):
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "input_filename"                : "",
-            "load_restart"                  : false,
-            "restart_load_file_label"       : "",
-            "save_restart"                  : false,
-            "restart_save_frequency"        : 0.0,
-            "restart_control_type"          : "time",
-            "move_restart_files_to_folder"  : true,
-            "serializer_trace"              : "no_trace",
-            "echo_level"                    : 0
+            "input_filename"                 : "",
+            "echo_level"                     : 0,
+            "serializer_trace"               : "no_trace",
+            "restart_load_file_label"        : "",
+            "load_restart_files_from_folder" : true,
+            "restart_save_frequency"         : 0.0,
+            "restart_control_type"           : "time",
+            "save_restart_files_in_folder"   : true
         }
         """)
 
@@ -39,13 +38,28 @@ class RestartUtility(object):
 
         self.model_part = model_part
 
+        # the path is splitted in case it already contains a path (neeeded if files are moved to a folder)
+        self.raw_path, self.raw_file_name = os.path.split(settings["input_filename"].GetString())
+        self.raw_path = os.path.join(os.getcwd(), self.raw_path)
+        self.folder_name = self.raw_file_name + "__restart_files"
+
+        serializer_trace = settings["serializer_trace"].GetString()
+        if not serializer_trace in __serializer_flags.keys():
+            err_msg =  'The requested serializer_trace "' + serializer_trace + '" is not available!\n'
+            err_msg += 'Available options are: "no_trace", "trace_error", "trace_all"'
+            raise Exception(err_msg)
+        self.serializer_flag = __serializer_flags[serializer_trace]
+
+        self.next_output = 0.0
+
+        self.echo_level = settings["echo_level"].GetInt()
+
         # load settings
-        self.input_filename = settings["input_filename"].GetString()
         self.input_file_label = settings["restart_load_file_label"].GetString()
+        self.load_restart_files_from_folder = settings["load_restart_files_from_folder"].GetBool()
 
         # save settings
         self.restart_save_frequency = settings["restart_save_frequency"].GetDouble()
-        serializer_trace = settings["serializer_trace"].GetString()
 
         restart_control_type = settings["restart_control_type"].GetString()
         if restart_control_type == "time":
@@ -57,27 +71,22 @@ class RestartUtility(object):
             err_msg += 'Available options are: "time", "step"'
             raise Exception(err_msg)
 
-        serializer_trace = settings["serializer_trace"].GetString()
-        if not serializer_trace in __serializer_flags.keys():
-            err_msg =  'The requested serializer_trace "' + serializer_trace + '" is not available!\n'
-            err_msg += 'Available options are: "no_trace", "trace_error", "trace_all"'
-            raise Exception(err_msg)
-        self.serializer_flag = __serializer_flags[serializer_trace]
-
-        self.next_output = 0.0
-
-        self.echo_level = settings["echo_level"].GetDouble()
-
-        self.move_restart_files_to_folder = settings["move_restart_files_to_folder"].GetBool()
+        self.save_restart_files_in_folder = settings["save_restart_files_in_folder"].GetBool()
 
     #### Public functions ####
 
-    def LoadRestart(self):
+    def LoadRestart(self, restart_file_name=""):
         """
         This function loads a restart file into a ModelPart
         """
-        # Get file name
-        restart_path = self.__GetFileNameLoad()
+        if restart_file_name == "": # Using the default restart file name
+            # Get file name
+            restart_path = self.__GetFileNameLoad()
+        else: # Using a custom restart file name
+            if restart_file_name.endswith('.rest'):
+                restart_file_name = restart_file_name[:-5] # removing ".rest" from the file name
+            restart_path = restart_file_name
+
         # Check path
         if (os.path.exists(restart_path+".rest") == False):
             raise Exception("Restart file not found: " + restart_path + ".rest")
@@ -87,7 +96,7 @@ class RestartUtility(object):
         serializer = KratosMultiphysics.Serializer(restart_path, self.serializer_flag)
         serializer.Load(self.model_part.Name, self.model_part)
 
-        self._ExecuteAfterLaod()
+        self._ExecuteAfterLoad()
 
         self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
         load_step = self.model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
@@ -101,6 +110,11 @@ class RestartUtility(object):
         Whether a restart file is being written or not is decided internally
         """
         if self.__IsRestartOutputStep():
+            if self.save_restart_files_in_folder:
+                folder_path = self.__GetFolderPathSave()
+                if not os.path.isdir(folder_path):
+                    os.makedirs(folder_path)
+
             if self.restart_control_type_is_time:
                 control_label = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
             else:
@@ -127,7 +141,7 @@ class RestartUtility(object):
     def _GetFileLabelSave(self, file_label):
         return str(file_label)
 
-    def _ExecuteAfterLaod(self):
+    def _ExecuteAfterLoad(self):
         """This function creates the communicators in MPI/trilinos"""
         pass
 
@@ -143,18 +157,24 @@ class RestartUtility(object):
         else:
             return (self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output)
 
+    def __GetFolderPathLoad(self):
+        if self.load_restart_files_from_folder:
+            return os.path.join(self.raw_path, self.folder_name)
+        else:
+            return self.raw_path
+
+    def __GetFolderPathSave(self):
+        if self.save_restart_files_in_folder:
+            return os.path.join(self.raw_path, self.folder_name)
+        else:
+            return self.raw_path
+
     def __GetFileNameLoad(self):
-        problem_path = os.getcwd()
-        return os.path.join(problem_path, self.input_filename + "_" + self._GetFileLabelLoad())
+        restart_file_name = self.raw_file_name + "_" + self._GetFileLabelLoad()
+
+        return os.path.join(self.__GetFolderPathLoad(), restart_file_name)
 
     def __GetFileNameSave(self, file_label):
-        return os.path.join(self.__GetOutputFolderName(), self.input_filename + '_' + self._GetFileLabelSave(file_label))
+        restart_file_name = self.raw_file_name + '_' + self._GetFileLabelSave(file_label)
 
-    def __GetOutputFolderName(self):
-        if self.move_restart_files_to_folder:
-            folder_name = self.input_filename + "__restart_files"
-            if not os.path.isdir(folder_name):
-                os.makedirs(folder_name)
-            return folder_name
-        else:
-            return ""
+        return os.path.join(self.__GetFolderPathSave(), restart_file_name)

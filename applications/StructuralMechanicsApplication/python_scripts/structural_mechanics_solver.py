@@ -56,13 +56,14 @@ class MechanicalSolver(object):
                 "perform_partitioning": true
             },
             "restart_settings" : {
-                "load_restart"                  : false,
-                "restart_load_file_label"       : "",
-                "save_restart"                  : false,
-                "restart_save_frequency"        : 1.0,
-                "restart_control_type"          : "time",
-                "move_restart_files_to_folder"  : true,
-                "serializer_trace"              : "no_trace"
+                "load_restart"                   : false,
+                "restart_load_file_label"        : "",
+                "load_restart_files_from_folder" : true,
+                "save_restart"                   : false,
+                "restart_save_frequency"         : 1.0,
+                "restart_control_type"           : "time",
+                "save_restart_files_in_folder"   : true,
+                "serializer_trace"               : "no_trace"
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
@@ -453,6 +454,8 @@ class MechanicalSolver(object):
         restart_settings = self.settings["restart_settings"].Clone()
         restart_settings.AddValue("input_filename", self.settings["model_import_settings"]["input_filename"])
         restart_settings.AddValue("echo_level", self.settings["echo_level"])
+        restart_settings.RemoveValue("load_restart")
+        restart_settings.RemoveValue("save_restart")
 
         return restart_settings
 

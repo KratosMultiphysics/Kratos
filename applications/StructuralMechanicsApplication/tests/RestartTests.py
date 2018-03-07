@@ -59,8 +59,7 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
 
             # Adding the specific settings (minimal to test the default settings)
             save_restart_parameters = KratosMultiphysics.Parameters("""{
-                "save_restart" : true,
-                "move_restart_files_to_folder" : false
+                "save_restart" : true
             }""")
             load_restart_parameters = KratosMultiphysics.Parameters("""{
                 "load_restart"              : true,
@@ -81,10 +80,17 @@ class StructuralMechanicsRestartTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         # remove the created restart files
+        raw_path, raw_file_name = os.path.split(self.file_name)
+        folder_name = os.path.join(raw_path, raw_file_name + "__restart_files")
+
         t = self.start_time
         while(t < self.end_time): # using while bcs range does not support floats
             t +=  self.time_step
-            kratos_utils.DeleteFileIfExisting(self.file_name + "_" + str(t) + ".rest")
+            file_path = os.path.join(folder_name, raw_file_name + "_" + str(t) + ".rest")
+            kratos_utils.DeleteFileIfExisting(file_path)
+
+        if os.path.isdir(folder_name):
+            os.rmdir(folder_name)
 
 
 class TestSmallDisplacement2D4N(StructuralMechanicsRestartTestFactory):

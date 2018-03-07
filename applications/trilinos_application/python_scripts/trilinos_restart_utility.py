@@ -32,7 +32,7 @@ class TrilinosRestartUtility(restart_utility.RestartUtility):
     def _GetFileLabelSave(self, file_label):
         return str(KratosMPI.mpi.rank) + '_' + str(file_label)
 
-    def _ExecuteAfterLaod(self):
+    def _ExecuteAfterLoad(self):
         import trilinos_import_model_part_utility
         trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part,
                                                                                                          Parameters('''{"model_import_settings":[]}'''))
