@@ -41,8 +41,8 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
             self.FinalizeTimeStep()
 
     #### Public functions defining the Interface to the CoSimulationApplication ####
-    def Initialize(self):
-        self.ImportAndCreateSolver()
+    def Initialize(self, external_model_part=None):
+        self.ImportAndCreateSolver(external_model_part)
         self.InitializeIO()
         self.ExecuteInitialize()
         self.ExecuteBeforeSolutionLoop()
