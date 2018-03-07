@@ -192,6 +192,9 @@ def main():
     verbosity = 1
     level = 'all'
 
+    # Keep the worst exit code
+    exit_code = 0
+
     # Parse Commandline
     try:
         opts, args = getopt.getopt(
@@ -281,6 +284,8 @@ def main():
         signalTime
     )
 
+    exit_code = max(exit_code, commander.exitCode)
+
     sys.stderr.flush()
 
     # Run the tests for the rest of the Applications
@@ -298,6 +303,8 @@ def main():
             signalTime
         )
 
+        exit_code = max(exit_code, commander.exitCode)
+
     sys.stderr.flush()
 
     # Releases stdout
@@ -311,7 +318,7 @@ def main():
     except Exception as e:
         print('[Warning]:', e, file=sys.stderr)
 
-    sys.exit(commander.exitCode)
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":
