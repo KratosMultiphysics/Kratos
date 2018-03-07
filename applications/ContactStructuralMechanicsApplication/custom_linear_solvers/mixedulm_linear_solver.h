@@ -1008,7 +1008,10 @@ protected:
         K_disp_modified_ptr[0] = 0;
 
         // Creating a buffer for parallel vector fill
-        SignedIndexVectorType marker(nrows * ncols, -1);
+        SignedIndexType* marker = new SignedIndexType[nrows * ncols];
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(nrows * ncols); i++)
+            marker[i] = -1;
 
         #pragma omp parallel
         {
@@ -1407,6 +1410,10 @@ protected:
             }
         }
 
+        // Release memory
+        delete[] marker;
+        
+        // Create the final matrix
         CreateMatrix(mKDispModified, nrows, ncols, K_disp_modified_ptr, aux_index2_K_disp_modified, aux_val_K_disp_modified);
 
     #ifdef KRATOS_DEBUG
@@ -1493,7 +1500,7 @@ private:
     inline void ComputeNonZeroBlocks(
         const SparseMatrixType& AuxK,
         IndexType* KPtr,
-        SignedIndexVectorType& Marker,
+        SignedIndexType*& Marker,
         const SizeType NRows,
         const SizeType NCols,
         const SizeType InitialIndexRow,
@@ -1537,7 +1544,7 @@ private:
         const SparseMatrixType& AuxK,
         SignedIndexType* AuxIndex2,
         double* AuxVals,
-        const SignedIndexVectorType& Marker,
+        const SignedIndexType* Marker,
         const SizeType NRows,
         const SizeType InitialIndexRow,
         const SizeType InitialIndexColumn
