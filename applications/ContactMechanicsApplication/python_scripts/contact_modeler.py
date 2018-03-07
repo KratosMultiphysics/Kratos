@@ -14,17 +14,17 @@ def CreateMeshModeler(main_model_part, meshing_parameters):
     return ContactModeler(main_model_part, meshing_parameters)
 
 class ContactModeler(mesh_modeler.MeshModeler):
-    
+
     #
-    def __init__(self, main_model_part, meshing_parameters): 
-        
-        mesh_modeler.MeshModeler.__init__(self, main_model_part, meshing_parameters)        
+    def __init__(self, main_model_part, meshing_parameters):
+
+        mesh_modeler.MeshModeler.__init__(self, main_model_part, meshing_parameters)
 
         print("::[Contact_Mesh_Modeler]:: -BUILT-")
-  
+
     #
     def Initialize(self, dimension):
-        
+
         self.dimension   =  dimension
 
         # set mesh modeler
@@ -37,7 +37,7 @@ class ContactModeler(mesh_modeler.MeshModeler):
         self.mesher.SetMeshingParameters(self.MeshingParameters)
 
         self.SetPreMeshingProcesses()
-        self.SetPostMeshingProcesses()    
+        self.SetPostMeshingProcesses()
 
         self.mesher.Initialize()
 
@@ -45,9 +45,9 @@ class ContactModeler(mesh_modeler.MeshModeler):
     def InitializeMeshing(self):
 
         self.MeshingParameters.InitializeMeshing()
-        
+
         meshing_options = self.MeshingParameters.GetOptions()
-        
+
         # set execution flags: to set the options to be executed in methods and processes
         execution_options = KratosMultiphysics.Flags()
 
@@ -60,26 +60,26 @@ class ContactModeler(mesh_modeler.MeshModeler):
 
         if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
             execution_options.Set(KratosPfem.ModelerUtilities.TRANSFER_KRATOS_FACES_TO_MESHER, True)
-                              
+
         execution_options.Set(KratosPfem.ModelerUtilities.SELECT_TESSELLATION_ELEMENTS, True)
         execution_options.Set(KratosPfem.ModelerUtilities.KEEP_ISOLATED_NODES, True)
 
 
         self.MeshingParameters.SetExecutionOptions(execution_options)
-        
+
         # set modeler flags: to set options for the mesher (triangle 2D, tetgen 3D)
         # RECONNECT
-            
+
         modeler_flags = ""
         modeler_info  = "Reconnect a cloud of points"
         if( self.dimension == 2 ):
-           
+
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
-                modeler_flags = "pBYYQ"  
+                modeler_flags = "pBYYQ"
             else:
                 modeler_flags = "QNP"
 
-            
+
         elif( self.dimension == 3 ):
 
             if( meshing_options.Is(KratosPfem.ModelerUtilities.CONSTRAINED) ):
@@ -94,16 +94,16 @@ class ContactModeler(mesh_modeler.MeshModeler):
 
     #
     def SetPreMeshingProcesses(self):
- 
+
         # The order set is the order of execution:
-        
+
         # clear contact conditions
         clear_contact_conditions= KratosContact.ClearContactConditions(self.model_part, self.echo_level)
         self.mesher.SetPreMeshingProcess(clear_contact_conditions)
 
         #print GiD mesh output for checking purposes
         #print_output_mesh = KratosPfem.PrintOutputMeshProcess(self.model_part, self.MeshingParameters, "input", self.echo_level)
-        #self.mesher.SetPreMeshingProcess(print_output_mesh) 
+        #self.mesher.SetPreMeshingProcess(print_output_mesh)
     #
     def SetPostMeshingProcesses(self):
 
@@ -111,8 +111,8 @@ class ContactModeler(mesh_modeler.MeshModeler):
 
         #print GiD mesh output for checking purposes
         print_output_mesh = KratosPfem.PrintOutputMeshProcess(self.model_part, self.MeshingParameters, "output", self.echo_level)
-        self.mesher.SetPostMeshingProcess(print_output_mesh)        
-        
+        self.mesher.SetPostMeshingProcess(print_output_mesh)
+
         #select mesh elements
         select_mesh_elements  = KratosPfem.SelectMeshElements(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(select_mesh_elements)
@@ -120,12 +120,12 @@ class ContactModeler(mesh_modeler.MeshModeler):
         # build contact conditions
         build_contact_conditions= KratosContact.BuildContactConditions(self.model_part, self.MeshingParameters, self.echo_level)
         self.mesher.SetPostMeshingProcess(build_contact_conditions)
-        
+
     #
     def FinalizeMeshing(self):
-        
+
         # reset execution flags: to unset the options to be executed in methods and processes
-        execution_options = KratosMultiphysics.Flags() 
+        execution_options = KratosMultiphysics.Flags()
         # all false
         self.MeshingParameters.SetExecutionOptions(execution_options)
 
