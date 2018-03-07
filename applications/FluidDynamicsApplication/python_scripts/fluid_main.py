@@ -19,7 +19,7 @@ class FluidMain(object):
 
         # If this is an MPI run, load the distributed memory modules
         if (self.parallel_type == "MPI"):
-            import KratosMultiphysics.mpi.mpi as mpi
+            from KratosMultiphysics.mpi import mpi
             import KratosMultiphysics.MetisApplication as Metis
             import KratosMultiphysics.TrilinosApplication as Trilinos
             self.is_printing_rank = (mpi.rank == 0)
@@ -117,9 +117,9 @@ class FluidMain(object):
                 self.output = GiDOutputProcess(self.model_part,
                                                self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                                self.project_parameters["output_configuration"])
-            elif parallel_type == "MPI":
-                from Trilinos.gid_output_process_mpi import GiDOutputProcessMPI
-                self.output = GiDOutputProcessMPI(self.model_part.GetComputingModelPart(),
+            elif self.parallel_type == "MPI":
+                from gid_output_process_mpi import GiDOutputProcessMPI
+                self.output = GiDOutputProcessMPI(self.model_part,
                                                   self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                                   self.project_parameters["output_configuration"])
 
