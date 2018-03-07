@@ -7,7 +7,7 @@ from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # TODO replace this with the future default solver from the applications
-import kratos_structural_solver
+import structural_mechanics_analysis
 
 # For time measures
 import time as timer
@@ -42,11 +42,11 @@ optimizer = optimizerFactory.CreateOptimizer( main_model_part, ProjectParameters
 responseSettings = ProjectParameters["optimization_settings"]["objectives"][0]["adjoint_response_settings"]
 # Create the primal solver
 ProjectParametersPrimal = Parameters( open(responseSettings["primal_settings"].GetString(),'r').read() )
-primal_solver = kratos_structural_solver.Kratos_Execute_Test(ProjectParametersPrimal)
+primal_solver = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersPrimal)
 
 # Create the adjoint solver
 ProjectParametersAdjoint = Parameters( open(responseSettings["adjoint_settings"].GetString(),'r').read() )
-adjoint_solver = kratos_structural_solver.Kratos_Execute_Test(ProjectParametersAdjoint)
+adjoint_solver = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
 
 # ======================================================================================================================================
 # Analyzer
@@ -96,7 +96,9 @@ class kratosAdjointAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
-            primal_solver.SolveTimeStep( )
+            primal_solver.InitializeTimeStep()
+            primal_solver.SolveTimeStep()
+            primal_solver.FinalizeTimeStep()
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
 
             #TODO transfer primal solution
@@ -117,7 +119,9 @@ class kratosAdjointAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             print("\n> Starting calculation of gradients of strain energy")
             startTime = timer.time()
-            adjoint_solver.SolveTimeStep( )
+            adjoint_solver.InitializeTimeStep()
+            adjoint_solver.SolveTimeStep()
+            adjoint_solver.FinalizeTimeStep()
             print("> Time needed for calculating gradients of strain energy = ",round(timer.time() - startTime,2),"s")
 
             gradientOnDesignSurface = {}

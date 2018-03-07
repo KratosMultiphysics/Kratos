@@ -6,10 +6,10 @@
         "problem_name"    : "rectangular_plate_structure",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
-        "time_step"       : 1,
+        "time_step"       : 1.0,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
-        "start_step"      : 0.0,
-        "nsteps"          : 1,
         "echo_level"      : 1
     },
     "solver_settings"                  : {
