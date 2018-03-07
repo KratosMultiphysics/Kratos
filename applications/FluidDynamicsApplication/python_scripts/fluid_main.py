@@ -100,7 +100,6 @@ class FluidMain(object):
             process.ExecuteBeforeSolutionLoop()
 
         ## Stepping and time settings
-        self.dt = self.project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
         ## Writing the full ProjectParameters file before solving
@@ -133,14 +132,16 @@ class FluidMain(object):
         step = 0
 
         while time <= self.end_time:
-            time = time + self.dt
+            dt = self.solver.ComputeDeltaTime()
+            time = time + dt
             step = step + 1
             
             self.main_model_part.CloneTimeStep(time)
             self.main_model_part.ProcessInfo[STEP] = step
 
-            print("STEP = ", step)
-            print("TIME = ", time)
+            if self.is_printing_rank:
+                print("STEP = ", step)
+                print("TIME = ", time)
             
             for process in self.simulation_processes:
                 process.ExecuteInitializeSolutionStep()
