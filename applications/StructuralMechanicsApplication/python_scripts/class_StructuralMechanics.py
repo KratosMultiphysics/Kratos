@@ -8,12 +8,12 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 try:
     import KratosMultiphysics.ExternalSolversApplication
     KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except:
+except ImportError:
     KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
 try:
     import KratosMultiphysics.EigenSolversApplication
     KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
-except:
+except ImportError:
     KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
 
 
@@ -23,10 +23,10 @@ class ClassStructuralMechanics(object): # TODO in the future this could derive f
 
     It can be imported and used as "black-box"
     """
-    def __init__(self, project_parameter_file_name):
-        # Read the ProjectParameters
-        with open(project_parameter_file_name,'r') as parameter_file:
-            self.ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+    def __init__(self, ProjectParameters):
+        if (type(ProjectParameters) != KratosMultiphysics.Parameters):
+            raise Exception("Input is expected to be provided as a Kratos Parameters object")
+        self.ProjectParameters = ProjectParameters
 
     #### Public functions to run the Analysis ####
     def Run(self):
@@ -262,4 +262,7 @@ if __name__ == "__main__":
     else: # using default name
         project_parameters_file_name = "ProjectParameters.json"
 
-    ClassStructuralMechanics(project_parameters_file_name).Run()
+    with open(project_parameters_file_name,'r') as parameter_file:
+        ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+    ClassStructuralMechanics(ProjectParameters).Run()

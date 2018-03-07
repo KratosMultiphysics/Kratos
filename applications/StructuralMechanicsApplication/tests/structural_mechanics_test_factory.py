@@ -31,8 +31,12 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
 
+            # Reading the ProjectParameters
+            with open(self.file_name + "_parameters.json",'r') as parameter_file:
+                ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+
             # Creating the test
-            self.test = class_StructuralMechanics.ClassStructuralMechanics(self.file_name + "_parameters.json")
+            self.test = class_StructuralMechanics.ClassStructuralMechanics(ProjectParameters)
             self.test.Initialize()
 
     def test_execution(self):
