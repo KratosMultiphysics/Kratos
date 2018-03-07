@@ -49,7 +49,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
                 "use_mixed_ulm_solver"                   : true,
                 "mixed_ulm_solver_parameters" :
                 {
-                    "solver_type": "MixedULMLinearSolver",
+                    "solver_type": "mixed_ulm_linear_solver",
                     "tolerance" : 1.0e-6,
                     "max_iteration_number" : 200
                 }
@@ -172,7 +172,7 @@ class ImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solver.Impl
             if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
                 KM.Logger.PrintWarning("Using MixedULMLinearSolver, definition of ALM parameters recommended")
                 name_mixed_solver = self.contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
-                if (name_mixed_solver == "MixedULMLinearSolver"):
+                if (name_mixed_solver == "mixed_ulm_linear_solver"):
                     linear_solver_name = self.settings["linear_solver_settings"]["solver_type"].GetString()
                     if (linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver"):
                         amgcl_param = KM.Parameters("""

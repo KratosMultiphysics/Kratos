@@ -50,7 +50,7 @@ namespace Kratos
 
 /**
  * @class MixedULMLinearSolver
- * @ingroup ContactStructuralMechanicsApplication  
+ * @ingroup ContactStructuralMechanicsApplication
  * @brief This solver is designed for the solution of mixed U-LM problems (this solver in particular is optimized for dual LM, to avoid the resolution).
  * @details It uses a block structure diving the matrix in UU LMLM ULM LMU blocks
  * and uses "standard" linear solvers for the different blocks as well as a GMRES for the outer part
@@ -76,68 +76,68 @@ public:
             LM_INACTIVE,
             LM_ACTIVE
             };
-            
+
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of MixedULMLinearSolver
     KRATOS_CLASS_POINTER_DEFINITION (MixedULMLinearSolver);
-    
+
     /// The base class corresponds to the an iterative solver
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
-    
+
     /// The base class for the linear solver
     typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> LinearSolverType;
-    
+
     /// The pointer to a linear solver
     typedef typename LinearSolverType::Pointer LinearSolverPointerType;
-    
+
     /// The sparse matrix type
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
-    
+
     /// The vector type
     typedef typename TSparseSpaceType::VectorType VectorType;
-    
+
     /// The dense matrix type
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-    
+
     /// The dense vector type
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
-    
+
     /// The node type
     typedef Node<3> NodeType;
-    
+
     /// The array containing the dofs
     typedef typename ModelPart::DofsArrayType DofsArrayType;
-    
+
     /// An array of conditions
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
-    
+
     /// An array of nodes
     typedef ModelPart::NodesContainerType NodesArrayType;
-    
+
     /// The size type
     typedef std::size_t SizeType;
-    
+
     /// The index type
     typedef std::size_t IndexType;
-    
+
     /// The signed index type
     typedef std::ptrdiff_t  SignedIndexType;
-    
+
     /// A vector of indexes
     typedef vector<IndexType> IndexVectorType;
-    
+
     /// A vector of indexes (signed)
     typedef vector<SignedIndexType> SignedIndexVectorType;
-    
+
     /// A vector of types
     typedef vector<BlockType> BlockTypeVectorType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /**
      * @brief Default constructor
      * @param pSolverDispBlock The linear solver used for the displacement block
@@ -155,13 +155,13 @@ public:
         mBlocksAreAllocated = false;
         mIsInitialized = false;
     }
-    
+
     /**
      * @brief Second constructor, it uses a Kratos parameters as input instead of direct input
      * @param pSolverDispBlock The linear solver used for the displacement block
      * @param ThisParameters The configuration parameters considered
      */
-    
+
     MixedULMLinearSolver(
             LinearSolverPointerType pSolverDispBlock,
             Parameters ThisParameters =  Parameters(R"({})")
@@ -172,43 +172,43 @@ public:
         KRATOS_TRY
 
         // Now validate agains defaults -- this also ensures no type mismatch
-        Parameters default_parameters = GetDefaultParameters(); 
+        Parameters default_parameters = GetDefaultParameters();
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
-        
+
         // Initializing the remaining variables
         this->SetTolerance( ThisParameters["tolerance"].GetDouble() );
         this->SetMaxIterationsNumber( ThisParameters["max_iteration_number"].GetInt() );
         mBlocksAreAllocated = false;
         mIsInitialized = false;
-        
+
         KRATOS_CATCH("")
     }
 
-    
+
     /// Copy constructor.
     MixedULMLinearSolver (const MixedULMLinearSolver& Other)
     {
         KRATOS_ERROR << "Copy constructor not correctly implemented" << std::endl;
     }
-    
+
     /// Destructor.
     ~MixedULMLinearSolver() override {}
-    
+
     ///@}
     ///@name Operators
     ///@{
-    
+
     /// Assignment operator.
     MixedULMLinearSolver& operator= (const MixedULMLinearSolver& Other)
     {
         return *this;
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
-    /** 
+
+    /**
      * @brief This function is designed to be called as few times as possible. It creates the data structures
      * that only depend on the connectivity of the matrix (and not on its coefficients)
      * @details So that the memory can be allocated once and expensive operations can be done only when strictly
@@ -218,8 +218,8 @@ public:
      * @param rB Right hand side vector.
     */
     void Initialize (
-        SparseMatrixType& rA, 
-        VectorType& rX, 
+        SparseMatrixType& rA,
+        VectorType& rX,
         VectorType& rB
         ) override
     {
@@ -229,8 +229,8 @@ public:
         } else
             KRATOS_DETAIL("MixedULM Initialize") << "Linear solver intialization is deferred to the moment at which blocks are available" << std::endl;
     }
-    
-    /** 
+
+    /**
      * @brief This function is designed to be called every time the coefficients change in the system
      * that is, normally at the beginning of each solve.
      * @details For example if we are implementing a direct solver, this is the place to do the factorization
@@ -240,11 +240,11 @@ public:
      * @param rB Right hand side vector.
     */
     void InitializeSolutionStep (
-        SparseMatrixType& rA, 
-        VectorType& rX, 
+        SparseMatrixType& rA,
+        VectorType& rX,
         VectorType& rB
         ) override
-    {     
+    {
         // Copy to local matrices
         if (mBlocksAreAllocated == false) {
             FillBlockMatrices (true, rA, rX, rB);
@@ -253,14 +253,14 @@ public:
             FillBlockMatrices (false, rA, rX, rB);
             mBlocksAreAllocated = true;
         }
-        
-        if(mIsInitialized == false) 
+
+        if(mIsInitialized == false)
             this->Initialize(rA,rX,rB);
-        
+
         mpSolverDispBlock->InitializeSolutionStep(mKDispModified, mDisp, mResidualDisp);
     }
 
-    /** 
+    /**
      * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the
      * @details Initialize and InitializeSolutionStep functions.
      * @param rA System matrix
@@ -268,8 +268,8 @@ public:
      * @param rB Right hand side vector.
     */
     void PerformSolutionStep (
-        SparseMatrixType& rA, 
-        VectorType& rX, 
+        SparseMatrixType& rA,
+        VectorType& rX,
         VectorType& rB
         ) override
     {
@@ -277,47 +277,47 @@ public:
         const SizeType lm_active_size = mLMActiveIndices.size();
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
         const SizeType total_disp_size = mOtherIndices.size() + mMasterIndices.size() + mSlaveInactiveIndices.size() + mSlaveActiveIndices.size();
-        
+
         // Get the u and lm residuals
         GetUPart (rB, mResidualDisp);
-        
+
         // Solve u block
         if (mDisp.size() != total_disp_size)
             mDisp.resize(total_disp_size, false);
         mpSolverDispBlock->Solve (mKDispModified, mDisp, mResidualDisp);
-        
+
         // Write back solution
         SetUPart(rX, mDisp);
-        
+
         // Solve LM
         if (lm_active_size > 0) {
             // Now we compute the residual of the LM
             GetLMAPart (rB, mResidualLMActive);
-            
+
             // LM = D⁻1*rLM
             if (mLMActive.size() != lm_active_size)
                 mLMActive.resize(lm_active_size, false);
             TSparseSpaceType::Mult (mKLMAModified, mResidualLMActive, mLMActive);
-            
+
             // Write back solution
             SetLMAPart(rX, mLMActive);
         }
-        
+
         if (lm_inactive_size > 0) {
             // Now we compute the residual of the LM
-            GetLMIPart (rB, mResidualLMInactive); 
-            
+            GetLMIPart (rB, mResidualLMInactive);
+
             // LM = D⁻1*rLM
             if (mLMInactive.size() != lm_inactive_size)
                 mLMInactive.resize(lm_inactive_size, false);
             TSparseSpaceType::Mult (mKLMIModified, mResidualLMInactive, mLMInactive);
-            
+
             // Write back solution
             SetLMIPart(rX, mLMInactive);
         }
     }
-    
-    /** 
+
+    /**
      * @brief This function is designed to be called at the end of the solve step.
      * @details For example this is the place to remove any data that we do not want to save for later
      * @param rA System matrix
@@ -325,48 +325,48 @@ public:
      * @param rB Right hand side vector.
     */
     void FinalizeSolutionStep (
-        SparseMatrixType& rA, 
-        VectorType& rX, 
+        SparseMatrixType& rA,
+        VectorType& rX,
         VectorType& rB
         ) override
     {
         mpSolverDispBlock->FinalizeSolutionStep(mKDispModified, mDisp, mResidualDisp);
     }
-    
-    /** 
+
+    /**
      * @brief This function is designed to clean up all internal data in the solver.
      * @details Clear is designed to leave the solver object as if newly created. After a clear a new Initialize is needed
      */
     void Clear() override
-    {        
+    {
         mBlocksAreAllocated = false;
         mpSolverDispBlock->Clear();
-        
+
         // We clear the matrixes and vectors
         mKDispModified.clear(); /// The modified displacement block
         mKLMAModified.clear();  /// The modified active LM block (diagonal)
         mKLMIModified.clear();  /// The modified inaactive LM block (diagonal)
 
-        mKSAN.clear();  /// The slave active-displacement block        
+        mKSAN.clear();  /// The slave active-displacement block
         mKSAM.clear();  /// The active slave-master block
         mKSASI.clear(); /// The active slave-inactive slave block
         mKSASA.clear(); /// The active slave-slave active block
-        
+
         mPOperator.clear(); /// The operator used for the master blocks
-        mCOperator.clear(); /// The operator used for the active slave block 
-        
+        mCOperator.clear(); /// The operator used for the active slave block
+
         mResidualLMActive.clear();   /// The residual corresponding the active LM
         mResidualLMInactive.clear(); /// The residual corresponding the inactive LM
         mResidualDisp.clear();       /// The residual of the displacements
-        
+
         mLMActive.clear();   /// The solution of the active LM
         mLMInactive.clear(); /// The solution of the inactive LM
         mDisp.clear();       /// The solution of the displacement
-        
+
         mIsInitialized = false;
     }
 
-    /** 
+    /**
      * @brief Normal solve method.
      * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rVectorx is also th initial guess for iterative methods.
      * @param rA System matrix
@@ -374,8 +374,8 @@ public:
      * @param rB Right hand side vector.
      */
     bool Solve(
-        SparseMatrixType& rA, 
-        VectorType& rX, 
+        SparseMatrixType& rA,
+        VectorType& rX,
         VectorType& rB
         ) override
     {
@@ -383,15 +383,15 @@ public:
             this->Initialize (rA,rX,rB);
 
         this->InitializeSolutionStep (rA,rX,rB);
-        
+
         this->PerformSolutionStep (rA,rX,rB);
-        
+
         this->FinalizeSolutionStep (rA,rX,rB);
 
         return false;
     }
 
-    /** 
+    /**
      * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
      * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rVectorx is also th initial guess for iterative methods.
      * @param rA System matrix
@@ -399,15 +399,15 @@ public:
      * @param rB Right hand side vector.
      */
     bool Solve (
-        SparseMatrixType& rA, 
-        DenseMatrixType& rX, 
+        SparseMatrixType& rA,
+        DenseMatrixType& rX,
         DenseMatrixType& rB
         ) override
     {
         return false;
     }
 
-    /** 
+    /**
      * @brief Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
      * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
      * @details Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
@@ -419,8 +419,8 @@ public:
         return true;
     }
 
-    /** 
-     * @brief Some solvers may require a minimum degree of knowledge of the structure of the matrix. 
+    /**
+     * @brief Some solvers may require a minimum degree of knowledge of the structure of the matrix.
      * @details To make an example when solving a mixed u-p problem, it is important to identify the row associated to v and p. Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers which require knowledge on the spatial position of the nodes associated to a given dof. This function is the place to eventually provide such data
      * @param rA System matrix
      * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
@@ -433,11 +433,11 @@ public:
         DofsArrayType& rDofSet,
         ModelPart& rModelPart
         ) override
-    {        
+    {
         // Allocating auxiliar parameters
         IndexType node_id;
         NodeType::Pointer pnode;
-        
+
         // Count LM dofs
         SizeType n_lm_inactive_dofs = 0, n_lm_active_dofs = 0;
         SizeType n_master_dofs = 0;
@@ -448,15 +448,15 @@ public:
             pnode = rModelPart.pGetNode(node_id);
             if (i_dof.EquationId() < rA.size1()) {
                 tot_active_dofs++;
-                if (i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_X || 
-                    i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Y || 
+                if (i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_X ||
+                    i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
                     i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
                     if (pnode->Is(ACTIVE))
                         n_lm_active_dofs++;
                     else
                         n_lm_inactive_dofs++;
-                } else if (i_dof.GetVariable().Key() == DISPLACEMENT_X || 
-                    i_dof.GetVariable().Key() == DISPLACEMENT_Y || 
+                } else if (i_dof.GetVariable().Key() == DISPLACEMENT_X ||
+                    i_dof.GetVariable().Key() == DISPLACEMENT_Y ||
                     i_dof.GetVariable().Key() == DISPLACEMENT_Z) {
                     if (pnode->Is(INTERFACE)) {
                         if (pnode->Is(MASTER)) {
@@ -493,10 +493,10 @@ public:
             mGlobalToLocalIndexing.resize (tot_active_dofs,false);
         if (mWhichBlockType.size() != tot_active_dofs)
             mWhichBlockType.resize(tot_active_dofs, false);
-        
+
         // Size check
         KRATOS_ERROR_IF_NOT(n_lm_active_dofs == n_slave_active_dofs) << "The number of active LM dofs: " << n_slave_active_dofs << " and active slave nodes dofs: " << n_slave_active_dofs << " does not coincide" << std::endl;
-        
+
         /**
          * Construct aux_lists as needed
          * "other_counter[i]" i will contain the position in the global system of the i-th NON-LM node
@@ -512,8 +512,8 @@ public:
             node_id = i_dof.Id();
             pnode = rModelPart.pGetNode(node_id);
             if (i_dof.EquationId() < rA.size1()) {
-                if (i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_X || 
-                    i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Y || 
+                if (i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_X ||
+                    i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
                     i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
                     if (pnode->Is(ACTIVE)) {
                         mLMActiveIndices[lm_active_counter] = global_pos;
@@ -526,8 +526,8 @@ public:
                         mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
                         ++lm_inactive_counter;
                     }
-                } else if (i_dof.GetVariable().Key() == DISPLACEMENT_X || 
-                    i_dof.GetVariable().Key() == DISPLACEMENT_Y || 
+                } else if (i_dof.GetVariable().Key() == DISPLACEMENT_X ||
+                    i_dof.GetVariable().Key() == DISPLACEMENT_Y ||
                     i_dof.GetVariable().Key() == DISPLACEMENT_Z) {
                     if (pnode->Is(INTERFACE)) {
                         if (pnode->Is(MASTER)) {
@@ -535,7 +535,7 @@ public:
                             mGlobalToLocalIndexing[global_pos] = master_counter;
                             mWhichBlockType[global_pos] = BlockType::MASTER;
                             ++master_counter;
-                            
+
                         } else if (pnode->Is(SLAVE)) {
                             if (pnode->Is(ACTIVE)) {
                                 mSlaveActiveIndices[slave_active_counter] = global_pos;
@@ -569,7 +569,7 @@ public:
                 ++global_pos;
             }
         }
-        
+
         KRATOS_DEBUG_ERROR_IF(master_counter != n_master_dofs) << "The number of active slave dofs counter : " << master_counter << "is higher than the expected: " << n_master_dofs << std::endl;
         KRATOS_DEBUG_ERROR_IF(slave_active_counter != n_slave_active_dofs) << "The number of active slave dofs counter : " << slave_active_counter << "is higher than the expected: " << n_slave_active_dofs << std::endl;
         KRATOS_DEBUG_ERROR_IF(slave_inactive_counter != n_slave_inactive_dofs) << "The number of inactive slave dofs counter : " << slave_inactive_counter << "is higher than the expected: " << n_slave_inactive_dofs << std::endl;
@@ -577,58 +577,58 @@ public:
         KRATOS_DEBUG_ERROR_IF(lm_inactive_counter != n_lm_inactive_dofs) << "The number of inactive LM dofs counter : " << lm_inactive_counter << "is higher than the expected: " << n_lm_inactive_dofs << std::endl;
         KRATOS_DEBUG_ERROR_IF(other_counter != n_other_dofs) << "The number of other dofs counter : " << other_counter << "is higher than the expected: " << n_other_dofs << std::endl;
     }
-    
+
     ///@}
     ///@name Access
     ///@{
-    
+
     ///@}
     ///@name Inquiry
     ///@{
-    
+
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     std::string Info() const override
     {
         return "Mixed displacement LM linear solver";
     }
-    
+
     /// Print information about this object.
     void PrintInfo (std::ostream& rOStream) const override
     {
         rOStream << "Mixed displacement LM linear solver";
     }
-    
+
     /// Print object's data.
     void PrintData (std::ostream& rOStream) const override
     {
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    /** 
+
+    /**
      * @brief T his function generates the subblocks of matrix A
      * @details as A = ( KNN  KNM    KNSI    KNSA     0        0    ) u
      *                 ( KMN  KMM    KMSI    KMSA    -MI^T    -MA^T ) u_master
@@ -643,19 +643,19 @@ protected:
      *                     (  0    0      0      0      KLMILMI   0     ) LMInactive
      *                     (  0   KLMAM  KLMASI  KLMASA   0     KLMALMA ) LMActive
      * Subblocks are allocated or nor depending on the value of "NeedAllocation"
-     * @param rA System matrix    
+     * @param rA System matrix
      * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB Right hand side vector.
      */
     void FillBlockMatrices (
-        const bool NeedAllocation, 
+        const bool NeedAllocation,
         SparseMatrixType& rA,
-        VectorType& rX, 
+        VectorType& rX,
         VectorType& rB
         )
     {
         KRATOS_TRY
-      
+
         // Auxiliar sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
@@ -664,7 +664,7 @@ protected:
         const SizeType lm_active_size = mLMActiveIndices.size();
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
         const double tolerance = std::numeric_limits<double>::epsilon();
-        
+
         if (NeedAllocation)
             AllocateBlocks();
 
@@ -672,13 +672,13 @@ protected:
         const std::size_t* index1 = rA.index1_data().begin();
         const std::size_t* index2 = rA.index2_data().begin();
         const double* values = rA.value_data().begin();
-        
+
         // Allocate the auxiliar blocks by push_back
-        SparseMatrixType KMLMA(master_size, lm_active_size);            /// The master-active LM block (this is the big block of M) 
+        SparseMatrixType KMLMA(master_size, lm_active_size);            /// The master-active LM block (this is the big block of M)
         SparseMatrixType KLMALMA(lm_active_size, lm_active_size);       /// The active LM-active LM block
-        SparseMatrixType KSALMA(slave_active_size, lm_active_size);     /// The active slave-active LM block (this is the big block of D, diagonal) 
+        SparseMatrixType KSALMA(slave_active_size, lm_active_size);     /// The active slave-active LM block (this is the big block of D, diagonal)
         SparseMatrixType KLMILMI(lm_inactive_size, lm_inactive_size);   /// The inactive LM- inactive LM block (diagonal)
-        
+
         IndexType* KMLMA_ptr = new IndexType[master_size + 1];
         IndexType* mKSAN_ptr = new IndexType[slave_active_size + 1];
         IndexType* mKSAM_ptr = new IndexType[slave_active_size + 1];
@@ -687,9 +687,9 @@ protected:
         IndexType* KSALMA_ptr = new IndexType[slave_active_size + 1];
         IndexType* KLMILMI_ptr = new IndexType[lm_inactive_size + 1];
         IndexType* KLMALMA_ptr = new IndexType[lm_active_size + 1];
-        
+
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(master_size + 1); i++) 
+        for (int i = 0; i < static_cast<int>(master_size + 1); i++)
             KMLMA_ptr[i] = 0;
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(slave_active_size + 1); i++) {
@@ -700,14 +700,14 @@ protected:
             KSALMA_ptr[i] = 0;
         }
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(lm_inactive_size + 1); i++) 
+        for (int i = 0; i < static_cast<int>(lm_inactive_size + 1); i++)
             KLMILMI_ptr[i] = 0;
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(lm_active_size + 1); i++) 
+        for (int i = 0; i < static_cast<int>(lm_active_size + 1); i++)
             KLMALMA_ptr[i] = 0;
-        
+
         #pragma omp parallel
-        {            
+        {
             // We iterate over original matrix
             #pragma omp for
             for (IndexType i=0; i<rA.size1(); i++) {
@@ -723,7 +723,7 @@ protected:
                 IndexType KSALMA_cols = 0;
                 IndexType KLMILMI_cols = 0;
                 IndexType KLMALMA_cols = 0;
-                
+
                 if ( mWhichBlockType[i] == BlockType::MASTER) { // KMLMA
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
@@ -791,50 +791,50 @@ protected:
                 }
             }
         }
-        
+
         // We initialize the blocks sparse matrix
         std::partial_sum(KMLMA_ptr, KMLMA_ptr + master_size + 1, KMLMA_ptr);
         const std::size_t KMLMA_nonzero_values = KMLMA_ptr[master_size];
         SignedIndexType* aux_index2_KMLMA= new SignedIndexType[KMLMA_nonzero_values];
         double* aux_val_KMLMA= new double[KMLMA_nonzero_values];
-        
+
         std::partial_sum(mKSAN_ptr, mKSAN_ptr + slave_active_size + 1, mKSAN_ptr);
         const std::size_t mKSAN_nonzero_values = mKSAN_ptr[slave_active_size];
         SignedIndexType* aux_index2_mKSAN= new SignedIndexType[mKSAN_nonzero_values];
         double* aux_val_mKSAN= new double[mKSAN_nonzero_values];
-        
+
         std::partial_sum(mKSAM_ptr, mKSAM_ptr + slave_active_size + 1, mKSAM_ptr);
         const std::size_t mKSAM_nonzero_values = mKSAM_ptr[slave_active_size];
         SignedIndexType* aux_index2_mKSAM= new SignedIndexType[mKSAM_nonzero_values];
         double* aux_val_mKSAM= new double[mKSAM_nonzero_values];
-        
+
         std::partial_sum(mKSASI_ptr, mKSASI_ptr + slave_active_size + 1, mKSASI_ptr);
         const std::size_t mKSASI_nonzero_values = mKSASI_ptr[slave_active_size];
         SignedIndexType* aux_index2_mKSASI= new SignedIndexType[mKSASI_nonzero_values];
         double* aux_val_mKSASI= new double[mKSASI_nonzero_values];
-        
+
         std::partial_sum(mKSASA_ptr, mKSASA_ptr + slave_active_size + 1, mKSASA_ptr);
         const std::size_t mKSASA_nonzero_values = mKSASA_ptr[slave_active_size];
         SignedIndexType* aux_index2_mKSASA= new SignedIndexType[mKSASA_nonzero_values];
         double* aux_val_mKSASA = new double[mKSASA_nonzero_values];
-        
+
         std::partial_sum(KSALMA_ptr, KSALMA_ptr + slave_active_size + 1, KSALMA_ptr);
         const std::size_t KSALMA_nonzero_values = KSALMA_ptr[slave_active_size];
         SignedIndexType* aux_index2_KSALMA= new SignedIndexType[KSALMA_nonzero_values];
         double* aux_val_KSALMA = new double[KSALMA_nonzero_values];
-        
+
         std::partial_sum(KLMILMI_ptr, KLMILMI_ptr + lm_inactive_size + 1, KLMILMI_ptr);
         const std::size_t KLMILMI_nonzero_values = KLMILMI_ptr[lm_inactive_size];
         SignedIndexType* aux_index2_KLMILMI= new SignedIndexType[KLMILMI_nonzero_values];
         double* aux_val_KLMILMI = new double[KLMILMI_nonzero_values];
-        
+
         std::partial_sum(KLMALMA_ptr, KLMALMA_ptr + lm_active_size + 1, KLMALMA_ptr);
         const std::size_t KLMALMA_nonzero_values = KLMALMA_ptr[lm_active_size];
         SignedIndexType* aux_index2_KLMALMA = new SignedIndexType[KLMALMA_nonzero_values];
         double* aux_val_KLMALMA = new double[KLMALMA_nonzero_values];
-        
+
         #pragma omp parallel
-        {            
+        {
             // We iterate over original matrix
             #pragma omp for
             for (IndexType i=0; i<rA.size1(); i++) {
@@ -937,7 +937,7 @@ protected:
                 }
             }
         }
-        
+
         CreateMatrix(KMLMA, master_size, lm_active_size, KMLMA_ptr, aux_index2_KMLMA, aux_val_KMLMA);
         CreateMatrix(mKSAN, slave_active_size, other_dof_size, mKSAN_ptr, aux_index2_mKSAN, aux_val_mKSAN);
         CreateMatrix(mKSAM, slave_active_size, master_size, mKSAM_ptr, aux_index2_mKSAM, aux_val_mKSAM);
@@ -946,33 +946,33 @@ protected:
         CreateMatrix(KSALMA, slave_active_size, lm_active_size, KSALMA_ptr, aux_index2_KSALMA, aux_val_KSALMA);
         CreateMatrix(KLMILMI, lm_inactive_size, lm_inactive_size, KLMILMI_ptr, aux_index2_KLMILMI, aux_val_KLMILMI);
         CreateMatrix(KLMALMA, lm_active_size, lm_active_size, KLMALMA_ptr, aux_index2_KLMALMA, aux_val_KLMALMA);
-        
-        // We compute directly the inverse of the KSALMA matrix 
+
+        // We compute directly the inverse of the KSALMA matrix
         // KSALMA it is supposed to be a diagonal matrix (in fact it is the key point of this formulation)
         // (NOTE: technically it is not a stiffness matrix, we give that name)
         if (lm_active_size > 0) {
             ComputeDiagonalByLumping(KSALMA, mKLMAModified, tolerance);
         }
-        
-        // We compute directly the inverse of the KLMILMI matrix 
+
+        // We compute directly the inverse of the KLMILMI matrix
         // KLMILMI it is supposed to be a diagonal matrix (in fact it is the key point of this formulation)
         // (NOTE: technically it is not a stiffness matrix, we give that name)
         if (lm_inactive_size > 0) {
             ComputeDiagonalByLumping(KLMILMI, mKLMIModified, tolerance);
         }
-        
+
         // Compute the P and C operators
         if (slave_active_size > 0) {
             MatrixMatrixProd(KMLMA,   mKLMAModified, mPOperator);
             MatrixMatrixProd(KLMALMA, mKLMAModified, mCOperator);
         }
-        
+
         // We proceed with the auxiliar products for the master blocks
-        SparseMatrixType master_auxKSAN(master_size, other_dof_size); 
-        SparseMatrixType master_auxKSAM(master_size, master_size); 
-        SparseMatrixType master_auxKSASI(master_size, slave_inactive_size); 
-        SparseMatrixType master_auxKSASA(master_size, slave_active_size); 
-        
+        SparseMatrixType master_auxKSAN(master_size, other_dof_size);
+        SparseMatrixType master_auxKSAM(master_size, master_size);
+        SparseMatrixType master_auxKSASI(master_size, slave_inactive_size);
+        SparseMatrixType master_auxKSASA(master_size, slave_active_size);
+
         if (slave_active_size > 0) {
             MatrixMatrixProd(mPOperator, mKSAN, master_auxKSAN);
             MatrixMatrixProd(mPOperator, mKSAM, master_auxKSAM);
@@ -980,13 +980,13 @@ protected:
                 MatrixMatrixProd(mPOperator, mKSASI, master_auxKSASI);
             MatrixMatrixProd(mPOperator, mKSASA, master_auxKSASA);
         }
-        
+
         // We proceed with the auxiliar products for the active slave blocks
-        SparseMatrixType aslave_auxKSAN(slave_active_size, other_dof_size); 
-        SparseMatrixType aslave_auxKSAM(slave_active_size, master_size); 
+        SparseMatrixType aslave_auxKSAN(slave_active_size, other_dof_size);
+        SparseMatrixType aslave_auxKSAM(slave_active_size, master_size);
         SparseMatrixType aslave_auxKSASI(slave_active_size, slave_inactive_size);
-        SparseMatrixType aslave_auxKSASA(slave_active_size, slave_active_size); 
-        
+        SparseMatrixType aslave_auxKSASA(slave_active_size, slave_active_size);
+
         if (slave_active_size > 0) {
             MatrixMatrixProd(mCOperator, mKSAN, aslave_auxKSAN);
             MatrixMatrixProd(mCOperator, mKSAM, aslave_auxKSAM);
@@ -994,31 +994,31 @@ protected:
                 MatrixMatrixProd(mCOperator, mKSASI, aslave_auxKSASI);
             MatrixMatrixProd(mCOperator, mKSASA, aslave_auxKSASA);
         }
-        
-        // Auxiliar indexes        
+
+        // Auxiliar indexes
         const SizeType other_dof_initial_index = 0;
         const SizeType master_dof_initial_index = other_dof_size;
         const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
         const SizeType assembling_slave_dof_initial_index = slave_inactive_dof_initial_index + slave_inactive_size;
-        
+
         // The auxiliar index structure
         const SizeType nrows = mKDispModified.size1();
         const SizeType ncols = mKDispModified.size2();
         IndexType* K_disp_modified_ptr = new IndexType[nrows + 1];
         K_disp_modified_ptr[0] = 0;
-        
+
         // Creating a buffer for parallel vector fill
         SignedIndexVectorType marker(nrows * ncols, -1);
-        
+
         #pragma omp parallel
-        {            
+        {
             #pragma omp for
             for (int i=0; i<static_cast<int>(rA.size1()); i++) {
                 const IndexType row_begin = index1[i];
                 const IndexType row_end   = index1[i + 1];
-                
+
                 SignedIndexType K_disp_modified_cols = 0;
-                
+
                 if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
                     const IndexType local_row_id = mGlobalToLocalIndexing[i] + other_dof_initial_index;
                     for (IndexType j=row_begin; j<row_end; j++) {
@@ -1129,68 +1129,68 @@ protected:
                 }
             }
         }
-        
+
         #pragma omp parallel
-        {            
+        {
             if (master_size > 0) {
                 // Get access to master_auxKSAN data
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
                     ComputeNonZeroBlocks(master_auxKSAN, K_disp_modified_ptr, marker, nrows, ncols,   master_dof_initial_index, other_dof_initial_index);
                 }
-                    
+
                 // Get access to master_auxKSAM data
                 if (master_auxKSAM.nnz() > 0) {
                     ComputeNonZeroBlocks(master_auxKSAM, K_disp_modified_ptr, marker, nrows, ncols,   master_dof_initial_index, master_dof_initial_index);
                 }
-                
+
                 // Get access to master_auxKSASI data
                 if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
                     ComputeNonZeroBlocks(master_auxKSASI, K_disp_modified_ptr, marker, nrows, ncols,   master_dof_initial_index, slave_inactive_dof_initial_index);
                 }
-                
+
                 // Get access to master_auxKSASA data
                 if (master_auxKSASA.nnz() > 0 && slave_active_size > 0) {
                     ComputeNonZeroBlocks(master_auxKSASA, K_disp_modified_ptr, marker, nrows, ncols,   master_dof_initial_index, assembling_slave_dof_initial_index);
                 }
             }
-            
+
             if (slave_active_size > 0) {
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
                     ComputeNonZeroBlocks(aslave_auxKSAN, K_disp_modified_ptr, marker, nrows, ncols,   assembling_slave_dof_initial_index, other_dof_initial_index);
                 }
-                
+
                 // Get access to aslave_auxKSAM data
                 if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
                     ComputeNonZeroBlocks(aslave_auxKSAM, K_disp_modified_ptr, marker, nrows, ncols,   assembling_slave_dof_initial_index, master_dof_initial_index);
                 }
-                
+
                 // Get access to aslave_auxKSASI data
                 if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
                     ComputeNonZeroBlocks(aslave_auxKSASI, K_disp_modified_ptr, marker, nrows, ncols,   assembling_slave_dof_initial_index, slave_inactive_dof_initial_index);
                 }
-                
+
                 // Get access to aslave_auxKSASA data
                 if (aslave_auxKSASA.nnz() > 0) {
                     ComputeNonZeroBlocks(aslave_auxKSASA, K_disp_modified_ptr, marker, nrows, ncols,   assembling_slave_dof_initial_index, assembling_slave_dof_initial_index);
                 }
             }
         }
-        
+
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr, K_disp_modified_ptr + nrows + 1, K_disp_modified_ptr);
         const std::size_t nonzero_values = K_disp_modified_ptr[nrows];
         KRATOS_TRACE_IF("MixedULMLinearSolver", nonzero_values == 0) << "nonzero_values equal to zero" << std::endl;
         SignedIndexType* aux_index2_K_disp_modified = new SignedIndexType[nonzero_values];
         double* aux_val_K_disp_modified = new double[nonzero_values];
-        
+
         #pragma omp parallel
-        {            
+        {
             #pragma omp for
             for (int i=0; i<static_cast<int>(rA.size1()); i++) {
                 const IndexType row_begin_A = index1[i];
                 const IndexType row_end_A   = index1[i + 1];
-                
+
                 if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
                     const IndexType local_row_id = mGlobalToLocalIndexing[i] + other_dof_initial_index;
                     SignedIndexType row_beg = K_disp_modified_ptr[local_row_id];
@@ -1339,7 +1339,7 @@ protected:
                 }
             }
         }
-        
+
         // TODO: Think about OMP
         // Filling the remaining marker
         SignedIndexType aux_marker = 0;
@@ -1364,7 +1364,7 @@ protected:
                 }
             }
         }
-        
+
         #pragma omp parallel
         {
             if (master_size > 0) {
@@ -1372,54 +1372,54 @@ protected:
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
                     ComputeAuxiliarValuesBlocks(master_auxKSAN, aux_index2_K_disp_modified, aux_val_K_disp_modified, marker, nrows, master_dof_initial_index, other_dof_initial_index);
                 }
-                
+
                 // Get access to master_auxKSAM data
                 if (master_auxKSAM.nnz() > 0) {
                     ComputeAuxiliarValuesBlocks(master_auxKSAM, aux_index2_K_disp_modified, aux_val_K_disp_modified, marker, nrows,  master_dof_initial_index, master_dof_initial_index);
                 }
-                
+
                 // Get access to master_auxKSASI data
                 if (master_auxKSASI.nnz() > 0 && slave_inactive_size > 0)
                     ComputeAuxiliarValuesBlocks(master_auxKSASI, aux_index2_K_disp_modified, aux_val_K_disp_modified, marker, nrows,  master_dof_initial_index, slave_inactive_dof_initial_index);
-                
+
                 // Get access to master_auxKSASA data
                 if (master_auxKSASA.nnz() > 0 && slave_active_size > 0)
                     ComputeAuxiliarValuesBlocks(master_auxKSASA, aux_index2_K_disp_modified, aux_val_K_disp_modified, marker, nrows,  master_dof_initial_index, assembling_slave_dof_initial_index);
             }
-            
+
             if ( slave_active_size > 0) {
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0)
                     ComputeAuxiliarValuesBlocks(aslave_auxKSAN, aux_index2_K_disp_modified, aux_val_K_disp_modified, marker, nrows,  assembling_slave_dof_initial_index, other_dof_initial_index);
-                
+
                 // Get access to aslave_auxKSAM data
                 if (aslave_auxKSAM.nnz() > 0 && master_size > 0)
                     ComputeAuxiliarValuesBlocks(aslave_auxKSAM, aux_index2_K_disp_modified, aux_val_K_disp_modified, marker, nrows,  assembling_slave_dof_initial_index, master_dof_initial_index);
-                
+
                 // Get access to aslave_auxKSASI data
                 if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0)
                     ComputeAuxiliarValuesBlocks(aslave_auxKSASI, aux_index2_K_disp_modified, aux_val_K_disp_modified, marker, nrows,  assembling_slave_dof_initial_index, slave_inactive_dof_initial_index);
-                
+
                 // Get access to aslave_auxKSASA data
                 if (aslave_auxKSASA.nnz() > 0) {
                     ComputeAuxiliarValuesBlocks(aslave_auxKSASA, aux_index2_K_disp_modified, aux_val_K_disp_modified, marker, nrows,  assembling_slave_dof_initial_index, assembling_slave_dof_initial_index);
                 }
             }
         }
-        
+
         CreateMatrix(mKDispModified, nrows, ncols, K_disp_modified_ptr, aux_index2_K_disp_modified, aux_val_K_disp_modified);
-        
-    #ifdef KRATOS_DEBUG 
+
+    #ifdef KRATOS_DEBUG
         CheckMatrix(mKDispModified);
-    #endif     
-        
+    #endif
+
 //         // DEBUG
 //         LOG_MATRIX_PRETTY(rA)
 //         LOG_MATRIX_PRETTY(mKDispModified)
-        
+
         KRATOS_CATCH ("")
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1436,12 +1436,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-        
-    LinearSolverPointerType mpSolverDispBlock; /// The pointer to the displacement linear solver 
-     
+
+    LinearSolverPointerType mpSolverDispBlock; /// The pointer to the displacement linear solver
+
     bool mBlocksAreAllocated; /// The flag that indicates if the blocks are allocated
     bool mIsInitialized;      /// The flag that indicates if the solution is mIsInitialized
-    
+
     IndexVectorType mMasterIndices;         /// The vector storing the indices of the master nodes in contact
     IndexVectorType mSlaveInactiveIndices;  /// The vector storing the indices of the slave nodes in contact (Inactive)
     IndexVectorType mSlaveActiveIndices;    /// The vector storing the indices of the slave nodes in contact (Active)
@@ -1450,35 +1450,35 @@ private:
     IndexVectorType mOtherIndices;          /// The vector containing the indices for other DoF
     IndexVectorType mGlobalToLocalIndexing; /// This vector stores the correspondance between the local and global
     BlockTypeVectorType mWhichBlockType; /// This vector stores the LM block belongings
-    
+
     SparseMatrixType mKDispModified; /// The modified displacement block
     SparseMatrixType mKLMAModified;  /// The modified active LM block (inverted diagonal)
     SparseMatrixType mKLMIModified;  /// The modified inactive LM block (inverted diagonal)
-    
+
     SparseMatrixType mKSAN;    /// The slave active-displacement block
     SparseMatrixType mKSAM;    /// The active slave-master block
     SparseMatrixType mKSASI;   /// The active slave-inactive slave block
     SparseMatrixType mKSASA;   /// The inactive slave-active slave block
-    
-    SparseMatrixType mPOperator; /// The operator used for the master blocks 
+
+    SparseMatrixType mPOperator; /// The operator used for the master blocks
     SparseMatrixType mCOperator; /// The operator used for the active slave block
-    
+
     VectorType mResidualLMActive;   /// The residual of the active lagrange multipliers
     VectorType mResidualLMInactive; /// The residual of the inactive lagrange multipliers
     VectorType mResidualDisp;       /// The residual of the rest of displacements
-    
+
     VectorType mLMActive;           /// The solution of the active lagrange multiplies
     VectorType mLMInactive;         /// The solution of the inactive lagrange multiplies
     VectorType mDisp;               /// The solution of the rest of displacements
-        
+
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * @brief This is a method to check the block containing nonzero values
      * @param AuxK The auxiliar block
@@ -1486,8 +1486,8 @@ private:
      * @param Marker A marker to check the already asigned values
      * @param NRows The total number of rows of the final matrix
      * @param NCols The total number of columns of the final matrix
-     * @param InitialIndexRow The initial row index of the auxiliar block in the final matrix 
-     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix 
+     * @param InitialIndexRow The initial row index of the auxiliar block in the final matrix
+     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
      * @todo Check the col_index!!!!!!
      */
     inline void ComputeNonZeroBlocks(
@@ -1503,25 +1503,25 @@ private:
         // Get access to aux_K data
         const IndexType* aux_K_index1 = AuxK.index1_data().begin();
         const IndexType* aux_K_index2 = AuxK.index2_data().begin();
-        
+
         #pragma omp for
         for (int i=0; i<static_cast<int>(AuxK.size1()); i++) {
             const IndexType row_begin = aux_K_index1[i];
             const IndexType row_end   = aux_K_index1[i + 1];
-            
+
             IndexType& K_disp_modified_cols = KPtr[InitialIndexRow + i + 1];
-            
+
             for (IndexType j=row_begin; j<row_end; j++) {
                 const IndexType col_index = InitialIndexColumn + aux_K_index2[j];
                 const IndexType index_marker = NRows * (i + InitialIndexRow) + col_index;
                 if (Marker[index_marker] < 0) {
-                    Marker[index_marker] = 0; 
+                    Marker[index_marker] = 0;
                     ++K_disp_modified_cols;
                 }
             }
         }
     }
-    
+
     /**
      * @brief This is a method to compute the contribution of the auxiliar blocks
      * @param AuxK The auxiliar block
@@ -1529,8 +1529,8 @@ private:
      * @param AuxVals The values of the final matrix
      * @param Marker A marker to check the already asigned values
      * @param NRows The total number of rows of the final matrix
-     * @param InitialIndexRow The initial row index of the auxiliar block in the final matrix 
-     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix 
+     * @param InitialIndexRow The initial row index of the auxiliar block in the final matrix
+     * @param InitialIndexColumn The initial column index of the auxiliar block in the final matrix
      * @todo Check the col_index!!!!!!
      */
     inline void ComputeAuxiliarValuesBlocks(
@@ -1547,15 +1547,15 @@ private:
         const double* aux_values = AuxK.value_data().begin();
         const IndexType* aux_K_index1 = AuxK.index1_data().begin();
         const IndexType* aux_K_index2 = AuxK.index2_data().begin();
-        
+
         #pragma omp for
         for (int i=0; i<static_cast<int>(AuxK.size1()); i++) {
             const IndexType aux_K_row_begin = aux_K_index1[i];
             const IndexType aux_K_row_end   = aux_K_index1[i + 1];
-            
+
             for (IndexType j=aux_K_row_begin; j<aux_K_row_end; j++) {
                 const IndexType col_index = InitialIndexColumn + aux_K_index2[j];
-                const IndexType index = Marker[NRows * (i + InitialIndexRow) + col_index] - 1; 
+                const IndexType index = Marker[NRows * (i + InitialIndexRow) + col_index] - 1;
                 if (AuxIndex2[index] == -1) {
                     AuxIndex2[index] = col_index;
                     AuxVals[index]  = -aux_values[j];
@@ -1565,33 +1565,33 @@ private:
             }
         }
     }
-    
+
     /**
      * @brief It allocates all the blocks and operators
      */
-    inline void AllocateBlocks() 
+    inline void AllocateBlocks()
     {
         // We clear the matrixes
         mKDispModified.clear(); /// The modified displacement block
         mKLMAModified.clear();  /// The modified active LM block (diagonal)
         mKLMIModified.clear();  /// The modified inaactive LM block (diagonal)
 
-        mKSAN.clear();  /// The slave active-displacement block        
+        mKSAN.clear();  /// The slave active-displacement block
         mKSAM.clear();  /// The active slave-master block
         mKSASI.clear(); /// The active slave-inactive slave block
         mKSASA.clear(); /// The active slave-slave active block
-        
+
         mPOperator.clear(); /// The operator used for the master blocks
-        mCOperator.clear(); /// The operator used for the active slave block 
-        
+        mCOperator.clear(); /// The operator used for the active slave block
+
         mResidualLMActive.clear();   /// The residual corresponding the active LM
         mResidualLMInactive.clear(); /// The residual corresponding the inactive LM
         mResidualDisp.clear();       /// The residual of the displacements
-        
+
         mLMActive.clear();   /// The solution of the active LM
         mLMInactive.clear(); /// The solution of the inactive LM
         mDisp.clear();       /// The solution of the displacement
-        
+
         // Auxiliar sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
@@ -1600,26 +1600,26 @@ private:
         const SizeType lm_active_size = mLMActiveIndices.size();
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
         const SizeType total_size = other_dof_size + master_size + slave_inactive_size + slave_active_size;
-        
+
         // We do the allocation
         mKDispModified.resize(total_size, total_size, false);            /// The modified displacement block
         mKLMAModified.resize(lm_active_size, lm_active_size, false);     /// The modified active LM block (diagonal)
         mKLMAModified.reserve(lm_active_size);
         mKLMIModified.resize(lm_inactive_size, lm_inactive_size, false); /// The modified inactve LM block (diagonal)
         mKLMIModified.reserve(lm_inactive_size);
-        
-        mKSAN.resize(slave_active_size, other_dof_size, false);       /// The slave active-displacement block        
+
+        mKSAN.resize(slave_active_size, other_dof_size, false);       /// The slave active-displacement block
         mKSAM.resize(slave_active_size, master_size, false);          /// The active slave-master block
         mKSASI.resize(slave_active_size, slave_inactive_size, false); /// The active slave-inactive slave block
         mKSASA.resize(slave_active_size, slave_active_size, false);   /// The active slave-slave active block
-        
+
         mPOperator.resize(master_size, slave_active_size, false);    /// The operator used for the master blocks
-        mCOperator.resize(lm_active_size, slave_active_size, false); /// The operator used for the active slave block 
-        
+        mCOperator.resize(lm_active_size, slave_active_size, false); /// The operator used for the active slave block
+
         mResidualLMActive.resize(lm_active_size, false );     /// The residual corresponding the active LM
         mResidualLMInactive.resize(lm_inactive_size, false ); /// The residual corresponding the inactive LM
         mResidualDisp.resize(total_size );             /// The residual of the displacements
-        
+
         mLMActive.resize(lm_active_size, false);     /// The solution of the active LM
         mLMInactive.resize(lm_inactive_size, false); /// The solution of the inactive LM
         mDisp.resize(total_size, false);             /// The solution of the displacement
@@ -1627,11 +1627,11 @@ private:
 
     /**
      * @brief This function extracts from a vector which has the size of the overall r, the part that corresponds to u-dofs
-     * @param rTotalResidual The total residual of the problem 
+     * @param rTotalResidual The total residual of the problem
      * @param ResidualU The vector containing the residual relative to the displacements
      */
     inline void GetUPart (
-        const VectorType& rTotalResidual, 
+        const VectorType& rTotalResidual,
         VectorType& ResidualU
         )
     {
@@ -1642,26 +1642,26 @@ private:
         const SizeType slave_active_size = mSlaveActiveIndices.size();
         const SizeType lm_active_size = mLMActiveIndices.size();
         const SizeType total_size = other_dof_size + master_size + slave_inactive_size + slave_active_size;
-        
+
         // Resize in case the size is not correct
         if (ResidualU.size() != total_size )
             ResidualU.resize (total_size, false);
-        
+
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(other_dof_size); i++)
             ResidualU[i] = rTotalResidual[mOtherIndices[i]];
-        
+
         // The corresponding residual for the active slave DoF's
         VectorType aux_res_active_slave(slave_active_size);
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(slave_active_size); i++)
             aux_res_active_slave[i] = rTotalResidual[mSlaveActiveIndices[i]];
-        
+
         if (slave_active_size > 0) {
-            // We compute the complementary residual for the master dofs        
+            // We compute the complementary residual for the master dofs
             VectorType aux_complement_master_residual(master_size);
             TSparseSpaceType::Mult(mPOperator, aux_res_active_slave, aux_complement_master_residual);
-            
+
             #pragma omp parallel for
             for (int i = 0; i<static_cast<int>(master_size); i++)
                 ResidualU[other_dof_size + i] = rTotalResidual[mMasterIndices[i]] - aux_complement_master_residual[i];
@@ -1670,16 +1670,16 @@ private:
             for (int i = 0; i<static_cast<int>(master_size); i++)
                 ResidualU[other_dof_size + i] = rTotalResidual[mMasterIndices[i]];
         }
-        
+
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(slave_inactive_size); i++)
             ResidualU[other_dof_size + master_size + i] = rTotalResidual[mSlaveInactiveIndices[i]];
-        
+
         if (slave_active_size > 0) {
-            // We compute the complementary residual for the master dofs        
+            // We compute the complementary residual for the master dofs
             VectorType aux_complement_active_lm_residual(lm_active_size);
             TSparseSpaceType::Mult(mCOperator, aux_res_active_slave, aux_complement_active_lm_residual);
-            
+
             #pragma omp parallel for
             for (int i = 0; i<static_cast<int>(lm_active_size); i++)
                 ResidualU[other_dof_size + master_size + slave_inactive_size + i] = rTotalResidual[mLMActiveIndices[i]] - aux_complement_active_lm_residual[i];
@@ -1692,53 +1692,53 @@ private:
 
     /**
      * @brief This function extracts from a vector which has the size of the overall r, the part that corresponds to active lm-dofs
-     * @param rTotalResidual The total residual of the problem 
+     * @param rTotalResidual The total residual of the problem
      * @param rResidualLMA The vector containing the residual relative to the active LM
      */
     inline void GetLMAPart(
-        const VectorType& rTotalResidual, 
+        const VectorType& rTotalResidual,
         VectorType& rResidualLMA
         )
-    {        
+    {
         // Auxiliar sizes
         const SizeType other_dof_size = mOtherIndices.size();
         const SizeType master_size = mMasterIndices.size();
         const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
         const SizeType slave_active_size = mSlaveActiveIndices.size();
-            
-        // We add the other 
+
+        // We add the other
         if (slave_active_size > 0) {
-            
+
             // We get the displacement residual of the active slave nodes
             if (rResidualLMA.size() != slave_active_size )
                 rResidualLMA.resize (slave_active_size, false);
-            
+
             #pragma omp parallel for
             for (int i = 0; i<static_cast<int>(rResidualLMA.size()); i++)
                 rResidualLMA[i] = rTotalResidual[mSlaveActiveIndices[i]];
-            
+
             // From the computed displacements we get the components of the displacements for each block
             VectorType disp_N(other_dof_size);
             VectorType disp_M(master_size);
             VectorType disp_SI(slave_inactive_size);
             VectorType disp_SA(slave_active_size);
-            
+
             #pragma omp parallel for
             for (int i = 0; i<static_cast<int>(other_dof_size); i++)
                 disp_N[i] = mDisp[i];
-            
+
             #pragma omp parallel for
             for (int i = 0; i<static_cast<int>(master_size); i++)
                 disp_M[i] = mDisp[other_dof_size + i];
-            
+
             #pragma omp parallel for
             for (int i = 0; i<static_cast<int>(slave_inactive_size); i++)
                 disp_SI[i] = mDisp[other_dof_size + master_size + i];
-            
+
             #pragma omp parallel for
             for (int i = 0; i<static_cast<int>(slave_active_size); i++)
                 disp_SA[i] = mDisp[other_dof_size + master_size + slave_inactive_size + i];
-        
+
             VectorType aux_mult(slave_active_size);
             TSparseSpaceType::Mult(mKSAN, disp_N, aux_mult);
             TSparseSpaceType::UnaliasedAdd (rResidualLMA, -1.0, aux_mult);
@@ -1752,24 +1752,24 @@ private:
             TSparseSpaceType::UnaliasedAdd (rResidualLMA, -1.0, aux_mult);
         }
     }
-    
+
     /**
      * @brief This function extracts from a vector which has the size of the overall r, the part that corresponds to inactive lm-dofs
-     * @param rTotalResidual The total residual of the problem 
+     * @param rTotalResidual The total residual of the problem
      * @param rResidualLMI The vector containing the residual relative to the inactive LM
      */
     inline void GetLMIPart (
-        const VectorType& rTotalResidual, 
+        const VectorType& rTotalResidual,
         VectorType& rResidualLMI
         )
     {
         // Auxiliar size
         const SizeType lm_inactive_size = mLMInactiveIndices.size();
-        
+
         // We get the displacement residual of the active slave nodes
         if (rResidualLMI.size() != lm_inactive_size )
             rResidualLMI.resize (lm_inactive_size, false);
-        
+
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(lm_inactive_size); i++)
             rResidualLMI[i] = rTotalResidual[mLMInactiveIndices[i]];
@@ -1777,26 +1777,26 @@ private:
 
     /**
      * @brief This method writes the displacement part
-     * @param rTotalResidual The total residual of the problem 
+     * @param rTotalResidual The total residual of the problem
      * @param ResidualU The vector containing the residual relative to the displacements
      */
     inline void SetUPart (
-        VectorType& rTotalResidual, 
+        VectorType& rTotalResidual,
         const VectorType& ResidualU
         )
     {
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(mOtherIndices.size()); i++)
             rTotalResidual[mOtherIndices[i]] = ResidualU[i];
-        
+
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(mMasterIndices.size()); i++)
             rTotalResidual[mMasterIndices[i]] = ResidualU[mOtherIndices.size() + i];
-        
+
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(mSlaveInactiveIndices.size()); i++)
             rTotalResidual[mSlaveInactiveIndices[i]] = ResidualU[mOtherIndices.size() + mMasterIndices.size() + i];
-        
+
         #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(mSlaveActiveIndices.size()); i++)
             rTotalResidual[mSlaveActiveIndices[i]] = ResidualU[mOtherIndices.size() + mMasterIndices.size() + mSlaveInactiveIndices.size() + i];
@@ -1804,11 +1804,11 @@ private:
 
     /**
      * @brief This method writes the active Lagrange Multiplier part
-     * @param rTotalResidual The total residual of the problem 
+     * @param rTotalResidual The total residual of the problem
      * @param ResidualLMA The vector containing the residual relative to the active LM
      */
     inline void SetLMAPart (
-        VectorType& rTotalResidual, 
+        VectorType& rTotalResidual,
         const VectorType& ResidualLMA
         )
     {
@@ -1816,14 +1816,14 @@ private:
         for (int i = 0; i< static_cast<int>(ResidualLMA.size()); i++)
             rTotalResidual[mLMActiveIndices[i]] = ResidualLMA[i];
     }
-    
+
     /**
      * @brief This method writes the inaactive Lagrange Multiplier part
-     * @param rTotalResidual The total residual of the problem 
+     * @param rTotalResidual The total residual of the problem
      * @param ResidualLMI The vector containing the residual relative to the inactive LM
      */
     inline void SetLMIPart (
-        VectorType& rTotalResidual, 
+        VectorType& rTotalResidual,
         const VectorType& ResidualLMI
         )
     {
@@ -1831,21 +1831,21 @@ private:
         for (int i = 0; i< static_cast<int>(ResidualLMI.size()); i++)
             rTotalResidual[mLMInactiveIndices[i]] = ResidualLMI[i];
     }
-    
+
     /**
      * @brief Matrix-matrix product C = A·B
-     * @detail This method uses a template for each matrix 
-     * @param rA The first matrix 
-     * @param rB The second matrix 
-     * @param rC The resulting matrix 
+     * @detail This method uses a template for each matrix
+     * @param rA The first matrix
+     * @param rB The second matrix
+     * @param rC The resulting matrix
      */
     template <class AMatrix, class BMatrix, class CMatrix>
     void MatrixMatrixProd(
-        const AMatrix& rA, 
-        const BMatrix& rB, 
+        const AMatrix& rA,
+        const BMatrix& rB,
         CMatrix& rC
-        ) 
-    {        
+        )
+    {
     #ifdef _OPENMP
         const int nt = omp_get_max_threads();
     #else
@@ -1858,10 +1858,10 @@ private:
             SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad(rA, rB, rC);
         }
     }
-    
+
     /**
      * @brief This method is intended to use to check the matrix
-     * @param rA The matrix to be checked 
+     * @param rA The matrix to be checked
      */
     double CheckMatrix (const SparseMatrixType& rA)
     {
@@ -1875,25 +1875,25 @@ private:
             std::size_t row_end   = index1[i+1];
             if (row_end - row_begin == 0)
                 KRATOS_WARNING("Checking sparse matrix") << "Line " << i << " has no elements" << std::endl;
-            
+
             for (std::size_t j=row_begin; j<row_end; j++) {
                 KRATOS_ERROR_IF( index2[j] > rA.size2() ) << "Array above size of A" << std::endl;
                 norm += values[j]*values[j];
             }
         }
-        
+
         return std::sqrt (norm);
     }
-    
+
     /**
      * @brief This method is designed to create the final solution sparse matrix from the auxiliar values
      * @detail Before create it reorder the columns. It deletes the auxiliar values after compute the matrix
      * @param AuxK The matrix solution
-     * @param NRows The number of rows of the matrix  
-     * @param NCols The number of columns of the matrix  
+     * @param NRows The number of rows of the matrix
+     * @param NCols The number of columns of the matrix
      * @param Ptr The indexes taht indicate the number of nonzero values in each column
      * @param AuxIndex2 The indexes of the nonzero columns
-     * @param AuxVal The array containing the values of the sparse matrix  
+     * @param AuxVal The array containing the values of the sparse matrix
      */
     void CreateMatrix(
         SparseMatrixType& AuxK,
@@ -1906,16 +1906,16 @@ private:
     {
         // We reorder the rows
         SparseMatrixMultiplicationUtility::SortRows(Ptr, NRows, NCols, AuxIndex2, AuxVal);
-        
+
         // Finally we build the final matrix
         SparseMatrixMultiplicationUtility::CreateSolutionMatrix(AuxK, NRows, NCols, Ptr, AuxIndex2, AuxVal);
-        
+
         // Release memory
         delete[] Ptr;
         delete[] AuxIndex2;
         delete[] AuxVal;
     }
-    
+
     /**
      * @brief This method is intended to lump an existing matrix
      * @param rA The matrix to be lumped
@@ -1932,13 +1932,13 @@ private:
         // Aux values
         const std::size_t size_A = rA.size1();
 //         VectorType diagA_vector(size_A);
-//         
+//
 //         // In case of not pure lumped matrix
 //         if (rA.nnz() > size_A) {
 //             // Get access to A data
 //             const std::size_t* index1 = rA.index1_data().begin();
 //             const double* values = rA.value_data().begin();
-// 
+//
 //             #pragma omp parallel for
 //             for (int i=0; i< static_cast<int>(size_A); i++) {
 //                 const std::size_t row_begin = index1[i];
@@ -1946,7 +1946,7 @@ private:
 //                 double temp = 0.0;
 //                 for (std::size_t j=row_begin; j<row_end; j++)
 //                     temp += values[j]*values[j];
-// 
+//
 //                 diagA_vector[i] = std::sqrt(temp);
 //             }
 //         } else { // Otherwise
@@ -1955,12 +1955,12 @@ private:
 //                 diagA_vector[i] = rA(i, i);
 //             }
 //         }
-        
+
         SignedIndexType* ptr = new SignedIndexType[size_A + 1];
         ptr[0] = 0;
         SignedIndexType* aux_index2 = new SignedIndexType[size_A];
         double* aux_val = new double[size_A];
-        
+
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(size_A); i++) {
             ptr[i+1] = i+1;
@@ -1972,31 +1972,31 @@ private:
             else // Auxiliar value
                 aux_val[i] = 1.0;
         }
-        
+
         SparseMatrixMultiplicationUtility::CreateSolutionMatrix(rdiagA, size_A, size_A, ptr, aux_index2, aux_val);
-        
+
         delete[] ptr;
         delete[] aux_index2;
         delete[] aux_val;
     }
-    
+
     /**
      * @brief This method returns the defaulr parameters in order to avoid code duplication
      * @return Returns the default parameters
      */
-    
+
     Parameters GetDefaultParameters()
     {
         Parameters default_parameters( R"(
         {
-            "solver_type": "MixedULMLinearSolver",
+            "solver_type": "mixed_ulm_linear_solver",
             "tolerance" : 1.0e-6,
             "max_iteration_number" : 200
         }  )" );
-        
+
         return default_parameters;
     }
-    
+
     ///@}
     ///@name Private  Access
     ///@{
