@@ -90,8 +90,20 @@ public:
          * Returns the currently selected integration method
          * @return current integration method selected
          */
-        //TODO: ADD THE OTHER CREATE FUNCTION
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+        Element::Pointer Create(IndexType NewId,
+                                NodesArrayType const& ThisNodes,
+                                PropertiesType::Pointer pProperties) const override;
+
+        /**
+         * creates a new element pointer
+         * @param NewId the ID of the new element
+         * @param pGeom the geometry to be employed
+         * @param pProperties the properties assigned to the new element
+         * @return a Pointer to the new element
+         */
+        Element::Pointer Create(IndexType NewId,
+                               GeometryType::Pointer pGeom,
+                               PropertiesType::Pointer pProperties) const override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.

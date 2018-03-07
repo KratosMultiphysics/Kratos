@@ -42,11 +42,24 @@ SmallDisplacementBbar::SmallDisplacementBbar(IndexType NewId,
 //************************************************************************************
 
 Element::Pointer SmallDisplacementBbar::Create(IndexType NewId,
-                                                     NodesArrayType const& ThisNodes,
-                                                     PropertiesType::Pointer pProperties) const
+                                               NodesArrayType const& ThisNodes,
+                                               PropertiesType::Pointer pProperties) const
 {
     return Kratos::make_shared<SmallDisplacementBbar>(
             NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+Element::Pointer SmallDisplacementBbar::Create(IndexType NewId,
+                                               GeometryType::Pointer pGeom,
+                                               PropertiesType::Pointer pProperties) const
+{
+    KRATOS_TRY
+    return Kratos::make_shared<SmallDisplacementBbar>(
+            NewId, pGeom, pProperties);
+    KRATOS_CATCH("");
 }
 
 //************************************************************************************
