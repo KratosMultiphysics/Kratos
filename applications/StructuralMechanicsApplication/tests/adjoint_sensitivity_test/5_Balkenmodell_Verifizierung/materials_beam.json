@@ -1,0 +1,23 @@
+{
+    "properties": [{
+            "model_part_name": "Parts_Beam",
+            "properties_id": 1,
+            "Material": {
+                    "name": "Beam_Material",
+                    "constitutive_law": {
+                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                    },
+                    "Variables": {
+                            "KratosMultiphysics.DENSITY": 7.85000E+03,                            
+                            "KratosMultiphysics.YOUNG_MODULUS": 2.1E+06,
+                            "KratosMultiphysics.POISSON_RATIO": 3.0000E-01,
+                            "KratosMultiphysics.StructuralMechanicsApplication.CROSS_AREA": 0.01,
+                            "KratosMultiphysics.StructuralMechanicsApplication.TORSIONAL_INERTIA": 0.00001,
+                            "KratosMultiphysics.StructuralMechanicsApplication.I22": 0.00001,
+                            "KratosMultiphysics.StructuralMechanicsApplication.I33": 0.00001
+                    },
+                    "Tables": {}
+            }
+    }]
+}
+
