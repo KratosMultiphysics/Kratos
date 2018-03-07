@@ -225,14 +225,14 @@ public:
         return *this;
     }
 
-    int MyPID()
+    int MyPID() const override
     {
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         return rank;
     }
 
-    int TotalProcesses()
+    int TotalProcesses() const override
     {
         int nproc;
         MPI_Comm_size(MPI_COMM_WORLD, &nproc);
@@ -249,68 +249,68 @@ public:
     ///@name Operations
     ///@{
 
-    void Barrier()
+    void Barrier() const override
     {
         MPI_Barrier(MPI_COMM_WORLD);
     }
 
-    virtual bool SumAll(int& rValue)
+    bool SumAll(int& rValue) const override
     {
         int local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool SumAll(double& rValue)
+    bool SumAll(double& rValue) const override
     {
         double local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool SumAll(array_1d<double, 3>& rValue)
+    bool SumAll(array_1d<double, 3>& rValue) const override
     {
         array_1d<double, 3> local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool MinAll(int& rValue)
+    bool MinAll(int& rValue) const override
     {
         int local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_INT, MPI_MIN, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool MinAll(double& rValue)
+    bool MinAll(double& rValue) const override
     {
         double local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool MaxAll(int& rValue)
+    bool MaxAll(int& rValue) const override
     {
         int local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool MaxAll(double& rValue)
+    bool MaxAll(double& rValue) const override
     {
         double local_value = rValue;
         MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool ScanSum(const double& send_partial, double& receive_accumulated)
+    bool ScanSum(const double& send_partial, double& receive_accumulated) const override
     {
         double copy_of_send_partial = send_partial;
         MPI_Scan(&copy_of_send_partial, &receive_accumulated, 1, MPI_DOUBLE, MPI_SUM , MPI_COMM_WORLD);
         return true;
     }
 
-    virtual bool ScanSum(const int& send_partial, int& receive_accumulated)
+    bool ScanSum(const int& send_partial, int& receive_accumulated) const override
     {
         int copy_of_send_partial = send_partial;
         MPI_Scan(&copy_of_send_partial, &receive_accumulated, 1, MPI_INT, MPI_SUM , MPI_COMM_WORLD);

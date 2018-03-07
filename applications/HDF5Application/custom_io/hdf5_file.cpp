@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <sstream>
 #include <regex>
+#include <utility>
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -23,6 +25,7 @@ File::File(Parameters Settings)
     Settings.RecursivelyValidateAndAssignDefaults(default_params);
 
     m_file_name = Settings["file_name"].GetString();
+    KRATOS_ERROR_IF(m_file_name == "PLEASE_SPECIFY_HDF5_FILENAME") << "Invalid file name: " << m_file_name << std::endl;
 
     hid_t fapl_id = H5Pcreate(H5P_FILE_ACCESS);
     std::string file_driver = Settings["file_driver"].GetString();
@@ -56,6 +59,25 @@ File::File(Parameters Settings)
     m_echo_level = Settings["echo_level"].GetInt();
 
     KRATOS_CATCH("");
+}
+
+File::File(File&& rOther)
+{
+    m_file_name = std::move(rOther.m_file_name);
+    m_file_id = rOther.m_file_id;
+    rOther.m_file_id = -1;
+    m_echo_level = rOther.m_echo_level;
+    rOther.m_echo_level = 0;
+}
+
+File& File::operator=(File&& rOther)
+{
+    m_file_name = std::move(rOther.m_file_name);
+    m_file_id = rOther.m_file_id;
+    rOther.m_file_id = -1;
+    m_echo_level = rOther.m_echo_level;
+    rOther.m_echo_level = 0;
+    return *this;
 }
 
 File::~File()
@@ -128,7 +150,7 @@ bool File::HasAttribute(const std::string& rObjectPath, const std::string& rName
     KRATOS_CATCH("");
 }
 
-void File::GetAttributeNames(const std::string& rObjectPath, std::vector<std::string>& rNames) const
+std::vector<std::string> File::GetAttributeNames(const std::string& rObjectPath) const
 {
     KRATOS_TRY;
     constexpr unsigned max_ssize = 100;
@@ -140,7 +162,7 @@ void File::GetAttributeNames(const std::string& rObjectPath, std::vector<std::st
     KRATOS_ERROR_IF(H5Oget_info(object_id, &object_info) < 0)
         << "H5Oget_info failed." << std::endl;
     hsize_t num_attrs = object_info.num_attrs;
-    rNames.resize(num_attrs);
+    std::vector<std::string> names(num_attrs);
 
     for (hsize_t i = 0; i < num_attrs; ++i)
     {
@@ -151,10 +173,11 @@ void File::GetAttributeNames(const std::string& rObjectPath, std::vector<std::st
         KRATOS_ERROR_IF(ssize < 0) << "H5Aget_name_by_idx failed." << std::endl;
         KRATOS_ERROR_IF(ssize > max_ssize) << "Attribute name size exceeds "
                                            << max_ssize << std::endl;
-        rNames[i].resize(ssize);
-        std::copy_n(buffer, ssize, rNames[i].begin());
+        names[i].resize(ssize);
+        std::copy_n(buffer, ssize, names[i].begin());
     }
     KRATOS_ERROR_IF(H5Oclose(object_id) < 0) << "H5Oclose failed." << std::endl;
+    return names;
     KRATOS_CATCH("");
 }
 
@@ -168,7 +191,7 @@ void File::CreateGroup(const std::string& rPath)
     KRATOS_CATCH("");
 }
 
-void File::GetLinkNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const
+std::vector<std::string> File::GetLinkNames(const std::string& rGroupPath) const
 {
     KRATOS_TRY;
     constexpr unsigned max_ssize = 100;
@@ -181,7 +204,7 @@ void File::GetLinkNames(const std::string& rGroupPath, std::vector<std::string>&
     KRATOS_ERROR_IF(H5Gget_info(group_id, &group_info) < 0)
         << "H5Gget_info failed." << std::endl;
     hsize_t num_links = group_info.nlinks;
-    rNames.resize(num_links);
+    std::vector<std::string> names(num_links);
 
     for (hsize_t i=0; i < num_links; ++i)
     {
@@ -192,31 +215,30 @@ void File::GetLinkNames(const std::string& rGroupPath, std::vector<std::string>&
         KRATOS_ERROR_IF(ssize < 0) << "H5Lget_name_by_idx failed." << std::endl;
         KRATOS_ERROR_IF(ssize > max_ssize) << "Link name size exceeds "
                                            << max_ssize << std::endl;
-        rNames[i].resize(ssize);
-        std::copy_n(buffer, ssize, rNames[i].begin());
+        names[i].resize(ssize);
+        std::copy_n(buffer, ssize, names[i].begin());
     }
     KRATOS_ERROR_IF(H5Gclose(group_id) < 0) << "H5Gclose failed." << std::endl;
+    return names;
     KRATOS_CATCH("");
 }
 
-void File::GetGroupNames(const std::string& rGroupPath, std::vector<std::string>& rNames) const
+std::vector<std::string> File::GetGroupNames(const std::string& rGroupPath) const
 {
     KRATOS_TRY;
-
-    rNames.resize(0);
-    std::vector<std::string> link_names;
-    GetLinkNames(rGroupPath, link_names);
-    rNames.reserve(link_names.size());
+    std::vector<std::string> names;
+    std::vector<std::string> link_names = GetLinkNames(rGroupPath);
+    names.reserve(link_names.size());
     for (const auto& r_name : link_names)
         if (IsGroup(rGroupPath + '/' + r_name))
-            rNames.push_back(r_name);
-
+            names.push_back(r_name);
+    return names;
     KRATOS_CATCH("");
 }
 
 void File::AddPath(const std::string& rPath)
 {
-    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: " <<rPath << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: " << rPath << std::endl;
 
     std::vector<std::string> splitted_path = Internals::Split(rPath, '/');
     std::string sub_path;
@@ -251,6 +273,14 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
     if (GetEchoLevel() == 2 && GetPID() == 0)
         std::cout << "Write time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
+void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const array_1d<double, 3>& rValue)
+{
+    KRATOS_TRY;
+    Vector<double> vector_value = rValue;
+    WriteAttribute(rObjectPath, rName, vector_value);
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 
@@ -443,7 +473,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
     KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl; 
     KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
-    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
+    KRATOS_ERROR_IF(is_valid_type == 0) << "Attribute \"" << rName << "\" is not a string." << std::endl;
 
     // Check dimensions.
     space_id = H5Aget_space(attr_id);
@@ -461,6 +491,17 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     rValue = std::string(buffer, dims[0]);
     if (GetEchoLevel() == 2 && GetPID() == 0)
         std::cout << "Read time \"" << rObjectPath << '/' << rName << "\": " << timer.ElapsedSeconds() << std::endl;
+    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
+void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, array_1d<double, 3>& rValue)
+{
+    KRATOS_TRY;
+    Vector<double> vector_value;
+    ReadAttribute(rObjectPath, rName, vector_value);
+    KRATOS_ERROR_IF(vector_value.size() > 3)
+        << "Invalid size (" << vector_value.size() << ") for array_1d!" << std::endl;
+    rValue = vector_value;
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 
@@ -598,15 +639,14 @@ bool IsPath(const std::string& rPath)
 
 std::vector<std::string> Split(const std::string& rPath, char Delimiter)
 {
-    std::vector<std::string> result;
-    result.reserve(10);
+    std::vector<std::string> splitted;
+    splitted.reserve(10);
     std::stringstream ss(rPath);
     std::string sub_string;
     while (std::getline(ss, sub_string, Delimiter))
         if (sub_string.size() > 0)
-            result.push_back(sub_string);
-
-    return result;
+            splitted.push_back(sub_string);
+    return splitted;
 }
 } // namespace Internals.
 
