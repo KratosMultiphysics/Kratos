@@ -50,7 +50,7 @@ namespace Kratos
 				i_test->second->ResetResult();
 		}
 
-		bool Tester::RunAllTestCases()
+		int Tester::RunAllTestCases()
 		{
 			// TODO: Including the initialization time in the timing.
 			ResetAllTestCasesResults();
@@ -58,14 +58,14 @@ namespace Kratos
 			return RunSelectedTestCases();
 		}
 
-		bool Tester::ProfileAllTestCases()
+		int Tester::ProfileAllTestCases()
 		{
 			ResetAllTestCasesResults();
 			SelectOnlyEnabledTestCases();
 			return ProfileSelectedTestCases();
 		}
 
-		bool Tester::RunTestSuite(std::string const& TestSuiteName)
+		int Tester::RunTestSuite(std::string const& TestSuiteName)
 		{
 			// TODO: Including the initialization time in the timing.
 			ResetAllTestCasesResults();
@@ -74,7 +74,7 @@ namespace Kratos
 			return RunSelectedTestCases();
 		}
 
-		bool Tester::RunTestCases(std::string const& TestCasesNamePattern)
+		int Tester::RunTestCases(std::string const& TestCasesNamePattern)
 		{
 			ResetAllTestCasesResults();
 			UnSelectAllTestCases();
@@ -85,7 +85,7 @@ namespace Kratos
 
 		}
 
-		bool Tester::ProfileTestSuite(std::string const& TestSuiteName)
+		int Tester::ProfileTestSuite(std::string const& TestSuiteName)
 		{
             KRATOS_ERROR << "Profile test suite is not implmented yet" << std::endl;
             return 0;
@@ -247,7 +247,7 @@ namespace Kratos
 #endif  
 		}
 
-		bool Tester::RunSelectedTestCases()
+		int Tester::RunSelectedTestCases()
 		{
 			auto start = std::chrono::steady_clock::now();
 			auto number_of_run_tests = NumberOfSelectedTestCases();
@@ -279,7 +279,7 @@ namespace Kratos
 
 
 
-		bool Tester::ProfileSelectedTestCases()
+		int Tester::ProfileSelectedTestCases()
 		{
 			KRATOS_ERROR << "Profile test cases is not implemented yet" << std::endl;
 			auto start = std::chrono::steady_clock::now();
@@ -350,7 +350,7 @@ namespace Kratos
 			}
 		}
 
-		bool Tester::ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests,double ElapsedTime)
+		int Tester::ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests,double ElapsedTime)
 		{
             int exit_code = 0;
 
