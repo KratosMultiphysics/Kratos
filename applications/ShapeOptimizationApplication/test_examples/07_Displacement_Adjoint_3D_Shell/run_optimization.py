@@ -16,8 +16,8 @@ import time as timer
 # Model part & solver
 # ======================================================================================================================================
 
-parameter_file = open("optimization_parameters.json",'r')
-ProjectParameters = Parameters( parameter_file.read())
+with open("optimization_parameters.json",'r') as parameter_file:
+    ProjectParameters = Parameters( parameter_file.read())
 
 #set echo level
 echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
