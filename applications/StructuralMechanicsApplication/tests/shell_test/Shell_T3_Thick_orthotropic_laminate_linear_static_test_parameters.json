@@ -15,8 +15,7 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "shell_test/Shell_T3_Thick_orthotropic_laminate_linear_static_test",
-            "input_file_label" : 0
+            "input_filename"   : "shell_test/Shell_T3_Thick_orthotropic_laminate_linear_static_test"
         },
         "material_import_settings"           : {
             "materials_filename" : "shell_test/Shell_T3_Thick_orthotropic_laminate_linear_static_test_materials.json"
