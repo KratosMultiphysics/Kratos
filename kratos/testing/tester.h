@@ -88,19 +88,19 @@ namespace Kratos
 
 			static void ResetAllTestCasesResults();
 
-			static void RunAllTestCases();
+			static bool RunAllTestCases();
 
-			static void ProfileAllTestCases();
+			static bool ProfileAllTestCases();
 
-			static void RunTestSuite(std::string const& TestSuiteName);
+			static bool RunTestSuite(std::string const& TestSuiteName);
 
-			static void ProfileTestSuite(std::string const& TestSuiteName);
-
-			/// The test case pattern can apply * as any number of any character
-			static void RunTestCases(std::string const& TestCasesNamePattern);
+			static bool ProfileTestSuite(std::string const& TestSuiteName);
 
 			/// The test case pattern can apply * as any number of any character
-			static void ProfileTestCases(std::string const& TestCasesNamePattern);
+			static bool RunTestCases(std::string const& TestCasesNamePattern);
+
+			/// The test case pattern can apply * as any number of any character
+			static bool ProfileTestCases(std::string const& TestCasesNamePattern);
 
 			static std::size_t NumberOfFailedTestCases();
 
@@ -188,9 +188,9 @@ namespace Kratos
 
 			static void SelectTestCasesByPattern(std::string const& TestCasesNamePattern);
 
-			static void RunSelectedTestCases();
+			static bool RunSelectedTestCases();
 
-			static void ProfileSelectedTestCases();
+			static bool ProfileSelectedTestCases();
 
 			static std::size_t NumberOfSelectedTestCases();
 
@@ -198,7 +198,7 @@ namespace Kratos
 
 			static void EndShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase);
 
-			static void ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests, double ElapsedTime);
+			static bool ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests, double ElapsedTime);
 
 			static void ReportFailures(std::ostream& rOStream);
 
