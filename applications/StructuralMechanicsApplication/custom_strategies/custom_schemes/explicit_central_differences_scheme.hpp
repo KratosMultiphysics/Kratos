@@ -21,6 +21,7 @@
 
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
@@ -120,11 +121,8 @@ public:
     mTime.Previous = mTime.Current - mTime.Delta;
     mTime.PreviousMiddle = mTime.Current - 1.5 * mTime.Delta;
 
-    if (mSchemeIsInitialized == false) {
-      InitializeExplicitScheme(rModelPart);
-    } else {
-      SchemeCustomInitialization(rModelPart);
-    }
+    if (!mSchemeIsInitialized)InitializeExplicitScheme(rModelPart);
+    else SchemeCustomInitialization(rModelPart);
 
     mSchemeIsInitialized = true;
     KRATOS_CATCH("")
@@ -137,15 +135,9 @@ public:
                                       TSystemVectorType &rDx,
                                       TSystemVectorType &rb) {
     KRATOS_TRY
-
     BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-    if (mDeltaTime.PredictionLevel > 1) {
-      CalculateDeltaTime(rModelPart);
-    }
-
+    if (mDeltaTime.PredictionLevel > 1)CalculateDeltaTime(rModelPart);
     InitializeResidual(rModelPart);
-
     KRATOS_CATCH("")
   }
 
@@ -153,21 +145,9 @@ public:
 
   void InitializeResidual(ModelPart &rModelPart) {
     KRATOS_TRY
-
     NodesArrayType &r_nodes = rModelPart.Nodes();
-
-    auto i_begin = rModelPart.NodesBegin();
-#pragma omp parallel for firstprivate(i_begin)
-    for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-      array_1d<double, 3> &r_node_rhs =
-          (i_begin + i)->FastGetSolutionStepValue(FORCE_RESIDUAL);
-      noalias(r_node_rhs) = ZeroVector(3);
-
-      array_1d<double, 3> &r_node_rhs_moment =
-          (i_begin + i)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-      noalias(r_node_rhs_moment) = ZeroVector(3);
-    }
-
+    VariableUtils().SetVectorVar(FORCE_RESIDUAL,ZeroVector(3),r_nodes);
+    VariableUtils().SetVectorVar(MOMENT_RESIDUAL,ZeroVector(3),r_nodes);
     KRATOS_CATCH("")
   }
 
@@ -186,9 +166,8 @@ public:
     double stable_delta_time = 1000.00;
 
     auto it_begin = rModelPart.ElementsBegin();
-#pragma omp parallel firstprivate(it_begin)
-    {
-#pragma omp parallel for private(stable_delta_time)
+
+#pragma omp parallel for firstprivate(it_begin)
       for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
         bool check_has_all_variables = true;
         double E(0.00), nu(0.00), roh(0.00), alpha(0.00), beta(0.00);
@@ -216,22 +195,20 @@ public:
 
           // compute courant criterion
           const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
-          const double wavespeed = sqrt(bulk_modulus / roh);
+          const double wavespeed = std::sqrt(bulk_modulus / roh);
           const double w = 2.0 * wavespeed / length; // frequency
 
           const double psi = 0.5 * (alpha / w + beta * w); // critical ratio;
-          stable_delta_time = (2.0 / w) * (sqrt(1.0 + psi * psi) - psi);
+          stable_delta_time = (2.0 / w) * (std::sqrt(1.0 + psi * psi) - psi);
 
           if (stable_delta_time > 0.00) {
-            if (stable_delta_time < delta_time) {
-              delta_time = stable_delta_time;
-            }
+            #pragma omp critical
+            if (stable_delta_time < delta_time) delta_time = stable_delta_time;
           }
         } else
           KRATOS_ERROR << "not enough parameters for prediction level "
                        << mDeltaTime.PredictionLevel << std::endl;
       }
-    }
 
     stable_delta_time = delta_time * safety_factor;
 
@@ -260,6 +237,14 @@ public:
     SizeType dim(3);
 
     auto i_begin = rModelPart.NodesBegin();
+    //allocating memory outside of omp
+    for (SizeType i=0;i<r_nodes.size();++i)
+    {
+      (i_begin + i)->SetValue(MIDDLE_VELOCITY,ZeroVector(3));
+      (i_begin + i)->SetValue(MIDDLE_ANGULAR_VELOCITY,ZeroVector(3));
+      (i_begin + i)->SetValue(NODAL_INERTIA,ZeroVector(3));
+    }
+
     const bool has_dof_for_rot_z = i_begin->HasDofFor(ROTATION_Z);
 #pragma omp parallel for firstprivate(i_begin)
     for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
