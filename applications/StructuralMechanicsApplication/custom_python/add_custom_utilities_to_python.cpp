@@ -38,7 +38,6 @@ void  AddCustomUtilitiesToPython()
     .def("Execute",&SprismNeighbours::Execute)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
-
 }
 
 }  // namespace Python.  

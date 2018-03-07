@@ -462,6 +462,8 @@ KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS)
 KRATOS_CREATE_VARIABLE(double, INTEGRATION_WEIGHT)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(INTEGRATION_COORDINATES)
 
+KRATOS_CREATE_VARIABLE(ConstraintSharedPointerVectorType, CONSTRAINTS_CONTAINER)
+
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
 //------------------------------------------------------------------------------//
@@ -972,6 +974,9 @@ void KratosApplication::RegisterVariables() {
     KRATOS_REGISTER_VARIABLE(NODAL_SWITCH)
 
     //--------------- OTHER Applications -------------------//
+
+    // For MPC implementations
+    KRATOS_REGISTER_VARIABLE(CONSTRAINTS_CONTAINER)
 
     //--------------- XFEM Set Application -------------------//
 

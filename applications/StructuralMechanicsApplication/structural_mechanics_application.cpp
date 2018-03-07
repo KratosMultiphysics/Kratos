@@ -430,8 +430,6 @@ void KratosStructuralMechanicsApplication::Register() {
     // Point moment
     KRATOS_REGISTER_CONDITION("PointMomentCondition3D1N", mPointMomentCondition3D1N);
 
-    // For MPC implementations
-    KRATOS_REGISTER_VARIABLE(MPC_DATA_CONTAINER)
     // Register linear elastics laws
     Serializer::Register("TrussConstitutiveLaw", mTrussConstitutiveLaw);
     Serializer::Register("BeamConstitutiveLaw", mBeamConstitutiveLaw);

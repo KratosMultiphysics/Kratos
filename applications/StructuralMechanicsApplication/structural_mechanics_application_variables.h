@@ -24,19 +24,13 @@
 // #include "includes/kratos_application.h"
 // #include "includes/model_part.h"
 //#include "structural_mechanics_application.h"
-#include "custom_utilities/multipoint_constraint_data.hpp"
+
 #include "custom_utilities/shell_cross_section.hpp"
 #include "includes/mat_variables.h"
 
 namespace Kratos
 {
-typedef array_1d<double, 3> Vector3;
-typedef MpcData::Pointer MpcDataPointerType;
-typedef Kratos::shared_ptr<std::vector<MpcDataPointerType>>
-    MpcDataSharedPointerVectorType;
-typedef std::vector<MpcDataPointerType>
-    *MpcDataPointerVectorType;
-
+    typedef array_1d<double, 3> Vector3;
 
     // Generalized eigenvalue problem
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, int, BUILD_LEVEL )
@@ -177,9 +171,6 @@ typedef std::vector<MpcDataPointerType>
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, Vector, SURFACE_LOADS_VECTOR )
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, Vector, POSITIVE_FACE_PRESSURES_VECTOR )
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, Vector, NEGATIVE_FACE_PRESSURES_VECTOR )
-
-    // For MPC implementations
-    KRATOS_DEFINE_VARIABLE(MpcDataSharedPointerVectorType, MPC_DATA_CONTAINER)
 }
 
 #endif /* KRATOS_STRUCTURAL_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED */
