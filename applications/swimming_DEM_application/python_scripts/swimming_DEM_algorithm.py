@@ -163,7 +163,6 @@ class Algorithm(object):
         # import the configuration data as read from the GiD
         Add = self.pp.CFD_DEM.AddEmptyValue
         Add("do_solve_dem").SetBool(True)
-        Add("fluid_already_calculated").SetBool(False)
         Add("recovery_echo_level").SetInt(1)
         Add("gradient_calculation_type").SetInt(1)
         Add("pressure_grad_recovery_type").SetInt(0)
