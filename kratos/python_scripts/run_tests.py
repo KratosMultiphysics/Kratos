@@ -314,9 +314,11 @@ def main():
     print('Running cpp tests', file=sys.stderr)
     try:
         Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
-        Tester.RunAllTestCases()
+        exit_code_cpp = Tester.RunAllTestCases()
+        exit_code = max(exit_code, exit_code_cpp)
     except Exception as e:
         print('[Warning]:', e, file=sys.stderr)
+        exit_code = 1
 
     sys.exit(exit_code)
 
