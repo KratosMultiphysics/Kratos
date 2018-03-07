@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
@@ -7,9 +7,10 @@ try:
 except ImportError:
     pass
 
-class FluidMain(object):
+class FluidDynamicsAnalysis(object):
 
     def __init__(self,parameter_file_name='ProjectParameters.json'):
+        super(FluidDynamicsAnalysis,self).__init__()
 
         with open(parameter_file_name,'r') as parameter_file:
             self.project_parameters = Parameters( parameter_file.read() )
@@ -186,5 +187,5 @@ class FluidMain(object):
         self.FinalizeSolution()
 
 if __name__ == '__main__':
-    solver = FluidMain()
-    solver.Run()
+    simulation = FluidDynamicsAnalysis()
+    simulation.Run()
