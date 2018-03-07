@@ -140,8 +140,8 @@ class FluidMain(object):
             self.main_model_part.ProcessInfo[STEP] = step
 
             if self.is_printing_rank:
-                print("STEP = ", step)
-                print("TIME = ", time)
+                Logger.Print("STEP = ", step)
+                Logger.Print("TIME = ", time)
             
             for process in self.simulation_processes:
                 process.ExecuteInitializeSolutionStep()
