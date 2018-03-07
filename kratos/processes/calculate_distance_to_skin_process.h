@@ -80,7 +80,11 @@ namespace Kratos
       ///@{
       void Initialize() override;
 
-      void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects) override;
+      void CalculateDistances(std::vector<PointerVector<GeometricalObject>>& rIntersectedObjects);
+
+      double CalculateDistanceToNode(Element &rElement1, int NodeIndex, PointerVector<GeometricalObject> &rIntersectedObjects, const double Epsilon);
+
+      void CalculateElementalDistances(std::vector<PointerVector<GeometricalObject>> &rIntersectedObjects);
 
       virtual void InitializeNodalDistances();
 
