@@ -178,6 +178,107 @@ double ElementSizeCalculator<3,8>::MinimumElementSize(const Geometry<Node<3> >& 
     return std::sqrt(h2);
 }
 
+// Triangle2D3 version.
+template<>
+double ElementSizeCalculator<2,3>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+
+    double x10 = rGeometry[1].X() - rGeometry[0].X();
+    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+
+    double x20 = rGeometry[2].X() - rGeometry[0].X();
+    double y20 = rGeometry[2].Y() - rGeometry[0].Y();
+
+    return std::sqrt(0.5 * (x10*y20-x20*y10) );
+}
+
+// Quadrilateral2D4 version.
+template<>
+double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+
+    double x10 = rGeometry[1].X() - rGeometry[0].X();
+    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+
+    double x30 = rGeometry[3].X() - rGeometry[0].X();
+    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+
+    return std::sqrt(x10*y30-x30*y10);
+}
+
+// Tetrahedra3D4 version.
+template<>
+double ElementSizeCalculator<3,4>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+
+    double x10 = rGeometry[1].X() - rGeometry[0].X();
+    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    double z10 = rGeometry[1].Z() - rGeometry[0].Z();
+
+    double x20 = rGeometry[2].X() - rGeometry[0].X();
+    double y20 = rGeometry[2].Y() - rGeometry[0].Y();
+    double z20 = rGeometry[2].Z() - rGeometry[0].Z();
+
+    double x30 = rGeometry[3].X() - rGeometry[0].X();
+    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+    double z30 = rGeometry[3].Z() - rGeometry[0].Z();
+
+    double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+    
+    return pow(detJ/6.0,1./3.);
+}
+
+// Hexahedra3D8 version.
+template<>
+double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& rGeometry) {
+
+    double x10 = rGeometry[1].X() - rGeometry[0].X();
+    double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    double z10 = rGeometry[1].Z() - rGeometry[0].Z();
+
+    double x30 = rGeometry[3].X() - rGeometry[0].X();
+    double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+    double z30 = rGeometry[3].Z() - rGeometry[0].Z();
+
+    double x40 = rGeometry[4].X() - rGeometry[0].X();
+    double y40 = rGeometry[4].Y() - rGeometry[0].Y();
+    double z40 = rGeometry[4].Z() - rGeometry[0].Z();
+/* REMOVE THIS **/
+    // Face 034
+    double nx = y30*z40 - z30*y40;
+    double ny = z30*x40 - x30*z40;
+    double nz = x30*y40 - y30*x40;
+    double Hsq = x10*nx + y10*ny + z10*nz; // scalar product x10*n
+    Hsq *= Hsq / (nx*nx + ny*ny + nz*nz); // H^2 = (x10*n)^2 / ||n||^2
+
+    // face 014
+    nx = y10*z40 - z10*y40;
+    ny = z10*x40 - x10*z40;
+    nz = x10*y40 - y10*x40;
+    double hsq = x30*nx + y30*ny + z30*nz;
+    hsq *= hsq / (nx*nx + ny*ny + nz*nz);
+    Hsq = (hsq < Hsq) ? hsq : Hsq;
+
+    // face 013
+    nx = y10*z30 - z10*y30;
+    ny = z10*x30 - x10*z30;
+    nz = x10*y30 - y10*x30;
+    hsq = x40*nx + y40*ny + z40*nz;
+    hsq *= hsq / (nx*nx + ny*ny + nz*nz);
+    Hsq = (hsq < Hsq) ? hsq : Hsq;
+    return std::sqrt(Hsq);
+/* UP TO HERE **/
+
+    // double detJ = x10 * y30 * z40 - x10 * y40 * z30 + y10 * z30 * x40 - y10 * x30 * z40 + z10 * x30 * y40 - z10 * y30 * x40;
+    // return pow(detJ,1./3.);
+}
+
+
+// Triangle2D3 version. 
+template<>
+double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
+                                                        const array_1d<double,3>& rVelocity) {
+    //TODO: seguir
+}
+
+
 // Triangle2D3 version. 
 template<>
 double ElementSizeCalculator<2,3>::GradientsElementSize(const bounded_matrix<double,3,2>& rDN_DX) {

@@ -174,16 +174,6 @@ public:
                             GeometryType::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
-    /**
-     * @brief MassMatrix Calculate the local mass matrix.
-     * @param rMassMatrix Local mass matrix (output)
-     * @param rCurrentProcessInfo Current ProcessInfo values (input)
-     */
-    void CalculateMassMatrix(
-        MatrixType &rMassMatrix,
-        ProcessInfo &rCurrentProcessInfo) override;
-
-
     void Calculate(
         const Variable<double>& rVariable,
         double& rOutput,

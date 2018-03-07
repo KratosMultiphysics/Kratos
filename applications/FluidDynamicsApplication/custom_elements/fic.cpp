@@ -90,38 +90,6 @@ template <class TElementData>
 void FIC<TElementData>::Calculate(const Variable<Matrix>& rVariable,
     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
 
-template <class TElementData>
-void FIC<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
-                                            ProcessInfo& rCurrentProcessInfo)
-{
-    // Resize and intialize output
-    if (rMassMatrix.size1() != LocalSize)
-        rMassMatrix.resize(LocalSize, LocalSize, false);
-
-    noalias(rMassMatrix) = ZeroMatrix(LocalSize, LocalSize);
-
-    // Get Shape function data
-    Vector gauss_weights;
-    Matrix shape_functions;
-    ShapeFunctionDerivativesArrayType shape_derivatives;
-    this->CalculateGeometryData(
-        gauss_weights, shape_functions, shape_derivatives);
-    const unsigned int number_of_gauss_points = gauss_weights.size();
-
-    TElementData data;
-    data.Initialize(*this, rCurrentProcessInfo);
-
-    // Iterate over integration points to evaluate local contribution
-    for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-        data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
-            shape_derivatives[g]);
-
-        this->CalculateMaterialResponse(data);
-
-        this->AddMassLHS(data, rMassMatrix);
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
@@ -306,38 +274,47 @@ void FIC<TElementData>::AddMassStabilization(
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
 
     double element_size = ElementSizeCalculator<Dim,NumNodes>::MinimumElementSize(this->GetGeometry());
-    double viscosity = 
+    
+    double TauIncompr;
+    double TauMomentum;
+    array_1d<double,3> TauGrad(3,0.0);
+    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauIncompr,TauMomentum,TauGrad);
+
     //TODO: seguir
 
-    double TauOne;
-    double TauTwo;
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
-
     Vector AGradN;
-    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
+    this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
 
     // Multiplying some quantities by density to have correct units
-    AGradN *= density; // Convective term is always multiplied by density
+    AGradN *= Density; // Convective term is always multiplied by density
+
+    // Auxiliary variables for matrix looping
+    const unsigned int NumNodes = rN.size();
+    const unsigned int BlockSize = TDim+1;
+    unsigned int Row = 0;
+    unsigned int Col = 0;
 
     // Temporary container
     double K;
-    double weight = rData.Weight * TauOne * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
+    double W = GaussWeight * Density; // This density is for the dynamic term in the residual (rho*Du/Dt)
+    const int oss_switch = rProcessInfo[OSS_SWITCH];
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        unsigned int row = i*BlockSize;
+        Row = i*BlockSize;
 
         for (unsigned int j = 0; j < NumNodes; j++)
         {
-            unsigned int col = j*BlockSize;
+            Col = j*BlockSize;
 
-            K = weight * AGradN[i] * rData.N[j];
+            K = TauMomentum * W * AGradN[i] * rN[j];
 
-            for (unsigned int d = 0; d < Dim; d++)
+            for (unsigned int d = 0; d < TDim; d++)
             {
-                rMassMatrix(row+d,col+d) += K;
-                rMassMatrix(row+Dim,col+d) += weight*rData.DN_DX(i,d)*rData.N[j];
+                rMassMatrix(Row+d,Col+d) += K;
+                if (oss_switch != 1)
+                    rMassMatrix(Row+TDim,Col+d) += TauIncompr * W*rDN_DX(i,d)*rN[j];
             }
         }
     }
@@ -351,6 +328,71 @@ void FIC<TElementData>::AddBoundaryIntegral(TElementData& rData,
 
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template< class TElementData >
+void FIC<TElementData>::CalculateStaticTau(
+    const TElementData& rData,
+    double Density,
+    double DynamicViscosity,
+    const array_1d<double,3> &Velocity,
+    double &TauIncompr,
+    double &TauMomentum,
+    array_1d<double,3> &TauGrad)
+{
+    constexpr double c1 = 8.0;
+    constexpr double c2 = 2.0;
+
+    const double Beta = rData.FICBeta;
+    const double Nobeta = 1.0-Beta;
+
+    double Havg = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(this->GetGeometry());
+
+    double velocity_norm = Velocity[0]*Velocity[0];
+    for (unsigned int d = 1; d < Dim; d++)
+        velocity_norm += Velocity[d]*Velocity[d];
+    velocity_norm = std::sqrt(velocity_norm);
+
+    double Hvel = Havg;
+    if (velocity_norm > 1.0e-6)
+    {
+        Hvel = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(this->GetGeometry(),Velocity);
+    }
+
+    //TODO: seguir
+
+/*
+    // Velocity term in incompressibility tau is c2/t, with t = min{ h/u, dt }
+    // NOW TRYING THE OPPOSITE: VelTerm = min{ c2 u/h, c2/dt }
+    double VelTerm = VelNorm / Hmin;
+    double TimeTerm = 1.0/rProcessInfo[DELTA_TIME];
+    if (TimeTerm < VelTerm)
+        VelTerm = TimeTerm;
+
+    double InvTau = Density * ( c1 * KinematicVisc / (Hmin*Hmin) + c2 * VelTerm );
+*/
+    double InvTau = Density * ( c1 * KinematicVisc / (Havg*Havg) + c2 * VelNorm / Havg );
+    TauIncompr = 1.0/InvTau;
+    TauMomentum = (Hvel / (Density * c2 * VelNorm) );
+
+    // TAU limiter for momentum equation: tau = min{ h/2u, dt }
+    double TimeTerm = rProcessInfo[DELTA_TIME]/Density;
+    if (TauMomentum > TimeTerm)
+    {
+        TauMomentum = TimeTerm;
+    }
+
+    TauMomentum *= Beta;
+
+    // Coefficients for FIC shock-capturing term
+    this->CalculateTauGrad(TauGrad);
+    TauGrad /= Density;
+    for (unsigned int d = 0; d < TDim; d++)
+        if (TauGrad[d] > Havg*TimeTerm)
+            TauGrad[d] = Havg*TimeTerm;
+
+    TauGrad *= Nobeta;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
