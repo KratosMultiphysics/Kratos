@@ -101,8 +101,11 @@ delta_time = ProjectParameters["problem_data"]["time_step"].GetDouble()
 start_time = ProjectParameters["problem_data"]["start_time"].GetDouble()
 end_time = ProjectParameters["problem_data"]["end_time"].GetDouble()
 
-time = start_time
-main_model_part.ProcessInfo[STEP] = 0
+if main_model_part.ProcessInfo[IS_RESTARTED] == True:
+    time = main_model_part.ProcessInfo[TIME]
+else:
+    time = start_time
+    main_model_part.ProcessInfo[STEP] = 0
 
 if (parallel_type == "OpenMP") or (mpi.rank == 0):
     Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
@@ -140,6 +143,8 @@ while(time <= end_time):
 
     for process in list_of_processes:
         process.ExecuteAfterOutputStep()
+
+    solver.SaveRestart()
 
 for process in list_of_processes:
     process.ExecuteFinalize()

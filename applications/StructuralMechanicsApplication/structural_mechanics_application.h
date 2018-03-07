@@ -61,6 +61,7 @@
 #include "custom_elements/axisym_total_lagrangian.h"
 #include "custom_elements/updated_lagrangian.h"
 #include "custom_elements/axisym_updated_lagrangian.h"
+#include "custom_elements/small_displacement_bbar.h"
 
 /* CONDITIONS */
 #include "custom_conditions/base_load_condition.h"
@@ -85,6 +86,8 @@
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
+#include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
+#include "custom_constitutive/linear_j2_plasticity_3d.h"
 
 /* UTILITIES */
 // Cross sections
@@ -298,7 +301,10 @@ private:
     const SmallDisplacement mSmallDisplacement3D15N;
     const SmallDisplacement mSmallDisplacement3D20N;
     const SmallDisplacement mSmallDisplacement3D27N;
-    
+
+    const SmallDisplacementBbar mSmallDisplacementBbar2D4N;
+    const SmallDisplacementBbar mSmallDisplacementBbar3D8N;
+
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D3N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D4N;
     const AxisymSmallDisplacement mAxisymSmallDisplacement2D6N;
@@ -388,6 +394,9 @@ private:
     const HyperElasticIsotropicNeoHookean3D  mHyperElasticIsotropicNeoHookean3D;
     const HyperElasticIsotropicNeoHookeanPlaneStrain2D  mHyperElasticIsotropicNeoHookeanPlaneStrain2D;
     const LinearElasticOrthotropic2DLaw mLinearElasticOrthotropic2DLaw;
+
+    const LinearJ2Plasticity3D mLinearJ2Plasticity3D;
+    const LinearJ2PlasticityPlaneStrain2D mLinearJ2PlasticityPlaneStrain2D;
 
     ///@}
     ///@name Private Operators
