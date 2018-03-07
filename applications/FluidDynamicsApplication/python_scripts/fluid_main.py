@@ -30,15 +30,15 @@ class FluidMain(object):
     def SetUpModel(self):
         '''Initialize the model part for the problem (stored as self.model_part) and other general model data.'''
 
-        model_part_name = self.ProjectParameters["problem_data"]["model_part_name"].GetString()
-        self.input_model_part = ModelPart(model_part_name)
+        model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
+        self.main_model_part = ModelPart(model_part_name)
 
-        self.domain_size = ProjectParameters["problem_data"]["domain_size"].GetInt()
-        self.input_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.domain_size)
+        self.domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
+        self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.domain_size)
 
         ## Solver construction
         import python_solvers_wrapper_fluid
-        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.input_model_part, self.project_parameters)
+        self.solver = python_solvers_wrapper_fluid.CreateSolver(self.main_model_part, self.project_parameters)
 
         self.solver.AddVariables()
         self.solver.ImportModelPart()
@@ -48,41 +48,41 @@ class FluidMain(object):
 
         # Fill a Model instance using input
         self.model = Model()
-        self.model.AddModelPart(self.input_model_part)
+        self.model.AddModelPart(self.main_model_part)
 
         # Add the skin SubModelParts to the model
-        for i in range(project_parameters["solver_settings"]["skin_parts"].size()):
-            skin_part_name = project_parameters["solver_settings"]["skin_parts"][i].GetString()
-            self.model.AddModelPart(self.input_model_part.GetSubModelPart(skin_part_name))
+        for i in range(self.project_parameters["solver_settings"]["skin_parts"].size()):
+            skin_part_name = self.project_parameters["solver_settings"]["skin_parts"][i].GetString()
+            self.model.AddModelPart(self.main_model_part.GetSubModelPart(skin_part_name))
 
         # Add the no-skin SubModelParts parts to the model (results processes and no-skin conditions)
-        for i in range(project_parameters["solver_settings"]["no_skin_parts"].size()):
-            no_skin_part_name = project_parameters["solver_settings"]["no_skin_parts"][i].GetString()
+        for i in range(self.project_parameters["solver_settings"]["no_skin_parts"].size()):
+            no_skin_part_name = self.project_parameters["solver_settings"]["no_skin_parts"][i].GetString()
             self.model.AddModelPart(self.model_part.GetSubModelPart(no_skin_part_name))
             
         # Add the initial conditions SubModelParts to the model
-        for i in range(project_parameters["initial_conditions_process_list"].size()):
-            initial_cond_part_name = project_parameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-            self.model.AddModelPart(self.input_model_part.GetSubModelPart(initial_cond_part_name))
+        for i in range(self.project_parameters["initial_conditions_process_list"].size()):
+            initial_cond_part_name = self.project_parameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
+            self.model.AddModelPart(self.main_model_part.GetSubModelPart(initial_cond_part_name))
 
         # Add the gravity SubModelParts to the model
-        for i in range(project_parameters["gravity"].size()):
-            gravity_part_name = project_parameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-            self.model.AddModelPart(self.input_model_part.GetSubModelPart(gravity_part_name))
+        for i in range(self.project_parameters["gravity"].size()):
+            gravity_part_name = self.project_parameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
+            self.model.AddModelPart(self.main_model_part.GetSubModelPart(gravity_part_name))
 
     def SetUpConditions(self):
         '''Read the boundary and initial conditions for the problem and initialize the processes that will manage them.'''
 
         ## Processes construction
         from process_factory import KratosProcessFactory
-        factory = KratosProcessFactory(fluid_model)
+        factory = KratosProcessFactory(self.model)
         # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
         # Note 1: gravity is constructed first. Outlet process might need its information.
         # Note 2: initial conditions are constructed before BCs. Otherwise, they may overwrite the BCs information.
-        self.simulation_processes =  factory.ConstructListOfProcesses( project_parameters["gravity"] )
-        self.simulation_processes += factory.ConstructListOfProcesses( project_parameters["initial_conditions_process_list"] )
-        self.simulation_processes += factory.ConstructListOfProcesses( project_parameters["boundary_conditions_process_list"] )
-        self.simulation_processes += factory.ConstructListOfProcesses( project_parameters["auxiliar_process_list"] )
+        self.simulation_processes =  factory.ConstructListOfProcesses( self.project_parameters["gravity"] )
+        self.simulation_processes += factory.ConstructListOfProcesses( self.project_parameters["initial_conditions_process_list"] )
+        self.simulation_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
+        self.simulation_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
 
         for process in self.simulation_processes:
             process.ExecuteInitialize()
@@ -100,7 +100,7 @@ class FluidMain(object):
             process.ExecuteBeforeSolutionLoop()
 
         ## Stepping and time settings
-        self.dt = self.project_parameters["problem_data"]["time_step"].GetDouble()
+        self.dt = self.project_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
         ## Writing the full ProjectParameters file before solving
@@ -116,13 +116,13 @@ class FluidMain(object):
             if self.parallel_type == "OpenMP":
                 from gid_output_process import GiDOutputProcess
                 self.output = GiDOutputProcess(self.model_part,
-                                               project_parameters["problem_data"]["problem_name"].GetString() ,
+                                               self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                                self.project_parameters["output_configuration"])
             elif parallel_type == "MPI":
                 from Trilinos.gid_output_process_mpi import GiDOutputProcessMPI
-                self.output = GiDOutputProcessMPI(solver.GetComputingModelPart(),
-                                                  project_parameters["problem_data"]["problem_name"].GetString() ,
-                                                  project_parameters["output_configuration"])
+                self.output = GiDOutputProcessMPI(self.model_part.GetComputingModelPart(),
+                                                  self.project_parameters["problem_data"]["problem_name"].GetString() ,
+                                                  self.project_parameters["output_configuration"])
 
             self.output.ExecuteInitialize()
 
@@ -136,8 +136,8 @@ class FluidMain(object):
             time = time + self.dt
             step = step + 1
             
-            self.model_part.CloneTimeStep(time)
-            self.model_part.ProcessInfo[STEP] = step
+            self.main_model_part.CloneTimeStep(time)
+            self.main_model_part.ProcessInfo[STEP] = step
 
             print("STEP = ", step)
             print("TIME = ", time)
@@ -169,7 +169,6 @@ class FluidMain(object):
 
     def FinalizeSolution(self):
         '''Finalize and close open files.'''
-        self.gid_io.finalize_results()
 
         for process in self.simulation_processes:
             process.ExecuteFinalize()
