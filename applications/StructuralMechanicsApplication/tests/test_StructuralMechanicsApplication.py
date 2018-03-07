@@ -25,6 +25,7 @@ from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
+from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
@@ -189,6 +190,7 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     # Shells
