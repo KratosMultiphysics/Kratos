@@ -40,17 +40,17 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.harmonic_analysis_settings)
         # Validate the remaining settings in the base class.
-        
+
         # Construct the base solver.
         super(HarmonicAnalysisSolver, self).__init__(main_model_part, custom_settings)
-        print("::[HarmonicAnalysisSolver]:: Construction finished")
+        self.print_on_rank_zero("::[HarmonicAnalysisSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
     def _create_solution_scheme(self):
         """Create the scheme to construct the global force vector.
 
-        The scheme determines the initial force vector on all system dofs. 
+        The scheme determines the initial force vector on all system dofs.
         """
         if self.harmonic_analysis_settings["scheme_type"].GetString() == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
@@ -63,13 +63,13 @@ class HarmonicAnalysisSolver(structural_mechanics_solver.MechanicalSolver):
 
     def _create_linear_solver(self):
         """Create a dummy linear solver.
-        
+
         This overrides the base class method and returns an empty linear solver as the harmonic
         analysis does not need a linear solver.
         """
         return KratosMultiphysics.LinearSolver()
 
-    def _create_mechanical_solver(self):
+    def _create_mechanical_solution_strategy(self):
         eigen_scheme = self.get_solution_scheme()
         builder_and_solver = self.get_builder_and_solver()
         computing_model_part = self.GetComputingModelPart()

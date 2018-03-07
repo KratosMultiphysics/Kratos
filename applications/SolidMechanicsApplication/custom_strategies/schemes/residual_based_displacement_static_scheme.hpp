@@ -630,6 +630,15 @@ namespace Kratos
         {
 	  KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
         }
+      
+      if ( mpIntegrationMethod == NULL ) {
+         ProcessInfo & rCurrentProcessInfo = rModelPart.GetProcessInfo();
+         this->SetIntegrationMethod( rCurrentProcessInfo);
+      }
+      if ( mpIntegrationMethod == NULL ) {
+	      KRATOS_ERROR << "scheme do not have a Time Integration Method " << mpIntegrationMethod << std::endl;
+      }
+
 
       return ErrorCode;
       

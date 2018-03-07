@@ -1,8 +1,9 @@
 {
     "optimization_settings" : {
         "objectives" : [{
-                "identifier"    : "targetDeviation",
-                "use_kratos"    : false
+                "identifier" : "targetDeviation",
+                "type"       : "minimization",
+                "use_kratos" : false
         }],
         "constraints" : [],
         "design_variables" : {

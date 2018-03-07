@@ -34,27 +34,33 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
         # Construct the base solver.
         super(TrilinosMechanicalSolver, self).__init__(main_model_part, custom_settings)
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Construction finished")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Construction finished")
 
     def AddVariables(self):
-        super(TrilinosMechanicalSolver, self).AddVariables()
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Variables ADDED")
+        if not self.is_restarted():
+            super(TrilinosMechanicalSolver, self).AddVariables()
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
+            self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Variables ADDED")
 
     def ImportModelPart(self):
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Importing model part.")
-        # Construct the Trilinos import model part utility.
-        import trilinos_import_model_part_utility
-        TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-        # Execute the Metis partitioning and reading.
-        TrilinosModelPartImporter.ExecutePartitioningAndReading()
-        # Call the base class execute after reading (check and prepare model process and set the constitutive law).
-        super(TrilinosMechanicalSolver, self)._execute_after_reading()
-        # Call the base class set and fill buffer size.
-        super(TrilinosMechanicalSolver, self)._set_and_fill_buffer()
-        # Construct the communicators
-        TrilinosModelPartImporter.CreateCommunicators()
-        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: Finished importing model part.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Importing model part.")
+        if self.is_restarted():
+            self.get_restart_utility().LoadRestart()
+        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+            # Construct the Trilinos import model part utility.
+            import trilinos_import_model_part_utility
+            TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
+            # Execute the Metis partitioning and reading.
+            TrilinosModelPartImporter.ExecutePartitioningAndReading()
+            # Call the base class execute after reading (check and prepare model process and set the constitutive law).
+            super(TrilinosMechanicalSolver, self)._execute_after_reading()
+            # Call the base class set and fill buffer size.
+            super(TrilinosMechanicalSolver, self)._set_and_fill_buffer()
+            # Construct the communicators
+            TrilinosModelPartImporter.CreateCommunicators()
+        else:
+            raise Exception("Other model part input options are not yet implemented.")
+        self.print_on_rank_zero("::[TrilinosMechanicalSolver]:: ", "Finished importing model part.")
 
     #### Specific internal functions ####
 
@@ -66,7 +72,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def print_on_rank_zero(self, *args):
         KratosMPI.mpi.world.barrier()
         if KratosMPI.mpi.rank == 0:
-            print(" ".join(map(str,args)))
+            KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
 
     #### Private functions ####
 
@@ -74,17 +80,8 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         return TrilinosApplication.CreateCommunicator()
 
     def _create_convergence_criterion(self):
-        # Create an auxiliary Kratos parameters object to store the convergence settings.
-        conv_params = KratosMultiphysics.Parameters("{}")
-        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
-        conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
-        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
-        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
-        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
-        import trilinos_convergence_criteria_factory
-        convergence_criterion = trilinos_convergence_criteria_factory.convergence_criterion(conv_params)
+        import trilinos_convergence_criteria_factory as convergence_criteria_factory
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
@@ -95,7 +92,7 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def _create_builder_and_solver(self):
         if self.settings["multi_point_constraints_used"].GetBool():
             raise Exception("MPCs not yet implemented in MPI")
-            
+
         linear_solver = self.get_linear_solver()
         epetra_communicator = self.get_epetra_communicator()
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
@@ -117,13 +114,13 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         mechanical_scheme = self.get_solution_scheme()
         linear_solver = self.get_linear_solver()
         builder_and_solver = self.get_builder_and_solver()
-        return TrilinosApplication.TrilinosLinearStrategy(computing_model_part, 
-                                                          mechanical_scheme, 
-                                                          linear_solver, 
-                                                          builder_and_solver, 
-                                                          self.settings["compute_reactions"].GetBool(), 
-                                                          self.settings["reform_dofs_at_each_step"].GetBool(), 
-                                                          False, 
+        return TrilinosApplication.TrilinosLinearStrategy(computing_model_part,
+                                                          mechanical_scheme,
+                                                          linear_solver,
+                                                          builder_and_solver,
+                                                          self.settings["compute_reactions"].GetBool(),
+                                                          self.settings["reform_dofs_at_each_step"].GetBool(),
+                                                          False,
                                                           self.settings["move_mesh_flag"].GetBool())
 
     def _create_newton_raphson_strategy(self):
@@ -141,3 +138,10 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                  self.settings["compute_reactions"].GetBool(),
                                                                  self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                  self.settings["move_mesh_flag"].GetBool())
+
+    def _create_restart_utility(self):
+        """Create the restart utility."""
+        import trilinos_restart_utility as restart_utility
+        rest_utility = restart_utility.RestartUtility(self.main_model_part,
+                                                      self._get_restart_settings())
+        return rest_utility

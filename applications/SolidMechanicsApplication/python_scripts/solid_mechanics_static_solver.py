@@ -9,8 +9,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_solver as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return StaticMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(custom_settings):
+    return StaticMechanicalSolver(custom_settings)
 
 class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
     """The solid mechanics static solver.
@@ -21,7 +21,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
 
     See solid_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, custom_settings):
 
         # Set defaults and validate custom settings.
         static_settings = KratosMultiphysics.Parameters("""
@@ -43,7 +43,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
             time_integration_settings["integration_method"].SetString("Non-Linear") # Override defaults in the base class.
 
         # Construct the base solver.
-        super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(StaticMechanicalSolver, self).__init__(custom_settings)
 
         print("::[Static_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
 

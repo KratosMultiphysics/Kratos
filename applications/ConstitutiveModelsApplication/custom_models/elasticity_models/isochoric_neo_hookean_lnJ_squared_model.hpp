@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/isochoric_hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/isochoric_mooney_rivlin_model.hpp"
 
 namespace Kratos
 {
@@ -270,7 +270,7 @@ namespace Kratos
       KRATOS_CATCH(" ")
     }
     
-    virtual double& GetVolumetricFunctionJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
+    virtual double& GetVolumetricFunction1srtDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 	

@@ -9,7 +9,7 @@
 # ==============================================================================
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 from KratosMultiphysics import *
@@ -37,7 +37,8 @@ class MeshControllerBasicUpdating( MeshController ):
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
         print("\n> Starting to update the mesh")
         startTime = timer.time()
-        MeshControllerUtilities( self.OptimizationModelPart ).UpdateMeshAccordingInputVariable( InputVariable )  
+        MeshControllerUtilities( self.OptimizationModelPart ).UpdateMeshAccordingInputVariable( InputVariable )
+        MeshControllerUtilities( self.OptimizationModelPart ).LogMeshChangeAccordingInputVariable( InputVariable )
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
 # ==============================================================================

@@ -139,11 +139,11 @@ namespace Kratos
             
             ModelPart model_part("Main");
             
-            typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
-            typename LinearSolverType::Pointer psolver = typename LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-            typename BuilderAndSolverType::Pointer pbuildandsolve = typename BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
+            SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+            LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+            BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
             
-            typename SolvingStrategyType::Pointer pstrategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, pscheme, psolver, pbuildandsolve, true));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedLinearStrategyType(model_part, pscheme, psolver, pbuildandsolve, true));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::LINEAR);
             
@@ -177,12 +177,12 @@ namespace Kratos
             
             ModelPart model_part("Main");
             
-            typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
-            typename LinearSolverType::Pointer psolver = typename LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
-            typename ConvergenceCriteriaType::Pointer pcriteria = typename ConvergenceCriteriaType::Pointer( new ResidualCriteriaType(1.0e-4, 1.0e-9) );
-            typename BuilderAndSolverType::Pointer pbuildandsolve = typename BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
+            SchemeType::Pointer pscheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
+            LinearSolverType::Pointer psolver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
+            ConvergenceCriteriaType::Pointer pcriteria = ConvergenceCriteriaType::Pointer( new ResidualCriteriaType(1.0e-4, 1.0e-9) );
+            BuilderAndSolverType::Pointer pbuildandsolve = BuilderAndSolverType::Pointer( new ResidualBasedBlockBuilderAndSolverType(psolver) );
             
-            typename SolvingStrategyType::Pointer pstrategy = typename SolvingStrategyType::Pointer( new ResidualBasedNewtonRaphsonStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, 10, true));
+            SolvingStrategyType::Pointer pstrategy = SolvingStrategyType::Pointer( new ResidualBasedNewtonRaphsonStrategyType(model_part, pscheme, psolver, pcriteria, pbuildandsolve, 10, true));
 
             DofsArrayType Doftemp = BasicTestStrategyDisplacement(model_part, ResidualType::NON_LINEAR);
             
