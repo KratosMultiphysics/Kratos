@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_mappers_to_python.h"
+#include "custom_python/add_custom_linear_solvers_to_python.h"
 
 namespace Kratos
 {
@@ -47,6 +48,7 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     AddCustomUtilitiesToPython();
     AddCustomProcessesToPython();
     AddCustomMappersToPython();
+    AddCustomLinearSolversToPython();
 
     // Adding enums
     enum_<NormalDerivativesComputation>("NormalDerivativesComputation")

@@ -1,6 +1,7 @@
 #include "custom_io/hdf5_points_data.h"
 
 #include "utilities/openmp_utils.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
@@ -69,8 +70,8 @@ void PointsData::SetData(NodesContainerType const& rNodes)
 
 void PointsData::Clear()
 {
-    mIds.clear();
-    mCoords.clear();
+    mIds.resize(0);
+    mCoords.resize(0);
 }
 
 } // namespace Internals.

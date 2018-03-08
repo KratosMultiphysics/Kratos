@@ -12,8 +12,8 @@
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_STRATEGY)
-#define KRATOS_EXPLICIT_STRATEGY
+#if !defined(KRATOS_MECHANICAL_EXPLICIT_STRATEGY)
+#define KRATOS_MECHANICAL_EXPLICIT_STRATEGY
 
 /* System includes */
 
@@ -22,11 +22,12 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos {
 
 /**
- * @class ExplicitStrategy
+ * @class MechanicalExplicitStrategy
  *
  * @brief This strategy is used for the explicit time integration
  *
@@ -37,12 +38,12 @@ template <class TSparseSpace,
           class TDenseSpace,  // = DenseSpace<double>,
           class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class ExplicitStrategy
+class MechanicalExplicitStrategy
     : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> {
 public:
   /** Counted pointer of ClassName */
 
-  KRATOS_CLASS_POINTER_DEFINITION(ExplicitStrategy);
+  KRATOS_CLASS_POINTER_DEFINITION(MechanicalExplicitStrategy);
 
   typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -60,7 +61,7 @@ public:
   /** Constructors.
    */
 
-  ExplicitStrategy(ModelPart &rModelPart, typename TSchemeType::Pointer pScheme,
+  MechanicalExplicitStrategy(ModelPart &rModelPart, typename TSchemeType::Pointer pScheme,
                    bool CalculateReactions = false,
                    bool ReformDofSetAtEachStep = false,
                    bool MoveMeshFlag = true)
@@ -93,7 +94,7 @@ public:
 
   /** Destructor.
    */
-  virtual ~ExplicitStrategy() {}
+  virtual ~MechanicalExplicitStrategy() {}
 
   /** Destructor.
    */
@@ -148,39 +149,25 @@ public:
     TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
 
     // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-    if (pScheme->SchemeIsInitialized() == false)
-      pScheme->Initialize(r_model_part);
+    if (!pScheme->SchemeIsInitialized())pScheme->Initialize(r_model_part);
 
     // Initialize The Elements - OPERATIONS TO BE DONE ONCE
-    if (pScheme->ElementsAreInitialized() == false)
-      pScheme->InitializeElements(r_model_part);
+    if (!pScheme->ElementsAreInitialized())pScheme->InitializeElements(r_model_part);
 
     // Initialize The Conditions- OPERATIONS TO BE DONE ONCE
-    if (pScheme->ConditionsAreInitialized() == false)
-      pScheme->InitializeConditions(r_model_part);
+    if (!pScheme->ConditionsAreInitialized())pScheme->InitializeConditions(r_model_part);
 
     // Set Nodal Mass to zero
     NodesArrayType &r_nodes = r_model_part.Nodes();
     ElementsArrayType &r_elements = r_model_part.Elements();
     ProcessInfo &r_current_process_info = r_model_part.GetProcessInfo();
 
-    auto it_node = r_model_part.NodesBegin();
-#pragma omp parallel for firstprivate(it_node)
-    for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-      (it_node + i)->SetValue(NODAL_MASS, 0.00);
-    }
-
-    if (r_model_part.NodesBegin()->HasDofFor(ROTATION_Z)) {
-#pragma omp parallel for
-      for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-        array_1d<double, 3> &r_nodal_inertia =
-            (it_node + i)->GetValue(NODAL_INERTIA);
-        noalias(r_nodal_inertia) = ZeroVector(3);
-      }
-    }
+    VariableUtils().SetNonHistoricalScalarVar(NODAL_MASS, 0.0, r_nodes);
+    if (r_model_part.NodesBegin()->HasDofFor(ROTATION_Z))
+      VariableUtils().SetNonHistoricalVectorVar(NODAL_INERTIA, ZeroVector(3), r_nodes);
 
     auto it_elem = r_model_part.ElementsBegin();
-#pragma omp parallel for firstprivate(it_elem)
+// #pragma omp parallel for firstprivate(it_elem)
     for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
       // Getting nodal mass and inertia from element
       Vector dummy_vector;
@@ -218,7 +205,7 @@ public:
 
     if (BaseType::mRebuildLevel > 0) {
       auto it_elem = r_model_part.ElementsBegin();
-#pragma omp parallel for firstprivate(it_elem)
+// #pragma omp parallel for firstprivate(it_elem)
       for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
         // Getting nodal mass and inertia from element
         Vector dummy_vector;
@@ -484,11 +471,11 @@ protected:
 
   /** Copy constructor.
    */
-  ExplicitStrategy(const ExplicitStrategy &Other){};
+  MechanicalExplicitStrategy(const MechanicalExplicitStrategy &Other){};
 
   /*@} */
 
-}; /* Class ExplicitStrategy */
+}; /* Class MechanicalExplicitStrategy */
 
 /*@} */
 

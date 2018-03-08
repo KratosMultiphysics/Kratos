@@ -25,6 +25,7 @@
 //Utilities
 #include "custom_utilities/tree_contact_search.h"
 #include "custom_utilities/process_factory_utility.h"
+#include "custom_utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos
 {
@@ -101,6 +102,12 @@ void  AddCustomUtilitiesToPython()
     .def("ExecuteAfterOutputStep",&ProcessFactoryUtility::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize)
     .def("Clear",&ProcessFactoryUtility::Clear)
+    ;
+    
+    // Sparse matrix multiplication utility
+    class_<SparseMatrixMultiplicationUtility>("SparseMatrixMultiplicationUtility", init<>())
+    .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     ;
 }
 
