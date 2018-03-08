@@ -651,7 +651,7 @@ class GiDOutputProcess(Process):
                 if(os.path.exists(f)):
                     try:
                         os.remove(f)
-                    except WindowsError:
+                    except OSError:
                         pass
 
     #
@@ -696,5 +696,5 @@ class GiDOutputProcess(Process):
                 if(os.path.exists(f)):
                     try:
                         os.remove(f)
-                    except WindowsError:
+                    except OSError:
                         pass
