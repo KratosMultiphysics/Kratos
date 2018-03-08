@@ -28,6 +28,7 @@
 #include "includes/kratos_parameters.h"
 #include "spatial_containers/spatial_containers.h"
 
+
 // Application includes
 #include "custom_processes/apply_multi_point_constraints_process.h"
 
@@ -58,8 +59,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     /// Constructor.
     CableNetMpcProcess(ModelPart &model_part,
                                       Parameters rParameters) : ApplyMultipointConstraintsProcess(model_part,rParameters)
-    {
-    }
+    {}
 
 
     /**
@@ -96,10 +96,18 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                                                                     resulting_squared_distances.begin(),
                                                                     max_number_of_neighbors );
 
+            
+            DoubleVector list_of_weights( number_of_neighbors, 0.0 );
 
-            DoubleVector nodal_neighbor_weights( number_of_neighbors );
-            this->CalculateNodalWeights(resulting_squared_distances,nodal_neighbor_weights);
-            this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,nodal_neighbor_weights,number_of_neighbors);
+            this->CalculateNodalWeights(resulting_squared_distances,list_of_weights,number_of_neighbors);
+            this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,list_of_weights,number_of_neighbors);
+
+            //DoubleVector list_of_weights2( number_of_neighbors, 0.0 );
+            //test new function to calculate weight
+            //this->ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights2);
+            
+
+            //if(m_parameters["debug_info"].GetBool()) KRATOS_WATCH(list_of_weights);
 
             //std::cout << "slave: " << node_i.Id() << " has " << number_of_neighbors << " masters " << std::endl;
             //std::cout << "###################################################" << std::endl;
@@ -130,7 +138,11 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                 ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents(
                     r_nodes_master[rNeighborNodes[master_iterator]->Id()],current_dof,
                     r_nodes_slave[rCurrentSlaveNode.Id()],current_dof,rNodalNeighborWeights[master_iterator],0);
-                //std::cout << rNeighborNodes[master_iterator]->Id() << "-----" << rCurrentSlaveNode.Id() << "-----" << rNodalNeighborWeights[master_iterator] << std::endl;
+
+                if(m_parameters["debug_info"].GetBool()){
+                    std::cout << rNeighborNodes[master_iterator]->Id() << "-----" << rCurrentSlaveNode.Id() << "-----" << rNodalNeighborWeights[master_iterator] << std::endl;
+                }
+                
             } // each master node
         }  // each dof
 
@@ -159,19 +171,19 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     /**
      * @brief This function re-calculates the weights used in mpc
      */
-    void CalculateNodalWeights(const DoubleVector& rResultingSquaredDistances, DoubleVector& rNodalNeighborWeights)
+    void CalculateNodalWeights(const DoubleVector& rResultingSquaredDistances, DoubleVector& rNodalNeighborWeights, const SizeType& rNumberOfNeighbors)
     {
         const double numerical_limit = std::numeric_limits<double>::epsilon();
         double total_nodal_distance = 0.00;
 
-        if((rNodalNeighborWeights.size()==1)&&(std::abs(rResultingSquaredDistances[0])<numerical_limit))
+        if((rNumberOfNeighbors==1)&&(std::abs(rResultingSquaredDistances[0])<numerical_limit))
          {rNodalNeighborWeights[0] = 1.00;}
         else
         {   
-            for (SizeType i=0;i<rNodalNeighborWeights.size();++i) total_nodal_distance+=std::sqrt(rResultingSquaredDistances[i]);   
-            for (SizeType i=0;i<rNodalNeighborWeights.size();++i)
+            for (SizeType i=0;i<rNumberOfNeighbors;++i) total_nodal_distance+=std::sqrt(rResultingSquaredDistances[i]);   
+            for (SizeType i=0;i<rNumberOfNeighbors;++i)
             {
-                rNodalNeighborWeights[i] = std::sqrt(rResultingSquaredDistances[i])/total_nodal_distance;
+                rNodalNeighborWeights[i] = std::sqrt(rResultingSquaredDistances[rNumberOfNeighbors-(i+1)])/total_nodal_distance;
             }
         }
     }
@@ -180,8 +192,64 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 
     void ExecuteInitializeSolutionStep() override
     {
-        if (m_parameters["reform_every_step"].GetBool()) CoupleModelParts();
+        if (m_parameters["reform_every_step"].GetBool()) this->CoupleModelParts();
     }
+
+
+
+
+    /////////////////////////////////////
+    /////////----> test functions
+
+    void ComputeWeightForAllNeighbors(  ModelPart::NodeType& design_node,
+                                        NodeVector& neighbor_nodes,
+                                        SizeType number_of_neighbors,
+                                        DoubleVector& list_of_weights)
+    {
+
+
+        double total_length(0.0);
+        DoubleVector temp_vector(number_of_neighbors,0.00);
+        KRATOS_WATCH(number_of_neighbors);
+        KRATOS_WATCH(temp_vector);
+        for(SizeType neighbor_itr = 0 ; neighbor_itr<number_of_neighbors ; neighbor_itr++)
+        {
+            ModelPart::NodeType& neighbor_node = *neighbor_nodes[neighbor_itr];
+            double current_length(this->CalculateCurrentLength(design_node,neighbor_node));
+
+            temp_vector[neighbor_itr] = current_length;
+            total_length += current_length;
+        }
+
+        for(SizeType i=0;i<number_of_neighbors;++i) temp_vector[i] /= total_length;
+        for(SizeType i=0;i<number_of_neighbors;++i) list_of_weights[i] = temp_vector[number_of_neighbors-(i+1)];
+    }
+
+    double CalculateCurrentLength(ModelPart::NodeType& rNodeI,ModelPart::NodeType& rNodeJ) {
+        const double du =
+            rNodeJ.FastGetSolutionStepValue(DISPLACEMENT_X) -
+            rNodeI.FastGetSolutionStepValue(DISPLACEMENT_X);
+        const double dv =
+            rNodeJ.FastGetSolutionStepValue(DISPLACEMENT_Y) -
+            rNodeI.FastGetSolutionStepValue(DISPLACEMENT_Y);
+        const double dw =
+            rNodeJ.FastGetSolutionStepValue(DISPLACEMENT_Z) -
+            rNodeI.FastGetSolutionStepValue(DISPLACEMENT_Z);
+        const double dx = rNodeJ.X0() - rNodeI.X0();
+        const double dy = rNodeJ.Y0() - rNodeI.Y0();
+        const double dz = rNodeJ.Z0() - rNodeI.Z0();
+        const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
+                                    (dw + dz) * (dw + dz));
+        return l;
+    }
+    //<------- ////////////////
+    /////////////////////////////////////
+
+
+
+
+
+
 
   protected:
 
