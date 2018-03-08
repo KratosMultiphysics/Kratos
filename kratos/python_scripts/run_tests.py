@@ -291,7 +291,7 @@ def main():
 
     # Run the tests for the rest of the Applications
     for application in applications:
-        print('Running tests for XXXX {}'.format(application), file=sys.stderr)
+        print('Running tests for {}'.format(application), file=sys.stderr)
         sys.stderr.flush()
 
         commander.RunTestSuitInTime(
