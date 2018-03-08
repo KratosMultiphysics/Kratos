@@ -387,10 +387,11 @@ public:
 
         #pragma omp parallel
         {
-            SignedIndexVectorType marker(ncols, -1);
-
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
+
+                SignedIndexVectorType marker(ncols, -1);
+
                 // Initialize
                 Idx new_A_cols = 0;
 
@@ -399,8 +400,8 @@ public:
                 const Idx row_end_a   = index1_a[ia+1];
                 for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
                     const Idx ca = index2_a[ja];
-                        marker[ca]  = ia;
-                        ++new_A_cols;
+                    marker[ca] = 1;
+                    ++new_A_cols;
                 }
 
                 // Iterate over B
@@ -408,8 +409,8 @@ public:
                 const Idx row_end_b   = index1_b[ia+1];
                 for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
                     const Idx cb = index2_b[jb];
-                    if (marker[cb] != ia) {
-                        marker[cb]  = ia;
+                    if (marker[cb] < 0) {
+                        marker[cb] = 1;
                         ++new_A_cols;
                     }
                 }
@@ -425,11 +426,12 @@ public:
 
         #pragma omp parallel
         {
-            SignedIndexVectorType marker(ncols, -1);
-
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
 
+                SignedIndexVectorType marker(ncols, -1);
+
+                // Initialize
                 const Idx row_beg = new_a_ptr[ia];
                 Idx row_end = row_beg;
 
@@ -553,7 +555,7 @@ public:
                     std::ptrdiff_t i = j - 1;
 
                     while(i >= 0 && Columns[i + row_beg] > c) {
-                        KRATOS_DEBUG_ERROR_IF(Columns[i + row_beg] > static_cast<Col>(NCols)) << "Index " << Columns[i + row_beg] <<" is greater than the number of columns " << NCols << std::endl;
+                        KRATOS_DEBUG_ERROR_IF(Columns[i + row_beg] > static_cast<Col>(NCols)) << " Index for column: " << i + row_beg << ". Index " << Columns[i + row_beg] <<" is greater than the number of columns " << NCols << std::endl;
                         Columns[i + 1 + row_beg] = Columns[i + row_beg];
                         Values[i + 1 + row_beg] = Values[i + row_beg];
                         i--;
