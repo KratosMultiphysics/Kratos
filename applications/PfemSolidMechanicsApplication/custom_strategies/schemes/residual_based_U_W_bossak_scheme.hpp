@@ -98,6 +98,33 @@ namespace Kratos
          /// Destructor.
          ~ResidualBasedUWBossakScheme() override {}
 
+         /**
+          * It initializes time step solution. Only for reasons if the time step solution is restarted
+          * @param rModelPart: The model of the problem to solve
+          * @param A: LHS matrix
+          * @param Dx: Incremental update of primary variables
+          * @param b: RHS Vector
+          *
+          */
+
+         void InitializeSolutionStep(ModelPart& rModelPart,
+               TSystemMatrixType& A,
+               TSystemVectorType& Dx,
+               TSystemVectorType& b) override
+         {
+            KRATOS_TRY;
+
+            ProcessInfo & rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+            this->mpIntegrationMethod->SetParameters( rCurrentProcessInfo);
+            mpWaterDisplacementIntegrationMethod->SetParameters( rCurrentProcessInfo );
+            mpWaterPressureIntegrationMethod->SetParameters( rCurrentProcessInfo);
+
+
+            ResidualBasedDisplacementBossakScheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
+
+            KRATOS_CATCH( "" );
+         }
          ///@}
          ///@name Operators
          ///@{
