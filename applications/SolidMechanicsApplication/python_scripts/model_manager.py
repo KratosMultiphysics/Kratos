@@ -43,25 +43,10 @@ class ModelManager(object):
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.settings["input_file_settings"].ValidateAndAssignDefaults(default_settings["input_file_settings"])
 
-        # Defining the model_part
-        self.main_model_part = KratosMultiphysics.ModelPart(self.settings["model_name"].GetString())
-        #TODO: replace this "model" for real one once available in kratos core
-        self.model = {self.settings["model_name"].GetString() : self.main_model_part}
-
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.settings["dimension"].GetInt())
-
-        computing_model_part = self.settings["computing_model_part_name"].GetString()
-        self.main_model_part.CreateSubModelPart(computing_model_part)
-        self.model.update({computing_model_part: self.main_model_part.GetSubModelPart(computing_model_part)})
-
-        #output_model_part = self.settings["output_model_part_name"].GetString()
-        #self.main_model_part.CreateSubModelPart(output_model_part)
-        #self.model.update({output_model_part: self.main_model_part.GetSubModelPart(output_model_part)})
-
-
-        # Legacy
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.settings["dimension"].GetInt())
-
+        # Set void model
+        self.main_model_part = self._create_main_model_part()
+        self.model = self._create_model()
+        
         # Variables and Dofs settings
         self.nodal_variables = []
         self.dof_variables   = []
@@ -75,15 +60,18 @@ class ModelManager(object):
         #print("::[Model_Manager]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["input_file_settings"]["name"].GetString()
-
+        
         if(self.settings["input_file_settings"]["type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
             print("  (reading file: "+ input_filename + ".mdpa)")
             #print("   " + os.path.join(problem_path, input_filename) + ".mdpa ")
             sys.stdout.flush()
 
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SPACE_DIMENSION, self.settings["dimension"].GetInt())                 
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.settings["dimension"].GetInt()) # Legacy
+            
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            # print("   Finished reading model part from mdpa file ")
+
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
 
@@ -91,7 +79,7 @@ class ModelManager(object):
 
         elif(self.settings["input_file_settings"]["type"].GetString() == "rest"):
             # Import model part from restart file.
-            restart_path = os.path.join(problem_path, self.settings["input_file_settings"]["name"].GetString() + "__" + self.settings["input_file_settings"]["label"].GetString() )
+            restart_path = os.path.join(problem_path, self.settings["input_file_settings"]["name"].GetString() + "__" + str(self.settings["input_file_settings"]["label"].GetInt() ) )
             if(os.path.exists(restart_path+".rest") == False):
                 raise Exception("Restart file not found: " + restart_path + ".rest")
             print("   Loading Restart file: ", restart_path + ".rest ")
@@ -108,6 +96,18 @@ class ModelManager(object):
             load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] +1;
             self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
             # print("   Finished loading model part from restart file ")
+            
+            computing_model_part = self.settings["computing_model_part_name"].GetString()
+            self._add_model_part_to_model(computing_model_part)
+            
+            # Get the list of the model_part's in the object Model
+            for i in range(self.settings["domain_parts_list"].size()):
+                part_name = self.settings["domain_parts_list"][i].GetString()
+                self._add_model_part_to_model(part_name)
+
+            for i in range(self.settings["processes_parts_list"].size()):
+                part_name = self.settings["processes_parts_list"][i].GetString()
+                self._add_model_part_to_model(part_name)
 
         else:
             raise Exception("Other input options are not yet implemented.")
@@ -149,6 +149,24 @@ class ModelManager(object):
 
     #### Model manager internal methods ####
 
+    def _create_main_model_part(self):
+        # Defining the model_part
+        main_model_part = KratosMultiphysics.ModelPart(self.settings["model_name"].GetString())
+        return main_model_part
+    
+    def _create_model(self):        
+        #TODO: replace this "model" for real one once available in kratos core
+        model = {self.settings["model_name"].GetString() : self.main_model_part}
+        return model
+
+    def _add_model_part_to_model(self, part_name):
+        if( self.main_model_part.HasSubModelPart(part_name) ):
+            self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+        
+    def _create_sub_model_part(self, part_name):                
+        self.main_model_part.CreateSubModelPart(part_name)
+        self._add_model_part_to_model(part_name)
+    
     def _add_variables(self):
 
         self._set_variables()
@@ -157,6 +175,7 @@ class ModelManager(object):
         self.nodal_variables = list(set(self.nodal_variables))
 
         self.nodal_variables = [self.nodal_variables[i] for i in range(0,len(self.nodal_variables)) if self.nodal_variables[i] != 'NOT_DEFINED']
+        self.nodal_variables.sort() 
 
         for variable in self.nodal_variables:
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
@@ -244,9 +263,13 @@ class ModelManager(object):
         return False
 
     def _execute_after_reading(self):
-        # The computing_model_part is labeled 'KratosMultiphysics.ACTIVE' flag (in order to recover it)
-        self.computing_model_part_name = "computing_domain"
 
+        # The computing_model_part is labeled 'KratosMultiphysics.ACTIVE' flag (in order to recover it)
+        self._create_sub_model_part(self.settings["computing_model_part_name"].GetString())
+
+        #output_model_part = self.settings["output_model_part_name"].GetString()
+        #self._create_sub_model_part(output_model_part)
+        
         # Auxiliary Kratos parameters object to be called by the CheckAndPepareModelProcess
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])

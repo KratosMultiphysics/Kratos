@@ -35,8 +35,8 @@
 #include "custom_utilities/response_functions/mass_response_function.h"
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/input_output/vtk_file_io.h"
-
-
+#include "custom_utilities/response_functions/eigenfrequency_response_function.h"
+#include "custom_utilities/response_functions/eigenfrequency_response_function_lin_scal.h"
 // ==============================================================================
 
 namespace Kratos
@@ -107,9 +107,11 @@ void  AddCustomUtilitiesToPython()
     // ========================================================================
     class_<MeshControllerUtilities, bases<Process> >("MeshControllerUtilities", init<ModelPart&>())
         .def("UpdateMeshAccordingInputVariable", &MeshControllerUtilities::UpdateMeshAccordingInputVariable)
+        .def("LogMeshChangeAccordingInputVariable", &MeshControllerUtilities::LogMeshChangeAccordingInputVariable)
         .def("SetMeshToReferenceMesh", &MeshControllerUtilities::SetMeshToReferenceMesh)
-        .def("SetDeformationVariablesToZero", &MeshControllerUtilities::SetDeformationVariablesToZero)        
-        ;        
+        .def("SetReferenceMeshToMesh", &MeshControllerUtilities::SetReferenceMeshToMesh)
+        .def("SetDeformationVariablesToZero", &MeshControllerUtilities::SetDeformationVariablesToZero)
+        ;
 
     // ========================================================================
     // For calculations related to response functions
@@ -119,7 +121,6 @@ void  AddCustomUtilitiesToPython()
         .def("CalculateValue", &StrainEnergyResponseFunction::CalculateValue)
         .def("CalculateGradient", &StrainEnergyResponseFunction::CalculateGradient)
         .def("GetValue", &StrainEnergyResponseFunction::GetValue)
-        .def("GetInitialValue", &StrainEnergyResponseFunction::GetInitialValue)
         .def("GetGradient", &StrainEnergyResponseFunction::GetGradient)
         ;
     class_<MassResponseFunction, bases<Process> >("MassResponseFunction", init<ModelPart&, Parameters>())
@@ -127,8 +128,23 @@ void  AddCustomUtilitiesToPython()
         .def("CalculateValue", &MassResponseFunction::CalculateValue)
         .def("CalculateGradient", &MassResponseFunction::CalculateGradient)
         .def("GetValue", &MassResponseFunction::GetValue)
-        .def("GetInitialValue", &MassResponseFunction::GetInitialValue)
         .def("GetGradient", &MassResponseFunction::GetGradient)
+        ;
+
+   class_<EigenfrequencyResponseFunction, bases<Process> >("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>())
+        .def("Initialize", &EigenfrequencyResponseFunction::Initialize)
+        .def("CalculateValue", &EigenfrequencyResponseFunction::CalculateValue)
+        .def("CalculateGradient", &EigenfrequencyResponseFunction::CalculateGradient)
+        .def("GetValue", &EigenfrequencyResponseFunction::GetValue)
+        .def("GetGradient", &EigenfrequencyResponseFunction::GetGradient)
+        ;
+
+    class_<EigenfrequencyResponseFunctionLinScal, bases<Process> >("EigenfrequencyResponseFunctionLinScal", init<ModelPart&, Parameters&>())
+        .def("Initialize", &EigenfrequencyResponseFunctionLinScal::Initialize)
+        .def("CalculateValue", &EigenfrequencyResponseFunctionLinScal::CalculateValue)
+        .def("CalculateGradient", &EigenfrequencyResponseFunctionLinScal::CalculateGradient)
+        .def("GetValue", &EigenfrequencyResponseFunctionLinScal::GetValue)
+        .def("GetGradient", &EigenfrequencyResponseFunctionLinScal::GetGradient)
         ;
 
     // ========================================================================

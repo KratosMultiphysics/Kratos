@@ -163,7 +163,6 @@ class Algorithm(object):
         # import the configuration data as read from the GiD
         Add = self.pp.CFD_DEM.AddEmptyValue
         Add("do_solve_dem").SetBool(True)
-        Add("fluid_already_calculated").SetBool(False)
         Add("recovery_echo_level").SetInt(1)
         Add("gradient_calculation_type").SetInt(1)
         Add("pressure_grad_recovery_type").SetInt(0)
@@ -171,7 +170,6 @@ class Algorithm(object):
         Add("store_full_gradient_option").SetBool(False)
         Add("store_fluid_pressure_option").SetBool(False)
         Add("laplacian_calculation_type").SetInt(0)
-        Add("do_search_neighbours").SetBool(True)
         Add("faxen_terms_type").SetInt(0)
         Add("material_acceleration_calculation_type").SetInt(1)
         Add("faxen_force_type").SetInt(0)

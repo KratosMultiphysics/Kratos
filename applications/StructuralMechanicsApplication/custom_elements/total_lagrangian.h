@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 
@@ -45,8 +45,12 @@ namespace Kratos
 ///@{
 
 /**
+ * @class TotalLagrangian
+ * @ingroup StructuralMechanicsApplication
  * @brief Total Lagrangian element for 2D and 3D geometries.
  * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
@@ -164,25 +168,6 @@ protected:
         KinematicVariables& rThisKinematicVariables,
         const unsigned int PointNumber,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-        ) override;
-        
-     /**
-     * @brief This functions updates the constitutive variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
-     * @param rThisConstitutiveVariables The constitutive variables
-     * @param rValues The CL parameters
-     * @param PointNumber The integration point considered
-     * @param IntegrationPoints The list of integration points
-     * @param ThisStressMeasure The stress measure considered
-     * @param Displacements The displacements vector
-     */ 
-    void CalculateConstitutiveVariables(
-        KinematicVariables& rThisKinematicVariables, 
-        ConstitutiveVariables& rThisConstitutiveVariables, 
-        ConstitutiveLaw::Parameters& rValues,
-        const unsigned int PointNumber,
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const ConstitutiveLaw::StressMeasure ThisStressMeasure
         ) override;
     
     ///@}

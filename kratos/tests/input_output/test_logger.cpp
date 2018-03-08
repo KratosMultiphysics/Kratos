@@ -56,7 +56,7 @@ namespace Kratos {
 			message << "Test message with number " << 12 << 'e' << "00";
 
 			output.WriteMessage(message);
-			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test message with number 12e00");
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "label: Test message with number 12e00");
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(LoggerStream, KratosCoreFastSuite)
@@ -67,13 +67,13 @@ namespace Kratos {
 
 			Logger("TestLabel") << "Test message with number " << 12 << 'e' << "00";
 
-			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test message with number 12e00");
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestLabel: Test message with number 12e00");
 
 			Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output " 
 				<< Logger::Category::CRITICAL << std::endl;
 
 			// The message has DETAIL severity and should not be written
-			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test message with number 12e00");
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestLabel: Test message with number 12e00");
         }
 
 		KRATOS_TEST_CASE_IN_SUITE(CheckPoint, KratosCoreFastSuite)
@@ -84,7 +84,7 @@ namespace Kratos {
 			KRATOS_CHECK_POINT("TestCheckPoint") << "The value in check point is " << 3.14;
 
 #if defined(KRATOS_ENABLE_CHECK_POINT)
-			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "The value in check point is 3.14");
+			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestCheckPoint: The value in check point is 3.14");
 #else
 			KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), ""); // should print noting
 #endif
@@ -98,7 +98,7 @@ namespace Kratos {
 
 			KRATOS_INFO("TestInfo") << "Test info message";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test info message");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestInfo: Test info message");
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoIf, KratosCoreFastSuite)
@@ -110,7 +110,7 @@ namespace Kratos {
             KRATOS_INFO_IF("TestInfo", true) << "Test info message";
             KRATOS_INFO_IF("TestInfo", false) << "This should not appear";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test info message");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestInfo: Test info message");
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoOnce, KratosCoreFastSuite)
@@ -123,7 +123,7 @@ namespace Kratos {
                 KRATOS_INFO_ONCE("TestInfo") << "Test info message - " << i;
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test info message - 0");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestInfo: Test info message - 0");
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoFirst, KratosCoreFastSuite)
@@ -136,7 +136,7 @@ namespace Kratos {
                 KRATOS_INFO_FIRST_N("TestInfo", 4) << ".";
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "....");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestInfo: .TestInfo: .TestInfo: .TestInfo: .");
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarning, KratosCoreFastSuite)
@@ -145,9 +145,9 @@ namespace Kratos {
 			LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
 			Logger::AddOutput(p_output);
 
-			KRATOS_INFO("TestWarning") << "Test info message";
+			KRATOS_INFO("TestWarning") << "Test warning message";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test info message");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: Test warning message");
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningIf, KratosCoreFastSuite)
@@ -159,7 +159,7 @@ namespace Kratos {
             KRATOS_INFO_IF("TestWarning", true) << "Test warning message";
             KRATOS_INFO_IF("TestWarning", false) << "This should not appear";
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test warning message");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: Test warning message");
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningOnce, KratosCoreFastSuite)
@@ -172,7 +172,7 @@ namespace Kratos {
                 KRATOS_INFO_ONCE("TestWarning") << "Test warning message - " << i;
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "Test warning message - 0");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: Test warning message - 0");
         }
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningFirst, KratosCoreFastSuite)
@@ -185,7 +185,7 @@ namespace Kratos {
                 KRATOS_INFO_FIRST_N("TestWarning", 4) << ".";
             }
 
-            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "....");
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestWarning: .TestWarning: .TestWarning: .TestWarning: .");
         }
 
 

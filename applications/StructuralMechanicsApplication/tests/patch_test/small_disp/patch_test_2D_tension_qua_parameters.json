@@ -15,8 +15,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "patch_test/small_disp/patch_test_2D_tension_qua",
-            "input_file_label" : 0
+            "input_filename"   : "patch_test/small_disp/patch_test_2D_tension_qua"
         },
         "material_import_settings" :{
             "materials_filename": "patch_test/materials_2D.json"
@@ -107,15 +106,5 @@
             "gauss_point_results" : ["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","VON_MISES_STRESS"]
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     }
 }

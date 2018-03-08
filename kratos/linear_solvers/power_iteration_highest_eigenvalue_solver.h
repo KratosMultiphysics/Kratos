@@ -15,17 +15,10 @@
 #define  KRATOS_POWER_ITERATION_HIGHEST_EIGENVALUE_SOLVER_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <numeric>
-#include <vector>
-
 // External includes
 
 // Project includes
 #include "spaces/ublas_space.h"
-#include "includes/ublas_interface.h"
-#include "processes/process.h"
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
 #include "utilities/random_initializer_utility.h"
@@ -52,13 +45,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This class uses the inverted power iteration method to obtain the lowest eigenvalue of a system
-/** Basically that
+/** 
+ * @class PowerIterationHighestEigenvalueSolver
+ * @ingroup KratosCore
+ * @brief This class uses the inverted power iteration method to obtain the lowest eigenvalue of a system
+ * @details he solver has different constructors, so can be constructed with the different parameters of using kartos parameters
+ * @see IterativeSolver
+ * @author Vicente Mataix Ferrandiz
 */
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType,
          class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class PowerIterationHighestEigenvalueSolver : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
+class PowerIterationHighestEigenvalueSolver 
+    : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
 {
 public:
     ///@name Type Definitions
@@ -88,6 +87,14 @@ public:
     /// Default constructor.
     PowerIterationHighestEigenvalueSolver() {}
 
+    /**
+     * @brief Alternative constructor
+     * @details It uses additional variables to be initialized
+     * @param MaxTolerance The maximal tolerance used as threshold for convergence
+     * @param MaxIterationNumber The maximal number of iterations to be considered
+     * @param RequiredEigenvalueNumber The required eigen value number 
+     * @param pLinearSolver The linear solver used to solve the system of equations
+     */
     PowerIterationHighestEigenvalueSolver(
         double MaxTolerance,
         unsigned int MaxIterationNumber,
@@ -100,6 +107,12 @@ public:
 
     }
 
+    /**
+     * @brief Alternative constructor
+     * @details It uses a Kratos parameters to set the different variables and parameters
+     * @param ThisParameters The parameters taht contain the different parameters for configuration
+     * @param pLinearSolver The linear solver used to solve the system of equations
+     */
     PowerIterationHighestEigenvalueSolver(
         Parameters ThisParameters,
         typename TLinearSolverType::Pointer pLinearSolver
@@ -154,7 +167,7 @@ public:
     ///@{
 
     /**
-     * The power iteration algorithm
+     * @brief The power iteration algorithm
      * @param K The stiffness matrix
      * @param M The mass matrix
      * @param Eigenvalues The vector containing the eigen values
@@ -178,76 +191,62 @@ public:
 
         RandomInitializeUtility<double>::RandomInitialize(K, y);
 
-        if(Eigenvalues.size() < 1)
-        {
-            Eigenvalues.resize(1, 0.0);
+        if(Eigenvalues.size() < 1) {
+            Eigenvalues.resize(1);
+            Eigenvalues[0] = 0.0;
         }
 
         // Starting with first step
-        double ro = 0.0;
-        double old_ro = Eigenvalues[0];
+        double rho = 0.0;
+        double old_rho = Eigenvalues[0];
         VectorType y_old = ZeroVector(size);
 
-        if (mEchoLevel > 1)
-        {
-            std::cout << "Iteration ro \t\t convergence norm" << std::endl;
-        }
-
-        for(SizeType i = 0 ; i < max_iteration ; i++)
-        {
+        for(SizeType i = 0 ; i < max_iteration ; i++) {
             // x = K*y
             TSparseSpaceType::Mult(K, y, x);
             
             // y = M*x
             TSparseSpaceType::Mult(M, x, y);
             
-            ro = static_cast<double>(*boost::max_element(y));
+            rho = static_cast<double>(*boost::max_element(y));
             
-            TSparseSpaceType::InplaceMult(y, 1.0/ro);
+            KRATOS_ERROR_IF(rho == 0.0) << "Perpendicular eigenvector to M" << std::endl;
+            
+            TSparseSpaceType::InplaceMult(y, 1.0/rho);
 
-            if(ro == 0.0)
-            {
-                KRATOS_ERROR << "Perpendicular eigenvector to M" << std::endl;
-            }
-
-            const double convergence_ro = std::abs((ro - old_ro) / ro);
-            const double convergence_norm = TSparseSpaceType::TwoNorm(y - y_old)/TSparseSpaceType::TwoNorm(y);
+            const double convergence_rho = std::abs((rho - old_rho) / rho);
+            const double norm_y = TSparseSpaceType::TwoNorm(y);
+            double convergence_norm =  TSparseSpaceType::TwoNorm(y - y_old);
+            if (norm_y > 0.0)
+                convergence_norm /= norm_y;
 
             if (mEchoLevel > 1)
-            {
-                std::cout << "Iteration: " << i << "\tro: " << ro << " \tConvergence norm: " << convergence_norm << " \tConvergence ro: " << convergence_ro << std::endl;
-            }
+                KRATOS_INFO("Power Iterator Highest Eigenvalue Solver: ") << "Iteration: " << i << "\trho: " << rho << " \tConvergence norm: " << convergence_norm << " \tConvergence rho: " <<
+                convergence_rho << std::endl;
             
-            if(convergence_norm < tolerance || convergence_ro < tolerance)
-            {
+            if(convergence_norm < tolerance || convergence_rho < tolerance)
                 break;
-            }
 
-            old_ro = ro;
+            old_rho = rho;
             TSparseSpaceType::Assign(y_old, 1.0, y);
         }
 
-        if (mEchoLevel > 0)
-        {
-            KRATOS_WATCH(ro);
-            KRATOS_WATCH(y);
+        if (mEchoLevel > 0) {
+            KRATOS_INFO("rho: ") << rho << std::endl;
+            KRATOS_INFO("y: ") << y << std::endl;
         }
 
-        Eigenvalues[0] = ro;
+        Eigenvalues[0] = rho;
 
-        if((Eigenvectors.size1() < 1) || (Eigenvectors.size2() < size))
-        {
-            Eigenvectors.resize(1,size);
-        }
+        if((Eigenvectors.size1() != 1) || (Eigenvectors.size2() < size))
+            Eigenvectors.resize(1, size, false);
 
         for(SizeType i = 0 ; i < size ; i++)
-        {
             Eigenvectors(0,i) = y[i];
-        }
     }
     
     /**
-     * This method returns directly the first eigen value obtained
+     * @brief This method returns directly the first eigen value obtained
      * @param K The stiffness matrix
      * @param M The mass matrix
      * @return The first eigenvalue
@@ -353,11 +352,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    unsigned int mRequiredEigenvalueNumber;
+    unsigned int mRequiredEigenvalueNumber;             /// The requiered eigenvalue number @todo Currently not used, check if remove
 
-    unsigned int mEchoLevel;
+    unsigned int mEchoLevel;                            /// The verbosity level considered
 
-    typename TLinearSolverType::Pointer mpLinearSolver;
+    typename TLinearSolverType::Pointer mpLinearSolver; /// The pointer to the linear solver considered
 
     ///@}
     ///@name Private Operators

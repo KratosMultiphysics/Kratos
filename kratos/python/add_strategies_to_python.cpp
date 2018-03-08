@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand, Riccardo Rossi
 //
@@ -40,6 +40,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
 #include "solving_strategies/schemes/residual_based_bossak_displacement_scheme.hpp"
 #include "solving_strategies/schemes/residual_based_newmark_displacement_scheme.hpp"
+#include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -173,18 +174,6 @@ namespace Kratos
             return dummy.CreateEmptyVectorPointer();
         }
 
-        // 	Kratos::shared_ptr< CompressedMatrix > CreateEmptyMatrixPointer()
-        // 	{
-        // 		Kratos::shared_ptr<CompressedMatrix> pNewMat = Kratos::shared_ptr<CompressedMatrix>(new CompressedMatrix() );
-        // 		return pNewMat;
-        // 	}
-        //
-        // 	Kratos::shared_ptr< Vector > CreateEmptyVectorPointer()
-        // 	{
-        // 		Kratos::shared_ptr<Vector > pNewVec = Kratos::shared_ptr<Vector >(new Vector() );
-        // 		return pNewVec;
-        // 	}
-
         CompressedMatrix& GetMatRef(Kratos::shared_ptr<CompressedMatrix>& dummy)
         {
             return *dummy;
@@ -197,24 +186,24 @@ namespace Kratos
 
         void AddStrategiesToPython()
         {
-	  //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType; //already done up in this file
-	  //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType; //already done up in this file
+      //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType; //already done up in this file
+      //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType; //already done up in this file
 
-            // 			def("CreateEmptyMatrixPointer",CreateEmptyMatrixPointer);
-            // 			def("CreateEmptyVectorPointer",CreateEmptyVectorPointer);
+            //             def("CreateEmptyMatrixPointer",CreateEmptyMatrixPointer);
+            //             def("CreateEmptyVectorPointer",CreateEmptyVectorPointer);
 
             class_< Kratos::shared_ptr<CompressedMatrix> >("CompressedMatrixPointer", init<Kratos::shared_ptr<CompressedMatrix> >())
                     .def("GetReference", GetMatRef, return_value_policy<reference_existing_object > ())
-                    //    				.def("GetReference", GetRef, return_internal_reference<1>() )
+                    //                    .def("GetReference", GetRef, return_internal_reference<1>() )
                     ;
 
-            // // // 			class_< CompressedMatrix , boost::noncopyable >("CompressedMatrix", init< >() );
+            // // //             class_< CompressedMatrix , boost::noncopyable >("CompressedMatrix", init< >() );
 
 
             class_< Kratos::shared_ptr<Vector> >("VectorPointer", init< Kratos::shared_ptr<Vector> >())
                     .def("GetReference", GetVecRef, return_value_policy<reference_existing_object > ())
                     ;
-            // // // 			class_< Vector , boost::noncopyable >("Vector", init< >() );
+            // // //             class_< Vector , boost::noncopyable >("Vector", init< >() );
 
             typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
             typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
@@ -239,9 +228,9 @@ namespace Kratos
                     .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh)
                     .def("Clear", &BaseSolvingStrategyType::Clear)
                     .def("Check", &BaseSolvingStrategyType::Check)
-					.def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
-					.def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
-					.def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
+                    .def("InitializeSolutionStep", &BaseSolvingStrategyType::InitializeSolutionStep)
+                    .def("FinalizeSolutionStep", &BaseSolvingStrategyType::FinalizeSolutionStep)
+                    .def("SolveSolutionStep", &BaseSolvingStrategyType::SolveSolutionStep)
                     //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
                     ;
 
@@ -299,55 +288,62 @@ namespace Kratos
             //********************************************************************
             //********************************************************************
 
-	    typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
-	    typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+        typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
+        typedef ResidualBasedNewmarkDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedNewmarkDisplacementSchemeType;
+        typedef ResidualBasedBDFDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBDFDisplacementSchemeType;
 
-            class_< BaseSchemeType, boost::noncopyable >
-                    ("Scheme", init< >())
-                    .def("Initialize", &BaseSchemeType::Initialize)
-                    .def("SchemeIsInitialized", &BaseSchemeType::SchemeIsInitialized)
-                    .def("ElementsAreInitialized", &BaseSchemeType::ElementsAreInitialized)
-                    .def("ConditionsAreInitialized", &BaseSchemeType::ConditionsAreInitialized)
-                    .def("InitializeElements", &BaseSchemeType::InitializeElements)
-                    .def("InitializeConditions", &BaseSchemeType::InitializeConditions)
-                    .def("InitializeSolutionStep", &BaseSchemeType::InitializeSolutionStep)
-                    .def("FinalizeSolutionStep", &BaseSchemeType::FinalizeSolutionStep)
-                    .def("InitializeNonLinIteration", &BaseSchemeType::InitializeNonLinIteration)
-                    .def("FinalizeNonLinIteration", &BaseSchemeType::FinalizeNonLinIteration)
-                    .def("Predict", &BaseSchemeType::Predict)
-                    .def("Update", &BaseSchemeType::Update)
-                    .def("CalculateOutputData", &BaseSchemeType::CalculateOutputData)
-                    .def("Clean", &BaseSchemeType::Clean)
-                    .def("Clear",&BaseSchemeType::Clear)
-                    .def("MoveMesh", MoveMesh)
-                    .def("Check", &BaseSchemeType::Check)
-                    ;
+        class_< BaseSchemeType, boost::noncopyable >
+                ("Scheme", init< >())
+                .def("Initialize", &BaseSchemeType::Initialize)
+                .def("SchemeIsInitialized", &BaseSchemeType::SchemeIsInitialized)
+                .def("ElementsAreInitialized", &BaseSchemeType::ElementsAreInitialized)
+                .def("ConditionsAreInitialized", &BaseSchemeType::ConditionsAreInitialized)
+                .def("InitializeElements", &BaseSchemeType::InitializeElements)
+                .def("InitializeConditions", &BaseSchemeType::InitializeConditions)
+                .def("InitializeSolutionStep", &BaseSchemeType::InitializeSolutionStep)
+                .def("FinalizeSolutionStep", &BaseSchemeType::FinalizeSolutionStep)
+                .def("InitializeNonLinIteration", &BaseSchemeType::InitializeNonLinIteration)
+                .def("FinalizeNonLinIteration", &BaseSchemeType::FinalizeNonLinIteration)
+                .def("Predict", &BaseSchemeType::Predict)
+                .def("Update", &BaseSchemeType::Update)
+                .def("CalculateOutputData", &BaseSchemeType::CalculateOutputData)
+                .def("Clean", &BaseSchemeType::Clean)
+                .def("Clear",&BaseSchemeType::Clear)
+                .def("MoveMesh", MoveMesh)
+                .def("Check", &BaseSchemeType::Check)
+                ;
 
-            class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
-                    bases< BaseSchemeType >, boost::noncopyable >
-                    (
-                    "ResidualBasedIncrementalUpdateStaticScheme", init< >()
-                    );
+        class_< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType>,
+                bases< BaseSchemeType >, boost::noncopyable >
+                (
+                "ResidualBasedIncrementalUpdateStaticScheme", init< >()
+                );
 
-            class_< ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>,
-                    bases< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >,
-                    boost::noncopyable >
-                    ("ResidualBasedIncrementalUpdateStaticSchemeSlip", init<unsigned int, unsigned int>());
+        class_< ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType>,
+                bases< ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> >,
+                boost::noncopyable >
+                ("ResidualBasedIncrementalUpdateStaticSchemeSlip", init<unsigned int, unsigned int>());
 
-	    // Residual Based Bossak Scheme Type
-	    class_< ResidualBasedBossakDisplacementSchemeType,
+        // Residual Based Bossak Scheme Type
+        class_< ResidualBasedBossakDisplacementSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedBossakDisplacementScheme", init< double >() )
-            .def("Initialize", &ResidualBasedBossakDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
 
-	    // Residual Based Newmark Scheme Type
-	    class_< ResidualBasedNewmarkDisplacementSchemeType,
+        // Residual Based Newmark Scheme Type
+        class_< ResidualBasedNewmarkDisplacementSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
                 "ResidualBasedNewmarkDisplacementScheme", init< >() )
-            .def("Initialize", &ResidualBasedNewmarkDisplacementScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
+            
+        // Residual Based BDF displacement Scheme Type
+        class_< ResidualBasedBDFDisplacementSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ResidualBasedBDFDisplacementScheme", init<  >() )
+                .def(init <const std::size_t>())
             ;
 
             //********************************************************************

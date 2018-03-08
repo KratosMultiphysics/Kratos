@@ -189,12 +189,32 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     main_model_part.CreateNewElement("Element2D3N", 1, elem_nodes_1, p_properties_1);
     main_model_part.CreateNewElement("Element2D3N", 2, elem_nodes_2, p_properties_1);
 
+    //elemental data
+    Matrix stress(2,2,1);
+    main_model_part.GetMesh().GetElement(1).SetValue(CAUCHY_STRESS_TENSOR,stress);
+    bool is_restarted = true;
+    main_model_part.GetMesh().GetElement(1).SetValue(IS_RESTARTED,is_restarted);
+    int domain_size =2;
+    main_model_part.GetMesh().GetElement(1).SetValue(DOMAIN_SIZE,domain_size);
+    double temperature = 34.7;
+    main_model_part.GetMesh().GetElement(1).SetValue(TEMPERATURE, temperature);
+    double displacement_x = 1.2;
+    main_model_part.GetMesh().GetElement(1).SetValue(DISPLACEMENT_X, displacement_x);
+    
+
     std::vector<ModelPart::IndexType> cond_nodes_1 = {1,2};
     std::vector<ModelPart::IndexType> cond_nodes_2 = {3,4};
     std::vector<ModelPart::IndexType> cond_nodes_3 = {4};
     main_model_part.CreateNewCondition("Condition2D2N", 1, cond_nodes_1, p_properties_1);
     main_model_part.CreateNewCondition("Condition2D2N", 2, cond_nodes_2, p_properties_1);
     main_model_part.CreateNewCondition("PointCondition2D1N", 3, cond_nodes_3, p_properties_1);
+
+    //conditional data
+    main_model_part.GetMesh().GetCondition(1).SetValue(CAUCHY_STRESS_TENSOR,stress);
+    main_model_part.GetMesh().GetCondition(1).SetValue(IS_RESTARTED,is_restarted);
+    main_model_part.GetMesh().GetCondition(1).SetValue(DOMAIN_SIZE,domain_size);
+    main_model_part.GetMesh().GetCondition(1).SetValue(TEMPERATURE, temperature);
+    main_model_part.GetMesh().GetCondition(1).SetValue(DISPLACEMENT_X, displacement_x);
 
     ModelPart::Pointer p_sub_model_part = main_model_part.CreateSubModelPart("SubModelPart");
     std::vector<ModelPart::IndexType> sub_model_part_nodes = {1,2,4};
@@ -228,6 +248,17 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartIOWriteModelPart, KratosCoreFastSuite) {
     KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfNodes(), 3);
     KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfElements(), 1);
     KRATOS_CHECK_EQUAL(main_model_part_output.GetSubModelPart("SubModelPart").NumberOfConditions(), 2);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(CAUCHY_STRESS_TENSOR)(1,1),1);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(IS_RESTARTED),is_restarted);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(DOMAIN_SIZE),domain_size);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(TEMPERATURE), temperature);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetElement(1).GetValue(DISPLACEMENT_X), displacement_x);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(CAUCHY_STRESS_TENSOR)(1,1),1);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(IS_RESTARTED),is_restarted);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(DOMAIN_SIZE),domain_size);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(TEMPERATURE), temperature);
+    KRATOS_CHECK_EQUAL(main_model_part_output.GetMesh().GetCondition(1).GetValue(DISPLACEMENT_X), displacement_x);
+
 
     // Remove the generated files
     std::string aux_string_mdpa = output_file_name + ".mdpa"; 
