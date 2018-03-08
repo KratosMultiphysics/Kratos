@@ -27,8 +27,8 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (type(ProjectParameters) != KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
         self.ProjectParameters = ProjectParameters
-        self.model_part_and_solver_initialized = False
-        self.CreateSolver(external_model_part)
+        self.model_part_and_solver_created = False
+        self.__CreateSolver(external_model_part)
 
     #### Public functions to run the Analysis ####
     def Run(self):
@@ -44,25 +44,25 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
     #### Public functions defining the Interface to the CoSimulationApplication ####
     def Initialize(self):
-        self.ExecuteInitialize()
-        self.InitializeIO()
-        self.ExecuteBeforeSolutionLoop()
+        self.__ExecuteInitialize()
+        self.__InitializeIO()
+        self.__ExecuteBeforeSolutionLoop()
 
     def InitializeTimeStep(self):
-        self.ExecuteInitializeSolutionStep()
+        self.__ExecuteInitializeSolutionStep()
 
     def SolveTimeStep(self):
-        self.SolveSolutionStep()
+        self.__SolveSolutionStep()
 
     def FinalizeTimeStep(self):
-        self.ExecuteFinalizeSolutionStep()
+        self.__ExecuteFinalizeSolutionStep()
 
     def Finalize(self):
-        self.ExecuteFinalize()
+        self.__ExecuteFinalize()
 
 
     ###########################################################################
-    def CreateSolver(self, external_model_part=None):
+    def __CreateSolver(self, external_model_part=None):
         """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
         if external_model_part != None:
             # This is a temporary solution until the importing of the ModelPart
@@ -107,9 +107,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             ## Read the model - note that SetBufferSize is done here
             self.solver.ImportModelPart() # TODO move to global instance
 
-        self.model_part_and_solver_initialized = True
+        self.model_part_and_solver_created = True
 
-    def InitializeIO(self):
+    def __InitializeIO(self):
         """ Initialize GiD  I/O """
         self.output_post  = self.ProjectParameters.Has("output_configuration")
         if (self.output_post == True):
@@ -124,9 +124,10 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
             self.gid_output.ExecuteInitialize()
 
-    def ExecuteInitialize(self):
-        """ Initializing the Analysis"""
+    def __ExecuteInitialize(self):
+        """ Initializing the Analysis """
 
+        ## ModelPart is being prepared to be used by the solver
         self.solver.PrepareModelPartForSolver()
 
         ## Adds the Dofs if they don't exist
@@ -169,7 +170,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         ## Solver initialization
         self.solver.Initialize()
 
-    def ExecuteBeforeSolutionLoop(self):
+    def __ExecuteBeforeSolutionLoop(self):
         """ Perform Operations before the SolutionLoop """
         if (self.output_post == True):
             self.gid_output.ExecuteBeforeSolutionLoop()
@@ -197,7 +198,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
             KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
 
-    def ExecuteInitializeSolutionStep(self):
+    def __ExecuteInitializeSolutionStep(self):
         """ Initialize the timestep and advance in time. Called once per timestep """
         self.time += self.delta_time
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
@@ -213,21 +214,21 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (self.output_post == True):
             self.gid_output.ExecuteInitializeSolutionStep()
 
-    def ExecuteBeforeSolve(self):
+    def __ExecuteBeforeSolve(self):
         """ Function to be called before solving. Can be executed several times per timestep """
         pass
 
-    def SolveSolutionStep(self):
+    def __SolveSolutionStep(self):
         """ Solving one step. Can be called several times per timestep """
-        self.ExecuteBeforeSolve()
+        self.__ExecuteBeforeSolve()
         self.solver.Solve()
-        self.ExecuteAfterSolve()
+        self.__ExecuteAfterSolve()
 
-    def ExecuteAfterSolve(self):
+    def __ExecuteAfterSolve(self):
         """ Function to be called after solving. Can be executed several times per timestep """
         pass
 
-    def ExecuteFinalizeSolutionStep(self):
+    def __ExecuteFinalizeSolutionStep(self):
         """ Finalizing the timestep and printing the output. Called once per timestep """
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
@@ -246,7 +247,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
-    def ExecuteFinalize(self):
+    def __ExecuteFinalize(self):
         """ Operations to be performed at the end of the Analysis """
         for process in self.list_of_processes:
             process.ExecuteFinalize()
@@ -258,17 +259,17 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
 
     def GetModelPart(self):
-        if self.model_part_and_solver_initialized:
+        if self.model_part_and_solver_created:
             return self.main_model_part
         else:
-            raise Exception("ModelPart not yet initialized! Use \"CreateSolver\" first")
+            raise Exception("ModelPart not yet created! Use \"CreateSolver\" first")
 
 
     def GetSolver(self):
-        if self.model_part_and_solver_initialized:
+        if self.model_part_and_solver_created:
             return self.solver
         else:
-            raise Exception("Solver not yet initialized! Use \"CreateSolver\" first")
+            raise Exception("Solver not yet created! Use \"CreateSolver\" first")
 
 
 if __name__ == "__main__":
