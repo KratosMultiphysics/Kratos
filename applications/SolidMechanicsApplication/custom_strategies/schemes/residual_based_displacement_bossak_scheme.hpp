@@ -109,7 +109,24 @@ namespace Kratos
 
 	KRATOS_CATCH("")
     }
+   
+    virtual int Check( ModelPart & rModelPart) override 
+    {
+       KRATOS_TRY;
     
+       int ErrorCode = 0;
+       ErrorCode = DerivedType::Check( rModelPart);
+
+       const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+
+       if ( this->mVector.ap.size() != NumThreads) {
+          this->mVector.ap.resize(NumThreads);
+       }
+
+       return ErrorCode;
+
+       KRATOS_CATCH("")
+    }
     ///@}
     ///@name Access
     ///@{
