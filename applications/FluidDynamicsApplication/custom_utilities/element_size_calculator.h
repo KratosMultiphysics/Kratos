@@ -94,6 +94,19 @@ public:
      */
     static double AverageElementSize(const Geometry<Node<3> >& rGeometry);
 
+    /// Projected element size in the direction of the velocity vector.
+    /** @param rGeometry The geometry of calling element.
+     *  @param rVelocity The velocity defining the direction of projection.
+     *  @return The computed size.
+     */
+    static double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,3>& rVelocity);
+
+    /// Module of a given three-component vector.
+    /** @param rVector The 3D vector the module of which is computed.
+     *  @return The computed module.
+     */
+    static double Module(const array_1d<double,3> &rVector);
+
     /// Element size based on the shape functions gradients. Triangle element version.
     /** @param rDN_DX The shape functions gradients.
      *  @return The computed size.

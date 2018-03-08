@@ -245,14 +245,164 @@ double ElementSizeCalculator<3,8>::AverageElementSize(const Geometry<Node<3> >& 
     return pow(detJ,1./3.);
 }
 
-
 // Triangle2D3 version. 
 template<>
 double ElementSizeCalculator<2,3>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
                                                         const array_1d<double,3>& rVelocity) {
-    //TODO: seguir
+    
+    double Hvel = 0.0;
+
+    const unsigned int NumNodes = 3;
+
+    // Loop over edges looking for maximum 'projected' length
+    array_1d<double,3> Edge(3,0.0);
+    double lu = 0.0;
+    for(unsigned int i = 0; i < NumNodes; ++i)
+    {
+        unsigned int j = (i+1) % NumNodes;
+        Edge = rGeometry[j] - rGeometry[i];
+        lu = rVelocity[0] * Edge[0];
+        for (unsigned int d = 1; d < TDim; ++d)
+            lu += rVelocity[d] * Edge[d];
+        lu = fabs(lu);
+        if(Hvel < lu) Hvel = lu;
+    }
+
+    if (Hvel > 0.0)
+    {
+        double VelNorm = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
+        Hvel /= VelNorm;
+    }
+
+    return Hvel;
 }
 
+// Quadrilateral2D4 version. 
+template<>
+double ElementSizeCalculator<2,4>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
+                                                        const array_1d<double,3>& rVelocity) {
+    
+    double Hvel = ElementSizeCalculator<2,3>::ProjectedElementSize(rGeometry,rVelocity);
+
+    return Hvel;
+}
+
+// Tetrahedra3D4 version. 
+template<>
+double ElementSizeCalculator<3,4>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
+                                                        const array_1d<double,3>& rVelocity) {
+    
+    double Hvel = 0.0;
+
+    const unsigned int NumNodes = 4;
+
+    // Loop over edges looking for maximum 'projected' length
+    array_1d<double,3> Edge(3,0.0);
+    double lu = 0.0;
+    for(unsigned int i = 0; i < NumNodes; ++i)
+    {
+        for(unsigned int j = i+1; j < NumNodes; ++j)
+        {
+            Edge = rGeometry[j] - rGeometry[i];
+            lu = rVelocity[0] * Edge[0];
+            for (unsigned int d = 1; d < TDim; ++d)
+                lu += rVelocity[d] * Edge[d];
+            lu = fabs(lu);
+            if(Hvel < lu) Hvel = lu;
+        }
+    }
+
+    if (Hvel > 0.0)
+    {
+        double VelNorm = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
+        Hvel /= VelNorm;
+    }
+
+    return Hvel;
+}
+
+// Hexahedra3D8 version. 
+template<>
+double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
+                                                        const array_1d<double,3>& rVelocity) {
+    
+    double Hvel = 0.0;
+
+    // Logic: define a box given by hexahedra edges 10,30,40 (which I'm assuming to be orthogonal)
+    // Transform the given direction to the coordinate system defined by the edges.
+    // In this reference frame, place a vector aligned with rVelocity on the origin and see
+    // which side of the box intersects the vector (that is: which component of the vector is larger)
+    // Then scale the vector to hit the limit of the box.
+    // The lenght of the vector is what we are looking for.
+    // NOTE: we use absolute values on all checks, this allows us to simplify the problem
+    // to a single sector (otherwise we would start by determining in which of the eight sectors
+    // given by +-x, +-y, +-z we have to look for the intersection).
+    array_1d<double,3> U = rVelocity;
+    //Normalize U
+    U /= this->Module(U);
+
+    array_1d<double,3> v10 = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+    array_1d<double,3> v30 = rGeometry[3].Coordinates() - rGeometry[0].Coordinates();
+    array_1d<double,3> v40 = rGeometry[4].Coordinates() - rGeometry[0].Coordinates();
+
+    // Express U in the coordinate system defined by {v10,v30,v40}
+    Matrix Q = ZeroMatrix(3,3);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        Q(i,0) = v10[i];
+        Q(i,1) = v30[i];
+        Q(i,2) = v40[i];
+    }
+
+    Matrix QInv = ZeroMatrix(3,3);
+
+    this->InvertMatrix(Q,QInv);
+    array_1d<double,3> Uq(3,0.0);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        for (unsigned int j = 0; j < 3; j++)
+        {
+            Uq[i] += QInv(i,j)*U[j];
+        }
+
+        // Work in absolute values
+        Uq[i] = std::fabs(Uq[i]);
+    }
+
+    double max_v = Uq[0];
+    for (unsigned int d = 1; d < 3; d++)
+        if (Uq[d] > max_v)
+            max_v = Uq[d];
+
+    double scale = 1.0/max_v;
+    Uq *= scale;
+
+    // Undo the transform
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        U[i] = 0.0;
+        for (unsigned int j = 0; j < 3; j++)
+        {
+            U[i] += Q(i,j)*Uq[j];
+        }
+    }
+
+    Hvel = this->Module(U);
+
+    if (Hvel > 0.0)
+    {
+        double VelNorm = std::sqrt(rVelocity[0]*rVelocity[0] + rVelocity[1]*rVelocity[1] + rVelocity[2]*rVelocity[2]);
+        Hvel /= VelNorm;
+    }
+
+    return Hvel;
+}
+
+template<std::size_t TDim, std::size_t TNumNodes>
+double ElementSizeCalculator<TDim,TNumNodes>::Module(const array_1d<double,3> &rVector)
+{
+    return std::sqrt(rVector[0]*rVector[0] + rVector[1]*rVector[1] + rVector[2]*rVector[2]);
+}
 
 // Triangle2D3 version. 
 template<std::size_t TDim, std::size_t TNumNodes>

@@ -359,30 +359,20 @@ void FIC<TElementData>::CalculateStaticTau(
         Hvel = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(this->GetGeometry(),Velocity);
     }
 
-    //TODO: seguir
-
-/*
-    // Velocity term in incompressibility tau is c2/t, with t = min{ h/u, dt }
-    // NOW TRYING THE OPPOSITE: VelTerm = min{ c2 u/h, c2/dt }
-    double VelTerm = VelNorm / Hmin;
-    double TimeTerm = 1.0/rProcessInfo[DELTA_TIME];
-    if (TimeTerm < VelTerm)
-        VelTerm = TimeTerm;
-
-    double InvTau = Density * ( c1 * KinematicVisc / (Hmin*Hmin) + c2 * VelTerm );
-*/
-    double InvTau = Density * ( c1 * KinematicVisc / (Havg*Havg) + c2 * VelNorm / Havg );
+    double InvTau = Density * ( c1 * DynamicViscosity / (Havg*Havg) + c2 * velocity_norm / Havg );
     TauIncompr = 1.0/InvTau;
-    TauMomentum = (Hvel / (Density * c2 * VelNorm) );
+    TauMomentum = (Hvel / (Density * c2 * velocity_norm) );
 
     // TAU limiter for momentum equation: tau = min{ h/2u, dt }
-    double TimeTerm = rProcessInfo[DELTA_TIME]/Density;
+    double TimeTerm = rData.DeltaTime/Density;
     if (TauMomentum > TimeTerm)
     {
         TauMomentum = TimeTerm;
     }
 
     TauMomentum *= Beta;
+
+    //TODO: seguir
 
     // Coefficients for FIC shock-capturing term
     this->CalculateTauGrad(TauGrad);
