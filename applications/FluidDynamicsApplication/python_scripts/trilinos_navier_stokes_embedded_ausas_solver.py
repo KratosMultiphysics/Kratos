@@ -76,8 +76,8 @@ class NavierStokesMPIEmbeddedAusasMonolithicSolver(trilinos_navier_stokes_embedd
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         ## Construct the linear solver
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        import trilinos_linear_solver_factory
+        self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -92,12 +92,11 @@ class NavierStokesMPIEmbeddedAusasMonolithicSolver(trilinos_navier_stokes_embedd
         super(NavierStokesMPIEmbeddedAusasMonolithicSolver, self).Initialize()
         
         # Set the find nodal neighbours process used in the embedded Ausas formulation condition
-        if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
-            number_of_avg_elems = 10
-            number_of_avg_nodes = 10
-            self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part,
-                                                                                               number_of_avg_elems,
-                                                                                               number_of_avg_nodes)
+        number_of_avg_elems = 10
+        number_of_avg_nodes = 10
+        self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part,
+                                                                                           number_of_avg_elems,
+                                                                                           number_of_avg_nodes)
         print ("Monolithic embedded Ausas fluid solver initialization finished.")
 
 

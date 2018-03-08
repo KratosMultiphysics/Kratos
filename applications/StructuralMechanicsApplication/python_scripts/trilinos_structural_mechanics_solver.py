@@ -80,17 +80,8 @@ class TrilinosMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         return TrilinosApplication.CreateCommunicator()
 
     def _create_convergence_criterion(self):
-        # Create an auxiliary Kratos parameters object to store the convergence settings.
-        conv_params = KratosMultiphysics.Parameters("{}")
-        conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
-        conv_params.AddValue("rotation_dofs",self.settings["rotation_dofs"])
-        conv_params.AddValue("echo_level",self.settings["echo_level"])
-        conv_params.AddValue("displacement_relative_tolerance",self.settings["displacement_relative_tolerance"])
-        conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
-        conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
-        conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
-        import trilinos_convergence_criteria_factory
-        convergence_criterion = trilinos_convergence_criteria_factory.convergence_criterion(conv_params)
+        import trilinos_convergence_criteria_factory as convergence_criteria_factory
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):

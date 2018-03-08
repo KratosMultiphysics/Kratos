@@ -455,7 +455,6 @@ class MechanicalSolver(object):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z,self.main_model_part)
 
     def _get_restart_settings(self):
-        # add the name of the input file to the restart settings
         restart_settings = self.settings["restart_settings"].Clone()
         restart_settings.AddValue("input_filename", self.settings["model_import_settings"]["input_filename"])
         restart_settings.AddValue("echo_level", self.settings["echo_level"])
@@ -464,7 +463,7 @@ class MechanicalSolver(object):
 
         return restart_settings
 
-    def _create_convergence_criterion(self):
+    def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
@@ -474,8 +473,12 @@ class MechanicalSolver(object):
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
         conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+
+        return conv_params
+
+    def _create_convergence_criterion(self):
         import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):

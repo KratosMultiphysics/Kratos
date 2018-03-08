@@ -5,7 +5,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
-class TestPatchTestSmallStrain(KratosUnittest.TestCase):
+class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
     def setUp(self):
         pass
     
@@ -34,18 +34,21 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
     def _apply_material_properties(self,mp,dim):
         #define properties
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS,210e9)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
-        
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 21000)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 5.5)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, 1.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.12924)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, 0.0)
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
+
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
         
         if(dim == 2):
-            cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
+            cl = StructuralMechanicsApplication.LinearJ2PlasticityPlaneStrain2DLaw()
         else:
-            cl = StructuralMechanicsApplication.LinearElastic3DLaw()
+            cl = StructuralMechanicsApplication.LinearJ2Plasticity3DLaw()
         mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
             
     def _define_movement(self,dim):
@@ -79,7 +82,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         
         return A,b
         
-    def _solve(self,mp):
+    def _solve(self,mp, linear = True):
         
         #define a minimal newton raphson solver
         linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
@@ -92,25 +95,26 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         reform_step_dofs = True
         calculate_norm_dx = False
         move_mesh_flag = True
-        strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp, 
-                                                                        scheme, 
-                                                                        linear_solver, 
-                                                                        builder_and_solver, 
-                                                                        compute_reactions, 
-                                                                        reform_step_dofs, 
-                                                                        calculate_norm_dx,
-                                                                        move_mesh_flag)
+        if (linear):
+            strategy = KratosMultiphysics.ResidualBasedLinearStrategy(mp,
+                                                                            scheme,
+                                                                            linear_solver,
+                                                                            builder_and_solver,
+                                                                            compute_reactions,
+                                                                            reform_step_dofs,
+                                                                            calculate_norm_dx,
+                                                                            move_mesh_flag)
         
-
-        #strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp, 
-                                                                        #scheme, 
-                                                                        #linear_solver, 
-                                                                        #convergence_criterion, 
-                                                                        #builder_and_solver, 
-                                                                        #max_iters, 
-                                                                        #compute_reactions, 
-                                                                        #reform_step_dofs, 
-                                                                        #move_mesh_flag)
+        else:
+            strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                            scheme,
+                                                                            linear_solver,
+                                                                            convergence_criterion,
+                                                                            builder_and_solver,
+                                                                            max_iters,
+                                                                            compute_reactions,
+                                                                            reform_step_dofs,
+                                                                            move_mesh_flag)
         strategy.SetEchoLevel(0)
         
         strategy.Check()
@@ -213,61 +217,12 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                 for i in range(len(reference_stress)):
                     self.assertAlmostEqual(reference_stress[i], stress[i],2)        
 
-    def test_SmallDisplacementElement_2D_triangle(self):
+    def test_SmallDisplacementBbarElement_2D_quadrilateral(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
         self._apply_material_properties(mp,dim)
-        
-        #create nodes
-        mp.CreateNewNode(1,0.5,0.5,0.0)
-        mp.CreateNewNode(2,0.7,0.2,0.0)
-        mp.CreateNewNode(3,0.9,0.8,0.0)
-        mp.CreateNewNode(4,0.3,0.7,0.0)
-        mp.CreateNewNode(5,0.6,0.6,0.0)
-        
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-            
-        #create a submodelpart for boundary conditions
-        bcs = mp.CreateSubModelPart("BoundaryCondtions")
-        bcs.AddNodes([1,2,3,4])
-                
-        #create Element
-        mp.CreateNewElement("SmallDisplacementElement2D3N", 1, [1,2,5], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D3N", 2, [2,3,5], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D3N", 3, [3,4,5], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D3N", 4, [4,1,5], mp.GetProperties()[1])
-        
-        A,b = self._define_movement(dim)
-        
-        self._apply_BCs(bcs,A,b)
-        self._solve(mp)
-        self._check_results(mp,A,b)
-        self._check_outputs(mp,A,dim)
-        
-        #checking consistent mass matrix
-        M = KratosMultiphysics.Matrix(0,0)
-        mp.Elements[1].CalculateMassMatrix(M,mp.ProcessInfo)
-        Area = mp.Elements[1].GetArea()
-        for i in range(3):
-            for j in range(3):
-                for k in range(dim):
-                    if(i==j):
-                        coeff = Area/6.0
-                    else:
-                        coeff = Area/12.0
-                    self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
-                    
-        #self.__post_process(mp)
-                    
-    def test_SmallDisplacementElement_2D_quadrilateral(self):
-        dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
-        self._add_variables(mp)
-        self._apply_material_properties(mp,dim)
-        
+
         #create nodes
         mp.CreateNewNode(1,0.00,3.00,0.00)
         mp.CreateNewNode(2,1.00,2.25,0.00)
@@ -277,37 +232,37 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.CreateNewNode(6,3.00,3.00,0.00)
         mp.CreateNewNode(7,2.00,0.75,0.00)
         mp.CreateNewNode(8,3.00,0.00,0.00)
-        
+
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-            
+
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
         bcs.AddNodes([1,5,6,8])
-                
+
         #create Element
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 1, [8,7,3,5], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 2, [6,4,7,8], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 3, [1,2,4,6], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 4, [4,2,3,7], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement2D4N", 5, [2,1,5,3], mp.GetProperties()[1])
-        
+        mp.CreateNewElement("SmallDisplacementBbarElement2D4N", 1, [8,7,3,5], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement2D4N", 2, [6,4,7,8], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement2D4N", 3, [1,2,4,6], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement2D4N", 4, [4,2,3,7], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement2D4N", 5, [2,1,5,3], mp.GetProperties()[1])
+
         A,b = self._define_movement(dim)
-        
+
         self._apply_BCs(bcs,A,b)
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-        
+
         #self.__post_process(mp)
-        
-    def test_SmallDisplacementElement_3D_hexa(self): 
+
+    def test_SmallDisplacementBbarElement_3D_hexa(self):
         dim = 3
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
-        self._apply_material_properties(mp,dim)        
-        
+        self._apply_material_properties(mp,dim)
+
         #create nodes
         mp.CreateNewNode(1, 0.00000,  1.00000,  1.00000)
         mp.CreateNewNode(2, 0.16500,  0.74500,  0.70200)
@@ -324,31 +279,31 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.CreateNewNode(13, 0.00000,  0.00000,  0.00000)
         mp.CreateNewNode(14, 1.00000,  1.00000,  0.00000)
         mp.CreateNewNode(15, 1.00000,  0.00000,  1.00000)
-        mp.CreateNewNode(16, 1.00000,  0.00000,  0.00000)       
-        
+        mp.CreateNewNode(16, 1.00000,  0.00000,  0.00000)
+
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
-            
+
         #create a submodelpart for boundary conditions
         bcs = mp.CreateSubModelPart("BoundaryCondtions")
         bcs.AddNodes([1,6,7,8,13,14,15,16])
 
         #create Element
-        mp.CreateNewElement("SmallDisplacementElement3D8N", 1,[10,5,2,3,13,7,1,6], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement3D8N", 2,[12,9,5,10,16,15,7,13], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement3D8N", 3,[12,11,3,10,9,4,2,5], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement3D8N", 4,[9,4,2,5,15,8,1,7], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement3D8N", 5,[4,11,3,2,8,14,6,1], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement3D8N", 6,[11,4,9,12,14,8,15,16], mp.GetProperties()[1])
-        mp.CreateNewElement("SmallDisplacementElement3D8N", 7,[11,12,10,3,14,16,13,6], mp.GetProperties()[1])
-        
+        mp.CreateNewElement("SmallDisplacementBbarElement3D8N", 1,[10,5,2,3,13,7,1,6], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement3D8N", 2,[12,9,5,10,16,15,7,13], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement3D8N", 3,[12,11,3,10,9,4,2,5], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement3D8N", 4,[9,4,2,5,15,8,1,7], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement3D8N", 5,[4,11,3,2,8,14,6,1], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement3D8N", 6,[11,4,9,12,14,8,15,16], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementBbarElement3D8N", 7,[11,12,10,3,14,16,13,6], mp.GetProperties()[1])
+
         A,b = self._define_movement(dim)
         self._apply_BCs(bcs,A,b)
         self._solve(mp)
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
-        
+
         #self.__post_process(mp)
         
     def __post_process(self, main_model_part):

@@ -35,7 +35,7 @@ class TrilinosRestartUtility(restart_utility.RestartUtility):
     def _ExecuteAfterLoad(self):
         import trilinos_import_model_part_utility
         trilinos_model_part_importer = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part,
-                                                                                                         Parameters('''{"model_import_settings":[]}'''))
+                                                                                                         KratosMultiphysics.Parameters('''{"model_import_settings":[]}'''))
         trilinos_model_part_importer.CreateCommunicators() # parallel fill communicator
 
     def _PrintOnRankZero(self, *args):

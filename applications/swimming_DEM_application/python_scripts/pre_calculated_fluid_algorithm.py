@@ -13,12 +13,13 @@ class Algorithm(BaseAlgorithm):
 
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
-        self.pp.CFD_DEM.AddEmptyValue("alpha").SetDouble(0.01)
-        self.pp.CFD_DEM.AddEmptyValue("fluid_already_calculated").SetBool(True)
-        self.pp.CFD_DEM.AddEmptyValue("load_derivatives").SetBool(False)
-        self.pp.CFD_DEM.AddEmptyValue("DEM_steps_per_fluid_load_step").SetInt(10)
-        self.pp.CFD_DEM.AddEmptyValue("store_fluid_in_single_precision").SetBool(True)
-        self.pp.CFD_DEM.AddEmptyValue("store_fluid_pressure_option").SetBool(True)
+        Add = self.pp.CFD_DEM.AddEmptyValue
+        Add("fluid_already_calculated").SetBool(True)
+        Add("alpha").SetDouble(0.01)
+        Add("load_derivatives").SetBool(False)
+        Add("DEM_steps_per_fluid_load_step").SetInt(10)
+        Add("store_fluid_in_single_precision").SetBool(True)
+        Add("store_fluid_pressure_option").SetBool(True)
 
     def PerformZeroStepInitializations(self):
         BaseAlgorithm.PerformZeroStepInitializations(self)
