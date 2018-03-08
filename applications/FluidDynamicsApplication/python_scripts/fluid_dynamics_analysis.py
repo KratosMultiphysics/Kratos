@@ -134,11 +134,6 @@ class FluidDynamicsAnalysis(object):
     def _SetUpRestart(self):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
         if self.project_parameters.Has("restart_settings"):
-            if self.parallel_type == "OpenMP":
-                import restart_utility
-            elif self.parallel_type == "MPI":
-                import trilinos_restart_utility as restart_utility
-            
             restart_settings = self.project_parameters["restart_settings"]
             self.load_restart = restart_settings["load_restart"].GetBool()
             self.save_restart = restart_settings["save_restart"].GetBool()
@@ -147,8 +142,14 @@ class FluidDynamicsAnalysis(object):
             restart_settings.AddValue("input_filename", self.project_parameters["problem_data"]["problem_name"])
             restart_settings.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
 
-            self.restart_utility = restart_utility.RestartUtility(self.main_model_part,
-                                                                  self.project_parameters["restart_settings"])
+            if self.parallel_type == "OpenMP":
+                import restart_utility as ru
+                self.restart_utility = ru.RestartUtility(self.main_model_part,
+                                                         self.project_parameters["restart_settings"])
+            elif self.parallel_type == "MPI":
+                import trilinos_restart_utility as ru
+                self.restart_utility = ru.TrilinosRestartUtility(self.main_model_part,
+                                                                 self.project_parameters["restart_settings"])
         else:
             self.load_restart = False
             self.save_restart = False
