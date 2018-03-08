@@ -23,11 +23,12 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
     It can be imported and used as "black-box"
     """
-    def __init__(self, ProjectParameters):
+    def __init__(self, ProjectParameters, external_model_part=None):
         if (type(ProjectParameters) != KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
         self.ProjectParameters = ProjectParameters
         self.model_part_and_solver_initialized = False
+        self.CreateSolver(external_model_part)
 
     #### Public functions to run the Analysis ####
     def Run(self):
@@ -42,10 +43,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.FinalizeTimeStep()
 
     #### Public functions defining the Interface to the CoSimulationApplication ####
-    def Initialize(self, external_model_part=None):
-        self.CreateSolver(external_model_part)
-        self.InitializeIO()
+    def Initialize(self):
         self.ExecuteInitialize()
+        self.InitializeIO()
         self.ExecuteBeforeSolutionLoop()
 
     def InitializeTimeStep(self):
@@ -126,6 +126,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
     def ExecuteInitialize(self):
         """ Initializing the Analysis"""
+
+        self.solver.PrepareModelPartForSolver()
+
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
 
