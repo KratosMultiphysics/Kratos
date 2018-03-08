@@ -60,7 +60,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         self.__ExecuteFinalize()
 
 
-    ###########################################################################
+    #### Internal functions ####
     def __CreateSolver(self, external_model_part=None):
         """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
         if external_model_part != None:
@@ -68,9 +68,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             # is removed from the solver (needed e.g. for Optimization)
             if (type(external_model_part) != KratosMultiphysics.ModelPart):
                 raise Exception("Input is expected to be provided as a Kratos ModelPart object")
-            using_external_model_part = True
+            self.using_external_model_part = True
         else:
-            using_external_model_part = False
+            self.using_external_model_part = False
 
         ## Get echo level and parallel type
         self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
@@ -87,7 +87,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
         ## Structure model part definition
-        if using_external_model_part:
+        if self.using_external_model_part:
             self.main_model_part = external_model_part
         else:
             main_model_part_name = self.ProjectParameters["problem_data"]["model_part_name"].GetString()
@@ -102,7 +102,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         ## Adds the necessary variables to the model_part only if they don't exist
         self.solver.AddVariables()
 
-        if not using_external_model_part:
+        if not self.using_external_model_part:
             ## Read the model - note that SetBufferSize is done here
             self.solver.ImportModelPart() # TODO move to global instance
 
@@ -125,7 +125,8 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         """ Initializing the Analysis """
 
         ## ModelPart is being prepared to be used by the solver
-        self.solver.PrepareModelPartForSolver()
+        if self.using_external_model_part: # TODO remove the if once importing the ModelPart is removed from the solver
+            self.solver.PrepareModelPartForSolver()
 
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()

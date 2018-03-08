@@ -188,6 +188,7 @@ class MechanicalSolver(object):
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
+            self.PrepareModelPartForSolver()
         else:
             raise Exception("Other model part input options are not yet implemented.")
         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
