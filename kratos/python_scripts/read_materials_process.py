@@ -131,6 +131,11 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         mesh_id = 0
         prop = model_part.GetProperties(property_id, mesh_id)
 
+        if len(data["Material"]["Variables"].keys()) > 0 and prop.HasVariables():
+                KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has variables." )
+        if len(data["Material"]["Tables"].keys()) > 0 and prop.HasTables():
+                KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has tables." )
+
         # Assign the properties to the model part's elements and conditions.
         for elem in model_part.Elements:
             elem.Properties = prop
