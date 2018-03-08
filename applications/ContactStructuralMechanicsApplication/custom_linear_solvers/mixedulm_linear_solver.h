@@ -455,18 +455,17 @@ public:
                         n_lm_active_dofs++;
                     else
                         n_lm_inactive_dofs++;
-                } else if (i_dof.GetVariable().Key() == DISPLACEMENT_X ||
+                } else if (pnode->Is(INTERFACE) &&
+                   (i_dof.GetVariable().Key() == DISPLACEMENT_X ||
                     i_dof.GetVariable().Key() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable().Key() == DISPLACEMENT_Z) {
-                    if (pnode->Is(INTERFACE)) {
-                        if (pnode->Is(MASTER)) {
-                            n_master_dofs++;
-                        } else if (pnode->Is(SLAVE)) {
-                            if (pnode->Is(ACTIVE))
-                                n_slave_active_dofs++;
-                            else
-                                n_slave_inactive_dofs++;
-                        }
+                    i_dof.GetVariable().Key() == DISPLACEMENT_Z)) {
+                    if (pnode->Is(MASTER)) {
+                        n_master_dofs++;
+                    } else if (pnode->Is(SLAVE)) {
+                        if (pnode->Is(ACTIVE))
+                            n_slave_active_dofs++;
+                        else
+                            n_slave_inactive_dofs++;
                     }
                 }
             }
@@ -526,33 +525,26 @@ public:
                         mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
                         ++lm_inactive_counter;
                     }
-                } else if (i_dof.GetVariable().Key() == DISPLACEMENT_X ||
+                } else if ( pnode->Is(INTERFACE) &&
+                   (i_dof.GetVariable().Key() == DISPLACEMENT_X ||
                     i_dof.GetVariable().Key() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable().Key() == DISPLACEMENT_Z) {
-                    if (pnode->Is(INTERFACE)) {
-                        if (pnode->Is(MASTER)) {
-                            mMasterIndices[master_counter] = global_pos;
-                            mGlobalToLocalIndexing[global_pos] = master_counter;
-                            mWhichBlockType[global_pos] = BlockType::MASTER;
-                            ++master_counter;
-
-                        } else if (pnode->Is(SLAVE)) {
-                            if (pnode->Is(ACTIVE)) {
-                                mSlaveActiveIndices[slave_active_counter] = global_pos;
-                                mGlobalToLocalIndexing[global_pos] = slave_active_counter;
-                                mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
-                                ++slave_active_counter;
-                            } else {
-                                mSlaveInactiveIndices[slave_inactive_counter] = global_pos;
-                                mGlobalToLocalIndexing[global_pos] = slave_inactive_counter;
-                                mWhichBlockType[global_pos] = BlockType::SLAVE_INACTIVE;
-                                ++slave_inactive_counter;
-                            }
-                        } else { // We need to consider always an else to ensure that the system size is consistent
-                            mOtherIndices[other_counter] = global_pos;
-                            mGlobalToLocalIndexing[global_pos] = other_counter;
-                            mWhichBlockType[global_pos] = BlockType::OTHER;
-                            ++other_counter;
+                    i_dof.GetVariable().Key() == DISPLACEMENT_Z)) {
+                    if (pnode->Is(MASTER)) {
+                        mMasterIndices[master_counter] = global_pos;
+                        mGlobalToLocalIndexing[global_pos] = master_counter;
+                        mWhichBlockType[global_pos] = BlockType::MASTER;
+                        ++master_counter;
+                    } else if (pnode->Is(SLAVE)) {
+                        if (pnode->Is(ACTIVE)) {
+                            mSlaveActiveIndices[slave_active_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = slave_active_counter;
+                            mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
+                            ++slave_active_counter;
+                        } else {
+                            mSlaveInactiveIndices[slave_inactive_counter] = global_pos;
+                            mGlobalToLocalIndexing[global_pos] = slave_inactive_counter;
+                            mWhichBlockType[global_pos] = BlockType::SLAVE_INACTIVE;
+                            ++slave_inactive_counter;
                         }
                     } else { // We need to consider always an else to ensure that the system size is consistent
                         mOtherIndices[other_counter] = global_pos;
