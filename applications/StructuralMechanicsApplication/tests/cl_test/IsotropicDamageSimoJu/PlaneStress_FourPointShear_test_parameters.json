@@ -15,8 +15,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test",
-            "input_file_label" : 0
+            "input_filename"   : "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "and_criterion",
@@ -124,15 +123,5 @@
             "gauss_point_results" : ["CAUCHY_STRESS_TENSOR","DAMAGE_VARIABLE"]
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
     }
 }
