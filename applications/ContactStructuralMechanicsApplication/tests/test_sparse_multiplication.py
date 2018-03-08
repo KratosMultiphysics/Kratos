@@ -46,8 +46,8 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
         else:
             self.assertTrue(True)
 
-    #def test_sparse_matrix_sum(self):
-        #self.__sparse_matrix_sum()
+    def test_sparse_matrix_sum(self):
+        self.__sparse_matrix_sum()
 
 class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
 

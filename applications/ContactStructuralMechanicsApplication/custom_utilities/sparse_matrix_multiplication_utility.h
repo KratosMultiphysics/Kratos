@@ -391,21 +391,26 @@ public:
 
             #pragma omp for
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
+                // Initialize
+                Idx new_A_cols = 0;
+
+                // Iterate over A
                 const Idx row_begin_a = index1_a[ia];
                 const Idx row_end_a   = index1_a[ia+1];
-
-                Idx new_A_cols = 0;
                 for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
                     const Idx ca = index2_a[ja];
-                    const Idx row_begin_b = index1_b[ca];
-                    const Idx row_end_b   = index1_b[ca+1];
+                        marker[ca]  = ia;
+                        ++new_A_cols;
+                }
 
-                    for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
-                        const Idx cb = index2_b[jb];
-                        if (marker[cb] != ia) {
-                            marker[cb]  = ia;
-                            ++new_A_cols;
-                        }
+                // Iterate over B
+                const Idx row_begin_b = index1_b[ia];
+                const Idx row_end_b   = index1_b[ia+1];
+                for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
+                    const Idx cb = index2_b[jb];
+                    if (marker[cb] != ia) {
+                        marker[cb]  = ia;
+                        ++new_A_cols;
                     }
                 }
                 new_a_ptr[ia + 1] = new_A_cols;
