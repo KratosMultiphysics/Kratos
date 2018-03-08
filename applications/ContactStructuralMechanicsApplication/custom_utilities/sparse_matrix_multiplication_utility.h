@@ -348,6 +348,131 @@ public:
     }
 
     /**
+     * @brief The first is a method in order to sum to sparse matrices in a efficient way
+     * @param A The resulting matrix
+     * @param B The second matrix to sum
+     */
+    template <class AMatrix, class BMatrix>
+    static void MatrixAdd(
+        AMatrix& A,
+        const BMatrix& B,
+        const double Factor = 1.0
+        )
+    {
+        typedef typename value_type<AMatrix>::type Val;
+        typedef std::ptrdiff_t Idx;
+
+        // Auxiliar sizes
+        const std::size_t nrows = A.size1();
+        const std::size_t ncols = A.size2();
+
+        /* Some checks */
+        // Exiting just in case of empty matrix
+        if ((nrows == 0) || (ncols == 0))
+            return void();
+
+        KRATOS_ERROR_IF_NOT(nrows == B.size1()) << "The second matrix has a wrong number of rows" << std::endl;
+        KRATOS_ERROR_IF_NOT(ncols == B.size2()) << "The second matrix has a wrong number of columns" << std::endl;
+
+        // Get access to A and B data
+        const std::size_t* index1_a = A.index1_data().begin();
+        const std::size_t* index2_a = A.index2_data().begin();
+        const double* values_a = A.value_data().begin();
+        const std::size_t* index1_b = B.index1_data().begin();
+        const std::size_t* index2_b = B.index2_data().begin();
+        const double* values_b = B.value_data().begin();
+
+        std::ptrdiff_t* new_a_ptr = new std::ptrdiff_t[nrows + 1];
+        new_a_ptr[0] = 0;
+
+        #pragma omp parallel
+        {
+            SignedIndexVectorType marker(ncols, -1);
+
+            #pragma omp for
+            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
+                const Idx row_begin_a = index1_a[ia];
+                const Idx row_end_a   = index1_a[ia+1];
+
+                Idx new_A_cols = 0;
+                for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const Idx ca = index2_a[ja];
+                    const Idx row_begin_b = index1_b[ca];
+                    const Idx row_end_b   = index1_b[ca+1];
+
+                    for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
+                        const Idx cb = index2_b[jb];
+                        if (marker[cb] != ia) {
+                            marker[cb]  = ia;
+                            ++new_A_cols;
+                        }
+                    }
+                }
+                new_a_ptr[ia + 1] = new_A_cols;
+            }
+        }
+
+        // We initialize the sparse matrix
+        std::partial_sum(new_a_ptr, new_a_ptr + nrows + 1, new_a_ptr);
+        const std::size_t nonzero_values = new_a_ptr[nrows];
+        Idx* aux_index2_new_a = new Idx[nonzero_values];
+        Val* aux_val_new_a = new Val[nonzero_values];
+
+        #pragma omp parallel
+        {
+            SignedIndexVectorType marker(ncols, -1);
+
+            #pragma omp for
+            for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
+
+                const Idx row_beg = new_a_ptr[ia];
+                Idx row_end = row_beg;
+
+                // Iterate over A
+                const Idx row_begin_a = index1_a[ia];
+                const Idx row_end_a   = index1_a[ia+1];
+                for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
+                    const Idx ca = index2_a[ja];
+                    const Val va = values_a[ja];
+
+                    marker[ca] = row_end;
+                    aux_index2_new_a[row_end] = ca;
+                    aux_val_new_a[row_end] = va;
+                    ++row_end;
+                }
+
+                // Iterate over B
+                const Idx row_begin_b = index1_b[ia];
+                const Idx row_end_b   = index1_b[ia+1];
+                for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
+                    const Idx cb = index2_b[jb];
+                    const Val vb = values_b[jb];
+
+                    if (marker[cb] < 0) {
+                        marker[cb] = row_end;
+                        aux_index2_new_a[row_end] = cb;
+                        aux_val_new_a[row_end] = Factor * vb;
+                        ++row_end;
+                    } else {
+                        aux_val_new_a[marker[cb]] += Factor * vb;
+                    }
+                }
+            }
+        }
+
+        // We reorder the rows
+        SparseMatrixMultiplicationUtility::SortRows(new_a_ptr, nrows, ncols, aux_index2_new_a, aux_val_new_a);
+
+        // We fill the matrix
+        CreateSolutionMatrix(A, nrows, ncols, new_a_ptr, aux_index2_new_a, aux_val_new_a);
+
+        // Release memory
+        delete[] new_a_ptr;
+        delete[] aux_index2_new_a;
+        delete[] aux_val_new_a;
+    }
+
+    /**
      * @brief This method is designed to create the final solution sparse matrix from the auxiliar values
      * @param C The matrix solution
      * @param NRows The number of rows of the matrix

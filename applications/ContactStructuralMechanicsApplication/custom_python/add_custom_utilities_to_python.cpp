@@ -75,7 +75,7 @@ void  AddCustomUtilitiesToPython()
     .def("CheckMortarConditions",&TreeContactSearch<3, 4>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<3, 4>::InvertSearch)
     ;
-  
+
     // Adding search related enums
     enum_<SearchTreeType>("SearchTreeType")
     .value("KdtreeInRadius", KdtreeInRadius)
@@ -103,11 +103,12 @@ void  AddCustomUtilitiesToPython()
     .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize)
     .def("Clear",&ProcessFactoryUtility::Clear)
     ;
-    
+
     // Sparse matrix multiplication utility
     class_<SparseMatrixMultiplicationUtility>("SparseMatrixMultiplicationUtility", init<>())
     .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
+    .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
     ;
 }
 
