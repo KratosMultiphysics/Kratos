@@ -27,7 +27,6 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
             xvec[1] = node.Y0
             xvec[2] = node.Z0
 
-            u = KratosMultiphysics.Vector()
             u = A*xvec
             u += b
 
@@ -59,7 +58,7 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
             A = KratosMultiphysics.Matrix(3,3)
             A[0,0] = 1.0e-10;  A[0,1] = 2.0e-10; A[0,2] = 0.0
             A[1,0] = 0.5e-10;  A[1,1] = 0.7e-10; A[1,2] = 0.0
-            A[2,1] = 0.0;  A[2,1] = 0.0; A[2,2] = 0.0
+            A[2,0] = 0.0;      A[2,1] = 0.0;     A[2,2] = 0.0
 
             b = KratosMultiphysics.Vector(3)
             b[0] = 0.5e-10
@@ -72,7 +71,7 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
             A = KratosMultiphysics.Matrix(3,3)
             A[0,0] = 1.0e-10;   A[0,1] = 2.0e-10; A[0,2] = 0.0
             A[1,0] = 0.5e-10;   A[1,1] = 0.7e-10; A[1,2] = 0.1e-10
-            A[2,1] = -0.2e-10;  A[2,1] = 0.0;     A[2,2] = -0.3e-10
+            A[2,0] = -0.2e-10;  A[2,1] = 0.0;     A[2,2] = -0.3e-10
 
             b = KratosMultiphysics.Vector(3)
             b[0] = 0.5e-10
@@ -126,12 +125,11 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
 
         ##check that the results are exact on the nodes
         for node in mp.Nodes:
-            xvec = KratosMultiphysics.Vector(len(b))
+            xvec = KratosMultiphysics.Vector(3)
             xvec[0] = node.X0
             xvec[1] = node.Y0
             xvec[2] = node.Z0
 
-            u = KratosMultiphysics.Vector(2)
             u = A*xvec
             u += b
 
@@ -219,7 +217,7 @@ class TestPatchTestSmallStrainBbar(KratosUnittest.TestCase):
                 for i in range(len(reference_stress)):
                     self.assertAlmostEqual(reference_stress[i], stress[i],2)
 
-    def _test_SmallDisplacementBbarElement_2D_quadrilateral(self): # FIXME
+    def test_SmallDisplacementBbarElement_2D_quadrilateral(self):
         dim = 2
         mp = KratosMultiphysics.ModelPart("solid_part")
         self._add_variables(mp)
