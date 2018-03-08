@@ -1163,22 +1163,22 @@ protected:
             if (slave_active_size > 0) {
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAN, K_disp_modified_ptr, marker, nrows, ncols,   assembling_slave_dof_initial_index, other_dof_initial_index);
+                    ComputeNonZeroBlocks(aslave_auxKSAN, K_disp_modified_ptr, marker, nrows, ncols, assembling_slave_dof_initial_index, other_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSAM data
                 if (aslave_auxKSAM.nnz() > 0 && master_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSAM, K_disp_modified_ptr, marker, nrows, ncols,   assembling_slave_dof_initial_index, master_dof_initial_index);
+                    ComputeNonZeroBlocks(aslave_auxKSAM, K_disp_modified_ptr, marker, nrows, ncols, assembling_slave_dof_initial_index, master_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSASI data
                 if (aslave_auxKSASI.nnz() > 0 && slave_inactive_size > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASI, K_disp_modified_ptr, marker, nrows, ncols,   assembling_slave_dof_initial_index, slave_inactive_dof_initial_index);
+                    ComputeNonZeroBlocks(aslave_auxKSASI, K_disp_modified_ptr, marker, nrows, ncols, assembling_slave_dof_initial_index, slave_inactive_dof_initial_index);
                 }
 
                 // Get access to aslave_auxKSASA data
                 if (aslave_auxKSASA.nnz() > 0) {
-                    ComputeNonZeroBlocks(aslave_auxKSASA, K_disp_modified_ptr, marker, nrows, ncols,   assembling_slave_dof_initial_index, assembling_slave_dof_initial_index);
+                    ComputeNonZeroBlocks(aslave_auxKSASA, K_disp_modified_ptr, marker, nrows, ncols, assembling_slave_dof_initial_index, assembling_slave_dof_initial_index);
                 }
             }
         }
