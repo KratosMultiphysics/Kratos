@@ -123,15 +123,18 @@ class MechanicalSolver(object):
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
-        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
-        load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
-        self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
+        if self.settings["restart_settings"].Has("load_restart"):
+            load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
+        else:
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def AddVariables(self):
         if not self.is_restarted():
@@ -234,9 +237,10 @@ class MechanicalSolver(object):
     def SaveRestart(self):
         # Check could be integrated in the utility
         # It is here intentionally, this way the utility is only created if it is actually needed!
-        if (self.settings["restart_settings"]["save_restart"].GetBool() == True):
-            # the check if this step is a restart-output step is done internally
-            self.get_restart_utility().SaveRestart()
+        if self.settings["restart_settings"].Has("save_restart"):
+            if (self.settings["restart_settings"]["save_restart"].GetBool() == True):
+                # the check if this step is a restart-output step is done internally
+                self.get_restart_utility().SaveRestart()
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
