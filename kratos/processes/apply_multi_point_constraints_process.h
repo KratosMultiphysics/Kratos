@@ -137,7 +137,7 @@ class ApplyMultipointConstraintsProcess : public Process
             ApplyConstraints<3>(master_model_part, slave_model_part);
         } else {
             KRATOS_ERROR <<" Dimension cannot be more than 3 "<<std::endl;
-        }
+        } 
     }
 
     // Functions which use two variable components
