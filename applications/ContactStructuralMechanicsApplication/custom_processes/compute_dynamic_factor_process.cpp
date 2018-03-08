@@ -25,7 +25,7 @@ void ComputeDynamicFactorProcess::Execute()
     KRATOS_TRY;
 
     // We initialize the zero vector
-    ProcessInfo& r_process_info = mrThisModelPart.GetProcessInfo();
+//     ProcessInfo& r_process_info = mrThisModelPart.GetProcessInfo();
     const double distance_threshold = 0.0;
 //     const double distance_threshold = r_process_info[DISTANCE_THRESHOLD]; // TODO: Think about this!!!!!
 
