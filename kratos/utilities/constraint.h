@@ -31,10 +31,6 @@ namespace Kratos
 	* A class that implements the interface for different constraints to be applied on a system.
     */
 
-class ProcessInfo;
-class Element;
-class Condition;
-
 template <class TSparseSpace,
           class TDenseSpace //= DenseSpace<double>
           >
