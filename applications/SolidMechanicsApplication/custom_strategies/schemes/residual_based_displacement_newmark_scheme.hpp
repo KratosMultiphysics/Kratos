@@ -701,16 +701,6 @@ namespace Kratos
 	      KRATOS_ERROR << "scheme do not have a Time Integration Method " << mpIntegrationMethod << std::endl;
       }
 
-      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-
-      if ( mMatrix.M.size() != NumThreads) {
-         mMatrix.M.resize(NumThreads);
-         mMatrix.D.resize(NumThreads);
-
-         mVector.v.resize(NumThreads);
-         mVector.a.resize(NumThreads);
-      }
-
       return ErrorCode;
       
       KRATOS_CATCH( "" );
