@@ -105,8 +105,6 @@ class kratosAdjointAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             print("\n> Starting calculation of strain energy")
             startTime = timer.time()
-            print(primal_solver.main_model_part)
-            print(adjoint_solver.main_model_part)
             # TODO input process was not yet executed so here only primal modelpart has values, anyway the value should be calculated on top of the primal
             value = adjoint_solver.solver.response_function.CalculateValue(primal_solver.main_model_part)
             print("> Time needed for calculation of strain energy = ",round(timer.time() - startTime,2),"s")
