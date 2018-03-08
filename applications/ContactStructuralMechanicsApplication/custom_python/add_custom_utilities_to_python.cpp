@@ -75,7 +75,7 @@ void  AddCustomUtilitiesToPython()
     .def("CheckMortarConditions",&TreeContactSearch<3, 4>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<3, 4>::InvertSearch)
     ;
-  
+
     // Adding search related enums
     enum_<SearchTreeType>("SearchTreeType")
     .value("KdtreeInRadius", KdtreeInRadius)
@@ -89,11 +89,12 @@ void  AddCustomUtilitiesToPython()
     .value("MappingCheck", MappingCheck)
     ;
 
-    // Process Factory utility
-    class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<boost::python::list&>())
-    .def(init< >())
+    class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<>())
+    .def(init<boost::python::list&>())
+    .def(init<boost::python::object&>())
     .def("AddProcess",&ProcessFactoryUtility::AddProcess)
     .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)
+    .def("ExecuteMethod",&ProcessFactoryUtility::ExecuteMethod)
     .def("ExecuteInitialize",&ProcessFactoryUtility::ExecuteInitialize)
     .def("ExecuteBeforeSolutionLoop",&ProcessFactoryUtility::ExecuteBeforeSolutionLoop)
     .def("ExecuteInitializeSolutionStep",&ProcessFactoryUtility::ExecuteInitializeSolutionStep)
@@ -101,9 +102,11 @@ void  AddCustomUtilitiesToPython()
     .def("ExecuteBeforeOutputStep",&ProcessFactoryUtility::ExecuteBeforeOutputStep)
     .def("ExecuteAfterOutputStep",&ProcessFactoryUtility::ExecuteAfterOutputStep)
     .def("ExecuteFinalize",&ProcessFactoryUtility::ExecuteFinalize)
+    .def("IsOutputStep",&ProcessFactoryUtility::IsOutputStep)
+    .def("PrintOutput",&ProcessFactoryUtility::PrintOutput)
     .def("Clear",&ProcessFactoryUtility::Clear)
     ;
-    
+
     // Sparse matrix multiplication utility
     class_<SparseMatrixMultiplicationUtility>("SparseMatrixMultiplicationUtility", init<>())
     .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
