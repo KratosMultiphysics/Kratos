@@ -112,6 +112,11 @@
 						"WATER_DISPLACEMENT",
                                                 "WATER_PRESSURE"
 *endif
+*if(strcmp(GenData(DOFS),"U-J-W-wP")==0)
+						"JACOBIAN",
+						"WATER_DISPLACEMENT",
+                                                "WATER_PRESSURE"
+*endif
 					       ]
     },
     "solver_settings"          : {
@@ -122,6 +127,8 @@
 *if(strcmp(GenData(DOFS),"U-W")==0)
         "solver_type" : "pfem_solid_mechanics_implicit_dynamic_solver",
 *elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
+        "solver_type" : "pfem_solid_mechanics_implicit_dynamic_solver",
+*elseif(strcmp(GenData(DOFS),"U-J-W-wP")==0)
         "solver_type" : "pfem_solid_mechanics_implicit_dynamic_solver",
 *else
         "solver_type" : "solid_mechanics_implicit_dynamic_solver",
@@ -459,9 +466,16 @@
 		    },		    
 		    "contact_search_settings":{
 			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			"contact_search_type": "HMParametricWallContactSearch",
+*else
 			"contact_search_type": "ParametricWallContactSearch",
+*endif
 			"contact_parameters":{
 			    "contact_condition_type": "*cond(Contact_Condition)",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			    "hydraulic_condition_type": "*cond(Hydraulic_Contact_Condition)",
+*endif
 			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",			    
 			    "friction_law_type": "HardeningCoulombFrictionLaw",
 			    "variables_of_properties":{
@@ -849,6 +863,14 @@
                                       "WATER_VELOCITY",
 				      "WATER_ACCELERATION",
 *elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
+                                      "WATER_DISPLACEMENT",
+                                      "WATER_VELOCITY",
+				      "WATER_ACCELERATION",
+				      "WATER_PRESSURE",
+				      "WATER_PRESSURE_VELOCITY",
+				      "WATER_PRESSURE_ACCELERATION",
+*elseif(strcmp(GenData(DOFS),"U-J-W-wP")==0)
+                                      "JACOBIAN",
                                       "WATER_DISPLACEMENT",
                                       "WATER_VELOCITY",
 				      "WATER_ACCELERATION",

@@ -29,6 +29,7 @@
 #include "custom_processes/clear_point_contact_conditions_process.hpp"
 #include "custom_processes/build_contact_conditions_process.hpp"
 
+#include "custom_processes/hm_parametric_wall_contact_search_process.hpp"
 
 namespace Kratos
 {
@@ -62,6 +63,10 @@ namespace Kratos
 
       class_<ParametricWallContactSearchProcess, bases< ProcessBaseType >, boost::noncopyable >
 	("ParametricWallContactSearch", init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
+	;
+
+      class_<HMParametricWallContactSearchProcess, bases< ProcessBaseType >, boost::noncopyable >
+	("HMParametricWallContactSearch", init<ModelPart&, std::string, SpatialBoundingBox::Pointer, Parameters>())
 	;
 
       class_<BuildContactModelPartProcess, bases<ProcessBaseType>, boost::noncopyable >

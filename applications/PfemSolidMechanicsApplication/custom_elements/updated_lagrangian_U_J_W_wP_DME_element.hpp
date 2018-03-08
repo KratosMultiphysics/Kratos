@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_U_J_W_WP_STAB_ELEMENT_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_U_J_W_WP_STAB_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_U_J_W_WP_DME_ELEMENT_H_INCLUDED )
+#define  KRATOS_UPDATED_LAGRANGIAN_U_J_W_WP_DME_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -37,7 +37,7 @@ namespace Kratos
 /// Updated Lagrangian Large Displacement Lagrangian U-W Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-class UpdatedLagrangianUJWwPStabElement
+class UpdatedLagrangianUJWwPDMEElement
     : public UpdatedLagrangianUJWwPElement
 {
 public:
@@ -54,33 +54,33 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUJWwPStabElement );
+    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUJWwPDMEElement );
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Empty constructor needed for serialization
-    UpdatedLagrangianUJWwPStabElement();
+    UpdatedLagrangianUJWwPDMEElement();
 
     /// Default constructors
-    UpdatedLagrangianUJWwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangianUJWwPDMEElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangianUJWwPStabElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangianUJWwPDMEElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    UpdatedLagrangianUJWwPStabElement(UpdatedLagrangianUJWwPStabElement const& rOther);
+    UpdatedLagrangianUJWwPDMEElement(UpdatedLagrangianUJWwPDMEElement const& rOther);
 
 
     /// Destructor.
-    virtual ~UpdatedLagrangianUJWwPStabElement();
+    virtual ~UpdatedLagrangianUJWwPDMEElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    UpdatedLagrangianUJWwPStabElement& operator=(UpdatedLagrangianUJWwPStabElement const& rOther);
+    UpdatedLagrangianUJWwPDMEElement& operator=(UpdatedLagrangianUJWwPDMEElement const& rOther);
 
 
     ///@}
@@ -136,23 +136,6 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
- 
-    /**
-     * Calculation and addition of the KPP due to stabilization
-     */
-    virtual void CalculateAndAddKPPStab(MatrixType& rK,
-          ElementVariables & rVariables,
-          double& rIntegrationWeight
-          ) override;
-
-    /**
-     * Calculation of the Internal Forces due to stabilization
-     */
-    virtual void CalculateAndAddStabilizationRHS(VectorType& rRightHandSideVector,
-          ElementVariables & rVariables,
-          double& rIntegrationWeight
-          ) override;
 
 
     /**
@@ -226,10 +209,10 @@ private:
     ///@}
 
 
-}; // Class UpdatedLagrangianUJWwPStabElement
+}; // Class UpdatedLagrangianUJWwPDMELo Element
 
 
 
 } // namespace Kratos
-#endif // KRATOS_UPDATED_LAGRANGIAN_U_J_W_wP_STAB_ELEMENT_H_INCLUDED
+#endif // KRATOS_UPDATED_LAGRANGIAN_U_J_W_wP_DME_ELEMENT_H_INCLUDED
 
