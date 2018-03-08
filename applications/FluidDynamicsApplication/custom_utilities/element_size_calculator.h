@@ -88,12 +88,6 @@ public:
      */
     static double MinimumElementSize(const Geometry<Node<3> >& rGeometry);
 
-    /// Average element size based on the geometry.
-    /** @param rGeometry The geometry of calling element.
-     *  @return The computed size.
-     */
-    static double AverageElementSize(const Geometry<Node<3> >& rGeometry);
-
     /// Element size based on the shape functions gradients.
     /** @param rDN_DX The shape functions gradients.
      *  @return The computed size.
