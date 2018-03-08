@@ -27,6 +27,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (type(ProjectParameters) != KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
         self.ProjectParameters = ProjectParameters
+        self.model_part_and_solver_initialized = False
 
     #### Public functions to run the Analysis ####
     def Run(self):
@@ -105,6 +106,8 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if not using_external_model_part:
             ## Read the model - note that SetBufferSize is done here
             self.solver.ImportModelPart() # TODO move to global instance
+
+        self.model_part_and_solver_initialized = True
 
     def InitializeIO(self):
         """ Initialize GiD  I/O """
@@ -250,6 +253,19 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
         if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
             KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
+
+    def GetModelPart(self):
+        if self.model_part_and_solver_initialized:
+            return self.main_model_part
+        else:
+            raise Exception("ModelPart not yet initialized! Use \"CreateSolver\" first")
+
+
+    def GetSolver(self):
+        if self.model_part_and_solver_initialized:
+            return self.solver
+        else:
+            raise Exception("Solver not yet initialized! Use \"CreateSolver\" first")
 
 
 if __name__ == "__main__":
