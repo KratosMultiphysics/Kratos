@@ -59,15 +59,5 @@
 	        "variable_name"    : "EIGENVALUE_VECTOR",
             "reference_values" : "[907.790376, 907.790376, 1765.137798, 2254.538816]"
         }
-    }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    }]
 }

@@ -13,11 +13,11 @@ class Kratos_Execute_Test:
         self.ProjectParameters = ProjectParameters
 
         self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
-        
+
         # To avoid many prints
         if (self.echo_level == 0):
             KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-        
+
         self.main_model_part = KratosMultiphysics.ModelPart(self.ProjectParameters["problem_data"]["model_part_name"].GetString())
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
@@ -42,14 +42,14 @@ class Kratos_Execute_Test:
         # Obtain the list of the processes to be applied
         self.list_of_processes = process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["constraints_process_list"])
         self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["loads_process_list"])
-        if (ProjectParameters.Has("list_other_processes") == True): 
+        if (ProjectParameters.Has("list_other_processes") == True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
-        if (ProjectParameters.Has("json_check_process") == True): 
-            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"]) 
-        if (ProjectParameters.Has("check_analytic_results_process") == True): 
-            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["check_analytic_results_process"]) 
-        if (ProjectParameters.Has("json_output_process") == True): 
-            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"]) 
+        if (ProjectParameters.Has("json_check_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"])
+        if (ProjectParameters.Has("check_analytic_results_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["check_analytic_results_process"])
+        if (ProjectParameters.Has("json_output_process") == True):
+            self.list_of_processes += process_factory.KratosProcessFactory(self.Model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"])
 
         for process in self.list_of_processes:
             process.ExecuteInitialize()
@@ -71,11 +71,11 @@ class Kratos_Execute_Test:
                                                self.problem_name,
                                                output_settings)
             self.gid_output.ExecuteInitialize()
-            
+
         # Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
         self.solver.Initialize()
-        self.solver.SetEchoLevel(0) # Avoid to print anything 
-        
+        self.solver.SetEchoLevel(0) # Avoid to print anything
+
         if (self.output_post == True):
             self.gid_output.ExecuteBeforeSolutionLoop()
 
@@ -86,10 +86,11 @@ class Kratos_Execute_Test:
         # #Stepping and time settings (get from process info or solving info)
         # Delta time
         delta_time = self.ProjectParameters["problem_data"]["time_step"].GetDouble()
-        # Start step
-        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
-        # Start time
-        time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
+        if self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True:
+            time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        else:
+            time = self.ProjectParameters["problem_data"]["start_time"].GetDouble()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
         # End time
         end_time = self.ProjectParameters["problem_data"]["end_time"].GetDouble()
 
@@ -101,12 +102,12 @@ class Kratos_Execute_Test:
 
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
-                
+
             if (self.output_post == True):
                 self.gid_output.ExecuteInitializeSolutionStep()
-                        
+
             self.solver.Solve()
-            
+
             if (self.output_post == True):
                 self.gid_output.ExecuteFinalizeSolutionStep()
 
@@ -122,6 +123,8 @@ class Kratos_Execute_Test:
             if (self.output_post == True):
                 if self.gid_output.IsOutputStep():
                     self.gid_output.PrintOutput()
+
+            self.solver.SaveRestart()
 
         if (self.output_post == True):
             self.gid_output.ExecuteFinalize()
