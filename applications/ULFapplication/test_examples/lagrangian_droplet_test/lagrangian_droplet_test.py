@@ -23,14 +23,8 @@ domain_size = ProjectParameters.domain_size
 import sys
 sys.path.append(ProjectParameters.kratos_path)
 from KratosMultiphysics import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ULFApplication import *
-from KratosMultiphysics.StructuralApplication import *
-#from KratosMultiphysics.PFEMApplication import *
-from KratosMultiphysics.ALEApplication import *
 
 ## defining variables to be used
 
