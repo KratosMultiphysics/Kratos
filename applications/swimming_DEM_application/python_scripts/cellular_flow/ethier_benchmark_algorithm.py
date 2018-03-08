@@ -24,26 +24,33 @@ class Algorithm(BaseAlgorithm):
 
     def SetBetaParameters(self):
         BaseAlgorithm.SetBetaParameters(self)
-        self.pp.CFD_DEM.AddEmptyValue("pressure_grad_recovery_type")
-        self.pp.CFD_DEM.AddEmptyValue("size_parameter").SetInt(1)
-        self.pp.CFD_DEM.AddEmptyValue("store_full_gradient_option").SetBool(True)
+        Add = self.pp.CFD_DEM.AddEmptyValue
+        Add("pressure_grad_recovery_type")
+        Add("size_parameter").SetInt(1)
+        Add("store_full_gradient_option").SetBool(True)
 
     def SetCustomBetaParameters(self, custom_parameters):
         BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
         self.pp.CFD_DEM.size_parameter = self.pp.CFD_DEM["size_parameter"].GetInt()
         # Creating a code for the used input variables
+        print('prob before', self.pp.problem_name)
         self.run_code = '_ndiv_' + str(self.pp.CFD_DEM["size_parameter"].GetDouble()) \
                                  + '_mat_deriv_type_' \
                                  + str(self.pp.CFD_DEM["material_acceleration_calculation_type"].GetInt()) \
                                  + '_lapl_type_' \
                                  + str(self.pp.CFD_DEM["laplacian_calculation_type"].GetInt())
+        print('run_code after', self.GetRunCode())
+        print('self.main_path4', self.main_path)
+
 
     def ReadFluidModelParts(self):
-        os.chdir(self.main_path)
+        problem_name = self.pp.problem_name.replace('Fluid', '')
         if num_type(self.pp.CFD_DEM.size_parameter) == 'int':
-            model_part_io_fluid = ModelPartIO(self.pp.problem_name.replace('ethier', 'ethier_ndiv_' + str(self.pp.CFD_DEM.size_parameter)))
+            mdpa_name = problem_name + '_ndiv_' + str(self.pp.CFD_DEM.size_parameter) + 'Fluid'
         elif num_type(self.pp.CFD_DEM.size_parameter) == 'float':
-            model_part_io_fluid = ModelPartIO(self.pp.problem_name.replace('ethier', 'ethier_h_' + str(self.pp.CFD_DEM.size_parameter)))
+            mdpa_name = problem_name + '_h_' + str(self.pp.CFD_DEM.size_parameter) + 'Fluid'
+
+        model_part_io_fluid = ModelPartIO(mdpa_name)
         model_part_io_fluid.ReadModelPart(self.fluid_solution.fluid_model_part)
 
     def AddExtraVariables(self, run_code = ''):
@@ -239,7 +246,6 @@ class Algorithm(BaseAlgorithm):
             for error in self.laplacian_errors:
                 laplacian_errors_file.write(str(error) + '\n')
         sys.stdout.flush()
-        os.chdir(self.main_path)
         sys.stdout.path_to_console_out_file
         os.rename(sys.stdout.path_to_console_out_file, self.post_path + '/' + sys.stdout.console_output_file_name)
         empty = False

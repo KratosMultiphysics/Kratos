@@ -162,6 +162,7 @@ class Algorithm(object):
         # These are input parameters that have not yet been transferred to the interface
         # import the configuration data as read from the GiD
         Add = self.pp.CFD_DEM.AddEmptyValue
+        Add("fluid_already_calculated").SetBool(False)
         Add("do_solve_dem").SetBool(True)
         Add("recovery_echo_level").SetInt(1)
         Add("gradient_calculation_type").SetInt(1)
