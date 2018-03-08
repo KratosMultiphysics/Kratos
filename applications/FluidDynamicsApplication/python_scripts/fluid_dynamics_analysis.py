@@ -44,7 +44,7 @@ class FluidDynamicsAnalysis(object):
         self._SetUpRestart()
 
         if self.load_restart:
-            pass
+            self.restart_utility.LoadRestart()
         else:
             self.solver.AddVariables()
             self.solver.ImportModelPart()
