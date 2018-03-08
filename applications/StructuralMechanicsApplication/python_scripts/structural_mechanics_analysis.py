@@ -42,7 +42,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
     #### Public functions defining the Interface to the CoSimulationApplication ####
     def Initialize(self, external_model_part=None):
-        self.ImportAndCreateSolver(external_model_part)
+        self.CreateSolver(external_model_part)
         self.InitializeIO()
         self.ExecuteInitialize()
         self.ExecuteBeforeSolutionLoop()
@@ -51,7 +51,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         self.ExecuteInitializeSolutionStep()
 
     def SolveTimeStep(self):
-        self.SolveSolutionStep();
+        self.SolveSolutionStep()
 
     def FinalizeTimeStep(self):
         self.ExecuteFinalizeSolutionStep()
@@ -61,8 +61,8 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
 
     ###########################################################################
-    def ImportAndCreateSolver(self, external_model_part=None):
-        """ Importing the Solver and the ModelPart """
+    def CreateSolver(self, external_model_part=None):
+        """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
         if external_model_part != None:
             # This is a temporary solution until the importing of the ModelPart
             # is removed from the solver (needed e.g. for Optimization)
@@ -99,18 +99,12 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         import python_solvers_wrapper_structural
         self.solver = python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.ProjectParameters)
 
+        ## Adds the necessary variables to the model_part only if they don't exist
+        self.solver.AddVariables()
+
         if not using_external_model_part:
-            self.solver.AddVariables()
-
             ## Read the model - note that SetBufferSize is done here
-            self.solver.ImportModelPart()
-
-            ## Add AddDofs
-            self.solver.AddDofs()
-
-        ## Creation of the Kratos model (build sub_model_parts or submeshes)
-        self.structure_model = KratosMultiphysics.Model()
-        self.structure_model.AddModelPart(self.main_model_part)
+            self.solver.ImportModelPart() # TODO move to global instance
 
     def InitializeIO(self):
         """ Initialize GiD  I/O """
@@ -129,6 +123,13 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
     def ExecuteInitialize(self):
         """ Initializing the Analysis"""
+        ## Adds the Dofs if they don't exist
+        self.solver.AddDofs()
+
+        ## Creation of the Kratos model (build sub_model_parts or submeshes)
+        self.structure_model = KratosMultiphysics.Model()
+        self.structure_model.AddModelPart(self.main_model_part)
+
         ## Print model_part and properties
         if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
             KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
