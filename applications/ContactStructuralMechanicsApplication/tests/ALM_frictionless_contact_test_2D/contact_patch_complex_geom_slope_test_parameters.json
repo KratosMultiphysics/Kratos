@@ -16,8 +16,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test",
-            "input_file_label" : 0
+            "input_filename"   : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test"
         },
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test_materials.json"

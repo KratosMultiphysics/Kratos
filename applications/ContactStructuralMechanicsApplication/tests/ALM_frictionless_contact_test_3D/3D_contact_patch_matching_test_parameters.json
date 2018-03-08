@@ -186,10 +186,22 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"      : ["NORMAL_CONTACT_STRESS","DISPLACEMENT_Y"],
+            "check_variables"      : ["DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.00
+        }
+    },{
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "input_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test_results_LM.json",
+            "model_part_name"     : "Contact_Part",
+            "historical_value"    : false,
+            "time_frequency"      : 1.0
         }
     }
     ],
@@ -200,9 +212,21 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables"     : ["NORMAL_CONTACT_STRESS","DISPLACEMENT_Y"],
+            "output_variables"     : ["DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test_results.json",
             "model_part_name"      : "Contact_Part",
+            "time_frequency"       : 1.00
+        }
+    },{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test_results_LM.json",
+            "model_part_name"      : "Contact_Part",
+            "historical_value"     : false,
             "time_frequency"       : 1.00
         }
     }
