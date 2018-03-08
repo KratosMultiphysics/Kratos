@@ -1,0 +1,6 @@
+// {type:activity}
+(start)->(UpdateModel)
+(UpdateModel)->(GetValue)
+(GetValue)-><d1>->(Converged)->(end) <d1>if needed->(GetGradient)
+(GetGradient)->(MapBackward)->(CalculateSearchDirection)->(ComputeUpdate)->(MapForward)
+(MapForward)->(UpdateModel)
