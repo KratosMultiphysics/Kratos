@@ -117,6 +117,7 @@ class Commander(object):
 
         '''
 
+        self.exitCode = 0
         appNormalizedPath = applicationPath.lower().replace('_', '')
 
         possiblePaths = [
@@ -162,8 +163,10 @@ class Commander(object):
                 # Used instead of wait to "soft-block" the process and prevent deadlocks
                 # and capture the first exit code different from OK
                 self.process.communicate()
-                if(not self.exitCode):
-                    self.process.returncode
+
+                # Running out of time in the tests will send the error code -15. We may want to skip
+                # that one in a future. Right now will throw everything different from 0.
+                self.exitCode = int(self.process.returncode != 0)
             else:
                 if verbose > 0:
                     print(
@@ -284,13 +287,11 @@ def main():
         signalTime
     )
 
-    exit_code = max(exit_code, commander.exitCode)
-
     sys.stderr.flush()
 
     # Run the tests for the rest of the Applications
     for application in applications:
-        print('Running tests for {}'.format(application), file=sys.stderr)
+        print('Running tests for XXXX {}'.format(application), file=sys.stderr)
         sys.stderr.flush()
 
         commander.RunTestSuitInTime(
@@ -302,8 +303,6 @@ def main():
             cmd,
             signalTime
         )
-
-        exit_code = max(exit_code, commander.exitCode)
 
     sys.stderr.flush()
 
