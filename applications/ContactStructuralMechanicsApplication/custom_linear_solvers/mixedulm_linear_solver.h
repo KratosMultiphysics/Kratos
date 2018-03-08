@@ -1008,9 +1008,12 @@ protected:
         K_disp_modified_ptr[0] = 0;
 
         // Creating a buffer for parallel vector fill
-        SignedIndexType* marker = new SignedIndexType[nrows * ncols];
+        const SizeType max_size_array = std::numeric_limits<SignedIndexType>::max();
+        const SizeType marker_array_size = nrows * ncols;
+        KRATOS_WARNING_IF("Max. array declared", marker_array_size > max_size_array) << "You are trying to declare an array bigger: " << marker_array_size << " than the allowed: " << max_size_array << std::endl;
+        SignedIndexType* marker = new SignedIndexType[marker_array_size];
         #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(nrows * ncols); i++)
+        for (int i = 0; i < static_cast<int>(marker_array_size); i++)
             marker[i] = -1;
 
         #pragma omp parallel
@@ -1412,7 +1415,7 @@ protected:
 
         // Release memory
         delete[] marker;
-        
+
         // Create the final matrix
         CreateMatrix(mKDispModified, nrows, ncols, K_disp_modified_ptr, aux_index2_K_disp_modified, aux_val_K_disp_modified);
 

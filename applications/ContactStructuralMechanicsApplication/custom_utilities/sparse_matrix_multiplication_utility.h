@@ -7,7 +7,7 @@
 //					 license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-// 
+//
 
 #if !defined(KRATOS_SPARSE_MATRIX_MULTIPLICATION_UTILITY_H_INCLUDED )
 #define  KRATOS_SPARSE_MATRIX_MULTIPLICATION_UTILITY_H_INCLUDED
@@ -35,11 +35,11 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -47,9 +47,9 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
- * @class SparseMatrixMultiplicationUtility 
+
+/**
+ * @class SparseMatrixMultiplicationUtility
  * @ingroup ContactStructuralMechanicsApplication
  * @brief An utility to multiply sparse matrix in Ublas
  * @details Taken and adapted for ublas from external_libraries/amgcl/detail/spgemm.hpp by Denis Demidov <dennis.demidov@gmail.com>
@@ -61,32 +61,32 @@ class SparseMatrixMultiplicationUtility
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of TreeContactSearch
     KRATOS_CLASS_POINTER_DEFINITION( SparseMatrixMultiplicationUtility );
-    
+
     /// The index type
     typedef std::size_t IndexType;
-    
+
     /// The signed index type
     typedef std::ptrdiff_t  SignedIndexType;
-    
+
     /// A vector of indexes
     typedef vector<IndexType> IndexVectorType;
-    
+
     /// A vector of indexes (signed)
     typedef vector<SignedIndexType> SignedIndexVectorType;
-      
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor
     SparseMatrixMultiplicationUtility(){};
-    
+
     /// Desctructor
     virtual ~SparseMatrixMultiplicationUtility()= default;;
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -94,13 +94,13 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /// Metafunction that returns value type of a matrix or a vector type.
     template <class T, class Enable = void>
     struct value_type {
         typedef typename T::value_type type;
     };
-    
+
     /**
      * @brief The first is an OpenMP-enabled modification of classic algorithm from Saad
      * @details It is used whenever number of OpenMP cores is 4 or less. Saad, Yousef. Iterative methods for sparse linear systems. Siam, 2003.
@@ -110,8 +110,8 @@ public:
      */
     template <class AMatrix, class BMatrix, class CMatrix>
     static void MatrixMultiplicationSaad(
-        const AMatrix& A, 
-        const BMatrix& B, 
+        const AMatrix& A,
+        const BMatrix& B,
         CMatrix& C
         )
     {
@@ -121,11 +121,11 @@ public:
         // Auxiliar sizes
         const std::size_t nrows = A.size1();
         const std::size_t ncols = B.size2();
-        
+
         // Exiting just in case of empty matrix
         if ((nrows == 0) || (ncols == 0))
             return void();
-        
+
         // Get access to A, B and C data
         const std::size_t* index1_a = A.index1_data().begin();
         const std::size_t* index2_a = A.index2_data().begin();
@@ -134,9 +134,9 @@ public:
         const std::size_t* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
         std::ptrdiff_t* c_ptr = new std::ptrdiff_t[nrows + 1];
-        
+
         c_ptr[0] = 0;
-        
+
         #pragma omp parallel
         {
             SignedIndexVectorType marker(ncols, -1);
@@ -145,13 +145,13 @@ public:
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
                 const Idx row_begin_a = index1_a[ia];
                 const Idx row_end_a   = index1_a[ia+1];
-            
+
                 Idx C_cols = 0;
                 for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
                     const Idx ca = index2_a[ja];
                     const Idx row_begin_b = index1_b[ca];
                     const Idx row_end_b   = index1_b[ca+1];
-                    
+
                     for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
                         const Idx cb = index2_b[jb];
                         if (marker[cb] != ia) {
@@ -163,13 +163,13 @@ public:
                 c_ptr[ia + 1] = C_cols;
             }
         }
-                
+
         // We initialize the sparse matrix
         std::partial_sum(c_ptr, c_ptr + nrows + 1, c_ptr);
         const std::size_t nonzero_values = c_ptr[nrows];
         Idx* aux_index2_c = new Idx[nonzero_values];
         Val* aux_val_c = new Val[nonzero_values];
-        
+
         #pragma omp parallel
         {
             SignedIndexVectorType marker(ncols, -1);
@@ -178,21 +178,21 @@ public:
             for(int ia = 0; ia < static_cast<int>(nrows); ++ia) {
                 const Idx row_begin_a = index1_a[ia];
                 const Idx row_end_a   = index1_a[ia+1];
-                
+
                 const Idx row_beg = c_ptr[ia];
                 Idx row_end = row_beg;
 
                 for(Idx ja = row_begin_a; ja < row_end_a; ++ja) {
                     const Idx ca = index2_a[ja];
                     const Val va = values_a[ja];
-                    
+
                     const Idx row_begin_b = index1_b[ca];
                     const Idx row_end_b   = index1_b[ca+1];
 
                     for(Idx jb = row_begin_b; jb < row_end_b; ++jb) {
                         const Idx cb = index2_b[jb];
                         const Val vb = values_b[jb];
-                        
+
                         if (marker[cb] < row_beg) {
                             marker[cb] = row_end;
                             aux_index2_c[row_end] = cb;
@@ -205,16 +205,21 @@ public:
                 }
             }
         }
-        
+
         // We reorder the rows
         SparseMatrixMultiplicationUtility::SortRows(c_ptr, nrows, ncols, aux_index2_c, aux_val_c);
 
         // We fill the matrix
         CreateSolutionMatrix(C, nrows, ncols, c_ptr, aux_index2_c, aux_val_c);
+
+        // Release memory
+        delete[] c_ptr;
+        delete[] aux_index2_c;
+        delete[] aux_val_c;
     }
 
     /**
-     * @brief Row-merge algorithm from Rupp et al. 
+     * @brief Row-merge algorithm from Rupp et al.
      * @details The algorithm  requires less memory and shows much better scalability than classic one. It is used when number of OpenMP cores is more than 4.
      * @param A The first matrix to multiply
      * @param B The second matrix to multiply
@@ -222,10 +227,10 @@ public:
      */
     template <class AMatrix, class BMatrix, class CMatrix>
     static void MatrixMultiplicationRMerge(
-        const AMatrix &A, 
-        const BMatrix &B, 
+        const AMatrix &A,
+        const BMatrix &B,
         CMatrix &C
-        ) 
+        )
     {
         typedef typename value_type<CMatrix>::type Val;
         typedef std::size_t Idx;
@@ -233,11 +238,11 @@ public:
         // Auxiliar sizes
         const std::size_t nrows = A.size1();
         const std::size_t ncols = B.size2();
-        
+
         // Exiting just in case of empty matrix
         if ((nrows == 0) || (ncols == 0))
             return void();
-        
+
         // Get access to A and B data
         const std::size_t* index1_a = A.index1_data().begin();
         const std::size_t* index2_a = A.index2_data().begin();
@@ -245,7 +250,7 @@ public:
         const std::size_t* index1_b = B.index1_data().begin();
         const std::size_t* index2_b = B.index2_data().begin();
         const double* values_b = B.value_data().begin();
-        
+
         Idx max_row_width = 0;
 
         #pragma omp parallel
@@ -256,7 +261,7 @@ public:
             for(int i = 0; i < static_cast<int>(nrows); ++i) {
                 const Idx row_beg = index1_a[i];
                 const Idx row_end = index1_a[i+1];
-                
+
                 Idx row_width = 0;
                 for(Idx j = row_beg; j < row_end; ++j) {
                     const Idx a_col = index2_a[j];
@@ -282,9 +287,9 @@ public:
             tmp_col[i].resize(3 * max_row_width);
             tmp_val[i].resize(2 * max_row_width);
         }
-        
+
         // We create the c_ptr auxiliar variable
-        std::size_t* c_ptr = new std::size_t[nrows + 1];        
+        std::size_t* c_ptr = new std::size_t[nrows + 1];
         c_ptr[0] = 0;
 
         #pragma omp parallel
@@ -311,7 +316,7 @@ public:
         const std::size_t nonzero_values = c_ptr[nrows];
         Idx* aux_index2_c = new Idx[nonzero_values];
         Val* aux_val_c = new Val[nonzero_values];
-        
+
         #pragma omp parallel
         {
         #ifdef _OPENMP
@@ -332,19 +337,24 @@ public:
                         index1_b, index2_b, values_b, aux_index2_c + c_ptr[i], aux_val_c + c_ptr[i], t_col, t_val, t_col + max_row_width, t_val + max_row_width );
             }
         }
-        
+
         // We fill the matrix
         CreateSolutionMatrix(C, nrows, ncols, c_ptr, aux_index2_c, aux_val_c);
+
+        // Release memory
+        delete[] c_ptr;
+        delete[] aux_index2_c;
+        delete[] aux_val_c;
     }
-    
+
     /**
      * @brief This method is designed to create the final solution sparse matrix from the auxiliar values
      * @param C The matrix solution
-     * @param NRows The number of rows of the matrix  
-     * @param NCols The number of columns of the matrix  
+     * @param NRows The number of rows of the matrix
+     * @param NCols The number of columns of the matrix
      * @param CPtr The indexes taht indicate the number of nonzero values in each column
      * @param AuxIndex2C The indexes of the nonzero columns
-     * @param AuxValC The C array containing the values of the sparse matrix   
+     * @param AuxValC The C array containing the values of the sparse matrix
      */
     template <class CMatrix, typename TSize, typename Ptr, typename Idx, typename Val>
     static inline void CreateSolutionMatrix(
@@ -359,33 +369,33 @@ public:
         // Exiting just in case of empty matrix
         if ((NRows == 0) || (NCols == 0))
             return void();
-        
+
         // Auxiliar values
         const TSize nonzero_values = CPtr[NRows];
-        
+
         C = CMatrix(NRows, NCols, nonzero_values);
         std::size_t* index1_c = C.index1_data().begin();
         std::size_t* index2_c = C.index2_data().begin();
         double* values_c = C.value_data().begin();
-        
+
         index1_c[0] = 0;
         for (TSize i = 0; i < NRows; i++)
             index1_c[i+1] = index1_c[i] + (CPtr[i+1] - CPtr[i]);
-        
+
         #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(nonzero_values); i++) {
             KRATOS_DEBUG_ERROR_IF(AuxIndex2C[i] > static_cast<Idx>(NCols)) << "Index " << AuxIndex2C[i] <<" is greater than the number of columns " << NCols << std::endl;
             index2_c[i] = AuxIndex2C[i];
             values_c[i] = AuxValC[i];
         }
-        
+
         C.set_filled(NRows+1, nonzero_values);
     }
-    
+
     /**
      * @brief This method is designed to reorder the rows by columns
-     * @param NRows The number of rows of the matrix  
-     * @param NCols The number of columns of the matrix  
+     * @param NRows The number of rows of the matrix
+     * @param NCols The number of columns of the matrix
      * @param CPtr The indexes taht indicate the number of nonzero values in each column
      * @param Columns The columns of the problem
      * @param Values The values (to be ordered with the rows)
@@ -395,9 +405,9 @@ public:
         const Idx* CPtr,
         const TSize NRows,
         const TSize NCols,
-        Col* Columns, 
+        Col* Columns,
         Val* Values
-        ) 
+        )
     {
         #pragma omp parallel
         {
@@ -405,7 +415,7 @@ public:
             for (int i_row=0; i_row<static_cast<int>(NRows); i_row++) {
                 const std::ptrdiff_t row_beg = CPtr[i_row];
                 const std::ptrdiff_t row_end = CPtr[i_row + 1];
-                
+
                 for(std::ptrdiff_t j = 1; j < row_end - row_beg; ++j) {
                     const std::ptrdiff_t c = Columns[j + row_beg];
                     const double v = Values[j + row_beg];
@@ -418,101 +428,101 @@ public:
                         Values[i + 1 + row_beg] = Values[i + row_beg];
                         i--;
                     }
-                    
+
                     Columns[i + 1 + row_beg] = c;
                     Values[i + 1 + row_beg] = v;
                 }
             }
         }
     }
-    
+
     ///@}
     ///@name Access
     ///@{
-    
+
     ///@}
     ///@name Inquiry
     ///@{
-    
+
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     std::string Info() const
     {
         return "SparseMatrixMultiplicationUtility";
     }
-    
+
     /// Print information about this object.
     void PrintInfo (std::ostream& rOStream) const
     {
         rOStream << "SparseMatrixMultiplicationUtility";
     }
-    
+
     /// Print object's data.
     void PrintData (std::ostream& rOStream) const
     {
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
-    
+
     ///@}
     ///@name Protected Inquiry
     ///@{
-    
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     ///@}
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
-     * 
+     *
      */
     template <bool need_out, class Idx>
     static Idx* MergeRows(
-            const Idx* col1, 
+            const Idx* col1,
             const Idx* col1_end,
-            const Idx* col2, 
+            const Idx* col2,
             const Idx* col2_end,
             Idx* col3
             )
@@ -549,19 +559,19 @@ private:
     }
 
     /**
-     *  
+     *
      */
     template <class Idx, class Val>
     static Idx* MergeRows(
-            const Val &alpha1, 
-            const Idx* col1, 
-            const Idx* col1_end, 
+            const Val &alpha1,
+            const Idx* col1,
+            const Idx* col1_end,
             const Val *val1,
-            const Val &alpha2, 
-            const Idx* col2, 
-            const Idx* col2_end, 
+            const Val &alpha2,
+            const Idx* col2,
+            const Idx* col2_end,
             const Val *val2,
-            Idx* col3, 
+            Idx* col3,
             Val *val3
             )
     {
@@ -605,16 +615,16 @@ private:
     }
 
     /**
-     * 
+     *
      */
     template <class Idx>
     static Idx ProdRowWidth(
-            const Idx* acol, 
+            const Idx* acol,
             const Idx* acol_end,
-            const Idx* bptr, 
+            const Idx* bptr,
             const Idx* bcol,
-            Idx* tmp_col1, 
-            Idx* tmp_col2, 
+            Idx* tmp_col1,
+            Idx* tmp_col2,
             Idx* tmp_col3
             )
     {
@@ -667,21 +677,21 @@ private:
     }
 
     /**
-     * 
+     *
      */
     template <class Idx, class Val>
     static void ProdRow(
-            const Idx* acol, 
-            const Idx* acol_end, 
+            const Idx* acol,
+            const Idx* acol_end,
             const Val *aval,
-            const Idx* bptr, 
-            const Idx* bcol, 
+            const Idx* bptr,
+            const Idx* bcol,
             const Val *bval,
-            Idx* out_col, 
+            Idx* out_col,
             Val *out_val,
-            Idx* tm2_col, 
+            Idx* tm2_col,
             Val *tm2_val,
-            Idx* tm3_col, 
+            Idx* tm3_col,
             Val *tm3_val
             )
     {
@@ -769,10 +779,10 @@ private:
             std::copy(tm1_col, tm1_col + c_col1, out_col);
             std::copy(tm1_val, tm1_val + c_col1, out_val);
         }
-        
+
         return;
     }
-    
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -801,14 +811,14 @@ private:
 
 // /****************************** INPUT STREAM FUNCTION ******************************/
 // /***********************************************************************************/
-// 
+//
 // template<class TPointType, class TPointerType>
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   SparseMatrixMultiplicationUtility& rThis);
-// 
+//
 // /***************************** OUTPUT STREAM FUNCTION ******************************/
 // /***********************************************************************************/
-// 
+//
 // template<class TPointType, class TPointerType>
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const SparseMatrixMultiplicationUtility& rThis)
@@ -820,4 +830,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED  defined 
+#endif // KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED  defined
