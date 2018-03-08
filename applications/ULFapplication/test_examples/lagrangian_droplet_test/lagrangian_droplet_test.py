@@ -125,8 +125,8 @@ density=problem_settings.density
 FSI=problem_settings.FSI
 
 eul_model_part = 0
-gamma = 1.0 		#surface tension coefficient [N m-1]
-contact_angle = 130 	#contact angle [deg]
+gamma = 0.072 		#surface tension coefficient [N m-1]
+contact_angle = 360.0 	#contact angle [deg]
 lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle)
 
 reform_dofs_at_each_step = False
