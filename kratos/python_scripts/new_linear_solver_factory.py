@@ -78,6 +78,11 @@ def ConstructSolver(configuration):
         import KratosMultiphysics.EigenSolversApplication
         linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLUSolver(configuration)
 
+     # emulating the solvers of the MKLSolversApplication through the EigenSolversApplication
+    elif (solver_type == "ParallelMKLPardisoSolver"):
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLUSolver(configuration)
+
     ###################################### FAILED TO FIND solver_type
     else:
         raise Exception("solver type not found. Asking for :" + solver_type)

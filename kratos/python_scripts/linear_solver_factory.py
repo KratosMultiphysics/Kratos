@@ -305,6 +305,13 @@ def ConstructSolver(configuration):
         scaling = params["scaling"].GetBool()
 
         linear_solver = AMGCL_NS_Solver(params)
+
+    elif (solver_type == "Parallel MKL Pardiso" or solver_type == "Parallel_MKL_Pardiso"):
+        # emulating the solvers of the MKLSolversApplication through the EigenSolversApplication
+        import EigenSolversApplication
+        params = Parameters("""{}""")
+        linear_solver = EigenSolversApplication.PardisoLUSolver(params)
+
     else:
         print("*****************************************************************")
         print("Inexisting solver type. Possibilities are:")
@@ -319,6 +326,7 @@ def ConstructSolver(configuration):
         print("SuperLUIterativeSolver (requires ExternalSolversApplication)")
         print("PastixDirect (requires ExternalSolversApplication + shall be habilitated at compilation time)")
         print("PastixIterative (requires ExternalSolversApplication + shall be habilitated at compilation time)")
+        print("Parallel MKL Pardiso (requires EigenSolversApplication with MKL enabled)")
         print("*****************************************************************")
         raise RuntimeError(" Wrong Solver Definition ")
     # else:
