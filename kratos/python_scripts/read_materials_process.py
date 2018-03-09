@@ -1,4 +1,9 @@
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Other imports
 import sys
 
 def Factory(settings, Model):
@@ -24,7 +29,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             "properties" : []
         }
 
-        See _AssignPropertyBlock for detail on how properties are imported.
+        See __AssignPropertyBlock for detail on how properties are imported.
         """
         KratosMultiphysics.Process.__init__(self)
         default_settings = KratosMultiphysics.Parameters("""
@@ -46,71 +51,13 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             data = materials["properties"][i]
 
             if self.__InterpolationIsRequired(data):
-                self._AssignPropertyBlockInterpolated(data)
+                self.__AssignPropertyBlockInterpolated(data)
             else:
-                self._AssignPropertyBlock(data)
+                self.__AssignPropertyBlock(data)
 
         KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Finished")
 
-    def _get_attribute(self, my_string, function_pointer, attribute_type):
-        """Return the python object named by the string argument.
-
-        To be used with functions from KratosGlobals
-
-        Examples:
-        variable = self._get_attribute("DISPLACEMENT",
-                                       KratosMultiphysics.KratosGlobals.GetVariable,
-                                       "Variable")
-
-        constitutive_law = self._get_attribute("LinearElastic3DLaw",
-                                               KratosMultiphysics.KratosGlobals.GetConstitutiveLaw,
-                                               "Constitutive Law")
-        """
-        splitted = my_string.split(".")
-
-        if len(splitted) == 0:
-            raise Exception("Something wrong. Trying to split the string " + my_string)
-        if len(splitted) > 3:
-            raise Exception("Something wrong. String " + my_string + " has too many arguments")
-
-        attribute_name = splitted[-1]
-
-        if len(splitted) == 2 or len(splitted) == 3:
-            warning_msg =  "Ignoring \"" +  my_string.rsplit(".",1)[0]
-            warning_msg += "\" for " + attribute_type +" \"" + attribute_name + "\""
-            KratosMultiphysics.Logger.PrintInfo("Warning in reading materials", warning_msg)
-
-        return function_pointer(attribute_name) # This also checks if the application has been imported
-
-    def _GetVariable(self, my_string):
-        """Return the python object of a Variable named by the string argument.
-
-        Examples:
-        recommended usage:
-        variable = self._GetVariable("VELOCITY")
-        deprecated:
-        variable = self._GetVariable("KratosMultiphysics.VELOCITY")
-        variable = self._GetVariable("SUBSCALE_PRESSURE")
-        variable = self._GetVariable("FluidDynamicsApplication.SUBSCALE_PRESSURE")
-        variable = self._GetVariable("KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE")
-        """
-        return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
-
-    def _GetConstitutiveLaw(self, my_string):
-        """Return the python object of a Constitutive Law named by the string argument.
-
-        Example:
-        recommended usage:
-        constitutive_law = self._GetConstitutiveLaw('LinearElastic3DLaw')
-        deprecated:
-        constitutive_law = self._GetConstitutiveLaw('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
-        constitutive_law = self._GetConstitutiveLaw('StructuralMechanicsApplication.LinearElastic3DLaw')
-
-        model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
-        """
-        return self._get_attribute(my_string, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
-
-    def _AssignPropertyBlock(self, data):
+    def __AssignPropertyBlock(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
 
         Arguments:
@@ -155,13 +102,13 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         mat = data["Material"]
 
         # Set the CONSTITUTIVE_LAW for the current properties.
-        constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
+        constitutive_law = self.__GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
 
         prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law)
 
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():
-            var = self._GetVariable(key)
+            var = self.__GetVariable(key)
             if value.IsDouble():
                 prop.SetValue( var, value.GetDouble() )
             elif value.IsInt():
@@ -181,8 +128,8 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         for key, table in mat["Tables"].items():
             table_name = key
 
-            input_var = self._GetVariable(table["input_variable"].GetString())
-            output_var = self._GetVariable(table["output_variable"].GetString())
+            input_var = self.__GetVariable(table["input_variable"].GetString())
+            output_var = self.__GetVariable(table["output_variable"].GetString())
 
             new_table = KratosMultiphysics.PiecewiseLinearTable()
 
@@ -191,7 +138,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
             prop.SetTable(input_var,output_var,new_table)
 
-    def _AssignPropertyBlockInterpolated(self, data):
+    def __AssignPropertyBlockInterpolated(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
 
         Some variables are interpolated from Tables
@@ -245,7 +192,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         mat = data["Material"]
 
         # Get the Constitutive Law
-        constitutive_law = self._GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )()
+        constitutive_law = self.__GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
 
         # Set the tables to the ModelPart
         table_dict = {}
@@ -270,7 +217,65 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
             self.__AssignInterpolatedProperties(mat, table_dict, cond, cond_props)
 
-    #### Private methods needed for the interpolation ####
+    def __GetAttribute(self, my_string, function_pointer, attribute_type):
+        """Return the python object named by the string argument.
+
+        To be used with functions from KratosGlobals
+
+        Examples:
+        variable = self.__GetAttribute("DISPLACEMENT",
+                                       KratosMultiphysics.KratosGlobals.GetVariable,
+                                       "Variable")
+
+        constitutive_law = self.__GetAttribute("LinearElastic3DLaw",
+                                               KratosMultiphysics.KratosGlobals.GetConstitutiveLaw,
+                                               "Constitutive Law")
+        """
+        splitted = my_string.split(".")
+
+        if len(splitted) == 0:
+            raise Exception("Something wrong. Trying to split the string " + my_string)
+        if len(splitted) > 3:
+            raise Exception("Something wrong. String " + my_string + " has too many arguments")
+
+        attribute_name = splitted[-1]
+
+        if len(splitted) == 2 or len(splitted) == 3:
+            warning_msg =  "Ignoring \"" +  my_string.rsplit(".",1)[0]
+            warning_msg += "\" for " + attribute_type +" \"" + attribute_name + "\""
+            KratosMultiphysics.Logger.PrintInfo("Warning in reading materials", warning_msg)
+
+        return function_pointer(attribute_name) # This also checks if the application has been imported
+
+    def __GetVariable(self, my_string):
+        """Return the python object of a Variable named by the string argument.
+
+        Examples:
+        recommended usage:
+        variable = self.__GetVariable("VELOCITY")
+        deprecated:
+        variable = self.__GetVariable("KratosMultiphysics.VELOCITY")
+        variable = self.__GetVariable("SUBSCALE_PRESSURE")
+        variable = self.__GetVariable("FluidDynamicsApplication.SUBSCALE_PRESSURE")
+        variable = self.__GetVariable("KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE")
+        """
+        return self.__GetAttribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
+
+    def __GetConstitutiveLaw(self, my_string):
+        """Return the python object of a Constitutive Law named by the string argument.
+
+        Example:
+        recommended usage:
+        constitutive_law = self.__GetConstitutiveLaw('LinearElastic3DLaw')
+        deprecated:
+        constitutive_law = self.__GetConstitutiveLaw('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
+        constitutive_law = self.__GetConstitutiveLaw('StructuralMechanicsApplication.LinearElastic3DLaw')
+
+        model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
+        """
+        return self.__GetAttribute(my_string, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
+
+    #### Methods needed for the interpolation ####
 
     def __InterpolationIsRequired(self, data):
         """
@@ -378,8 +383,8 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
             table_param = material_parameters["Tables"][table_name]
 
-            input_variable = self._GetVariable(table_param["input_variable"].GetString())
-            output_variable = self._GetVariable(table_param["output_variable"].GetString())
+            input_variable = self.__GetVariable(table_param["input_variable"].GetString())
+            output_variable = self.__GetVariable(table_param["output_variable"].GetString())
 
             self.__CheckVariableType(input_variable, table_name)
             self.__CheckVariableType(output_variable, table_name)
@@ -417,7 +422,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         # assign the values to the properties and interpolate if needed
         for key, value in mat["Variables"].items():
-            var = self._GetVariable(key)
+            var = self.__GetVariable(key)
             if value.IsDouble():
                 prop.SetValue( var, value.GetDouble() )
             elif value.IsInt():
@@ -521,7 +526,8 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         return interpolated_matrix
 
     def __CheckVariableType(self, variable, table_name):
-        if(type(variable) != KratosMultiphysics.DoubleVariable and type(variable) != KratosMultiphysics.Array1DComponentVariable):
+        var_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name())
+        if(var_type != "Double" and var_type != "Component"):
             err_msg = 'In table "' + table_name + '": Variable type of variable - '
             err_msg += variable.Name() + ' - is incorrect!\nMust be a scalar or a component'
             raise Exception(err_msg)
