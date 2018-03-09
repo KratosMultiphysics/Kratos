@@ -129,7 +129,7 @@ namespace Kratos
       //SECON STEP: correct the flags
       for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
       {
-	  if (im->FastGetSolutionStepValue(IS_BOUNDARY) != 0.0 && im->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) == 0.0)
+	  if (im->FastGetSolutionStepValue(IS_BOUNDARY) != 0.0 && im->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
 	  {
 	      dist = sqrt((im->Y() - mean_ystr)*(im->Y() - mean_ystr));
 	      if (dist < eps_tol)

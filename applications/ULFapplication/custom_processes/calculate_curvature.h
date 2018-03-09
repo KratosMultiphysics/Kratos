@@ -125,7 +125,7 @@ namespace Kratos
 	
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
 	    {
-	      if (im->FastGetSolutionStepValue(IS_INTERFACE) != 0.0 && im->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) == 0.0)
+	      if (im->FastGetSolutionStepValue(IS_INTERFACE) != 0.0 && im->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
 	      {
 		WeakPointerVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
 		x0 = im->X();
