@@ -1016,7 +1016,7 @@ protected:
 
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux1, K_disp_modified_ptr_aux1 + nrows + 1, K_disp_modified_ptr_aux1);
-        const std::size_t nonzero_values_aux1 = K_disp_modified_ptr_aux1[nrows];
+        const SizeType nonzero_values_aux1 = K_disp_modified_ptr_aux1[nrows];
         SignedIndexType* aux_index2_K_disp_modified_aux1 = new SignedIndexType[nonzero_values_aux1];
         double* aux_val_K_disp_modified_aux1 = new double[nonzero_values_aux1];
 
@@ -1024,139 +1024,14 @@ protected:
         {
             #pragma omp for
             for (int i=0; i<static_cast<int>(rA.size1()); i++) {
-                const IndexType row_begin_A = index1[i];
-                const IndexType row_end_A   = index1[i + 1];
-
                 if ( mWhichBlockType[i] == BlockType::OTHER) { //either KNN or KNM or KNSI or KNSA
-                    const IndexType local_row_id = mGlobalToLocalIndexing[i] + other_dof_initial_index;
-                    const SignedIndexType row_beg = K_disp_modified_ptr_aux1[local_row_id];
-                    SignedIndexType row_end = row_beg;
-                    for (IndexType j=row_begin_A; j<row_end_A; j++) {
-                        const IndexType col_index = index2[j];
-                        const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                        const double value = values[j];
-                        if (mWhichBlockType[col_index] == BlockType::OTHER) {                 // KNN block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + other_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::MASTER) {         // KNM block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + master_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KNSI block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + slave_inactive_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {   // KNSA block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + assembling_slave_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        }
-                    }
+                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, other_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1, tolerance);
                 } else if ( mWhichBlockType[i] == BlockType::MASTER) { //either KMN or KMM or KMSI or KMLM
-                    const IndexType local_row_id = mGlobalToLocalIndexing[i] + master_dof_initial_index;
-                    const SignedIndexType row_beg = K_disp_modified_ptr_aux1[local_row_id];
-                    SignedIndexType row_end = row_beg;
-                    for (IndexType j=row_begin_A; j<row_end_A; j++) {
-                        const IndexType col_index = index2[j];
-                        const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                        const double value = values[j];
-                        if (mWhichBlockType[col_index] == BlockType::OTHER) {                 // KMN block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + other_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::MASTER) {         // KNMM block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + master_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KMSI block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + slave_inactive_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {   // KMSA block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + assembling_slave_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        }
-                    }
+                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, master_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1, tolerance);
                 } else if ( mWhichBlockType[i] == BlockType::SLAVE_INACTIVE) { //either KSIN or KSIM or KSISI or KSISA
-                    const IndexType local_row_id = mGlobalToLocalIndexing[i] + slave_inactive_dof_initial_index;
-                    const SignedIndexType row_beg = K_disp_modified_ptr_aux1[local_row_id];
-                    SignedIndexType row_end = row_beg;
-                    for (IndexType j=row_begin_A; j<row_end_A; j++) {
-                        const IndexType col_index = index2[j];
-                        const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                        const double value = values[j];
-                        if (mWhichBlockType[col_index] == BlockType::OTHER) {                // KSIN block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + other_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::MASTER) {        // KSIM block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + master_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KSISI block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + slave_inactive_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {  // KSISA block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + assembling_slave_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        }
-                    }
+                    ComputeAuxiliarValuesDispDoFs( index1, index2, values,  i, slave_inactive_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1, tolerance);
                 } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { //either KLMAM or KLMASI or KLMASA
-                    const IndexType local_row_id = mGlobalToLocalIndexing[i] + assembling_slave_dof_initial_index;
-                    const SignedIndexType row_beg = K_disp_modified_ptr_aux1[local_row_id];
-                    SignedIndexType row_end = row_beg;
-                    for (IndexType j=row_begin_A; j<row_end_A; j++) {
-                        const IndexType col_index = index2[j];
-                        const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
-                        const double value = values[j];
-                        if (mWhichBlockType[col_index] == BlockType::MASTER) {                // KLMAM block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + master_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) { // KLMASI block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + slave_inactive_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {   // KLMASA block
-                            if (std::abs(value) > tolerance) {
-                                aux_index2_K_disp_modified_aux1[row_end] = local_col_id + assembling_slave_dof_initial_index;
-                                aux_val_K_disp_modified_aux1[row_end] = value;
-                                ++row_end;
-                            }
-                        }
-                    }
+                    ComputeAuxiliarValuesPartialDispDoFs( index1, index2, values,  i, assembling_slave_dof_initial_index, K_disp_modified_ptr_aux1, aux_index2_K_disp_modified_aux1, aux_val_K_disp_modified_aux1, tolerance);
                 }
             }
         }
@@ -1175,7 +1050,7 @@ protected:
             #pragma omp for
             for (int i=0; i<static_cast<int>(master_size); i++) {
 
-                SignedIndexType K_disp_modified_cols_aux2 = 0;
+                IndexType K_disp_modified_cols_aux2 = 0;
 
                 // Get access to master_auxKSAN data
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
@@ -1203,7 +1078,7 @@ protected:
             #pragma omp for
             for (int i=0; i<static_cast<int>(slave_active_size); i++) {
 
-                SignedIndexType K_disp_modified_cols_aux2 = 0;
+                IndexType K_disp_modified_cols_aux2 = 0;
 
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
@@ -1231,7 +1106,7 @@ protected:
 
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux2, K_disp_modified_ptr_aux2 + nrows + 1, K_disp_modified_ptr_aux2);
-        const std::size_t nonzero_values_aux2 = K_disp_modified_ptr_aux2[nrows];
+        const SizeType nonzero_values_aux2 = K_disp_modified_ptr_aux2[nrows];
         SignedIndexType* aux_index2_K_disp_modified_aux2 = new SignedIndexType[nonzero_values_aux2];
         double* aux_val_K_disp_modified_aux2 = new double[nonzero_values_aux2];
 
@@ -1239,8 +1114,8 @@ protected:
         {
             #pragma omp for
             for (int i=0; i<static_cast<int>(master_size); i++) {
-                const SignedIndexType row_beg = K_disp_modified_ptr_aux2[master_dof_initial_index + i];
-                SignedIndexType row_end = row_beg;
+                const IndexType row_beg = K_disp_modified_ptr_aux2[master_dof_initial_index + i];
+                IndexType row_end = row_beg;
 
                 // Get access to master_auxKSAN data
                 if (master_auxKSAN.nnz() > 0 && other_dof_size > 0) {
@@ -1265,8 +1140,8 @@ protected:
 
             #pragma omp for
             for (int i=0; i<static_cast<int>(slave_active_size); i++) {
-                const SignedIndexType row_beg = K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i];
-                SignedIndexType row_end = row_beg;
+                const IndexType row_beg = K_disp_modified_ptr_aux2[assembling_slave_dof_initial_index + i];
+                IndexType row_end = row_beg;
 
                 // Get access to aslave_auxKSAN data
                 if (aslave_auxKSAN.nnz() > 0 && other_dof_size > 0) {
@@ -1456,6 +1331,152 @@ private:
     }
 
     /**
+     * @brief This method is mean to avoid code duplication when evaluate the terms of the Aux1 matrix
+     * @param Index1 The indexes of nonzero rows
+     * @param Index2 The indexes of nonzero columns
+     * @param Values The array containing the values of the matrix
+     * @param CurrentRow The current row computed
+     * @param InitialIndex The index corresponding to the current row in the global contribution
+     * @param Ptr The nonzero terms of each column
+     * @param AuxIndex2 The indexes of the non zero columns
+     * @param AuxVals The values of the final matrix
+     * @param Tolerance The tolerance considered to check if the values are almost 0
+     */
+    inline void ComputeAuxiliarValuesDispDoFs(
+        const IndexType* Index1,
+        const IndexType* Index2,
+        const double* Values,
+        const int CurrentRow,
+        const IndexType InitialIndex,
+        IndexType* Ptr,
+        SignedIndexType* AuxIndex2,
+        double* AuxVals,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        // Auxiliar sizes
+        const SizeType other_dof_size = mOtherIndices.size();
+        const SizeType master_size = mMasterIndices.size();
+        const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
+
+        // Auxiliar indexes
+        const SizeType other_dof_initial_index = 0;
+        const SizeType master_dof_initial_index = other_dof_size;
+        const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
+        const SizeType assembling_slave_dof_initial_index = slave_inactive_dof_initial_index + slave_inactive_size;
+
+        // Some indexes
+        const IndexType local_row_id = mGlobalToLocalIndexing[CurrentRow] + InitialIndex;
+
+        const IndexType row_begin_A = Index1[CurrentRow];
+        const IndexType row_end_A   = Index1[CurrentRow + 1];
+
+        const IndexType row_beg = Ptr[local_row_id];
+        IndexType row_end = row_beg;
+
+        for (IndexType j=row_begin_A; j<row_end_A; j++) {
+            const IndexType col_index = Index2[j];
+            const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
+            const double value = Values[j];
+            if (mWhichBlockType[col_index] == BlockType::OTHER) {
+                if (std::abs(value) > Tolerance) {
+                    AuxIndex2[row_end] = local_col_id + other_dof_initial_index;
+                    AuxVals[row_end] = value;
+                    ++row_end;
+                }
+            } else if (mWhichBlockType[col_index] == BlockType::MASTER) {
+                if (std::abs(value) > Tolerance) {
+                    AuxIndex2[row_end] = local_col_id + master_dof_initial_index;
+                    AuxVals[row_end] = value;
+                    ++row_end;
+                }
+            } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) {
+                if (std::abs(value) > Tolerance) {
+                    AuxIndex2[row_end] = local_col_id + slave_inactive_dof_initial_index;
+                    AuxVals[row_end] = value;
+                    ++row_end;
+                }
+            } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {
+                if (std::abs(value) > Tolerance) {
+                    AuxIndex2[row_end] = local_col_id + assembling_slave_dof_initial_index;
+                    AuxVals[row_end] = value;
+                    ++row_end;
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief This method is mean to avoid code duplication when evaluate the terms of the Aux1 matrix
+     * @details The same as the previous one but not taking into account the contribution of the other dofs
+     * @param Index1 The indexes of nonzero rows
+     * @param Index2 The indexes of nonzero columns
+     * @param Values The array containing the values of the matrix
+     * @param CurrentRow The current row computed
+     * @param InitialIndex The index corresponding to the current row in the global contribution
+     * @param Ptr The nonzero terms of each column
+     * @param AuxIndex2 The indexes of the non zero columns
+     * @param AuxVals The values of the final matrix
+     * @param Tolerance The tolerance considered to check if the values are almost 0
+     */
+    inline void ComputeAuxiliarValuesPartialDispDoFs(
+        const IndexType* Index1,
+        const IndexType* Index2,
+        const double* Values,
+        const int CurrentRow,
+        const IndexType InitialIndex,
+        IndexType* Ptr,
+        SignedIndexType* AuxIndex2,
+        double* AuxVals,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        // Auxiliar sizes
+        const SizeType other_dof_size = mOtherIndices.size();
+        const SizeType master_size = mMasterIndices.size();
+        const SizeType slave_inactive_size = mSlaveInactiveIndices.size();
+
+        // Auxiliar indexes
+        const SizeType master_dof_initial_index = other_dof_size;
+        const SizeType slave_inactive_dof_initial_index = master_dof_initial_index + master_size;
+        const SizeType assembling_slave_dof_initial_index = slave_inactive_dof_initial_index + slave_inactive_size;
+
+        // Some indexes
+        const IndexType local_row_id = mGlobalToLocalIndexing[CurrentRow] + InitialIndex;
+
+        const IndexType row_begin_A = Index1[CurrentRow];
+        const IndexType row_end_A   = Index1[CurrentRow + 1];
+
+        const IndexType row_beg = Ptr[local_row_id];
+        IndexType row_end = row_beg;
+
+        for (IndexType j=row_begin_A; j<row_end_A; j++) {
+            const IndexType col_index = Index2[j];
+            const IndexType local_col_id = mGlobalToLocalIndexing[col_index];
+            const double value = Values[j];
+            if (mWhichBlockType[col_index] == BlockType::MASTER) {
+                if (std::abs(value) > Tolerance) {
+                    AuxIndex2[row_end] = local_col_id + master_dof_initial_index;
+                    AuxVals[row_end] = value;
+                    ++row_end;
+                }
+            } else if (mWhichBlockType[col_index] == BlockType::SLAVE_INACTIVE) {
+                if (std::abs(value) > Tolerance) {
+                    AuxIndex2[row_end] = local_col_id + slave_inactive_dof_initial_index;
+                    AuxVals[row_end] = value;
+                    ++row_end;
+                }
+            } else if (mWhichBlockType[col_index] == BlockType::SLAVE_ACTIVE) {
+                if (std::abs(value) > Tolerance) {
+                    AuxIndex2[row_end] = local_col_id + assembling_slave_dof_initial_index;
+                    AuxVals[row_end] = value;
+                    ++row_end;
+                }
+            }
+        }
+    }
+
+    /**
      * @brief This is a method to check the block containing nonzero values
      * @param AuxK The auxiliar block
      * @param CurrentRow The current row computed
@@ -1465,7 +1486,7 @@ private:
     inline void ComputeNonZeroBlocks(
         const SparseMatrixType& AuxK,
         const int CurrentRow,
-        SignedIndexType& KDispModifiedColsAux2,
+        IndexType& KDispModifiedColsAux2,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         )
     {
@@ -1498,7 +1519,7 @@ private:
         SignedIndexType* AuxIndex2,
         double* AuxVals,
         const int CurrentRow,
-        SignedIndexType& RowEnd,
+        IndexType& RowEnd,
         const SizeType InitialIndexColumn,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         )
