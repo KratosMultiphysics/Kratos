@@ -61,10 +61,6 @@ class ModelPartController:
         self.MeshController.Initialize()
 
     # --------------------------------------------------------------------------
-    def CloneTimeStep( self, new_step ):
-        self.OptimizationModelPart.CloneTimeStep( new_step )
-
-    # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
         self.MeshController.UpdateMeshAccordingInputVariable( InputVariable )
 

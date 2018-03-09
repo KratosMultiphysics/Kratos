@@ -107,7 +107,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeNewShape( self ):
-        self.ModelPartController.CloneTimeStep( self.optimizationIteration )
         self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
         self.ModelPartController.SetReferenceMeshToMesh()
 

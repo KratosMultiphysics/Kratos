@@ -58,7 +58,14 @@ class MeshControllerUsingALESolver( MeshController) :
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Z, True, surface_nodes)
         VariableUtils().CopyVectorVar(SHAPE_UPDATE, MESH_DISPLACEMENT, surface_nodes)
 
+        # A DELTA_TIME is set to an arbitrary value since the mesh solver computes mesh velocities (which are not needed here)
+        original_delta = self.OptimizationModelPart.ProcessInfo[DELTA_TIME]
+        self.OptimizationModelPart.ProcessInfo[DELTA_TIME] = 1
+
         self.mesh_solver.Solve()
+
+        # The modified DELTA_TIME is restored again
+        self.OptimizationModelPart.ProcessInfo[DELTA_TIME] = original_delta
 
         MeshControllerUtilities( self.OptimizationModelPart ).LogMeshChangeAccordingInputVariable( MESH_DISPLACEMENT )
 
