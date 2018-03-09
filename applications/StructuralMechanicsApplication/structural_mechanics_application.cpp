@@ -249,7 +249,7 @@ void KratosStructuralMechanicsApplication::Register() {
     // Formfinding
     KRATOS_REGISTER_VARIABLE(LAMBDA_MAX)
     KRATOS_REGISTER_VARIABLE(IS_FORMFINDING)
-    
+
 
     // Cross section
     KRATOS_REGISTER_VARIABLE(SHELL_CROSS_SECTION)
@@ -456,8 +456,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("KirchhoffSaintVenantPlaneStrain2DLaw", mHyperElasticIsotropicKirchhoffPlaneStrain2D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElastic3DLaw", mHyperElasticIsotropicNeoHookean3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("HyperElasticPlaneStrain2DLaw", mHyperElasticIsotropicNeoHookeanPlaneStrain2D);
-    Serializer::Register("LinearJ2PlasticityPlaneStrain2DLaw", mLinearJ2PlasticityPlaneStrain2D);
-    Serializer::Register("LinearJ2Plasticity3DLaw", mLinearJ2Plasticity3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearJ2PlasticityPlaneStrain2DLaw", mLinearJ2PlasticityPlaneStrain2D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearJ2Plasticity3DLaw", mLinearJ2Plasticity3D);
 }
 
 }  // namespace Kratos.
