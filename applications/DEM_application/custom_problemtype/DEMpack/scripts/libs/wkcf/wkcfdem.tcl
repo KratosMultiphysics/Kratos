@@ -1636,12 +1636,12 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
     # Clean IndentationsOption
     set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CleanInitialIndentations"
     set CleanIndentationsOption [::xmlutils::setXml $cxpath $cproperty]
-    if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
-	puts $fileid "CleanIndentationsOption          = \"OFF\""
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+        puts $fileid "CleanIndentationsOption          = \"OFF\""
     } elseif {$CleanIndentationsOption == "Yes"} {
-	puts $fileid "CleanIndentationsOption          = \"ON\""
+        puts $fileid "CleanIndentationsOption          = \"ON\""
     } else {
-	puts $fileid "CleanIndentationsOption          = \"OFF\""
+        puts $fileid "CleanIndentationsOption          = \"OFF\""
     }
 
     if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
@@ -2191,12 +2191,12 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     # Clean IndentationsOption
     set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CleanInitialIndentations"
     set CleanIndentationsOption [::xmlutils::setXml $cxpath $cproperty]
-    if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
-	puts $fileid "\"CleanIndentationsOption\"          : false,"
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+        puts $fileid "\"CleanIndentationsOption\"          : false,"
     } elseif {$CleanIndentationsOption == "Yes"} {
-	puts $fileid "\"CleanIndentationsOption\"          : true,"
+        puts $fileid "\"CleanIndentationsOption\"          : true,"
     } else {
-	puts $fileid "\"CleanIndentationsOption\"          : false,"
+        puts $fileid "\"CleanIndentationsOption\"          : false,"
     }
 
     if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
