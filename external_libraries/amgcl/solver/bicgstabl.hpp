@@ -74,8 +74,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <amgcl/detail/qr.hpp>
 #include <amgcl/util.hpp>
 
-#if __cplusplus <= 199711L
 // std::real is not overloaded for scalar arguments pre c++11:
+#ifndef BOOST_HAS_TR1_COMPLEX_OVERLOADS
 namespace std {
 inline float real(float x) { return x; }
 inline double real(double x) { return x; }
