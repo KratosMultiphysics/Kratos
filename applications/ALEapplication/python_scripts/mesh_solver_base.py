@@ -111,7 +111,6 @@ class MeshSolverBase(object):
         self.get_mesh_motion_solver().MoveMesh()
 
     def ImportModelPart(self):
-
         self.print_on_rank_zero("::[ALESolver]:: Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
@@ -121,10 +120,11 @@ class MeshSolverBase(object):
             self.print_on_rank_zero("    Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.mesh_model_part)
             self.print_on_rank_zero("    Finished reading model part from mdpa file.")
-            self._set_and_fill_buffer()
         else:
             raise Exception("::[MeshSolverBase]:: ImportModelPart() only implemnted for mdpa format.")
 
+    def PrepareModelPartForSolver(self):
+        self._set_and_fill_buffer()
 
     def GetComputingModelPart(self):
         return self.mesh_model_part

@@ -125,10 +125,8 @@ class ALEAnalysis(object): # TODO in the future this could derive from a BaseCla
 
     def __ExecuteInitialize(self):
         """ Initializing the Analysis """
-
         ## ModelPart is being prepared to be used by the solver
-        if self.using_external_model_part: # TODO remove the if once importing the ModelPart is removed from the solver
-            self.solver.PrepareModelPartForSolver()
+        self.solver.PrepareModelPartForSolver()
 
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
