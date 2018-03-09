@@ -1,7 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication 
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 # Check that KratosMultiphysics was imported in the main script
 KratosMultiphysics.CheckForPreviousImport()
@@ -25,7 +25,7 @@ class AdjointStructuralSolver:
             "material_import_settings" :{
                 "materials_filename": "material_name.json"
             },
-          
+
             "response_function_settings" : {
                 "response_type" : "unknown_name"
             },
@@ -41,6 +41,7 @@ class AdjointStructuralSolver:
             "processes_sub_model_part_list": [""],
             "computing_model_part_name" : "computing_domain",
             "rotation_dofs": false,
+            "buffer_size": 2,
             "echo_level"  : 0
         }""")
 
@@ -59,15 +60,15 @@ class AdjointStructuralSolver:
 
     def AddVariables(self):
 
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)  
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_DISPLACEMENT) 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ADJOINT_ROTATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION) 
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD) 
-        
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+
         print("Variables for the adjoint structural solver added correctly")
 
     def ImportModelPart(self):
@@ -85,7 +86,7 @@ class AdjointStructuralSolver:
             if( self.settings.Has("bodies_list") ):
                 aux_params.AddValue("bodies_list",self.settings["bodies_list"])
             #aux_params.AddValue("problem_model_part_name",self.settings["problem_model_part_name"])
-            #aux_params.AddValue("skin_parts",self.settings["skin_parts"])    
+            #aux_params.AddValue("skin_parts",self.settings["skin_parts"])
 
             #--------------------------Is this really needed again? the same import is also performed durning the primal solution!
             # Import constitutive laws.
@@ -93,7 +94,7 @@ class AdjointStructuralSolver:
             if materials_imported:
                print("    Constitutive law was successfully imported.")
             else:
-                print("    Constitutive law was not imported.") 
+                print("    Constitutive law was not imported.")
             #----------------------------------------------------------------------------------------------------------
 
             # here we replace the dummy elements we read with proper elements
@@ -102,7 +103,7 @@ class AdjointStructuralSolver:
                 self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     {
                     "Add_string": "Adjoint",
-                    "Add_before_in_element_name": "Element", 
+                    "Add_before_in_element_name": "Element",
                     "Add_before_in_condition_name": "Condition"
                     }
                     """)
@@ -119,11 +120,12 @@ class AdjointStructuralSolver:
         else:
             raise Exception("Other input options are not yet implemented.")
 
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        if(self.GetMinimumBufferSize() > current_buffer_size):
-            self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
-
         print ("Model reading finished.")
+
+    def PrepareModelPartForSolver(self):
+        # Check and prepare computing model part and import constitutive laws.
+        self._execute_after_reading()
+        self._set_and_fill_buffer()
 
 
     def AddDofs(self):
@@ -139,10 +141,10 @@ class AdjointStructuralSolver:
             if self.settings["rotation_dofs"].GetBool():
                 node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_X)
                 node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Y)
-                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Z)  
+                node.AddDof(KratosMultiphysics.ADJOINT_ROTATION_Z)
                 node.AddDof(KratosMultiphysics.ROTATION_X)
                 node.AddDof(KratosMultiphysics.ROTATION_Y)
-                node.AddDof(KratosMultiphysics.ROTATION_Z)    
+                node.AddDof(KratosMultiphysics.ROTATION_Z)
 
         print("DOFs for the structural adjoint solver added correctly.")
 
@@ -165,14 +167,14 @@ class AdjointStructuralSolver:
             elif (domain_size == 3):
                 self.response_function = StructuralMechanicsApplication.NodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))   
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         elif self.settings["response_function_settings"]["response_type"].GetString() == "strain_energy":
             if (domain_size == 2):
                 raise Exception("Currently only availible for 3D. Your choice is 2D")
             elif (domain_size == 3):
                 self.response_function = StructuralMechanicsApplication.StrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
-                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))       
+                raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:
             raise Exception("invalid response_type: " + self.settings["response_function_settings"]["response_type"].GetString())
 
@@ -198,7 +200,7 @@ class AdjointStructuralSolver:
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
         self.solver.Check()
-        
+
         print ("Adjoint solver initialization finished.")
 
     def GetComputingModelPart(self):
@@ -216,9 +218,9 @@ class AdjointStructuralSolver:
 
     def DivergenceClearance(self):
         pass
-        
+
     def SolverInitialize(self):
-        self.solver.Initialize()  
+        self.solver.Initialize()
 
     def SolverInitializeSolutionStep(self):
         self.solver.InitializeSolutionStep()
@@ -230,7 +232,7 @@ class AdjointStructuralSolver:
         self.solver.SolveSolutionStep()
 
     def SolverFinalizeSolutionStep(self):
-            self.solver.FinalizeSolutionStep()    
+            self.solver.FinalizeSolutionStep()
 
     def Solve(self):
         if self.settings["response_function_settings"]["response_type"].GetString() == "strain_energy":
@@ -265,8 +267,8 @@ class AdjointStructuralSolver:
                 node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_X,0,rot_x * 0.5)
                 node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_Y,0,rot_y * 0.5)
                 node.SetSolutionStepValue(KratosMultiphysics.ADJOINT_ROTATION_Z,0,rot_z * 0.5)
-                
-        self.response_function.FinalizeSolutionStep()        
+
+        self.response_function.FinalizeSolutionStep()
 
 
     def import_constitutive_laws(self): # copied from structural_mechanics_solver.py
@@ -286,5 +288,46 @@ class AdjointStructuralSolver:
             materials_imported = True
         else:
             materials_imported = False
-        return materials_imported     
-            
+        return materials_imported
+
+
+    def _execute_after_reading(self):
+        """Prepare computing model part and import constitutive laws. """
+        # Auxiliary parameters object for the CheckAndPepareModelProcess
+        params = KratosMultiphysics.Parameters("{}")
+        params.AddValue("computing_model_part_name",self.settings["computing_model_part_name"])
+        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
+        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
+        # Assign mesh entities from domain and process sub model parts to the computing model part.
+        import check_and_prepare_model_process_structural
+        check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
+
+        # Import constitutive laws.
+        materials_imported = self.import_constitutive_laws()
+        if materials_imported:
+            print("::[MechanicalAdjointSolver]:: ", "Constitutive law was successfully imported.")
+        else:
+            print("::[MechanicalAdjointSolver]:: ", "Constitutive law was not imported.")
+
+    def _set_and_fill_buffer(self):
+        """Prepare nodal solution step data containers and time step information. """
+        # Set the buffer size for the nodal solution steps data. Existing nodal
+        # solution step data may be lost.
+        required_buffer_size = self.settings["buffer_size"].GetInt()
+        if required_buffer_size < self.GetMinimumBufferSize():
+            required_buffer_size = self.GetMinimumBufferSize()
+        current_buffer_size = self.main_model_part.GetBufferSize()
+        buffer_size = max(current_buffer_size, required_buffer_size)
+        self.main_model_part.SetBufferSize(buffer_size)
+        # Cycle the buffer. This sets all historical nodal solution step data to
+        # the current value and initializes the time stepping in the process info.
+        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
+        step =-buffer_size
+        time = time - delta_time * buffer_size
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
+        for i in range(0, buffer_size):
+            step = step + 1
+            time = time + delta_time
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
+            self.main_model_part.CloneTimeStep(time)

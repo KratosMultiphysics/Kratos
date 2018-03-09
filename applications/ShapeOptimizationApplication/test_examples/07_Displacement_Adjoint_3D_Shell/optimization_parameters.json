@@ -11,12 +11,13 @@
     },
     "optimization_settings" : {
         "objectives" : [{
-            "identifier" : "strain_energy",
+            "identifier" : "displacement_adjoint",
             "type"       : "minimization",
-            "use_kratos" : false,
-            "adjoint_response_settings":{
-                "primal_settings"          : "rectangular_plate_parameters.json",
-                "adjoint_settings"         : "rectangular_plate_adjoint_parameters.json"
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"    : "displacement_adjoint",
+                "primal_settings"  : "rectangular_plate_parameters.json",
+                "adjoint_settings" : "rectangular_plate_adjoint_parameters.json"
             }
         }],
         "constraints" : [],
