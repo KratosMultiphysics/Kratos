@@ -2,6 +2,7 @@
 
 #include "custom_io/hdf5_file_serial.h"
 #include "utilities/openmp_utils.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -44,16 +45,13 @@ void XdmfConnectivitiesWriterProcess::Execute()
 {
     KRATOS_TRY;
 
-    std::vector<std::string> labels;
     KRATOS_ERROR_IF(mpFile->HasPath(mPrefix + "/Xdmf/Elements")) << "Path \"" << mPrefix + "/Xdmf/Elements\" exists." << std::endl;
-    mpFile->GetGroupNames(mPrefix + "/Elements", labels);
-    for (unsigned i = 0; i < labels.size(); ++i)
-        CreateXdmfConnectivities(mPrefix + "/Elements/" + labels[i], mPrefix + "/Xdmf/Elements/" + labels[i]);
+    for (const auto& name : mpFile->GetGroupNames(mPrefix + "/Elements"))
+        CreateXdmfConnectivities(mPrefix + "/Elements/" + name, mPrefix + "/Xdmf/Elements/" + name);
 
     KRATOS_ERROR_IF(mpFile->HasPath(mPrefix + "/Xdmf/Conditions")) << "Path \"" << mPrefix + "/Xdmf/Conditions\" exists." << std::endl;
-    mpFile->GetGroupNames(mPrefix + "/Conditions", labels);
-    for (unsigned i = 0; i < labels.size(); ++i)
-        CreateXdmfConnectivities(mPrefix + "/Conditions/" + labels[i], mPrefix + "/Xdmf/Conditions/" + labels[i]);
+    for (const auto& name : mpFile->GetGroupNames(mPrefix + "/Conditions"))
+        CreateXdmfConnectivities(mPrefix + "/Conditions/" + name, mPrefix + "/Xdmf/Conditions/" + name);
 
     KRATOS_CATCH("");
 }

@@ -36,8 +36,6 @@ class EmbeddedTestFactory(KratosUnittest.TestCase):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # Get the ProjectParameters file
-            
-            #parameter_file = open(self.file_name + "_parameters.json", 'r')
             with open(self.file_name + "_parameters.json", 'r') as parameter_file:
                 ProjectParameters = Parameters(parameter_file.read())
 
@@ -59,7 +57,7 @@ class ManufacturedSolutionTestFactory(KratosUnittest.TestCase):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # Get the ProjectParameters file
             with open(self.file_name + "_parameters.json", 'r') as parameter_file:
-                ProjectParameters = Parameters(parameter_file.read())   
+                ProjectParameters = Parameters(parameter_file.read())
 
             # Create the test
             self.test = ExecuteManufacturedSolutionTest.KratosExecuteManufacturedSolutionTest(ProjectParameters)

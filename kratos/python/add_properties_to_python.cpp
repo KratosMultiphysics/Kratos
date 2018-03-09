@@ -38,7 +38,7 @@ typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 typedef ConstitutiveLaw ConstitutiveLawBaseType;
 
 
-template< class TContainerType, class TVariableType > 
+template< class TContainerType, class TVariableType >
 bool HasHelperFunction_Element(TContainerType& el, const TVariableType& rVar)
 {
     return el.Has(rVar);
@@ -115,7 +115,7 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("Has", HasHelperFunction_Element< Properties, Variable< array_1d<double, 6> > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
-	
+
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
     .def("Has", HasHelperFunction_Element< Properties, Variable< array_1d<double, 3> > >)
@@ -176,8 +176,10 @@ void  AddPropertiesToPython(pybind11::module& m)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , Variable<double> >)
     .def("SetTable", SetTableHelperFunction1< Properties, Variable<double>, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
     .def("SetTable", SetTableHelperFunction1< Properties, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > , VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-
 	.def("__repr__", &Properties::Info) //self_ns::str(self))
+    .def("HasVariables", &Properties::HasVariables)
+    .def("HasTables", &Properties::HasTables)
+    .def("IsEmpty", &Properties::IsEmpty)
     ;
 
     PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>().CreateInterface(m,"PropertiesArray");

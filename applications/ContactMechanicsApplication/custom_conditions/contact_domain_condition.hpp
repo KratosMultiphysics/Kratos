@@ -844,7 +844,7 @@ protected:
 
 
     /**
-     * Calculation of the Material Stiffness Matrix. Kuug = BT * D * B
+     * Calculation of the Contact Stiffness Matrix
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,

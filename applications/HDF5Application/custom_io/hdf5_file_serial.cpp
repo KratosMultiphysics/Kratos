@@ -1,11 +1,24 @@
 #include "hdf5_file_serial.h"
 
+#include <utility>
+#include "includes/kratos_parameters.h"
+
 namespace Kratos
 {
 namespace HDF5
 {
 FileSerial::FileSerial(Parameters& rSettings) : File(rSettings)
 {
+}
+
+FileSerial::FileSerial(FileSerial&& rOther) : File(std::move(rOther))
+{
+}
+
+FileSerial& FileSerial::operator=(FileSerial&& rOther)
+{
+    File::operator=(std::move(rOther));
+    return *this;
 }
 
 void FileSerial::WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo)

@@ -32,6 +32,9 @@
 #include "custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.h"
 #include "custom_constitutive/linear_elastic_orthotropic_2D_law.h"
 
+#include "custom_constitutive/linear_j2_plasticity_3d.h"
+#include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
+
 namespace Kratos
 {
 namespace Python
@@ -86,9 +89,17 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
     class_< HyperElasticIsotropicNeoHookeanPlaneStrain2D, typename HyperElasticIsotropicNeoHookeanPlaneStrain2D::Pointer, ConstitutiveLaw >
     (m, "HyperElasticPlaneStrain2DLaw").def(init<>() )
     ;
-    
+
     class_< LinearElasticOrthotropic2DLaw, typename LinearElasticOrthotropic2DLaw::Pointer, ConstitutiveLaw >
     (m,"LinearElasticOrthotropic2DLaw").def( init<>())
+    ;
+
+    class_< LinearJ2PlasticityPlaneStrain2D, typename LinearJ2PlasticityPlaneStrain2D::Pointer,  ConstitutiveLaw  >
+    (m,"LinearJ2PlasticityPlaneStrain2DLaw").def( init<>())
+    ;
+
+    class_< LinearJ2Plasticity3D, typename LinearJ2Plasticity3D::Pointer,  ConstitutiveLaw  >
+    (m,"LinearJ2Plasticity3DLaw").def( init<>())
     ;
 }
 

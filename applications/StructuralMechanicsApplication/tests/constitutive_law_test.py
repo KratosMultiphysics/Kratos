@@ -13,23 +13,26 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
     
     def _create_geometry(self, model_part, dim, nnodes):
         
-        # Create new nodes
+        # Create nodes
         node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         node2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
-            
+        node3 = model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        node4 = model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+        node5 = model_part.CreateNewNode(5, 0.0, 0.0, 1.0)
+        node6 = model_part.CreateNewNode(6, 1.0, 0.0, 1.0)
+        node7 = model_part.CreateNewNode(7, 1.0, 1.0, 1.0)
+        node8 = model_part.CreateNewNode(8, 0.0, 1.0, 1.0)
+
         if (dim == 2):
             if (nnodes == 3):
-                node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
-                
-                # Allocate a geometry
-                geom = KratosMultiphysics.Triangle2D3(node1,node2,node3)
+                geom = KratosMultiphysics.Triangle2D3(node1,node2,node4)
+            elif (nnodes == 4):
+                geom = KratosMultiphysics.Quadrilateral2D4(node1,node2,node3, node4)
         else:
             if (nnodes == 4):
-                node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
-                node4 = model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
-                
-                # Allocate a geometry
-                geom = KratosMultiphysics.Tetrahedra3D4(node1,node2,node3,node4)
+                geom = KratosMultiphysics.Tetrahedra3D4(node1,node2,node4,node5)
+            elif (nnodes == 8):
+                geom = KratosMultiphysics.Hexahedra3D8(node1, node2, node3, node4, node5, node6, node7, node8)
                 
         return geom
     
@@ -69,7 +72,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
         if(cl.WorkingSpaceDimension() != dim):
             raise Exception("Mismatch between the WorkingSpaceDimension of the Constitutive Law and the dimension of the space in which the test is performed")
-    
+
     def _create_F(self):
         F = KratosMultiphysics.Matrix(3,3)
         F[0,0] = 1.0; F[0,1] = 0.0; F[0,2] = 0.0;
@@ -125,7 +128,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         cl.FinalizeMaterialResponsePK2(cl_params)
         cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
-        print("\n The Material Response Kirchhoff")
+        print("\nThe Material Response Kirchhoff")
         cl.CalculateMaterialResponseKirchhoff(cl_params)
         print("Stress = ", cl_params.GetStressVector())
         print("Strain = ", cl_params.GetStrainVector())
@@ -134,7 +137,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         cl.FinalizeMaterialResponseKirchhoff(cl_params)
         cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
-        print("\n The Material Response Cauchy")
+        print("\nThe Material Response Cauchy")
         cl.CalculateMaterialResponseCauchy(cl_params)
         print("Stress = ", cl_params.GetStressVector())
         print("Strain = ", cl_params.GetStrainVector())
@@ -142,6 +145,172 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         
         cl.FinalizeMaterialResponseCauchy(cl_params)
         cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)    
+
+    def test_J2_Plasticity_PlaneStrain_2D(self):
+        nnodes = 4
+        dim = 2
+
+        # Define a model and geometry
+        model_part = KratosMultiphysics.ModelPart("test")
+        geom = self._create_geometry(model_part, dim, nnodes)
+
+        # Material properties
+        prop_id = 0
+        properties = model_part.Properties[prop_id]
+        properties.SetValue(KratosMultiphysics.YOUNG_MODULUS, 21000)
+        properties.SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
+        properties.SetValue(KratosMultiphysics.YIELD_STRESS, 5.5)
+        properties.SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, 1.0)
+        properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.12924)
+        properties.SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, 0.0)
+        properties.SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
+
+        N = KratosMultiphysics.Vector(nnodes)
+        DN_DX = KratosMultiphysics.Matrix(nnodes, dim)
+
+        # Construct a constitutive law
+        cl = StructuralMechanicsApplication.LinearJ2PlasticityPlaneStrain2DLaw()
+        self._cl_check(cl, properties, geom, model_part, dim)
+
+        # Set the parameters to be employed
+        dict_options = {'USE_ELEMENT_PROVIDED_STRAIN': False,
+                        'COMPUTE_STRESS': True,
+                        'COMPUTE_CONSTITUTIVE_TENSOR': True,
+                        }
+        cl_options = self._set_cl_options(dict_options)
+        stress_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
+        strain_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
+        constitutive_matrix = KratosMultiphysics.Matrix(cl.GetStrainSize(),cl.GetStrainSize())
+
+        # Setting the parameters - note that a constitutive law may not need them all!
+        F = self._create_F()
+        detF = 1.0
+        cl_params = self._set_cl_parameters(cl_options, F, detF, strain_vector,
+                                            stress_vector, constitutive_matrix,
+                                            N, DN_DX, model_part, properties, geom)
+        cl.InitializeMaterial(properties, geom, N)
+
+        # Check the results
+        nr_timesteps = 10
+        rstress = []
+        for i in range(nr_timesteps):
+            rstress.append(KratosMultiphysics.Vector(cl.GetStrainSize()))
+        rstress[0][0] = 4.03846; rstress[0][1] = 4.03846; rstress[0][2] = 2.42308; rstress[0][3] = 0.807692;
+        rstress[1][0] = 8.07692; rstress[1][1] = 8.07692; rstress[1][2] = 4.84615; rstress[1][3] = 1.61538;
+        rstress[2][0] = 11.8859; rstress[2][1] = 11.8859; rstress[2][2] = 7.72826; rstress[2][3] = 2.07881;
+        rstress[3][0] = 15.3859; rstress[3][1] = 15.3859; rstress[3][2] = 11.2283; rstress[3][3] = 2.07881;
+        rstress[4][0] = 18.8859; rstress[4][1] = 18.8859; rstress[4][2] = 14.7282; rstress[4][3] = 2.07882;
+        rstress[5][0] = 22.3859; rstress[5][1] = 22.3859; rstress[5][2] = 18.2282; rstress[5][3] = 2.07882;
+        rstress[6][0] = 25.8859; rstress[6][1] = 25.8859; rstress[6][2] = 21.7282; rstress[6][3] = 2.07882;
+        rstress[7][0] = 29.3859; rstress[7][1] = 29.3859; rstress[7][2] = 25.2282; rstress[7][3] = 2.07883;
+        rstress[8][0] = 32.8859; rstress[8][1] = 32.8859; rstress[8][2] = 28.7282; rstress[8][3] = 2.07883;
+        rstress[9][0] = 36.3859; rstress[9][1] = 36.3859; rstress[9][2] = 32.2282; rstress[9][3] = 2.07884;
+
+        initial_strain = KratosMultiphysics.Vector(cl.GetStrainSize())
+        initial_strain[0] = 0.001
+        initial_strain[1] = 0.001
+        initial_strain[2] = 0.0
+        initial_strain[3] = 0.001
+
+        t = dt = 1. / nr_timesteps
+        c = 0
+        while(t <= 1. + dt /10.):
+            strain = t * initial_strain
+            cl_params.SetStrainVector(strain)
+
+            # Chauchy
+            cl.CalculateMaterialResponseCauchy(cl_params)
+            cl.FinalizeMaterialResponseCauchy(cl_params)
+            cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
+            stress = cl_params.GetStressVector()
+            for j in range(cl.GetStrainSize()):
+                self.assertAlmostEqual(rstress[c][j], stress[j], 4)
+            t += dt
+            c += 1
+
+    def test_J2_Plasticity_3D(self):
+        nnodes = 8
+        dim = 3
+
+        # Define a model and geometry
+        model_part = KratosMultiphysics.ModelPart("test")
+        geom = self._create_geometry(model_part, dim, nnodes)
+
+        # Material properties
+        prop_id = 0
+        properties = model_part.Properties[prop_id]
+        properties.SetValue(KratosMultiphysics.YOUNG_MODULUS, 21000)
+        properties.SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
+        properties.SetValue(KratosMultiphysics.YIELD_STRESS, 5.5)
+        properties.SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, 1.0)
+        properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, 0.12924)
+        properties.SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, 0.0)
+        properties.SetValue(KratosMultiphysics.HARDENING_EXPONENT, 1.0)
+
+        N = KratosMultiphysics.Vector(nnodes)
+        DN_DX = KratosMultiphysics.Matrix(nnodes, dim)
+
+        # Construct a constitutive law
+        cl = StructuralMechanicsApplication.LinearJ2Plasticity3DLaw()
+        self._cl_check(cl, properties, geom, model_part, dim)
+
+        # Set the parameters to be employed
+        dict_options = {'USE_ELEMENT_PROVIDED_STRAIN': False,
+                        'COMPUTE_STRESS': True,
+                        'COMPUTE_CONSTITUTIVE_TENSOR': True,
+                        }
+        cl_options = self._set_cl_options(dict_options)
+        stress_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
+        strain_vector = KratosMultiphysics.Vector(cl.GetStrainSize())
+        constitutive_matrix = KratosMultiphysics.Matrix(cl.GetStrainSize(),cl.GetStrainSize())
+
+        # Setting the parameters - note that a constitutive law may not need them all!
+        F = self._create_F()
+        detF = 1.0
+        cl_params = self._set_cl_parameters(cl_options, F, detF, strain_vector,
+                                            stress_vector, constitutive_matrix,
+                                            N, DN_DX, model_part, properties, geom)
+        cl.InitializeMaterial(properties, geom, N)
+
+        # Check the results
+        nr_timesteps = 10
+        rstress = []
+        for i in range(nr_timesteps):
+            rstress.append(KratosMultiphysics.Vector(cl.GetStrainSize()))
+        rstress[0][0] = 4.03846; rstress[0][1] = 4.03846; rstress[0][2] = 2.42308; rstress[0][3] = 0.80769; rstress[0][4] = 0.0; rstress[0][5] = 0.80769;
+        rstress[1][0] = 8.07692; rstress[1][1] = 8.07692; rstress[1][2] = 4.84615; rstress[1][3] = 1.61538; rstress[1][4] = 0.0; rstress[1][5] = 1.61538;
+        rstress[2][0] = 11.6595; rstress[2][1] = 11.6595; rstress[2][2] = 8.18099; rstress[2][3] = 1.73926; rstress[2][4] = 0.0; rstress[2][5] = 1.73926;
+        rstress[3][0] = 15.1595; rstress[3][1] = 15.1595; rstress[3][2] = 11.681 ; rstress[3][3] = 1.73926; rstress[3][4] = 0.0; rstress[3][5] = 1.73926;
+        rstress[4][0] = 18.6595; rstress[4][1] = 18.6595; rstress[4][2] = 15.181 ; rstress[4][3] = 1.73926; rstress[4][4] = 0.0; rstress[4][5] = 1.73926;
+        rstress[5][0] = 22.1595; rstress[5][1] = 22.1595; rstress[5][2] = 18.681 ; rstress[5][3] = 1.73927; rstress[5][4] = 0.0; rstress[5][5] = 1.73927;
+        rstress[6][0] = 25.6595; rstress[6][1] = 25.6595; rstress[6][2] = 22.181 ; rstress[6][3] = 1.73927; rstress[6][4] = 0.0; rstress[6][5] = 1.73927;
+        rstress[7][0] = 29.1595; rstress[7][1] = 29.1595; rstress[7][2] = 25.681 ; rstress[7][3] = 1.73928; rstress[7][4] = 0.0; rstress[7][5] = 1.73928;
+        rstress[8][0] = 32.6595; rstress[8][1] = 32.6595; rstress[8][2] = 29.181 ; rstress[8][3] = 1.73928; rstress[8][4] = 0.0; rstress[8][5] = 1.73928;
+        rstress[9][0] = 36.1595; rstress[9][1] = 36.1595; rstress[9][2] = 32.681; rstress[9][3] = 1.73929; rstress[9][4] = 0.0; rstress[9][5] = 1.73929;
+
+        initial_strain = KratosMultiphysics.Vector(cl.GetStrainSize())
+        initial_strain[0] = 0.001
+        initial_strain[1] = 0.001
+        initial_strain[2] = 0.0
+        initial_strain[3] = 0.001
+        initial_strain[4] = 0.0
+        initial_strain[5] = 0.001
+
+        t = dt = 1. / nr_timesteps
+        c = 0
+        while(t <= 1. + dt /10.):
+            strain = t * initial_strain
+            cl_params.SetStrainVector(strain)
+
+            # Chauchy
+            cl.CalculateMaterialResponseCauchy(cl_params)
+            cl.FinalizeMaterialResponseCauchy(cl_params)
+            cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
+            stress = cl_params.GetStressVector()
+            for j in range(cl.GetStrainSize()):
+                self.assertAlmostEqual(rstress[c][j], stress[j], 4)
+            t += dt
+            c += 1
 
     def test_Uniaxial_KirchhoffSaintVenant_3D(self):
         nnodes = 4
