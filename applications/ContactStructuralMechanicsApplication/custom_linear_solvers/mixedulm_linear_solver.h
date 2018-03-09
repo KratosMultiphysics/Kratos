@@ -436,7 +436,6 @@ public:
     {
         // Allocating auxiliar parameters
         IndexType node_id;
-        NodeType::Pointer pnode;
 
         // Count LM dofs
         SizeType n_lm_inactive_dofs = 0, n_lm_active_dofs = 0;
@@ -445,24 +444,24 @@ public:
         SizeType tot_active_dofs = 0;
         for (auto& i_dof : rDofSet) {
             node_id = i_dof.Id();
-            pnode = rModelPart.pGetNode(node_id);
+            const NodeType& node = rModelPart.GetNode(node_id);
             if (i_dof.EquationId() < rA.size1()) {
                 tot_active_dofs++;
-                if (i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_X ||
-                    i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
-                    i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
-                    if (pnode->Is(ACTIVE))
+                if (i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_X ||
+                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
+                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                    if (node.Is(ACTIVE))
                         n_lm_active_dofs++;
                     else
                         n_lm_inactive_dofs++;
-                } else if (pnode->Is(INTERFACE) &&
-                   (i_dof.GetVariable().Key() == DISPLACEMENT_X ||
-                    i_dof.GetVariable().Key() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable().Key() == DISPLACEMENT_Z)) {
-                    if (pnode->Is(MASTER)) {
+                } else if (node.Is(INTERFACE) &&
+                   (i_dof.GetVariable() == DISPLACEMENT_X ||
+                    i_dof.GetVariable() == DISPLACEMENT_Y ||
+                    i_dof.GetVariable() == DISPLACEMENT_Z)) {
+                    if (node.Is(MASTER)) {
                         n_master_dofs++;
-                    } else if (pnode->Is(SLAVE)) {
-                        if (pnode->Is(ACTIVE))
+                    } else if (node.Is(SLAVE)) {
+                        if (node.Is(ACTIVE))
                             n_slave_active_dofs++;
                         else
                             n_slave_inactive_dofs++;
@@ -509,12 +508,12 @@ public:
         IndexType global_pos = 0;
         for (auto& i_dof : rDofSet) {
             node_id = i_dof.Id();
-            pnode = rModelPart.pGetNode(node_id);
+            const NodeType& node = rModelPart.GetNode(node_id);
             if (i_dof.EquationId() < rA.size1()) {
-                if (i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_X ||
-                    i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
-                    i_dof.GetVariable().Key() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
-                    if (pnode->Is(ACTIVE)) {
+                if (i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_X ||
+                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Y ||
+                    i_dof.GetVariable() == VECTOR_LAGRANGE_MULTIPLIER_Z) {
+                    if (node.Is(ACTIVE)) {
                         mLMActiveIndices[lm_active_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = lm_active_counter;
                         mWhichBlockType[global_pos] = BlockType::LM_ACTIVE;
@@ -525,17 +524,17 @@ public:
                         mWhichBlockType[global_pos] = BlockType::LM_INACTIVE;
                         ++lm_inactive_counter;
                     }
-                } else if ( pnode->Is(INTERFACE) &&
-                   (i_dof.GetVariable().Key() == DISPLACEMENT_X ||
-                    i_dof.GetVariable().Key() == DISPLACEMENT_Y ||
-                    i_dof.GetVariable().Key() == DISPLACEMENT_Z)) {
-                    if (pnode->Is(MASTER)) {
+                } else if ( node.Is(INTERFACE) &&
+                   (i_dof.GetVariable() == DISPLACEMENT_X ||
+                    i_dof.GetVariable() == DISPLACEMENT_Y ||
+                    i_dof.GetVariable() == DISPLACEMENT_Z)) {
+                    if (node.Is(MASTER)) {
                         mMasterIndices[master_counter] = global_pos;
                         mGlobalToLocalIndexing[global_pos] = master_counter;
                         mWhichBlockType[global_pos] = BlockType::MASTER;
                         ++master_counter;
-                    } else if (pnode->Is(SLAVE)) {
-                        if (pnode->Is(ACTIVE)) {
+                    } else if (node.Is(SLAVE)) {
+                        if (node.Is(ACTIVE)) {
                             mSlaveActiveIndices[slave_active_counter] = global_pos;
                             mGlobalToLocalIndexing[global_pos] = slave_active_counter;
                             mWhichBlockType[global_pos] = BlockType::SLAVE_ACTIVE;
