@@ -191,13 +191,17 @@ class MechanicalSolver(object):
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
-            # Check and prepare computing model part and import constitutive laws.
-            self._execute_after_reading()
-            self._set_and_fill_buffer()
+            self.PrepareModelPartForSolver()
         else:
             raise Exception("Other model part input options are not yet implemented.")
         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished importing model part.")
+
+    def PrepareModelPartForSolver(self):
+        if not self.is_restarted():
+            # Check and prepare computing model part and import constitutive laws.
+            self._execute_after_reading()
+            self._set_and_fill_buffer()
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -412,9 +416,11 @@ class MechanicalSolver(object):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.settings["buffer_size"].GetInt()
-        if buffer_size < self.GetMinimumBufferSize():
-            buffer_size = self.GetMinimumBufferSize()
+        required_buffer_size = self.settings["buffer_size"].GetInt()
+        if required_buffer_size < self.GetMinimumBufferSize():
+            required_buffer_size = self.GetMinimumBufferSize()
+        current_buffer_size = self.main_model_part.GetBufferSize()
+        buffer_size = max(current_buffer_size, required_buffer_size)
         self.main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.
