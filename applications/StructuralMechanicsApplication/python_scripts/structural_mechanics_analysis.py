@@ -27,8 +27,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (type(ProjectParameters) != KratosMultiphysics.Parameters):
             raise Exception("Input is expected to be provided as a Kratos Parameters object")
         self.ProjectParameters = ProjectParameters
-        self.model_part_and_solver_initialized = False
-        self.CreateSolver(external_model_part)
+        self.__CreateSolver(external_model_part)
 
     #### Public functions to run the Analysis ####
     def Run(self):
@@ -44,34 +43,34 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
     #### Public functions defining the Interface to the CoSimulationApplication ####
     def Initialize(self):
-        self.ExecuteInitialize()
-        self.InitializeIO()
-        self.ExecuteBeforeSolutionLoop()
+        self.__ExecuteInitialize()
+        self.__InitializeIO()
+        self.__ExecuteBeforeSolutionLoop()
 
     def InitializeTimeStep(self):
-        self.ExecuteInitializeSolutionStep()
+        self.__ExecuteInitializeSolutionStep()
 
     def SolveTimeStep(self):
-        self.SolveSolutionStep()
+        self.__SolveSolutionStep()
 
     def FinalizeTimeStep(self):
-        self.ExecuteFinalizeSolutionStep()
+        self.__ExecuteFinalizeSolutionStep()
 
     def Finalize(self):
-        self.ExecuteFinalize()
+        self.__ExecuteFinalize()
 
 
-    ###########################################################################
-    def CreateSolver(self, external_model_part=None):
+    #### Internal functions ####
+    def __CreateSolver(self, external_model_part=None):
         """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
         if external_model_part != None:
             # This is a temporary solution until the importing of the ModelPart
             # is removed from the solver (needed e.g. for Optimization)
             if (type(external_model_part) != KratosMultiphysics.ModelPart):
                 raise Exception("Input is expected to be provided as a Kratos ModelPart object")
-            using_external_model_part = True
+            self.using_external_model_part = True
         else:
-            using_external_model_part = False
+            self.using_external_model_part = False
 
         ## Get echo level and parallel type
         self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
@@ -86,9 +85,12 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             import KratosMultiphysics.mpi as KratosMPI
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+            self.is_printing_rank = (KratosMPI.mpi.rank == 0)
+        else:
+            self.is_printing_rank = True
 
         ## Structure model part definition
-        if using_external_model_part:
+        if self.using_external_model_part:
             self.main_model_part = external_model_part
         else:
             main_model_part_name = self.ProjectParameters["problem_data"]["model_part_name"].GetString()
@@ -103,13 +105,11 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         ## Adds the necessary variables to the model_part only if they don't exist
         self.solver.AddVariables()
 
-        if not using_external_model_part:
+        if not self.using_external_model_part:
             ## Read the model - note that SetBufferSize is done here
             self.solver.ImportModelPart() # TODO move to global instance
 
-        self.model_part_and_solver_initialized = True
-
-    def InitializeIO(self):
+    def __InitializeIO(self):
         """ Initialize GiD  I/O """
         self.output_post  = self.ProjectParameters.Has("output_configuration")
         if (self.output_post == True):
@@ -124,10 +124,12 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
             self.gid_output.ExecuteInitialize()
 
-    def ExecuteInitialize(self):
-        """ Initializing the Analysis"""
+    def __ExecuteInitialize(self):
+        """ Initializing the Analysis """
 
-        self.solver.PrepareModelPartForSolver()
+        ## ModelPart is being prepared to be used by the solver
+        if self.using_external_model_part: # TODO remove the if once importing the ModelPart is removed from the solver
+            self.solver.PrepareModelPartForSolver()
 
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
@@ -137,7 +139,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         self.structure_model.AddModelPart(self.main_model_part)
 
         ## Print model_part and properties
-        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
+        if self.is_printing_rank and self.echo_level > 1:
             KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
             for properties in self.main_model_part.Properties:
                 KratosMultiphysics.Logger.PrintInfo("Property " + str(properties.Id), properties)
@@ -156,7 +158,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (self.ProjectParameters.Has("check_analytic_results_process") == True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["check_analytic_results_process"])
 
-        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
+        if self.is_printing_rank and self.echo_level > 1:
             count = 0
             for process in self.list_of_processes:
                 count += 1
@@ -169,7 +171,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         ## Solver initialization
         self.solver.Initialize()
 
-    def ExecuteBeforeSolutionLoop(self):
+    def __ExecuteBeforeSolutionLoop(self):
         """ Perform Operations before the SolutionLoop """
         if (self.output_post == True):
             self.gid_output.ExecuteBeforeSolutionLoop()
@@ -178,7 +180,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             process.ExecuteBeforeSolutionLoop()
 
         ## Writing the full ProjectParameters file before solving
-        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
+        if self.is_printing_rank and self.echo_level > 1:
             f = open("ProjectParametersOutput.json", 'w')
             f.write(self.ProjectParameters.PrettyPrintJsonString())
             f.close()
@@ -194,16 +196,16 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.time = start_time
             self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
 
-        if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
 
-    def ExecuteInitializeSolutionStep(self):
+    def __ExecuteInitializeSolutionStep(self):
         """ Initialize the timestep and advance in time. Called once per timestep """
         self.time += self.delta_time
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.main_model_part.CloneTimeStep(self.time)
 
-        if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo("TIME: ", self.time)
 
@@ -213,21 +215,21 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (self.output_post == True):
             self.gid_output.ExecuteInitializeSolutionStep()
 
-    def ExecuteBeforeSolve(self):
+    def __ExecuteBeforeSolve(self):
         """ Function to be called before solving. Can be executed several times per timestep """
         pass
 
-    def SolveSolutionStep(self):
+    def __SolveSolutionStep(self):
         """ Solving one step. Can be called several times per timestep """
-        self.ExecuteBeforeSolve()
+        self.__ExecuteBeforeSolve()
         self.solver.Solve()
-        self.ExecuteAfterSolve()
+        self.__ExecuteAfterSolve()
 
-    def ExecuteAfterSolve(self):
+    def __ExecuteAfterSolve(self):
         """ Function to be called after solving. Can be executed several times per timestep """
         pass
 
-    def ExecuteFinalizeSolutionStep(self):
+    def __ExecuteFinalizeSolutionStep(self):
         """ Finalizing the timestep and printing the output. Called once per timestep """
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
@@ -246,7 +248,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
-    def ExecuteFinalize(self):
+    def __ExecuteFinalize(self):
         """ Operations to be performed at the end of the Analysis """
         for process in self.list_of_processes:
             process.ExecuteFinalize()
@@ -254,21 +256,14 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (self.output_post == True):
             self.gid_output.ExecuteFinalize()
 
-        if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
 
     def GetModelPart(self):
-        if self.model_part_and_solver_initialized:
-            return self.main_model_part
-        else:
-            raise Exception("ModelPart not yet initialized! Use \"CreateSolver\" first")
-
+        return self.main_model_part
 
     def GetSolver(self):
-        if self.model_part_and_solver_initialized:
-            return self.solver
-        else:
-            raise Exception("Solver not yet initialized! Use \"CreateSolver\" first")
+        return self.solver
 
 
 if __name__ == "__main__":
