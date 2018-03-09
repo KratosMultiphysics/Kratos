@@ -19,15 +19,15 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
     #
     def __init__(self, main_model_part, custom_settings):
 
-        self.main_model_part = main_model_part    
-        
+        self.main_model_part = main_model_part
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
              "python_module": "contact_meshing_strategy",
              "meshing_frequency": 0.0,
              "remesh": true,
-             "constrained": false,
+             "constrained": true,
              "contact_parameters":{
                  "contact_condition_type": "ContactDomainLM2DCondition",
                  "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
@@ -38,39 +38,39 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
                      "MU_DYNAMIC": 0.2,
                      "PENALTY_PARAMETER": 1000,
                      "TANGENTIAL_PENALTY_RATIO": 0.1,
-                     "TAU_STAB": 1
+                     "TAU_STAB": 1.0
                  }
              }
         }
         """)
-        
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-                
+        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
+
         #print("::[Contact_Modeler_Strategy]:: Construction of Meshing Strategy finished")
-        
+
     #
     def Initialize(self,meshing_parameters,dimension):
 
         #parameters
         self.echo_level = 1
-        
+
         #meshing parameters
-        self.MeshingParameters = meshing_parameters  
-      
+        self.MeshingParameters = meshing_parameters
+
         meshing_options = KratosMultiphysics.Flags()
-        
+
         meshing_options.Set(KratosPfem.ModelerUtilities.REMESH, self.settings["remesh"].GetBool())
         meshing_options.Set(KratosPfem.ModelerUtilities.CONSTRAINED, self.settings["constrained"].GetBool())
         meshing_options.Set(KratosPfem.ModelerUtilities.CONTACT_SEARCH, True)
 
         self.MeshingParameters.SetOptions(meshing_options)
         self.MeshingParameters.SetReferenceCondition(self.settings["contact_parameters"]["contact_condition_type"].GetString())
-        
+
         #set contact properties
         properties = KratosMultiphysics.Properties(0)
-        
+
         contact_parameters = self.settings["contact_parameters"]
 
         #build friction law :: pass it as a property parameter
@@ -105,63 +105,63 @@ class ContactMeshingStrategy(meshing_strategy.MeshingStrategy):
         #set variables to global transfer
         self.MeshDataTransfer   = KratosPfem.MeshDataTransferUtilities()
         self.TransferParameters = KratosPfem.TransferParameters()
-        self.global_transfer    = False                          
+        self.global_transfer    = False
 
         #mesh modelers for the current strategy
         self.mesh_modelers = []
-        
-        #configure meshers: 
+
+        #configure meshers:
         self.SetMeshModelers();
-        
+
         for mesher in self.mesh_modelers:
             mesher.Initialize(dimension)
 
         self.number_of_nodes      = 0
         self.number_of_elements   = 0
         self.number_of_conditions = 0
-        
+
 
         # prepare model conditions to recieve data
         transfer_parameters = self.MeshingParameters.GetTransferParameters()
         transfer_options = transfer_parameters.GetOptions()
-            
+
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
             transfer_options.Set(KratosPfem.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, True)
             transfer_parameters.SetOptions(transfer_options)
-        
+
             self.MeshDataTransfer.TransferBoundaryData(transfer_parameters,self.main_model_part)
 
         # set flags for the transfer needed for the contact domain
         transfer_options.Set(KratosPfem.MeshDataTransferUtilities.INITIALIZE_MASTER_CONDITION, False)
         transfer_options.Set(KratosPfem.MeshDataTransferUtilities.MASTER_ELEMENT_TO_MASTER_CONDITION, True)
         transfer_parameters.SetOptions(transfer_options)
-        
+
 
     #
     def SetMeshModelers(self):
 
-        modelers = []       
-        
+        modelers = []
+
         if( self.settings["remesh"].GetBool() ):
             modelers.append("contact_modeler")
 
-            
+
         for modeler in modelers:
-            meshing_module =__import__(modeler)      
-            mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters) 
+            meshing_module =__import__(modeler)
+            mesher = meshing_module.CreateMeshModeler(self.main_model_part,self.MeshingParameters)
             self.mesh_modelers.append(mesher)
 
-  
+
     #
     def InitializeMeshGeneration(self):
-        
+
         self.number_of_elements   = 0
         self.number_of_conditions = 0
         self.number_of_nodes      = 0
-        
+
         info_parameters = self.MeshingParameters.GetInfoParameters()
         info_parameters.Initialize()
-        
+
         self.SetMeshInfo()
 
         #Needed to compute effective gaps in the contact domain with lagrangian multipliers
