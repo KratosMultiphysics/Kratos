@@ -17,7 +17,7 @@
 #include "geometries/tetrahedra_3d_4.h"
 
 #include "pfem_application_variables.h"
-
+//#include "custom_processes/print_output_mesh_process.hpp"
 
 namespace Kratos
 {
@@ -226,7 +226,12 @@ namespace Kratos
     if( rMeshingVariables.ExecutionOptions.Is(ModelerUtilities::TRANSFER_KRATOS_FACES_TO_MESHER) )
       this->SetFaces(rModelPart,rMeshingVariables, in);
 
-
+    //std::cout<<" InMesh [nodes:"<<rMeshingVariables.InMesh.GetNumberOfPoints()<<", elements:"<<rMeshingVariables.InMesh.GetNumberOfElements()<<"]"<<std::endl;
+    
+    //Print input mesh
+    //PrintOutputMeshProcess print_output = PrintOutputMeshProcess(rModelPart,rMeshingVariables,"input",1);
+    //print_output.Execute();
+    
     KRATOS_CATCH( "" )
   }
 
@@ -400,7 +405,7 @@ namespace Kratos
 
     //delete modeler container
     rMesh.Finalize();
-    ClearTetgenIO(tr); // blocks tetgen automatic destructor deletation of a NULL pointer []
+    ClearTetgenIO(tr); // blocks tetgen automatic destructor deletetion of a NULL pointer []
     
          
     KRATOS_CATCH( "" )
@@ -415,9 +420,10 @@ namespace Kratos
 
     //delete modeler container
     // rMesh.Finalize();   
-    // ClearTetgenIO(tr); // blocks tetgen automatic destructor deletation of a NULL pointer []
-      tr.deinitialize();   
-      tr.initialize();   
+    // ClearTetgenIO(tr); // blocks tetgen automatic destructor deletetion of a NULL pointer []
+    tr.deinitialize();
+    tr.initialize();
+    
     KRATOS_CATCH( "" )
   }
 

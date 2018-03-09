@@ -25,7 +25,7 @@
 
 namespace Kratos {
 namespace Testing {
-    
+
   /// Factory functions
 
   /** Generates a sample triangle2D3.
@@ -231,7 +231,8 @@ namespace Testing {
     baricentre *= 1.0/3.0;
 
     // Compute the baricentre local coordinates
-    array_1d<double, 3> baricentre_local_coords = geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
+    array_1d<double, 3> baricentre_local_coords;
+    geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
 
     KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
     KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
@@ -487,7 +488,7 @@ namespace Testing {
     KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
   }
 
-    /** 
+    /**
      * Test an overlaping box and triangle (intersects a triangle edge) HasIntersection
      */
     KRATOS_TEST_CASE_IN_SUITE(Triangle2D3IntersectionBoxEdge, KratosCoreGeometriesFastSuite) {
@@ -495,11 +496,11 @@ namespace Testing {
         Point point_1(-0.1, 0.1, 0.0);
         Point point_2( 0.1, 0.3, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-        
+
         Point point_3( 0.1,-0.1, 0.0);
         Point point_4( 0.3, 0.1, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
-        
+
         Point point_5( 0.3, 0.2, 0.0);
         Point point_6( 1.0, 1.0, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
@@ -513,11 +514,11 @@ namespace Testing {
         Point point_1(-0.5, 0.8, 0.0);
         Point point_2( 0.5, 1.2, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-        
+
         Point point_3( 0.3,-0.5, 0.0);
         Point point_4( 1.2, 0.5, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
-        
+
         Point point_5( 0.2, 0.3, 0.0);
         Point point_6(-0.8,-0.3, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
