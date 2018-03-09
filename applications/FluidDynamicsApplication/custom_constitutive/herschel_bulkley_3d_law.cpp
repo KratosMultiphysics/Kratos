@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/herschel_bulkey_3d_law.h"
+#include "custom_constitutive/herschel_bulkley_3d_law.h"
 
 #include "fluid_dynamics_application_variables.h"
 #include "includes/cfd_variables.h"
@@ -30,7 +30,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-HerschelBulkey3DLaw::HerschelBulkey3DLaw()
+HerschelBulkley3DLaw::HerschelBulkley3DLaw()
     : FluidConstitutiveLaw()
 {
 }
@@ -38,7 +38,7 @@ HerschelBulkey3DLaw::HerschelBulkey3DLaw()
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-HerschelBulkey3DLaw::HerschelBulkey3DLaw(const HerschelBulkey3DLaw& rOther)
+HerschelBulkley3DLaw::HerschelBulkley3DLaw(const HerschelBulkley3DLaw& rOther)
     : FluidConstitutiveLaw(rOther)
 {
 }
@@ -46,27 +46,27 @@ HerschelBulkey3DLaw::HerschelBulkey3DLaw(const HerschelBulkey3DLaw& rOther)
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer HerschelBulkey3DLaw::Clone() const
+ConstitutiveLaw::Pointer HerschelBulkley3DLaw::Clone() const
 {
-    return Kratos::make_shared<HerschelBulkey3DLaw>(*this);
+    return Kratos::make_shared<HerschelBulkley3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-HerschelBulkey3DLaw::~HerschelBulkey3DLaw()
+HerschelBulkley3DLaw::~HerschelBulkley3DLaw()
 {
 }
 
-ConstitutiveLaw::SizeType HerschelBulkey3DLaw::WorkingSpaceDimension() {
+ConstitutiveLaw::SizeType HerschelBulkley3DLaw::WorkingSpaceDimension() {
     return 3;
 }
 
-ConstitutiveLaw::SizeType HerschelBulkey3DLaw::GetStrainSize() {
+ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() {
     return 6;
 }
 
-void  HerschelBulkey3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+void  HerschelBulkley3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
 
     //-----------------------------//
@@ -209,7 +209,7 @@ void  HerschelBulkey3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 //************************************************************************************
 
-int HerschelBulkey3DLaw::Check(const Properties& rMaterialProperties,
+int HerschelBulkley3DLaw::Check(const Properties& rMaterialProperties,
                               const GeometryType& rElementGeometry,
                               const ProcessInfo& rCurrentProcessInfo)
 {    
@@ -219,39 +219,39 @@ int HerschelBulkey3DLaw::Check(const Properties& rMaterialProperties,
     KRATOS_CHECK_VARIABLE_KEY(POWER_LAW_N);
 
     if( rMaterialProperties[YIELD_STRESS] <= 0.00 ) {
-        KRATOS_ERROR << "Incorrect or missing YIELD_STRESS provided in process info for HerschelBulkey3DLaw: " << rMaterialProperties[YIELD_STRESS] << std::endl;
+        KRATOS_ERROR << "Incorrect or missing YIELD_STRESS provided in process info for HerschelBulkley3DLaw: " << rMaterialProperties[YIELD_STRESS] << std::endl;
     }
 
     if( rMaterialProperties[REGULARIZATION_COEFFICIENT] <= 0.00 ) {
-        KRATOS_ERROR << "Incorrect or missing REGULARIZATION_COEFFICIENT provided in process info for HerschelBulkey3DLaw: " << rMaterialProperties[REGULARIZATION_COEFFICIENT] << std::endl;
+        KRATOS_ERROR << "Incorrect or missing REGULARIZATION_COEFFICIENT provided in process info for HerschelBulkley3DLaw: " << rMaterialProperties[REGULARIZATION_COEFFICIENT] << std::endl;
     }
 
     if( rMaterialProperties[POWER_LAW_K] <= 0.00 ) {
-        KRATOS_ERROR << "Incorrect or missing POWER_LAW_K provided in process info for HerschelBulkey3DLaw: " << rMaterialProperties[POWER_LAW_K] << std::endl;
+        KRATOS_ERROR << "Incorrect or missing POWER_LAW_K provided in process info for HerschelBulkley3DLaw: " << rMaterialProperties[POWER_LAW_K] << std::endl;
     }
 
     if( rMaterialProperties[POWER_LAW_N] <= 0.00 ) {
-        KRATOS_ERROR << "Incorrect or missing POWER_LAW_N provided in process info for HerschelBulkey3DLaw: " << rMaterialProperties[POWER_LAW_N] << std::endl;
+        KRATOS_ERROR << "Incorrect or missing POWER_LAW_N provided in process info for HerschelBulkley3DLaw: " << rMaterialProperties[POWER_LAW_N] << std::endl;
     }
 
     return 0;
 
 }
 
-std::string HerschelBulkey3DLaw::Info() const {
-    return "HerschelBulkey3DLaw";
+std::string HerschelBulkley3DLaw::Info() const {
+    return "HerschelBulkley3DLaw";
 }
 
-double HerschelBulkey3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+double HerschelBulkley3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
     // We are abusing the fact that C(5,5) = mu_effective
     return rParameters.GetConstitutiveMatrix()(5,5);
 }
 
-void HerschelBulkey3DLaw::save(Serializer& rSerializer) const {
+void HerschelBulkley3DLaw::save(Serializer& rSerializer) const {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
 }
 
-void HerschelBulkey3DLaw::load(Serializer& rSerializer) {
+void HerschelBulkley3DLaw::load(Serializer& rSerializer) {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
 }
 

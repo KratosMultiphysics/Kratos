@@ -10,8 +10,8 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined (KRATOS_HERSCHEL_BULKEY_LAW_3D_H_INCLUDED)
-#define  KRATOS_HERSCHEL_BULKEY_LAW_3D_H_INCLUDED
+#if !defined (KRATOS_HERSCHEL_BULKLEY_LAW_3D_H_INCLUDED)
+#define  KRATOS_HERSCHEL_BULKLEY_LAW_3D_H_INCLUDED
 
 // System includes
 
@@ -31,7 +31,7 @@ namespace Kratos
  * 4) POWER_LAW_N
  */
 
-class HerschelBulkey3DLaw : public FluidConstitutiveLaw
+class HerschelBulkley3DLaw : public FluidConstitutiveLaw
 {
 public:
     /**
@@ -41,10 +41,10 @@ public:
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of HerschelBulkey3DLaw
+     * Counted pointer of HerschelBulkley3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(HerschelBulkey3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(HerschelBulkley3DLaw);
 
     /**
      * Life Cycle
@@ -53,7 +53,7 @@ public:
     /**
      * Default constructor.
      */
-    HerschelBulkey3DLaw();
+    HerschelBulkley3DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -64,13 +64,13 @@ public:
     /**
      * Copy constructor.
      */
-    HerschelBulkey3DLaw (const HerschelBulkey3DLaw& rOther);
+    HerschelBulkley3DLaw (const HerschelBulkley3DLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    ~HerschelBulkey3DLaw() override;
+    ~HerschelBulkley3DLaw() override;
 
     /**
      * Operators
@@ -167,6 +167,6 @@ private:
     void load(Serializer& rSerializer) override;
 
 
-}; // Class HerschelBulkey3DLaw
+}; // Class HerschelBulkley3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HERSCHEL_BULKEY_LAW_3D_H_INCLUDED  defined 
+#endif // KRATOS_HERSCHEL_BULKLEY_LAW_3D_H_INCLUDED  defined 

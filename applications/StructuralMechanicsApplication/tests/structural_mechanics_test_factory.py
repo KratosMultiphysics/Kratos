@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import Kratos_Execute_Structural_Test as Execute_Test
+import structural_mechanics_analysis
 
 # Other imports
 import os
@@ -30,13 +30,21 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            with open(self.file_name + "_parameters.json", 'r') as parameter_file:
+
+            # Reading the ProjectParameters
+            with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             # Creating the test
-            self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
+            self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParameters)
+            self.test.Initialize()
 
     def test_execution(self):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            self.test.Solve()
+            self.test.RunMainTemporalLoop()
+
+    def tearDown(self):
+        # Within this location context:
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            self.test.Finalize()

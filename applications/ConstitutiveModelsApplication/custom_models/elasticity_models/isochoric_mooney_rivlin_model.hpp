@@ -139,7 +139,7 @@ namespace Kratos
       rValues.StressMatrix = rStressMatrix; //store isochoric stress matrix as StressMatrix
 
       this->CalculateAndAddVolumetricStressTensor(Variables, rStressMatrix);
-
+      
       //Calculate Constitutive Matrix
       this->CalculateAndAddConstitutiveTensor(Variables,rConstitutiveMatrix);
       
@@ -584,7 +584,7 @@ namespace Kratos
 
     // set the default volumetric function for the incompressible case
     
-    virtual double& GetVolumetricFunction1srtDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
+    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) //dU/dJ
     {
       KRATOS_TRY
 	

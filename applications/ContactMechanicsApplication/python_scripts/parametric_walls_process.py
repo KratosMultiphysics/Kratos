@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 KratosMultiphysics.CheckForPreviousImport()
@@ -18,19 +18,19 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
     def __init__(self, Model, custom_settings ):
 
         KratosMultiphysics.Process.__init__(self)
-        
+
         self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
-    
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "model_part_name"         : "Solid Domain",        
+            "model_part_name"         : "Solid Domain",
             "search_control_type"     : "step",
             "search_frequency"        : 1.0,
             "parametric_walls"        : []
         }
         """)
- 
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -38,7 +38,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.echo_level        = 1
         self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
         self.search_frequency  = self.settings["search_frequency"].GetDouble()
-        
+
         self.search_control_is_time = False
         search_control_type  = self.settings["search_control_type"].GetString()
         if(search_control_type == "time"):
@@ -64,7 +64,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         self.step_count   = 1
         self.counter      = 1
         self.next_search  = 0.0
-                       
+
     #
     def ExecuteInitialize(self):
 
@@ -76,9 +76,9 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] ):
             self.restart = True
             self.step_count = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-            
+
             if self.search_control_is_time:
-                self.next_search  = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME] 
+                self.next_search  = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
             else:
                 self.next_search = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
@@ -116,7 +116,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
 
     ###
-    
+
     #
     def ExecuteSearch(wall):
         wall.ExecuteSearch()
@@ -127,7 +127,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
         if( self.echo_level > 0 ):
             print("::[Walls_Process]:: CONTACT SEARCH...( call:", self.counter,")")
-            
+
         self.wall_contact_model= KratosContact.ClearPointContactConditions(self.main_model_part, self.echo_level)
 
         self.wall_contact_model.ExecuteInitialize()
@@ -144,12 +144,12 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
         #pool = Pool(walls_number)
         #pool.map(self.ExecuteSearch,self.parametric_walls)
         #pool.close()
-        #pool.joint()        
+        #pool.joint()
 
-            
+
         self.wall_contact_model.ExecuteFinalize()
 
-        self.counter += 1 
+        self.counter += 1
 
 
         # schedule next search
@@ -179,5 +179,7 @@ class ParametricWallsProcess(KratosMultiphysics.Process):
 
     #
     def GetVariables(self):
-        nodal_variables = ['VOLUME_ACCELERATION', 'CONTACT_FORCE', 'CONTACT_NORMAL']
+        nodal_variables = ['RIGID_WALl']
+        nodal_variables = nodal_variables + ['CONTACT_FORCE', 'CONTACT_NORMAL']
+        #nodal_variables = nodal_variables + ['VOLUME_ACCELERATION']
         return nodal_variables
