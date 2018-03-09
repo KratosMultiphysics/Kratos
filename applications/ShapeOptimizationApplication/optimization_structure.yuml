@@ -1,31 +1,41 @@
 // {type:class}
 // {direction:topDown}
+// {generate:false}
 
-[OptimizationAlgorithm]<>1-1>[Objective]
-[OptimizationAlgorithm]<>1-0..*>[Constraint]
-[Objective]<>1-1>[Response]
-[Constraint]<>1-1>[Response]
-[OptimizationAlgorithm]1-1..*>[Parametrization]
-[Parametrization]<>->[DesignVariables]
-[Parametrization]<>->[ModelPart]
+// CLASS DEFINITION
+[OptimizationAlgorithm||+Optimize()]-note:Like BuilderAndSolver
 
-[Response]^-[ExternalResponse]
+[Objective||]
+[Constraint||]
 
-[Response]^-[KratosFluidResponse]
+[Response||+GetValue();+GetGradient()]
 
-[Response]^-[KratosGeometricalResponse]
-[KratosGeometricalResponse]->[ModelPart]
-[KratosGeometricalResponse]^-[Mass]
+[Analyzer|-responses:dict|+AnalyzeAndReport()]
 
-[Response]^-[KratosStructuralResponse]
-[KratosStructuralResponse]^-[KratosSimpleStructuralResponse]
-[KratosSimpleStructuralResponse]->[ModelPart]
-[KratosSimpleStructuralResponse]^-[Eigenfrequency]
-[KratosSimpleStructuralResponse]^-[StrainEnergy]
+[Communicator|-response_values:dict;-response_gradients:dict|+SetRequest();+GetRequestedData()]
 
-[KratosStructuralResponse]^-[KratosAdjointStructuralResponse]
-[KratosAdjointStructuralResponse]<>1..*-1>[StructuralAnalysis]
-[KratosAdjointStructuralResponse]<>-1>[StructuralAdjointAnalysis]
+[DesignVariable|-id:int|]-note:Like DOF
 
-[StructuralAnalysis]->[ModelPart]
-[StructuralAdjointAnalysis]->[ModelPart]
+[Parametrization||+MapToControl();+MapFromControl();+Update()]
+
+[Logger||+LogDesign();+LogValues()]
+
+[ModelPart||+Nodes();+Elements()]
+
+// Aggregation - Composition
+[OptimizationAlgorithm]++1-1[Objective]
+[OptimizationAlgorithm]++1-0..*[Constraint]
+[OptimizationAlgorithm]++1-1[Analyzer]
+[OptimizationAlgorithm]++1-1[Communicator]
+[OptimizationAlgorithm]++1-1..*[Parametrization]
+[OptimizationAlgorithm]++1-1..*[Logger]
+
+[Objective]++1-1[Response]
+[Constraint]++1-1[Response]
+
+[Parametrization]++1-1[ModelPart]
+[Parametrization]++1-1..*[DesignVariable]
+
+// Inheritance
+[Parametrization]^[VertexMorphing||-DampingProcess();-ProjectingOnNormalsProcess()]
+[Parametrization]^[Thickness...]
