@@ -956,10 +956,7 @@ public:
 
     }
 
-
-
     /**
-
      * Calculate the transposed gradient of the element's residual w.r.t. design variable.
      */
     virtual void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,

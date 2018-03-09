@@ -31,35 +31,12 @@
 #include "custom_utilities/adjoint_utilities/local_stress_response_function.h"
 #include "custom_utilities/adjoint_utilities/nodal_displacement_response_function.h"
 #include "custom_utilities/adjoint_utilities/strain_energy_response_function.h"
-// #include "custom_utilities/adjoint_utilities/eigenfrequency_response_function.h"
 
 
 namespace Kratos
 {
 namespace Python
 {
-
-inline
-void CalculateGradient1(
-        StructuralResponseFunction& rThisUtil,
-        const Condition& rAdjointCondition,
-        const Matrix& rAdjointMatrix,
-        Vector& rResponseGradient,
-        ProcessInfo& rProcessInfo)
-{
-    rThisUtil.CalculateGradient(rAdjointCondition,rAdjointMatrix,rResponseGradient,rProcessInfo);
-}
-
-inline
-void CalculateGradient2(
-        StructuralResponseFunction& rThisUtil,
-        const Element& rAdjointElem,
-        const Matrix& rAdjointMatrix,
-        Vector& rResponseGradient,
-        ProcessInfo& rProcessInfo)
-{
-    rThisUtil.CalculateGradient(rAdjointElem,rAdjointMatrix,rResponseGradient,rProcessInfo);
-}
 
 void  AddCustomUtilitiesToPython()
 {
@@ -87,18 +64,7 @@ void  AddCustomUtilitiesToPython()
     //Response Functions
     class_<StructuralResponseFunction, boost::noncopyable>("StructuralResponseFunction", init<ModelPart&, Parameters&>())
         .def("Initialize", &StructuralResponseFunction::Initialize)
-        .def("InitializeSolutionStep", &StructuralResponseFunction::InitializeSolutionStep)
-        .def("FinalizeSolutionStep", &StructuralResponseFunction::FinalizeSolutionStep)
-        .def("Check", &StructuralResponseFunction::Check)
-        .def("Clear", &StructuralResponseFunction::Clear)
-        .def("CalculateGradient", CalculateGradient1)
-        .def("CalculateGradient", CalculateGradient2)
-        .def("CalculateFirstDerivativesGradient",
-             &StructuralResponseFunction::CalculateFirstDerivativesGradient)
-        .def("CalculateSecondDerivativesGradient",
-             &StructuralResponseFunction::CalculateSecondDerivativesGradient)
-        .def("CalculateValue", &StructuralResponseFunction::CalculateValue)
-        .def("UpdateSensitivities", &StructuralResponseFunction::UpdateSensitivities);
+        .def("FinalizeSolutionStep", &StructuralResponseFunction::FinalizeSolutionStep);
 
     class_<LocalStressResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
       ("LocalStressResponseFunction", init<ModelPart&, Parameters&>());
@@ -108,9 +74,6 @@ void  AddCustomUtilitiesToPython()
 
     class_<StrainEnergyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
       ("StrainEnergyResponseFunction", init<ModelPart&, Parameters&>());
-
-    // class_<EigenfrequencyResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
-    //   ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>());
 
     //For global finite differences
     class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())
@@ -124,7 +87,6 @@ void  AddCustomUtilitiesToPython()
         .def("GetStressResultantShell", &FiniteDifferencesUtilities::GetStressResultantShell)
         .def("GetNodalDisplacement", &FiniteDifferencesUtilities::GetNodalDisplacement)
         .def("GetStrainEnergy", &FiniteDifferencesUtilities::GetStrainEnergy);
-
 }
 
 }  // namespace Python.

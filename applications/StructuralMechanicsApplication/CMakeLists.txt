@@ -50,14 +50,12 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_linear_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cable_element_3D2N.cpp
-   
+
   # Adding the beam element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_2D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_linear_2D2N.cpp
-  
-
 
 
   # Adding shells and membranes elements
@@ -91,7 +89,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/nodal_concentrated_element.cpp
 
   # Adding the spring + damper element
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spring_damper_element_3D2N.cpp  
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spring_damper_element_3D2N.cpp
 
   ## CONDITIONS
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/base_load_condition.cpp
@@ -102,11 +100,11 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/axisym_line_load_condition_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_condition_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_condition_3d.cpp
- 
+
   # Adding conditions for adjoint sensitivity analysis
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_conditions/point_load_adjoint_condition.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/adjoint_conditions/surface_load_adjoint_condition_3d.cpp
-  
+
 )
 
 find_package(HDF5 REQUIRED COMPONENTS CXX)
@@ -118,6 +116,7 @@ add_library(KratosStructuralMechanicsApplication SHARED ${KRATOS_STRUCTURAL_MECH
 target_link_libraries(KratosStructuralMechanicsApplication KratosCore ${HDF5_CXX_LIBRARIES}) # KratosSolidMechanicsApplication)
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES COMPILE_DEFINITIONS "STRUCTURAL_MECHANICS_APPLICATION=EXPORT,API")
 set_target_properties(KratosStructuralMechanicsApplication PROPERTIES PREFIX "")
+
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
