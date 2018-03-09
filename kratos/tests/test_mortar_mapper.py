@@ -1,16 +1,12 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import KratosMultiphysics.ContactStructuralMechanicsApplication as ContactStructuralMechanicsApplication
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import os
 import math
 
-class TestMortarMapping(KratosUnittest.TestCase):
+class TestMortarMapperCore(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
@@ -24,9 +20,6 @@ class TestMortarMapping(KratosUnittest.TestCase):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
-        self.main_model_part.AddNodalSolutionStepVariable(ContactStructuralMechanicsApplication.WEIGHTED_GAP)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
 
         self.main_model_part.CloneTimeStep(1.01)
 
@@ -37,70 +30,19 @@ class TestMortarMapping(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, self.main_model_part)
 
-        if (self.main_model_part.HasSubModelPart("Contact")):
-            interface_model_part = self.main_model_part.GetSubModelPart("Contact")
-        else:
-            interface_model_part = self.main_model_part.CreateSubModelPart("Contact")
-
         self.mapping_model_part = self.main_model_part.GetSubModelPart("DISPLACEMENT_Displacement_Auto2")
 
         self.model_part_slave = self.main_model_part.GetSubModelPart("Parts_Parts_Auto1")
-        for node in self.model_part_slave.Nodes:
-            node.Set(KratosMultiphysics.SLAVE, True)
-            node.Set(KratosMultiphysics.MASTER, False)
-        del(node)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, True, self.model_part_slave.Conditions)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, False, self.model_part_slave.Conditions)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, True, self.model_part_slave.Nodes)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, False, self.model_part_slave.Nodes)
+
         self.model_part_master = self.main_model_part.GetSubModelPart("Parts_Parts_Auto2")
-        for node in self.model_part_master.Nodes:
-            node.Set(KratosMultiphysics.MASTER, True)
-            node.Set(KratosMultiphysics.SLAVE, False)
-        del(node)
-
-        for prop in self.main_model_part.GetProperties():
-            prop[ContactStructuralMechanicsApplication.INTEGRATION_ORDER_CONTACT] = 3
-
-        self.main_model_part.ProcessInfo[ContactStructuralMechanicsApplication.ACTIVE_CHECK_FACTOR] = 3.0e-1
-
-        for node in self.mapping_model_part.Nodes:
-            node.Set(KratosMultiphysics.INTERFACE, True)
-
-        Preprocess = ContactStructuralMechanicsApplication.InterfacePreprocessCondition(self.main_model_part)
-
-        interface_parameters = KratosMultiphysics.Parameters("""{"simplify_geometry": false}""")
-        Preprocess.GenerateInterfacePart3D(self.main_model_part, self.mapping_model_part, interface_parameters)
-
-        # We compute NODAL_H that can be used in the search and some values computation
-        find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.mapping_model_part)
-        find_nodal_h.Execute()
-
-        # We copy the conditions to the ContactSubModelPart
-        for cond in self.mapping_model_part.Conditions:
-            interface_model_part.AddCondition(cond)
-        del(cond)
-        for node in self.mapping_model_part.Nodes:
-            interface_model_part.AddNode(node, 0)
-        del(node)
-
-        # We initialize the conditions
-        alm_init_var = ContactStructuralMechanicsApplication.ALMFastInit(self.mapping_model_part)
-        alm_init_var.Execute()
-
-        search_parameters = KratosMultiphysics.Parameters("""
-        {
-            "search_factor"               : 3.5,
-            "allocation_size"             : 1000,
-            "check_gap"                   : "NoCheck",
-            "type_search"                 : "InRadius"
-        }
-        """)
-        if (num_nodes == 3):
-            contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D3N(self.main_model_part, search_parameters)
-        else:
-            contact_search = ContactStructuralMechanicsApplication.TreeContactSearch3D4N(self.main_model_part, search_parameters)
-
-        # We initialize the search utility
-        contact_search.CreatePointListMortar()
-        contact_search.InitializeMortarConditions()
-        contact_search.UpdateMortarConditions()
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, False, self.model_part_master.Conditions)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, True, self.model_part_master.Conditions)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.SLAVE, False, self.model_part_master.Nodes)
+        KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.MASTER, True, self.model_part_master.Nodes)
 
         for node in self.model_part_master.Nodes:
             x = node.X
@@ -147,7 +89,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
         self.mortar_mapping_double.Execute()
         self.mortar_mapping_vector.Execute()
 
-        ### DEBUG
+        # Debug postprocess file
         #self.__post_process()
 
         import from_json_check_result_process
@@ -168,6 +110,8 @@ class TestMortarMapping(KratosUnittest.TestCase):
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
 
+
+        # The following is used to create the solution database
         #import json_output_process
 
         #out_parameters = KratosMultiphysics.Parameters("""
@@ -187,19 +131,19 @@ class TestMortarMapping(KratosUnittest.TestCase):
         #out.ExecuteFinalizeSolutionStep()
 
     def test_less_basic_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_integration_several_triangles"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_integration_several_triangles"
         self._mapper_tests(input_filename, 3, False)
 
     def test_simple_curvature_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_simple_curvature"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_simple_curvature"
         self._mapper_tests(input_filename, 3, False)
 
     def test_mortar_mapping_triangle(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_double_curvature_integration_triangle"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_triangle"
         self._mapper_tests(input_filename, 3, False)
 
     def test_mortar_mapping_quad(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/integration_tests/test_double_curvature_integration_quadrilateral"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_double_curvature_integration_quadrilateral"
         self._mapper_tests(input_filename, 4, False)
 
     def __post_process(self):
@@ -216,8 +160,7 @@ class TestMortarMapping(KratosUnittest.TestCase):
                                                     "MultiFileFlag": "SingleFile"
                                                 },
                                                 "nodal_results"       : ["DISPLACEMENT","NORMAL","TEMPERATURE"],
-                                                "nodal_nonhistorical_results": ["NODAL_AREA","NODAL_MAUX","NODAL_VAUX"],
-                                                "nodal_flags_results": ["MASTER","SLAVE"]
+                                                "nodal_nonhistorical_results": ["NODAL_AREA","NODAL_MAUX","NODAL_VAUX"]
                                             }
                                         }
                                         """)
