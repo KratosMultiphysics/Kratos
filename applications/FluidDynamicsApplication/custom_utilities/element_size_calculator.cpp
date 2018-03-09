@@ -339,7 +339,7 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
     // given by +-x, +-y, +-z we have to look for the intersection).
     array_1d<double,3> U = rVelocity;
     //Normalize U
-    U /= this->Module(U);
+    U /= std::sqrt(U[0]*U[0] + U[1]*U[1] + U[2]*U[2]);
 
     array_1d<double,3> v10 = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
     array_1d<double,3> v30 = rGeometry[3].Coordinates() - rGeometry[0].Coordinates();
@@ -387,7 +387,8 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
         }
     }
 
-    Hvel = this->Module(U);
+    // Module
+    Hvel = std::sqrt(U[0]*U[0] + U[1]*U[1] + U[2]*U[2]);
 
     if (Hvel > 0.0)
     {
@@ -396,12 +397,6 @@ double ElementSizeCalculator<3,8>::ProjectedElementSize(const Geometry<Node<3> >
     }
 
     return Hvel;
-}
-
-template<std::size_t TDim, std::size_t TNumNodes>
-double ElementSizeCalculator<TDim,TNumNodes>::Module(const array_1d<double,3> &rVector)
-{
-    return std::sqrt(rVector[0]*rVector[0] + rVector[1]*rVector[1] + rVector[2]*rVector[2]);
 }
 
 // Triangle2D3 version. 
