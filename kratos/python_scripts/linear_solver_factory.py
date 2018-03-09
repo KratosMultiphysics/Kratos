@@ -308,6 +308,8 @@ def ConstructSolver(configuration):
 
     elif (solver_type == "Parallel MKL Pardiso" or solver_type == "Parallel_MKL_Pardiso"):
         # emulating the solvers of the MKLSolversApplication through the EigenSolversApplication
+        Logger.PrintWarning("LinearSolverFactor", "Solver Parallel_MKL_Pardiso is deprecated,\
+        please use it through the EigenSolversApplication (see the Readme in the Application)")
         import EigenSolversApplication
         params = Parameters("""{}""")
         linear_solver = EigenSolversApplication.PardisoLUSolver(params)

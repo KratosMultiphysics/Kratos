@@ -80,6 +80,8 @@ def ConstructSolver(configuration):
 
      # emulating the solvers of the MKLSolversApplication through the EigenSolversApplication
     elif (solver_type == "ParallelMKLPardisoSolver"):
+        KratosMultiphysics.Logger.PrintWarning("LinearSolverFactor", "Solver Parallel_MKL_Pardiso is deprecated,\
+        please use it through the EigenSolversApplication (see the Readme in the Application)")
         import KratosMultiphysics.EigenSolversApplication
         linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLUSolver(configuration)
 
