@@ -44,7 +44,7 @@ class TestSparseMatrixSum(KratosUnittest.TestCase):
             for i, j in np.nditer(A_python.nonzero()):
                 self.assertAlmostEqual(A[int(i), int(j)], A_python[int(i), int(j)])
         else:
-            self.assertTrue(True)
+            self.skipTest("Missing python libraries (scipy)")
 
     def test_sparse_matrix_sum(self):
         self.__sparse_matrix_sum()
@@ -85,7 +85,7 @@ class TestSparseMatrixMultiplication(KratosUnittest.TestCase):
             for i, j in np.nditer(A2_python.nonzero()):
                 self.assertAlmostEqual(A2[int(i), int(j)], A2_python[int(i), int(j)], 1e-3)
         else:
-            self.assertTrue(True)
+            self.skipTest("Missing python libraries (scipy)")
 
     def test_sparse_matrix_multiplication_saad(self):
         self.__sparse_matrix_multiplication("saad")
