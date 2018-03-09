@@ -85,6 +85,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             import KratosMultiphysics.mpi as KratosMPI
             import KratosMultiphysics.MetisApplication as MetisApplication
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
+            self.is_printing_rank = (KratosMPI.mpi.rank == 0)
+        else:
+            self.is_printing_rank = True
 
         ## Structure model part definition
         if self.using_external_model_part:
@@ -136,7 +139,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         self.structure_model.AddModelPart(self.main_model_part)
 
         ## Print model_part and properties
-        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
+        if self.is_printing_rank and self.echo_level > 1:
             KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
             for properties in self.main_model_part.Properties:
                 KratosMultiphysics.Logger.PrintInfo("Property " + str(properties.Id), properties)
@@ -155,7 +158,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (self.ProjectParameters.Has("check_analytic_results_process") == True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["check_analytic_results_process"])
 
-        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
+        if self.is_printing_rank and self.echo_level > 1:
             count = 0
             for process in self.list_of_processes:
                 count += 1
@@ -177,7 +180,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             process.ExecuteBeforeSolutionLoop()
 
         ## Writing the full ProjectParameters file before solving
-        if ((self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0)) and (self.echo_level > 1):
+        if self.is_printing_rank and self.echo_level > 1:
             f = open("ProjectParametersOutput.json", 'w')
             f.write(self.ProjectParameters.PrettyPrintJsonString())
             f.close()
@@ -193,7 +196,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.time = start_time
             self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
 
-        if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
 
     def __ExecuteInitializeSolutionStep(self):
@@ -202,7 +205,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         self.main_model_part.CloneTimeStep(self.time)
 
-        if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("STEP: ", self.main_model_part.ProcessInfo[KratosMultiphysics.STEP])
             KratosMultiphysics.Logger.PrintInfo("TIME: ", self.time)
 
@@ -253,7 +256,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (self.output_post == True):
             self.gid_output.ExecuteFinalize()
 
-        if (self.parallel_type == "OpenMP") or (KratosMPI.mpi.rank == 0):
+        if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
 
     def GetModelPart(self):
