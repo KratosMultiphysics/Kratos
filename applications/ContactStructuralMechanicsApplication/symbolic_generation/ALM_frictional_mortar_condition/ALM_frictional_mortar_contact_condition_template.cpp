@@ -88,9 +88,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     KRATOS_TRY;   
     
     if (rResult.size() != MatrixSize)
-    {
         rResult.resize( MatrixSize, false );
-    }
     
     unsigned int index = 0;
     
@@ -98,8 +96,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     GeometryType& current_master = this->GetPairedGeometry();;
     
     // Master Nodes Displacement Equation IDs
-    for ( unsigned int i_master = 0; i_master < TNumNodes; ++i_master ) // NOTE: Assuming same number of nodes for master and slave
-    {
+    for ( unsigned int i_master = 0; i_master < TNumNodes; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
         NodeType& master_node = current_master[i_master];
         rResult[index++] = master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
@@ -107,8 +104,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     }
 
     // Slave Nodes Displacement Equation IDs
-    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
-    {
+    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
@@ -116,8 +112,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     }
 
     // Slave Nodes  Lambda Equation IDs
-    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
-    {
+    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_X ).EquationId( );
         rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
@@ -139,9 +134,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     KRATOS_TRY;
     
     if (rConditionalDofList.size() != MatrixSize)
-    {
         rConditionalDofList.resize( MatrixSize );
-    }
     
     unsigned int index = 0;
     
@@ -149,8 +142,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     GeometryType& current_master = this->GetPairedGeometry();;
 
     // Master Nodes Displacement Equation IDs
-    for ( unsigned int i_master = 0; i_master < TNumNodes; ++i_master ) // NOTE: Assuming same number of nodes for master and slave
-    {
+    for ( unsigned int i_master = 0; i_master < TNumNodes; ++i_master ){ // NOTE: Assuming same number of nodes for master and slave
         NodeType& master_node = current_master[i_master];
         rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_Y );
@@ -158,8 +150,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     }
 
     // Slave Nodes Displacement Equation IDs
-    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
-    {
+    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = slave_node.pGetDof( DISPLACEMENT_Y );
@@ -167,8 +158,7 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     }
 
     // Slave Nodes Lambda Equation IDs
-    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave )
-    {
+    for ( unsigned int i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
         NodeType& slave_node = this->GetGeometry()[ i_slave ];
         rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_X );
         rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
@@ -196,8 +186,7 @@ int AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNo
     KRATOS_CHECK_VARIABLE_KEY(WEIGHTED_SLIP)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    for ( unsigned int i = 0; i < TNumNodes; ++i )
-    {
+    for ( unsigned int i = 0; i < TNumNodes; ++i ) {
         Node<3> &rnode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,rnode)
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VECTOR_LAGRANGE_MULTIPLIER,rnode)
