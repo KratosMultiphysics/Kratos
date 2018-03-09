@@ -45,7 +45,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         for i in range(materials["properties"].size()):
             data = materials["properties"][i]
 
-            if self.__interpolation_is_required(data):
+            if self.__InterpolationIsRequired(data):
                 self._AssignPropertyBlockInterpolated(data)
             else:
                 self._AssignPropertyBlock(data)
@@ -81,7 +81,6 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             KratosMultiphysics.Logger.PrintInfo("Warning in reading materials", warning_msg)
 
         return function_pointer(attribute_name) # This also checks if the application has been imported
-
 
     def _GetVariable(self, my_string):
         """Return the python object of a Variable named by the string argument.
@@ -142,9 +141,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         prop = model_part.GetProperties(property_id, mesh_id)
 
         if len(data["Material"]["Variables"].keys()) > 0 and prop.HasVariables():
-                KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has variables." )
+            KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has variables." )
         if len(data["Material"]["Tables"].keys()) > 0 and prop.HasTables():
-                KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has tables." )
+            KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Property", str(property_id), "already has tables." )
 
         # Assign the properties to the model part's elements and conditions.
         for elem in model_part.Elements:
@@ -250,7 +249,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         # Set the tables to the ModelPart
         table_dict = {}
-        self.__assign_tables_to_model_part(root_model_part, mat, table_dict)
+        self.__AssignTablesToModelPart(root_model_part, mat, table_dict)
 
         # Assign the properties to the model part's elements and conditions.
         for elem in model_part.Elements:
@@ -260,7 +259,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
             elem.Properties = elem_props
 
-            self.__assign_interpolated_properties(mat, table_dict, elem, elem_props)
+            self.__AssignInterpolatedProperties(mat, table_dict, elem, elem_props)
 
         for cond in model_part.Conditions:
             current_number_props = root_model_part.NumberOfProperties()
@@ -269,32 +268,31 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
             cond.Properties = cond_props
 
-            self.__assign_interpolated_properties(mat, table_dict, cond, cond_props)
-
+            self.__AssignInterpolatedProperties(mat, table_dict, cond, cond_props)
 
     #### Private methods needed for the interpolation ####
 
-    def __interpolation_is_required(self, data):
+    def __InterpolationIsRequired(self, data):
         """
         This function checks if at least one of the variables requires interpolation
         """
         for key, value in data["Material"]["Variables"].items():
-            if self.__is_double_with_interpolation(value):
+            if self.__IsDoubleWithInterpolation(value):
                 return True
-            elif self.__is_vector_with_interpolation(value):
+            elif self.__IsVectorWithInterpolation(value):
                 return True
-            elif self.__is_matrix_with_interpolation(value):
+            elif self.__IsMatrixWithInterpolation(value):
                 return True
 
         return False
 
-    def __is_double_with_interpolation(self, parameter):
+    def __IsDoubleWithInterpolation(self, parameter):
         """
         This function is the analogon to IsDouble(), but it checks if interpolation is required
         """
-        return self.__has_interpolation_keyword(parameter)
+        return self.__HasInterpolationKeyword(parameter)
 
-    def __is_vector_with_interpolation(self, parameter):
+    def __IsVectorWithInterpolation(self, parameter):
         """
         This function is the analogon to IsVector(), but it checks if interpolation is required
         It does NOT throw if the Vector is not valid, type checking is done later
@@ -308,7 +306,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 return False
 
         for i in range(parameter.size()):
-            if self.__has_interpolation_keyword(parameter[i]):
+            if self.__HasInterpolationKeyword(parameter[i]):
                 interpolation_required = True
             else:
                 if not parameter[i].IsNumber(): # this means that the vector is not valid
@@ -316,7 +314,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         return interpolation_required
 
-    def __is_matrix_with_interpolation(self, parameter):
+    def __IsMatrixWithInterpolation(self, parameter):
         """
         This function is the analogon to IsMatrix(), but it checks if interpolation is required
         It does NOT throw if the Matrix is not valid, type checking is done later
@@ -339,7 +337,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 return False
 
             for j in range(num_cols):
-                if self.__has_interpolation_keyword(row_i[j]):
+                if self.__HasInterpolationKeyword(row_i[j]):
                     interpolation_required = True
                 else:
                     if not row_i[j].IsNumber(): # this means that the matrix is not valid
@@ -347,7 +345,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         return interpolation_required
 
-    def __has_interpolation_keyword(self, parameter):
+    def __HasInterpolationKeyword(self, parameter):
         if parameter.IsSubParameter():
             if parameter.Has("@table"):
                 return True
@@ -356,14 +354,14 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         else:
             return False
 
-    def __size_interpolated_vector(self, vector_parameter):
-        if vector_parameter.IsVector() or self.__is_vector_with_interpolation(vector_parameter):
+    def __SizeInterpolatedVector(self, vector_parameter):
+        if vector_parameter.IsVector() or self.__IsVectorWithInterpolation(vector_parameter):
             return vector_parameter.size()
         else:
             raise TypeError("Object is not a Vector!")
 
-    def __size_interpolated_matrix(self, matrix_parameter):
-        if matrix_parameter.IsMatrix() or self.__is_matrix_with_interpolation(matrix_parameter):
+    def __SizeInterpolatedMatrix(self, matrix_parameter):
+        if matrix_parameter.IsMatrix() or self.__IsMatrixWithInterpolation(matrix_parameter):
             # Existance of these values is assured through the checks above
             size1 = matrix_parameter.size()
             size2 = matrix_parameter[0].size()
@@ -371,7 +369,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         else:
             raise TypeError("Object is not a Matrix!")
 
-    def __assign_tables_to_model_part(self, root_model_part, material_parameters, table_dict):
+    def __AssignTablesToModelPart(self, root_model_part, material_parameters, table_dict):
         for table_name in sorted(material_parameters["Tables"].keys()):
             if table_name in table_dict.keys():
                 err_msg = 'Table names must be unique, trying to add: "' + table_name
@@ -383,8 +381,8 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             input_variable = self._GetVariable(table_param["input_variable"].GetString())
             output_variable = self._GetVariable(table_param["output_variable"].GetString())
 
-            self.__check_variable_type(input_variable, table_name)
-            self.__check_variable_type(output_variable, table_name)
+            self.__CheckVariableType(input_variable, table_name)
+            self.__CheckVariableType(output_variable, table_name)
 
             if not table_param.Has("input_variable_location"):
                 raise Exception("You need to specify a variable location for the interpolation!")
@@ -409,7 +407,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
             table_dict[table_name] = table_info
 
-    def __assign_interpolated_properties(self, mat, table_dict, geom_entity, prop):
+    def __AssignInterpolatedProperties(self, mat, table_dict, geom_entity, prop):
         # assign Tables (stored in the RootModelPart) to the properties
         for table_name, table_info in table_dict.items():
             input_variable = table_info["input_variable"]
@@ -432,22 +430,22 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 prop.SetValue( var, value.GetMatrix() )
             elif value.IsVector():
                 prop.SetValue( var, value.GetVector() )
-            elif self.__is_double_with_interpolation(value):
-                interpolated_double = self.__compute_interpolated_value(geom_entity, table_dict,
+            elif self.__IsDoubleWithInterpolation(value):
+                interpolated_double = self.__ComputeInterpolatedValue(geom_entity, table_dict,
                                                                         key, value)
                 prop.SetValue(var, interpolated_double)
-            elif self.__is_vector_with_interpolation(value):
-                interpolated_vector = self.__compute_interpolated_vector(geom_entity, table_dict,
+            elif self.__IsVectorWithInterpolation(value):
+                interpolated_vector = self.__ComputeInterpolatedVector(geom_entity, table_dict,
                                                                          key, value)
                 prop.SetValue(var, interpolated_vector)
-            elif self.__is_matrix_with_interpolation(value):
-                interpolated_matrix = self.__compute_interpolated_matrix(geom_entity, table_dict,
+            elif self.__IsMatrixWithInterpolation(value):
+                interpolated_matrix = self.__ComputeInterpolatedMatrix(geom_entity, table_dict,
                                                                          key, value)
                 prop.SetValue(var, interpolated_matrix)
             else:
                 raise TypeError("Type of value is not available for " + key)
 
-    def __compute_interpolated_value(self, geom_entity, table_dict, variable_name, value):
+    def __ComputeInterpolatedValue(self, geom_entity, table_dict, variable_name, value):
         # Retrieve information needed for interpolation
         table_name = value["@table"].GetString()
 
@@ -485,8 +483,8 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
         return interpolated_value
 
-    def __compute_interpolated_vector(self, geom_entity, table_dict, variable_name, vector_parameter):
-        size = self.__size_interpolated_vector(vector_parameter)
+    def __ComputeInterpolatedVector(self, geom_entity, table_dict, variable_name, vector_parameter):
+        size = self.__SizeInterpolatedVector(vector_parameter)
         interpolated_vector = KratosMultiphysics.Vector(size)
 
         for i in range(size):
@@ -495,16 +493,16 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 interpolated_vector[i] = sub_param.GetDouble()
             elif sub_param.IsInt(): # needed?
                 interpolated_vector[i] = sub_param.GetInt()
-            elif self.__has_interpolation_keyword(sub_param):
-                interpolated_vector[i] = self.__compute_interpolated_value(geom_entity, table_dict,
+            elif self.__HasInterpolationKeyword(sub_param):
+                interpolated_vector[i] = self.__ComputeInterpolatedValue(geom_entity, table_dict,
                                                                            variable_name, sub_param)
             else:
                 raise TypeError("Wrong Type of Value")
 
         return interpolated_vector
 
-    def __compute_interpolated_matrix(self, geom_entity, table_dict, variable_name, matrix_parameter):
-        size1, size2 = self.__size_interpolated_matrix(matrix_parameter)
+    def __ComputeInterpolatedMatrix(self, geom_entity, table_dict, variable_name, matrix_parameter):
+        size1, size2 = self.__SizeInterpolatedMatrix(matrix_parameter)
         interpolated_matrix = KratosMultiphysics.Matrix(size1, size2)
 
         for i in range(size1):
@@ -514,15 +512,15 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                     interpolated_matrix[i,j] = sub_param.GetDouble()
                 elif sub_param.IsInt(): # needed?
                     interpolated_matrix[i,j] = sub_param.GetInt()
-                elif self.__has_interpolation_keyword(sub_param):
-                    interpolated_matrix[i,j] = self.__compute_interpolated_value(geom_entity, table_dict,
+                elif self.__HasInterpolationKeyword(sub_param):
+                    interpolated_matrix[i,j] = self.__ComputeInterpolatedValue(geom_entity, table_dict,
                                                                                  variable_name, sub_param)
                 else:
                     raise TypeError("Wrong Type of Value")
 
         return interpolated_matrix
 
-    def __check_variable_type(self, variable, table_name):
+    def __CheckVariableType(self, variable, table_name):
         if(type(variable) != KratosMultiphysics.DoubleVariable and type(variable) != KratosMultiphysics.Array1DComponentVariable):
             err_msg = 'In table "' + table_name + '": Variable type of variable - '
             err_msg += variable.Name() + ' - is incorrect!\nMust be a scalar or a component'
