@@ -314,15 +314,12 @@ protected:
     KRATOS_DEPRECATED virtual double EffectiveViscosity(
         TElementData& rData,
         double ElementSize);
-
     
-    virtual void CalculateStaticTau(
+    virtual void CalculateTau(
         const TElementData& rData,
-        double Density,
-        double DynamicViscosity,
         const array_1d<double,3> &Velocity,
         double &TauOne,
-        double &TauTwo);    
+        double &TauTwo) const;
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
