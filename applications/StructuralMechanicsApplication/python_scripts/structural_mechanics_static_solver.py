@@ -152,4 +152,5 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                 self.settings["max_iteration"].GetInt(),
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                self.settings["move_mesh_flag"].GetBool())
+                                                                self.settings["move_mesh_flag"].GetBool(),
+                                                                self.settings["print_formfinding_iterations"].GetBool())

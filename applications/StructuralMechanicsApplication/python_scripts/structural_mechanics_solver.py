@@ -67,6 +67,7 @@ class MechanicalSolver(object):
             "block_builder": true,
             "clear_storage": false,
             "move_mesh_flag": true,
+            "print_formfinding_iterations": false,
             "multi_point_constraints_used": false,
             "convergence_criterion": "residual_criterion",
             "displacement_relative_tolerance": 1.0e-4,

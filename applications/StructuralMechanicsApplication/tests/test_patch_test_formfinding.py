@@ -65,6 +65,7 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
         reform_step_dofs = False
         calculate_norm_dx = False
         move_mesh_flag = True
+        print_iterations = False
         strategy = KratosMultiphysics.StructuralMechanicsApplication.FormfindingUpdatedReferenceStrategy(mp,
                                                                   scheme,
                                                                   linear_solver,
@@ -72,7 +73,8 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
                                                                   max_iters,
                                                                   compute_reactions,
                                                                   reform_step_dofs,
-                                                                  move_mesh_flag)
+                                                                  move_mesh_flag,
+                                                                  print_iterations)
         strategy.SetEchoLevel(0)
 
         strategy.Check()
