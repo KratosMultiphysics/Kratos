@@ -1,8 +1,9 @@
 import os
-from KratosMultiphysics import *
+import KratosMultiphysics
+import KratosMultiphysics.ALEApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
-import test_MainKratos
+import ale_analysis
 
 class ControlledExecutionScope:
     def __init__(self, scope):
@@ -19,21 +20,18 @@ class TestCase(KratosUnittest.TestCase):
 
     def createTest(self, parameter_file_name):
         with open(parameter_file_name + '_parameters.json', 'r') as parameter_file:
-            project_parameters = Parameters(parameter_file.read())
-            parameter_file.close()
-        test = test_MainKratos.MainKratos(project_parameters)
-        return test
+            self.project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
     def test_Rectangle_2D3N(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            test = self.createTest('test_structural_mesh_motion_2d/rectangle_2D3N_test')
-            test.Solve()
+            self.createTest('test_structural_mesh_motion_2d/rectangle_2D3N_test')
+            ale_analysis.ALEAnalysis(self.project_parameters).Run()
             kratos_utils.DeleteFileIfExisting("./test_mdpa_files/rectangle_2D3N_test.time")
 
     def test_Rectangle_2D4N(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            test = self.createTest('test_structural_mesh_motion_2d/rectangle_2D4N_test')
-            test.Solve()
+            self.createTest('test_structural_mesh_motion_2d/rectangle_2D4N_test')
+            ale_analysis.ALEAnalysis(self.project_parameters).Run()
             kratos_utils.DeleteFileIfExisting("./test_mdpa_files/rectangle_2D4N_test.time")
 
 
