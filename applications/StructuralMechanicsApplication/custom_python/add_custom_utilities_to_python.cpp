@@ -64,7 +64,8 @@ void  AddCustomUtilitiesToPython()
     //Response Functions
     class_<StructuralResponseFunction, boost::noncopyable>("StructuralResponseFunction", init<ModelPart&, Parameters&>())
         .def("Initialize", &StructuralResponseFunction::Initialize)
-        .def("FinalizeSolutionStep", &StructuralResponseFunction::FinalizeSolutionStep);
+        .def("FinalizeSolutionStep", &StructuralResponseFunction::FinalizeSolutionStep)
+        .def("CalculateValue", &StructuralResponseFunction::CalculateValue);
 
     class_<LocalStressResponseFunction, bases<StructuralResponseFunction>, boost::noncopyable>
       ("LocalStressResponseFunction", init<ModelPart&, Parameters&>());
