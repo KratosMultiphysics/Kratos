@@ -280,17 +280,17 @@ void FIC<TElementData>::AddMassStabilization(
     array_1d<double,3> TauGrad(3,0.0);
     this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauIncompr,TauMomentum,TauGrad);
 
-    //TODO: seguir
-
     Vector AGradN;
-    this->ConvectionOperator(AGradN,ConvVel,rDN_DX);
+    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
+
+    //TODO: seguir
 
     // Multiplying some quantities by density to have correct units
     AGradN *= Density; // Convective term is always multiplied by density
 
     // Auxiliary variables for matrix looping
     const unsigned int NumNodes = rN.size();
-    const unsigned int BlockSize = TDim+1;
+    const unsigned int BlockSize = Dim+1;
     unsigned int Row = 0;
     unsigned int Col = 0;
 
@@ -310,11 +310,11 @@ void FIC<TElementData>::AddMassStabilization(
 
             K = TauMomentum * W * AGradN[i] * rN[j];
 
-            for (unsigned int d = 0; d < TDim; d++)
+            for (unsigned int d = 0; d < Dim; d++)
             {
                 rMassMatrix(Row+d,Col+d) += K;
                 if (oss_switch != 1)
-                    rMassMatrix(Row+TDim,Col+d) += TauIncompr * W*rDN_DX(i,d)*rN[j];
+                    rMassMatrix(Row+Dim,Col+d) += TauIncompr * W*rDN_DX(i,d)*rN[j];
             }
         }
     }
@@ -340,13 +340,15 @@ void FIC<TElementData>::CalculateStaticTau(
     double &TauMomentum,
     array_1d<double,3> &TauGrad)
 {
+    GeometryType& rGeom = this->GetGeometry();
+
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
 
     const double Beta = rData.FICBeta;
     const double Nobeta = 1.0-Beta;
 
-    double Havg = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(this->GetGeometry());
+    double Havg = ElementSizeCalculator<Dim,NumNodes>::AverageElementSize(rGeom);
 
     double velocity_norm = Velocity[0]*Velocity[0];
     for (unsigned int d = 1; d < Dim; d++)
@@ -356,7 +358,7 @@ void FIC<TElementData>::CalculateStaticTau(
     double Hvel = Havg;
     if (velocity_norm > 1.0e-6)
     {
-        Hvel = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(this->GetGeometry(),Velocity);
+        Hvel = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(rGeom,Velocity);
     }
 
     double InvTau = Density * ( c1 * DynamicViscosity / (Havg*Havg) + c2 * velocity_norm / Havg );
@@ -372,16 +374,59 @@ void FIC<TElementData>::CalculateStaticTau(
 
     TauMomentum *= Beta;
 
-    //TODO: seguir
-
     // Coefficients for FIC shock-capturing term
     this->CalculateTauGrad(TauGrad);
     TauGrad /= Density;
-    for (unsigned int d = 0; d < TDim; d++)
+    for (unsigned int d = 0; d < Dim; d++)
         if (TauGrad[d] > Havg*TimeTerm)
             TauGrad[d] = Havg*TimeTerm;
 
     TauGrad *= Nobeta;
+}
+
+template< class TElementData >
+void FIC<TElementData>::CalculateTauGrad(array_1d<double,3> &TauGrad)
+{
+    // Small constant to prevent division by zero
+    const double Small = 1.0e-12;
+
+    // Evaluate velocity gradient
+    GeometryType& rGeom = this->GetGeometry();
+
+    ShapeFunctionDerivativesArrayType DN_DX;
+    rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX,GeometryData::GI_GAUSS_1);
+    ShapeFunctionDerivativesType& rDN_DX = DN_DX[0];
+
+    boost::numeric::ublas::bounded_matrix<double,3,3> Gradient = ZeroMatrix(3,3);
+    for (unsigned int n = 0; n < NumNodes; n++)
+    {
+        const array_1d<double,3>& rU = rGeom[n].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int i = 0; i < Dim; i++)
+        {
+            for (unsigned int j = 0; j < Dim; j++)
+            {
+                Gradient(i,j) += rDN_DX(n,j)*rU[i];
+            }
+        }
+    }
+
+    // Calculate characteristic lenghts on the gradient directions and gradient norms
+    array_1d<double,3> Hg(3,0.0);
+    array_1d<double,3> GradNorm(3,0.0);
+    for (unsigned int d = 0; d < Dim; d++)
+    {
+        array_1d<double,3> Gi(3,0.0);
+        Gi[0] = Gradient(d,0);
+        Gi[1] = Gradient(d,1);
+        Gi[2] = Gradient(d,2);
+
+        Hg[d] = ElementSizeCalculator<Dim,NumNodes>::ProjectedElementSize(rGeom,Gi);
+
+        GradNorm[d] = std::sqrt(Gi[0]*Gi[0]+Gi[1]*Gi[1]+Gi[2]*Gi[2]);
+
+        // Coefficients for shock capturing term (remember to multiply by momentum residual!)
+        TauGrad[d] = Hg[d] / (2.*GradNorm[d] + Small);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
