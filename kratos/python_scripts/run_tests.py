@@ -117,6 +117,7 @@ class Commander(object):
 
         '''
 
+        self.exitCode = 0
         appNormalizedPath = applicationPath.lower().replace('_', '')
 
         possiblePaths = [
@@ -162,8 +163,10 @@ class Commander(object):
                 # Used instead of wait to "soft-block" the process and prevent deadlocks
                 # and capture the first exit code different from OK
                 self.process.communicate()
-                if(not self.exitCode):
-                    self.process.returncode
+
+                # Running out of time in the tests will send the error code -15. We may want to skip
+                # that one in a future. Right now will throw everything different from 0.
+                self.exitCode = int(self.process.returncode != 0)
             else:
                 if verbose > 0:
                     print(
@@ -191,6 +194,9 @@ def main():
     applications = GetAvailableApplication()
     verbosity = 1
     level = 'all'
+
+    # Keep the worst exit code
+    exit_code = 0
 
     # Parse Commandline
     try:
@@ -307,11 +313,13 @@ def main():
     print('Running cpp tests', file=sys.stderr)
     try:
         Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
-        Tester.RunAllTestCases()
+        exit_code_cpp = Tester.RunAllTestCases()
+        exit_code = max(exit_code, exit_code_cpp)
     except Exception as e:
         print('[Warning]:', e, file=sys.stderr)
+        exit_code = 1
 
-    sys.exit(commander.exitCode)
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":
