@@ -51,8 +51,10 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::PrintData(std::ostream& rOStream)
     rOStream << "Tetrahedra3D4N Ausas modified shape functions computation class:\n";
     rOStream << "\tGeometry type: " << (*p_geometry).Info() << "\n";
     std::stringstream distances_buffer;
+    std::stringstream stm;
     for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
-        distances_buffer << std::to_string(nodal_distances(i)) << " ";
+        stm << nodal_distances(i);
+        distances_buffer << stm.str() << " ";
     }
     rOStream << "\tDistance values: " << distances_buffer.str();
 };
