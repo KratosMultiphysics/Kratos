@@ -49,11 +49,8 @@ namespace Kratos
 
 /**
  * @class ComputeHessianSolMetricProcess
- *
  * @ingroup MeshingApplication
- *
  * @brief This class is can be used to compute the metrics of the model part with an Hessian approach
- *
  * @author Vicente Mataix Ferrandiz
  */
 template<unsigned int TDim, class TVarType>  
@@ -69,6 +66,15 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ComputeHessianSolMetricProcess);
     
     ///@}
+    ///@name  Enum's
+    ///@{
+    
+    /**
+     * @brief This enums allows to differentiate the interpolation types
+     */
+    enum class Interpolation {CONSTANT = 0, LINEAR = 1, EXPONENTIAL = 2};
+    
+    ///@}
     ///@name Life Cycle
     ///@{
      
@@ -77,7 +83,8 @@ public:
     /**
      * @brief This is the default constructor
      * @param rThisModelPart The model part to be computed
-     * @param rThisModelPart The input parameters
+     * @param rVariable The variable to compute
+     * @param ThisParameters The input parameters
      */
     
     ComputeHessianSolMetricProcess(
@@ -228,11 +235,21 @@ private:
     
     /**
      * @brief This converts the interpolation string to an enum
-     * @param str The string that you want to comvert in the equivalent enum
+     * @param Str The string that you want to comvert in the equivalent enum
      * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
         
-    Interpolation ConvertInter(const std::string& str);
+    Interpolation ConvertInter(const std::string& Str)
+    {
+        if(Str == "Constant" || Str == "CONSTANT") 
+            return Interpolation::CONSTANT;
+        else if(Str == "Linear" || Str == "LINEAR") 
+            return Interpolation::LINEAR;
+        else if(Str == "Exponential" || Str == "EXPONENTIAL") 
+            return Interpolation::EXPONENTIAL;
+        else
+            return Interpolation::LINEAR;
+    }
         
     /**
      * @brief This calculates the anisotropic ratio

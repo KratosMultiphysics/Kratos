@@ -108,14 +108,10 @@ namespace Kratos
 
 /**
  * @class MmgProcess
- *
  * @ingroup MeshingApplication
- *
  * @brief This class is a remesher which uses the MMG library 
- *
  * @details This class is a remesher which uses the MMG library. The class uses a class for the 2D and 3D cases.
  * The remesher keeps the previous submodelparts and interpolates the nodal values between the old and new mesh
- *
  * @author Vicente Mataix Ferrandiz
  */
 template<unsigned int TDim>  
@@ -132,6 +128,15 @@ public:
     
     /// Elements array size
     static constexpr unsigned int ElementsArraySize = (TDim == 2) ? 1 : 2;
+ 
+    ///@}
+    ///@name  Enum's
+    ///@{
+    
+    /**
+     * @brief This enums allows to differentiate the working framework
+     */
+    enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
     
     ///@}
     ///@name Life Cycle
@@ -258,7 +263,7 @@ private:
     
     ModelPart& mrThisModelPart;                                   /// The model part to compute           
     Parameters mThisParameters;                                   /// The parameters (can be used for general pourposes)
-    Node<3>::DofsContainerType  mDofs;                            /// Storage for the dof of the node
+    NodeType::DofsContainerType  mDofs;                           /// Storage for the dof of the node
     
     char* mFilename;                                              /// I/O file name
     std::string mStdStringFilename;                               /// I/O file name (string)
@@ -279,6 +284,24 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This converts the framework string to an enum
+     * @param Str The string
+     * @return FrameworkEulerLagrange: The equivalent enum
+     */
+        
+    static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
+    {
+        if(Str == "Lagrangian" || Str == "LAGRANGIAN") 
+            return FrameworkEulerLagrange::LAGRANGIAN;
+        else if(Str == "Eulerian" || Str == "EULERIAN") 
+            return FrameworkEulerLagrange::EULERIAN;
+        else if(Str == "ALE") 
+            return FrameworkEulerLagrange::ALE;
+        else
+            return FrameworkEulerLagrange::EULERIAN;
+    }
+    
     /**
      * @brief This function generates the mesh MMG5 structure from a Kratos Model Part
      */

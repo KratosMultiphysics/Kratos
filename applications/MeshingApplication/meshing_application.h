@@ -55,16 +55,6 @@ KRATOS_DEFINE_VARIABLE(Vector,  MMG_METRIC);           // The condensed metric u
 ///@name  Enum's
 ///@{
 
-    /**
-     * @brief This enums allows to differentiate the working framework
-     */
-    enum class FrameworkEulerLagrange {Eulerian = 0, Lagrangian = 1, ALE = 2};
-
-    /**
-     * @brief This enums allows to differentiate the interpolation types
-     */
-    enum class Interpolation {Constant = 0, Linear = 1, Exponential = 2};
-
 ///@}
 ///@name  Functions
 ///@{

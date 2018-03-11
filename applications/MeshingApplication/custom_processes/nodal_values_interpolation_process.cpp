@@ -45,7 +45,7 @@ NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
     mStepDataSize = ThisParameters["step_data_size"].GetInt();
     mBufferSize   = ThisParameters["buffer_size"].GetInt();
 
-    if (mEchoLevel > 0) std::cout << "Step data size: " << mStepDataSize << " Buffer size: " << mBufferSize << std::endl;
+    KRATOS_INFO_IF("NodalValuesInterpolationProcess", mEchoLevel > 0) << "Step data size: " << mStepDataSize << " Buffer size: " << mBufferSize << std::endl;
 }
 
 /***********************************************************************************/
@@ -74,12 +74,9 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
         const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mMaxNumberOfResults, 5.0e-2);
         
         if (is_found == false) {
-            if (mEchoLevel > 0 || mFramework == FrameworkEulerLagrange::Lagrangian) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-                std::cout << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << std::endl;
-                std::cout << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
-                
-                if (mFramework == FrameworkEulerLagrange::Lagrangian)
-                    std::cout << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+            if (mEchoLevel > 0 || mFramework == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
+                KRATOS_WARNING("NodalValuesInterpolationProcess") << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", mFramework == FrameworkEulerLagrange::LAGRANGIAN) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
             }
         } else {
             for(unsigned int i_step = 0; i_step < mBufferSize; ++i_step)

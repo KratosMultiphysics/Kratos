@@ -47,9 +47,7 @@ namespace Kratos
 
 /** 
  * @class NodalValuesInterpolationProcess
- *
  * @ingroup MeshingApplication
- *
  * @brief NodalValuesInterpolationProcess
  * @details This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
  * The process employs the projection.h from MeshingApplication, which works internally using a kd-tree 
@@ -74,11 +72,18 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( NodalValuesInterpolationProcess );
       
     ///@}
+    ///@name  Enum's
+    ///@{
+    
+    /**
+     * @brief This enums allows to differentiate the working framework
+     */
+    enum class FrameworkEulerLagrange {EULERIAN = 0, LAGRANGIAN = 1, ALE = 2};
+    
+    ///@}
     ///@name Life Cycle
     ///@{
 
-    // Class Constructor
-    
     /**
      * @brief The constructor of the search utility uses the following inputs:
      * @param rOriginMainModelPart The model part from where interpolate values
@@ -92,6 +97,7 @@ public:
         Parameters ThisParameters = Parameters(R"({})")
         );
     
+    /// Destructor
     ~NodalValuesInterpolationProcess() override= default;;
 
     ///@}
@@ -112,24 +118,6 @@ public:
      */
     
     void Execute() override;
-    
-    /**
-     * @brief This converts the framework string to an enum
-     * @param Str The string
-     * @return FrameworkEulerLagrange: The equivalent enum
-     */
-        
-    static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
-    {
-        if(Str == "Lagrangian") 
-            return FrameworkEulerLagrange::Lagrangian;
-        else if(Str == "Eulerian") 
-            return FrameworkEulerLagrange::Eulerian;
-        else if(Str == "ALE") 
-            return FrameworkEulerLagrange::ALE;
-        else
-            return FrameworkEulerLagrange::Eulerian;
-    }
     
     ///@}
     ///@name Access
@@ -220,6 +208,24 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    /**
+     * @brief This converts the framework string to an enum
+     * @param Str The string
+     * @return FrameworkEulerLagrange: The equivalent enum
+     */
+        
+    static inline FrameworkEulerLagrange ConvertFramework(const std::string& Str)
+    {
+        if(Str == "Lagrangian" || Str == "LAGRANGIAN") 
+            return FrameworkEulerLagrange::LAGRANGIAN;
+        else if(Str == "Eulerian" || Str == "EULERIAN") 
+            return FrameworkEulerLagrange::EULERIAN;
+        else if(Str == "ALE") 
+            return FrameworkEulerLagrange::ALE;
+        else
+            return FrameworkEulerLagrange::EULERIAN;
+    }
     
     /**
      * @brief It calculates the Step data interpolated to the node

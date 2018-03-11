@@ -118,7 +118,7 @@ MmgProcess<TDim>::MmgProcess(
     mFilename = new char [mStdStringFilename.length() + 1];
     std::strcpy (mFilename, mStdStringFilename.c_str());
     
-    mFramework = NodalValuesInterpolationProcess<TDim>::ConvertFramework(mThisParameters["framework"].GetString());
+    mFramework = ConvertFramework(mThisParameters["framework"].GetString());
     
     mpRefElement.clear();
     mpRefCondition.clear();
@@ -261,7 +261,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     for (typename Node<3>::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
     
-    if (mFramework == FrameworkEulerLagrange::Lagrangian){ // NOTE: The code is repeated due to performance reasons
+    if (mFramework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
         #pragma omp parallel for firstprivate(nodes_colors)
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
@@ -650,7 +650,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     ReorderAllIds();
     
     /* Unmoving the original mesh to be able to interpolate */
-    if (mFramework == FrameworkEulerLagrange::Lagrangian) {
+    if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
         NodesArrayType& old_nodes_array = r_old_model_part.Nodes();
         
         #pragma omp parallel for
@@ -674,7 +674,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     InitializeElementsAndConditions();
     
     /* We do some operations related with the Lagrangian framework */
-    if (mFramework == FrameworkEulerLagrange::Lagrangian) {
+    if (mFramework == FrameworkEulerLagrange::LAGRANGIAN) {
         // If we remesh during non linear iteration we just move to the previous displacement, to the last displacement otherwise
         const int step = mThisParameters["remesh_at_non_linear_iteration"].GetBool() ? 1 : 0;
         

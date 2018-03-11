@@ -168,22 +168,6 @@ Vector ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTensor(
 
     return metric;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>  
-Interpolation ComputeLevelSetSolMetricProcess<TDim>::ConvertInter(const std::string& str)
-{
-    if(str == "Constant") 
-        return Interpolation::Constant;
-    else if(str == "Linear") 
-        return Interpolation::Linear;
-    else if(str == "Exponential") 
-        return Interpolation::Exponential;
-    else
-        return Interpolation::Linear;
-}
     
 /***********************************************************************************/
 /***********************************************************************************/
@@ -200,11 +184,11 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateAnisotropicRatio(
     double ratio = 1.0; // NOTE: Isotropic mesh
     if (AnisotropicRatio < 1.0) {                           
         if (std::abs(Distance) <= BoundLayer) {
-            if (rInterpolation == Interpolation::Constant)
+            if (rInterpolation == Interpolation::CONSTANT)
                 ratio = AnisotropicRatio;
-            else if (rInterpolation == Interpolation::Linear)
+            else if (rInterpolation == Interpolation::LINEAR)
                 ratio = AnisotropicRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisotropicRatio);
-            else if (rInterpolation == Interpolation::Exponential) {
+            else if (rInterpolation == Interpolation::EXPONENTIAL) {
                 ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisotropicRatio + tolerance;
                 if (ratio > 1.0) ratio = 1.0;
             }
