@@ -26,7 +26,7 @@
 #include "shape_optimization_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "shape_optimization_application.h"
- 
+
 // ==============================================================================
 
 namespace Kratos
@@ -38,12 +38,12 @@ namespace Python
   using namespace boost::python;
 
 
-  
+
   BOOST_PYTHON_MODULE(KratosShapeOptimizationApplication)
   {
 
-	  class_<KratosShapeOptimizationApplication, 
-			  KratosShapeOptimizationApplication::Pointer, 
+	  class_<KratosShapeOptimizationApplication,
+			  KratosShapeOptimizationApplication::Pointer,
 			  bases<KratosApplication>, boost::noncopyable >("KratosShapeOptimizationApplication")
 			;
 
@@ -66,7 +66,7 @@ namespace Python
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(CONTROL_POINT_CHANGE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SHAPE_UPDATE);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(SHAPE_CHANGE);
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);    
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
 
     // For edge damping
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(DAMPING_FACTOR);
@@ -74,6 +74,7 @@ namespace Python
     // For Structure Sensitivity Analysis
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(STRAIN_ENERGY_SHAPE_GRADIENT);
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(MASS_SHAPE_GRADIENT);
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(EIGENFREQUENCY_SHAPE_GRADIENT);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(ACTIVE_NODE_INDEX);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(DKDXU);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(DKDXU_X);
@@ -83,10 +84,10 @@ namespace Python
     // For mapping
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAPPING_ID);
   }
-  
-  
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

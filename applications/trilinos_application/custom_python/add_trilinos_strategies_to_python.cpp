@@ -133,7 +133,7 @@ void AddStrategies()
     .def( "SetEchoLevel", &TrilinosBuilderAndSolverType::SetEchoLevel )
     .def( "GetEchoLevel", &TrilinosBuilderAndSolverType::GetEchoLevel )
     ;
-    
+
     typedef TrilinosResidualBasedEliminationBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosResidualBasedEliminationBuilderAndSolverType;
     class_< TrilinosResidualBasedEliminationBuilderAndSolverType, bases<TrilinosBuilderAndSolverType>, boost::noncopyable >
     ( "TrilinosEliminationBuilderAndSolver", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
@@ -143,7 +143,7 @@ void AddStrategies()
     class_< TrilinosBlockBuilderAndSolverType,bases< TrilinosBuilderAndSolverType >, boost::noncopyable >
     ( "TrilinosBlockBuilderAndSolver", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer > () )
     ;
-    
+
     class_< TrilinosBlockBuilderAndSolverPeriodic< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >,
     bases< TrilinosBlockBuilderAndSolverType >, boost::noncopyable >
     ( "TrilinosBlockBuilderAndSolverPeriodic", init<Epetra_MpiComm&, int, TrilinosLinearSolverType::Pointer, Kratos::Variable<int>& >() )
@@ -154,7 +154,7 @@ void AddStrategies()
     ( "TrilinosConvectionDiffusionStrategy", init < Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, bool, int, int > () )
     .def( "Solve", &TrilinosConvectionDiffusionStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
     ;
-    
+
     // Strategy base class
     class_< TrilinosBaseSolvingStrategyType, boost::noncopyable > ("TrilinosSolvingStrategy", init < ModelPart&, bool >())
     .def("Predict", &TrilinosBaseSolvingStrategyType::Predict)
@@ -190,25 +190,25 @@ void AddStrategies()
     class_< TrilinosLinearStrategy , bases< TrilinosBaseSolvingStrategyType >, boost::noncopyable >
     ("TrilinosLinearStrategy", init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosLinearSolverType::Pointer, TrilinosBuilderAndSolverType::Pointer, bool, bool, bool, bool >())
     ;
-            
+
     typedef ResidualBasedNewtonRaphsonStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosNewtonRaphsonStrategy;
     class_< TrilinosNewtonRaphsonStrategy , bases< TrilinosBaseSolvingStrategyType >, boost::noncopyable >
     ("TrilinosNewtonRaphsonStrategy", init< ModelPart&, TrilinosBaseSchemeType::Pointer, TrilinosLinearSolverType::Pointer, TrilinosConvergenceCriteria::Pointer, TrilinosBuilderAndSolverType::Pointer, int, bool, bool, bool >())
     ;
-            
+
     // Mesh Moving ********************************************************************************************
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
     using TrilinosLaplacianMeshMovingStrategyType = TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >;
     class_< TrilinosLaplacianMeshMovingStrategyType, bases<TrilinosBaseSolvingStrategyType>, boost::noncopyable >
-    ("TrilinosLaplacianMeshMovingStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, int, bool >() )
+    ("TrilinosLaplacianMeshMovingStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, bool, bool, int >() )
     .def("CalculateMeshVelocities", &TrilinosLaplacianMeshMovingStrategyType::CalculateMeshVelocities)
     ;
 
     using TrilinosStructuralMeshMovingStrategyType = TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >;
     class_< TrilinosStructuralMeshMovingStrategyType, bases< TrilinosBaseSolvingStrategyType >, boost::noncopyable >
-    ("TrilinosStructuralMeshMovingStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, bool >() )
+    ("TrilinosStructuralMeshMovingStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, bool, bool, int >() )
     .def("CalculateMeshVelocities", &TrilinosStructuralMeshMovingStrategyType::CalculateMeshVelocities)
     ;
 

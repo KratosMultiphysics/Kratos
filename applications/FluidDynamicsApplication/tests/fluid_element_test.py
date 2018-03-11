@@ -2,6 +2,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
 import KratosMultiphysics.KratosUnittest as UnitTest
+        
+import vms_monolithic_solver
 
 class WorkFolderScope:
     def __init__(self, work_folder):
@@ -43,8 +45,8 @@ class FluidElementTest(UnitTest.TestCase):
 
         with WorkFolderScope(self.work_folder):
             self.setUpModel()
-            self.setUpSolvers()
             self.setUpProblem()
+            self.setUpSolvers()
 
             self.runTest()
 
@@ -60,10 +62,7 @@ class FluidElementTest(UnitTest.TestCase):
     def setUpModel(self):
         self.fluid_model_part = ModelPart("Fluid")
 
-    def setUpSolvers(self):
-        import vms_monolithic_solver
         vms_monolithic_solver.AddVariables(self.fluid_model_part)
-        self.fluid_model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY)
 
         model_part_io = ModelPartIO(self.input_file)
         model_part_io.ReadModelPart(self.fluid_model_part)
@@ -78,6 +77,8 @@ class FluidElementTest(UnitTest.TestCase):
         }""")
 
         ReplaceElementsAndConditionsProcess(self.fluid_model_part, replace_settings).Execute()
+
+    def setUpSolvers(self):
 
         # Building custom fluid solver
         self.fluid_solver = vms_monolithic_solver.MonolithicSolver(self.fluid_model_part,self.domain_size)
@@ -124,14 +125,13 @@ class FluidElementTest(UnitTest.TestCase):
         ymin = 0.0
         ymax = 1.0
 
-        rho = 1.0
-        mu = 0.01
         ux = 1.0
+
+        for element in self.fluid_model_part.Elements:
+            element.Initialize()
 
         ## Set initial and boundary conditions
         for node in self.fluid_model_part.Nodes:
-            node.SetSolutionStepValue(DENSITY,rho)
-            node.SetSolutionStepValue(DYNAMIC_VISCOSITY,mu)
 
             if node.X == xmin or node.X == xmax or node.Y == ymin or node.Y == ymax:
                 node.Fix(VELOCITY_X)
@@ -197,8 +197,6 @@ class FluidElementTest(UnitTest.TestCase):
         label = self.fluid_model_part.ProcessInfo[TIME]
         gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
         gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(DENSITY,self.fluid_model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(VISCOSITY,self.fluid_model_part.Nodes,label,0)
 
         gid_io.FinalizeResults()
 

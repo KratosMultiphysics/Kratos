@@ -31,26 +31,33 @@ namespace Kratos
     //************************************************************************************
 
     Euler3DLaw::Euler3DLaw()
-        : ConstitutiveLaw() {}
+        : FluidConstitutiveLaw() {}
 
     //******************************COPY CONSTRUCTOR**************************************
     //************************************************************************************
 
     Euler3DLaw::Euler3DLaw(const Euler3DLaw& rOther)
-        : ConstitutiveLaw(rOther) {}
+        : FluidConstitutiveLaw(rOther) {}
 
     //********************************CLONE***********************************************
     //************************************************************************************
 
     ConstitutiveLaw::Pointer Euler3DLaw::Clone() const {
-        Euler3DLaw::Pointer p_clone(new Euler3DLaw(*this));
-        return p_clone;
+        return Kratos::make_shared<Euler3DLaw>(*this);
     }
 
     //*******************************DESTRUCTOR*******************************************
     //************************************************************************************
 
     Euler3DLaw::~Euler3DLaw() {}
+
+    ConstitutiveLaw::SizeType Euler3DLaw::WorkingSpaceDimension() {
+        return 3;
+    }
+
+    ConstitutiveLaw::SizeType Euler3DLaw::GetStrainSize() {
+        return 6;
+    }
 
     void  Euler3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
         // Get values to compute the constitutive law:
@@ -69,25 +76,25 @@ namespace Kratos
     }
 
 
-    //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
-    //************************************************************************************
-
-    void Euler3DLaw::GetLawFeatures(Features& rFeatures) {
-        //Set the type of law
-        rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
-        rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
-        rFeatures.mOptions.Set( ISOTROPIC );
-
-        //Set strain measure required by the consitutive law
-        rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-        rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-
-        //Set the strain size
-        rFeatures.mStrainSize = 6;
-
-        //Set the spacedimension
-        rFeatures.mSpaceDimension = 3;
-
+    int Euler3DLaw::Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo) {
+            
+        return 0;
     }
+
+    double Euler3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
+        return 0.0;
+    }
+
+    void Euler3DLaw::save(Serializer& rSerializer) const {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
+    }
+
+    void Euler3DLaw::load(Serializer& rSerializer) {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FluidConstitutiveLaw )
+    }
+
 
 } // Namespace Kratos

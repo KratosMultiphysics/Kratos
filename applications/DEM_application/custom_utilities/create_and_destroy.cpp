@@ -18,6 +18,7 @@ namespace Kratos {
 
     ParticleCreatorDestructor::ParticleCreatorDestructor(AnalyticWatcher::Pointer p_watcher) : mGreatestParticleId(0) {
         mScaleFactor = 1.0;
+        mMaxNodeId = 0;
         mHighPoint[0] = 10e18;
         mHighPoint[1] = 10e18;
         mHighPoint[2] = 10e18;
@@ -437,7 +438,7 @@ namespace Kratos {
                                                                         int aId,
                                                                         array_1d<double, 3>& reference_coordinates) {
         KRATOS_TRY
-        pnew_node = boost::make_shared< Node<3> >(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]);
+        pnew_node = Kratos::make_shared< Node<3> >(aId, reference_coordinates[0], reference_coordinates[1], reference_coordinates[2]);
         pnew_node->SetSolutionStepVariablesList(&r_modelpart.GetNodalSolutionStepVariablesList());
         pnew_node->SetBufferSize(r_modelpart.GetBufferSize());
 
@@ -749,7 +750,9 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             r_modelpart.Nodes().push_back(pnew_node);
             r_modelpart.Elements().push_back(p_particle);
         }
-
+        
+        if (r_Elem_Id > (int) (mMaxNodeId)) mMaxNodeId = (unsigned int) (r_Elem_Id);
+        
         return p_particle;
 
     }
@@ -784,8 +787,8 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
                 mpAnalyticWatcher->Record(spheric_p_particle, r_modelpart);
             }
         }
-
-
+        if (r_Elem_Id > (int) (mMaxNodeId)) mMaxNodeId = (unsigned int) (r_Elem_Id);
+        
         return spheric_p_particle;
 
     }
@@ -1072,7 +1075,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
             if (node.IsNot(TO_ERASE) && (*element_pointer_it)->IsNot(TO_ERASE)) {
             if (k != good_elems_counter) {
-                    *(rElements.ptr_begin() + good_elems_counter) = boost::move(*element_pointer_it);
+                    *(rElements.ptr_begin() + good_elems_counter) = std::move(*element_pointer_it);
                 }
                 good_elems_counter++;
             }
@@ -1087,7 +1090,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
             if ((*node_pointer_it)->IsNot(TO_ERASE)) {
             if (k != good_nodes_counter) {
-                    *(rNodes.ptr_begin() + good_nodes_counter) = boost::move(*node_pointer_it);
+                    *(rNodes.ptr_begin() + good_nodes_counter) = std::move(*node_pointer_it);
                 }
                 good_nodes_counter++;
             }
@@ -1122,7 +1125,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
 
             if ((*element_pointer_it)->IsNot(TO_ERASE)) {
             if (k != good_elems_counter) {
-                    *(rElements.ptr_begin() + good_elems_counter) = boost::move(*element_pointer_it);
+                    *(rElements.ptr_begin() + good_elems_counter) = std::move(*element_pointer_it);
                 }
                 good_elems_counter++;
             }
@@ -1143,7 +1146,7 @@ SphericParticle* ParticleCreatorDestructor::SphereCreatorForBreakableClusters(Mo
             ModelPart::NodesContainerType::ptr_iterator node_pointer_it = rNodes.ptr_begin() + k;
             if ((*node_pointer_it)->IsNot(TO_ERASE)) {
             if(k != good_nodes_counter){
-                    *(rNodes.ptr_begin() + good_nodes_counter) = boost::move(*node_pointer_it);
+                    *(rNodes.ptr_begin() + good_nodes_counter) = std::move(*node_pointer_it);
                 }
                 good_nodes_counter++;
             }

@@ -31,26 +31,28 @@ void FractionalStep<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY;
 
-    switch ( rCurrentProcessInfo[FRACTIONAL_STEP] )
+    const ProcessInfo& r_process_info = rCurrentProcessInfo; // Using a const reference for thread safety
+
+    switch ( r_process_info[FRACTIONAL_STEP] )
     {
     case 1:
     {
-        this->CalculateLocalFractionalVelocitySystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        this->CalculateLocalFractionalVelocitySystem(rLeftHandSideMatrix,rRightHandSideVector,r_process_info);
         break;
     }
     case 5:
     {
-        this->CalculateLocalPressureSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        this->CalculateLocalPressureSystem(rLeftHandSideMatrix,rRightHandSideVector,r_process_info);
         break;
     }
     case 6:
     {
-        this->CalculateEndOfStepSystem(rLeftHandSideMatrix,rRightHandSideVector,rCurrentProcessInfo);
+        this->CalculateEndOfStepSystem(rLeftHandSideMatrix,rRightHandSideVector,r_process_info);
         break;
     }
     default:
     {
-        KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",rCurrentProcessInfo[FRACTIONAL_STEP]);
+        KRATOS_THROW_ERROR(std::logic_error,"Unexpected value for FRACTIONAL_STEP index: ",r_process_info[FRACTIONAL_STEP]);
     }
     }
 
@@ -550,7 +552,7 @@ void FractionalStep<TDim>::GetValueOnIntegrationPoints(const Variable<double>& r
 template< unsigned int TDim >
 void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rLeftHandSideMatrix,
                                                                   VectorType& rRightHandSideVector,
-                                                                  ProcessInfo& rCurrentProcessInfo)
+                                                                  const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -649,7 +651,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
 template< unsigned int TDim >
 void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
                                                         VectorType& rRightHandSideVector,
-                                                        ProcessInfo& rCurrentProcessInfo)
+                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -760,7 +762,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 template< unsigned int TDim >
 void FractionalStep<TDim>::CalculateEndOfStepSystem(MatrixType& rLeftHandSideMatrix,
                                                     VectorType& rRightHandSideVector,
-                                                    ProcessInfo& rCurrentProcessInfo)
+                                                    const ProcessInfo& rCurrentProcessInfo)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();

@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined(KRATOS_SERIALIZER_H_INCLUDED )
@@ -19,6 +19,7 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <unordered_map>
 #include <set>
 #include <sstream>
 #include <fstream>
@@ -36,6 +37,11 @@
     {                                                                \
         load_trace_point(rTag);                                      \
             read(rValue);                                             \
+    }                                \
+    void load(std::string const & rTag, type const& rValue)                \
+    {                                                                \
+        load_trace_point(rTag);                                      \
+            read(const_cast<type&>(rValue));                                             \
     }                                \
                                      \
     void load_base(std::string const & rTag, type& rValue)           \
@@ -106,9 +112,9 @@ template <class TDataType> class Variable;
  *
  * @brief The serialization consists in storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media.
  *
- * @details The serialization consists in storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media. 
- * The idea of serialization is based on saving all object's data consecutively in the file or buffer and then load it in the same order. 
- * In Kratos a serialization mechanism is used for creating the restart file. So for storing an object into restart file and retrieve it afterward on must add the necessary component used by serialization. 
+ * @details The serialization consists in storing the state of an object into a storage format like data file or memory buffer and also retrieving the object from such a media.
+ * The idea of serialization is based on saving all object's data consecutively in the file or buffer and then load it in the same order.
+ * In Kratos a serialization mechanism is used for creating the restart file. So for storing an object into restart file and retrieve it afterward on must add the necessary component used by serialization.
  *
  * @author Pooyan Dadvand
  */
@@ -129,8 +135,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Serializer);
 
     typedef std::size_t SizeType;
-
-    typedef bounded_matrix<double,3,3>  Matrix3;
 
     typedef void* (*ObjectFactoryType)();
 
@@ -162,8 +166,8 @@ public:
             p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::out);
         }
         mpBuffer = p_file;
-        if(!(*mpBuffer))
-            KRATOS_THROW_ERROR(std::invalid_argument, "Error opening input file : ", std::string(Filename+".rest"));
+        KRATOS_ERROR_IF_NOT(*mpBuffer) << "Error opening input file : "
+                                       << std::string(Filename+".rest") << std::endl;
     }
 
     /// Destructor.
@@ -228,11 +232,12 @@ public:
                     read(object_name);
                     typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
 
-                    if(i_prototype == msRegisteredObjects.end())
-                        KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with name : ", object_name)
+                    KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
+                        << "There is no object registered in Kratos with name : "
+                        << object_name << std::endl;
 
-                        if(!pValue)
-                            pValue = Kratos::shared_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+                    if(!pValue)
+                        pValue = Kratos::shared_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
 
                     load(rTag, *pValue);
 
@@ -270,11 +275,12 @@ public:
                     read(object_name);
                     typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
 
-                    if(i_prototype == msRegisteredObjects.end())
-                        KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with name : ", object_name)
+                    KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
+                        << "There is no object registered in Kratos with name : "
+                        << object_name << std::endl;
 
-                        if(!pValue)
-                            pValue = static_cast<TDataType*>((i_prototype->second)());
+                    if(!pValue)
+                        pValue = static_cast<TDataType*>((i_prototype->second)());
 
                     load(rTag, *pValue);
 
@@ -292,7 +298,7 @@ public:
     void load(std::string const & rTag, Kratos::weak_ptr<TDataType>& pValue)
     {
         // This is for testing. I have to change it. Pooyan.
-        //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
 //    read(*pValue);
     }
 
@@ -300,7 +306,7 @@ public:
     void load(std::string const & rTag, WeakPointerVector<TDataType>& pValue)
     {
         // This is for testing. I have to change it. Pooyan.
-        //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
 //    read(*pValue);
     }
 
@@ -313,6 +319,14 @@ public:
 
         pVariable = static_cast<const Variable<TDataType>*>(GetVariableData(name));
     }
+
+	template<class TDataType, std::size_t TDataSize>
+	void load(std::string const & rTag, std::array<TDataType, TDataSize>& rObject)
+	{
+		load_trace_point(rTag);
+		for (SizeType i = 0; i < TDataSize; i++)
+			load("E", rObject[i]);
+	}
 
     template<class TDataType>
     void load(std::string const & rTag, std::vector<TDataType>& rObject)
@@ -344,6 +358,20 @@ public:
 //    read(rObject);
     }
 
+
+    template<class TKeyType, class TDataType>
+    void load(std::string const & rTag, std::map<TKeyType, TDataType>& rObject)
+    {
+        load_map(rTag, rObject);
+    }
+
+    template<class TKeyType, class TDataType>
+    void load(std::string const & rTag, std::unordered_map<TKeyType, TDataType>& rObject)
+    {
+        load_map(rTag, rObject);
+    }
+
+
     template<class TDataType, std::size_t TDimension>
     void load(std::string const & rTag, array_1d<TDataType, TDimension>& rObject)
     {
@@ -351,6 +379,35 @@ public:
 	//rObject = array_1d<TDataType, TDimension>(); //it generates a warnning --> commented 23/09/2015 <--
         for(SizeType i = 0 ; i < TDimension ; i++)
             load("E", rObject[i]);
+//    read(rObject);
+    }
+
+    template<class TFirstType, class TSecondType>
+    void load(std::string const & rTag, std::pair<TFirstType, TSecondType>& rObject)
+    {
+        load_trace_point(rTag);
+        load("First", rObject.first);
+        load("Second", rObject.second);
+    }
+
+    template<class TDataType, std::size_t TDimension>
+    void load(std::string const & rTag, bounded_vector<TDataType, TDimension>& rObject)
+    {
+        load_trace_point(rTag);
+
+        for(SizeType i = 0 ; i < TDimension ; ++i)
+            load("E", rObject[i]);
+//    read(rObject);
+    }
+
+    template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
+    void load(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2>& rObject)
+    {
+        load_trace_point(rTag);
+
+        for(SizeType i = 0 ; i < TDimension1 ; ++i)
+            for(SizeType j = 0 ; j < TDimension2 ; ++j)
+                load("E", rObject(i,j));
 //    read(rObject);
     }
 
@@ -362,7 +419,6 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::string)
     KRATOS_SERIALIZATION_DIRECT_LOAD(Matrix)
-    KRATOS_SERIALIZATION_DIRECT_LOAD(Matrix3)
     KRATOS_SERIALIZATION_DIRECT_LOAD(long long)
 //#ifdef  _WIN32 // work around for windows int64_t error
 //    KRATOS_SERIALIZATION_DIRECT_LOAD(__int64)
@@ -371,7 +427,13 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
 
-
+	template<class TDataType, std::size_t TDataSize>
+	void save(std::string const & rTag, std::array<TDataType, TDataSize> const& rObject)
+	{
+		save_trace_point(rTag);
+		for (SizeType i = 0; i < TDataSize; i++)
+			save("E", rObject[i]);
+	}
 
     template<class TDataType>
     void save(std::string const & rTag, std::vector<TDataType> const& rObject)
@@ -408,6 +470,20 @@ public:
 
 //    write(rObject);
     }
+
+
+    template<class TKeyType, class TDataType>
+    void save(std::string const & rTag, std::map<TKeyType, TDataType> const& rObject)
+    {
+        save_map(rTag, rObject);
+    }
+
+    template<class TKeyType, class TDataType>
+    void save(std::string const & rTag, std::unordered_map<TKeyType, TDataType> const& rObject)
+    {
+        save_map(rTag, rObject);
+    }
+
 
     template<class TDataType>
     void save(std::string const & rTag, TDataType const& rObject)
@@ -489,7 +565,7 @@ public:
     void save(std::string const & rTag, Kratos::weak_ptr<TDataType> pValue)
     {
         // This is for testing. I have to implement it. Pooyan.
-        //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
 //    write(*pValue);
     }
 
@@ -497,7 +573,7 @@ public:
     void save(std::string const & rTag, Kratos::WeakPointerVector<TDataType> pValue)
     {
         // This is for testing. I have to implement it. Pooyan.
-        //KRATOS_THROW_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+        //KRATOS_ERROR << "The serialization for weak_ptrs is not implemented yet" << std::endl;
 //    write(*pValue);
     }
 
@@ -516,6 +592,36 @@ public:
         write(std::string(pValue));
     }
 
+
+    template<class TFirstType, class TSecondType>
+    void save(std::string const & rTag, std::pair<TFirstType, TSecondType> rObject)
+    {
+        save_trace_point(rTag);
+        save("First", rObject.first);
+        save("Second", rObject.second);
+    }
+
+    template<class TDataType, std::size_t TDimension>
+    void save(std::string const & rTag, bounded_vector<TDataType, TDimension> const& rObject)
+    {
+        save_trace_point(rTag);
+
+        for(SizeType i = 0 ; i < TDimension ; ++i)
+            save("E", rObject[i]);
+//    write(rObject);
+    }
+
+    template<class TDataType, std::size_t TDimension1, std::size_t TDimension2>
+    void save(std::string const & rTag, bounded_matrix<TDataType, TDimension1, TDimension2> const& rObject)
+    {
+        save_trace_point(rTag);
+
+        for(SizeType i = 0 ; i < TDimension1 ; ++i)
+            for(SizeType j = 0 ; j < TDimension2 ; ++j)
+                save("E", rObject(i,j));
+//    write(rObject);
+    }
+
     KRATOS_SERIALIZATION_DIRECT_SAVE(bool)
     KRATOS_SERIALIZATION_DIRECT_SAVE(int)
     KRATOS_SERIALIZATION_DIRECT_SAVE(long)
@@ -523,9 +629,7 @@ public:
     KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned long)
     KRATOS_SERIALIZATION_DIRECT_SAVE(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::string)
-    //KRATOS_SERIALIZATION_DIRECT_SAVE(Vector)
     KRATOS_SERIALIZATION_DIRECT_SAVE(Matrix)
-    KRATOS_SERIALIZATION_DIRECT_SAVE(Matrix3)
     KRATOS_SERIALIZATION_DIRECT_SAVE(long long)
 //#ifdef  _WIN32 // work around for windows int64_t error
 //    KRATOS_SERIALIZATION_DIRECT_SAVE(__int64)
@@ -615,7 +719,7 @@ public:
                 buffer << " the trace tag is not the expected one:" << std::endl;
                 buffer << "    Tag found : " << read_tag << std::endl;
                 buffer << "    Tag given : " << rTag << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+                KRATOS_ERROR << buffer.str() << std::endl;
             }
         }
         else if(mTrace == SERIALIZER_TRACE_ALL) // also reporting matched tags.
@@ -635,7 +739,7 @@ public:
                 buffer << " the trace tag is not the expected one:" << std::endl;
                 buffer << "    Tag found : " << read_tag << std::endl;
                 buffer << "    Tag given : " << rTag << std::endl;
-                KRATOS_THROW_ERROR(std::invalid_argument, buffer.str(), "");
+                KRATOS_ERROR << buffer.str() << std::endl;
             }
         }
         return false;
@@ -772,9 +876,10 @@ private:
                 typename RegisteredObjectsNameContainerType::iterator i_name = msRegisteredObjectsName.find(typeid (*pValue).name());
 
                 if (i_name == msRegisteredObjectsName.end())
-                    KRATOS_THROW_ERROR(std::runtime_error, "There is no object registered in Kratos with type id : ", typeid (*pValue).name())
-                    else
-                        write(i_name->second);
+                    KRATOS_ERROR << "There is no object registered in Kratos with type id : "
+                                 << typeid (*pValue).name() << std::endl;
+                else
+                    write(i_name->second);
 
 
             }
@@ -786,6 +891,36 @@ private:
     }
 
     VariableData* GetVariableData(std::string const & VariableName);
+
+    template<class TMapType>
+    void load_map(std::string const & rTag, TMapType& rObject)
+    {
+        load_trace_point(rTag);
+        SizeType size = rObject.size();
+
+        load("size", size);
+
+        for(SizeType i = 0 ; i < size ; i++){
+            typename TMapType::value_type temp;
+            load("E", temp);
+            rObject.insert(temp);
+        }
+    }
+
+
+    template<class TMapType>
+    void save_map(std::string const & rTag, TMapType const& rObject)
+    {
+        save_trace_point(rTag);
+        SizeType size = rObject.size();
+
+        save("size", size);
+
+        for(auto& i : rObject)
+            save("E", i);
+    }
+
+
 
 //        void read(bool& rData)
 //        {

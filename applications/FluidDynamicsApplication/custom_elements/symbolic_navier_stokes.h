@@ -171,8 +171,6 @@ public:
                             GeometryType::Pointer pGeom,
                             Properties::Pointer pProperties) const override;
 
-    void Initialize() override;
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -197,8 +195,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /// Constitutive law pointer
-    ConstitutiveLaw::Pointer mpConstitutiveLaw = nullptr;
 
     ///@}
     ///@name Protected Operators
@@ -235,10 +231,6 @@ protected:
     void ComputeGaussPointRHSContribution(
         TElementData& rData,
         VectorType& rRHS);
-
-    void ComputeConstitutiveResponse(TElementData& rData);
-
-    void ComputeStrain(TElementData& rData);
 
     ///@}
     ///@name Protected  Access

@@ -85,7 +85,7 @@ public:
     typedef TSparseSpace SparseSpaceType;
 
     typedef typename TSparseSpace::VectorPointerType SparseVectorPointerType;
-    
+
     typedef typename TSparseSpace::MatrixPointerType SparseMatrixPointerType;
 
     typedef typename TSparseSpace::MatrixType SparseMatrixType;
@@ -120,12 +120,12 @@ public:
 
         // default rebuild level (build at each solution step)
         this->SetRebuildLevel(1);
-        
+
         SparseMatrixType* AuxMassMatrix = new SparseMatrixType;
         mpMassMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxMassMatrix);
         SparseMatrixType* AuxStiffnessMatrix = new SparseMatrixType;
         mpStiffnessMatrix = Kratos::shared_ptr<SparseMatrixType>(AuxStiffnessMatrix);
-        
+
         KRATOS_CATCH("")
     }
 
@@ -314,12 +314,14 @@ public:
         // Generate lhs matrix. the factor 1 is chosen to preserve
         // SPD property
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 1;
+        TSparseSpace::SetToZero(rMassMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rMassMatrix,b);
         this->ApplyDirichletConditions(rMassMatrix, 1.0);
 
         // Generate rhs matrix. the factor -1 is chosen to make
         // Eigenvalues corresponding to fixed dofs negative
         rModelPart.GetProcessInfo()[BUILD_LEVEL] = 2;
+        TSparseSpace::SetToZero(rStiffnessMatrix);
         this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStiffnessMatrix,b);
         ApplyDirichletConditions(rStiffnessMatrix,-1.0);
 
@@ -368,7 +370,7 @@ public:
         {
             this->pGetStiffnessMatrix() = nullptr;
         }
-        
+
         // Re-setting internal flag to ensure that the dof sets are recalculated
         pBuilderAndSolver->SetDofSetIsInitializedFlag(false);
 
@@ -382,7 +384,7 @@ public:
     }
 
     /**
-     * Performs all the required operations that should be done (for each step) 
+     * Performs all the required operations that should be done (for each step)
      * before solving the solution step.
      * A member variable should be used as a flag to make sure this function is called only once per step.
      */
@@ -435,7 +437,7 @@ public:
             SparseMatrixPointerType& pMassMatrix = this->pGetMassMatrix();
 
             // Mass matrix
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
+            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme,
                     pMassMatrix,
                     pDx,
                     pb,
@@ -444,7 +446,7 @@ public:
                     rModelPart.GetProcessInfo());
 
             // Stiffness matrix
-            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, 
+            pBuilderAndSolver->ResizeAndInitializeVectors(pScheme,
                     pStiffnessMatrix,
                     pDx,
                     pb,
@@ -464,7 +466,7 @@ public:
             SparseSpaceType::Resize(rDx,SparseSpaceType::Size1(rStiffnessMatrix));
             SparseSpaceType::Set(rDx,0.0);
         }
-        
+
         if (BaseType::GetEchoLevel() > 0 && rank == 0)
         {
             std::cout << "System_construction_time : " << system_construction_time.elapsed() << std::endl;
@@ -596,7 +598,7 @@ private:
      *  with zeros on the off-diagonal and the diagonal is scaled by factor.
      */
     void ApplyDirichletConditions(
-        SparseMatrixType& rA, 
+        SparseMatrixType& rA,
         double Factor
         )
     {

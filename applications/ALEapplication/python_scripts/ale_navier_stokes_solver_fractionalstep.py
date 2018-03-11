@@ -1,10 +1,19 @@
-from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("ALEApplication", "FluidDynamicsApplication","ExternalSolversApplication")
+
+# Import applications
 import KratosMultiphysics.ALEApplication as ALEApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-KratosMultiphysics.CheckForPreviousImport()
+
+# Other imports
 import navier_stokes_solver_fractionalstep
+#import mesh_solver_base
 
 
 def CreateSolver(model_part, custom_settings):
@@ -19,12 +28,14 @@ class ALENavierStokesSolverFractionalStep(navier_stokes_solver_fractionalstep.Na
         navier_stokes_settings["solver_type"].SetString("FractionalStep")
         super(ALENavierStokesSolverFractionalStep, self).__init__(model_part, navier_stokes_settings)
         # create ale solver
-        ale_solver_type = custom_settings["ale_settings"]["solver_type"].GetString()
-        valid_ale_solver_types = ["mesh_solver_structural_similarity"]
-        if ale_solver_type not in valid_ale_solver_types:
-            raise Exception("Invalid ALE solver_type: " + ale_solver_type)
-        ale_solver_module = __import__(ale_solver_type)
-        self.ale_solver = ale_solver_module.CreateSolver(self.main_model_part, custom_settings["ale_settings"])
+        custom_settings.AddEmptyValue("problem_data")
+        custom_settings["problem_data"].AddEmptyValue("parallel_type")
+        custom_settings["problem_data"]["parallel_type"].SetString("OpenMP")
+        custom_settings.AddValue("solver_settings", custom_settings["ale_settings"])
+        custom_settings.RemoveValue("ale_settings")
+
+        import python_solvers_wrapper_mesh_motion
+        self.ale_solver = python_solvers_wrapper_mesh_motion.CreateSolver(self.main_model_part, custom_settings)
         print("::[ALENavierStokesSolverFractionalStep]:: Construction finished")
 
     def AddVariables(self):

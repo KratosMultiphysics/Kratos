@@ -101,7 +101,7 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef boost::shared_ptr < TSystemVectorType > SystemVectorPointerType;
+    typedef Kratos::shared_ptr < TSystemVectorType > SystemVectorPointerType;
 
     //typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
     //typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
@@ -310,7 +310,7 @@ protected:
         if (!this->DofImporterIsInitialized())
             this->InitializeDofImporter(rDofSet,Dx);
 
-        boost::shared_ptr<Epetra_Import> pImporter = this->pGetImporter();
+        Kratos::shared_ptr<Epetra_Import> pImporter = this->pGetImporter();
 
         int system_size = TSparseSpace::Size(Dx);
 

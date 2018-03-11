@@ -413,8 +413,6 @@ class ExplicitStrategy(object):
             class_name = 'SymplecticEulerScheme'
         elif name == 'Taylor_Scheme':
             class_name = 'TaylorScheme'
-        elif name == 'Newmark_Beta_Method':
-            class_name = 'NewmarkBetaScheme'
         elif name == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
 
@@ -430,8 +428,6 @@ class ExplicitStrategy(object):
                 class_name = 'SymplecticEulerScheme'
             elif name_translational == 'Taylor_Scheme':
                 class_name = 'TaylorScheme'
-            elif name_translational == 'Newmark_Beta_Method':
-                class_name = 'NewmarkBetaScheme'
             elif name_translational == 'Velocity_Verlet':
                 class_name = 'VelocityVerletScheme'
         elif name_rotational == 'Runge_Kutta':
@@ -442,16 +438,10 @@ class ExplicitStrategy(object):
         return class_name
 
     def GetTranslationalSchemeInstance(self, class_name):
-         if not class_name == 'NewmarkBetaScheme':
              return globals().get(class_name)()
-         else:
-             return globals().get(class_name)(0.5,0.25)
     
     def GetRotationalSchemeInstance(self, class_name):
-         if not class_name == 'NewmarkBetaScheme':
              return globals().get(class_name)()
-         else:
-             return globals().get(class_name)(0.5,0.25)
 
     def GetTranslationalScheme(self, name):
         class_name = self.TranslationalIntegrationSchemeTranslator(name)

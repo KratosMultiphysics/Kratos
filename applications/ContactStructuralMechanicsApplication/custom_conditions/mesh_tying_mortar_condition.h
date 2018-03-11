@@ -25,7 +25,7 @@
 #include "utilities/math_utils.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 
-namespace Kratos 
+namespace Kratos
 {
 
 ///@name Kratos Globals
@@ -34,48 +34,53 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
     typedef Point                                                PointType;
     typedef Node<3>                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
-    
+
     // Type definition for integration methods
     typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
-    
-    // Type definition of the components of an array_1d 
+
+    // Type definition of the components of an array_1d
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
     enum TensorValue {ScalarValue = 1, Vector2DValue = 2, Vector2DPScalarValue = 3, Vector3DValue = 3, Vector3DPScalarValue = 4 };
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** \brief MeshTyingMortarCondition
- * This is a mesh tying condition which employes the mortar method with dual lagrange multiplier 
+
+/**
+ * @class MeshTyingMortarCondition
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief MeshTyingMortarCondition
+ * @details This is a mesh tying condition which employes the mortar method with dual lagrange multiplier
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
+ * @author Vicente Mataix Ferrandiz
  */
 
 template< const unsigned int TDim, const unsigned int TNumNodesElem, TensorValue TTensor>
-class MeshTyingMortarCondition: public PairedCondition 
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) MeshTyingMortarCondition
+    : public PairedCondition
 {
 public:
     ///@name Type Definitions
     ///@{
-        
+
     /// Counted pointer of MeshTyingMortarCondition
     KRATOS_CLASS_POINTER_DEFINITION( MeshTyingMortarCondition );
     typedef PairedCondition                                                              BaseType;
-    
+
     typedef typename BaseType::VectorType                                              VectorType;
 
     typedef typename BaseType::MatrixType                                              MatrixType;
@@ -87,27 +92,27 @@ public:
     typedef typename BaseType::NodesArrayType                                      NodesArrayType;
 
     typedef typename BaseType::PropertiesType::Pointer                      PropertiesPointerType;
-    
+
     typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
-    
+
     typedef Line2D2<Point>                                                               LineType;
-    
+
     typedef Triangle3D3<Point>                                                       TriangleType;
-    
+
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
 
     static constexpr unsigned int NumNodes = (TNumNodesElem == 3 || (TDim == 2 && TNumNodesElem == 4)) ? 2 : TNumNodesElem == 4 ? 3 : 4;
 
     static constexpr unsigned int MatrixSize = TTensor * (3 * NumNodes);
-    
+
     typedef MortarKinematicVariables<NumNodes>                                   GeneralVariables;
-    
+
     typedef DualLagrangeMultiplierOperators<NumNodes>                                      AeData;
-    
+
     typedef MortarOperator<NumNodes>                                      MortarConditionMatrices;
-    
+
     typedef ExactMortarIntegrationUtility<TDim, NumNodes, false>               IntegrationUtility;
-         
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -117,29 +122,29 @@ public:
         : PairedCondition(),
           mIntegrationOrder(2)
     {}
-    
+
     // Constructor 1
     MeshTyingMortarCondition(
-        IndexType NewId, 
+        IndexType NewId,
         GeometryType::Pointer pGeometry
         ) :PairedCondition(NewId, pGeometry),
            mIntegrationOrder(2)
     {}
-    
+
     // Constructor 2
     MeshTyingMortarCondition(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         ) :PairedCondition( NewId, pGeometry, pProperties ),
            mIntegrationOrder(2)
     {}
-    
+
     // Constructor 3
     MeshTyingMortarCondition(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
-        PropertiesType::Pointer pProperties, 
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties,
         GeometryType::Pointer pMasterGeometry
         )
         :PairedCondition( NewId, pGeometry, pProperties, pMasterGeometry),
@@ -167,7 +172,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
    /**
     * Called at the beginning of each solution step
     */
@@ -175,40 +180,44 @@ public:
 
    /**
     * Called at the beginning of each solution step
+    * @param rCurrentProcessInfo The current process info instance
     */
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
    /**
     * Called at the beginning of each iteration
+    * @param rCurrentProcessInfo The current process info instance
     */
     void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Called at the ending of each solution step
+    * @param rCurrentProcessInfo The current process info instance
     */
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
-    
+
    /**
     * Called at the end of each iteration
+    * @param rCurrentProcessInfo The current process info instance
     */
     void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * Initialize Mass Matrix
     */
-    void CalculateMassMatrix( 
-        MatrixType& rMassMatrix, 
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
     * Initialize Damping Matrix
     */
-    void CalculateDampingMatrix( 
+    void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * Creates a new element pointer from an arry of nodes
      * @param NewId the ID of the new element
@@ -216,12 +225,12 @@ public:
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Create( 
+    Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& rThisNodes,
-        PropertiesType::Pointer pProperties 
+        PropertiesType::Pointer pProperties
         ) const override;
-    
+
     /**
      * Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
@@ -234,7 +243,7 @@ public:
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-        
+
     /**
      * Creates a new element pointer from an existing geometry
      * @param NewId the ID of the new element
@@ -249,7 +258,7 @@ public:
         PropertiesType::Pointer pProperties,
         GeometryType::Pointer pMasterGeom
         ) const override;
-        
+
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
@@ -259,43 +268,43 @@ public:
      * @param rResult The result vector with the ID's of the DOF
      * @param rCurrentProcessInfo the current process info instance
      */
-    void EquationIdVector( 
+    void EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
      * Sets on ConditionalDofList the degrees of freedom of the considered element geometry
-     * @param rConditionalDofList
+     * @param rConditionalDofList The list of DOFs
      * @param rCurrentProcessInfo the current process info instance
      */
-    void GetDofList( 
+    void GetDofList(
         DofsVectorType& rConditionalDofList,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
      * Get on rVariable a double Value
      */
-    void GetValueOnIntegrationPoints( 
+    void GetValueOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo 
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * Get on rVariable a array_1d Value
      */
-    void GetValueOnIntegrationPoints( 
+    void GetValueOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > >& rValues,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * Get on rVariable a Vector Value
      */
-    void GetValueOnIntegrationPoints( 
+    void GetValueOnIntegrationPoints(
         const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -304,27 +313,27 @@ public:
     /**
      * Calculate a double Variable
      */
-    void CalculateOnIntegrationPoints( 
+    void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
-        const ProcessInfo& rCurrentProcessInfo 
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * Calculate a array_1d Variable
      */
-    void CalculateOnIntegrationPoints( 
+    void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         std::vector< array_1d<double, 3 > >& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * Calculate a Vector Variable
      */
-    void CalculateOnIntegrationPoints( 
-        const Variable<Vector>& rVariable, 
-        std::vector<Vector>& rOutput, 
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -336,7 +345,7 @@ public:
      * @param rCurrentProcessInfo The current process information
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
-        
+
     ///@}
     ///@name Access
     ///@{
@@ -358,51 +367,51 @@ public:
 protected:
     ///@name Protected static Member Variables
     ///@{
-    
-    /** 
+
+    /**
      * This data will be used to compute teh derivatives
-     */ 
+     */
     struct DofData
     {
     public:
-        
+
         // Auxiliar types
         typedef bounded_matrix<double, NumNodes, TTensor>  Type1;
         typedef bounded_matrix<double, NumNodes, NumNodes> Type2;
-        
+
         // The DoF
         Type1 LagrangeMultipliers, u1, u2;
-        
+
         // Ae
         Type2 Ae;
-        
+
         // Default destructor
         ~DofData()= default;
-        
-        /** 
+
+        /**
          * Updating the Slave pair
          * @param GeometryInput The pointer of the current master
          */
         void Initialize(const GeometryType& GeometryInput)
-        {            
+        {
             // The current Lagrange Multipliers
             u1 = ZeroMatrix(NumNodes, TTensor);
             u2 = ZeroMatrix(NumNodes, TTensor);
             LagrangeMultipliers = ZeroMatrix(NumNodes, TTensor);
         }
-        
+
         // Initialize the Ae components
         void InitializeAeComponents()
         {
             Ae = ZeroMatrix(NumNodes, NumNodes);
         }
-        
-        /** 
+
+        /**
          * Updating the Master pair
          * @param GeometryInput The pointer of the current master
          */
         void UpdateMasterPair(const GeometryType& GeometryInput)
-        { 
+        {
             /* DoF */
             if (TTensor == 1)
             {
@@ -426,17 +435,17 @@ protected:
         }
 
     };
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
 
     Flags  mCalculationFlags;                              // Calculation flags
-    
+
     MortarConditionMatrices mrThisMortarConditionMatrices; // The mortar operators
-   
+
     unsigned int mIntegrationOrder;                        // The integration order to consider
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -457,10 +466,10 @@ protected:
      * @param rRightHandSideVector the condition right hand side
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLocalSystem( 
+    void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -471,7 +480,7 @@ protected:
      */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -480,40 +489,40 @@ protected:
      * @param rLeftHandSideMatrix the condition left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
-    void CalculateLeftHandSide( 
+    void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
-        
+
     /**
      * Calculates the condition contribution
      */
-    void CalculateConditionSystem( 
+    void CalculateConditionSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& CurrentProcessInfo 
+        const ProcessInfo& CurrentProcessInfo
         );
-    
+
     /**
      * Initialize Contact data
      */
     void InitializeDofData(DofData& rDofData);
-    
+
     /**
      * Calculate Ae matrix
      */
-    bool CalculateAe( 
+    bool CalculateAe(
         const array_1d<double, 3>& NormalMaster,
         DofData& rDofData,
         GeneralVariables& rVariables,
         ConditionArrayListType& ConditionsPointsSlave,
         IntegrationMethod ThisIntegrationMethod
         );
-    
+
     /**
      * Calculate condition kinematics
      */
-    void CalculateKinematics( 
+    void CalculateKinematics(
         GeneralVariables& rVariables,
         const DofData& rDofData,
         const array_1d<double, 3>& NormalMaster,
@@ -530,12 +539,12 @@ protected:
     /*
      * Calculates the local contibution of the LHS
      */
-    
+
     bounded_matrix<double, MatrixSize, MatrixSize> CalculateLocalLHS(
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DofData& rDofData
         );
-    
+
     /*
      * Calculates the local contibution of the LHS
      */
@@ -543,7 +552,7 @@ protected:
         const MortarConditionMatrices& rMortarConditionMatrices,
         const DofData& rDofData
         );
-    
+
     /***********************************************************************************/
     /**************** AUXILLIARY METHODS FOR CONDITION LHS CONTRIBUTION ****************/
     /***********************************************************************************/
@@ -556,15 +565,15 @@ protected:
         const array_1d<double, 3>& NormalMaster,
         const PointType& LocalPoint
         );
-    
+
     /******************************************************************/
     /********** AUXILLIARY METHODS FOR GENERAL CALCULATIONS ***********/
     /******************************************************************/
-    
+
     /**
      * It returns theintegration method considered
      */
-    
+
     IntegrationMethod GetIntegrationMethod() override
     {
         // Setting the auxiliar integration points
@@ -577,7 +586,7 @@ protected:
         default: return GeometryData::GI_GAUSS_2;
         }
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -598,7 +607,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -619,18 +628,18 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    // Serialization 
-    
+    // Serialization
+
     friend class Serializer;
-    
+
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
     }
 
     ///@}
@@ -650,4 +659,4 @@ private:
 
 }// namespace Kratos.
 
-#endif // KRATOS_MESH_TYING_MORTAR_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_MESH_TYING_MORTAR_CONDITION_H_INCLUDED  defined

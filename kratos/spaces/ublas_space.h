@@ -279,7 +279,7 @@ public:
     
     /**
      * This method computes the Jacobi norm
-     * @param rA: The matrix to compute the Jacobi norm
+     * @param rA The matrix to compute the Jacobi norm
      * @return aux_sum: The Jacobi norm
      */
     static TDataType JacobiNorm(MatrixType const& rA)

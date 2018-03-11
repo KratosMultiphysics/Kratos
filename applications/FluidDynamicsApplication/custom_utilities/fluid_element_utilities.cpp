@@ -132,6 +132,45 @@ void FluidElementUtilities<TNumNodes>::VoigtTransformForProduct(
     rVoigtMatrix(2,5) = rVector(0);
 }
 
+template < std::size_t TNumNodes>
+void FluidElementUtilities<TNumNodes>::SetNormalProjectionMatrix(
+    const array_1d<double, 3>& rUnitNormal,
+    boost::numeric::ublas::bounded_matrix<double, 2, 2>& rNormalProjMatrix) {
+
+    rNormalProjMatrix.clear();
+    rNormalProjMatrix(0,0) = rUnitNormal(0)*rUnitNormal(0);
+    rNormalProjMatrix(0,1) = rUnitNormal(0)*rUnitNormal(1);
+    rNormalProjMatrix(1,0) = rUnitNormal(1)*rUnitNormal(0);
+    rNormalProjMatrix(1,1) = rUnitNormal(1)*rUnitNormal(1);
+}
+
+template < std::size_t TNumNodes>
+void FluidElementUtilities<TNumNodes>::SetNormalProjectionMatrix(
+    const array_1d<double, 3>& rUnitNormal,
+    boost::numeric::ublas::bounded_matrix<double, 3, 3>& rNormalProjMatrix) {
+
+    noalias(rNormalProjMatrix) = outer_prod(rUnitNormal, rUnitNormal);
+}
+
+template < std::size_t TNumNodes>
+void FluidElementUtilities<TNumNodes>::SetTangentialProjectionMatrix(
+    const array_1d<double, 3>& rUnitNormal,
+    boost::numeric::ublas::bounded_matrix<double, 2, 2>& rTangProjMatrix) {
+
+    rTangProjMatrix(0,0) = 1.0 - rUnitNormal(0)*rUnitNormal(0);
+    rTangProjMatrix(0,1) = - rUnitNormal(0)*rUnitNormal(1);
+    rTangProjMatrix(1,0) = - rUnitNormal(1)*rUnitNormal(0);
+    rTangProjMatrix(1,1) = 1.0 - rUnitNormal(1)*rUnitNormal(1);
+}
+
+template < std::size_t TNumNodes>
+void FluidElementUtilities<TNumNodes>::SetTangentialProjectionMatrix(
+    const array_1d<double, 3>& rUnitNormal,
+    boost::numeric::ublas::bounded_matrix<double, 3, 3>& rTangProjMatrix) {
+
+    identity_matrix<double> id_matrix(3);
+    noalias(rTangProjMatrix) = id_matrix - outer_prod(rUnitNormal, rUnitNormal);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation

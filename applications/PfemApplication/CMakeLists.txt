@@ -37,7 +37,7 @@ endif(${INCLUDE_TRIANGLE} MATCHES ON)
 if(${INCLUDE_TETGEN} MATCHES ON)
   add_definitions( -DINCLUDE_TETGEN )
   add_definitions( -DTETLIBRARY )
-  #add_definitions( -DTETGEN150 )
+  add_definitions( -DTETGEN150 )
   add_definitions( -w )
   #perform platform specific defintions
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

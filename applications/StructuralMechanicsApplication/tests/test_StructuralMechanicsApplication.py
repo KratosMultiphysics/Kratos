@@ -21,8 +21,11 @@ except ImportError as e:
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
+# Processes test
+from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
+from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
@@ -31,6 +34,7 @@ from test_patch_test_cr_beam import TestCrBeam3D2N as TTestCrBeam3D2N
 from test_patch_test_cr_beam import TestCrBeam2D2N as TTestCrBeam2D2N
 from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
 from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
+from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTestFormfinding
 # Test loading conditions
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
 from test_loading_conditions_line import TestLoadingConditionsLine as TTestLoadingConditionsLine
@@ -43,17 +47,16 @@ from test_nodal_damping import NodalDampingTests as TNodalDampingTests
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 # Harmonic analysis tests
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
-
+# Dynamic basic tests
+from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
+# Eigenvalues Postprocessing Process test
+from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 
 ##### SMALL TESTS #####
-# Dynamic basic tests (leave these in the smallSuite to have the Exection script tested)
-from SmallTests import DynamicBossakTests as TDynamicBossakTests
-from SmallTests import DynamicNewmarkTests as TDynamicNewmarkTests
-
+# Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
+from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 
 ##### NIGHTLY TESTS #####
-# Basic moving mesh test
-from NightlyTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
 # Patch test Small Displacements
 from NightlyTests import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from NightlyTests import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -155,6 +158,10 @@ from ValidationTests import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnap
 from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests
 from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests
 
+##### RESTART TESTS #####
+from RestartTests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4N
+from RestartTests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
+from RestartTests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -180,14 +187,18 @@ def AssambleTestSuites():
     ### Adding the self-contained tests
     # Constitutive Law tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     # Shells
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShells]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsStressRec])) # TODO should be in smallSuite but is too slow
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
+    # Membranes
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
     # Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     # Beams
@@ -201,15 +212,20 @@ def AssambleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TNodalDampingTests])) # TODO should be in smallSuite but is too slow
     # Multipoint Constraint
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
-    
+    # Dynamic basic tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
+    # Eigenvalues Postprocessing Process test
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
+
     ### Adding Small Tests
-    # Dynamic basic tests (leave these in the smallSuite to have the Exection script tested)
-    smallSuite.addTest(TDynamicBossakTests('test_execution')) 
-    smallSuite.addTest(TDynamicNewmarkTests('test_execution'))
+    # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
+    smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
+    # Basic restart test (leave these in the smallSuite to have the Exection script tested)
+    smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
+    smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
+    smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
 
     ### Adding Nightly Tests
-    # Basic moving mesh test
-    nightSuite.addTest(TSimpleMeshMovingTest('test_execution'))
     # Patch test Small Displacements
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
@@ -245,7 +261,7 @@ def AssambleTestSuites():
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
     nightSuite.addTest(TMembraneQ4PointLoadTests('test_execution'))
     nightSuite.addTest(TMembraneQ4TrussPointLoadTests('test_execution'))
-    # 2Node Element tests    
+    # 2Node Element tests
     nightSuite.addTest(T3D2NTrussDynamicTest('test_execution'))
     nightSuite.addTest(T3D2NTrussLinearTest('test_execution'))
     nightSuite.addTest(T3D2NTrussTest('test_execution'))
@@ -281,7 +297,7 @@ def AssambleTestSuites():
     nightSuite.addTests(smallSuite)
 
     ### Adding Validation Tests
-    # For very long tests that should not be in nighly and you can use to validate 
+    # For very long tests that should not be in nighly and you can use to validate
     validationSuite = suites['validation']
     # SPRISM tests
     # validationSuite.addTest(TSprismPanTests('test_execution')) # FIXME: Needs get up to date
@@ -309,7 +325,7 @@ def AssambleTestSuites():
     validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
     validationSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
     validationSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
     validationSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))
@@ -324,7 +340,7 @@ def AssambleTestSuites():
     validationSuite.addTest(TShellQ4ThinNonLinearDynamicTests('test_execution'))
     validationSuite.addTest(TShellQ4ThinOrthotropicLaminateLinearStaticTests('test_execution'))
     ### ---| OLD Shell Tests End
-    
+
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
     allSuite.addTests(nightSuite) # already contains the smallSuite

@@ -13,8 +13,51 @@
 
 namespace Kratos
 {
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
+
+template < class TBaseElement >
+SphericSwimmingParticle<TBaseElement>& SphericSwimmingParticle<TBaseElement>::operator=(const SphericSwimmingParticle<TBaseElement>& rOther) {    
+
+    TBaseElement::operator=(rOther);
+    
+    mNeighbourNodes = rOther.mNeighbourNodes;
+    mNeighbourNodesDistances = rOther.mNeighbourNodesDistances;
+    mHasHydroMomentNodalVar = rOther.mHasHydroMomentNodalVar;
+    mHasDragForceNodalVar = rOther.mHasDragForceNodalVar;
+    mHasVirtualMassForceNodalVar = rOther.mHasVirtualMassForceNodalVar;
+    mHasBassetForceNodalVar = rOther.mHasBassetForceNodalVar;
+    mHasLiftForceNodalVar = rOther.mHasLiftForceNodalVar;
+    mHasDragCoefficientVar = rOther.mHasDragCoefficientVar;
+    mHasOldAdditionalForceVar = rOther.mHasOldAdditionalForceVar;
+    mFirstStep = rOther.mFirstStep;
+    mCouplingType = rOther.mCouplingType;
+    mBuoyancyForceType = rOther.mBuoyancyForceType;
+    mDragForceType = rOther.mDragForceType;
+    mVirtualMassForceType = rOther.mVirtualMassForceType;
+    mBassetForceType = rOther.mBassetForceType;
+    mSaffmanForceType = rOther.mSaffmanForceType;
+    mMagnusForceType = rOther.mMagnusForceType;
+    mFluidModelType = rOther.mFluidModelType;
+    mPorosityCorrectionType = rOther.mPorosityCorrectionType;
+    mHydrodynamicTorqueType = rOther.mHydrodynamicTorqueType;
+    mBrownianMotionType = rOther.mBrownianMotionType;
+    mQuadratureOrder = rOther.mQuadratureOrder;
+    mFluidDensity = rOther.mFluidDensity;
+    mFluidFraction = rOther.mFluidFraction;
+    mKinematicViscosity = rOther.mKinematicViscosity;
+    mSphericity = rOther.mSphericity;
+    mNormOfSlipVel = rOther.mNormOfSlipVel;
+    mLastTimeStep = rOther.mLastTimeStep;
+    mInitialTime = rOther.mInitialTime;
+    mOldDaitchePresentCoefficient = rOther.mOldDaitchePresentCoefficient;
+    mLastVirtualMassAddedMass = rOther.mLastVirtualMassAddedMass;
+    mLastBassetForceAddedMass = rOther.mLastBassetForceAddedMass;
+    noalias(mSlipVel) = rOther.mSlipVel;
+    noalias(mOldBassetTerm) = rOther.mOldBassetTerm;   
+
+    return *this;
+}
+
+
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>& non_contact_force,
                                                                     array_1d<double, 3>& non_contact_moment,

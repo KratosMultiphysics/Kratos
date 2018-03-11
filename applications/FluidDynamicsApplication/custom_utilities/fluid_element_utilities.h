@@ -60,8 +60,8 @@ public:
     using ShapeDerivatives2DType = typename FluidElementData<2,TNumNodes,false>::ShapeDerivativesType;
     using ShapeDerivatives3DType = typename FluidElementData<3,TNumNodes,false>::ShapeDerivativesType;
 
-    constexpr static std::size_t VoigtVector2DSize = 3;
-    constexpr static std::size_t VoigtVector3DSize = 6;
+    constexpr static std::size_t VoigtVector2DSize = FluidElementData<2,TNumNodes,false>::StrainSize;
+    constexpr static std::size_t VoigtVector3DSize = FluidElementData<3,TNumNodes,false>::StrainSize;
 
     ///@}
     ///@name Life Cycle
@@ -152,6 +152,42 @@ public:
     static void VoigtTransformForProduct(
         const array_1d<double,3>& rVector,
         boost::numeric::ublas::bounded_matrix<double, 3, VoigtVector3DSize>& rVoigtMatrix);
+
+    /**
+     * This function sets the normal projection matrix as the given unit normal outer product.
+     * @param rUnitNormal reference to the unit normal vector
+     * @param rNormProjMatrix reference to the normal projection matrix
+     */
+    static void SetNormalProjectionMatrix(
+        const array_1d<double, 3>& rUnitNormal,
+        boost::numeric::ublas::bounded_matrix<double, 2, 2>& rNormalProjMatrix);
+
+    /**
+     * This function sets the normal projection matrix as the given unit normal outer product.
+     * @param rUnitNormal reference to the unit normal vector
+     * @param rNormalProjMatrix reference to the normal projection matrix
+     */
+    static void SetNormalProjectionMatrix(
+        const array_1d<double, 3>& rUnitNormal,
+        boost::numeric::ublas::bounded_matrix<double, 3, 3>& rNormalProjMatrix);
+
+    /**
+     * This function sets the tangential projection matrix as the identity matrix minus the given unit normal outer product.
+     * @param rUnitNormal reference to the unit normal vector
+     * @param rTangProjMatrix reference to the normal projection matrix
+     */
+    static void SetTangentialProjectionMatrix(
+        const array_1d<double, 3>& rUnitNormal,
+        boost::numeric::ublas::bounded_matrix<double, 2, 2>& rTangProjMatrix);
+
+    /**
+     * This function sets the tangential projection matrix as the identity matrix minus the given unit normal outer product.
+     * @param rUnitNormal reference to the unit normal vector
+     * @param rTangProjMatrix reference to the normal projection matrix
+     */
+    static void SetTangentialProjectionMatrix(
+        const array_1d<double, 3>& rUnitNormal,
+        boost::numeric::ublas::bounded_matrix<double, 3, 3>& rTangProjMatrix);
 
     ///@}
 

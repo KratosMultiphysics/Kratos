@@ -223,9 +223,9 @@ public:
 
     /**
      * creates a new element pointer
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
@@ -238,9 +238,9 @@ public:
 
     /**
      * creates a new element pointer
-     * @param NewId: the ID of the new element
-     * @param pGeom: the geometry to be employed
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     virtual Pointer Create(IndexType NewId,
@@ -254,9 +254,9 @@ public:
 
     /**
      * creates a new element pointer and clones the previous element data
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
@@ -276,8 +276,8 @@ public:
     /**
      * this determines the elemental equation ID vector for all elemental
      * DOFs
-     * @param rResult: the elemental equation ID vector
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rResult the elemental equation ID vector
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
                                   ProcessInfo& rCurrentProcessInfo)
@@ -288,8 +288,8 @@ public:
 
     /**
      * determines the elemental list of DOFs
-     * @param ElementalDofList: the list of DOFs
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param ElementalDofList the list of DOFs
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rElementalDofList,
                             ProcessInfo& rCurrentProcessInfo)
@@ -423,9 +423,9 @@ public:
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
      * matrix and the right hand side
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
@@ -441,10 +441,10 @@ public:
      * this function provides a more general interface to the element.
      * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
      * thus telling what is the desired output
-     * @param rLeftHandSideMatrices: container with the output left hand side matrices
-     * @param rLHSVariables: paramter describing the expected LHSs
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
+     * @param rLeftHandSideMatrices container with the output left hand side matrices
+     * @param rLHSVariables paramter describing the expected LHSs
+     * @param rRightHandSideVectors container for the desired RHS output
+     * @param rRHSVariables parameter describing the expected RHSs
      */
     virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
@@ -457,8 +457,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental left hand side matrix only
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo)
@@ -471,8 +471,8 @@ public:
      * this function provides a more general interface to the element.
      * it is designed so that rLHSvariables are passed TO the element
      * thus telling what is the desired output
-     * @param rLeftHandSideMatrices: container for the desired LHS output
-     * @param rLHSVariables: parameter describing the expected LHSs
+     * @param rLeftHandSideMatrices container for the desired LHS output
+     * @param rLHSVariables parameter describing the expected LHSs
      */
     virtual void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
 					const std::vector< Variable< MatrixType > >& rLHSVariables,
@@ -483,8 +483,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental right hand side vector only
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rRightHandSideVector the elemental right hand side vector
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo)
@@ -497,8 +497,8 @@ public:
      * this function provides a more general interface to the element.
      * it is designed so that rRHSvariables are passed TO the element
      * thus telling what is the desired output
-     * @param rRightHandSideVectors: container for the desired RHS output
-     * @param rRHSVariables: parameter describing the expected RHSs
+     * @param rRightHandSideVectors container for the desired RHS output
+     * @param rRHSVariables parameter describing the expected RHSs
      */
     virtual void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
 					const std::vector< Variable< VectorType > >& rRHSVariables,
@@ -520,9 +520,9 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the first derivatives contributions for the LHS and RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 							VectorType& rRightHandSideVector,
@@ -537,8 +537,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental left hand side matrix for the first derivatives constributions
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					      ProcessInfo& rCurrentProcessInfo)
@@ -551,8 +551,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental right hand side vector for the first derivatives constributions
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rRightHandSideVector the elemental right hand side vector
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
 					      ProcessInfo& rCurrentProcessInfo)
@@ -576,9 +576,9 @@ public:
    /**
      * this is called during the assembling process in order
      * to calculate the second derivative contributions for the LHS and RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
 							 VectorType& rRightHandSideVector,
@@ -594,8 +594,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental left hand side matrix for the second derivatives constributions
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rLeftHandSideMatrix the elemental left hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
 					       ProcessInfo& rCurrentProcessInfo)
@@ -608,8 +608,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental right hand side vector for the second derivatives constributions
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rRightHandSideVector the elemental right hand side vector
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
 					       ProcessInfo& rCurrentProcessInfo)
@@ -629,8 +629,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental mass matrix
-     * @param rMassMatrix: the elemental mass matrix
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
@@ -642,8 +642,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental damping matrix
-     * @param rDampingMatrix: the elemental damping matrix
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rDampingMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
     {
@@ -667,7 +667,7 @@ public:
      * IS ALLOWED TO WRITE ON ITS NODES.
      * the caller is expected to ensure thread safety hence
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-      * @param rCurrentProcessInfo: the current process info instance
+      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
     {
@@ -681,10 +681,10 @@ public:
      * IS ALLOWED TO WRITE ON ITS NODES.
      * the caller is expected to ensure thread safety hence
      * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rRHSVector: input variable containing the RHS vector to be assembled
-     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSVector will be assembled
-      * @param rCurrentProcessInfo: the current process info instance
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
@@ -901,8 +901,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental mass matrix
-     * @param rMassMatrix: the elemental mass matrix
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rMassMatrix the elemental mass matrix
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
@@ -912,9 +912,9 @@ public:
 
     /**
      * adds the mass matrix scaled by a given factor to the LHS
-     * @param rLeftHandSideMatrix: the elemental LHS matrix
-     * @param coeff: the given factor
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rLeftHandSideMatrix the elemental LHS matrix
+     * @param coeff the given factor
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void AddMassMatrix(MatrixType& rLeftHandSideMatrix,
                                double coeff, ProcessInfo& rCurrentProcessInfo)
@@ -924,8 +924,8 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental damping matrix
-     * @param rDampMatrix: the elemental damping matrix
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rDampMatrix the elemental damping matrix
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
     {
@@ -935,7 +935,7 @@ public:
 
     /**
      * adds the inertia forces to the RHS --> performs residua = static_residua - coeff*M*acc
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void AddInertiaForces(VectorType& rRightHandSideVector, double coeff,
                                   ProcessInfo& rCurrentProcessInfo)
@@ -944,9 +944,9 @@ public:
 
     /**
      * Calculate Damp matrix and add velocity contribution to RHS
-     * @param rDampingMatrix: the velocity-proportional "damping" matrix
-     * @param rRightHandSideVector: the elemental right hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
+     * @param rDampingMatrix the velocity-proportional "damping" matrix
+     * @param rRightHandSideVector the elemental right hand side matrix
+     * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix,
             VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
@@ -1101,6 +1101,13 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+        
+    /// Check that the Element has a correctly initialized pointer to a Properties instance.
+    bool HasProperties() const
+    {
+        return mpProperties != nullptr;
+    }
+    
     ///@}
     ///@name Input and output
     ///@{

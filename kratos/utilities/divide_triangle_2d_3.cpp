@@ -50,6 +50,21 @@ namespace Kratos
         rOStream << "   Distance values: " << distances_buffer.str();
     };
 
+    // Returns the mEdgeNodeI member vector
+    const std::vector<int>& DivideTriangle2D3::GetEdgeIdsI() const {
+        return mEdgeNodeI;
+    }
+
+    // Returns the mEdgeNodeJ member vector
+    const std::vector<int>& DivideTriangle2D3::GetEdgeIdsJ() const {
+        return mEdgeNodeJ;
+    }
+
+    // Returns the mSplitEdges member vector
+    std::vector<int>& DivideTriangle2D3::GetSplitEdges() {
+        return mSplitEdges;
+    }
+
     // Performs and saves the splitting pattern.
     void DivideTriangle2D3::GenerateDivision() {
 
