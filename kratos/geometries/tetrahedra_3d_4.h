@@ -767,7 +767,7 @@ public:
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    virtual CoordinatesArrayType& PointLocalCoordinates(
+    CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
             const CoordinatesArrayType& rPoint
             ) override
