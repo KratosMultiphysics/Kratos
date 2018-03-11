@@ -68,12 +68,9 @@ namespace Kratos
 
 /** 
  * @class InternalVariablesInterpolationProcess
- * 
  * @ingroup MeshingApplication
- * 
  * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
  * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree
- * 
  * @author Vicente Mataix Ferrandiz
  */
 

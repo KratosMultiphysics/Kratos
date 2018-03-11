@@ -42,9 +42,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Custom Gauss Point container to be used by the search
+/**
+ * @class GaussPointItem
+ * @ingroup MeshingApplication
+ * @brief Custom Gauss Point container to be used by the search
+ * @author Vicente Mataix Ferrandiz
  */
-class GaussPointItem : public Point
+class GaussPointItem 
+    : public Point
 {
 public:
 
@@ -57,17 +62,28 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructors
+    /**
+     * @brief  Default constructor
+     * @details It just computes the default constructor of the point 
+     */
     GaussPointItem():
         Point()
     {
     }
 
+    /**
+     * @brief Constructor with coordinates
+     * @details It just computes the coordinates constructor of the point 
+     */
     GaussPointItem(const array_1d<double, 3>& Coordinates):
         Point(Coordinates)
     {
     }
 
+    /**
+     * @brief Complete constructor
+     * @details Computes the point constructor + Considers the CL pointer and the integration weight 
+     */
     GaussPointItem(
         const array_1d<double, 3>& Coordinates,
         ConstitutiveLaw::Pointer pConstitutiveLaw,
@@ -93,7 +109,7 @@ public:
     ///@{
 
     /**
-     * Returns the point
+     * @brief Returns the point
      * @return The point
      */
 
@@ -105,8 +121,8 @@ public:
     }
 
     /**
-     * Set the point
-     * @param The point
+     * @brief Set the point
+     * @param Point The point
      */
 
     void SetPoint(const Point& Point)
@@ -115,8 +131,8 @@ public:
     }
 
     /**
-     * Sets the Constitutive Law associated to the point
-     * @param pConstitutiveLaw: The pointer to the Constitutive Law
+     * @brief Sets the Constitutive Law associated to the point
+     * @param pConstitutiveLaw The pointer to the Constitutive Law
      */
 
     void SetConstitutiveLaw(ConstitutiveLaw::Pointer pConstitutiveLaw)
@@ -125,7 +141,7 @@ public:
     }
 
     /**
-     * Returns the Constitutive Law associated to the point
+     * @brief Returns the Constitutive Law associated to the point
      * @return mpConstitutiveLaw: The pointer to the Constitutive Law associated to the point
      */
 
@@ -135,7 +151,7 @@ public:
     }
 
     /**
-     * Returns the integration weigth associated to the point
+     * @brief Returns the integration weigth associated to the point
      * @return mWeight: The pointer to the Constitutive Law associated to the point
      */
 
@@ -145,8 +161,8 @@ public:
     }
 
     /**
-     * Sets the integration weigth associated to the point
-     * @param Weight: The integration weight
+     * @brief Sets the integration weigth associated to the point
+     * @param Weight The integration weight
      */
 
     void SetWeight(const double Weight)
