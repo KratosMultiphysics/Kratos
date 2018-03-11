@@ -46,7 +46,7 @@ void AddCustomStrategiesToPython() {
                                      LinearSolverType>,
          bases<BaseSolvingStrategyType>, boost::noncopyable>(
       "LaplacianMeshMovingStrategy",
-      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
+      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
       .def("UpdateReferenceMesh",&LaplacianMeshMovingStrategyType::UpdateReferenceMesh)
       ;
 
@@ -54,7 +54,7 @@ void AddCustomStrategiesToPython() {
                                       LinearSolverType>,
          bases<BaseSolvingStrategyType>, boost::noncopyable>(
       "StructuralMeshMovingStrategy",
-      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
+      init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
       .def("UpdateReferenceMesh",&StructuralMeshMovingStrategyType::UpdateReferenceMesh)
       ;
 }
