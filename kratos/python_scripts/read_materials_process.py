@@ -104,7 +104,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         # Set the CONSTITUTIVE_LAW for the current properties.
         constitutive_law = self.__GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
 
-        prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law)
+        prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
 
         # Add / override the values of material parameters in the properties
         for key, value in mat["Variables"].items():
@@ -202,7 +202,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         for elem in model_part.Elements:
             current_number_props = root_model_part.NumberOfProperties()
             elem_props = root_model_part.GetProperties(current_number_props + 1, mesh_id)
-            elem_props.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law)
+            elem_props.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
 
             elem.Properties = elem_props
 
@@ -211,7 +211,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         for cond in model_part.Conditions:
             current_number_props = root_model_part.NumberOfProperties()
             cond_props = root_model_part.GetProperties(current_number_props + 1, mesh_id)
-            cond_props.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law)
+            cond_props.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
 
             cond.Properties = cond_props
 
@@ -351,21 +351,30 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         return interpolation_required
 
     def __HasInterpolationKeyword(self, parameter):
+        """
+        This function checks if the parameter has the keyword for Interpolation
+        """
         if parameter.IsSubParameter():
             if parameter.Has("@table"):
                 return True
             else:
-                raise ValueError("Variable Dict is not valid!") # TODO throw here or just return False?
+                raise False
         else:
             return False
 
     def __SizeInterpolatedVector(self, vector_parameter):
+        """
+        This function returns the size of a vector that requires Interpolation
+        """
         if vector_parameter.IsVector() or self.__IsVectorWithInterpolation(vector_parameter):
             return vector_parameter.size()
         else:
             raise TypeError("Object is not a Vector!")
 
     def __SizeInterpolatedMatrix(self, matrix_parameter):
+        """
+        This function returns the size of a matrix that requires Interpolation
+        """
         if matrix_parameter.IsMatrix() or self.__IsMatrixWithInterpolation(matrix_parameter):
             # Existance of these values is assured through the checks above
             size1 = matrix_parameter.size()
@@ -375,6 +384,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             raise TypeError("Object is not a Matrix!")
 
     def __AssignTablesToModelPart(self, root_model_part, material_parameters, table_dict):
+        """
+        This function reads the tables and assigns them to the modelpart
+        """
         for table_name in sorted(material_parameters["Tables"].keys()):
             if table_name in table_dict.keys():
                 err_msg = 'Table names must be unique, trying to add: "' + table_name
@@ -413,6 +425,10 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             table_dict[table_name] = table_info
 
     def __AssignInterpolatedProperties(self, mat, table_dict, geom_entity, prop):
+        """
+        This function assigns the interpolated quantities to the properties
+        Note that the table is stored in the modelpart and passed to the property
+        """
         # assign Tables (stored in the RootModelPart) to the properties
         for table_name, table_info in table_dict.items():
             input_variable = table_info["input_variable"]
@@ -451,6 +467,10 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 raise TypeError("Type of value is not available for " + key)
 
     def __ComputeInterpolatedValue(self, geom_entity, table_dict, variable_name, value):
+        """
+        This function interpolates the value
+        the input value can be on "nodes" or on "geom_entity"
+        """
         # Retrieve information needed for interpolation
         table_name = value["@table"].GetString()
 
@@ -489,6 +509,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         return interpolated_value
 
     def __ComputeInterpolatedVector(self, geom_entity, table_dict, variable_name, vector_parameter):
+        """
+        This function computes a vector where some values require interpolation
+        """
         size = self.__SizeInterpolatedVector(vector_parameter)
         interpolated_vector = KratosMultiphysics.Vector(size)
 
@@ -507,6 +530,9 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         return interpolated_vector
 
     def __ComputeInterpolatedMatrix(self, geom_entity, table_dict, variable_name, matrix_parameter):
+        """
+        This function computes a matrix where some values require interpolation
+        """
         size1, size2 = self.__SizeInterpolatedMatrix(matrix_parameter)
         interpolated_matrix = KratosMultiphysics.Matrix(size1, size2)
 
@@ -526,8 +552,11 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         return interpolated_matrix
 
     def __CheckVariableType(self, variable, table_name):
+        """
+        This function checks if the variable type is suitable
+        """
         var_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name())
         if(var_type != "Double" and var_type != "Component"):
             err_msg = 'In table "' + table_name + '": Variable type of variable - '
             err_msg += variable.Name() + ' - is incorrect!\nMust be a scalar or a component'
-            raise Exception(err_msg)
+            raise TypeError(err_msg)
