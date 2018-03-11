@@ -406,7 +406,9 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.769800, TOLERANCE);
     }
 
-
+    /**
+     * This test performs the check of the box intersection method
+     */
     KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4BoxIntersection, KratosCoreGeometriesFastSuite) {
       auto tetrahedron = GenerateTriRectangularTetrahedra3D4();
 
@@ -422,7 +424,51 @@ namespace Kratos {
       //tetrahedron not intersects the box
       KRATOS_CHECK_IS_FALSE(tetrahedron->HasIntersection(Point(.51,.51,.51), Point(1.1,1.1,1.2)));
     }
+    
+    /** Checks the inside test for a given point respect to the tetrahedra
+    * Checks the inside test for a given point respect to the tetrahedra
+    * It performs 4 tests:
+    * A Point inside the tetrahedra: Expected result TRUE
+    * A Point outside the tetrahedra: Expected result FALSE
+    * A Point over a vertex of the tetrahedra: Expected result TRUE
+    * A Point over an edge of the tetrahedra: Expected result TRUE
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4IsInside, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateTriRectangularTetrahedra3D4();
 
+        Point PointInside(0.1666, 0.1666, 0.1666);
+        Point PointOutside(0.66, 0.66, 0.66);
+        Point PointInVertex(0.0, 0.0, 0.0);
+        Point PointInEdge(0.33, 0.33, 0.33);
+
+        Point LocalCoords;
+        
+        KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
+        KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+        KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+        KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+    }
+
+    /** Checks the point local coordinates for a given point respect to the
+    * tetrahedra. The baricentre of the tetrahedra is selected due to its known
+    * solution.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateTriRectangularTetrahedra3D4();
+
+        // Compute the global coordinates of the baricentre
+        auto points = geom->Points();
+        Point baricentre = points[0] + points[1] + points[2] + points[3];
+        baricentre *= 1.0/3.0;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> baricentre_local_coords;
+        geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
+
+        KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords(2), 1.0/3.0, TOLERANCE);
+    }
 
 	}
 }  // namespace Kratos.
