@@ -134,7 +134,7 @@ public:
      * - CPT: Closest point transfer. It transfer the values from the closest GP
      * - LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
      * - SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time 
-     * @note SFT THIS DOESN"T WORK, AND REQUIRES EXTRA STORE
+     * @note SFT THIS DOESN'T WORK, AND REQUIRES EXTRA STORE
      */
     void Execute() override;
 

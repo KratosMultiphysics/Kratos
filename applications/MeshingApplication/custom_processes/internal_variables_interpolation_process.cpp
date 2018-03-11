@@ -50,7 +50,7 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
         for (unsigned int i_var = 0; i_var < variable_array_list.size(); ++i_var)
             mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(variable_array_list[i_var].GetString()));
     } else {
-        std::cout << "WARNING:: No variables to interpolate, look that internal_variable_interpolation_list is correctly defined in your parameters" << std::endl;
+        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: No variables to interpolate, look that internal_variable_interpolation_list is correctly defined in your parameters" << std::endl;
         mInternalVariableList.clear();
     }
 }
@@ -60,14 +60,15 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
 
 void InternalVariablesInterpolationProcess::Execute()
 {
-    if (mThisInterpolationType == InterpolationTypes::CPT && mInternalVariableList.size() > 0)
+    if (mThisInterpolationType == InterpolationTypes::CPT && mInternalVariableList.size() > 0) {
         InterpolateGaussPointsCPT();
-    else if (mThisInterpolationType == InterpolationTypes::LST && mInternalVariableList.size() > 0)
+    } else if (mThisInterpolationType == InterpolationTypes::LST && mInternalVariableList.size() > 0) {
         InterpolateGaussPointsLST();
-    else if (mThisInterpolationType == InterpolationTypes::SFT && mInternalVariableList.size() > 0)
-        InterpolateGaussPointsSFT();
-    else
-        std::cout << "WARNING:: INTERPOLATION TYPE NOT AVALAIBLE OR EMPTY LIST" << std::endl;
+    } else if (mThisInterpolationType == InterpolationTypes::SFT && mInternalVariableList.size() > 0) {
+//         InterpolateGaussPointsSFT();
+        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: SFT THIS DOESN'T WORK, AND REQUIRES EXTRA STORE. PLEASE COOSE ANY OTHER ALTERNATIVE" << std::endl;
+    } else
+        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: INTERPOLATION TYPE NOT AVALAIBLE OR EMPTY LIST" << std::endl;
 }
 
 /***********************************************************************************/
@@ -298,7 +299,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLST()
                         (constitutive_law_vector[i_gauss_point])->SetValue(this_var, destination_value, current_process_info);
                     }
                 } else
-                    std::cout << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;
+                    KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;
             }
         }
     //}
@@ -412,8 +413,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
             const bool found = point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_element, mAllocationSize);
 
             if (found == false) {
-                std::cout << "WARNING: GP not found (interpolation not posible)" << std::endl;
-                std::cout << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << std::endl;
+                KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: GP not found (interpolation not posible)" << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << std::endl;
             } else {
                 for (auto this_var : mInternalVariableList) {
                     Vector values(p_element->GetGeometry().size());
@@ -446,8 +446,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
             const bool found = point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_element, mAllocationSize);
 
             if (found == false) {
-                std::cout << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << std::endl;
-                std::cout << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" <<  "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
             } else {
                 for (auto this_var : mInternalVariableList) {
                     Vector values(p_element->GetGeometry().size());
