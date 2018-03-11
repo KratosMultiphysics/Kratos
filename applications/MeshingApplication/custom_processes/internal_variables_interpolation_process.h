@@ -40,7 +40,13 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    // Type definitions for the tree
+    /// Definition of node type
+    typedef Node<3> NodeType;
+
+    /// Definition of the geometry type with given NodeType
+    typedef Geometry<NodeType> GeometryType;
+    
+    /// Type definitions for the tree
     typedef GaussPointItem                                        PointType;
     typedef PointType::Pointer                             PointTypePointer;
     typedef std::vector<PointTypePointer>                       PointVector;
@@ -48,9 +54,14 @@ namespace Kratos
     typedef std::vector<double>                              DistanceVector;
     typedef DistanceVector::iterator                       DistanceIterator;
 
-    // KDtree definitions
+    /// KDtree definitions
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
+    
+    /// Definitions for the variables
+    typedef Variable<double>             DoubleVarType;
+    typedef Variable<array_1d<double, 3>> ArrayVarType;
+    typedef Variable<Vector>             VectorVarType;
     
 ///@}
 ///@name  Enum's
@@ -222,9 +233,11 @@ private:
     double mSearchFactor;                                /// The search factor to be considered
     PointVector mPointListOrigin;                        /// A list that contents the all the gauss points from the origin modelpart
 
-    // Variables to interpolate
-    std::vector<Variable<double>> mInternalVariableList; /// The list of variables to interpolate
-    InterpolationTypes mThisInterpolationType;           /// The interpolation type considered
+    // Variables to interpolate (TODO: Add more if necessary, like the matrix)
+    std::vector<DoubleVarType> mInternalDoubleVariableList; /// The list of double variables to interpolate
+    std::vector<ArrayVarType> mInternalArrayVariableList;   /// The list of array variables to interpolate
+    std::vector<VectorVarType> mInternalVectorVariableList; /// The list of vector variables to interpolate
+    InterpolationTypes mThisInterpolationType;              /// The interpolation type considered
 
     ///@}
     ///@name Private Operators
@@ -259,6 +272,176 @@ private:
 
     void InterpolateGaussPointsSFT();
 
+    /**
+     * @brief This method computes the total number of variables to been interpolated
+     * @return The total number of variables to be interpolated
+     */
+    std::size_t ComputeTotalNumberOfVariables();
+    
+    /**
+     * @brief Simply gets a origin value from a CL and it sets on the destination CL
+     * @param rThisVar The variable to transfer
+     * @param pOriginConstitutiveLaw The CL on the original mesh
+     * @param pDestinationConstitutiveLaw The Cl on the destination mesh
+     * @param rCurrentProcessInfo The process info 
+     */
+    template<class TVarType>
+    inline void GetAndSetDirectVariable(
+        const Variable<TVarType>& rThisVar,
+        ConstitutiveLaw::Pointer pOriginConstitutiveLaw,
+        ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
+        const ProcessInfo& rCurrentProcessInfo 
+        )
+    {
+        TVarType origin_value;
+        origin_value = pOriginConstitutiveLaw->GetValue(rThisVar, origin_value);
+
+        pDestinationConstitutiveLaw->SetValue(rThisVar, origin_value, rCurrentProcessInfo);
+    }
+    
+    /**
+     * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
+     * @param rThisVar The variable to transfer
+     * @param NumberOfPointsFound The number of points found during the search
+     * @param PointsFound The list of points found
+     * @param PointDistances The distances of the points found
+     * @param CharacteristicLenght The characteristic length of the problem
+     * @param pDestinationConstitutiveLaw The Cl on the destination mesh
+     * @param rCurrentProcessInfo The process info 
+     */
+    template<class TVarType>
+    inline void GetAndSetWeightedVariable(
+        const Variable<TVarType>& rThisVar,
+        const std::size_t NumberOfPointsFound,
+        PointVector& PointsFound,
+        const std::vector<double>& PointDistances, 
+        const double CharacteristicLenght,
+        ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
+        const ProcessInfo& rCurrentProcessInfo 
+        )
+    {
+        TVarType weighting_function_numerator = rThisVar.Zero();
+        double weighting_function_denominator = 0.0;
+        TVarType origin_value;
+
+        for (std::size_t i_point_found = 0; i_point_found < NumberOfPointsFound; ++i_point_found) {
+            PointTypePointer p_gp_origin = PointsFound[i_point_found];
+
+            const double distance = PointDistances[i_point_found];
+
+            origin_value = (p_gp_origin->GetConstitutiveLaw())->GetValue(rThisVar, origin_value);
+
+            const double ponderated_weight = p_gp_origin->GetWeight() * std::exp( -4.0 * distance * distance /std::pow(CharacteristicLenght, 2));
+
+            weighting_function_numerator   += ponderated_weight * origin_value;
+            weighting_function_denominator += ponderated_weight;
+        }
+
+        const TVarType destination_value = weighting_function_numerator/weighting_function_denominator;
+        
+        pDestinationConstitutiveLaw->SetValue(rThisVar, destination_value, rCurrentProcessInfo);
+    }
+    
+    /**
+     * @brief This method interpolates and add values from  the CL using shape functions
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param pConstitutiveLaw The CL on the original mesh
+     * @param Weight The integration weight
+     */
+    template<class TVarType>
+    inline void InterpolateAddVariable(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        ConstitutiveLaw::Pointer& pConstitutiveLaw,
+        const double Weight
+        )
+    {
+        TVarType origin_value;
+        origin_value = pConstitutiveLaw->GetValue(rThisVar, origin_value);
+
+        // We sum all the contributions
+        for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+            #pragma omp critical
+            rThisGeometry[i_node].GetValue(rThisVar) += N[i_node] * origin_value * Weight;
+        }
+    }
+    
+    /**
+     * @brief This method ponderates a value by the total integration weight
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param TotalWeight The total integration weight
+     */
+    template<class TVarType>
+    inline void PonderateVariable(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const double TotalWeight
+        )
+    {
+        for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+            #pragma omp critical
+            rThisGeometry[i_node].GetValue(rThisVar) /= TotalWeight;
+        }
+    }
+    
+    /**
+     * @brief This method interpolates using shape functions and the values from the elemental nodes
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param pNode The pointer to teh current node
+     * @param pElement The pointer to teh current element
+     */
+    template<class TVarType>
+    inline void InterpolateToNode(
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        NodeType::Pointer pNode,
+        Element::Pointer pElement
+        )
+    {
+        // An auxiliar value
+        TVarType aux_value = rThisVar.Zero();
+        
+        // Interpolate with shape function
+        const std::size_t number_nodes = pElement->GetGeometry().size();
+        for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
+            aux_value += N[i_node] * pElement->GetGeometry()[i_node].GetValue(rThisVar);
+
+        pNode->SetValue(rThisVar, aux_value);
+    }
+    
+    /**
+     * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param pDestinationConstitutiveLaw The Cl on the destination mesh
+     * @param rCurrentProcessInfo The process info 
+     */
+    template<class TVarType>
+    inline void SetInterpolatedValue(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
+        const ProcessInfo& rCurrentProcessInfo 
+        )
+    {
+        // An auxiliar value
+        TVarType destination_value = rThisVar.Zero();
+        
+        // Interpolate with shape function
+        const std::size_t number_nodes = rThisGeometry.size();
+        for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
+            destination_value += N[i_node] * rThisGeometry[i_node].GetValue(rThisVar);
+
+        pDestinationConstitutiveLaw->SetValue(rThisVar, destination_value, rCurrentProcessInfo);
+    }
+    
     /**
      * @brief This converts the interpolation string to an enum
      * @param Str The string that you want to comvert in the equivalent enum
