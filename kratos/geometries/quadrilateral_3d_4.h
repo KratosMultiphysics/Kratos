@@ -504,9 +504,9 @@ public:
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective 
      * local point for the given global point
-     * @param rPoint: The point to be checked if is inside o note in global coordinates
-     * @param rResult: The local coordinates of the point
-     * @param Tolerance: The  tolerance that will be considered to check if the point is inside or not
+     * @param rPoint The point to be checked if is inside o note in global coordinates
+     * @param rResult The local coordinates of the point
+     * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
     virtual bool IsInside( 
@@ -530,8 +530,8 @@ public:
     
     /**
      * Returns the local coordinates of a given arbitrary point
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates( 
@@ -1477,9 +1477,9 @@ private:
 
     /**
      * Returns the local coordinates of a given arbitrary point 
-     * @param rResult: The vector containing the local coordinates of the point
-     * @param rPoint: The point in global coordinates
-     * @param IsInside: THe flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PrivatePointLocalCoordinates( 
@@ -1539,12 +1539,8 @@ private:
             rResult[0] += DeltaXi[0];
             rResult[1] += DeltaXi[1];
 
-            if ( norm_2( DeltaXi ) > 300 )
-            {
-                if (IsInside == false && k > 0)
-                {
-                    std::cout << "detJ =\t" << det_j << " DeltaX =\t" << DeltaXi << " stopping calculation. Iteration:\t" << k << std::endl;
-                }
+            if ( norm_2( DeltaXi ) > 300 ) {
+                KRATOS_WARNING_IF("Quadrilateral3D4", IsInside == false && k > 0) << "detJ =\t" << det_j << " DeltaX =\t" << DeltaXi << " stopping calculation. Iteration:\t" << k << std::endl;
                 break;
             }
 

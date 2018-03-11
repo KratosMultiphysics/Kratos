@@ -29,7 +29,7 @@
 #include "containers/pointer_vector.h"
 
 #include "utilities/math_utils.h"
-
+#include "input_output/logger.h"
 
 namespace Kratos
 {
@@ -921,6 +921,7 @@ public:
             auto norm2DXi = norm_2(DeltaXi);
 
             if(norm2DXi > 30 || norm2DXi < tol) {
+                KRATOS_WARNING("Geometry") << "Computation of local coordinates failed at iteration " << k << std::endl;
                 break;
             }
         }
