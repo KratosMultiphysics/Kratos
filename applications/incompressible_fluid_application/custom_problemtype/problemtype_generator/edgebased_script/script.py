@@ -100,8 +100,6 @@ fluid_solver.edge_detection_angle = problem_settings.edge_detection_angle
 fluid_solver.assume_constant_pressure = problem_settings.assume_constant_pressure
 fluid_solver.compute_porous_resistance_law = int(problem_settings.compute_porous_resistance_law)  # 0 = None; 1 = Ergun; 2 = Custom;
 # print "compute_porous_resistance_law   ", fluid_solver.compute_porous_resistance_law
-# using MKLPardisosolver ----> it has to be compiled in kratos!!
-# fluid_solver.pressure_linear_solver = MKLPardisoSolver()
 
 fluid_solver.Initialize()
 
