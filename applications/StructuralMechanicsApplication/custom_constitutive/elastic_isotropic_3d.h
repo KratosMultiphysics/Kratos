@@ -55,6 +55,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropic3D );
 
+    ///@}
     ///@name Lyfe Cycle
     ///@{
 
@@ -84,13 +85,13 @@ public:
     ///@{
 
     /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures: The Features of the law
+     * @brief This function is designed to be called once to check compatibility with element
+     * @param rFeatures The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * Voigt tensor size:
+     * @brief Voigt tensor size:
      */
     SizeType GetStrainSize() override
     {

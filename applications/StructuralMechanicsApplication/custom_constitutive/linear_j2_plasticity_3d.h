@@ -9,6 +9,7 @@
 //  Main authors:    Marcelo Raschi
 //                   Manuel Caicedo
 //                   Alfredo Huespe
+//  Collaborator:    Vicente Mataix Ferrandiz
 
 #if !defined(KRATOS_LINEAR_J2_PLASTIC_3D_H_INCLUDED)
 #define KRATOS_LINEAR_J2_PLASTIC_3D_H_INCLUDED
@@ -18,41 +19,98 @@
 
 namespace Kratos
 {
-    /**
-     * Defines a Simo J2 plasticity constitutive law in 3D
-     *
-     * This material law is defined by the parameters:
-     * YOUNG_MODULUS
-     * POISSON_RATIO
-     * YIELD_STRESS
-     * REFERENCE_HARDENING_MODULUS (kinematic hardening modulus)
-     * ISOTROPIC_HARDENING_MODULUS
-     * INFINITY_HARDENING_MODULUS (saturation hardening modulus)
-     * HARDENING_EXPONENT
-     *
-     * Valid for small strains, linear hexahedra
-     * Requires B-bar element
-     **/
+///@name Kratos Globals
+///@{
 
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class LinearJ2Plasticity3D
+ * @ingroup StructuralMechanicsApplication
+ * @brief Defines a Simo J2 plasticity constitutive law in 3D
+ * @details This material law is defined by the parameters:
+ * - YOUNG_MODULUS
+ * - POISSON_RATIO
+ * - YIELD_STRESS
+ * - REFERENCE_HARDENING_MODULUS (kinematic hardening modulus)
+ * - ISOTROPIC_HARDENING_MODULUS
+ * - INFINITY_HARDENING_MODULUS (saturation hardening modulus)
+ * - HARDENING_EXPONENT
+ * @warning Valid for small strains, linear hexahedra
+ * @note Requires B-bar element
+ * @author Marcelo Raschi
+ * @author Manuel Caicedo
+ * @author Alfredo Huespe
+ */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) LinearJ2Plasticity3D
     : public ConstitutiveLaw
 {
 public:
 
+    ///@name Type Definitions
+    ///@{
+
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
 
+    // Counted pointer of LinearJ2Plasticity3D
     KRATOS_CLASS_POINTER_DEFINITION(LinearJ2Plasticity3D);
+
+    ///@}
+    ///@name Lyfe Cycle
+    ///@{
+
+    /**
+     * @brief Default constructor.
+     */
     LinearJ2Plasticity3D();
-    ConstitutiveLaw::Pointer Clone() const override;
+
+    /**
+     * @brief Copy constructor.
+     */
     LinearJ2Plasticity3D(const LinearJ2Plasticity3D& rOther);
+
+    /**
+     * @brief Destructor.
+     */
     ~LinearJ2Plasticity3D() override;
 
+    /**
+     * @brief Clone method
+     */
+    ConstitutiveLaw::Pointer Clone() const override;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures The Features of the law
+     */
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * Dimension of the law:
+     * @brief Dimension of the law:
      */
     SizeType WorkingSpaceDimension() override
     {
@@ -60,7 +118,7 @@ public:
     };
 
     /**
-     * Voigt tensor size:
+     * @brief Voigt tensor size:
      */
     SizeType GetStrainSize() override
     {
