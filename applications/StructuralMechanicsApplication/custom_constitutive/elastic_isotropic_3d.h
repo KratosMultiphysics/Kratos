@@ -101,7 +101,7 @@ public:
     /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rValues The internal values of the law
      * @see   Parameters
      */
     void CalculateMaterialResponsePK1 (Parameters & rValues) override;
@@ -109,7 +109,7 @@ public:
     /**
      * Computes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rValues The internal values of the law
      * @see   Parameters
      */
     void CalculateMaterialResponsePK2 (Parameters & rValues) override;
@@ -117,7 +117,7 @@ public:
     /**
      * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rValues The internal values of the law
      * @see   Parameters
      */
     void CalculateMaterialResponseKirchhoff (Parameters & rValues) override;
@@ -125,7 +125,7 @@ public:
     /**
      * Computes the material response:
      * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues: The Internalvalues of the law
+     * @param rValues The internal values of the law
      * @see   Parameters
      */
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
@@ -133,7 +133,7 @@ public:
     /**
       * Updates the material response:
       * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rValues The internal values of the law
       * @see   Parameters
       */
     void FinalizeMaterialResponsePK1 (Parameters & rValues) override;
@@ -141,7 +141,7 @@ public:
     /**
       * Updates the material response:
       * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rValues The internal values of the law
       * @see   Parameters
       */
     void FinalizeMaterialResponsePK2 (Parameters & rValues) override;
@@ -149,7 +149,7 @@ public:
     /**
       * Updates the material response:
       * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rValues The internal values of the law
       * @see   Parameters
       */
     void FinalizeMaterialResponseKirchhoff (Parameters & rValues)  override;
@@ -157,7 +157,7 @@ public:
     /**
       * Updates the material response:
       * Cauchy stresses and Internal Variables
-      * @param rValues: The Internalvalues of the law
+      * @param rValues The internal values of the law
       * @see   Parameters
       */
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
@@ -167,24 +167,23 @@ public:
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
+     * @return rValue output: the value of the specified variable
      */ 
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
     
     /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rMaterialProperties: The properties of the material
-     * @param rElementGeometry: The geometry of the element
-     * @param rCurrentProcessInfo: The current process info instance
+     * @brief This function provides the place to perform checks on the completeness of the input.
+     * @details It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input or that no common error is found.
+     * @param rMaterialProperties The properties of the material
+     * @param rElementGeometry The geometry of the element
+     * @param rCurrentProcessInfo The current process info instance
      */
     int Check(
         const Properties& rMaterialProperties,
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
-    ) override;
+        ) override;
 
 protected:
 
@@ -218,11 +217,15 @@ private:
     ///@name Private Operators
     ///@{
 
+    ///@}
+    ///@name Private Operations
+    ///@{
+
     /**
      * It calculates the constitutive matrix C
-     * @param C: The constitutive matrix
-     * @param E: The Young Modulus
-     * @param NU: The poisson coefficient
+     * @param C The constitutive matrix
+     * @param E The Young Modulus
+     * @param NU The poisson coefficient
      */
     virtual void CalculateElasticMatrix(
         Matrix& C,
@@ -232,10 +235,10 @@ private:
 
     /**
      * It calculates the stress vector
-     * @param rStrainVector: The strain vector in Voigt notation
-     * @param rStressVector: The stress vector in Voigt notation
-     * @param E: The Young Modulus
-     * @param NU: The poisson coefficient
+     * @param rStrainVector The strain vector in Voigt notation
+     * @param rStressVector The stress vector in Voigt notation
+     * @param E The Young Modulus
+     * @param NU The poisson coefficient
      */
     virtual void CalculatePK2Stress(
         const Vector& rStrainVector,
@@ -246,18 +249,13 @@ private:
 
     /**
      * It calculates the strain vector
-     * @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
+     * @param rValues The internal values of the law
+     * @param rStrainVector The strain vector in Voigt notation
      */
     virtual void CalculateCauchyGreenStrain(
         Parameters& rValues,
         Vector& rStrainVector
     );
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
 
     ///@}
     ///@name Private  Access
