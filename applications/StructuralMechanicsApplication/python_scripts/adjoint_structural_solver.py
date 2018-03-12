@@ -154,21 +154,21 @@ class AdjointStructuralSolver:
         self.computing_model_part = self.GetComputingModelPart()
 
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        if self.settings["response_function_settings"]["response_type"].GetString() == "local_stress":
+        if self.settings["response_function_settings"]["response_type"].GetString() == "local_stress_adjoint":
             if (domain_size == 2):
                 raise Exception("Currently only availible for 3D. Your choice is 2D")
             elif (domain_size == 3):
                 self.response_function = StructuralMechanicsApplication.LocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
-        elif self.settings["response_function_settings"]["response_type"].GetString() == "nodal_displacement":
+        elif self.settings["response_function_settings"]["response_type"].GetString() == "nodal_displacement_adjoint":
             if (domain_size == 2):
                 raise Exception("Currently only availible for 3D. Your choice is 2D")
             elif (domain_size == 3):
                 self.response_function = StructuralMechanicsApplication.NodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
-        elif self.settings["response_function_settings"]["response_type"].GetString() == "strain_energy":
+        elif self.settings["response_function_settings"]["response_type"].GetString() == "strain_energy_adjoint":
             if (domain_size == 2):
                 raise Exception("Currently only availible for 3D. Your choice is 2D")
             elif (domain_size == 3):

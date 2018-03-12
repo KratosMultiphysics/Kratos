@@ -15,7 +15,15 @@
             "type"       : "minimization",
             "use_kratos" : true,
             "kratos_response_settings":{
-                "response_type"    : "displacement_adjoint",
+                "response_type"    : "nodal_displacement_adjoint",
+                "gradient_mode"     : "semi_analytic",
+                "sensitivity_model_part_name" :"Parts_AREAS",
+                "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
+                "element_sensitivity_variables"  : [],
+                "condition_sensitivity_variables"  : [],
+                "step_size"         : 1.0e-6,
+                "traced_node"       : 188,
+                "traced_dof"        : "DISPLACEMENT_Z",
                 "primal_settings"  : "rectangular_plate_parameters.json",
                 "adjoint_settings" : "rectangular_plate_adjoint_parameters.json"
             }

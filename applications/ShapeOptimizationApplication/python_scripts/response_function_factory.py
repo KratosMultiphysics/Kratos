@@ -56,6 +56,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         # Create the adjoint solver
         ProjectParametersAdjoint = Parameters( open(project_parameters["adjoint_settings"].GetString(),'r').read() )
+        ProjectParametersAdjoint["solver_settings"].AddValue("response_function_settings", project_parameters)
         self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         # TODO find out why it is not possible to use the same model_part
 
@@ -225,7 +226,7 @@ class ResponseFunctionCreator:
                 raise NameError("The following weighting_method is not valid for eigenfrequency response: " + response_settings["weighting_method"].GetString())
             self.listOfResponseFunctions[response_id] = SimpleResponseFunction(response_id, response_settings, response_function_utility, self.optimization_model_part)
 
-        elif response_type in "displacement_adjoint":
+        elif response_type == "nodal_displacement_adjoint":
             self.listOfResponseFunctions[response_id] = AdjointResponseFunction(response_id, response_settings, self.optimization_model_part)
 
         else:
