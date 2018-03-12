@@ -82,6 +82,18 @@ public:
         std::vector<array_1d<double,3>>& rVorticities);
 
     ///@}
+private:
+
+    ///@name Private Operations
+    ///@{
+
+    static void NodalContributionToVorticityVector(
+        const Matrix& rDN_DX,
+        const array_1d<double, 3 > & rVelocity,
+        const unsigned int iNode,
+        array_1d<double,3>& rVorticity);
+
+    ///@}
 
 };  // Class VorticityUtilities
 

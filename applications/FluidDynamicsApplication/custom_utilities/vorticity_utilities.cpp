@@ -40,9 +40,9 @@ void VorticityUtilities<TDim>::CalculateQValue(
         // Compute velocity gradient
         for (unsigned int i=0; i < TDim; ++i) {
             for (unsigned int j=0; j < TDim; ++j) {
-                for (unsigned int iNode=0; iNode < rGeometry.size(); ++iNode) {
-                    const array_1d<double,3>& Vel = rGeometry[iNode].FastGetSolutionStepValue(VELOCITY);
-                    velocity_gradients(i,j) += Vel[i] * rDN_DX(iNode,j);
+                for (unsigned int i_node=0; i_node < rGeometry.size(); ++i_node) {
+                    const array_1d<double,3>& velocity = rGeometry[i_node].FastGetSolutionStepValue(VELOCITY);
+                    velocity_gradients(i,j) += velocity[i] * rDN_DX(i_node,j);
                 }
             }
         }
@@ -73,29 +73,19 @@ void VorticityUtilities<TDim>::CalculateVorticityMagnitude(
     for (unsigned int g = 0; g < integration_point_number; g++) {
         const auto& rDN_DX = rShapeFunctionsGradients[g];
 
-        array_1d<double,3> Vorticity(3,0.0);
+        array_1d<double,3> vorticity(3,0.0);
 
-        if(TDim == 2) {
-            for (unsigned int iNode = 0; iNode < rGeometry.size(); iNode++) {
-                const array_1d<double,3>& Vel = rGeometry[iNode].FastGetSolutionStepValue(VELOCITY);
-                Vorticity[2] += Vel[1] * rDN_DX(iNode,0) - Vel[0] * rDN_DX(iNode,1);
-            }
-        }
-        else {
-            for (unsigned int iNode = 0; iNode < rGeometry.size(); iNode++) {
-                const array_1d<double,3>& Vel = rGeometry[iNode].FastGetSolutionStepValue(VELOCITY);
-                Vorticity[0] += Vel[2] * rDN_DX(iNode,1) - Vel[1] * rDN_DX(iNode,2);
-                Vorticity[1] += Vel[0] * rDN_DX(iNode,2) - Vel[2] * rDN_DX(iNode,0);
-                Vorticity[2] += Vel[1] * rDN_DX(iNode,0) - Vel[0] * rDN_DX(iNode,1);
-            }
+        for (unsigned int i_node = 0; i_node < rGeometry.size(); i_node++) {
+            const array_1d<double,3>& r_velocity = rGeometry[i_node].FastGetSolutionStepValue(VELOCITY);
+            VorticityUtilities<TDim>::NodalContributionToVorticityVector(rDN_DX,r_velocity,i_node,vorticity);
         }
 
-        rVorticityMagnitudes[g] = sqrt(Vorticity[0] * Vorticity[0] + Vorticity[1] * Vorticity[1] + Vorticity[2] * Vorticity[2]);
+        rVorticityMagnitudes[g] = sqrt(vorticity[0] * vorticity[0] + vorticity[1] * vorticity[1] + vorticity[2] * vorticity[2]);
     }
 }
 
-template<>
-void VorticityUtilities<2>::CalculateVorticityVector(
+template<std::size_t TDim>
+void VorticityUtilities<TDim>::CalculateVorticityVector(
     const Geometry<Node<3>>& rGeometry,
     const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
     std::vector<array_1d<double,3>>& rVorticities)
@@ -111,37 +101,33 @@ void VorticityUtilities<2>::CalculateVorticityVector(
         array_1d<double,3>& r_vorticity = rVorticities[g];
         r_vorticity.clear();
 
-        for (unsigned int iNode = 0; iNode < rGeometry.PointsNumber(); ++iNode) {
-            const array_1d<double, 3 > & rVelocity = rGeometry[iNode].FastGetSolutionStepValue(VELOCITY);
-            r_vorticity[2] += rDN_DX(iNode,0)*rVelocity[1] - rDN_DX(iNode,1)*rVelocity[0];
+        for (unsigned int i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node) {
+            const array_1d<double, 3 > & r_velocity = rGeometry[i_node].FastGetSolutionStepValue(VELOCITY);
+            VorticityUtilities<TDim>::NodalContributionToVorticityVector(rDN_DX,r_velocity,i_node,r_vorticity);
         }
     }
 }
 
 template<>
-void VorticityUtilities<3>::CalculateVorticityVector(
-    const Geometry<Node<3>>& rGeometry,
-    const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
-    std::vector<array_1d<double,3>>& rVorticities)
+void VorticityUtilities<2>::NodalContributionToVorticityVector(
+    const Matrix& rDN_DX,
+    const array_1d<double, 3 > & rVelocity,
+    const unsigned int iNode,
+    array_1d<double,3>& rVorticity)
 {
-    const unsigned int integration_point_number = rShapeFunctionsGradients.size();
-    if (rVorticities.size() != integration_point_number) {
-        rVorticities.resize(integration_point_number);
-    }
+    rVorticity[2] += rDN_DX(iNode,0)*rVelocity[1] - rDN_DX(iNode,1)*rVelocity[0];
+}
 
-    // Loop on integration points
-    for (unsigned int g = 0; g < integration_point_number; g++) {
-        const auto& rDN_DX = rShapeFunctionsGradients[g];
-        array_1d<double,3>& r_vorticity = rVorticities[g];
-        r_vorticity.clear();
-
-        for (unsigned int iNode = 0; iNode < rGeometry.PointsNumber(); ++iNode) {
-            const array_1d<double, 3 > & rVelocity = rGeometry[iNode].FastGetSolutionStepValue(VELOCITY);
-            r_vorticity[0] += rDN_DX(iNode,1)*rVelocity[2] - rDN_DX(iNode,2)*rVelocity[1];
-            r_vorticity[1] += rDN_DX(iNode,2)*rVelocity[0] - rDN_DX(iNode,0)*rVelocity[2];
-            r_vorticity[2] += rDN_DX(iNode,0)*rVelocity[1] - rDN_DX(iNode,1)*rVelocity[0];
-        }
-    }
+template<>
+void VorticityUtilities<3>::NodalContributionToVorticityVector(
+    const Matrix& rDN_DX,
+    const array_1d<double, 3 > & rVelocity,
+    const unsigned int iNode,
+    array_1d<double,3>& rVorticity)
+{
+    rVorticity[0] += rDN_DX(iNode,1)*rVelocity[2] - rDN_DX(iNode,2)*rVelocity[1];
+    rVorticity[1] += rDN_DX(iNode,2)*rVelocity[0] - rDN_DX(iNode,0)*rVelocity[2];
+    rVorticity[2] += rDN_DX(iNode,0)*rVelocity[1] - rDN_DX(iNode,1)*rVelocity[0];
 }
 
 template class VorticityUtilities<2>;
