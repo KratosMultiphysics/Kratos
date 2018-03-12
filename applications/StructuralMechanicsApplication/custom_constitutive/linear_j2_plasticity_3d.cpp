@@ -93,6 +93,9 @@ double& LinearJ2Plasticity3D::GetValue(
     )
 {
 
+    if(rThisVariable == STRAIN_ENERGY){
+        rValue = mStrainEnergy;
+    }
 
     return rValue;
 }
@@ -120,15 +123,19 @@ void LinearJ2Plasticity3D::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-
+    if(rThisVariable == STRAIN_ENERGY){
+        mStrainEnergy = rValue;
+    }
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2Plasticity3D::InitializeMaterial(const Properties& material_prop,
-                                              const GeometryType& rElementGeometry,
-                                              const Vector& rShapeFunctionsValues)
+void LinearJ2Plasticity3D::InitializeMaterial(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector& rShapeFunctionsValues
+    )
 {
     mPlasticStrainOld = ZeroVector(this->GetStrainSize());
     mAccumulatedPlasticStrainOld = 0.0;
@@ -372,7 +379,7 @@ double LinearJ2Plasticity3D::GetPlasticPotential(const Properties& rMaterialProp
 //************************************************************************************
 
 double LinearJ2Plasticity3D::GetDeltaGamma(
-    const double NormSTrial,
+    const double NormStressTrial,
     const Properties& rMaterialProperties
     )
 {
@@ -392,9 +399,8 @@ double LinearJ2Plasticity3D::GetDeltaGamma(
     while (norm_yieldfunction > tolerance)
     {
         const double k_new = GetSaturationHardening(rMaterialProperties);
-        const double kp_new = theta * hardening_modulus +
-            delta_k * (hardening_exponent * std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
-        const double yieldfunction = - sqrt_two_thirds * k_new + NormSTrial - 2. * mu * dgamma;
+        const double kp_new = theta * hardening_modulus + delta_k * (hardening_exponent * std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
+        const double yieldfunction = - sqrt_two_thirds * k_new + NormStressTrial - 2. * mu * dgamma;
         const double derivative_yieldfunction = -2. * mu * (1. + kp_new / (3. * mu));
         dgamma = dgamma - yieldfunction / derivative_yieldfunction;
         mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld + sqrt_two_thirds * dgamma;
@@ -408,7 +414,7 @@ double LinearJ2Plasticity3D::GetDeltaGamma(
 //************************************************************************************
 
 double LinearJ2Plasticity3D::YieldFunction(
-    const double norm_dev_stress,
+    const double NormDeviationStress,
     const Properties& rMaterialProperties
     )
 {
@@ -418,122 +424,119 @@ double LinearJ2Plasticity3D::YieldFunction(
     const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
     const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
-    const double k_old =
-        yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrainOld) +
+    const double k_old = yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrainOld) +
         (delta_k) * (1. - std::exp(-hardening_exponent * mAccumulatedPlasticStrainOld));
 
-    return norm_dev_stress - k_old * sqrt_two_thirds;
+    return NormDeviationStress - k_old * sqrt_two_thirds;
 }
 
 //************************************************************************************
 //************************************************************************************
 
 void LinearJ2Plasticity3D::CalculateElasticMatrix(
-    Matrix &D,
-    const Properties &props
+    Matrix &rElasticityTensor,
+    const Properties &rMaterialProperties
     )
 {
-    const double E = props[YOUNG_MODULUS];
-    const double poisson_ratio = props[POISSON_RATIO];
+    const double E = rMaterialProperties[YOUNG_MODULUS];
+    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
     const double lambda =
         E * poisson_ratio / ((1. + poisson_ratio) * (1. - 2. * poisson_ratio));
     const double mu = E / (2. + 2. * poisson_ratio);
 
-    if (D.size1() != 6 || D.size2() != 6)
-        D.resize(6, 6, false);
-    D.clear();
+    if (rElasticityTensor.size1() != 6 || rElasticityTensor.size2() != 6)
+        rElasticityTensor.resize(6, 6, false);
+    rElasticityTensor.clear();
 
-    D(0, 0) = lambda + 2. * mu;
-    D(0, 1) = lambda;
-    D(0, 2) = lambda;
-    D(1, 0) = lambda;
-    D(1, 1) = lambda + 2. * mu;
-    D(1, 2) = lambda;
-    D(2, 0) = lambda;
-    D(2, 1) = lambda;
-    D(2, 2) = lambda + 2. * mu;
-    D(3, 3) = mu;
-    D(4, 4) = mu;
-    D(5, 5) = mu;
+    rElasticityTensor(0, 0) = lambda + 2. * mu;
+    rElasticityTensor(0, 1) = lambda;
+    rElasticityTensor(0, 2) = lambda;
+    rElasticityTensor(1, 0) = lambda;
+    rElasticityTensor(1, 1) = lambda + 2. * mu;
+    rElasticityTensor(1, 2) = lambda;
+    rElasticityTensor(2, 0) = lambda;
+    rElasticityTensor(2, 1) = lambda;
+    rElasticityTensor(2, 2) = lambda + 2. * mu;
+    rElasticityTensor(3, 3) = mu;
+    rElasticityTensor(4, 4) = mu;
+    rElasticityTensor(5, 5) = mu;
 }
 
 //************************************************************************************
 //************************************************************************************
 
 void LinearJ2Plasticity3D::CalculateTangentTensor(
-    double dgamma,
-    double NormSTrial,
-    const Vector& N_new,
-    const Properties& props,
-    Matrix& D
+    const double DeltaGamma,
+    const double NormStressTrial,
+    const Vector& YieldFunctionNormalVector,
+    const Properties& rMaterialProperties,
+    Matrix& rElasticityTensor
     )
 {
-    const double hardening_modulus = props[ISOTROPIC_HARDENING_MODULUS];
-    const double theta = props[REFERENCE_HARDENING_MODULUS];
-    const double delta_k = props[INFINITY_HARDENING_MODULUS];
-    const double hardening_exponent = props[HARDENING_EXPONENT];
-    const double E = props[YOUNG_MODULUS];
-    const double poisson_ratio = props[POISSON_RATIO];
+    const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
+    const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
+    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
+    const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
+    const double E = rMaterialProperties[YOUNG_MODULUS];
+    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
     const double mu = E / (2. + 2. * poisson_ratio);
     const double volumetric_modulus = E / (3. * (1. - 2. * poisson_ratio));
 
-    const double kp_new = (theta * hardening_modulus) +
-                    delta_k * (hardening_exponent *
-                               std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
+    const double kp_new = (theta * hardening_modulus) +  delta_k * (hardening_exponent * std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
 
-    const double theta_new = 1 - (2. * mu * dgamma) / NormSTrial;
+    const double theta_new = 1 - (2. * mu * DeltaGamma) / NormStressTrial;
     const double theta_new_b = 1. / (1. + kp_new / (3. * mu)) - (1. - theta_new);
 
-    D(0, 0) = volumetric_modulus + (2 * mu * theta_new * 2. / 3.) -
-              (2 * mu * theta_new_b * (N_new(0) * N_new(0)));
-    D(0, 1) = volumetric_modulus + (2 * mu * theta_new * (-1. / 3.)) -
-              (2 * mu * theta_new_b * (N_new(0) * N_new(1)));
-    D(0, 2) = volumetric_modulus + (2 * mu * theta_new * (-1. / 3.)) -
-              (2 * mu * theta_new_b * (N_new(0) * N_new(2)));
-    D(0, 3) = -(2 * mu * theta_new_b * (N_new(0) * N_new(3)));
-    D(0, 4) = -(2 * mu * theta_new_b * (N_new(0) * N_new(4)));
-    D(0, 5) = -(2 * mu * theta_new_b * (N_new(0) * N_new(5)));
+    rElasticityTensor(0, 0) = volumetric_modulus + (2. *mu * theta_new * 2. / 3.) -
+              (2. *mu * theta_new_b * (YieldFunctionNormalVector(0) * YieldFunctionNormalVector(0)));
+    rElasticityTensor(0, 1) = volumetric_modulus + (2. *mu * theta_new * (-1. / 3.)) -
+              (2. *mu * theta_new_b * (YieldFunctionNormalVector(0) * YieldFunctionNormalVector(1)));
+    rElasticityTensor(0, 2) = volumetric_modulus + (2. *mu * theta_new * (-1. / 3.)) -
+              (2. *mu * theta_new_b * (YieldFunctionNormalVector(0) * YieldFunctionNormalVector(2)));
+    rElasticityTensor(0, 3) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(0) * YieldFunctionNormalVector(3)));
+    rElasticityTensor(0, 4) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(0) * YieldFunctionNormalVector(4)));
+    rElasticityTensor(0, 5) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(0) * YieldFunctionNormalVector(5)));
 
-    D(1, 0) = volumetric_modulus + (2 * mu * theta_new * (-1. / 3.)) -
-              (2 * mu * theta_new_b * (N_new(1) * N_new(0)));
-    D(1, 1) = volumetric_modulus + (2 * mu * theta_new * 2. / 3.) -
-              (2 * mu * theta_new_b * (N_new(1) * N_new(1)));
-    D(1, 2) = volumetric_modulus + (2 * mu * theta_new * (-1. / 3.)) -
-              (2 * mu * theta_new_b * (N_new(1) * N_new(2)));
-    D(1, 3) = -(2 * mu * theta_new_b * (N_new(1) * N_new(3)));
-    D(1, 4) = -(2 * mu * theta_new_b * (N_new(1) * N_new(4)));
-    D(1, 5) = -(2 * mu * theta_new_b * (N_new(1) * N_new(5)));
+    rElasticityTensor(1, 0) = volumetric_modulus + (2. *mu * theta_new * (-1. / 3.)) -
+              (2. *mu * theta_new_b * (YieldFunctionNormalVector(1) * YieldFunctionNormalVector(0)));
+    rElasticityTensor(1, 1) = volumetric_modulus + (2. *mu * theta_new * 2. / 3.) -
+              (2. *mu * theta_new_b * (YieldFunctionNormalVector(1) * YieldFunctionNormalVector(1)));
+    rElasticityTensor(1, 2) = volumetric_modulus + (2. *mu * theta_new * (-1. / 3.)) -
+              (2. *mu * theta_new_b * (YieldFunctionNormalVector(1) * YieldFunctionNormalVector(2)));
+    rElasticityTensor(1, 3) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(1) * YieldFunctionNormalVector(3)));
+    rElasticityTensor(1, 4) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(1) * YieldFunctionNormalVector(4)));
+    rElasticityTensor(1, 5) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(1) * YieldFunctionNormalVector(5)));
 
-    D(2, 0) = volumetric_modulus + (2 * mu * theta_new * (-1. / 3.)) -
-              (2 * mu * theta_new_b * (N_new(2) * N_new(0)));
-    D(2, 1) = volumetric_modulus + (2 * mu * theta_new * (-1. / 3.)) -
-              (2 * mu * theta_new_b * (N_new(2) * N_new(1)));
-    D(2, 2) = volumetric_modulus + (2 * mu * theta_new * 2. / 3.) -
-              (2 * mu * theta_new_b * (N_new(2) * N_new(2)));
-    D(2, 3) = -(2 * mu * theta_new_b * (N_new(2) * N_new(3)));
-    D(2, 4) = -(2 * mu * theta_new_b * (N_new(2) * N_new(4)));
-    D(2, 5) = -(2 * mu * theta_new_b * (N_new(2) * N_new(5)));
+    rElasticityTensor(2, 0) = volumetric_modulus + (2. *mu * theta_new * (-1. / 3.)) -
+              (2. *mu * theta_new_b * (YieldFunctionNormalVector(2) * YieldFunctionNormalVector(0)));
+    rElasticityTensor(2, 1) = volumetric_modulus + (2. *mu * theta_new * (-1. / 3.)) -
+              (2. *mu * theta_new_b * (YieldFunctionNormalVector(2) * YieldFunctionNormalVector(1)));
+    rElasticityTensor(2, 2) = volumetric_modulus + (2. *mu * theta_new * 2. / 3.) -
+              (2. *mu * theta_new_b * (YieldFunctionNormalVector(2) * YieldFunctionNormalVector(2)));
+    rElasticityTensor(2, 3) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(2) * YieldFunctionNormalVector(3)));
+    rElasticityTensor(2, 4) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(2) * YieldFunctionNormalVector(4)));
+    rElasticityTensor(2, 5) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(2) * YieldFunctionNormalVector(5)));
 
-    D(3, 0) = -(2 * mu * theta_new_b * (N_new(3) * N_new(0)));
-    D(3, 1) = -(2 * mu * theta_new_b * (N_new(3) * N_new(1)));
-    D(3, 2) = -(2 * mu * theta_new_b * (N_new(3) * N_new(2)));
-    D(3, 3) = mu * theta_new - (2 * mu * theta_new_b * (N_new(3) * N_new(3)));
-    D(3, 4) = -(2 * mu * theta_new_b * (N_new(3) * N_new(4)));
-    D(3, 5) = -(2 * mu * theta_new_b * (N_new(3) * N_new(5)));
+    rElasticityTensor(3, 0) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(3) * YieldFunctionNormalVector(0)));
+    rElasticityTensor(3, 1) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(3) * YieldFunctionNormalVector(1)));
+    rElasticityTensor(3, 2) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(3) * YieldFunctionNormalVector(2)));
+    rElasticityTensor(3, 3) = mu * theta_new - (2. * mu * theta_new_b * (YieldFunctionNormalVector(3) * YieldFunctionNormalVector(3)));
+    rElasticityTensor(3, 4) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(3) * YieldFunctionNormalVector(4)));
+    rElasticityTensor(3, 5) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(3) * YieldFunctionNormalVector(5)));
 
-    D(4, 0) = -(2 * mu * theta_new_b * (N_new(4) * N_new(0)));
-    D(4, 1) = -(2 * mu * theta_new_b * (N_new(4) * N_new(1)));
-    D(4, 2) = -(2 * mu * theta_new_b * (N_new(4) * N_new(2)));
-    D(4, 3) = -(2 * mu * theta_new_b * (N_new(4) * N_new(3)));
-    D(4, 4) = mu * theta_new - (2 * mu * theta_new_b * (N_new(4) * N_new(4)));
-    D(4, 5) = -(2 * mu * theta_new_b * (N_new(4) * N_new(5)));
+    rElasticityTensor(4, 0) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(4) * YieldFunctionNormalVector(0)));
+    rElasticityTensor(4, 1) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(4) * YieldFunctionNormalVector(1)));
+    rElasticityTensor(4, 2) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(4) * YieldFunctionNormalVector(2)));
+    rElasticityTensor(4, 3) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(4) * YieldFunctionNormalVector(3)));
+    rElasticityTensor(4, 4) = mu * theta_new - (2. * mu * theta_new_b * (YieldFunctionNormalVector(4) * YieldFunctionNormalVector(4)));
+    rElasticityTensor(4, 5) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(4) * YieldFunctionNormalVector(5)));
 
-    D(5, 0) = -(2 * mu * theta_new_b * (N_new(5) * N_new(0)));
-    D(5, 1) = -(2 * mu * theta_new_b * (N_new(5) * N_new(1)));
-    D(5, 2) = -(2 * mu * theta_new_b * (N_new(5) * N_new(2)));
-    D(5, 3) = -(2 * mu * theta_new_b * (N_new(5) * N_new(3)));
-    D(5, 4) = -(2 * mu * theta_new_b * (N_new(5) * N_new(4)));
-    D(5, 5) = mu * theta_new - (2 * mu * theta_new_b * (N_new(5) * N_new(5)));
+    rElasticityTensor(5, 0) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(5) * YieldFunctionNormalVector(0)));
+    rElasticityTensor(5, 1) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(5) * YieldFunctionNormalVector(1)));
+    rElasticityTensor(5, 2) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(5) * YieldFunctionNormalVector(2)));
+    rElasticityTensor(5, 3) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(5) * YieldFunctionNormalVector(3)));
+    rElasticityTensor(5, 4) = -(2. *mu * theta_new_b * (YieldFunctionNormalVector(5) * YieldFunctionNormalVector(4)));
+    rElasticityTensor(5, 5) = mu * theta_new - (2. * mu * theta_new_b * (YieldFunctionNormalVector(5) * YieldFunctionNormalVector(5)));
 }
 
 //************************************************************************************

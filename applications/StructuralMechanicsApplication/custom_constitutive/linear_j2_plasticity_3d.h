@@ -323,12 +323,12 @@ protected:
     ///@name Member Variables
     ///@{
 
-    bool mInelasticFlag;
-    double mStrainEnergy;
-    Vector mPlasticStrain;
-    Vector mPlasticStrainOld;
-    double mAccumulatedPlasticStrain;
-    double mAccumulatedPlasticStrainOld;
+    bool mInelasticFlag;                 /// This flags tells if we are in a elastic or ineslastic regime
+    double mStrainEnergy;                /// The current strain energy
+    Vector mPlasticStrain;               /// The current plastic strain (one for each of the strain components)
+    Vector mPlasticStrainOld;            /// The previous plastic strain (one for each of the strain components)
+    double mAccumulatedPlasticStrain;    /// The current accumulated plastic strain
+    double mAccumulatedPlasticStrainOld; /// The previous accumulated plastic strain
 
     ///@name Private Operators
     ///@{
@@ -337,21 +337,67 @@ protected:
     ///@name Private Operations
     ///@{
 
-    double YieldFunction(const double, const Properties& rMaterialProperties);
+    /**
+     * @brief This method computes the yield function
+     * @param NormDeviationStress The norm of the deviation stress
+     * @param rMaterialProperties The properties of the current material considered
+     * @return The trial yield function (after update)
+     */
+    double YieldFunction(
+        const double NormDeviationStress,
+        const Properties& rMaterialProperties
+        );
 
-    double GetDeltaGamma(const double NormSTrial, const Properties& rMaterialProperties);
+    /**
+     * @brief This method computes the increment of Gamma
+     * @param NormStressTrial The norm of the stress trial
+     * @param rMaterialProperties The properties of the material
+     * @return The increment of Gamma computed
+     */
+    double GetDeltaGamma(
+        const double NormStressTrial,
+        const Properties& rMaterialProperties
+        );
 
+    /**
+     * @brief This method gets the saturation hardening parameter
+     * @param rMaterialProperties The properties of the material
+     * @return The saturation hardening parameter
+     */
     double GetSaturationHardening(const Properties& rMaterialProperties);
 
+    /**
+     * @brief This method computes the plastic potential
+     * @param rMaterialProperties The properties of the material
+     * @return The plastic potential
+     */
     double GetPlasticPotential(const Properties& rMaterialProperties);
 
-    virtual void CalculateTangentTensor(double dgamma,
-                                        double NormSTrial,
-                                        const Vector& N_new,
-                                        const Properties& props,
-                                        Matrix& D);
+    /**
+     * @brief This method computes the plastic potential
+     * @param DeltaGamma The increment on the Gamma parameter
+     * @param NormStressTrial The norm of the stress trial
+     * @param YieldFunctionNormalVector The yield function normal vector
+     * @param rMaterialProperties The properties of the material
+     * @param rElasticityTensor The elastic tensor/matrix to be computed
+     */
+    virtual void CalculateTangentTensor(
+        const double DeltaGamma,
+        const double NormStressTrial,
+        const Vector& YieldFunctionNormalVector,
+        const Properties& rMaterialProperties,
+        Matrix& rElasticityTensor
+        );
 
-    virtual void CalculateElasticMatrix(Matrix &ElasticityTensor, const Properties &props);
+    /**
+     * @brief This method computes the elastic tensor
+     * @param rElasticityTensor The elastic tensor/matrix to be computed
+     * @param rMaterialProperties The properties of the material
+     */
+    virtual void CalculateElasticMatrix(
+        Matrix &rElasticityTensor,
+        const Properties &rMaterialProperties
+        );
 
     ///@}
     ///@name Private  Access
