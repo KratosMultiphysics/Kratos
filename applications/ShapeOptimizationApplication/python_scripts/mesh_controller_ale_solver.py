@@ -23,6 +23,7 @@ CheckForPreviousImport()
 import time as timer
 
 from mesh_controller_base import MeshController
+from ale_analysis import ALEAnalysis
 
 # # ==============================================================================
 class MeshControllerUsingALESolver( MeshController) :
@@ -32,30 +33,39 @@ class MeshControllerUsingALESolver( MeshController) :
 
         default_settings = Parameters("""
         {
-            "solver_type" : "mesh_solver_structural_similarity",
-            "ale_linear_solver_settings" : {
-                "solver_type" : "AMGCL",
-                "smoother_type":"ilu0",
-                "krylov_type": "gmres",
-                "coarsening_type": "aggregation",
-                "max_iteration": 200,
-                "verbosity" : 0,
-                "tolerance": 1e-7
+            "apply_ale_mesh_solver" : true,
+            "problem_data" : {
+                "echo_level" : 0,
+                "time_step" : 1.1,
+                "start_time" : 0.0,
+                "end_time" : 1.0,
+                "parallel_type" : "OpenMP"
             },
-            "compute_reactions"         : false,
-            "calculate_mesh_velocities" : false
+            "solver_settings" : {
+                "solver_type" : "mesh_solver_structural_similarity",
+                "ale_linear_solver_settings" : {
+                    "solver_type" : "AMGCL",
+                    "smoother_type":"ilu0",
+                    "krylov_type": "gmres",
+                    "coarsening_type": "aggregation",
+                    "max_iteration": 200,
+                    "verbosity" : 0,
+                    "tolerance": 1e-7
+                },
+                "compute_reactions"         : false,
+                "calculate_mesh_velocities" : false
+            }
         }""")
         self.MeshSolverSettings = MeshSolverSettings
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
 
-        mesh_solver_module = __import__(self.MeshSolverSettings["solver_type"].GetString())
-        self.mesh_solver = mesh_solver_module.CreateSolver(self.OptimizationModelPart, self.MeshSolverSettings)
+        self.MeshSolverSettings["problem_data"].AddEmptyValue("domain_size")
+        self.MeshSolverSettings["problem_data"]["domain_size"].SetInt( self.OptimizationModelPart.ProcessInfo[DOMAIN_SIZE] )
 
-        self.mesh_solver.AddVariables()
+        self.mesh_solver = ALEAnalysis( self.MeshSolverSettings, self.OptimizationModelPart )
 
     # --------------------------------------------------------------------------
     def Initialize( self ):
-        self.mesh_solver.AddDofs()
         self.mesh_solver.Initialize()
 
     # --------------------------------------------------------------------------
@@ -74,10 +84,16 @@ class MeshControllerUsingALESolver( MeshController) :
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Z, True, surface_nodes)
         VariableUtils().CopyVectorVar(SHAPE_UPDATE, MESH_DISPLACEMENT, surface_nodes)
 
-        self.mesh_solver.Solve()
+        self.mesh_solver.InitializeTimeStep()
+        self.mesh_solver.SolveTimeStep()
+        self.mesh_solver.FinalizeTimeStep()
 
         MeshControllerUtilities( self.OptimizationModelPart ).LogMeshChangeAccordingInputVariable( MESH_DISPLACEMENT )
 
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
+
+    # --------------------------------------------------------------------------
+    def Finalize( self ):
+        self.mesh_solver.Finalize()
 
 # ==============================================================================
