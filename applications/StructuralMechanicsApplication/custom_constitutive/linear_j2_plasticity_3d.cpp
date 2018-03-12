@@ -66,6 +66,9 @@ bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
     if(rThisVariable == STRAIN_ENERGY){
         return true;
     }
+    if(rThisVariable == PLASTIC_STRAIN){
+        return true;
+    }
     return false;
 }
 
@@ -96,6 +99,9 @@ double& LinearJ2Plasticity3D::GetValue(
     if(rThisVariable == STRAIN_ENERGY){
         rValue = mStrainEnergy;
     }
+    if(rThisVariable == PLASTIC_STRAIN){
+        rValue = mAccumulatedPlasticStrain;
+    }
 
     return rValue;
 }
@@ -125,6 +131,9 @@ void LinearJ2Plasticity3D::SetValue(
 {
     if(rThisVariable == STRAIN_ENERGY){
         mStrainEnergy = rValue;
+    }
+    if(rThisVariable == PLASTIC_STRAIN){
+        mAccumulatedPlasticStrain = rValue;
     }
 }
 
@@ -311,6 +320,9 @@ double& LinearJ2Plasticity3D::CalculateValue(
         //CalculatePK2Stress( StrainVector, StressVector, E, NU );
         //rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
         rValue = mStrainEnergy;
+    }
+    if(rThisVariable == PLASTIC_STRAIN){
+        rValue = mAccumulatedPlasticStrain;
     }
     return(rValue);
 }
