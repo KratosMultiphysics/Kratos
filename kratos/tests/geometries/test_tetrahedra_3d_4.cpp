@@ -504,10 +504,23 @@ namespace Kratos {
         // Compute the baricentre local coordinates
         array_1d<double, 3> baricentre_local_coords_face_3;
         geom->PointLocalCoordinates(baricentre_local_coords_face_3, baricentre_face_3);
-        
+
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_3(0), 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_3(1), 0.5, TOLERANCE);
         KRATOS_CHECK_NEAR(baricentre_local_coords_face_3(2), 0.5, TOLERANCE);
+
+        Point outside_point;
+        outside_point.Coordinates()[0] = 0.5;
+        outside_point.Coordinates()[1] = 0.5;
+        outside_point.Coordinates()[2] = 0.5;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> local_coords_outside_point;
+        geom->PointLocalCoordinates(local_coords_outside_point, outside_point);
+
+        KRATOS_CHECK_NEAR(local_coords_outside_point(0), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(local_coords_outside_point(1), 0.5, TOLERANCE);
+        KRATOS_CHECK_NEAR(local_coords_outside_point(2), 0.5, TOLERANCE);
     }
 
 	}
