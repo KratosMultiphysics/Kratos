@@ -27,12 +27,29 @@ from mesh_controller_base import MeshController
 # # ==============================================================================
 class MeshControllerUsingALESolver( MeshController) :
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, MeshMotionSettings ):
+    def __init__( self, OptimizationModelPart, MeshSolverSettings ):
         self.OptimizationModelPart = OptimizationModelPart
-        self.MeshMotionSettings = MeshMotionSettings
 
-        mesh_solver_module = __import__(self.MeshMotionSettings["mesh_solver_settings"]["solver_type"].GetString())
-        self.mesh_solver = mesh_solver_module.CreateSolver(self.OptimizationModelPart, self.MeshMotionSettings["mesh_solver_settings"])
+        default_settings = Parameters("""
+        {
+            "solver_type" : "mesh_solver_structural_similarity",
+            "ale_linear_solver_settings" : {
+                "solver_type" : "AMGCL",
+                "smoother_type":"ilu0",
+                "krylov_type": "gmres",
+                "coarsening_type": "aggregation",
+                "max_iteration": 200,
+                "verbosity" : 0,
+                "tolerance": 1e-7
+            },
+            "compute_reactions"         : false,
+            "calculate_mesh_velocities" : false
+        }""")
+        self.MeshSolverSettings = MeshSolverSettings
+        self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
+
+        mesh_solver_module = __import__(self.MeshSolverSettings["solver_type"].GetString())
+        self.mesh_solver = mesh_solver_module.CreateSolver(self.OptimizationModelPart, self.MeshSolverSettings)
 
         self.mesh_solver.AddVariables()
 
@@ -40,7 +57,6 @@ class MeshControllerUsingALESolver( MeshController) :
     def Initialize( self ):
         self.mesh_solver.AddDofs()
         self.mesh_solver.Initialize()
-        self.mesh_solver.SetEchoLevel(0)
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
@@ -58,14 +74,7 @@ class MeshControllerUsingALESolver( MeshController) :
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Z, True, surface_nodes)
         VariableUtils().CopyVectorVar(SHAPE_UPDATE, MESH_DISPLACEMENT, surface_nodes)
 
-        # A DELTA_TIME is set to an arbitrary value since the mesh solver computes mesh velocities (which are not needed here)
-        original_delta = self.OptimizationModelPart.ProcessInfo[DELTA_TIME]
-        self.OptimizationModelPart.ProcessInfo[DELTA_TIME] = 1
-
         self.mesh_solver.Solve()
-
-        # The modified DELTA_TIME is restored again
-        self.OptimizationModelPart.ProcessInfo[DELTA_TIME] = original_delta
 
         MeshControllerUtilities( self.OptimizationModelPart ).LogMeshChangeAccordingInputVariable( MESH_DISPLACEMENT )
 

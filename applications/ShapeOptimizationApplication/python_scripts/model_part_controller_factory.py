@@ -38,7 +38,7 @@ class ModelPartController:
         MeshMotionSettings = self.OptimizationSettings["design_variables"]["mesh_motion"]
         if MeshMotionSettings["apply_ale_mesh_solver"].GetBool():
             from mesh_controller_ale_solver import MeshControllerUsingALESolver
-            self.MeshController = MeshControllerUsingALESolver( self.OptimizationModelPart, MeshMotionSettings)
+            self.MeshController = MeshControllerUsingALESolver( self.OptimizationModelPart, MeshMotionSettings["mesh_solver_settings"])
         else:
             from mesh_controller_basic_updating import MeshControllerBasicUpdating
             self.MeshController = MeshControllerBasicUpdating( self.OptimizationModelPart )
