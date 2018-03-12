@@ -50,11 +50,8 @@ LinearJ2Plasticity3D::~LinearJ2Plasticity3D()
 //************************************************************************************
 //************************************************************************************
 
-bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
+bool LinearJ2Plasticity3D::Has(const Variable<bool>& rThisVariable)
 {
-    if(rThisVariable == STRAIN_ENERGY){
-        return true;
-    }
     if(rThisVariable == INELASTIC_FLAG){
         return true;
     }
@@ -64,8 +61,21 @@ bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
-double& LinearJ2Plasticity3D::GetValue(const Variable<double>& rThisVariable,
-                                       double& rValue)
+bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
+{
+    if(rThisVariable == STRAIN_ENERGY){
+        return true;
+    }
+    return false;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+bool& LinearJ2Plasticity3D::GetValue(
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
 {
     if(rThisVariable == INELASTIC_FLAG){
         rValue = mInelasticFlag;
@@ -74,6 +84,48 @@ double& LinearJ2Plasticity3D::GetValue(const Variable<double>& rThisVariable,
     return rValue;
 }
 
+//************************************************************************************
+//************************************************************************************
+
+double& LinearJ2Plasticity3D::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
+    )
+{
+
+
+    return rValue;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::SetValue(
+    const Variable<bool>& rThisVariable,
+    const bool& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if(rThisVariable == INELASTIC_FLAG){
+        mInelasticFlag = rValue;
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::InitializeMaterial(const Properties& material_prop,
                                               const GeometryType& rElementGeometry,
                                               const Vector& rShapeFunctionsValues)
@@ -81,6 +133,9 @@ void LinearJ2Plasticity3D::InitializeMaterial(const Properties& material_prop,
     mPlasticStrainOld = ZeroVector(this->GetStrainSize());
     mAccumulatedPlasticStrainOld = 0.0;
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LinearJ2Plasticity3D::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
@@ -92,20 +147,32 @@ void LinearJ2Plasticity3D::FinalizeSolutionStep(
     mAccumulatedPlasticStrainOld = mAccumulatedPlasticStrain;
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::CalculateMaterialResponsePK1(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LinearJ2Plasticity3D::CalculateMaterialResponsePK2(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::CalculateMaterialResponseKirchhoff(Parameters& rValues)
 {
     CalculateMaterialResponseCauchy(rValues);
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
@@ -157,7 +224,7 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
                                            2. * stress_trial_dev(3) * stress_trial_dev(3) +
                                            2. * stress_trial_dev(4) * stress_trial_dev(4) +
                                            2. * stress_trial_dev(5) * stress_trial_dev(5));
-        trial_yield_function = this->yieldFunction(norm_dev_stress, rMaterialProperties);
+        trial_yield_function = this->YieldFunction(norm_dev_stress, rMaterialProperties);
 
         if (trial_yield_function <= 0.) {
             // ELASTIC
@@ -211,13 +278,19 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
         }
 
     // Linear + exponential hardening
-    mStrainEnergy = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain))
-                    + GetPlasticPotential(rMaterialProperties);
+    mStrainEnergy = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain)) + GetPlasticPotential(rMaterialProperties);
     }
 }
 
-double& LinearJ2Plasticity3D::CalculateValue(Parameters& rParameterValues,
-        const Variable<double>& rThisVariable, double& rValue) {
+//************************************************************************************
+//************************************************************************************
+
+double& LinearJ2Plasticity3D::CalculateValue(
+    Parameters& rParameterValues,
+    const Variable<double>& rThisVariable,
+    double& rValue
+    )
+{
 
     //const Properties& MaterialProperties = rParameterValues.GetMaterialProperties();
     //Vector& StrainVector = rParameterValues.GetStrainVector();
@@ -235,21 +308,36 @@ double& LinearJ2Plasticity3D::CalculateValue(Parameters& rParameterValues,
     return(rValue);
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LinearJ2Plasticity3D::FinalizeMaterialResponsePK2(Parameters& rValues)
 {
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 {
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
 }
+
+//************************************************************************************
+//************************************************************************************
 
 double LinearJ2Plasticity3D::GetSaturationHardening(const Properties& rMaterialProperties)
 {
@@ -264,6 +352,9 @@ double LinearJ2Plasticity3D::GetSaturationHardening(const Properties& rMaterialP
     return k_new;
 }
 
+//************************************************************************************
+//************************************************************************************
+
 double LinearJ2Plasticity3D::GetPlasticPotential(const Properties& rMaterialProperties)
 {
     const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
@@ -277,8 +368,13 @@ double LinearJ2Plasticity3D::GetPlasticPotential(const Properties& rMaterialProp
     return wp_new;
 }
 
-double LinearJ2Plasticity3D::GetDeltaGamma(double NormSTrial,
-                                           const Properties& rMaterialProperties)
+//************************************************************************************
+//************************************************************************************
+
+double LinearJ2Plasticity3D::GetDeltaGamma(
+    const double NormSTrial,
+    const Properties& rMaterialProperties
+    )
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
@@ -308,8 +404,13 @@ double LinearJ2Plasticity3D::GetDeltaGamma(double NormSTrial,
     return dgamma;
 }
 
-double LinearJ2Plasticity3D::yieldFunction(const double norm_dev_stress,
-                                           const Properties& rMaterialProperties)
+//************************************************************************************
+//************************************************************************************
+
+double LinearJ2Plasticity3D::YieldFunction(
+    const double norm_dev_stress,
+    const Properties& rMaterialProperties
+    )
 {
     const double sqrt_two_thirds = std::sqrt(2.0 / 3.0);
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
@@ -324,7 +425,13 @@ double LinearJ2Plasticity3D::yieldFunction(const double norm_dev_stress,
     return norm_dev_stress - k_old * sqrt_two_thirds;
 }
 
-void LinearJ2Plasticity3D::CalculateElasticMatrix(Matrix &D, const Properties &props)
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::CalculateElasticMatrix(
+    Matrix &D,
+    const Properties &props
+    )
 {
     const double E = props[YOUNG_MODULUS];
     const double poisson_ratio = props[POISSON_RATIO];
@@ -350,8 +457,16 @@ void LinearJ2Plasticity3D::CalculateElasticMatrix(Matrix &D, const Properties &p
     D(5, 5) = mu;
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::CalculateTangentTensor(
-    double dgamma, double NormSTrial, const Vector& N_new, const Properties& props, Matrix& D)
+    double dgamma,
+    double NormSTrial,
+    const Vector& N_new,
+    const Properties& props,
+    Matrix& D
+    )
 {
     const double hardening_modulus = props[ISOTROPIC_HARDENING_MODULUS];
     const double theta = props[REFERENCE_HARDENING_MODULUS];
@@ -421,6 +536,9 @@ void LinearJ2Plasticity3D::CalculateTangentTensor(
     D(5, 5) = mu * theta_new - (2 * mu * theta_new_b * (N_new(5) * N_new(5)));
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::GetLawFeatures(Features& rFeatures)
 {
     rFeatures.mOptions.Set(THREE_DIMENSIONAL_LAW);
@@ -431,9 +549,14 @@ void LinearJ2Plasticity3D::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = 3;
 }
 
-int LinearJ2Plasticity3D::Check(const Properties& rMaterialProperties,
-                                const GeometryType& rElementGeometry,
-                                const ProcessInfo& rCurrentProcessInfo)
+//************************************************************************************
+//************************************************************************************
+
+int LinearJ2Plasticity3D::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    )
 {
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
@@ -446,6 +569,9 @@ int LinearJ2Plasticity3D::Check(const Properties& rMaterialProperties,
     return 0;
 }
 
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
@@ -456,6 +582,9 @@ void LinearJ2Plasticity3D::save(Serializer& rSerializer) const
     rSerializer.save("mAccumulatedPlasticStrain", mAccumulatedPlasticStrain);
     rSerializer.save("mAccumulatedPlasticStrainOld", mAccumulatedPlasticStrainOld);
 }
+
+//************************************************************************************
+//************************************************************************************
 
 void LinearJ2Plasticity3D::load(Serializer& rSerializer)
 {

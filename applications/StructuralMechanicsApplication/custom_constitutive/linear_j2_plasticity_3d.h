@@ -130,7 +130,22 @@ public:
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
+    bool Has(const Variable<bool>& rThisVariable) override;
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
     bool Has(const Variable<double>& rThisVariable) override;
+
+    /**
+     * @brief Returns the value of a specified variable (integer)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
     /**
      * @brief Returns the value of a specified variable (double)
@@ -139,6 +154,30 @@ public:
      * @return rValue output: the value of the specified variable
      */
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
+
+    /**
+     * @brief Sets the value of a specified variable (boolean)
+     * @param rThisVariable The variable to be returned
+     * @param rValue New value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<bool>& rThisVariable,
+        const bool& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rThisVariable The variable to be returned
+     * @param rValue New value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    void SetValue(
+        const Variable<double>& rThisVariable,
+        const double& rValue,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     /**
      * @brief This is to be called at the very beginning of the calculation
@@ -298,9 +337,9 @@ protected:
     ///@name Private Operations
     ///@{
 
-    double yieldFunction(const double, const Properties& rMaterialProperties);
+    double YieldFunction(const double, const Properties& rMaterialProperties);
 
-    double GetDeltaGamma(double NormSTrial, const Properties& rMaterialProperties);
+    double GetDeltaGamma(const double NormSTrial, const Properties& rMaterialProperties);
 
     double GetSaturationHardening(const Properties& rMaterialProperties);
 
