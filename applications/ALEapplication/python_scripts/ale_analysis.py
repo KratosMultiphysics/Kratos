@@ -141,7 +141,9 @@ class ALEAnalysis(object): # TODO in the future this could derive from a BaseCla
 
         ## Processes construction
         import process_factory
-        self.list_of_processes = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(self.ProjectParameters["boundary_conditions_process_list"])
+        self.list_of_processes = []
+        if (self.ProjectParameters.Has("boundary_conditions_process_list") == True):
+            self.list_of_processes = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(self.ProjectParameters["boundary_conditions_process_list"])
         if (self.ProjectParameters.Has("list_other_processes") == True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
         if (self.ProjectParameters.Has("json_output_process") == True):
