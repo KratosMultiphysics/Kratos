@@ -121,12 +121,12 @@ int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 3 > > const& rVariable,
-                                            std::vector<array_1d<double, 3 > >& rValues,
-                                            ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<array_1d<double, 3 > > const& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
-    if (rVariable == SUBSCALE_VELOCITY)
-    {
+    if (rVariable == SUBSCALE_VELOCITY) {
         // Get Shape function data
         Vector GaussWeights;
         Matrix ShapeFunctions;
@@ -146,32 +146,19 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 
             this->SubscaleVelocity(data, rCurrentProcessInfo, rValues[g]);
         }
     }
-    else if (rVariable == VORTICITY)
-    {
-        // Get Shape function data
-        Vector GaussWeights;
-        Matrix ShapeFunctions;
-        ShapeFunctionDerivativesArrayType ShapeDerivatives;
-        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-        const unsigned int NumGauss = GaussWeights.size();
-
-        rValues.resize(NumGauss);
-
-        for (unsigned int g = 0; g < NumGauss; g++)
-        {
-            this->IntegrationPointVorticity(ShapeDerivatives[g],rValues[g]);
-        }
+    else {
+        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                            std::vector<double>& rValues,
-                                            ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<double> const& rVariable,
+    std::vector<double>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
-    if (rVariable == SUBSCALE_PRESSURE)
-    {
+    if (rVariable == SUBSCALE_PRESSURE) {
         // Get Shape function data
         Vector GaussWeights;
         Matrix ShapeFunctions;
@@ -192,86 +179,36 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<double> const& rV
         }
 
     }
-    else if (rVariable == Q_VALUE)
-    {
-		Vector GaussWeights;
-		Matrix ShapeFunctions;
-		ShapeFunctionDerivativesArrayType ShapeDerivatives;
-		this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-		const unsigned int NumGauss = GaussWeights.size();
-
-		rValues.resize(NumGauss);
-		Matrix GradVel;
-
-		// Loop on integration points
-		for (unsigned int g = 0; g < NumGauss; g++)
-		{
-			GradVel = ZeroMatrix(Dim,Dim);
-			const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
-
-			// Compute velocity gradient
-			for (unsigned int i=0; i < Dim; ++i)
-				for (unsigned int j=0; j < Dim; ++j)
-					for (unsigned int iNode=0; iNode < NumNodes; ++iNode)
-					{
-						array_1d<double,3>& Vel =
-							this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-						GradVel(i,j) += Vel[i] * rDN_DX(iNode,j);
-					}
-
-			// Compute Q-value
-			double qval = 0.0;
-			for (unsigned int i=0; i < Dim; ++i)
-				for (unsigned int j=0; j < Dim; ++j)
-					qval += GradVel(i,j) * GradVel(j,i);
-
-			qval *= -0.5;
-			rValues[g] = qval;
-		}
-	}
-	else if (rVariable == VORTICITY_MAGNITUDE)
-	{
-		Vector GaussWeights;
-		Matrix ShapeFunctions;
-		ShapeFunctionDerivativesArrayType ShapeDerivatives;
-		this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-		const unsigned int NumGauss = GaussWeights.size();
-
-		rValues.resize(NumGauss);
-		
-  		// Loop on integration points
-		for (unsigned int g = 0; g < NumGauss; g++)
-		{
-			const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
-			array_1d<double,3> Vorticity(3,0.0);
-
-            this->IntegrationPointVorticity(rDN_DX,Vorticity);
-
-			rValues[g] = sqrt(Vorticity[0] * Vorticity[0] + Vorticity[1] * Vorticity[1]
-					+ Vorticity[2] * Vorticity[2]);
-		}
-	}
+    else {
+        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    }
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                                    std::vector<array_1d<double, 6>>& rValues,
-                                                    ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<array_1d<double, 6>> const& rVariable,
+    std::vector<array_1d<double, 6>>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
+    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                                    std::vector<Vector>& rValues,
-                                                    ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<Vector> const& rVariable,
+    std::vector<Vector>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
+    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                                    std::vector<Matrix>& rValues,
-                                                    ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<Matrix> const& rVariable,
+    std::vector<Matrix>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
+    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
