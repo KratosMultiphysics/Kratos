@@ -112,12 +112,12 @@ namespace Kratos
 
 	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 
 	if( dimension == 2 ){
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	}
 	else{
+          rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));

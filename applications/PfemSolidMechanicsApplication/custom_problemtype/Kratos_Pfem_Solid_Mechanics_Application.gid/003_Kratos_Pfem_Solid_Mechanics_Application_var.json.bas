@@ -321,7 +321,7 @@
 			}
 		    },
 		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
-                    "contact_sub_model_part_list" : [
+                    "contact_bodies_list" : [
 *set cond group_DeformableBodies *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
