@@ -39,10 +39,6 @@ public:
     /// Pointer definition of VorticityUtilities
     KRATOS_CLASS_POINTER_DEFINITION(VorticityUtilities);
 
-
-    /// Type for a matrix containing the shape function gradients
-    typedef Kratos::Matrix ShapeFunctionDerivativesType;
-
     /// Type for an array of shape function gradient matrices
     typedef Geometry< Node<3> >::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
@@ -70,18 +66,20 @@ public:
     ///@name Operations
     ///@{
 
-    static double CalculateQValue(
+    static void CalculateQValue(
         const Geometry<Node<3>>& rGeometry,
-        const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients);
+        const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
+        std::vector<double>& rQValues);
 
-    static double CalculateVorticityMagnitude(
+    static void CalculateVorticityMagnitude(
         const Geometry<Node<3>>& rGeometry,
-        const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients);
+        const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
+        std::vector<double>& rVorticityMagnitudes);
 
     static void CalculateVorticityVector(
         const Geometry<Node<3>>& rGeometry,
         const ShapeFunctionDerivativesArrayType& rShapeFunctionsGradients,
-        array_1d<double,3>& rVorticity);
+        std::vector<array_1d<double,3>>& rVorticities);
 
     ///@}
 
