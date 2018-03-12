@@ -50,7 +50,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         for i in range(materials["properties"].size()):
             data = materials["properties"][i]
 
-            if self.__InterpolationIsRequired(data):
+            if InterpolationIsRequired(data):
                 self.__AssignPropertyBlockInterpolated(data)
             else:
                 self.__AssignPropertyBlock(data)
@@ -102,13 +102,13 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         mat = data["Material"]
 
         # Set the CONSTITUTIVE_LAW for the current properties.
-        constitutive_law = self.__GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
+        constitutive_law = GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
 
         prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, constitutive_law.Clone())
 
         # Add / override the values of material parameters in the properties
-        for key, value in mat["Variables"].items():
-            var = self.__GetVariable(key)
+        for var_name, value in mat["Variables"].items():
+            var = GetVariable(var_name)
             if value.IsDouble():
                 prop.SetValue( var, value.GetDouble() )
             elif value.IsInt():
@@ -122,21 +122,19 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             elif value.IsVector():
                 prop.SetValue( var, value.GetVector() )
             else:
-                raise TypeError("Type of value is not available for " + key)
+                raise TypeError("Type of value is not available for " + var_name)
 
         # Add / override tables in the properties
-        for key, table in mat["Tables"].items():
-            table_name = key
+        for table_name, table_data in mat["Tables"].items():
+            input_variable = GetVariable(table_data["input_variable"].GetString())
+            output_variable = GetVariable(table_data["output_variable"].GetString())
 
-            input_var = self.__GetVariable(table["input_variable"].GetString())
-            output_var = self.__GetVariable(table["output_variable"].GetString())
+            CheckTableVariableType(input_variable, table_name)
+            CheckTableVariableType(output_variable, table_name)
 
-            new_table = KratosMultiphysics.PiecewiseLinearTable()
+            table = GetTable(table_data)
 
-            for i in range(table["data"].size()):
-                new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
-
-            prop.SetTable(input_var,output_var,new_table)
+            prop.SetTable(input_variable, output_variable, table)
 
     def __AssignPropertyBlockInterpolated(self, data):
         """Set constitutive law and material properties and assign to elements and conditions.
@@ -192,11 +190,11 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         mat = data["Material"]
 
         # Get the Constitutive Law
-        constitutive_law = self.__GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
+        constitutive_law = GetConstitutiveLaw( mat["constitutive_law"]["name"].GetString() )
 
         # Set the tables to the ModelPart
         table_dict = {}
-        self.__AssignTablesToModelPart(root_model_part, mat, table_dict)
+        AssignTablesToModelPart(root_model_part, mat, table_dict)
 
         # Assign the properties to the model part's elements and conditions.
         for elem in model_part.Elements:
@@ -206,7 +204,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
             elem.Properties = elem_props
 
-            self.__AssignInterpolatedProperties(mat, table_dict, elem, elem_props)
+            AssignInterpolatedProperties(mat, table_dict, elem, elem_props)
 
         for cond in model_part.Conditions:
             current_number_props = root_model_part.NumberOfProperties()
@@ -215,348 +213,357 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
 
             cond.Properties = cond_props
 
-            self.__AssignInterpolatedProperties(mat, table_dict, cond, cond_props)
+            AssignInterpolatedProperties(mat, table_dict, cond, cond_props)
 
-    def __GetAttribute(self, my_string, function_pointer, attribute_type):
-        """Return the python object named by the string argument.
+def GetAttribute(my_string, function_pointer, attribute_type):
+    """Return the python object named by the string argument.
 
-        To be used with functions from KratosGlobals
+    To be used with functions from KratosGlobals
 
-        Examples:
-        variable = self.__GetAttribute("DISPLACEMENT",
-                                       KratosMultiphysics.KratosGlobals.GetVariable,
-                                       "Variable")
+    Examples:
+    variable = GetAttribute("DISPLACEMENT",
+                            KratosMultiphysics.KratosGlobals.GetVariable,
+                            "Variable")
 
-        constitutive_law = self.__GetAttribute("LinearElastic3DLaw",
-                                               KratosMultiphysics.KratosGlobals.GetConstitutiveLaw,
-                                               "Constitutive Law")
-        """
-        splitted = my_string.split(".")
+    constitutive_law = GetAttribute("LinearElastic3DLaw",
+                                    KratosMultiphysics.KratosGlobals.GetConstitutiveLaw,
+                                    "Constitutive Law")
+    """
+    splitted = my_string.split(".")
 
-        if len(splitted) == 0:
-            raise Exception("Something wrong. Trying to split the string " + my_string)
-        if len(splitted) > 3:
-            raise Exception("Something wrong. String " + my_string + " has too many arguments")
+    if len(splitted) == 0:
+        raise Exception("Something wrong. Trying to split the string " + my_string)
+    if len(splitted) > 3:
+        raise Exception("Something wrong. String " + my_string + " has too many arguments")
 
-        attribute_name = splitted[-1]
+    attribute_name = splitted[-1]
 
-        if len(splitted) == 2 or len(splitted) == 3:
-            warning_msg =  "Ignoring \"" +  my_string.rsplit(".",1)[0]
-            warning_msg += "\" for " + attribute_type +" \"" + attribute_name + "\""
-            KratosMultiphysics.Logger.PrintInfo("Warning in reading materials", warning_msg)
+    if len(splitted) == 2 or len(splitted) == 3:
+        warning_msg =  "Ignoring \"" +  my_string.rsplit(".",1)[0]
+        warning_msg += "\" for " + attribute_type +" \"" + attribute_name + "\""
+        KratosMultiphysics.Logger.PrintInfo("Warning in reading materials", warning_msg)
 
-        return function_pointer(attribute_name) # This also checks if the application has been imported
+    return function_pointer(attribute_name) # This also checks if the application has been imported
 
-    def __GetVariable(self, my_string):
-        """Return the python object of a Variable named by the string argument.
+def GetVariable(my_string):
+    """Return the python object of a Variable named by the string argument.
 
-        Examples:
-        recommended usage:
-        variable = self.__GetVariable("VELOCITY")
-        deprecated:
-        variable = self.__GetVariable("KratosMultiphysics.VELOCITY")
-        variable = self.__GetVariable("SUBSCALE_PRESSURE")
-        variable = self.__GetVariable("FluidDynamicsApplication.SUBSCALE_PRESSURE")
-        variable = self.__GetVariable("KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE")
-        """
-        return self.__GetAttribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
+    Examples:
+    recommended usage:
+    variable = GetVariable("VELOCITY")
+    deprecated:
+    variable = GetVariable("KratosMultiphysics.VELOCITY")
+    variable = GetVariable("SUBSCALE_PRESSURE")
+    variable = GetVariable("FluidDynamicsApplication.SUBSCALE_PRESSURE")
+    variable = GetVariable("KratosMultiphysics.FluidDynamicsApplication.SUBSCALE_PRESSURE")
+    """
+    return GetAttribute(my_string, KratosMultiphysics.KratosGlobals.GetVariable, "Variable")
 
-    def __GetConstitutiveLaw(self, my_string):
-        """Return the python object of a Constitutive Law named by the string argument.
+def GetConstitutiveLaw(my_string):
+    """Return the python object of a Constitutive Law named by the string argument.
 
-        Example:
-        recommended usage:
-        constitutive_law = self.__GetConstitutiveLaw('LinearElastic3DLaw')
-        deprecated:
-        constitutive_law = self.__GetConstitutiveLaw('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
-        constitutive_law = self.__GetConstitutiveLaw('StructuralMechanicsApplication.LinearElastic3DLaw')
+    Example:
+    recommended usage:
+    constitutive_law = GetConstitutiveLaw('LinearElastic3DLaw')
+    deprecated:
+    constitutive_law = GetConstitutiveLaw('KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw')
+    constitutive_law = GetConstitutiveLaw('StructuralMechanicsApplication.LinearElastic3DLaw')
 
-        model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
-        """
-        return self.__GetAttribute(my_string, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
+    model_part.GetProperties(prop_id).SetValue(CONSTITUTIVE_LAW, constitutive_law)
+    """
+    return GetAttribute(my_string, KratosMultiphysics.KratosGlobals.GetConstitutiveLaw, "Constitutive Law")
 
     #### Methods needed for the interpolation ####
 
-    def __InterpolationIsRequired(self, data):
-        """
-        This function checks if at least one of the variables requires interpolation
-        """
-        for key, value in data["Material"]["Variables"].items():
-            if self.__IsDoubleWithInterpolation(value):
-                return True
-            elif self.__IsVectorWithInterpolation(value):
-                return True
-            elif self.__IsMatrixWithInterpolation(value):
-                return True
+def InterpolationIsRequired(data):
+    """
+    This function checks if at least one of the variables requires interpolation
+    """
+    for var_name, value in data["Material"]["Variables"].items():
+        if IsDoubleWithInterpolation(value):
+            return True
+        elif IsVectorWithInterpolation(value):
+            return True
+        elif IsMatrixWithInterpolation(value):
+            return True
 
+    return False
+
+def IsDoubleWithInterpolation(parameter):
+    """
+    This function is the analogon to IsDouble(), but it checks if interpolation is required
+    """
+    return HasInterpolationKeyword(parameter)
+
+def IsVectorWithInterpolation(parameter):
+    """
+    This function is the analogon to IsVector(), but it checks if interpolation is required
+    It does NOT throw if the Vector is not valid, type checking is done later
+    """
+    interpolation_required = False
+    if not parameter.IsArray():
         return False
 
-    def __IsDoubleWithInterpolation(self, parameter):
-        """
-        This function is the analogon to IsDouble(), but it checks if interpolation is required
-        """
-        return self.__HasInterpolationKeyword(parameter)
-
-    def __IsVectorWithInterpolation(self, parameter):
-        """
-        This function is the analogon to IsVector(), but it checks if interpolation is required
-        It does NOT throw if the Vector is not valid, type checking is done later
-        """
-        interpolation_required = False
-        if not parameter.IsArray():
+    if parameter.size() > 0:
+        if parameter[0].IsArray(): # then this could be a matrix
             return False
 
-        if parameter.size() > 0:
-            if parameter[0].IsArray(): # then this could be a matrix
+    for i in range(parameter.size()):
+        if HasInterpolationKeyword(parameter[i]):
+            interpolation_required = True
+        else:
+            if not parameter[i].IsNumber(): # this means that the vector is not valid
                 return False
 
-        for i in range(parameter.size()):
-            if self.__HasInterpolationKeyword(parameter[i]):
+    return interpolation_required
+
+def IsMatrixWithInterpolation(parameter):
+    """
+    This function is the analogon to IsMatrix(), but it checks if interpolation is required
+    It does NOT throw if the Matrix is not valid, type checking is done later
+    """
+    interpolation_required = False
+    if not parameter.IsArray():
+        return False
+
+    num_rows = parameter.size()
+    if num_rows == 0: # parameter is an empty array/vector => "[]"
+        return False
+
+    for i in range(num_rows):
+        row_i = parameter[i]
+        if not row_i.IsArray():
+            return False
+
+        num_cols = row_i.size()
+        if num_cols != parameter[0].size(): # num of cols is not consistent
+            return False
+
+        for j in range(num_cols):
+            if HasInterpolationKeyword(row_i[j]):
                 interpolation_required = True
             else:
-                if not parameter[i].IsNumber(): # this means that the vector is not valid
+                if not row_i[j].IsNumber(): # this means that the matrix is not valid
                     return False
 
-        return interpolation_required
+    return interpolation_required
 
-    def __IsMatrixWithInterpolation(self, parameter):
-        """
-        This function is the analogon to IsMatrix(), but it checks if interpolation is required
-        It does NOT throw if the Matrix is not valid, type checking is done later
-        """
-        interpolation_required = False
-        if not parameter.IsArray():
-            return False
-
-        num_rows = parameter.size()
-        if num_rows == 0: # parameter is an empty array/vector => "[]"
-            return False
-
-        for i in range(num_rows):
-            row_i = parameter[i]
-            if not row_i.IsArray():
-                return False
-
-            num_cols = row_i.size()
-            if num_cols != parameter[0].size(): # num of cols is not consistent
-                return False
-
-            for j in range(num_cols):
-                if self.__HasInterpolationKeyword(row_i[j]):
-                    interpolation_required = True
-                else:
-                    if not row_i[j].IsNumber(): # this means that the matrix is not valid
-                        return False
-
-        return interpolation_required
-
-    def __HasInterpolationKeyword(self, parameter):
-        """
-        This function checks if the parameter has the keyword for Interpolation
-        """
-        if parameter.IsSubParameter():
-            if parameter.Has("@table"):
-                return True
-            else:
-                raise False
+def HasInterpolationKeyword(parameter):
+    """
+    This function checks if the parameter has the keyword for Interpolation
+    """
+    if parameter.IsSubParameter():
+        if parameter.Has("@table"):
+            return True
         else:
             return False
+    else:
+        return False
 
-    def __SizeInterpolatedVector(self, vector_parameter):
-        """
-        This function returns the size of a vector that requires Interpolation
-        """
-        if vector_parameter.IsVector() or self.__IsVectorWithInterpolation(vector_parameter):
-            return vector_parameter.size()
-        else:
-            raise TypeError("Object is not a Vector!")
+def SizeInterpolatedVector(vector_parameter):
+    """
+    This function returns the size of a vector that requires Interpolation
+    """
+    if vector_parameter.IsVector() or IsVectorWithInterpolation(vector_parameter):
+        return vector_parameter.size()
+    else:
+        raise TypeError("Object is not a Vector!")
 
-    def __SizeInterpolatedMatrix(self, matrix_parameter):
-        """
-        This function returns the size of a matrix that requires Interpolation
-        """
-        if matrix_parameter.IsMatrix() or self.__IsMatrixWithInterpolation(matrix_parameter):
-            # Existance of these values is assured through the checks above
-            size1 = matrix_parameter.size()
-            size2 = matrix_parameter[0].size()
-            return size1, size2
-        else:
-            raise TypeError("Object is not a Matrix!")
+def SizeInterpolatedMatrix(matrix_parameter):
+    """
+    This function returns the size of a matrix that requires Interpolation
+    """
+    if matrix_parameter.IsMatrix() or IsMatrixWithInterpolation(matrix_parameter):
+        # Existance of these values is assured through the checks above
+        size1 = matrix_parameter.size()
+        size2 = matrix_parameter[0].size()
+        return size1, size2
+    else:
+        raise TypeError("Object is not a Matrix!")
 
-    def __AssignTablesToModelPart(self, root_model_part, material_parameters, table_dict):
-        """
-        This function reads the tables and assigns them to the modelpart
-        """
-        for table_name in sorted(material_parameters["Tables"].keys()):
-            if table_name in table_dict.keys():
-                err_msg = 'Table names must be unique, trying to add: "' + table_name
-                err_msg += '" which exists already!'
-                raise NameError(err_msg)
+def AssignTablesToModelPart(root_model_part, material_parameters, table_dict):
+    """
+    This function reads the tables and assigns them to the modelpart
+    """
+    for table_name in sorted(material_parameters["Tables"].keys()):
+        if table_name in table_dict.keys():
+            err_msg = 'Table names must be unique, trying to add: "' + table_name
+            err_msg += '" which exists already!'
+            raise NameError(err_msg)
 
-            table_param = material_parameters["Tables"][table_name]
+        table_data = material_parameters["Tables"][table_name]
 
-            input_variable = self.__GetVariable(table_param["input_variable"].GetString())
-            output_variable = self.__GetVariable(table_param["output_variable"].GetString())
+        input_variable = GetVariable(table_data["input_variable"].GetString())
+        output_variable = GetVariable(table_data["output_variable"].GetString())
 
-            self.__CheckVariableType(input_variable, table_name)
-            self.__CheckVariableType(output_variable, table_name)
+        CheckTableVariableType(input_variable, table_name)
+        CheckTableVariableType(output_variable, table_name)
 
-            if not table_param.Has("input_variable_location"):
-                raise Exception("You need to specify a variable location for the interpolation!")
+        if not table_data.Has("input_variable_location"):
+            raise Exception("You need to specify a variable location for the interpolation!")
 
-            input_variable_location = table_param["input_variable_location"].GetString()
+        input_variable_location = table_data["input_variable_location"].GetString()
 
-            table = KratosMultiphysics.PiecewiseLinearTable()
+        table = GetTable(table_data)
 
-            for i in range(table_param["data"].size()):
-                table.AddRow(table_param["data"][i][0].GetDouble(), table_param["data"][i][1].GetDouble())
+        table_id = root_model_part.NumberOfTables() + 1
 
-            table_id = root_model_part.NumberOfTables() + 1
+        root_model_part.AddTable(table_id, table)
 
-            root_model_part.AddTable(table_id, table)
+        table_info = {
+            "table_id" : table_id,
+            "table" : table,
+            "input_variable" : input_variable,
+            "output_variable" : output_variable,
+            "input_variable_location" : input_variable_location }
 
-            table_info = {
-                "table_id" : table_id,
-                "table" : table,
-                "input_variable" : input_variable,
-                "output_variable" : output_variable,
-                "input_variable_location" : input_variable_location }
+        table_dict[table_name] = table_info
 
-            table_dict[table_name] = table_info
-
-    def __AssignInterpolatedProperties(self, mat, table_dict, geom_entity, prop):
-        """
-        This function assigns the interpolated quantities to the properties
-        Note that the table is stored in the modelpart and passed to the property
-        """
-        # assign Tables (stored in the RootModelPart) to the properties
-        for table_name, table_info in table_dict.items():
-            input_variable = table_info["input_variable"]
-            output_variable = table_info["output_variable"]
-            table = table_info["table"]
-            prop.SetTable(input_variable, output_variable, table)
-
-        # assign the values to the properties and interpolate if needed
-        for key, value in mat["Variables"].items():
-            var = self.__GetVariable(key)
-            if value.IsDouble():
-                prop.SetValue( var, value.GetDouble() )
-            elif value.IsInt():
-                prop.SetValue( var, value.GetInt() )
-            elif value.IsBool():
-                prop.SetValue( var, value.GetBool() )
-            elif value.IsString():
-                prop.SetValue( var, string_val )
-            elif value.IsMatrix():
-                prop.SetValue( var, value.GetMatrix() )
-            elif value.IsVector():
-                prop.SetValue( var, value.GetVector() )
-            elif self.__IsDoubleWithInterpolation(value):
-                interpolated_double = self.__ComputeInterpolatedValue(geom_entity, table_dict,
-                                                                        key, value)
-                prop.SetValue(var, interpolated_double)
-            elif self.__IsVectorWithInterpolation(value):
-                interpolated_vector = self.__ComputeInterpolatedVector(geom_entity, table_dict,
-                                                                         key, value)
-                prop.SetValue(var, interpolated_vector)
-            elif self.__IsMatrixWithInterpolation(value):
-                interpolated_matrix = self.__ComputeInterpolatedMatrix(geom_entity, table_dict,
-                                                                         key, value)
-                prop.SetValue(var, interpolated_matrix)
-            else:
-                raise TypeError("Type of value is not available for " + key)
-
-    def __ComputeInterpolatedValue(self, geom_entity, table_dict, variable_name, value):
-        """
-        This function interpolates the value
-        the input value can be on "nodes" or on "geom_entity"
-        """
-        # Retrieve information needed for interpolation
-        table_name = value["@table"].GetString()
-
-        if table_name not in table_dict.keys():
-            raise NameError('Table "' + table_name + '" not found')
-
-        table_info = table_dict[table_name]
-
+def AssignInterpolatedProperties(mat, table_dict, geom_entity, prop):
+    """
+    This function assigns the interpolated quantities to the properties
+    Note that the table is stored in the modelpart and passed to the property
+    """
+    # assign Tables (stored in the RootModelPart) to the properties
+    for table_name, table_info in table_dict.items():
         input_variable = table_info["input_variable"]
-        input_variable_location = table_info["input_variable_location"]
+        output_variable = table_info["output_variable"]
         table = table_info["table"]
+        prop.SetTable(input_variable, output_variable, table)
 
-        if input_variable_location == "geom_entity":
-            if geom_entity.Has(input_variable): # Values in Geom Entites are saved as Non-historical values (model_part_io.cpp)
-                input_value = geom_entity.GetValue(input_variable) # This is a double, since Tables exist only with doubles!
+    # assign the values to the properties and interpolate if needed
+    for var_name, value in mat["Variables"].items():
+        var = GetVariable(var_name)
+        if value.IsDouble():
+            prop.SetValue( var, value.GetDouble() )
+        elif value.IsInt():
+            prop.SetValue( var, value.GetInt() )
+        elif value.IsBool():
+            prop.SetValue( var, value.GetBool() )
+        elif value.IsString():
+            prop.SetValue( var, string_val )
+        elif value.IsMatrix():
+            prop.SetValue( var, value.GetMatrix() )
+        elif value.IsVector():
+            prop.SetValue( var, value.GetVector() )
+        elif IsDoubleWithInterpolation(value):
+            interpolated_double = ComputeInterpolatedValue(geom_entity, table_dict,
+                                                            var_name, value)
+            prop.SetValue(var, interpolated_double)
+        elif IsVectorWithInterpolation(value):
+            interpolated_vector = ComputeInterpolatedVector(geom_entity, table_dict,
+                                                            var_name, value)
+            prop.SetValue(var, interpolated_vector)
+        elif IsMatrixWithInterpolation(value):
+            interpolated_matrix = ComputeInterpolatedMatrix(geom_entity, table_dict,
+                                                            var_name, value)
+            prop.SetValue(var, interpolated_matrix)
+        else:
+            raise TypeError("Type of value is not available for " + var_name)
+
+def ComputeInterpolatedValue(geom_entity, table_dict, variable_name, value):
+    """
+    This function interpolates the value
+    the input value can be on "nodes" or on "geom_entity"
+    """
+    # Retrieve information needed for interpolation
+    table_name = value["@table"].GetString()
+
+    if table_name not in table_dict.keys():
+        raise NameError('Table "' + table_name + '" not found')
+
+    table_info = table_dict[table_name]
+
+    input_variable = table_info["input_variable"]
+    input_variable_location = table_info["input_variable_location"]
+    table = table_info["table"]
+
+    if input_variable_location == "geom_entity":
+        if geom_entity.Has(input_variable): # Values in Geom Entites are saved as Non-historical values (model_part_io.cpp)
+            input_value = geom_entity.GetValue(input_variable) # This is a double, since Tables exist only with doubles!
+        else:
+            err_msg  = "Geometric Entity # " + str(geom_entity.Id)
+            err_msg += " does not have " + input_variable.Name()
+            raise ValueError(err_msg)
+    elif input_variable_location == "nodes":
+        nodes = geom_entity.GetNodes()
+        input_value = 0.0
+        for node in nodes:
+            if node.SolutionStepsDataHas(input_variable): # Values in Nodes are saved as Historical values (model_part_io.cpp)
+                input_value += node.GetSolutionStepValue(input_variable) # This is a double, since Tables exist only with doubles!
             else:
-                err_msg  = "Geometric Entity # " + str(geom_entity.Id)
+                err_msg  = "Node # " + str(node.Id)
                 err_msg += " does not have " + input_variable.Name()
                 raise ValueError(err_msg)
-        elif input_variable_location == "nodes":
-            nodes = geom_entity.GetNodes()
-            input_value = 0.0
-            for node in nodes:
-                if node.SolutionStepsDataHas(input_variable): # Values in Nodes are saved as Historical values (model_part_io.cpp)
-                    input_value += node.GetSolutionStepValue(input_variable) # This is a double, since Tables exist only with doubles!
-                else:
-                    err_msg  = "Node # " + str(node.Id)
-                    err_msg += " does not have " + input_variable.Name()
-                    raise ValueError(err_msg)
-            input_value /= len(nodes)
+        input_value /= len(nodes)
+    else:
+        raise Exception('Type of input_variable_location "' + input_variable_location + '" is not valid!')
+
+    interpolated_value = table.GetValue(input_value) # interpolate the value from the table
+
+    return interpolated_value
+
+def ComputeInterpolatedVector(geom_entity, table_dict, variable_name, vector_parameter):
+    """
+    This function computes a vector where some values require interpolation
+    """
+    size = SizeInterpolatedVector(vector_parameter)
+    interpolated_vector = KratosMultiphysics.Vector(size)
+
+    for i in range(size):
+        sub_param = vector_parameter[i]
+        if sub_param.IsDouble():
+            interpolated_vector[i] = sub_param.GetDouble()
+        elif sub_param.IsInt(): # needed?
+            interpolated_vector[i] = sub_param.GetInt()
+        elif HasInterpolationKeyword(sub_param):
+            interpolated_vector[i] = ComputeInterpolatedValue(geom_entity, table_dict,
+                                                              variable_name, sub_param)
         else:
-            raise Exception('Type of input_variable_location "' + input_variable_location + '" is not valid!')
+            raise TypeError("Wrong Type of Value")
 
-        interpolated_value = table.GetValue(input_value) # interpolate the value from the table
+    return interpolated_vector
 
-        return interpolated_value
+def ComputeInterpolatedMatrix(geom_entity, table_dict, variable_name, matrix_parameter):
+    """
+    This function computes a matrix where some values require interpolation
+    """
+    size1, size2 = SizeInterpolatedMatrix(matrix_parameter)
+    interpolated_matrix = KratosMultiphysics.Matrix(size1, size2)
 
-    def __ComputeInterpolatedVector(self, geom_entity, table_dict, variable_name, vector_parameter):
-        """
-        This function computes a vector where some values require interpolation
-        """
-        size = self.__SizeInterpolatedVector(vector_parameter)
-        interpolated_vector = KratosMultiphysics.Vector(size)
-
-        for i in range(size):
-            sub_param = vector_parameter[i]
+    for i in range(size1):
+        for j in range(size2):
+            sub_param = matrix_parameter[i][j]
             if sub_param.IsDouble():
-                interpolated_vector[i] = sub_param.GetDouble()
+                interpolated_matrix[i,j] = sub_param.GetDouble()
             elif sub_param.IsInt(): # needed?
-                interpolated_vector[i] = sub_param.GetInt()
-            elif self.__HasInterpolationKeyword(sub_param):
-                interpolated_vector[i] = self.__ComputeInterpolatedValue(geom_entity, table_dict,
-                                                                           variable_name, sub_param)
+                interpolated_matrix[i,j] = sub_param.GetInt()
+            elif HasInterpolationKeyword(sub_param):
+                interpolated_matrix[i,j] = ComputeInterpolatedValue(geom_entity, table_dict,
+                                                                    variable_name, sub_param)
             else:
                 raise TypeError("Wrong Type of Value")
 
-        return interpolated_vector
+    return interpolated_matrix
 
-    def __ComputeInterpolatedMatrix(self, geom_entity, table_dict, variable_name, matrix_parameter):
-        """
-        This function computes a matrix where some values require interpolation
-        """
-        size1, size2 = self.__SizeInterpolatedMatrix(matrix_parameter)
-        interpolated_matrix = KratosMultiphysics.Matrix(size1, size2)
+def CheckTableVariableType(variable, table_name):
+    """
+    This function checks if the variable type is suitable
+    """
+    var_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name())
+    if(var_type != "Double" and var_type != "Component"):
+        err_msg = 'In table "' + table_name + '": Variable type of variable - '
+        err_msg += variable.Name() + ' - is incorrect!\nMust be a scalar or a component'
+        raise TypeError(err_msg)
 
-        for i in range(size1):
-            for j in range(size2):
-                sub_param = matrix_parameter[i][j]
-                if sub_param.IsDouble():
-                    interpolated_matrix[i,j] = sub_param.GetDouble()
-                elif sub_param.IsInt(): # needed?
-                    interpolated_matrix[i,j] = sub_param.GetInt()
-                elif self.__HasInterpolationKeyword(sub_param):
-                    interpolated_matrix[i,j] = self.__ComputeInterpolatedValue(geom_entity, table_dict,
-                                                                                 variable_name, sub_param)
-                else:
-                    raise TypeError("Wrong Type of Value")
+def GetTable(table_data):
+    """
+    This function reads a table from a Kratos::Parameters Object
+    TODO move this function to Kratos::Parameters
+    """
+    table = KratosMultiphysics.PiecewiseLinearTable()
 
-        return interpolated_matrix
+    for i in range(table_data["data"].size()):
+        table.AddRow(table_data["data"][i][0].GetDouble(), table_data["data"][i][1].GetDouble())
 
-    def __CheckVariableType(self, variable, table_name):
-        """
-        This function checks if the variable type is suitable
-        """
-        var_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable.Name())
-        if(var_type != "Double" and var_type != "Component"):
-            err_msg = 'In table "' + table_name + '": Variable type of variable - '
-            err_msg += variable.Name() + ' - is incorrect!\nMust be a scalar or a component'
-            raise TypeError(err_msg)
+    return table
