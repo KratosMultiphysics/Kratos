@@ -47,7 +47,7 @@ Bbar element for second order elements and infinitessimal theory.
 
 ### Mixed elements:
 
-U-P formulation for linear triangles and linear tetrahedra. Monolitich aproach with Bochev stabilization.
+U-P formulation for linear triangles and linear tetrahedra. Monolitich approach with Bochev stabilization.
 
 ## Structural Elements:
 

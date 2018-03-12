@@ -704,7 +704,7 @@ namespace Kratos
 	double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-	if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementBeamElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
 	    LocalLeftHandSideMatrix.clear();
 
@@ -719,7 +719,7 @@ namespace Kratos
 
 	  }
 
-	if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementBeamElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	  {
 	    LocalRightHandSideVector.clear();
 
@@ -1088,7 +1088,6 @@ namespace Kratos
 	// }
 
       }
-
 
     KRATOS_CATCH( "" )
 

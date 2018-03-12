@@ -38,10 +38,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+    mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
 
     KRATOS_CATCH( "" )
-      }
+  }
 
   //******************************COPY CONSTRUCTOR**************************************
   //************************************************************************************
@@ -202,7 +202,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    LargeDisplacementBeamElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+    BeamElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -260,43 +260,103 @@ namespace Kratos
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
 
+
+    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+
+    
     //strains due to displacements and rotations
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
 
-	//A: Current Nodes Position
-	CurrentValueVector = GetGeometry()[i].Coordinates();
-	CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
+    if( mFinalizedStep == true ){
 
-	//Current Frame Axis Position derivative
-	rVariables.CurrentAxisPositionDerivatives +=  rVariables.DN_DX(i,0) * ( CurrentValueVector );
+	rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+	
+	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	    //A: Current Nodes Position
+	    CurrentValueVector = GetGeometry()[i].Coordinates();
+
+	    for ( unsigned int j = 0; j < dimension; j++ )
+	    {
+		CurrentValueVector[j] -= rVariables.DeltaPosition(i,j);
+	    }
+
+	    CurrentValueVector = this->MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
+
+	    //Current Frame Axis Position derivative
+	    for( unsigned int j = 0; j < dimension; j++ )
+	    {
+		rVariables.CurrentAxisPositionDerivatives[j] +=  rVariables.DN_DX(i,0) * ( CurrentValueVector[j] );
+	    }
+
+
+	    //B: Previous Nodes Position
+	    CurrentValueVector = GetGeometry()[i].Coordinates();
+
+	    for ( unsigned int j = 0; j < 3; j++ )
+	    {
+		CurrentValueVector[j] -= 2.0 * rVariables.DeltaPosition(i,j);
+	    }
+
+	    CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
+
+	    //Previous Frame Axis Position derivative
+	    rVariables.PreviousAxisPositionDerivatives +=  rVariables.DN_DX(i,0) * ( CurrentValueVector );
+	    
+	}
+    }
+    else{
+    
+	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+
+	    //A: Current Nodes Position
+	    CurrentValueVector = GetGeometry()[i].Coordinates();
+	    CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
+
+	    //Current Frame Axis Position derivative
+	    rVariables.CurrentAxisPositionDerivatives +=  rVariables.DN_DX(i,0) * ( CurrentValueVector );
 	
 
-	//B: Previous Nodes Position
-	CurrentValueVector = GetGeometry()[i].Coordinates();
+	    //B: Previous Nodes Position
+	    CurrentValueVector = GetGeometry()[i].Coordinates();
 
-	for ( unsigned int j = 0; j < 3; j++ )
-	  {
-	    CurrentValueVector[j] -= rVariables.DeltaPosition(i,j);
-	  }
+	    for ( unsigned int j = 0; j < 3; j++ )
+	    {
+		CurrentValueVector[j] -= rVariables.DeltaPosition(i,j);
+	    }
 
-	CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
+	    CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
 
-	//Previous Frame Axis Position derivative
-	rVariables.PreviousAxisPositionDerivatives +=  rVariables.DN_DX(i,0) * ( CurrentValueVector );
+	    //Previous Frame Axis Position derivative
+	    rVariables.PreviousAxisPositionDerivatives +=  rVariables.DN_DX(i,0) * ( CurrentValueVector );
 
-      }
+	}
+    }
     
     //*************************************//   
-    
-    //set current STRAIN RESULTANTS
-    rVariables.CurrentStrainResultantsVector  = mPreviousStrainResultantsVector[rPointNumber];
-    rVariables.PreviousStrainResultantsVector = mPreviousStrainResultantsVector[rPointNumber];
 
-    //set current CURVATURES
-    rVariables.CurrentCurvatureVector  = mPreviousCurvatureVectors[rPointNumber];
-    rVariables.PreviousCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
+    //Compute current CURVATURES
+    if( mFinalizedStep == true ){
 
+	//set current STRAIN RESULTANTS
+	rVariables.CurrentStrainResultantsVector  = mCurrentStrainResultantsVector[rPointNumber];
+	rVariables.PreviousStrainResultantsVector = mPreviousStrainResultantsVector[rPointNumber];
+
+	//set current CURVATURES
+	rVariables.CurrentCurvatureVector  = mCurrentCurvatureVectors[rPointNumber];
+	rVariables.PreviousCurvatureVector = mCurrentCurvatureVectors[rPointNumber];
+	
+    }
+    else{
+   
+	//set current STRAIN RESULTANTS
+	rVariables.CurrentStrainResultantsVector  = mPreviousStrainResultantsVector[rPointNumber];
+	rVariables.PreviousStrainResultantsVector = mPreviousStrainResultantsVector[rPointNumber];
+
+	//set current CURVATURES
+	rVariables.CurrentCurvatureVector  = mPreviousCurvatureVectors[rPointNumber];
+	rVariables.PreviousCurvatureVector = mPreviousCurvatureVectors[rPointNumber];
+    }
 
     KRATOS_CATCH( "" )
   }
