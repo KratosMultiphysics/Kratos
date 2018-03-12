@@ -36,8 +36,7 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
             {
             "materials_filename" : "please specify the file to be opened"
             }
-            """
-        )
+        """)
 
         settings.ValidateAndAssignDefaults(default_settings)
         self.Model = Model
