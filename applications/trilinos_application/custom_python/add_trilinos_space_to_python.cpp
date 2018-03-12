@@ -116,13 +116,14 @@ TrilinosSparseSpaceType::IndexType Size2(TrilinosSparseSpaceType& dummy, Trilino
     return dummy.Size2(rM);
 }
 
-void ResizeMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& A, unsigned int i1, unsigned int i2)
-{
-    dummy.Resize(A, i1, i2);
-}
+// void ResizeMatrix(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::MatrixType& A, unsigned int i1, unsigned int i2)
+// {
+//     dummy.Resize(A, i1, i2);
+// }
 
 void ResizeVector(TrilinosSparseSpaceType& dummy, TrilinosSparseSpaceType::VectorPointerType& px, unsigned int i1)
 {
+    KRATOS_WATCH("Within ResizeVector")
     dummy.Resize(px, i1);
 }
 
@@ -183,6 +184,9 @@ TrilinosSparseSpaceType::VectorPointerType CreateEmptyVectorPointer(TrilinosSpar
 
 Epetra_FECrsMatrix& GetMatRef(TrilinosSparseSpaceType::MatrixPointerType& dummy)
 {
+    KRATOS_WATCH("insdie GetMatRef")
+    KRATOS_WATCH(dummy)
+    KRATOS_WATCH(&dummy)
     return *(dummy.get());
 }
 
@@ -252,12 +256,10 @@ void  AddBasicOperations(pybind11::module& m)
     .def(init< Epetra_MpiComm& >())
     .def("MyPID",&Epetra_MpiComm::MyPID)
     .def("NumProc",&Epetra_MpiComm::NumProc)
-    .def("GetReference", GetMatRef, return_value_policy::reference_internal)
     ;
 
     class_< Epetra_FECrsMatrix > (m,"Epetra_FECrsMatrix")
     .def(init< Epetra_FECrsMatrix& >())
-    .def("GetReference", GetVecRef, return_value_policy::reference_internal)
     .def("__repr__",[](const Epetra_FECrsMatrix& self){
             std::stringstream ss;
             ss << self;
@@ -274,13 +276,13 @@ void  AddBasicOperations(pybind11::module& m)
         })
     ;
 
-//     class_< TrilinosSparseSpaceType::MatrixPointerType > (m,"TrilinosMatrixPointer")//.def(init< TrilinosSparseSpaceType::MatrixPointerType > ())
-//     .def("GetReference", GetMatRef, return_value_policy::reference_internal)
-//     ;
-// 
-//     class_< TrilinosSparseSpaceType::VectorPointerType > (m,"TrilinosVectorPointer")//.def(init< TrilinosSparseSpaceType::VectorPointerType > ())
-//     .def("GetReference", GetVecRef, return_value_policy::reference_internal)
-//     ;
+    class_< TrilinosSparseSpaceType::MatrixPointerType > (m,"TrilinosMatrixPointer")//.def(init< TrilinosSparseSpaceType::MatrixPointerType > ())
+    .def("GetReference", GetMatRef, return_value_policy::reference)
+    ;
+
+    class_< TrilinosSparseSpaceType::VectorPointerType > (m,"TrilinosVectorPointer")//.def(init< TrilinosSparseSpaceType::VectorPointerType > ())
+    .def("GetReference", GetVecRef, return_value_policy::reference)
+    ;
 
     //typedef SolvingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBaseSolvingStrategyType;
     //typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
@@ -294,7 +296,7 @@ void  AddBasicOperations(pybind11::module& m)
     .def(init<>())
     .def("ClearMatrix", ClearMatrix)
     .def("ClearVector", ClearVector)
-    .def("ResizeMatrix", ResizeMatrix)
+//     .def("ResizeMatrix", ResizeMatrix)
     .def("ResizeVector", ResizeVector)
     .def("SetToZeroMatrix", SetToZeroMatrix)
     .def("SetToZeroVector", SetToZeroVector)
