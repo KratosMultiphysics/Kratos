@@ -38,7 +38,7 @@ class ModelPartController:
         MeshMotionSettings = self.OptimizationSettings["design_variables"]["mesh_motion"]
         if MeshMotionSettings["apply_ale_mesh_solver"].GetBool():
             from mesh_controller_ale_solver import MeshControllerUsingALESolver
-            self.MeshController = MeshControllerUsingALESolver( self.OptimizationModelPart, MeshMotionSettings["mesh_solver_settings"])
+            self.MeshController = MeshControllerUsingALESolver( self.OptimizationModelPart, MeshMotionSettings)
         else:
             from mesh_controller_basic_updating import MeshControllerBasicUpdating
             self.MeshController = MeshControllerBasicUpdating( self.OptimizationModelPart )
@@ -54,7 +54,8 @@ class ModelPartController:
     def ImportOptimizationModelPart( self ):
         model_part_io = ModelPartIO( self.OptimizationSettings["design_variables"]["optimization_model_part_name"].GetString() )
         model_part_io.ReadModelPart( self.OptimizationModelPart )
-        self.OptimizationModelPart.ProcessInfo.SetValue( DOMAIN_SIZE, self.OptimizationSettings["design_variables"]["domain_size"].GetInt() )
+        if self.OptimizationModelPart.ProcessInfo.GetValue(DOMAIN_SIZE) == 0:
+            raise ValueError("DOMAIN_SIZE not specified for given optimization model part!")
 
     # --------------------------------------------------------------------------
     def InitializeMeshController( self ):
