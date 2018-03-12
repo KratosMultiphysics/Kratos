@@ -826,27 +826,25 @@ public:
         const double z43 = z4 - z3;
         
         // Compute LHS
-        bounded_matrix<double, 4,4> J;
+        bounded_matrix<double, 4,4> invJ;
         const double aux_volume = 1.0/(6.0*this->Volume());
-        J(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
-        J(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
-        J(2,0) = aux_volume * (x1*(y2*z4-y4*z2)+x2*(y4*z1-y1*z4)+x4*(y1*z2-y2*z1));
-        J(3,0) = aux_volume * (x1*(y3*z2-y2*z3)+x2*(y1*z3-y3*z1)+x3*(y2*z1-y1*z2));
-        J(0,1) = aux_volume * (y42*z32 - y32*z42);
-        J(1,1) = aux_volume * (y31*z43 - y34*z13);
-        J(2,1) = aux_volume * (y24*z14 - y14*z24);
-        J(3,1) = aux_volume * (y13*z21 - y12*z31);
-        J(0,2) = aux_volume * (x32*z42 - x42*z32);
-        J(1,2) = aux_volume * (x43*z31 - x13*z34);
-        J(2,2) = aux_volume * (x14*z24 - x24*z14);
-        J(3,2) = aux_volume * (x21*z13 - x31*z12);
-        J(0,3) = aux_volume * (x42*y32 - x32*y42);
-        J(1,3) = aux_volume * (x31*y43 - x34*y13);
-        J(2,3) = aux_volume * (x24*y14 - x14*y24);
-        J(3,3) = aux_volume * (x13*y21 - x12*y31);
+        invJ(0,0) = aux_volume * (x2*(y3*z4-y4*z3)+x3*(y4*z2-y2*z4)+x4*(y2*z3-y3*z2));
+        invJ(1,0) = aux_volume * (x1*(y4*z3-y3*z4)+x3*(y1*z4-y4*z1)+x4*(y3*z1-y1*z3));
+        invJ(2,0) = aux_volume * (x1*(y2*z4-y4*z2)+x2*(y4*z1-y1*z4)+x4*(y1*z2-y2*z1));
+        invJ(3,0) = aux_volume * (x1*(y3*z2-y2*z3)+x2*(y1*z3-y3*z1)+x3*(y2*z1-y1*z2));
+        invJ(0,1) = aux_volume * (y42*z32 - y32*z42);
+        invJ(1,1) = aux_volume * (y31*z43 - y34*z13);
+        invJ(2,1) = aux_volume * (y24*z14 - y14*z24);
+        invJ(3,1) = aux_volume * (y13*z21 - y12*z31);
+        invJ(0,2) = aux_volume * (x32*z42 - x42*z32);
+        invJ(1,2) = aux_volume * (x43*z31 - x13*z34);
+        invJ(2,2) = aux_volume * (x14*z24 - x24*z14);
+        invJ(3,2) = aux_volume * (x21*z13 - x31*z12);
+        invJ(0,3) = aux_volume * (x42*y32 - x32*y42);
+        invJ(1,3) = aux_volume * (x31*y43 - x34*y13);
+        invJ(2,3) = aux_volume * (x24*y14 - x14*y24);
+        invJ(3,3) = aux_volume * (x13*y21 - x12*y31);
         
-        double detJ;
-        const bounded_matrix<double, 4, 4>& invJ = MathUtils<double>::InvertMatrix<4>(J, detJ);
         const array_1d<double,4> result = prod(invJ, X);
         
         if (rResult.size() != 3)
@@ -855,7 +853,7 @@ public:
         rResult[0] = result[1];
         rResult[1] = result[2];
         rResult[2] = result[3];
-        
+
         return rResult;
     }
     
