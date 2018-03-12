@@ -57,8 +57,9 @@ class MeshSolverBase(object):
                 "coarse_enough" : 5000
             },
             "time_order" : 2,
-            "reform_dofs_each_step" : false,
-            "compute_reactions"     : false
+            "reform_dofs_each_step"     : false,
+            "compute_reactions"         : false,
+            "calculate_mesh_velocities" : true
         }""")
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
