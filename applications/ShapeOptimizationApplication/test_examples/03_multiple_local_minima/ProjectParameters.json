@@ -1,4 +1,8 @@
 {
+    "problem_data"             : {
+        "problem_name"    : "local_minima",
+        "domain_size"     : 3
+    },
     "optimization_settings" : {
         "objectives" : [{
                 "identifier" : "targetDeviation",
@@ -10,7 +14,6 @@
             "design_variables_type"              : "vertex_morphing",
             "optimization_model_part_name"       : "multiple_local_minima",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 4.0,

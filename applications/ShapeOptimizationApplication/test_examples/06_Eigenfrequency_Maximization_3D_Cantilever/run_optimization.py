@@ -13,45 +13,27 @@ import time as timer
 # Model part & solver
 # ======================================================================================================================================
 
-#import define_output
-parameter_file = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( parameter_file.read())
+# Read parameters
+with open("ProjectParameters.json",'r') as parameter_file:
+    ProjectParameters = Parameters(parameter_file.read())
 
-#set echo level
-echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
-
-#defining the model_part
+# Defining the model_part
 main_model_part = ModelPart(ProjectParameters["problem_data"]["model_part_name"].GetString())
 main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
 # Create an optimizer
 # Note that internally variables related to the optimizer are added to the model part
 optimizerFactory = __import__("optimizer_factory")
-optimizer = optimizerFactory.CreateOptimizer( main_model_part, ProjectParameters["optimization_settings"] )
+optimizer = optimizerFactory.CreateOptimizer(ProjectParameters["optimization_settings"], main_model_part)
 
 # Create solver for all response functions specified in the optimization settings
 # Note that internally variables related to the individual functions are added to the model part
 responseFunctionFactory = __import__("response_function_factory")
-listOfResponseFunctions = responseFunctionFactory.CreateListOfResponseFunctions( main_model_part, ProjectParameters["optimization_settings"] )
+listOfResponseFunctions = responseFunctionFactory.CreateListOfResponseFunctions(ProjectParameters["optimization_settings"], main_model_part)
 
-# Create solver to perform structural analysis
-solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-CSM_solver = solver_module.CreateSolver(main_model_part, ProjectParameters["solver_settings"])
-CSM_solver.AddVariables()
-CSM_solver.ImportModelPart()
-
-# Add degrees of freedom
-CSM_solver.AddDofs()
-
-# Create Model
-model = Model()
-model.AddModelPart(main_model_part)
-
-# Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
-## Get the list of the submodel part in the object Model
-for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-    model.AddModelPart(main_model_part.GetSubModelPart(part_name))
+# Create structural solver
+# Note that internally variables related to the individual functions are added to the model part
+csm_analysis = __import__("structural_mechanics_analysis").StructuralMechanicsAnalysis(ProjectParameters, main_model_part)
 
 # ======================================================================================================================================
 # Analyzer
@@ -61,9 +43,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
     # --------------------------------------------------------------------------
     def initializeBeforeOptimizationLoop( self ):
-        self.__initializeGIDOutput()
-        self.__initializeProcesses()
-        self.__initializeSolutionLoop()
+        csm_analysis.Initialize()
 
     # --------------------------------------------------------------------------
     def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
@@ -73,7 +53,9 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
             print("\n> Starting StructuralMechanicsApplication to solve structure")
             startTime = timer.time()
-            self.__solveStructure( optimizationIteration )
+            csm_analysis.InitializeTimeStep()
+            csm_analysis.SolveTimeStep()
+            csm_analysis.FinalizeTimeStep()
             print("> Time needed for solving the structure = ",round(timer.time() - startTime,2),"s")
 
             print("\n> Starting calculation of eigenfrequency")
@@ -118,101 +100,7 @@ class kratosCSMAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
 
     # --------------------------------------------------------------------------
     def finalizeAfterOptimizationLoop( self ):
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
-        self.gid_output.ExecuteFinalize()
-
-    # --------------------------------------------------------------------------
-    def __initializeProcesses( self ):
-
-        import process_factory
-        #the process order of execution is important
-        self.list_of_processes  = process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-        self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
-        if (ProjectParameters.Has("list_other_processes")):
-            self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses(ProjectParameters["list_other_processes"])
-        if(ProjectParameters.Has("problem_process_list")):
-            self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["problem_process_list"] )
-        if (ProjectParameters.Has("json_output_process")):
-            self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses(ProjectParameters["json_output_process"])
-        if(ProjectParameters.Has("output_process_list")):
-            self.list_of_processes += process_factory.KratosProcessFactory(model).ConstructListOfProcesses( ProjectParameters["output_process_list"] )
-
-        #print list of constructed processes
-        if(echo_level>1):
-            for process in self.list_of_processes:
-                print(process)
-
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
-
-    # --------------------------------------------------------------------------
-    def __initializeGIDOutput( self ):
-
-        computing_model_part = CSM_solver.GetComputingModelPart()
-        problem_name = ProjectParameters["problem_data"]["problem_name"].GetString()
-
-        from gid_output_process import GiDOutputProcess
-        output_settings = ProjectParameters["output_configuration"]
-        self.gid_output = GiDOutputProcess(computing_model_part, problem_name, output_settings)
-
-        self.gid_output.ExecuteInitialize()
-
-    # --------------------------------------------------------------------------
-    def __initializeSolutionLoop( self ):
-
-        ## Sets strategies, builders, linear solvers, schemes and solving info, and fills the buffer
-        CSM_solver.Initialize()
-        CSM_solver.SetEchoLevel(echo_level)
-
-        for responseFunctionId in listOfResponseFunctions:
-            listOfResponseFunctions[responseFunctionId].Initialize()
-
-        # Start process
-        for process in self.list_of_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        ## Set results when are written in a single file
-        self.gid_output.ExecuteBeforeSolutionLoop()
-
-    # --------------------------------------------------------------------------
-    def __solveStructure( self, optimizationIteration ):
-
-        # processes to be executed at the begining of the solution step
-        for process in self.list_of_processes:
-            process.ExecuteInitializeSolutionStep()
-
-        self.gid_output.ExecuteInitializeSolutionStep()
-
-        # Actual solution
-        CSM_solver.Solve()
-
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
-
-        self.gid_output.ExecuteFinalizeSolutionStep()
-
-        # processes to be executed at the end of the solution step
-        for process in self.list_of_processes:
-            process.ExecuteFinalizeSolutionStep()
-
-        # processes to be executed before witting the output
-        for process in self.list_of_processes:
-            process.ExecuteBeforeOutputStep()
-
-        # write output results GiD: (frequency writing is controlled internally)
-        if(self.gid_output.IsOutputStep()):
-            self.gid_output.PrintOutput()
-
-        # processes to be executed after witting the output
-        for process in self.list_of_processes:
-            process.ExecuteAfterOutputStep()
-
-    # --------------------------------------------------------------------------
-    def finalizeSolutionLoop( self ):
-        for process in self.list_of_processes:
-            process.ExecuteFinalize()
-        self.gid_output.ExecuteFinalize()
+        csm_analysis.Finalize()
 
     # --------------------------------------------------------------------------
 

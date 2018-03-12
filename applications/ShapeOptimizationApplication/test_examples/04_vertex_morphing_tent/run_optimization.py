@@ -26,11 +26,13 @@ import sys
 # ======================================================================================================================================
 
 ParameterFile = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( ParameterFile.read())
-OptimizationModelPart = ModelPart( ProjectParameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString() )
+ProjectParameters = Parameters(ParameterFile.read())
+
+OptimizationModelPart = ModelPart(ProjectParameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString())
+OptimizationModelPart.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_data"]["domain_size"].GetInt())
 
 OptimizerFactory = __import__("optimizer_factory")
-Optimizer = OptimizerFactory.CreateOptimizer( OptimizationModelPart, ProjectParameters["optimization_settings"] )
+Optimizer = OptimizerFactory.CreateOptimizer(ProjectParameters["optimization_settings"], OptimizationModelPart)
 
 # ======================================================================================================================================
 # Solver preparation

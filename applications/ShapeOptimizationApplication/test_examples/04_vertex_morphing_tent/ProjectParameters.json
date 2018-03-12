@@ -1,4 +1,8 @@
 {
+    "problem_data"             : {
+        "problem_name"    : "vertex_morphing_tent",
+        "domain_size"     : 3
+    },
     "optimization_settings" : {
         "objectives" : [{
                 "identifier" : "targetDeviation",
@@ -10,7 +14,6 @@
             "design_variables_type"              : "vertex_morphing",
             "optimization_model_part_name"       : "vertex_morphing_tent",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"               : 3,
             "filter" : {
                 "filter_function_type"       : "gaussian",
                 "filter_radius"              : 5.0,

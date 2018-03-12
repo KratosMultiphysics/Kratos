@@ -24,12 +24,12 @@ main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, ProjectParameters["problem_dat
 # Create an optimizer
 # Note that internally variables related to the optimizer are added to the model part
 optimizerFactory = __import__("optimizer_factory")
-optimizer = optimizerFactory.CreateOptimizer( main_model_part, ProjectParameters["optimization_settings"] )
+optimizer = optimizerFactory.CreateOptimizer(ProjectParameters["optimization_settings"], main_model_part)
 
 # Create solver for all response functions specified in the optimization settings
 # Note that internally variables related to the individual functions are added to the model part
 responseFunctionFactory = __import__("response_function_factory")
-listOfResponseFunctions = responseFunctionFactory.CreateListOfResponseFunctions( main_model_part, ProjectParameters["optimization_settings"] )
+listOfResponseFunctions = responseFunctionFactory.CreateListOfResponseFunctions(ProjectParameters["optimization_settings"], main_model_part)
 
 # Create structural solver
 # Note that internally variables related to the individual functions are added to the model part

@@ -119,7 +119,6 @@
             "design_variables_type"              : "vertex_morphing",
             "optimization_model_part_name"       : "3D_Shell",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size": 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 3.0,
