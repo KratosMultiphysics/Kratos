@@ -29,7 +29,7 @@ LinearJ2Plasticity3D::LinearJ2Plasticity3D()
 //************************************************************************************
 
 LinearJ2Plasticity3D::LinearJ2Plasticity3D(const LinearJ2Plasticity3D &rOther)
-            : ConstitutiveLaw(rOther)
+    : ConstitutiveLaw(rOther)
 {
 }
 
@@ -239,8 +239,7 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
             mInelasticFlag = false;
             stress_vector = sigma_trial;
             tangent_tensor = elastic_tensor;
-        }
-        else {
+        } else {
             // INELASTIC
             mInelasticFlag = true;
             double dgamma = 0;

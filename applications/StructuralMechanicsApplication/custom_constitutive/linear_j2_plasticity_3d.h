@@ -14,6 +14,11 @@
 #if !defined(KRATOS_LINEAR_J2_PLASTIC_3D_H_INCLUDED)
 #define KRATOS_LINEAR_J2_PLASTIC_3D_H_INCLUDED
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/checks.h"
 #include "includes/constitutive_law.h"
 
@@ -305,36 +310,18 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-
-private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
     bool mInelasticFlag;                 /// This flags tells if we are in a elastic or ineslastic regime
     Vector mPlasticStrain;               /// The current plastic strain (one for each of the strain components)
     Vector mPlasticStrainOld;            /// The previous plastic strain (one for each of the strain components)
     double mAccumulatedPlasticStrain;    /// The current accumulated plastic strain
     double mAccumulatedPlasticStrainOld; /// The previous accumulated plastic strain
 
-    ///@name Private Operators
+    ///@}
+    ///@name Protected Operators
     ///@{
 
     ///@}
-    ///@name Private Operations
+    ///@name Protected Operations
     ///@{
 
     /**
@@ -398,6 +385,38 @@ private:
         Matrix &rElasticityTensor,
         const Properties &rMaterialProperties
         );
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
     ///@}
     ///@name Private  Access

@@ -21,7 +21,7 @@ namespace Kratos
 //************************************************************************************
 
 LinearJ2PlasticityPlaneStrain2D::LinearJ2PlasticityPlaneStrain2D()
-    : ConstitutiveLaw()
+    : LinearJ2Plasticity3D()
 {
 }
 
@@ -29,7 +29,7 @@ LinearJ2PlasticityPlaneStrain2D::LinearJ2PlasticityPlaneStrain2D()
 //************************************************************************************
 
 LinearJ2PlasticityPlaneStrain2D::LinearJ2PlasticityPlaneStrain2D(const LinearJ2PlasticityPlaneStrain2D &rOther)
-            : ConstitutiveLaw(rOther)
+    : LinearJ2Plasticity3D(rOther)
 {
 }
 
@@ -47,110 +47,6 @@ ConstitutiveLaw::Pointer LinearJ2PlasticityPlaneStrain2D::Clone() const
 
 LinearJ2PlasticityPlaneStrain2D::~LinearJ2PlasticityPlaneStrain2D()
 {
-}
-
-//************************************************************************************
-//************************************************************************************
-
-bool LinearJ2PlasticityPlaneStrain2D::Has(const Variable<bool>& rThisVariable)
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        return true;
-    }
-    return false;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-bool LinearJ2PlasticityPlaneStrain2D::Has(const Variable<double>& rThisVariable)
-{
-    if(rThisVariable == PLASTIC_STRAIN){
-        return true;
-    }
-    return false;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-bool& LinearJ2PlasticityPlaneStrain2D::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
-    )
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mInelasticFlag;
-    }
-
-    return rValue;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-double& LinearJ2PlasticityPlaneStrain2D::GetValue(
-    const Variable<double>& rThisVariable,
-    double& rValue
-    )
-{
-    if(rThisVariable == PLASTIC_STRAIN){
-        rValue = mAccumulatedPlasticStrain;
-    }
-
-    return rValue;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2PlasticityPlaneStrain2D::SetValue(
-    const Variable<bool>& rThisVariable,
-    const bool& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        mInelasticFlag = rValue;
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2PlasticityPlaneStrain2D::SetValue(
-    const Variable<double>& rThisVariable,
-    const double& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    if(rThisVariable == PLASTIC_STRAIN){
-        mAccumulatedPlasticStrain = rValue;
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2PlasticityPlaneStrain2D::InitializeMaterial(const Properties& material_prop,
-                                                         const GeometryType& rElementGeometry,
-                                                         const Vector& rShapeFunctionsValues)
-{
-    mPlasticStrainOld = ZeroVector(this->GetStrainSize());
-    mAccumulatedPlasticStrainOld = 0.0;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2PlasticityPlaneStrain2D::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    mPlasticStrainOld = mPlasticStrain;
-    mAccumulatedPlasticStrainOld = mAccumulatedPlasticStrain;
 }
 
 //************************************************************************************
@@ -235,8 +131,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Parameters
             mInelasticFlag = false;
             stress_vector = sigma_trial;
             tangent_tensor = elastic_tensor;
-        }
-        else {
+        } else {
             // INELASTIC
             mInelasticFlag = true;
             double dgamma = 0;
@@ -280,32 +175,6 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Parameters
 //************************************************************************************
 //************************************************************************************
 
-double& LinearJ2PlasticityPlaneStrain2D::CalculateValue(
-    Parameters& rParameterValues,
-    const Variable<double>& rThisVariable,
-    double& rValue
-    )
-{
-    if(rThisVariable == STRAIN_ENERGY){
-        Flags &Options = rParameterValues.GetOptions();
-        Options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        CalculateMaterialResponseCauchy(rParameterValues);
-        Vector& strain_vector = rParameterValues.GetStrainVector();
-        const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
-        Matrix elastic_tensor(6, 6);
-        CalculateElasticMatrix(elastic_tensor, r_material_properties);
-        // Linear + exponential hardening
-        rValue = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain)) + GetPlasticPotential(r_material_properties);
-    }
-    if(rThisVariable == PLASTIC_STRAIN){
-        rValue = mAccumulatedPlasticStrain;
-    }
-    return(rValue);
-}
-
-//************************************************************************************
-//************************************************************************************
-
 void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponsePK1(Parameters& rValues)
 {
 }
@@ -331,95 +200,6 @@ void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponseKirchhoff(Paramete
 
 void LinearJ2PlasticityPlaneStrain2D::FinalizeMaterialResponseCauchy(Parameters& rValues)
 {
-}
-
-//************************************************************************************
-//************************************************************************************
-
-double LinearJ2PlasticityPlaneStrain2D::GetSaturationHardening(const Properties& rMaterialProperties)
-{
-    const double yield_stress = rMaterialProperties[YIELD_STRESS];
-    const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-    const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
-    const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
-
-    const double k_new = yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrain) +
-               delta_k * (1. - std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
-    return k_new;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-double LinearJ2PlasticityPlaneStrain2D::GetPlasticPotential(const Properties& rMaterialProperties)
-{
-   const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-   const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-   const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
-   const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
-
-   const double wp_new = 0.5*(theta * hardening_modulus * std::pow(mAccumulatedPlasticStrain, 2.0)) +
-                   delta_k * (mAccumulatedPlasticStrain -
-                   (1/hardening_exponent) * (1- std::exp(-hardening_exponent * mAccumulatedPlasticStrain)));
-   return wp_new;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-double LinearJ2PlasticityPlaneStrain2D::GetDeltaGamma(
-    const double NormStressTrial,
-    const Properties& rMaterialProperties
-    )
-{
-    const double E = rMaterialProperties[YOUNG_MODULUS];
-    const double poisson_ratio = rMaterialProperties[POISSON_RATIO];
-    const double yield_stress = rMaterialProperties[YIELD_STRESS];
-    const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-    const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
-    const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
-    const double tolerance = 1e-6 * yield_stress;
-    const double mu = E / (2. * (1. + poisson_ratio));
-    const double sqrt_two_thirds = std::sqrt(2.0 / 3.0); // =0.8164965809277260
-    double dgamma = 0.0;
-    double norm_yieldfunction = 1.0;
-
-    while (norm_yieldfunction > tolerance)
-    {
-        const double k_new = GetSaturationHardening(rMaterialProperties);
-        const double kp_new = theta * hardening_modulus +
-            delta_k * (hardening_exponent * std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
-        const double yieldfunction = - sqrt_two_thirds * k_new + NormStressTrial - 2. * mu * dgamma;
-        const double derivative_yieldfunction = -2. * mu * (1. + kp_new / (3. * mu));
-        dgamma = dgamma - yieldfunction / derivative_yieldfunction;
-        mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld + sqrt_two_thirds * dgamma;
-        norm_yieldfunction = std::abs(yieldfunction);
-    }
-    // TODO (marcelo): handle the case when no convergence is achieved.
-    return dgamma;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-double LinearJ2PlasticityPlaneStrain2D::YieldFunction(
-    const double NormDeviationStress,
-    const Properties& rMaterialProperties
-    )
-{
-    const double sqrt_two_thirds = std::sqrt(2.0 / 3.0);
-    const double yield_stress = rMaterialProperties[YIELD_STRESS];
-    const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
-    const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
-    const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
-    const double k_old =
-        yield_stress + (theta * hardening_modulus * mAccumulatedPlasticStrainOld) +
-        (delta_k) * (1. - std::exp(-hardening_exponent * mAccumulatedPlasticStrainOld));
-
-    return NormDeviationStress - k_old * sqrt_two_thirds;
 }
 
 //************************************************************************************
@@ -531,29 +311,9 @@ void LinearJ2PlasticityPlaneStrain2D::GetLawFeatures(Features& rFeatures)
 //************************************************************************************
 //************************************************************************************
 
-int LinearJ2PlasticityPlaneStrain2D::Check(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
-    KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
-    KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS));
-    KRATOS_CHECK(rMaterialProperties.Has(REFERENCE_HARDENING_MODULUS));
-    KRATOS_CHECK(rMaterialProperties.Has(ISOTROPIC_HARDENING_MODULUS));
-    KRATOS_CHECK(rMaterialProperties.Has(INFINITY_HARDENING_MODULUS));
-    KRATOS_CHECK(rMaterialProperties.Has(HARDENING_EXPONENT));
-
-    return 0;
-}
-
-//************************************************************************************
-//************************************************************************************
-
 void LinearJ2PlasticityPlaneStrain2D::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearJ2Plasticity3D);
     rSerializer.save("mInelasticFlag", mInelasticFlag);
     rSerializer.save("mPlasticStrain", mPlasticStrain);
     rSerializer.save("mPlasticStrainOld", mPlasticStrainOld);
@@ -566,7 +326,7 @@ void LinearJ2PlasticityPlaneStrain2D::save(Serializer& rSerializer) const
 
 void LinearJ2PlasticityPlaneStrain2D::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearJ2Plasticity3D);
     rSerializer.load("mInelasticFlag", mInelasticFlag);
     rSerializer.load("mPlasticStrain", mPlasticStrain);
     rSerializer.load("mPlasticStrainOld", mPlasticStrainOld);
