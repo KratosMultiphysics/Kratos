@@ -63,9 +63,6 @@ bool LinearJ2Plasticity3D::Has(const Variable<bool>& rThisVariable)
 
 bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
 {
-    if(rThisVariable == STRAIN_ENERGY){
-        return true;
-    }
     if(rThisVariable == PLASTIC_STRAIN){
         return true;
     }
@@ -95,10 +92,6 @@ double& LinearJ2Plasticity3D::GetValue(
     double& rValue
     )
 {
-
-    if(rThisVariable == STRAIN_ENERGY){
-        rValue = mStrainEnergy;
-    }
     if(rThisVariable == PLASTIC_STRAIN){
         rValue = mAccumulatedPlasticStrain;
     }
@@ -129,9 +122,6 @@ void LinearJ2Plasticity3D::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    if(rThisVariable == STRAIN_ENERGY){
-        mStrainEnergy = rValue;
-    }
     if(rThisVariable == PLASTIC_STRAIN){
         mAccumulatedPlasticStrain = rValue;
     }
@@ -292,9 +282,6 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(Parameters& rValues)
             CalculateTangentTensor(dgamma, norm_dev_stress, yield_function_normal_vector,
                                    rMaterialProperties, tangent_tensor);
         }
-
-    // Linear + exponential hardening
-    mStrainEnergy = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain)) + GetPlasticPotential(rMaterialProperties);
     }
 }
 
@@ -307,19 +294,16 @@ double& LinearJ2Plasticity3D::CalculateValue(
     double& rValue
     )
 {
-
-    //const Properties& MaterialProperties = rParameterValues.GetMaterialProperties();
-    //Vector& StrainVector = rParameterValues.GetStrainVector();
-    //Vector& StressVector = rParameterValues.GetStressVector();
-    //const double& E = MaterialProperties[YOUNG_MODULUS];
-    //const double& NU = MaterialProperties[POISSON_RATIO];
-
     if(rThisVariable == STRAIN_ENERGY){
-        //TODO (marcelo): calculate STRAIN_ENERGY here and remove mStrainEnergy
-        //CalculateCauchyGreenStrain(rParameterValues, StrainVector);
-        //CalculatePK2Stress( StrainVector, StressVector, E, NU );
-        //rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
-        rValue = mStrainEnergy;
+        Flags &Options = rParameterValues.GetOptions();
+        Options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        CalculateMaterialResponseCauchy(rParameterValues);
+        Vector& strain_vector = rParameterValues.GetStrainVector();
+        const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
+        Matrix elastic_tensor(6, 6);
+        CalculateElasticMatrix(elastic_tensor, r_material_properties);
+        // Linear + exponential hardening
+        rValue = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain)) + GetPlasticPotential(r_material_properties);
     }
     if(rThisVariable == PLASTIC_STRAIN){
         rValue = mAccumulatedPlasticStrain;
@@ -591,7 +575,6 @@ void LinearJ2Plasticity3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mInelasticFlag", mInelasticFlag);
-    rSerializer.save("mStrainEnergy", mStrainEnergy);
     rSerializer.save("mPlasticStrain", mPlasticStrain);
     rSerializer.save("mPlasticStrainOld", mPlasticStrainOld);
     rSerializer.save("mAccumulatedPlasticStrain", mAccumulatedPlasticStrain);
@@ -605,7 +588,6 @@ void LinearJ2Plasticity3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mInelasticFlag", mInelasticFlag);
-    rSerializer.load("mStrainEnergy", mStrainEnergy);
     rSerializer.load("mPlasticStrain", mPlasticStrain);
     rSerializer.load("mPlasticStrainOld", mPlasticStrainOld);
     rSerializer.load("mAccumulatedPlasticStrain", mAccumulatedPlasticStrain);

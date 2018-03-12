@@ -324,7 +324,6 @@ protected:
     ///@{
 
     bool mInelasticFlag;                 /// This flags tells if we are in a elastic or ineslastic regime
-    double mStrainEnergy;                /// The current strain energy
     Vector mPlasticStrain;               /// The current plastic strain (one for each of the strain components)
     Vector mPlasticStrainOld;            /// The previous plastic strain (one for each of the strain components)
     double mAccumulatedPlasticStrain;    /// The current accumulated plastic strain
