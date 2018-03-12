@@ -342,8 +342,10 @@ namespace Kratos
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
       
       const TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);     
-      const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
+      TValueType& PreviousFirstDerivative        = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
 
+      PreviousFirstDerivative = CurrentFirstDerivative;
+      
       CurrentVariable = PreviousVariable + (CurrentFirstDerivative+PreviousFirstDerivative) * (1.0/this->mEmc.c0);
       
       KRATOS_CATCH( "" )      
