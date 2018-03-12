@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/adjoint_conditions/surface_load_adjoint_condition_3d.h"
+#include "surface_load_adjoint_condition_3d.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
 
@@ -25,7 +25,7 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
+
     SurfaceLoadAdjointCondition3D::SurfaceLoadAdjointCondition3D()
     {
     }
@@ -34,7 +34,7 @@ namespace Kratos
     //***********************************************************************************
 
     SurfaceLoadAdjointCondition3D::SurfaceLoadAdjointCondition3D(
-        IndexType NewId, 
+        IndexType NewId,
         GeometryType::Pointer pGeometry
         )
         : SurfaceLoadCondition3D(NewId, pGeometry)
@@ -45,8 +45,8 @@ namespace Kratos
     //***********************************************************************************
 
     SurfaceLoadAdjointCondition3D::SurfaceLoadAdjointCondition3D(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         )
         : SurfaceLoadCondition3D(NewId, pGeometry, pProperties)
@@ -67,7 +67,7 @@ namespace Kratos
 
     //***********************************************************************************
     //***********************************************************************************
-    
+
     Condition::Pointer SurfaceLoadAdjointCondition3D::Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
@@ -83,7 +83,7 @@ namespace Kratos
     void SurfaceLoadAdjointCondition3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
-  
+
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         if (rResult.size() != dim * NumberOfNodes)
@@ -114,7 +114,7 @@ namespace Kratos
         }
         KRATOS_CATCH("")
     }
-    
+
     //***********************************************************************
     //***********************************************************************
     void SurfaceLoadAdjointCondition3D::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
@@ -146,21 +146,21 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void SurfaceLoadAdjointCondition3D::GetValuesVector(Vector& rValues, int Step)
     {
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int MatSize = NumberOfNodes * dim;
-        
+
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
-        
+
         for (unsigned int i = 0; i < NumberOfNodes; i++)
         {
             const array_1d<double, 3 > & Displacement = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
@@ -176,7 +176,7 @@ namespace Kratos
     //************************************************************************************
 
     void SurfaceLoadAdjointCondition3D::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				       ProcessInfo& rCurrentProcessInfo) 
+				       ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -186,7 +186,7 @@ namespace Kratos
 
         if ( rLeftHandSideMatrix.size1() != MatSize )
             rLeftHandSideMatrix.resize( MatSize, MatSize, false );
-    
+
         noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize );
         // return zero vector because surface load has no influence on adjoint problem
         KRATOS_CATCH( "" )
@@ -200,7 +200,7 @@ namespace Kratos
 
     void SurfaceLoadAdjointCondition3D::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) 
+                                            const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -215,13 +215,13 @@ namespace Kratos
 
     void SurfaceLoadAdjointCondition3D::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) 
+                                            const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
         /*if( this->Has(rDesignVariable) )
         {
-      
+
         }
         else */if( rDesignVariable == SHAPE_SENSITIVITY )
         {
@@ -231,13 +231,13 @@ namespace Kratos
 		    Vector RHS_dist;
             Matrix dummy_LHS;
 		    ProcessInfo copy_process_info = rCurrentProcessInfo;
-		
+
 		    // Get disturbance measure
-            double delta = this->GetValue(DISTURBANCE_MEASURE); 
+            double delta = this->GetValue(DISTURBANCE_MEASURE);
 
 		    const int number_of_nodes = GetGeometry().PointsNumber();
 		    const int dimension = this->GetGeometry().WorkingSpaceDimension();
- 
+
 			// compute RHS before disturbing
 			this->CalculateAll(dummy_LHS, RHS_undist, copy_process_info, false, true);
 
@@ -257,8 +257,8 @@ namespace Kratos
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
 				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++)  
-					rOutput( (0 + j*dimension), i) = RHS_dist[i]; 
+				for(unsigned int i = 0; i < RHS_dist.size(); i++)
+					rOutput( (0 + j*dimension), i) = RHS_dist[i];
 
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
@@ -279,8 +279,8 @@ namespace Kratos
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
 				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
-					rOutput((1 + j*dimension),i) = RHS_dist[i]; 
+				for(unsigned int i = 0; i < RHS_dist.size(); i++)
+					rOutput((1 + j*dimension),i) = RHS_dist[i];
 
 				// Reset pertubed vector
 				RHS_dist = Vector(0);
@@ -301,7 +301,7 @@ namespace Kratos
 				//compute derivative of RHS w.r.t. design variable with finite differences
 				RHS_dist -= RHS_undist;
 				RHS_dist /= delta;
-				for(unsigned int i = 0; i < RHS_dist.size(); i++) 
+				for(unsigned int i = 0; i < RHS_dist.size(); i++)
 					rOutput((2 + j*dimension),i) = RHS_dist[i];
 
 				// Reset pertubed vector
@@ -320,13 +320,13 @@ namespace Kratos
         }
         else
             KRATOS_ERROR << "Chosen design variable not availible for Surface Load Condition!" << std::endl;
-    
+
         KRATOS_CATCH( "" )
     }
 
     //***********************************************************************
     //***********************************************************************
-    
+
     int SurfaceLoadAdjointCondition3D::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         if ( ADJOINT_DISPLACEMENT.Key() == 0 )
@@ -353,7 +353,7 @@ namespace Kratos
                 KRATOS_ERROR << "missing one of the dofs for the variable ADJOINT_DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
             }
         }
-        
+
         return 0;
     }
 

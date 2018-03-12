@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/adjoint_conditions/point_load_adjoint_condition.h"
+#include "point_load_adjoint_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
 
@@ -25,7 +25,7 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
+
     PointLoadAdjointCondition::PointLoadAdjointCondition( IndexType NewId, GeometryType::Pointer pGeometry )
         : PointLoadCondition( NewId, pGeometry )
     {
@@ -34,7 +34,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
+
     PointLoadAdjointCondition::PointLoadAdjointCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : PointLoadCondition( NewId, pGeometry, pProperties )
     {
@@ -42,7 +42,7 @@ namespace Kratos
 
     //********************************* CREATE *******************************************
     //************************************************************************************
-    
+
     Condition::Pointer PointLoadAdjointCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
         return boost::make_shared<PointLoadAdjointCondition>(NewId, pGeom, pProperties);
@@ -50,7 +50,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
+
     Condition::Pointer PointLoadAdjointCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {
         return boost::make_shared<PointLoadAdjointCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
@@ -58,7 +58,7 @@ namespace Kratos
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
-    
+
     PointLoadAdjointCondition::~PointLoadAdjointCondition()
     {
     }
@@ -69,7 +69,7 @@ namespace Kratos
     void PointLoadAdjointCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
-  
+
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         if (rResult.size() != dim * NumberOfNodes)
@@ -100,7 +100,7 @@ namespace Kratos
         }
         KRATOS_CATCH("")
     }
-    
+
     //***********************************************************************
     //***********************************************************************
     void PointLoadAdjointCondition::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
@@ -132,21 +132,21 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-    
+
     //***********************************************************************
     //***********************************************************************
-    
+
     void PointLoadAdjointCondition::GetValuesVector(Vector& rValues, int Step)
     {
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
         const unsigned int MatSize = NumberOfNodes * dim;
-        
+
         if (rValues.size() != MatSize)
         {
             rValues.resize(MatSize, false);
         }
-        
+
         for (unsigned int i = 0; i < NumberOfNodes; i++)
         {
             const array_1d<double, 3 > & Displacement = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT, Step);
@@ -162,7 +162,7 @@ namespace Kratos
     //************************************************************************************
 
     void PointLoadAdjointCondition::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				       ProcessInfo& rCurrentProcessInfo) 
+				       ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -172,7 +172,7 @@ namespace Kratos
 
         if ( rLeftHandSideMatrix.size1() != MatSize )
             rLeftHandSideMatrix.resize( MatSize, MatSize, false );
-    
+
         noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize );
 
         KRATOS_CATCH( "" )
@@ -186,7 +186,7 @@ namespace Kratos
 
     void PointLoadAdjointCondition::CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) 
+                                            const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -201,7 +201,7 @@ namespace Kratos
 
     void PointLoadAdjointCondition::CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
                                             Matrix& rOutput,
-                                            const ProcessInfo& rCurrentProcessInfo) 
+                                            const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -214,7 +214,7 @@ namespace Kratos
         if( rDesignVariable == POINT_LOAD )
         {
             Vector RHS;
-            Matrix dummy_LHS;  
+            Matrix dummy_LHS;
             ProcessInfo copy_process_info = rCurrentProcessInfo;
 
             PointLoadCondition::CalculateAll(dummy_LHS, RHS, copy_process_info, false, true);
@@ -223,7 +223,7 @@ namespace Kratos
             for(unsigned int i = 0; i < RHS.size();++i)
             {
                 if( abs(RHS[i]) > 1e-12)
-                    rOutput(k, i) = 1.0; // or is it sign dependent?  
+                    rOutput(k, i) = 1.0; // or is it sign dependent?
                 k++;
             }
         }
@@ -233,13 +233,13 @@ namespace Kratos
         }
         else
             rOutput.clear();
-    
+
         KRATOS_CATCH( "" )
     }
 
     //***********************************************************************
     //***********************************************************************
-    
+
     int PointLoadAdjointCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         if ( ADJOINT_DISPLACEMENT.Key() == 0 )
@@ -266,7 +266,7 @@ namespace Kratos
                 KRATOS_ERROR << "missing one of the dofs for the variable ADJOINT_DISPLACEMENT on node " << GetGeometry()[i].Id() << " of condition " << Id() << std::endl;
             }
         }
-        
+
         return 0;
     }
 
@@ -276,12 +276,12 @@ namespace Kratos
         const unsigned int dim =  GetGeometry().WorkingSpaceDimension();
         if(dim == 2)
             condition_name = "PointLoadAdjointCondition2D1N";
-        else if(dim == 3) 
+        else if(dim == 3)
             condition_name = "PointLoadAdjointCondition3D1N";
 
 		return condition_name;
     }
-    
+
 } // Namespace Kratos
 
 

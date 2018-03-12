@@ -10,7 +10,7 @@
 //
 //
 //
-#include "custom_elements/adjoint_elements/cr_beam_adjoint_element_3D2N.hpp"
+#include "cr_beam_adjoint_element_3D2N.hpp"
 #include "structural_mechanics_application_variables.h"
 #include "includes/define.h"
 

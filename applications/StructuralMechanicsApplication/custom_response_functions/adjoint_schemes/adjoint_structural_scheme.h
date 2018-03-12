@@ -29,7 +29,7 @@
 #include "containers/variable.h"
 
 // Application includes
-#include "custom_utilities/adjoint_utilities/structural_response_function.h"
+#include "custom_response_functions/adjoint_utilities/structural_response_function.h"
 
 namespace Kratos
 {
@@ -42,7 +42,7 @@ namespace Kratos
 /// A scheme for for adjoint equations.
 /**
  *
- * 
+ *
  */
 template <class TSparseSpace, class TDenseSpace>
 class AdjointStructuralScheme : public Scheme<TSparseSpace, TDenseSpace>
@@ -223,10 +223,10 @@ public:
 
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_DISPLACEMENT) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_DISPLACEMENT << std::endl;
-        
+
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_ROTATION) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_ROTATION << std::endl;
-           // ---> but what is e.g. for solid elements, where no rotation dofs exist??????????????? 
+           // ---> but what is e.g. for solid elements, where no rotation dofs exist???????????????
 
         return BaseType::Check(rModelPart); // check elements and conditions
         KRATOS_CATCH("");
@@ -290,13 +290,13 @@ public:
         KRATOS_TRY;
 
         int thread_id = OpenMPUtils::ThisThread();
-       
+
         // Calculate transposed gradient of condition residual w.r.t. primal solution.
         pCurrentCondition->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
              rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
-   
+
         // Calculate transposed gradient of response function on condition w.r.t. primal solution.
         mpResponseFunction->CalculateGradient(
              *pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
