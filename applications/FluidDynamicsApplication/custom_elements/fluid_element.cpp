@@ -462,9 +462,9 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
         this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_gradients);
 
         VorticityUtilities<Dim>::CalculateQValue(this->GetGeometry(),shape_function_gradients,rValues);
-	}
-	else if (rVariable == VORTICITY_MAGNITUDE)
-	{
+    }
+    else if (rVariable == VORTICITY_MAGNITUDE)
+    {
         // Get Shape function data
         Vector gauss_weights;
         Matrix shape_functions;
@@ -472,7 +472,7 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
         this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_gradients);
 
         VorticityUtilities<Dim>::CalculateVorticityMagnitude(this->GetGeometry(),shape_function_gradients,rValues);
-	}
+    }
 }
 
 template <class TElementData>
