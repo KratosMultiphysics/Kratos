@@ -9,6 +9,8 @@
 //  Main authors:    Marcelo Raschi
 //                   Manuel Caicedo
 //                   Alfredo Huespe
+//  Collaborator:    Vicente Mataix Ferrandiz
+//
 
 #include "linear_j2_plasticity_3d.h"
 #include "structural_mechanics_application_variables.h"

@@ -91,7 +91,8 @@ public:
     ~LinearJ2Plasticity3D() override;
 
     /**
-     * @brief Clone method
+     * @brief Clone function
+     * @return A pointer to a new instance of this constitutive law
      */
     ConstitutiveLaw::Pointer Clone() const override;
 
@@ -314,7 +315,7 @@ protected:
 
     ///@}
 
-    private:
+private:
 
     ///@name Static Member Variables
     ///@{
@@ -412,6 +413,7 @@ protected:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
+
 }; // Class LinearJ2Plasticity3D
 } // namespace Kratos.
 #endif
