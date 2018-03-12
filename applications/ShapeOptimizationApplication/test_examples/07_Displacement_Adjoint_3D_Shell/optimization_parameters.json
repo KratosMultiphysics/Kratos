@@ -15,7 +15,7 @@
             "type"       : "minimization",
             "use_kratos" : true,
             "kratos_response_settings":{
-                "response_type"    : "nodal_displacement_adjoint",
+                "response_type"    : "adjoint_nodal_displacement",
                 "gradient_mode"     : "semi_analytic",
                 "sensitivity_model_part_name" :"Parts_AREAS",
                 "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],

@@ -1,3 +1,11 @@
+from __future__ import print_function, absolute_import, division
+
+# importing the Kratos Library
+from KratosMultiphysics import *
+import structural_mechanics_analysis
+
+import time as timer
+
 class ResponseFunctionBase(object):
     def __init__(self, identifier, project_parameters):
         self.identifier = identifier
