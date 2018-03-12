@@ -44,7 +44,7 @@ public:
     typedef Kratos::Matrix ShapeFunctionDerivativesType;
 
     /// Type for an array of shape function gradient matrices
-    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+    typedef Geometry< Node<3> >::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
     ///@}
     ///@name Life Cycle
