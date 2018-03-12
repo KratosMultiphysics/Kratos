@@ -2158,7 +2158,7 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, array_1
     {
 
         rResult.resize(3, false);
-        array_1d<double,3> rPointLocal = ZeroVector(dimension);
+        array_1d<double,3> rPointLocal = ZeroVector(3);
         rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
         //1. I evaluate the local coordinates of a point
         //rPointLocal[0] = ((GetGeometry()[2].Coordinates()[1] - GetGeometry()[0].Coordinates()[1])*(rPoint[0] - GetGeometry()[0].Coordinates()[0]) -
