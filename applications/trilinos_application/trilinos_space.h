@@ -19,7 +19,7 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
-
+#include <sstream>
 
 // External includes
 
@@ -291,9 +291,13 @@ public:
         Epetra_SerialDenseVector values(1);
         indices[0] = i;
         values[0] = value;
-
+KRATOS_WATCH(indices)
+KRATOS_WATCH(values)
+KRATOS_WATCH(rX)
         int ierr = rX.ReplaceGlobalValues(indices, values);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
+KRATOS_WATCH(rX )
+
 
         ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
         KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
@@ -528,17 +532,20 @@ public:
 
     }
 
-    void ReadMatrixMarket(const std::string FileName, MatrixPointerType& pA)
+    MatrixPointerType ReadMatrixMarket(const std::string FileName,Epetra_MpiComm& Comm)
     {
         KRATOS_TRY
 
         Epetra_CrsMatrix* pp = nullptr;
 
-        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), pA->Comm(), pp);
 
+        int error_code = EpetraExt::MatrixMarketFileToCrsMatrix(FileName.c_str(), Comm, pp);
+        
         if(error_code != 0)
             KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
+KRATOS_WATCH(__LINE__)
 
+        Comm.Barrier();
 
         const Epetra_CrsGraph& rGraph = pp->Graph();
         MatrixPointerType paux = Kratos::make_shared<Epetra_FECrsMatrix>( ::Copy, rGraph, false );
@@ -548,7 +555,7 @@ public:
         int* MyGlobalElements = new int[NumMyRows];
         rGraph.RowMap().MyGlobalElements(MyGlobalElements);
 
-
+KRATOS_WATCH(__LINE__)
         for(IndexType i = 0; i < NumMyRows; ++i)
         {
 //             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
@@ -575,11 +582,11 @@ public:
         }
 
         paux->GlobalAssemble();
-        pA.swap(paux);
+        
         delete [] MyGlobalElements;
-//         std::cout << pp << std::endl;
         delete pp;
-
+KRATOS_WATCH(__LINE__)
+        return paux;
         KRATOS_CATCH("");
     }
 

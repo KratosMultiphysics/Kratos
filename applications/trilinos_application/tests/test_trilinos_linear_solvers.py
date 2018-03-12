@@ -24,13 +24,15 @@ class TestLinearSolvers(KratosUnittest.TestCase):
         space = KratosMultiphysics.TrilinosApplication.TrilinosSparseSpace()
 
         #read the matrices
-        pA = space.CreateEmptyMatrixPointer(comm)
-        space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),pA)
-        n = space.Size1(pA.GetReference())
-
-        pAoriginal = space.CreateEmptyMatrixPointer(comm) #create a copy of A
-        space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),pAoriginal)
-
+        #pA = space.CreateEmptyMatrixPointer(comm)
+        pA = space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),comm)
+        rA = pA.GetReference()
+        print("1111111111111111111")
+        n = space.Size1(rA)
+        err
+        #pAoriginal = space.CreateEmptyMatrixPointer(comm) #create a copy of A
+        pAoriginal = space.ReadMatrixMarketMatrix(GetFilePath(matrix_name),pAoriginal)
+        print("22222222222")
         pb  = space.CreateEmptyVectorPointer(comm)
         space.ResizeVector(pb,n)
         space.SetToZeroVector(pb.GetReference())
