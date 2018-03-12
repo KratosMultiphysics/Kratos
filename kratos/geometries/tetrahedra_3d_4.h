@@ -847,7 +847,7 @@ public:
         
         double detJ;
         const bounded_matrix<double, 4, 4>& invJ = MathUtils<double>::InvertMatrix<4>(J, detJ);
-        array_1d<double,4> result = prod(invJ, X);
+        const array_1d<double,4> result = prod(invJ, X);
         
         if (rResult.size() != 3)
             rResult.resize(3, false);
