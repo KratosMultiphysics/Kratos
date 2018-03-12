@@ -835,12 +835,10 @@ public:
 		{
 			typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
-			if (dof_iterator->IsFixed())
-			{
-				const int i = (dof_iterator)->EquationId();
-				(dof_iterator)->GetSolutionStepReactionValue() = -b[i];
-			}
-		}
+			const int i = (dof_iterator)->EquationId();
+			(dof_iterator)->GetSolutionStepReactionValue() = -b[i];
+			
+        }
 
         //KRATOS_WATCH(__LINE__)
     }
