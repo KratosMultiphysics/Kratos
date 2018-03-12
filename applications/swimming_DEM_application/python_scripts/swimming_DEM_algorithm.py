@@ -580,6 +580,12 @@ class Algorithm(object):
         return self.time <= self.final_time
 
     def RunMainTemporalLoop(self):
+        coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
+        project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
+        coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
+        integration_scheme = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
+        dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
+        interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
 
         while self.TheSimulationMustGoOn():
 
@@ -588,7 +594,7 @@ class Algorithm(object):
             self.CloneTimeStep()
             self.TellTime(self.time)
 
-            if self.pp.CFD_DEM["coupling_scheme_type"].GetString() == "UpdatedDEM":
+            if coupling_scheme_type == "UpdatedDEM":
                 time_final_DEM_substepping = self.time + self.Dt
 
             else:
@@ -631,7 +637,6 @@ class Algorithm(object):
                 self.post_utils.Writeresults(self.time_dem)
 
             # solving the DEM part
-            interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
 
             self.derivative_recovery_counter.Activate(self.time > interaction_start_time)
 
@@ -640,13 +645,6 @@ class Algorithm(object):
 
             Say('Solving DEM... (', self.spheres_model_part.NumberOfElements(0), 'elements )')
             first_dem_iter = True
-
-            coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
-            project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
-            coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
-            integration_scheme = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
-            basset_force_type = self.pp.CFD_DEM["basset_force_type"].GetInt()
-            dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
 
             for self.time_dem in self.yield_DEM_time(
                     self.time_dem,

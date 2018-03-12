@@ -59,18 +59,18 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         amgcl_smoother = AMGCLSmoother.SPAI0
         amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
         tolerance = 1e-6
-        max_iterations = 200
+        max_iterations = 400
         verbosity = 2 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 400
 
         # if self.use_lumped_mass_matrix:
         #     linear_solver = CGSolver()
         # else:
-        #     linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
+        linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)
         # linear_solver = SuperLUIterativeSolver()
         # linear_solver = CGSolver()
         # linear_solver = SkylineLUFactorizationSolver()
-        linear_solver = SuperLUSolver()
+        # linear_solver = SuperLUSolver()
         # linear_solver = ITSOL_ARMS_Solver()
         # linear_solver = MKLPardisoSolver()
         # linear_solver = AMGCLSolver(amgcl_smoother, amgcl_krylov_type, tolerance, max_iterations, verbosity,gmres_size)

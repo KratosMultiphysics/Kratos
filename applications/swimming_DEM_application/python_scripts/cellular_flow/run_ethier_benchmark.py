@@ -17,28 +17,31 @@ import ethier_benchmark_algorithm as algorithm
 varying_parameters = dict()
 combinations_that_failed = []
 errors = []
-irregular_mesh_sizes = []#[0.1, 0.2, 0.4]
-regular_mesh_n_points = [10]
-derivatives_types = [1, 2]
+irregular_mesh_sizes = [0.4, 0.2, 0.1]
+regular_mesh_n_points = [10, 20, 40]
+derivatives_types = [1, 2, 3, 6, 7]
 number_of_simulations = len(irregular_mesh_sizes)
 number_of_simulations += len(regular_mesh_n_points)
 number_of_simulations *= len(derivatives_types)
-varying_parameters['include_faxen_terms_option'] = True
+varying_parameters['use_gid_meshes'] = False
+varying_parameters['print_VELOCITY_LAPLACIAN_RATE_option'] = True
 
 runner = case_runner.CaseRunner(main_path=os.getcwd(),
                                 algorithm=algorithm,
                                 total_number_of_simulations=number_of_simulations)
-
 simulation_id = 0
 
 for size in irregular_mesh_sizes + regular_mesh_n_points:
     varying_parameters['size_parameter'] = size
+    varying_parameters['regular_mesh_option'] = size in regular_mesh_n_points
+
     for derivatives_type in derivatives_types:
         simulation_id += 1
         varying_parameters['material_acceleration_calculation_type'] = derivatives_type
         varying_parameters['laplacian_calculation_type'] = derivatives_type
         parameters = Parameters(json.dumps(varying_parameters))
-        error = runner.RunCase(parameters, simulation_id)
+        identification_text = 'mesh size: ' + str(size) + '\nrecovery type: ' + str(derivatives_type) + '\n'
+        error = runner.RunCase(parameters, simulation_id, identification_text=identification_text)
         if error:
             errors.append(error)
             combinations_that_failed.append({'size':size, 'type':derivatives_type})
