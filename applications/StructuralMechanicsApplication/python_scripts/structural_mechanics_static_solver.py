@@ -45,7 +45,8 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 "amp": 1.618,
                 "etmxa": 5,
                 "etmna": 0.1
-            }
+            },
+            "print_formfinding_iterations": false
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, static_settings)
