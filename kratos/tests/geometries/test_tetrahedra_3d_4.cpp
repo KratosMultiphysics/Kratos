@@ -460,7 +460,7 @@ namespace Kratos {
         // Compute the global coordinates of the baricentre
         auto points = geom->Points();
         Point baricentre = points[0] + points[1] + points[2] + points[3];
-        baricentre *= 1.0/3.0;
+        baricentre /= 3.0;
 
         // Compute the baricentre local coordinates
         array_1d<double, 3> baricentre_local_coords;
