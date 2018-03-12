@@ -515,7 +515,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon() 
         ) override
     {
-        PrivatePointLocalCoordinates( rResult, rPoint, true );
+        PointLocalCoordinatesImplementation( rResult, rPoint, true );
 
         if ( std::abs(rResult[0]) <= (1.0+Tolerance) )
         {
@@ -539,7 +539,7 @@ public:
         const CoordinatesArrayType& rPoint 
         ) override
     {
-        return PrivatePointLocalCoordinates(rResult, rPoint);
+        return PointLocalCoordinatesImplementation(rResult, rPoint);
     }
 
     ///@}
@@ -1482,7 +1482,7 @@ private:
      * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
      * @return The vector containing the local coordinates of the point
      */
-    CoordinatesArrayType& PrivatePointLocalCoordinates( 
+    CoordinatesArrayType& PointLocalCoordinatesImplementation(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint,
         const bool IsInside = false
