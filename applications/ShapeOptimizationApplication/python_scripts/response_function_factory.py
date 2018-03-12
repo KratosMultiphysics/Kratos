@@ -20,9 +20,9 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-def CreateListOfResponseFunctions( optimization_model_part, optimization_settings ):
+def CreateListOfResponseFunctions( optimization_settings, optimization_model_part ):
     listOfResponseFunctions = {}
-    responseCreator = ResponseFunctionCreator( optimization_model_part, optimization_settings )
+    responseCreator = ResponseFunctionCreator( optimization_settings, optimization_model_part )
     responseCreator.AddSpecifiedKratosResponseFunctionsToList( listOfResponseFunctions )
     return listOfResponseFunctions
 
@@ -30,9 +30,9 @@ def CreateListOfResponseFunctions( optimization_model_part, optimization_setting
 class ResponseFunctionCreator:
 
     # --------------------------------------------------------------------------
-    def __init__( self, optimization_model_part, optimization_settings ):
-        self.optimization_model_part = optimization_model_part
+    def __init__( self, optimization_settings,optimization_model_part ):
         self.optimization_settings = optimization_settings
+        self.optimization_model_part = optimization_model_part
 
      # --------------------------------------------------------------------------
     def AddSpecifiedKratosResponseFunctionsToList( self, listOfResponseFunctions ):
