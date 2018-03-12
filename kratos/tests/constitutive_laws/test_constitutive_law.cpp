@@ -39,5 +39,50 @@ namespace Kratos
             KRATOS_CHECK_IS_FALSE(this_cl.Has(GREEN_LAGRANGE_STRAIN_TENSOR)); // Matrix
         }
 
+        /**
+        * Checks the correct work of the GetStrainMeasure method
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(TestGetStrainMeasureMethod, KratosConstitutiveLawFastSuite)
+        {
+            ConstitutiveLaw this_cl = ConstitutiveLaw();
+
+            KRATOS_CHECK_EQUAL(this_cl.GetStrainMeasure(), ConstitutiveLaw::StrainMeasure_Infinitesimal);
+        }
+
+        /**
+        * Checks the correct work of the ValidateInput method
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(TestValidateInputMethod, KratosConstitutiveLawFastSuite)
+        {
+            ConstitutiveLaw this_cl = ConstitutiveLaw();
+            Properties prop = Properties();
+
+            KRATOS_CHECK_IS_FALSE(this_cl.ValidateInput(prop));
+        }
+
+        /**
+        * Checks the correct work of the IsIncremental method
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(TestIsIncrementalMethod, KratosConstitutiveLawFastSuite)
+        {
+            ConstitutiveLaw this_cl = ConstitutiveLaw();
+
+            KRATOS_CHECK_IS_FALSE(this_cl.IsIncremental());
+        }
+
+        /**
+        * Checks the correct work of the GetStressMeasure method
+        */
+
+        KRATOS_TEST_CASE_IN_SUITE(TestGetStressMeasureMethod, KratosConstitutiveLawFastSuite)
+        {
+            ConstitutiveLaw this_cl = ConstitutiveLaw();
+
+            KRATOS_CHECK_EQUAL(this_cl.GetStressMeasure(), ConstitutiveLaw::StressMeasure_PK1);
+        }
+
     } // namespace Testing
 }  // namespace Kratos.
