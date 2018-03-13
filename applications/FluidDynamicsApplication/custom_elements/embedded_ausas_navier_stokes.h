@@ -799,18 +799,18 @@ protected:
                 }
             }
 
-            // Shear stress contribution
-            for (unsigned int i = 0; i < MatrixSize; ++i) {
-                for (unsigned int j = 0; j < MatrixSize; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
-                            for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
-                                auxLeftHandSideMatrix(i,j) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j);
-                            }
-                        }
-                    }
-                }
-            }
+            // // Shear stress contribution
+            // for (unsigned int i = 0; i < MatrixSize; ++i) {
+            //     for (unsigned int j = 0; j < MatrixSize; ++j) {
+            //         for (unsigned int m = 0; m < TDim; ++m) {
+            //             for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
+            //                 for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
+            //                     auxLeftHandSideMatrix(i,j) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j);
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
 
         // Contribution coming from the negative side boundary term
@@ -849,18 +849,18 @@ protected:
                 }
             }
 
-            // Shear stress contribution
-            for (unsigned int i = 0; i < MatrixSize; ++i) {
-                for (unsigned int j = 0; j < MatrixSize; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
-                            for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
-                                auxLeftHandSideMatrix(i,j) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j);
-                            }
-                        }
-                    }
-                }
-            }
+            // // Shear stress contribution
+            // for (unsigned int i = 0; i < MatrixSize; ++i) {
+            //     for (unsigned int j = 0; j < MatrixSize; ++j) {
+            //         for (unsigned int m = 0; m < TDim; ++m) {
+            //             for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
+            //                 for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
+            //                     auxLeftHandSideMatrix(i,j) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j);
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
 
         // LHS assembly
@@ -926,18 +926,18 @@ protected:
                 }
             }
 
-            // Shear stress contribution
-            for (unsigned int i = 0; i < MatrixSize; ++i) {
-                for (unsigned int j = 0; j < MatrixSize; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
-                            for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
-                                auxRightHandSideVector(i) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j) * prev_sol(j);
-                            }
-                        }
-                    }
-                }
-            }
+            // // Shear stress contribution
+            // for (unsigned int i = 0; i < MatrixSize; ++i) {
+            //     for (unsigned int j = 0; j < MatrixSize; ++j) {
+            //         for (unsigned int m = 0; m < TDim; ++m) {
+            //             for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
+            //                 for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
+            //                     auxRightHandSideVector(i) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j) * prev_sol(j);
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
 
         // Contribution coming from the negative side boundary term
@@ -976,18 +976,18 @@ protected:
                 }
             }
 
-            // Shear stress contribution
-            for (unsigned int i = 0; i < MatrixSize; ++i) {
-                for (unsigned int j = 0; j < MatrixSize; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
-                            for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
-                                auxRightHandSideVector(i) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j) * prev_sol(j);
-                            }
-                        }
-                    }
-                }
-            }
+            // // Shear stress contribution
+            // for (unsigned int i = 0; i < MatrixSize; ++i) {
+            //     for (unsigned int j = 0; j < MatrixSize; ++j) {
+            //         for (unsigned int m = 0; m < TDim; ++m) {
+            //             for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
+            //                 for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
+            //                     auxRightHandSideVector(i) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j) * prev_sol(j);
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
 
         // RHS assembly
@@ -1352,7 +1352,7 @@ protected:
 
         // Compute the penalty constant
         const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt +
-                                avg_rho*avg_visc*std::pow(rData.h,TDim-2) +
+                                avg_visc*std::pow(rData.h,TDim-2) +
                                 avg_rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
