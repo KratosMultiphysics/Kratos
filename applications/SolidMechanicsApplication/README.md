@@ -5,7 +5,7 @@ This application focuses on the Finite Element Method (FEM) for solids, shells a
 The SolidMechanics application team are in charge of all developments related to this application.
 
 <p align="center"> 
-  <img src="tests/data/rolldown.gif" alt="Solution" style="width: 400px;"/> 
+  <img src="tests/data/rolldown.gif" alt="Solution" style="width: 200px;"/> 
 </p> 
 
 ## Getting Started
