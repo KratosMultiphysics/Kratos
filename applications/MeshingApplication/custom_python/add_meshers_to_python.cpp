@@ -10,11 +10,10 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_meshers_to_python.h"
 
@@ -49,6 +48,8 @@ namespace Kratos
 namespace Python
 {
     
+using namespace pybind11;
+
 #ifdef USE_TETGEN_NONFREE_TPL
 ///////////////////////////////////////////////////////////////////////////////////////////
 //											//
@@ -190,61 +191,59 @@ void TriRegenerateMeshVMS(TriGenPFEMModelerVMS& Mesher, char* ElementName, char*
 
 
 
-void  AddMeshersToPython()
+void  AddMeshersToPython(pybind11::module& m)
 {
-
-    using namespace boost::python;
     
 #ifdef USE_TETGEN_NONFREE_TPL
     //class that allows 3D adaptive remeshing (inserting and erasing nodes)
-    class_<TetGenPfemModeler >("TetGenPfemModeler",
+    class_<TetGenPfemModeler, TetGenPfemModeler::Pointer >(m, "TetGenPfemModeler",
                                init< >())
     .def("ReGenerateMesh",TetRegenerateMesh)
     .def("ReGenerateMesh",&TetGenPfemModeler::ReGenerateMesh)
     ;
 
-    class_<TetGenPfemRefineFace >("TetGenPfemRefineFace",
+    class_<TetGenPfemRefineFace, TetGenPfemRefineFace::Pointer >(m, "TetGenPfemRefineFace",
                                   init< >())
     .def("ReGenerateMesh",TetRegenerateMeshWithFace)
     ;
 
-    class_<TetGenPfemContact >("TetGenPfemContact",
+    class_<TetGenPfemContact, TetGenPfemContact::Pointer >(m, "TetGenPfemContact",
                                init< >())
     .def("ReGenerateMesh",TetRegenerateMeshContact)
     ;
     
-    class_<TetGenCDT >("TetGenCDT",
+    class_<TetGenCDT, TetGenCDT::Pointer >(m, "TetGenCDT",
                                init< >())
     .def("GenerateCDT",GenerateCDT)
     ;
 
-    class_<TetGenPfemModelerVms >("TetGenPfemModelerVms",
+    class_<TetGenPfemModelerVms, TetGenPfemModelerVms::Pointer >(m, "TetGenPfemModelerVms",
                                   init< >())
     .def("ReGenerateMesh",&TetGenPfemModelerVms::ReGenerateMesh)
     ;
 #endif
     
     //class that allows 2D adaptive remeshing (inserting and erasing nodes)
-    class_<TriGenPFEMModeler >("TriGenPFEMModeler",
+    class_<TriGenPFEMModeler, TriGenPFEMModeler::Pointer >(m, "TriGenPFEMModeler",
                                init< >())
     .def("ReGenerateMesh",TriRegenerateMesh)
     .def("ReGenerateMesh",&TriGenPFEMModeler::ReGenerateMesh)
     ;
 
     //class that allows 2D adaptive remeshing (inserting and erasing nodes) as well as preserving the topology (avoiding "holes" at the boundaries). made for glass simulation
-    class_<TriGenGLASSModeler >("TriGenGLASSModeler",
+    class_<TriGenGLASSModeler, TriGenGLASSModeler::Pointer >(m, "TriGenGLASSModeler",
                                init< >())
     .def("ReGenerateMeshGlass",TriRegenerateMeshGLASS)
     .def("ReGenerateMeshGlass",&TriGenGLASSModeler::ReGenerateMesh)
     ;
 
 
-    class_<TriGenPFEMModelerVMS>("TriGenPFEMModelerVMS",
+    class_<TriGenPFEMModelerVMS, TriGenPFEMModelerVMS::Pointer>(m, "TriGenPFEMModelerVMS",
                                  init< >())
             .def("ReGenerateMesh",&TriGenPFEMModelerVMS::ReGenerateMesh);
 
     //segment mesher adaptive
-    class_<TriGenPFEMRefineSegment >("TriGenPFEMSegment",
+    class_<TriGenPFEMRefineSegment, TriGenPFEMRefineSegment::Pointer >(m, "TriGenPFEMSegment",
                                      init< >())
     .def("ReGenerateMesh",TriRegenerateMeshWithSegment)
     ;
