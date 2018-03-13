@@ -19,6 +19,7 @@ class Algorithm(BaseAlgorithm):
         Add("store_full_gradient_option").SetBool(True)
         Add("regular_mesh_option").SetBool(True)
         Add("use_gid_meshes").SetBool(False)
+        Add("print_VECTORIAL_ERROR_option").SetBool(True)
 
     def SetCustomBetaParameters(self, custom_parameters):
         BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
@@ -165,9 +166,9 @@ class Algorithm(BaseAlgorithm):
                 #laplacian_average[k] += laplacian[k]
             norm_mat_deriv_average += SDP.Norm(mat_deriv)
             norm_laplacian_average += SDP.Norm(laplacian)
-            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_RATE_X, diff_mat_deriv[0])
-            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_RATE_Y, diff_mat_deriv[1])
-            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_RATE_Z, diff_mat_deriv[2])
+            node.SetSolutionStepValue(VECTORIAL_ERROR_X, diff_mat_deriv[0])
+            node.SetSolutionStepValue(VECTORIAL_ERROR_Y, diff_mat_deriv[1])
+            node.SetSolutionStepValue(VECTORIAL_ERROR_Z, diff_mat_deriv[2])
 
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, mat_deriv[0])
             #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, mat_deriv[1])
@@ -186,10 +187,10 @@ class Algorithm(BaseAlgorithm):
 
         module_mat_deriv /= len(fluid_model_part.Nodes)
         module_laplacian /= len(fluid_model_part.Nodes)
-        SDP.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN_RATE, 1.0 / module_mat_deriv)
+        SDP.MultiplyNodalVariableByFactor(fluid_model_part, VECTORIAL_ERROR, 1.0 / module_mat_deriv)
         SDP.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN, 1.0 / module_laplacian)
 
-        if norm_mat_deriv_average > 0. and norm_laplacian_average > 0:
+        if norm_mat_deriv_average > 0 and norm_laplacian_average > 0:
             self.current_mat_deriv_errors[0] = error_mat_deriv / norm_mat_deriv_average
             self.current_mat_deriv_errors[1] = max_error_mat_deriv / norm_mat_deriv_average * len(fluid_model_part.Nodes)
             self.current_laplacian_errors[0] = error_laplacian / norm_laplacian_average

@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "geometries/triangle_2d_3.h"
@@ -94,7 +95,19 @@ KRATOS_CLASS_POINTER_DEFINITION(DerivativeRecovery_TDim);
 
 /// Default constructor.
 
-DerivativeRecovery(ModelPart& r_model_part): mModelPart(r_model_part), mMyCustomFunctions(), mFirstGradientRecovery(true), mFirstLaplacianRecovery(true), mSomeCloudsDontWork(false), mCalculatingTheGradient(false), mCalculatingTheLaplacian(false), mCalculatingGradientAndLaplacian(false), mFirstTimeAppending(true){}
+DerivativeRecovery(ModelPart& r_model_part, Parameters& r_parameters):
+    mModelPart(r_model_part),
+    mMyCustomFunctions(),
+    mFirstGradientRecovery(true),
+    mFirstLaplacianRecovery(true),
+    mSomeCloudsDontWork(false),
+    mCalculatingTheGradient(false),
+    mCalculatingTheLaplacian(false),
+    mCalculatingGradientAndLaplacian(false),
+    mFirstTimeAppending(true)
+{
+    mStoreFullGradient = r_parameters.GetValue("store_full_gradient_option").GetBool();
+}
 
 /// Destructor.
 virtual ~DerivativeRecovery(){}
@@ -225,6 +238,7 @@ bool mCalculatingTheGradient;
 bool mCalculatingTheLaplacian;
 bool mCalculatingGradientAndLaplacian;
 bool mFirstTimeAppending;
+bool mStoreFullGradient;
 double mLastMeasurementTime;
 double mLastPressureVariation;
 double mTotalVolume;

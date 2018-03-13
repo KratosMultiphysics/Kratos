@@ -50,7 +50,10 @@ void DerivativeRecovery<TDim>::AddTimeDerivativeComponent(ModelPart& r_model_par
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim>
-void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& vector_rate_container, Variable<array_1d<double, 3> >& material_derivative_container)
+void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_model_part,
+                                                                 Variable<array_1d<double, 3> >& vector_container,
+                                                                 Variable<array_1d<double, 3> >& vector_rate_container,
+                                                                 Variable<array_1d<double, 3> >& material_derivative_container)
 {
     std::cout << "Constructing the material derivative by derivating nodal averages...\n";
     std::map <std::size_t, unsigned int> id_to_position;
@@ -103,6 +106,24 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
         for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
             array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(material_derivative_container);
             stored_gradient_of_component_j /= inode->FastGetSolutionStepValue(NODAL_AREA);
+
+            if (mStoreFullGradient){
+                if (j == 0){
+                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_X_GRADIENT);
+                    noalias(gradient) = stored_gradient_of_component_j;
+                }
+
+                else if (j == 1){
+                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Y_GRADIENT);
+                    noalias(gradient) = stored_gradient_of_component_j;
+                }
+
+                else {
+                    array_1d <double, 3>& gradient = inode->FastGetSolutionStepValue(VELOCITY_Z_GRADIENT);
+                    noalias(gradient) = stored_gradient_of_component_j;
+                }
+            }
+
             const array_1d <double, 3>& velocity = inode->FastGetSolutionStepValue(VELOCITY);
             convective_contributions_to_the_derivative[id_to_position[inode->Id()]][j] = DEM_INNER_PRODUCT_3(velocity, stored_gradient_of_component_j);
             stored_gradient_of_component_j = ZeroVector(3);
