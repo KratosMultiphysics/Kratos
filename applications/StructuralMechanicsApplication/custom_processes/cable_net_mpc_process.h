@@ -102,6 +102,8 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
             this->CalculateNodalWeights(resulting_squared_distances,list_of_weights,number_of_neighbors);
             this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,list_of_weights,number_of_neighbors);
 
+            this->SetmIsInitialized(true);
+
             //DoubleVector list_of_weights2( number_of_neighbors, 0.0 );
             //test new function to calculate weight
             //this->ComputeWeightForAllNeighbors( node_i, neighbor_nodes, number_of_neighbors, list_of_weights2);
@@ -192,7 +194,11 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 
     void ExecuteInitializeSolutionStep() override
     {
-        if (m_parameters["reform_every_step"].GetBool()) this->CoupleModelParts();
+        if (this->GetmIsInitialized()) 
+            {if (m_parameters["reform_every_step"].GetBool()) 
+                {this->CoupleModelParts();}
+            }
+        else this->CoupleModelParts();
     }
 
 
@@ -247,13 +253,16 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 
 
 
-
+    void SetmIsInitialized(const bool& check) {this->mIsInitialized = check;}
+    bool GetmIsInitialized() const {return this->mIsInitialized;} 
 
 
 
   protected:
 
   private:
+
+    bool mIsInitialized = false;
 
 }; // Class 
 
