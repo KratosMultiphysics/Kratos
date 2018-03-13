@@ -57,13 +57,13 @@ namespace Kratos
 
       VariableQuaternion.ToRotationVector( CurrentVariable );
 
+      // update variable previous iteration instead of previous step
+      PreviousVariable     = CurrentVariable;   
 
       // update linear delta variable:
       VariableQuaternion  = StepVariableQuaternion.conjugate() * VariableQuaternion;
       LinearDeltaVariable = BeamMathUtils<double>::MapToCurrentLocalFrame( VariableQuaternion, LinearDeltaVariable );
-	
-      // update variable previous iteration instead of previous step
-      PreviousVariable     = CurrentVariable;         
+	      
        
       KRATOS_CATCH( "" )
     }

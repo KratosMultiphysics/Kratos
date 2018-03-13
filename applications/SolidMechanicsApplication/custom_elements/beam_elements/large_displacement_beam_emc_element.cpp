@@ -913,23 +913,20 @@ namespace Kratos
     noalias(DiagonalMatrix) = IdentityMatrix(3);   
 
     Vector StressResultants(3);
-    noalias(StressResultants) = ZeroVector(3);
+    Vector StressCouples(3);
     for ( unsigned int i = 0; i < 3; i++ )
       {
 	StressResultants[i] = rVariables.StressVector[i];
-      }
-
-    Vector StressCouples(3);
-    noalias(StressCouples) = ZeroVector(3);
-    for ( unsigned int i = 0; i < 3; i++ )
-      {
-	StressCouples[i] = rVariables.StressVector[i+3];
+        StressCouples[i] = rVariables.StressVector[i+3];
       }
 
     unsigned int RowIndex = 0;
     unsigned int ColIndex = 0;
 
-
+    //NOTE: avoid Kuug noise in plane ploblems
+    if( fabs(inner_prod(StressResultants,StressCouples)) < 1e-15 )
+      noalias(StressResultants) = ZeroVector(3);
+    
     //Get frame step rotation
     Vector CurrentStepRotation(3);
     noalias(CurrentStepRotation) = ZeroVector(3);
