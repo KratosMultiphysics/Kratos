@@ -197,6 +197,13 @@ public:
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
+    /// Create a new FSPeriodicCondition instance
+    Condition::Pointer Create(
+		IndexType NewId,
+		GeometryType::Pointer pGeom,
+		PropertiesType::Pointer pProperties) const override;
+    
+
     /// Check input to ensure that it makes sense.
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 

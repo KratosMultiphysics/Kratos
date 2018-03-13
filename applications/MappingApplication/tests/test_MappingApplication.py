@@ -46,13 +46,7 @@ def AssambleTestSuites():
     # Create a test suit that contains all the tests from every testCase
     # in the list:
     allSuite = suites['all']
-    allSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            TNearestElementTest2D_1,
-            TNearestNeighborTest_1,
-            TMapperTests
-        ])
-    )
+    allSuite.addTests(nightSuite) # already contains the smallSuite
 
     return suites
 

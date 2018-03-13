@@ -1483,7 +1483,7 @@ namespace Kratos
       Vector EigenValues;
       int a = rCauchyGreenMatrix.size1();
       int b = rCauchyGreenMatrix.size2();
-      SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, EigenVectors, EigenValues);
+      SolidMechanicsMathUtilities<double>::EigenVectors(rCauchyGreenMatrix, EigenVectors, EigenValues, 1e-12, 100);
 
       Matrix Aux = ZeroMatrix(3,3);
       a = Aux.size1();
@@ -1513,7 +1513,7 @@ namespace Kratos
       Matrix EigenVectors = ZeroMatrix(3,3);
       Vector EigenValues = ZeroVector(3);
 
-      SolidMechanicsMathUtilities<double>::EigenVectors(HenckyStrainMatrix, EigenVectors, EigenValues);
+      SolidMechanicsMathUtilities<double>::EigenVectors(HenckyStrainMatrix, EigenVectors, EigenValues, 1e-12, 100);
 
       Matrix Aux = ZeroMatrix(3,3);
 

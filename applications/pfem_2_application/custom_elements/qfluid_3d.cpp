@@ -665,15 +665,15 @@ namespace Kratos
 
 	constexpr double E_over_R = 24400.0;//28961.49;
     	constexpr double C = 2.18e12;//1.19e15;
- 
+        double aux_var= C * exp(-E_over_R/(temp));
 	//////////////
-        GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * C * exp(-E_over_R/(temp)) * 0.25 ;
+        GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * aux_var * 0.25 ;
 
-        GalerkinRHS[1] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * C * exp(-E_over_R/(temp)) * 0.25 ;
+        GalerkinRHS[1] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * aux_var * 0.25 ;
 
-        GalerkinRHS[2] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * C * exp(-E_over_R/(temp)) * 0.25 ;
+        GalerkinRHS[2] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * aux_var * 0.25 ;
 
-        GalerkinRHS[3] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * C * exp(-E_over_R/(temp)) * 0.25 ;
+        GalerkinRHS[3] += bulk_modulus * Area * Gaux * 0.25 + 1.0 * bulk_modulus * Area * aux_var * 0.25 ;
 
 	GetGeometry()[0].SetLock();
         double & rhs0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSUREAUX);

@@ -16,12 +16,15 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         self.thermal_model_part_name  = Parameters["thermal_model_part_name"].GetString()
         self.thermal_domain_sub_model_part_list = Parameters["thermal_domain_sub_model_part_list"]
         self.thermal_loads_sub_model_part_list = Parameters["thermal_loads_sub_model_part_list"]
+        self.thermal_domain_sub_sub_model_part_list = Parameters["thermal_domain_sub_sub_model_part_list"]
         
         self.mechanical_model_part_name  = Parameters["mechanical_model_part_name"].GetString()
         self.mechanical_domain_sub_model_part_list = Parameters["mechanical_domain_sub_model_part_list"]
         self.mechanical_loads_sub_model_part_list = Parameters["mechanical_loads_sub_model_part_list"]
         self.body_domain_sub_model_part_list = Parameters["body_domain_sub_model_part_list"]
+        self.body_domain_sub_sub_model_part_list = Parameters["body_domain_sub_sub_model_part_list"]
         self.loads_sub_model_part_list = Parameters["loads_sub_model_part_list"]
+        self.loads_sub_sub_model_part_list = Parameters["loads_sub_sub_model_part_list"]
 
     def Execute(self):
         
@@ -56,11 +59,13 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             for cond in part.Conditions:
                 list_of_ids.add(cond.Id)
         thermal_model_part.AddConditions(list(list_of_ids))
+        # Sub sub model parts
+        # Construction process
         print("Adding Thermal Sub Sub Model Parts")
         for i in range(self.thermal_domain_sub_model_part_list.size()):
             thermal_sub_model_part = self.main_model_part.GetSubModelPart(self.thermal_domain_sub_model_part_list[i].GetString())
-            thermal_model_part.CreateSubModelPart(self.thermal_domain_sub_model_part_list[i].GetString())
-            thermal_sub_sub_model_part = thermal_model_part.GetSubModelPart(self.thermal_domain_sub_model_part_list[i].GetString())
+            thermal_model_part.CreateSubModelPart(self.thermal_domain_sub_sub_model_part_list[i].GetString())
+            thermal_sub_sub_model_part = thermal_model_part.GetSubModelPart(self.thermal_domain_sub_sub_model_part_list[i].GetString())
             list_of_ids = set()
             for elem in thermal_sub_model_part.Elements:
                 list_of_ids.add(elem.Id)
@@ -107,8 +112,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         # Body - Joints
         for i in range(self.body_domain_sub_model_part_list.size()):
             body_sub_model_part = self.main_model_part.GetSubModelPart(self.body_domain_sub_model_part_list[i].GetString())
-            mechanical_model_part.CreateSubModelPart(self.body_domain_sub_model_part_list[i].GetString())
-            body_sub_sub_model_part = mechanical_model_part.GetSubModelPart(self.body_domain_sub_model_part_list[i].GetString())
+            mechanical_model_part.CreateSubModelPart(self.body_domain_sub_sub_model_part_list[i].GetString())
+            body_sub_sub_model_part = mechanical_model_part.GetSubModelPart(self.body_domain_sub_sub_model_part_list[i].GetString())
             list_of_ids = set()
             for node in body_sub_model_part.Nodes:
                 list_of_ids.add(node.Id)
@@ -120,8 +125,8 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
         # Arc-length
         for i in range(self.loads_sub_model_part_list.size()):
             load_sub_model_part = self.main_model_part.GetSubModelPart(self.loads_sub_model_part_list[i].GetString())
-            mechanical_model_part.CreateSubModelPart(self.loads_sub_model_part_list[i].GetString())
-            load_sub_sub_model_part = mechanical_model_part.GetSubModelPart(self.loads_sub_model_part_list[i].GetString())
+            mechanical_model_part.CreateSubModelPart(self.loads_sub_sub_model_part_list[i].GetString())
+            load_sub_sub_model_part = mechanical_model_part.GetSubModelPart(self.loads_sub_sub_model_part_list[i].GetString())
             list_of_ids = set()
             for node in load_sub_model_part.Nodes:
                 list_of_ids.add(node.Id)

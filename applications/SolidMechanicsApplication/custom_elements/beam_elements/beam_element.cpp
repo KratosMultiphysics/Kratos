@@ -112,12 +112,12 @@ namespace Kratos
 
 	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-	rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 
 	if( dimension == 2 ){
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
 	}
 	else{
+          rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
 	  rElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
@@ -1639,9 +1639,9 @@ namespace Kratos
     KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
       
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
     KRATOS_CHECK_VARIABLE_KEY(CROSS_SECTION_AREA);
     KRATOS_CHECK_VARIABLE_KEY(LOCAL_INERTIA_TENSOR);
+    //KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION);
     
     // Check that the element nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
@@ -1650,7 +1650,7 @@ namespace Kratos
 	Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION,rNode);
-	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 	
 	// Nodal dofs
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);

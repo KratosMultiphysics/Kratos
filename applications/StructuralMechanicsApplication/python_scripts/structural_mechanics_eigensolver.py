@@ -1,11 +1,16 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-import structural_mechanics_solver
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
+# Importing the Kratos Library
+import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
+
+# Import applications
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+
+# Import base class file
+import structural_mechanics_solver
 
 
 def CreateSolver(main_model_part, custom_settings):
@@ -30,13 +35,17 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         structural_settings = custom_settings.Clone()
         structural_settings.RemoveValue("eigensolver_settings")
 
-        if not structural_settings.Has("scheme_type"): # Override defaults in the base class.
-            structural_settings.AddEmptyValue("scheme_type")
-            structural_settings["scheme_type"].SetString("dynamic")
-        
+        self.structural_eigensolver_settings = KratosMultiphysics.Parameters("""
+        {
+            "scheme_type"   : "dynamic"
+        }
+        """)
+        self.validate_and_transfer_matching_settings(structural_settings, self.structural_eigensolver_settings)
+        # Validate the remaining settings in the base class.
+
         # Construct the base solver.
         super(EigenSolver, self).__init__(main_model_part, structural_settings)
-        print("::[EigenSolver]:: Construction finished")
+        self.print_on_rank_zero("::[EigenSolver]:: ", "Construction finished")
 
     #### Private functions ####
 
@@ -44,28 +53,28 @@ class EigenSolver(structural_mechanics_solver.MechanicalSolver):
         """Create the scheme for the eigenvalue problem.
 
         The scheme determines the left- and right-hand side matrices in the
-        generalized eigenvalue problem. 
+        generalized eigenvalue problem.
         """
-        scheme_type = self.settings["scheme_type"].GetString()
+        scheme_type = self.structural_eigensolver_settings["scheme_type"].GetString()
         if scheme_type == "dynamic":
             solution_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
         else: # here e.g. a stability scheme could be added
             err_msg =  "The requested scheme type \"" + scheme_type + "\" is not available!\n"
             err_msg += "Available options are: \"dynamic\""
             raise Exception(err_msg)
-            
+
         return solution_scheme
 
     def _create_linear_solver(self):
         """Create the eigensolver.
-        
+
         This overrides the base class method and replaces the usual linear solver
         with an eigenvalue problem solver.
         """
         import eigen_solver_factory
         return eigen_solver_factory.ConstructSolver(self.eigensolver_settings)
 
-    def _create_mechanical_solver(self):
+    def _create_mechanical_solution_strategy(self):
         eigen_scheme = self.get_solution_scheme() # The scheme defines the matrices of the eigenvalue problem.
         builder_and_solver = self.get_builder_and_solver() # The eigensolver is created here.
         computing_model_part = self.GetComputingModelPart()

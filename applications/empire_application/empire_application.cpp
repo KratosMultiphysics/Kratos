@@ -32,8 +32,7 @@ namespace Kratos
 //	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
 //
 
- 	KratosEmpireApplication::KratosEmpireApplication()
- 	{}
+ 	KratosEmpireApplication::KratosEmpireApplication() : KratosApplication("EmpireApplication") {}
  	
  	void KratosEmpireApplication::Register()
  	{

@@ -35,8 +35,9 @@ KRATOS_CREATE_VARIABLE(Vector, POD_PRESSURE)
 // 	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
 
 
-KratosPodApplication::KratosPodApplication()
-/*		:
+KratosPodApplication::KratosPodApplication():
+    KratosApplication("PodApplication")
+/*		,
 		mElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))*/
 {}

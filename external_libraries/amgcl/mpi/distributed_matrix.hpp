@@ -30,7 +30,6 @@ THE SOFTWARE.
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/unordered_map.hpp>
-#include <boost/multi_array.hpp>
 #include <boost/foreach.hpp>
 
 #include <mpi.h>
@@ -82,82 +81,85 @@ class comm_pattern {
                 const backend_params &bprm = backend_params()
                 ) : comm(mpi_comm)
         {
+            AMGCL_TIC("communication pattern");
             // Get domain boundaries
             std::vector<ptrdiff_t> domain = mpi::exclusive_sum(comm, n_loc_cols);
             ptrdiff_t loc_beg = domain[comm.rank];
 
             // Renumber remote columns,
             // find out how many remote values we need from each process.
-            std::vector<ptrdiff_t> num_recv(comm.size, 0); // Number of columns to receive from each process
             std::vector<ptrdiff_t> rem_cols(p_rem_cols, p_rem_cols + n_rem_cols);
 
             std::sort(rem_cols.begin(), rem_cols.end());
             rem_cols.erase(std::unique(rem_cols.begin(), rem_cols.end()), rem_cols.end());
 
             ptrdiff_t ncols = rem_cols.size();
+            ptrdiff_t rnbr = 0, snbr = 0, send_size = 0;
 
-            idx.reserve(2 * ncols);
+            {
+                std::vector<int> rcounts(comm.size, 0);
+                std::vector<int> scounts(comm.size);
 
-            for(ptrdiff_t i = 0, cur_domain = 0; i < ncols; ++i) {
-                idx.insert(idx.end(), std::make_pair(rem_cols[i], i));
+                // Build index for column renumbering;
+                // count how many domains send us data and how much.
+                idx.reserve(2 * ncols);
+                for(int i = 0, d = 0, last = -1; i < ncols; ++i) {
+                    idx.insert(idx.end(), std::make_pair(rem_cols[i], i));
 
-                while(rem_cols[i] >= domain[cur_domain + 1]) ++cur_domain;
-                ++num_recv[cur_domain];
-            }
+                    while(rem_cols[i] >= domain[d + 1]) ++d;
+                    ++rcounts[d];
 
-            // Setup communication pattern.
-            // Find out who sends to whom and how many.
-            boost::multi_array<ptrdiff_t, 2> comm_matrix(boost::extents[comm.size][comm.size]);
-            MPI_Allgather(&num_recv[0], comm.size, datatype<ptrdiff_t>(),
-                    comm_matrix.data(), comm.size, datatype<ptrdiff_t>(), comm);
-
-            ptrdiff_t snbr = 0, rnbr = 0, send_size = 0;
-
-            for(int i = 0; i < comm.size; ++i) {
-                if (comm_matrix[comm.rank][i]) {
-                    ++rnbr;
+                    if (last < d) {
+                        last = d;
+                        ++rnbr;
+                    }
                 }
 
-                if (comm_matrix[i][comm.rank]) {
-                    ++snbr;
-                    send_size += comm_matrix[i][comm.rank];
-                }
-            }
+                recv.val.resize(ncols);
+                recv.req.resize(rnbr);
 
-            send.nbr.reserve(snbr);
-            send.val.resize(send_size);
-            send.req.resize(snbr);
-            send.ptr.reserve(snbr + 1);
-            send.ptr.push_back(0);
+                recv.nbr.reserve(rnbr);
+                recv.ptr.reserve(rnbr + 1); recv.ptr.push_back(0);
 
-            recv.nbr.reserve(rnbr);
-            recv.val.resize(ncols);
-            recv.req.resize(rnbr);
-            recv.ptr.reserve(rnbr + 1);
-            recv.ptr.push_back(0);
-
-            // Count how many columns to send and to receive.
-            for(int i = 0; i < comm.size; ++i) {
-                if (ptrdiff_t nr = comm_matrix[comm.rank][i]) {
-                    recv.nbr.push_back( i );
-                    recv.ptr.push_back( recv.ptr.back() + nr );
+                for(int d = 0; d < comm.size; ++d) {
+                    if (rcounts[d]) {
+                        recv.nbr.push_back(d);
+                        recv.ptr.push_back(recv.ptr.back() + rcounts[d]);
+                    }
                 }
 
-                if (ptrdiff_t ns = comm_matrix[i][comm.rank]) {
-                    send.nbr.push_back( i );
-                    send.ptr.push_back( send.ptr.back() + ns );
+                MPI_Alltoall(&rcounts[0], 1, MPI_INT, &scounts[0], 1, MPI_INT, comm);
+
+                for(ptrdiff_t d = 0; d < comm.size; ++d) {
+                    if (scounts[d]) {
+                        ++snbr;
+                        send_size += scounts[d];
+                    }
+                }
+
+                send.col.resize(send_size);
+                send.val.resize(send_size);
+                send.req.resize(snbr);
+
+                send.nbr.reserve(snbr);
+                send.ptr.reserve(snbr + 1); send.ptr.push_back(0);
+
+                for(ptrdiff_t d = 0; d < comm.size; ++d) {
+                    if (scounts[d]) {
+                        send.nbr.push_back(d);
+                        send.ptr.push_back(send.ptr.back() + scounts[d]);
+                    }
                 }
             }
 
             // What columns do you need from me?
-            send.col.resize(send_size);
             for(size_t i = 0; i < send.nbr.size(); ++i)
-                MPI_Irecv(&send.col[send.ptr[i]], comm_matrix[send.nbr[i]][comm.rank],
+                MPI_Irecv(&send.col[send.ptr[i]], send.ptr[i+1] - send.ptr[i],
                         datatype<ptrdiff_t>(), send.nbr[i], tag_exc_cols, comm, &send.req[i]);
 
             // Here is what I need from you:
             for(size_t i = 0; i < recv.nbr.size(); ++i)
-                MPI_Isend(&rem_cols[recv.ptr[i]], comm_matrix[comm.rank][recv.nbr[i]],
+                MPI_Isend(&rem_cols[recv.ptr[i]], recv.ptr[i+1] - recv.ptr[i],
                         datatype<ptrdiff_t>(), recv.nbr[i], tag_exc_cols, comm, &recv.req[i]);
 
             MPI_Waitall(recv.req.size(), &recv.req[0], MPI_STATUSES_IGNORE);
@@ -169,6 +171,7 @@ class comm_pattern {
             // Create backend structures
             x_rem  = Backend::create_vector(ncols, bprm);
             gather = boost::make_shared<Gather>(n_loc_cols, send.col, bprm);
+            AMGCL_TOC("communication pattern");
         }
 
         size_t renumber(size_t n, ptrdiff_t *col) {
@@ -227,8 +230,9 @@ class comm_pattern {
     private:
         typedef typename Backend::gather Gather;
 
-        static const int tag_exc_cols = 1001;
-        static const int tag_exc_vals = 2001;
+        static const int tag_set_comm = 1001;
+        static const int tag_exc_cols = 1002;
+        static const int tag_exc_vals = 1003;
 
         communicator comm;
 

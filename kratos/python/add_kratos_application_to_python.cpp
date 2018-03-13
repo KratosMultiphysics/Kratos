@@ -11,35 +11,28 @@
 //                   Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
 #include <boost/python.hpp>
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "python/add_kratos_application_to_python.h"
 
-namespace Kratos
-{
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 using namespace boost::python;
 
-
-void  AddKratosApplicationToPython()
-{
-    class_<KratosApplication, KratosApplication::Pointer, boost::noncopyable >("KratosApplication")
-    .def("Register",&KratosApplication::Register)
-    //.def("",&Kernel::Initialize)
-    .def(self_ns::str(self))
-    ;
+void AddKratosApplicationToPython() {
+    class_<KratosApplication, KratosApplication::Pointer, boost::noncopyable>(
+        "KratosApplication", init<std::string>())
+        .def("Register", &KratosApplication::Register)
+        //.def("",&Kernel::Initialize)
+        .def(self_ns::str(self));
 }
 
 }  // namespace Python.
 
-} // Namespace Kratos
-
+}  // Namespace Kratos

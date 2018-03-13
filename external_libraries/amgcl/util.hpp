@@ -32,6 +32,8 @@ THE SOFTWARE.
  */
 
 #include <iostream>
+#include <iomanip>
+#include <string>
 #include <set>
 #include <limits>
 #include <stdexcept>
@@ -108,19 +110,38 @@ void precondition(const Condition &condition, const Message &message) {
       std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
 #endif
 
-# define AMGCL_PARAMS_CHECK_LOOP(z, p, name)                                   \
-    defprm.insert(BOOST_PP_STRINGIZE(name));                                   \
-    if (!p.count(BOOST_PP_STRINGIZE(name))) {                                  \
-        AMGCL_PARAM_MISSING(BOOST_PP_STRINGIZE(name));                         \
-    }
+# define AMGCL_PARAMS_CHECK_INSERT(z, s, name)                                 \
+    s.insert(BOOST_PP_STRINGIZE(name));                                        \
 
 # define AMGCL_PARAMS_CHECK(p, names)                                          \
     std::set<std::string> defprm;                                              \
-    BOOST_PP_SEQ_FOR_EACH(AMGCL_PARAMS_CHECK_LOOP, p, names)                   \
+    BOOST_PP_SEQ_FOR_EACH(AMGCL_PARAMS_CHECK_INSERT, defprm, names)            \
+    for(std::set<std::string>::const_iterator v = defprm.begin(); v != defprm.end(); ++v) \
+        if (!p.count(BOOST_PP_STRINGIZE(*v)))                                  \
+            AMGCL_PARAM_MISSING(BOOST_PP_STRINGIZE(*v));                       \
     for(boost::property_tree::ptree::const_iterator v = p.begin(), e = p.end(); v != e; ++v) \
-        if (!defprm.count(v->first)) {                                         \
-            AMGCL_PARAM_UNKNOWN(v->first);                                     \
-        }
+        if (!defprm.count(v->first))                                           \
+            AMGCL_PARAM_UNKNOWN(v->first)
+
+# define AMGCL_PARAMS_CHECK_OPT(p, names, opt_names)                           \
+    std::set<std::string> defprm;                                              \
+    std::set<std::string> skip;                                                \
+    BOOST_PP_SEQ_FOR_EACH(AMGCL_PARAMS_CHECK_INSERT, defprm, names)            \
+    BOOST_PP_SEQ_FOR_EACH(AMGCL_PARAMS_CHECK_INSERT, skip, opt_names)          \
+    for(std::set<std::string>::const_iterator v = defprm.begin(); v != defprm.end(); ++v) \
+        if (!p.count(BOOST_PP_STRINGIZE(*v)))                                  \
+            AMGCL_PARAM_MISSING(BOOST_PP_STRINGIZE(*v));                       \
+    for(boost::property_tree::ptree::const_iterator v = p.begin(), e = p.end(); v != e; ++v) \
+        if (!defprm.count(v->first) && !skip.count(v->first))                  \
+            AMGCL_PARAM_UNKNOWN(v->first)
+
+// Put parameter in form "key=value" into a boost::property_tree::ptree
+inline void put(boost::property_tree::ptree &p, const std::string &param) {
+    size_t eq_pos = param.find('=');
+    if (eq_pos == std::string::npos)
+        throw std::invalid_argument("param in amgcl::put() should have \"key=value\" format!");
+    p.put(param.substr(0, eq_pos), param.substr(eq_pos + 1));
+}
 
 namespace detail {
 

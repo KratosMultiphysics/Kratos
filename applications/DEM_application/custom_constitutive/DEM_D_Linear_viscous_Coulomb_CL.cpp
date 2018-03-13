@@ -54,7 +54,7 @@ namespace Kratos {
         const double beta = 1.432;
         const double modified_radius =  equiv_radius * 0.31225; // r * sqrt(alpha * (2.0 - alpha)) = 0.31225
         mKn = beta * equiv_young * Globals::Pi * modified_radius;        // 2.0 * equiv_young * sqrt_equiv_radius;
-        mKt = 4.0 * equiv_shear * mKn / equiv_young;       
+        mKt = 4.0 * equiv_shear * mKn / equiv_young;
     }
     
     void DEM_D_Linear_viscous_Coulomb::CalculateForces(const ProcessInfo& r_process_info,

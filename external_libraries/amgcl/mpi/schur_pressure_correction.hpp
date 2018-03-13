@@ -89,24 +89,53 @@ class schur_pressure_correction {
                   AMGCL_PARAMS_IMPORT_CHILD(p, psolver),
                   AMGCL_PARAMS_IMPORT_VALUE(p, approx_schur)
             {
-                void *pm = 0;
                 size_t n = 0;
 
-                pm = p.get("pmask",     pm);
-                n  = p.get("pmask_size", n);
-
-                amgcl::precondition(pm,
-                        "Error in schur_complement parameters: "
-                        "pmask is not set");
+                n = p.get("pmask_size", n);
 
                 amgcl::precondition(n > 0,
                         "Error in schur_complement parameters: "
-                        "pmask is set, but pmask_size is not"
-                        );
+                        "pmask_size is not set");
 
-                pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
+                if (p.count("pmask_pattern")) {
+                    pmask.resize(n, 0);
 
-                AMGCL_PARAMS_CHECK(p, (usolver)(psolver)(pmask)(pmask_size)(approx_schur));
+                    std::string pattern = p.get("pmask_pattern", std::string());
+                    switch (pattern[0]) {
+                        case '%':
+                            {
+                                int start  = std::atoi(pattern.substr(1).c_str());
+                                int stride = std::atoi(pattern.substr(3).c_str());
+                                for(size_t i = start; i < n; i += stride) pmask[i] = 1;
+                            }
+                            break;
+                        case '<':
+                            {
+                                size_t m = std::atoi(pattern.c_str()+1);
+                                for(size_t i = 0; i < std::min(m, n); ++i) pmask[i] = 1;
+                            }
+                            break;
+                        case '>':
+                            {
+                                size_t m = std::atoi(pattern.c_str()+1);
+                                for(size_t i = m; i < n; ++i) pmask[i] = 1;
+                            }
+                            break;
+                        default:
+                            amgcl::precondition(false, "Unknown pattern in pmask_pattern");
+                    }
+                } else if (p.count("pmask")) {
+                    void *pm = 0;
+                    pm = p.get("pmask", pm);
+                    pmask.assign(static_cast<char*>(pm), static_cast<char*>(pm) + n);
+                } else {
+                    amgcl::precondition(false,
+                            "Error in schur_complement parameters: "
+                            "neither pmask_pattern, nor pmask is set"
+                            );
+                }
+
+                AMGCL_PARAMS_CHECK_OPT(p, (usolver)(psolver)(approx_schur)(pmask_size), (pmask)(pmask_pattern));
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
@@ -133,20 +162,25 @@ class schur_pressure_correction {
             using boost::make_shared;
 
             // Get sizes of each domain in comm.
+            AMGCL_TIC("domain sizes");
             ptrdiff_t n = backend::rows(K);
             std::vector<ptrdiff_t> domain = mpi::exclusive_sum(comm, n);
 
             ptrdiff_t loc_beg = domain[comm.rank];
             ptrdiff_t loc_end = domain[comm.rank + 1];
+            AMGCL_TOC("domain sizes");
 
             // Count pressure and flow variables.
+            AMGCL_TIC("count pressure/flow vars");
             std::vector<ptrdiff_t> idx(n);
             ptrdiff_t np = 0, nu = 0;
 
             for(ptrdiff_t i = 0; i < n; ++i)
                 idx[i] = (prm.pmask[i] ? np++ : nu++);
+            AMGCL_TOC("count pressure/flow vars");
 
             // Split the matrix into local and remote parts.
+            AMGCL_TIC("split local/remote");
             shared_ptr<build_matrix> K_loc = make_shared<build_matrix>();
             shared_ptr<build_matrix> K_rem = make_shared<build_matrix>();
 
@@ -191,8 +225,10 @@ class schur_pressure_correction {
                     }
                 }
             }
+            AMGCL_TOC("split local/remote");
 
             // Analyze communication pattern for the system matrix
+            AMGCL_TIC("setup communication");
             C = boost::make_shared<CommPattern>(comm, n, K_rem->nnz, K_rem->col, bprm);
             K_rem->ncols = C->renumber(K_rem->nnz, K_rem->col);
 
@@ -220,11 +256,13 @@ class schur_pressure_correction {
 
             C->exchange(&smask[0], &rmask[0]);
             C->exchange(&s_idx[0], &r_idx[0]);
+            AMGCL_TOC("setup communication");
 
             // Fill the subblocks of the system matrix.
             // Kpp and Kpp have to be constructed as whole strips, and
             // Kup and Kpu may be split to local/remote parts immediately.
             // K_rem->col may be used as direct indices into rmask and r_idx.
+            AMGCL_TIC("schur blocks");
             shared_ptr<build_matrix> Kpp = make_shared<build_matrix>();
             shared_ptr<build_matrix> Kuu = make_shared<build_matrix>();
 
@@ -406,10 +444,16 @@ class schur_pressure_correction {
             this->Kup_rem = backend_type::copy_matrix(Kup_rem, bprm);
 
             Kup = make_shared<matrix>(*Cup, *this->Kup_loc, *this->Kup_rem);
+            AMGCL_TOC("schur blocks");
 
+            AMGCL_TIC("usolver")
             U = make_shared<USolver>(mpi_comm, *Kuu, prm.usolver, bprm);
+            AMGCL_TOC("usolver")
+            AMGCL_TIC("psolver")
             P = make_shared<PSolver>(mpi_comm, *Kpp, prm.psolver, bprm);
+            AMGCL_TOC("psolver")
 
+            AMGCL_TIC("other");
             rhs_u = backend_type::create_vector(nu, bprm);
             rhs_p = backend_type::create_vector(np, bprm);
 
@@ -434,8 +478,10 @@ class schur_pressure_correction {
                     (*M)[i] = v;
                 }
             }
+            AMGCL_TOC("other");
 
             // Scatter/Gather matrices
+            AMGCL_TIC("scatter/gather");
             boost::shared_ptr<build_matrix> x2u = boost::make_shared<build_matrix>();
             boost::shared_ptr<build_matrix> x2p = boost::make_shared<build_matrix>();
             boost::shared_ptr<build_matrix> u2x = boost::make_shared<build_matrix>();
@@ -504,6 +550,7 @@ class schur_pressure_correction {
             this->x2p = backend_type::copy_matrix(x2p, bprm);
             this->u2x = backend_type::copy_matrix(u2x, bprm);
             this->p2x = backend_type::copy_matrix(p2x, bprm);
+            AMGCL_TOC("scatter/gather");
         }
 
         const matrix& system_matrix() const {

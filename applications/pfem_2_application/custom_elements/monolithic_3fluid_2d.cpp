@@ -101,7 +101,7 @@ namespace Kratos
 		//KRATOS_WATCH(gradient_discontinuity);
 
 		
-                ssssssssss
+                
 		double theta=1.0;
 	
 		

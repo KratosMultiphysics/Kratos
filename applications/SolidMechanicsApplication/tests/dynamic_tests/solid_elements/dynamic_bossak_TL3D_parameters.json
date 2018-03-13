@@ -1,0 +1,76 @@
+{
+    "input_settings":{
+	"materials_file_name": "dynamic_tests/solid_elements/dynamic_bossak_TL3D_materials.json"
+    },
+    "model_settings"           : {
+        "dimension"            : 3,
+        "domain_parts_list"    : ["Parts_Parts_Auto1"],
+        "processes_parts_list" : ["DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3","DISPLACEMENT_Displacement_Auto4","DISPLACEMENT_Displacement_Auto5","SelfWeight3D_Self_weight_Auto1"]
+    },
+    "solver_settings"          : {
+        "solver_type" : "solid_mechanics_implicit_dynamic_solver",
+        "Parameters"  : {
+            "time_settings"             : {
+                "time_step"  : 0.01,
+                "end_time"   : 10.0
+            },
+            "time_integration_settings" : {
+                "solution_type"      : "Dynamic",
+                "time_integration"   : "Implicit",
+                "integration_method" : "Bossak"
+            },
+            "solving_strategy_settings" : {
+                "bossak_factor"               : -0.3,
+                "lumped_mass_matrix"          : true,
+                "consistent_mass_matrix"      : false
+            }
+        }
+    },
+    "constraints_process_list" : [{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+        "value"           : [0.0,0.0,0.0],
+        "interval"        : [0.0,2.49]        
+    },{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
+        "value"           : ["current","current","current"],
+        "interval"        : [2.5,5.0]
+    },{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto4",
+        "value"           : ["current","current","current"],
+        "interval"        : [5.01,7.5]
+    },{
+        "model_part_name" : "DISPLACEMENT_Displacement_Auto5",
+	"value"           : ["current","current","current"],
+        "interval"        : [7.51,10]
+    }],
+    "loads_process_list"       : [{
+        "model_part_name" : "SelfWeight3D_Self_weight_Auto1",
+        "variable_name"   : "VOLUME_ACCELERATION",
+        "modulus"         : 9.81,
+        "direction"       : [0.0,-1.0,0.0]
+    }],
+    "_output_process_list" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "Parameters"      : {
+            "output_variables" : ["DISPLACEMENT_Y"],
+            "output_file_name" : "dynamic_tests/solid_elements/dynamic_bossak_TL3D_results.json",
+            "model_part_name"  : "DISPLACEMENT_Displacement_Auto2",
+            "time_frequency"   : 0.5
+        }
+    }
+    ],
+    "check_process_list" : [
+    {
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module"   : "KratosMultiphysics",
+        "Parameters"      : {
+            "check_variables" : ["DISPLACEMENT_Y"],
+            "input_file_name" : "dynamic_tests/solid_elements/dynamic_bossak_TL3D_results.json",
+            "model_part_name"  : "DISPLACEMENT_Displacement_Auto2",
+            "time_frequency"   : 0.5
+        }
+    }
+    ]
+}

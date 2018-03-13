@@ -21,7 +21,7 @@ for size in irregular_mesh_sizes + regular_mesh_n_points:
         import ethier_benchmark_algorithm
         with script.Solution(ethier_benchmark_algorithm, parameters) as test:
             try:
-                test.alg.Run()
+                test.Run()
             except:
                 error = sys.exc_info()
                 errors.append(error)

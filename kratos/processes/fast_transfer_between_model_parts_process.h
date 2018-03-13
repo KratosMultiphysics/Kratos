@@ -105,23 +105,17 @@ public:
         const int num_nodes = mrOriginModelPart.Nodes().size();
 
         if (num_nodes != 0 && (mEntity == All || mEntity == Nodes || mEntity == NodesAndElements))
-        {
             mrDestinationModelPart.AddNodes(mrOriginModelPart.NodesBegin(),mrOriginModelPart.NodesEnd());
-        }
 
         const int num_elements = mrOriginModelPart.Elements().size();
 
         if (num_elements != 0 && (mEntity == All || mEntity == Elements || mEntity == NodesAndElements))
-        {
             mrDestinationModelPart.AddElements(mrOriginModelPart.ElementsBegin(),mrOriginModelPart.ElementsEnd());
-        }
 
         const int num_conditions = mrOriginModelPart.Conditions().size();
 
         if (num_conditions != 0 && (mEntity == All || mEntity == Conditions))
-        {
              mrDestinationModelPart.AddConditions(mrOriginModelPart.ConditionsBegin(),mrOriginModelPart.ConditionsEnd());
-        }
 
         KRATOS_CATCH("");
     }
@@ -198,11 +192,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrDestinationModelPart;
+    ModelPart& mrDestinationModelPart; // The destination model part
     
-    ModelPart& mrOriginModelPart;
+    ModelPart& mrOriginModelPart;      // The origin model part
     
-    const EntityString mEntity;
+    const EntityString mEntity;        // The entity to transfer
     
     ///@}
     ///@name Private Operators
@@ -214,36 +208,24 @@ private:
     
     /**
      * This converts the entity string to an enum
-     * @param str: The string that you want to convert in the equivalent enum
+     * @param str The string that you want to convert in the equivalent enum
      * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
 
     EntityString ConvertEntity(const std::string& str)
     {
         if(str == "Nodes")
-        {
             return Nodes;
-        }
         else if(str == "Elements")
-        {
             return Elements;
-        }
         else if(str == "NodesAndElements")
-        {
             return NodesAndElements;
-        }
         else if(str == "Conditions")
-        {
             return Conditions;
-        }
         else if(str == "All")
-        {
             return All;
-        }
         else
-        {
             return All;
-        }
     }
     
     ///@}

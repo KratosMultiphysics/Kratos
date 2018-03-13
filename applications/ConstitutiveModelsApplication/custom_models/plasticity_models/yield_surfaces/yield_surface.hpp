@@ -85,7 +85,7 @@ namespace Kratos
     /// Clone.
     virtual typename YieldSurface::Pointer Clone() const
     {
-      return (YieldSurface<THardeningRule>::Pointer(new YieldSurface(*this)));
+      return YieldSurface::Pointer(new YieldSurface(*this));
     }
 
     /// Destructor.

@@ -151,6 +151,13 @@ protected:
      */
     virtual void CalculateExternalStiffness(ConditionVariables& rVariables) override;
 
+    /**
+     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     ConditionVariables& rVariables,
+				     double& rIntegrationWeight) override;
+    
     ///@}
     ///@name Protected  Access
     ///@{

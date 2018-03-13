@@ -49,7 +49,7 @@ public:
     typedef DivideGeometry                                              BaseType;
     typedef BaseType::GeometryType                                      GeometryType;
     typedef BaseType::IndexedPointType                                  IndexedPointType;
-    typedef BaseType::IndexedPointGeometryType::GeometriesArrayType     GeometriesArrayType;
+    typedef BaseType::IndexedPointGeometryType::GeometriesArrayType     IndexedGeometriesArrayType;
     typedef Triangle3D3 < IndexedPointType >                            IndexedPointTriangleType;
     typedef Tetrahedra3D4 < IndexedPointType >                          IndexedPointTetrahedraType;
 
@@ -100,6 +100,21 @@ public:
     ///@{
 
     /**
+     * Returns the member vector containing the edges node I ids.
+     */
+    const std::vector<int>& GetEdgeIdsI() const override;
+
+    /**
+     * Returns the member vector containing the edges node J ids.
+     */
+    const std::vector<int>& GetEdgeIdsJ() const override;
+
+    /**
+     * Returns the member vector containing the split edges member vector.
+     */
+    std::vector<int>& GetSplitEdges() override;
+
+    /**
      * Divides the input geometry according to the provided distance data.
      */
     void GenerateDivision() override;
@@ -108,6 +123,31 @@ public:
      * Generates a list containing the intersection interface geometries for either the positive or the negative element subdivisions.
      */
     void GenerateIntersectionsSkin() override;
+
+    /**
+     * Generates a list containing the exterior (boundary) faces geometries for either the positive or the negative element subdivisions.
+     * @param rExteriorFacesVector Vector containing the generated exterior subfaces geometries
+     * @param rExteriorFacesParentSubdivisionsIdsVector Vector containing the ids of the parent subdivision of each subface
+     * @param rSubdivisionsContainer Positive or negative parent geometry subdivisions container
+     */
+    void GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer) override;
+
+    /**
+     * Given a father face id, generates a list containing the exterior (boundary)
+     * faces geometries belonging to either the positive or negative side of that that father face.
+     * @param rExteriorFacesVector Vector containing the generated exterior subfaces geometries
+     * @param rExteriorFacesParentSubdivisionsIdsVector Vector containing the ids of the parent subdivision of each subface
+     * @param rSubdivisionsContainer Positive or negative parent geometry subdivisions container
+     * @param FatherFaceId Father face in where the positive exterior faces are to be obtained
+     */
+    void GenerateExteriorFaces(
+        std::vector < IndexedPointGeometryPointerType > &rExteriorFacesVector,
+        std::vector < unsigned int > &rExteriorFacesParentSubdivisionsIdsVector,
+        const std::vector < IndexedPointGeometryPointerType > &rSubdivisionsContainer,
+        const unsigned int FatherFaceId) override;
 
     ///@}
 
@@ -144,11 +184,11 @@ private:
     ///@{
 
     /// Assignment operator.
-    // DivideTetrahedra3D4& operator=(DivideTetrahedra3D4 const& rOther);
-    //
-    // /// Copy constructor.
-    // DivideTetrahedra3D4(DivideTetrahedra3D4 const& rOther)
-    //     : DivideGeometry(rOther.mrInputGeometry, rOther.mrNodalDistances) {};
+    DivideTetrahedra3D4& operator=(DivideTetrahedra3D4 const& rOther);
+
+    /// Copy constructor.
+    DivideTetrahedra3D4(DivideTetrahedra3D4 const& rOther)
+        : DivideGeometry(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
 
     ///@}
 

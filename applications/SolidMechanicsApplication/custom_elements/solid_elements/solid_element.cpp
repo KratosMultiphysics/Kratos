@@ -143,6 +143,17 @@ SolidElement::IntegrationMethod SolidElement::GetIntegrationMethod() const
     return mThisIntegrationMethod;
 }
 
+  
+//************************************************************************************
+//************************************************************************************
+
+void SolidElement::IncreaseIntegrationMethod(IntegrationMethod& rThisIntegrationMethod, unsigned int increment) const
+{
+  int IntMethod = int(rThisIntegrationMethod);
+  IntMethod += increment;
+  rThisIntegrationMethod = IntegrationMethod(IntMethod); 
+}
+  
 //************************************************************************************
 //************************************************************************************
 
@@ -338,7 +349,7 @@ void SolidElement::GetValueOnIntegrationPoints( const Variable<double>& rVariabl
 						std::vector<double>& rValues,
 						const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS || rVariable == PRESSURE)
+    if ( rVariable == VON_MISES_STRESS || rVariable == NORM_ISOCHORIC_STRESS || rVariable == PRESSURE || DAMAGE_VARIABLE)
     {
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
     }
@@ -559,6 +570,17 @@ void SolidElement::InitializeElementVariables (ElementVariables& rVariables, con
 
 }
 
+//*********************************COMPUTE KINETICS***********************************
+//************************************************************************************
+
+void SolidElement::CalculateKinetics(ElementVariables& rVariables, const double& rPointNumber)
+{
+    KRATOS_TRY
+
+    this->CalculateKinematics(rVariables,rPointNumber);  
+      
+    KRATOS_CATCH( "" )
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -645,7 +667,7 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
     
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
-        //compute element kinematics B, F, DN_DX ...
+        //compute element kinematic variables B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
         //set general variables to constitutivelaw parameters
@@ -690,32 +712,35 @@ void SolidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
 //************************************************************************************
 
 void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-						       ProcessInfo& rCurrentProcessInfo)
+					   ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+
+    IntegrationMethod ThisIntegrationMethod = mThisIntegrationMethod;
+    
+    if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) ){
+
+      if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true){
+	//full quadrature integration:
+	this->IncreaseIntegrationMethod(mThisIntegrationMethod,1);
+      }
+    }      
 
     //create and initialize element variables:
     ElementVariables Variables;
     this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
+    
     //reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
     double IntegrationWeight = 1;
     
-    MatrixType  LocalLeftHandSideMatrix;
-    VectorType  LocalRightHandSideVector;
-    //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LocalLeftHandSideMatrix, LocalRightHandSideVector, rLocalSystem.CalculationFlags );
-
-    
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
     {
-        //compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables,PointNumber);
-
-	//some transformation of the configuration can be needed (UL element specially)
-        this->TransformElementVariables(Variables,PointNumber);
-
+        //compute element kinetic variables B, F, DN_DX ...
+        this->CalculateKinetics(Variables, PointNumber);
+      
         //calculating weights for integration on the "reference configuration"
         IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
@@ -723,27 +748,15 @@ void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
-
-	  LocalLeftHandSideMatrix.clear();
-
-	  this->CalculateAndAddDynamicLHS ( LocalLeftHandSideMatrix, Variables, rCurrentProcessInfo, IntegrationWeight );
-
-	  MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-	  rLeftHandSideMatrix += LocalLeftHandSideMatrix;
+	  MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
+	  this->CalculateAndAddDynamicLHS ( rLeftHandSideMatrix, Variables, rCurrentProcessInfo, IntegrationWeight );
 
         }
 
         if ( rLocalSystem.CalculationFlags.Is(SolidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
-
-	  LocalRightHandSideVector.clear();
-
-	  this->CalculateAndAddDynamicRHS ( LocalRightHandSideVector, Variables, rCurrentProcessInfo, IntegrationWeight );
-
-	  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
-
-	  rRightHandSideVector += LocalRightHandSideVector;
-
+	  VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+	  this->CalculateAndAddDynamicRHS ( rRightHandSideVector, Variables, rCurrentProcessInfo, IntegrationWeight );
         }
 	
 	//for debugging purposes
@@ -751,7 +764,8 @@ void SolidElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
 
     }
 
-
+    mThisIntegrationMethod = ThisIntegrationMethod;
+    
     KRATOS_CATCH( "" )
 }
 
@@ -922,9 +936,6 @@ void SolidElement::CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix, El
 
   if(rLeftHandSideMatrix.size1() != MatSize)
     rLeftHandSideMatrix.resize (MatSize, MatSize, false);
-
-  noalias(rLeftHandSideMatrix) = ZeroMatrix( MatSize, MatSize );
-
 
   //compute volume change
   double VolumeChange = 1;
@@ -1368,7 +1379,7 @@ void SolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
 
-        //compute element kinematics B, F, DN_DX ...
+        //compute element kinematic variables B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
         //set general variables to constitutivelaw parameters
@@ -1410,7 +1421,7 @@ void SolidElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
     KRATOS_TRY
 
     //contributions to stiffness matrix calculated on the reference config
-    noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
+    noalias( rLeftHandSideMatrix ) += rIntegrationWeight * prod( trans( rVariables.B ), Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
 
     KRATOS_CATCH( "" )
 }
@@ -1698,7 +1709,7 @@ double& SolidElement::CalculateTotalMass( double& rTotalMass, const ProcessInfo&
     //reading integration points
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
-	//compute element kinematics
+	//compute element kinematic variables
 	this->CalculateKinematics(Variables,PointNumber);
 	
 	//getting informations for integration
@@ -2055,6 +2066,7 @@ void SolidElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rC
 
     }
 
+
     KRATOS_CATCH( "" )
 }
 
@@ -2133,6 +2145,35 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
         rOutput.resize( integration_points_number, false );
 
 
+    if ( rVariable == DAMAGE_VARIABLE)
+    {
+        //create and initialize element variables:
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+
+        //create constitutive law parameters:
+        ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+
+        //set constitutive law flags:
+        Flags &ConstitutiveLawOptions=Values.GetOptions();
+
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
+        //reading integration points
+        for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+        {
+            //compute element kinematic variables B, F, DN_DX ...
+            this->CalculateKinematics(Variables,PointNumber);
+
+            //set general variables to constitutivelaw parameters
+            this->SetElementVariables(Variables,Values,PointNumber);
+
+            //call the constitutive law to update material variables
+            mConstitutiveLawVector[PointNumber]->CalculateValue(Values,rVariable,rOutput[PointNumber]);
+	    std::cout<<" rOutput "<<rOutput[PointNumber]<<std::endl;
+
+        }
+    }    
     if ( rVariable == VON_MISES_STRESS )
     {
         //create and initialize element variables:
@@ -2151,7 +2192,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
 
-            //compute element kinematics B, F, DN_DX ...
+            //compute element kinematic variables B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
@@ -2182,7 +2223,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
-            //compute element kinematics B, F, DN_DX ...
+            //compute element kinematic variables B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
@@ -2215,7 +2256,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
-            //compute element kinematics B, F, DN_DX ...
+            //compute element kinematic variables B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);	
 
             //set general variables to constitutivelaw parameters
@@ -2258,7 +2299,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<double>& rVariab
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
-            //compute element kinematics B, F, DN_DX ...
+            //compute element kinematic variables B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);	
 
             //set general variables to constitutivelaw parameters
@@ -2317,7 +2358,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariab
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {
-            //compute element kinematics B, F, DN_DX ...
+            //compute element kinematic variables B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
@@ -2415,7 +2456,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
-            //compute element kinematics B, F, DN_DX ...
+            //compute element kinematic variables B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
 
             //set general variables to constitutivelaw parameters
@@ -2441,7 +2482,7 @@ void SolidElement::CalculateOnIntegrationPoints( const Variable<Matrix >& rVaria
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
-            //compute element kinematics B, F, DN_DX ...
+            //compute element kinematic variables B, F, DN_DX ...
             this->CalculateKinematics(Variables,PointNumber);
 
             if( rOutput[PointNumber].size2() != Variables.F.size2() )
@@ -2505,7 +2546,7 @@ int  SolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 	// Nodal data
 	Node<3> &rNode = this->GetGeometry()[i];
 	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rNode);
-	KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
+	//KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUME_ACCELERATION,rNode);
 	
 	// Nodal dofs
 	KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rNode);

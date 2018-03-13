@@ -39,7 +39,7 @@ class ExplicitHamiltonStrategy
 public:
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ExplicitHamiltonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+
     KRATOS_CLASS_POINTER_DEFINITION(ExplicitHamiltonStrategy);
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;

@@ -103,7 +103,8 @@ inline std::istream& operator>>(std::istream &in, type &r)
     else if (val == "chebyshev")
         r = chebyshev;
     else
-        throw std::invalid_argument("Invalid relaxation value");
+        throw std::invalid_argument("Invalid relaxation value. Valid choices are:"
+                "gauss_seidel, ilu0, iluk, ilut, damped_jacobi, spai0, spai1, chebyshev.");
 
     return in;
 }

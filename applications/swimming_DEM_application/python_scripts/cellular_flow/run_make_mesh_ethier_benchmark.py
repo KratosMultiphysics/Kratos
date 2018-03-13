@@ -26,7 +26,7 @@ for size in irregular_mesh_sizes.union(regular_mesh_n_points):
         with make_mesh_ethier_benchmark_algorithm.Algorithm(parameters) as algorithm:
             try:
                 test = script.Solution(algorithm, parameters)
-                test.alg.Run()
+                test.Run()
             except:
                 error = sys.exc_info()
                 errors.append(error)

@@ -101,7 +101,8 @@ inline std::istream& operator>>(std::istream &in, type &c)
     else if (val == "smoothed_aggr_emin")
         c = smoothed_aggr_emin;
     else
-        throw std::invalid_argument("Invalid coarsening value");
+        throw std::invalid_argument("Invalid coarsening value. Valid choices are: "
+                "ruge_stuben, aggregation, smoothed_aggregation, smoothed_aggr_emin.");
 
     return in;
 }
@@ -569,7 +570,8 @@ inline std::istream& operator>>(std::istream &in, type &s)
     else if (val == "idrs")
         s = idrs;
     else
-        throw std::invalid_argument("Invalid solver value");
+        throw std::invalid_argument("Invalid solver value. Valid choices are: "
+                "cg, bicgstab, bicgstabl, gmres, lgmres, fgmres, idrs.");
 
     return in;
 }

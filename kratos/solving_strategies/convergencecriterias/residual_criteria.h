@@ -74,7 +74,7 @@ Detail class definition.
 template<class TSparseSpace,
          class TDenseSpace
          >
-class ResidualCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class ResidualCriteria : public  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions 

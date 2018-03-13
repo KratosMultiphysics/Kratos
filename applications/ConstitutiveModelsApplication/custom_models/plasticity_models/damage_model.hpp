@@ -120,21 +120,28 @@ namespace Kratos
     /**
      * Initialize member data
      */    
+    void InitializeMaterial(const Properties& rMaterialProperties) override
+    {
+      KRATOS_TRY
+
+      double& rDamageThreshold  = mInternal.Variables[0];
+
+      //damage threshold properties
+      rDamageThreshold =  rMaterialProperties[DAMAGE_THRESHOLD];
+      
+      KRATOS_CATCH(" ")      
+    }
+
+    
+    /**
+     * Initialize member data
+     */    
     void InitializeModel(ModelDataType& rValues) override
     {
       KRATOS_TRY
 
       BaseType::InitializeModel(rValues);
-
-      double& rDamageThreshold  = mInternal.Variables[0];
-
-
-      //damage threshold properties
-      const Properties& rMaterialProperties  =  rValues.GetMaterialProperties();
-      rDamageThreshold =  rMaterialProperties[DAMAGE_THRESHOLD];
-
-
-	
+      	
       KRATOS_CATCH(" ")
     }
     
@@ -157,6 +164,9 @@ namespace Kratos
 
       // calculate damaged stress
       this->CalculateAndAddStressTensor(Variables,rStressMatrix);
+
+      // set internal variables to output print
+      this->SetInternalVariables(rValues,Variables);
       
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
 	this->UpdateInternalVariables(rValues, Variables, rStressMatrix);
@@ -235,12 +245,13 @@ namespace Kratos
       	this->CalculateAndAddPlasticConstitutiveTensor(Variables,rConstitutiveMatrix);
       }
 
-      Variables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
+      // set internal variables to output print
+      this->SetInternalVariables(rValues,Variables);
       
+      Variables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);      
  
       if( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES ) )
 	this->UpdateInternalVariables(rValues, Variables, rStressMatrix);
-
       
       KRATOS_CATCH(" ")
     }
@@ -338,7 +349,7 @@ namespace Kratos
       //2.-Check yield condition
       rVariables.TrialStateFunction = this->mYieldSurface.CalculateYieldCondition(rVariables, rVariables.TrialStateFunction);
 
-      if( rVariables.TrialStateFunction <= rDamageThreshold )
+      if( rVariables.TrialStateFunction < rDamageThreshold )
 	{
 	  rVariables.State().Set(ConstitutiveModelData::PLASTIC_REGION,false);
 	}
@@ -375,8 +386,9 @@ namespace Kratos
       if( rVariables.State().IsNot(ConstitutiveModelData::RETURN_MAPPING_COMPUTED) )
 	KRATOS_ERROR << "ReturnMapping has to be computed to perform the calculation" << std::endl;
 
-      double& rDamage          = rVariables.DeltaInternal.Variables[0];
-
+      const SizeType& VoigtSize = rVariables.GetModelData().GetVoigtSize();
+      
+      //double& rDamage          = rVariables.Internal.Variables[1];     
       //alternative way, compute damage if not computed
       //double rDamage = 0;
       //rDamage = this->mYieldSurface.CalculateStateFunction( rVariables, rDamage );
@@ -403,17 +415,13 @@ namespace Kratos
       
       const ModelDataType&  rModelData = rVariables.GetModelData();
       const MatrixType& rStressMatrix  = rModelData.GetStressMatrix();
-
-      Vector EffectiveStressVector;
+      
+      Vector EffectiveStressVector(VoigtSize);
       EffectiveStressVector  = ConstitutiveModelUtilities::StressTensorToVector(rStressMatrix, EffectiveStressVector);
 
-      VectorType EquivalentStrainVector;
+      Vector EquivalentStrainVector(VoigtSize);
       EquivalentStrainVector = this->CalculateEquivalentStrainDerivative(rVariables, rConstitutiveMatrix, EquivalentStrainVector);
 
-      rConstitutiveMatrix *= (1-rDamage);
-      rConstitutiveMatrix += DeltaStateFunction * outer_prod(EffectiveStressVector,EquivalentStrainVector);
-      
-      
       rVariables.State().Set(ConstitutiveModelData::CONSTITUTIVE_MATRIX_COMPUTED,true);
     
       KRATOS_CATCH(" ")
@@ -428,10 +436,10 @@ namespace Kratos
       KRATOS_TRY
 
       double& rDamageThreshold     = rVariables.Internal.Variables[0];
-      double& rDamage              = rVariables.DeltaInternal.Variables[0];
+      double& rDamage              = rVariables.Internal.Variables[1];
 	     
       double StateFunction         = rVariables.TrialStateFunction;
-	
+
       if ( StateFunction >= rDamageThreshold )
 	{
 	  rDamageThreshold = StateFunction;
@@ -467,20 +475,16 @@ namespace Kratos
       // RateFactor
       rVariables.RateFactor = 0;
 
-      // Damage threshold variable
+      // Damage threshold variable [0] and damage variable [1]
       rVariables.Internal = mInternal;
-
-      // Damage variable
-      rVariables.DeltaInternal.Variables.clear();
 
       // Flow Rule local variables
       rVariables.TrialStateFunction = 0;
-      rVariables.StressNorm        = 0;
+      rVariables.StressNorm         = 0;
 
       // Set Strain
       rVariables.StrainMatrix = rValues.StrainMatrix;
-      
-      
+            
       KRATOS_CATCH(" ")
     }
     
@@ -488,7 +492,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      double& rDamage = rVariables.DeltaInternal.Variables[0];
+      double& rDamage = rVariables.Internal.Variables[1];
       
       //Stress Update: 
       rStressMatrix *= (1.0-rDamage);
@@ -500,11 +504,9 @@ namespace Kratos
     {
       KRATOS_TRY
       
-      double& rDamageThreshold  = mInternal.Variables[0];
-
       //update mechanical variables
-      rDamageThreshold = rVariables.Internal.Variables[0];     
-      
+      mInternal = rVariables.Internal;
+            
       KRATOS_CATCH(" ")    
     }
     
@@ -516,14 +518,28 @@ namespace Kratos
 
       // Compute strenght type parameter
       rVariables.RateFactor = 0.0;
-        
-      VectorType PrincipalStresses;
-      noalias(PrincipalStresses) = ConstitutiveModelUtilities::EigenValuesDirectMethod(rStressMatrix);
 
+      const SizeType& VoigtSize = rVariables.GetModelData().GetVoigtSize();
+
+      Vector PrincipalStresses;
+      if( VoigtSize == 3 ){
+	PrincipalStresses.resize(2);
+	PrincipalStresses[0] = 0.5*(rStressMatrix(0,0)+rStressMatrix(1,1)) +
+                               sqrt(0.25*(rStressMatrix(0,0)-rStressMatrix(1,1))*(rStressMatrix(0,0)-rStressMatrix(1,1)) +
+                                    rStressMatrix(0,1)*rStressMatrix(0,1));	
+        PrincipalStresses[1] = 0.5*(rStressMatrix(0,0)+rStressMatrix(1,1)) -
+                               sqrt(0.25*(rStressMatrix(0,0)-rStressMatrix(1,1))*(rStressMatrix(0,0)-rStressMatrix(1,1)) +
+                                    rStressMatrix(0,1)*rStressMatrix(0,1));
+      }
+      else{
+	PrincipalStresses.resize(3);
+	noalias(PrincipalStresses) = ConstitutiveModelUtilities::EigenValuesDirectMethod(rStressMatrix);
+      }
+      
       double Macaulay_PrincipalStress = 0.0;
       double Absolute_PrincipalStress = 0.0;
     
-      for(unsigned int i=0; i<3; i++)
+      for(unsigned int i=0; i< PrincipalStresses.size(); i++)
 	{ 
 	  if(PrincipalStresses[i] > 0.0)
 	    {
@@ -565,25 +581,27 @@ namespace Kratos
     
     // calculate equivalent strain derivative
     
-    VectorType& CalculateEquivalentStrainDerivative(PlasticDataType& rVariables, const Matrix& rConstitutiveMatrix, VectorType& rEquivalentStrainDerivative)
+    Vector& CalculateEquivalentStrainDerivative(PlasticDataType& rVariables, const Matrix& rConstitutiveMatrix, Vector& rEquivalentStrainDerivative)
     {
       KRATOS_TRY
 
       //The derivative of the equivalent strain with respect to the strain vector is obtained through the perturbation method
 
-      VectorType StressVector;
+      const SizeType& VoigtSize = rVariables.GetModelData().GetVoigtSize();
+      	
+      Vector StressVector(VoigtSize);
       MatrixType StressMatrix;
       double EquivalentStrainForward  = 0.0;
       double EquivalentStrainBackward = 0.0;
       
       //Compute the strains perturbations in each direction of the vector
       const MatrixType& rStrainMatrix  = rVariables.GetStrainMatrix();
-      VectorType StrainVector;
+      Vector StrainVector(VoigtSize);
       StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rStrainMatrix, StrainVector);
-      VectorType PerturbatedStrainVector;
+      Vector PerturbatedStrainVector;
       ConstitutiveModelUtilities::ComputePerturbationVector(PerturbatedStrainVector,StrainVector);
-
-      for(unsigned int i = 0; i < StrainVector.size(); i++)
+      
+      for(unsigned int i = 0; i < VoigtSize; i++)
 	{
 	  //Forward perturbed equivalent strain
 	  StrainVector[i] += PerturbatedStrainVector[i];
@@ -605,10 +623,10 @@ namespace Kratos
 	  StressMatrix            = ConstitutiveModelUtilities::StressVectorToTensor(StressVector,StressMatrix);
 
 	  this->CalculateStressNorm(rVariables,StressMatrix);
-	  EquivalentStrainForward = this->mYieldSurface.CalculateYieldCondition(rVariables, EquivalentStrainForward);
+	  EquivalentStrainBackward = this->mYieldSurface.CalculateYieldCondition(rVariables, EquivalentStrainBackward);
 
 	  StrainVector[i] += PerturbatedStrainVector[i];
-        
+	  
 	  rEquivalentStrainDerivative[i] = (EquivalentStrainForward - EquivalentStrainBackward) / (2.0 * PerturbatedStrainVector[i]);
 	}
 
@@ -617,6 +635,17 @@ namespace Kratos
       KRATOS_CATCH(" ")         
     }
 
+    //set internal variables for output print
+    
+    void SetInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables) override
+    {
+      KRATOS_TRY
+
+      //supply internal variable
+      rValues.InternalVariable.SetValue(DAMAGE_VARIABLE, rVariables.Internal.Variables[1]);
+
+      KRATOS_CATCH(" ")               
+    }    
     
     ///@}
     ///@name Protected  Access

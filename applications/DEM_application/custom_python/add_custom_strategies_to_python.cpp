@@ -30,7 +30,6 @@
 #include "custom_strategies/schemes/forward_euler_scheme.h"
 #include "custom_strategies/schemes/symplectic_euler_scheme.h"
 #include "custom_strategies/schemes/taylor_scheme.h"
-#include "custom_strategies/schemes/newmark_beta_scheme.h"
 #include "custom_strategies/schemes/velocity_verlet_scheme.h"
 #include "custom_strategies/schemes/runge_kutta_scheme.h"
 #include "custom_strategies/schemes/quaternion_integration_scheme.h"
@@ -78,8 +77,6 @@ namespace Kratos
           class_< SymplecticEulerScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("SymplecticEulerScheme", init<>());
           
           class_< TaylorScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("TaylorScheme", init<>());
-
-          class_< NewmarkBetaScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("NewmarkBetaScheme", init<const double, const double>());
 
           class_< VelocityVerletScheme, bases<DEMIntegrationScheme>,  boost::noncopyable>("VelocityVerletScheme", init<>());
 

@@ -124,17 +124,19 @@ namespace Kratos
 
 		// loop over all nodes in first modelpart
 		for (auto i_node = mrModelPart1.NodesBegin(); i_node != mrModelPart1.NodesEnd(); i_node++) {
+			const array_1d<double,3> &r_coordinates = i_node->Coordinates();
 			for (int i = 0; i < 3; i++) {
-				low[i] = i_node->Coordinate(i + 1) < low[i] ? i_node->Coordinate(i + 1) : low[i];
-				high[i] = i_node->Coordinate(i + 1) > high[i] ? i_node->Coordinate(i + 1) : high[i];
+				low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
+				high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
 			}
 		}
 
 		// loop over all skin nodes
 		for (auto i_node = mrModelPart2.NodesBegin(); i_node != mrModelPart2.NodesEnd(); i_node++) {
+			const array_1d<double,3>& r_coordinates = i_node->Coordinates();
 			for (int i = 0; i < 3; i++) {
-				low[i] = i_node->Coordinate(i + 1) < low[i] ? i_node->Coordinate(i + 1) : low[i];
-				high[i] = i_node->Coordinate(i + 1) > high[i] ? i_node->Coordinate(i + 1) : high[i];
+				low[i] = r_coordinates[i] < low[i] ? r_coordinates[i] : low[i];
+				high[i] = r_coordinates[i] > high[i] ? r_coordinates[i] : high[i];
 			}
 		}
 

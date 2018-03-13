@@ -17,6 +17,7 @@
 // Project includes
 #include "custom_models/plasticity_models/yield_surfaces/yield_surface.hpp"
 #include "custom_utilities/stress_invariants_utilities.hpp"
+#include "custom_utilities/shape_deviatoric_plane_mcc_utilities.hpp"
 
 namespace Kratos
 {
@@ -84,9 +85,9 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual BaseTypePointer Clone() const //do no override -> windows compilation error
+    virtual BaseTypePointer Clone() const override
     {
-      return (ModifiedCamClayYieldSurface::Pointer(new ModifiedCamClayYieldSurface(*this)));
+      return BaseTypePointer(new ModifiedCamClayYieldSurface(*this));
     }
 
     /// Destructor.
@@ -110,15 +111,19 @@ namespace Kratos
     {
       KRATOS_TRY
 
+      const ModelDataType & rModelData = rVariables.GetModelData();
+      const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
+
       // Material Parameters
-      const double ShearM = 1.0;
+      const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
+      const double& rShearM = rMaterialProperties[CRITICAL_STATE_LINE];
+      //const double & rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
+
 
       // compute something with the hardening rule
       double PreconsolidationStress;
       PreconsolidationStress = this->mHardeningRule.CalculateHardening( rVariables, PreconsolidationStress );
 
-      const ModelDataType & rModelData = rVariables.GetModelData();
-      const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
       double MeanStress, LodeAngle;
       double DeviatoricQ; // == sqrt(3)*J2
@@ -127,8 +132,7 @@ namespace Kratos
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, DeviatoricQ, LodeAngle);
       DeviatoricQ *= sqrt(3.0);
 
-
-      rYieldCondition  = pow( DeviatoricQ/ShearM, 2);
+      rYieldCondition  = pow( DeviatoricQ/rShearM, 2);
       rYieldCondition += (MeanStress * (MeanStress - PreconsolidationStress) );
 
 
@@ -145,15 +149,17 @@ namespace Kratos
     {
       KRATOS_TRY
 
+      const ModelDataType & rModelData = rVariables.GetModelData();
+      const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
+
       // Material Parameters
-      const double ShearM = 1.0;
+      const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
+      const double& rShearM = rMaterialProperties[CRITICAL_STATE_LINE];
 
       // compute something with the hardening rule
       double PreconsolidationStress;
       PreconsolidationStress = this->mHardeningRule.CalculateHardening( rVariables, PreconsolidationStress );
 
-      const ModelDataType & rModelData = rVariables.GetModelData();
-      const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
       double MeanStress, J2, LodeAngle;
      
@@ -162,7 +168,7 @@ namespace Kratos
       StressInvariantsUtilities::CalculateStressInvariants( rStressMatrix, MeanStress, J2, LodeAngle);
       StressInvariantsUtilities::CalculateDerivativeVectors( rStressMatrix, V1, V2);
 
-      rDeltaStressYieldCondition  = ( 2.0*MeanStress - PreconsolidationStress) * V1 + 2.0 * 3.0 * pow( 1.0 / ShearM, 2) * J2 * V2;
+      rDeltaStressYieldCondition  = ( 2.0*MeanStress - PreconsolidationStress) * V1 + 2.0 * 3.0 * pow( 1.0 / rShearM, 2) * J2 * V2;
 
       return rDeltaStressYieldCondition;
 

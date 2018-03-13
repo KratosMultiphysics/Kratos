@@ -111,7 +111,7 @@ namespace Kratos {
 
 			StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
 			for (std::size_t i = 0; i < model_part.NumberOfNodes(); i++)
-				model_part.GetNode(i + 1).Coordinate(i % 3 + 1) += .1 / number_of_divisions;
+				model_part.GetNode(i + 1).Coordinates()[i % 3] += .1 / number_of_divisions;
 
 			double original_mesh_area = 0.00;
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++)
@@ -174,7 +174,7 @@ namespace Kratos {
 
 			StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
 			for (std::size_t i = 0; i < model_part.NumberOfNodes(); i++)
-				model_part.GetNode(i + 1).Coordinate(i % 2 + 1) += 4. / number_of_divisions;
+				model_part.GetNode(i + 1).Coordinates()[i % 2] += 4. / number_of_divisions;
 
 			double original_mesh_area = 0.00;
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++)
