@@ -149,7 +149,7 @@ namespace Kratos
       Matrix& msD,
       double weight);
 
-    void InitializeNonLinearIteration();
+    void InitializeNonLinearIteration() override;
 
     void CalculateAndAddNonlinearKm(
         Matrix& K,
