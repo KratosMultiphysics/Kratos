@@ -106,10 +106,13 @@ namespace Kratos
                 MaxIterations,
                 CalculateReactions,
                 ReformDofSetAtEachStep,
-                MoveMeshFlag),
-                mPrintIterations(PrintIterations)
+                MoveMeshFlag)
         {
-            InitializeIterationIO();
+            if (this->GetEchoLevel() >= 1 && PrintIterations)
+            {
+                mPrintIterations = true;
+                InitializeIterationIO();
+            }
         }
 
         // constructor with Builder and Solver
@@ -127,9 +130,13 @@ namespace Kratos
             )
             : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
                 pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
-                MoveMeshFlag), mPrintIterations(PrintIterations)
+                MoveMeshFlag)
         {
-            InitializeIterationIO();
+            if (this->GetEchoLevel() >= 1 && PrintIterations)
+            {
+                mPrintIterations = true;
+                InitializeIterationIO();
+            }
         }
 
         /**
@@ -155,6 +162,18 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
+
+        bool SolveSolutionStep() override
+        {
+            KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
+            mpIterationIO->InitializeResults(0.0, BaseType::GetModelPart().GetMesh());
+
+            BaseType::SolveSolutionStep();
+
+            mpIterationIO->FinalizeResults();
+
+            return true;
+        }
 
           ///@}
           ///@name Operators
@@ -220,7 +239,7 @@ namespace Kratos
         ///@name Member Variables
         ///@{
 
-        bool mPrintIterations;
+        bool mPrintIterations = false;
         IterationIOPointerType mpIterationIO;
 
 
@@ -240,16 +259,10 @@ namespace Kratos
         {
             BaseType::EchoInfo(IterationNumber);
 
-            if (this->GetEchoLevel() >= 1 && mPrintIterations)
+            if (mPrintIterations)
             {
-                if (mpIterationIO == nullptr)
-                    InitializeIterationIO();
-
-                mpIterationIO->InitializeResults(0.0, BaseType::GetModelPart().GetMesh());
-
-                mpIterationIO->WriteNodalResults(DISPLACEMENT, BaseType::GetModelPart().Nodes(), 111.6, IterationNumber);
-
-                mpIterationIO->FinalizeResults();
+                KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
+                mpIterationIO->WriteNodalResults(DISPLACEMENT, BaseType::GetModelPart().Nodes(), IterationNumber, 0);
             }
         }
 
@@ -257,7 +270,7 @@ namespace Kratos
         {
             mpIterationIO = Kratos::make_shared<IterationIOType>(
                 "Formfinding_Iterations",
-                GiD_PostBinary, // GiD_PostAscii // for debugging
+                GiD_PostAscii, // GiD_PostAscii // for debugging GiD_PostBinary
                 MultiFileFlag::SingleFile,
                 WriteDeformedMeshFlag::WriteUndeformed,
                 WriteConditionsFlag::WriteConditions);
