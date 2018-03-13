@@ -29,6 +29,7 @@
 
 // Application includes
 #include "../../AdjointFluidApplication/custom_utilities/response_function.h"
+#include "../../AdjointFluidApplication/custom_utilities/numerical_diffusion.h"
 
 namespace Kratos
 {
@@ -107,10 +108,19 @@ public:
         Parameters default_params(R"(
         {
             "scheme_type": "bossak",
-            "alpha_bossak": -0.3
+            "alpha_bossak": -0.3,
+            "numerical_diffusion": 
+            {
+                "method": "singular_value_pressure_coupled",
+                "beta": 0.0
+            }
         })");
 
         rParameters.ValidateAndAssignDefaults(default_params);
+
+        Parameters numerical_diffusion_parameters(rParameters["numerical_diffusion"]);
+
+        mNumeicalDiffusion.SetNumericalDiffusionParamters(numerical_diffusion_parameters);
 
         mAlphaBossak = rParameters["alpha_bossak"].GetDouble();
         mGammaNewmark = 0.5 - mAlphaBossak;
@@ -147,7 +157,10 @@ public:
         mAdjointAcceleration.resize(num_threads);
         mResponseGradient.resize(num_threads);
         mAdjointMassMatrix.resize(num_threads);
-
+        
+        mOutputFileStreamAdjointEnergy.open("Adjoint_Energy.data");
+        mOutputFileStreamAdjointEnergy<<"time,adjoint_energy"<<std::endl;
+        
         // Initialize the adjoint variables to zero (adjoint initial conditions
         // are always zero).
 #pragma omp parallel
@@ -325,6 +338,8 @@ public:
         rModelPart.GetCommunicator().AssembleCurrentData(AUX_ADJOINT_ACCELERATION);
 
         mpResponseFunction->FinalizeSolutionStep();
+
+        CalculateAdjointEnergy(rModelPart);
 
         KRATOS_CATCH("");
     }
@@ -596,6 +611,14 @@ public:
         pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
 
+        mNumeicalDiffusion.CalculateNumericalDiffusion(
+            pCurrentElement,
+            mAdjointMassMatrix[thread_id],
+            rCurrentProcessInfo
+        );
+
+        noalias(rLHS_Contribution) -= mAdjointMassMatrix[thread_id];
+
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
@@ -732,15 +755,39 @@ private:
     double mInvDt;
     double mInvGamma;
     double mInvGammaMinusOne;
+    double mBeta;
+
+
+    std::ofstream mOutputFileStreamAdjointEnergy;
+
     ResponseFunction::Pointer mpResponseFunction;
+
     std::vector<LocalSystemVectorType> mAdjointValues;
     std::vector<LocalSystemVectorType> mAdjointAcceleration;
     std::vector<LocalSystemVectorType> mResponseGradient;
     std::vector<LocalSystemMatrixType> mAdjointMassMatrix;
 
+    NumericalDiffusion mNumeicalDiffusion;
+
     ///@}
     ///@name Private Operators
     ///@{
+
+    void CalculateAdjointEnergy(ModelPart& rModelPart)
+    {
+        double total_energy = 0.0;
+        for (auto it = rModelPart.NodesBegin(); it != rModelPart.NodesEnd(); ++it) 
+        {
+            double v_x = it->FastGetSolutionStepValue(ADJOINT_VELOCITY_X, 0);
+            double v_y = it->FastGetSolutionStepValue(ADJOINT_VELOCITY_Y, 0);
+            double v_z = it->FastGetSolutionStepValue(ADJOINT_VELOCITY_Z, 0);
+            double p = it->FastGetSolutionStepValue(ADJOINT_PRESSURE, 0);
+            total_energy += (v_x*v_x+v_y*v_y+v_z*v_z+p*p);
+        }
+        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+        double time = rProcessInfo[TIME];
+        mOutputFileStreamAdjointEnergy<<time<<","<<total_energy<<std::endl;
+    }          
 
     ///@}
     ///@name Private Operations

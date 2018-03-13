@@ -1,0 +1,194 @@
+{
+    "gravity": [
+        {
+            "process_name": "ApplyConstantVectorValueProcess",
+            "python_module": "process_factory",
+            "Parameters": {
+                "modulus": 0,
+                "model_part_name": "Parts_Fluid",
+                "mesh_id": 0,
+                "direction": [
+                    0.0,
+                    -1.0,
+                    0.0
+                ],
+                "variable_name": "BODY_FORCE"
+            },
+            "kratos_module": "KratosMultiphysics"
+        }
+    ],
+    "list_other_processes": [
+        {
+            "help": "",
+            "process_name": "InputPrimalSolutionProcess",
+            "python_module": "input_primal_solution_process",
+            "Parameters": {
+                "variable_list": [
+                    "VELOCITY",
+                    "ACCELERATION",
+                    "PRESSURE",
+                    "REACTION"
+                ],
+                "model_part_name": "MainModelPart",
+                "file_name": "../primal/primal_hdf5"
+            },
+            "kratos_module": "KratosMultiphysics.AdjointFluidApplication"
+        }
+    ],
+    "initial_conditions_process_list": [],
+    "output_configuration": {
+        "result_file_configuration": {
+            "plane_output": [],
+            "gauss_point_results": [],
+            "skin_output": false,
+            "nodal_results": [
+                "VELOCITY",
+                "ADJOINT_VELOCITY",
+                "PRESSURE",
+                "ADJOINT_PRESSURE",
+                "SHAPE_SENSITIVITY",
+                "REACTION"
+            ],
+            "output_control_type": "step",
+            "body_output": true,
+            "gidpost_flags": {
+                "MultiFileFlag": "SingleFile",
+                "WriteConditionsFlag": "WriteConditions",
+                "WriteDeformedMeshFlag": "WriteDeformed",
+                "GiDPostMode": "GiD_PostBinary"
+            },
+            "node_output": false,
+            "output_frequency": 2.0,
+            "file_label": "step"
+        },
+        "point_data_configuration": []
+    },
+    "solver_settings": {
+        "model_import_settings": {
+            "input_filename": "cylinder",
+            "input_type": "mdpa"
+        },
+        "echo_level": 2,
+        "scheme_settings": {
+            "alpha_bossak": -0.3,
+            "scheme_type": "bossak",
+	    "numerical_diffusion":{
+		"method": "singular_value_pressure_coupled",
+		"beta": 0.0
+	    }
+        },
+        "linear_solver_settings": {
+            "verbosity": 2,
+            "krylov_type": "gmres",
+            "provide_coordinates": false,
+            "use_block_matrices_if_possible": false,
+            "coarsening_type": "aggregation",
+            "block_size": 1,
+            "scaling": false,
+            "gmres_krylov_space_dimension": 300,
+            "coarse_enough": 300,
+            "tolerance": 1e-07,
+            "solver_type": "AMGCL",
+            "smoother_type": "damped_jacobi",
+            "max_iteration": 40000
+        },
+        "skin_parts": [
+            "Inlet2D_Inlet",
+            "Outlet2D_Outlet",
+            "NoSlip2D_Cylinder",
+            "NoSlip2D_Wall"
+        ],
+        "volume_model_part_name": "Parts_Fluid",
+        "solver_type": "adjoint_vmsmonolithic_solver",
+        "response_function_settings": {
+            "sensitivity_model_part_name": "NoSlip2D_Cylinder",
+            "nodal_sensitivity_variables": [
+                "SHAPE_SENSITIVITY"
+            ],
+            "custom_settings": {
+                "structure_model_part_name": "NoSlip2D_Cylinder",
+                "drag_direction": [
+                    1.0,
+                    0.0,
+                    0.0
+                ]
+            },
+            "response_type": "drag",
+            "output_file": "drag"
+        },
+        "dynamic_tau": 1.0,
+        "oss_switch": 0
+    },
+    "problem_data": {
+        "domain_size": 2,
+        "problem_name": "cylinder",
+        "nsteps": 5,
+        "start_step": 0.11,
+        "time_step": -0.01,
+        "model_part_name": "MainModelPart"
+    },
+    "boundary_conditions_process_list": [
+        {
+            "process_name": "AssignVectorVariableProcess",
+            "python_module": "assign_vector_variable_process",
+            "Parameters": {
+                "mesh_id": 0,
+                "value": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "variable_name": "ADJOINT_VELOCITY",
+                "model_part_name": "Inlet2D_Inlet"
+            },
+            "kratos_module": "KratosMultiphysics"
+        },
+        {
+            "process_name": "AssignScalarVariableProcess",
+            "python_module": "assign_scalar_variable_process",
+            "Parameters": {
+                "model_part_name": "Outlet2D_Outlet",
+                "mesh_id": 0,
+                "value": 0.0,
+                "variable_name": "ADJOINT_PRESSURE"
+            },
+            "kratos_module": "KratosMultiphysics"
+        },
+        {
+            "process_name": "AssignVectorVariableProcess",
+            "python_module": "assign_vector_variable_process",
+            "Parameters": {
+                "mesh_id": 0,
+                "value": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "variable_name": "ADJOINT_VELOCITY",
+                "model_part_name": "NoSlip2D_Cylinder"
+            },
+            "kratos_module": "KratosMultiphysics"
+        },
+        {
+            "process_name": "AssignVectorVariableProcess",
+            "python_module": "assign_vector_variable_process",
+            "Parameters": {
+                "mesh_id": 0,
+                "value": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "variable_name": "ADJOINT_VELOCITY",
+                "model_part_name": "NoSlip2D_Wall"
+            },
+            "kratos_module": "KratosMultiphysics"
+        }
+    ],
+    "restart_options": {
+        "Restart_Step": 0,
+        "LoadRestart": false,
+        "RestartFrequency": 0,
+        "SaveRestart": false
+    }
+}

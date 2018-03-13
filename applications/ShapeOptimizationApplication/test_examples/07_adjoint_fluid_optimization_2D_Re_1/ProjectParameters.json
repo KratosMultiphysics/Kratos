@@ -1,0 +1,166 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "cylinder",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "time_step"       : 1.1,
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "mesh_solver_settings"                  : {
+            "solver_type": "mesh_solver_structural_similarity",
+                "model_import_settings"           : {
+                "input_type"     : "mdpa",
+                "input_filename" : "primal/cylinder"
+            },
+            "compute_reactions"     : true
+    },
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["MESH_DISPLACEMENT"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    },
+    "adjoint_fluid_analyzer":{
+        "history_path": "design_history",
+        "primal_setup": {
+            "path"              : "primal",
+            "python_module"     : "MainKratos",
+            "parameters_file"   : "ProjectParameters.json",
+            "mdpa_input_file"   : "cylinder"
+        },
+        "adjoint_setup": {
+            "path"              : "adjoint",
+            "python_module"     : "MainKratos",
+            "parameters_file"   : "ProjectParameters.json",
+            "mdpa_input_file"   : "cylinder"
+        },
+        "model_import_settings" :{
+            "input_type"        : "mdpa",
+            "input_filename"    : "primal/cylinder",
+            "volume_model_part_name": "Parts_Fluid"
+        },
+        "sub_model_part_list": ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Wall","NoSlip2D_Cylinder"]
+    },
+    "optimization_settings" : {
+        "objectives" : [{
+                "identifier"    : "adjoint_fluid"
+        }],
+        "constraints" : [],
+        "boundary_conditions_process_list" : [
+	{
+		"python_module"   : "assign_vector_variable_process",
+		"kratos_module" : "KratosMultiphysics",
+		"help"                  : "This process fixes the selected components of a given vector variable",
+		"process_name"          : "AssignVectorVariableProcess",
+		"Parameters"            : {
+		    "mesh_id"         : 0,
+		    "model_part_name" : "Inlet2D_Inlet",
+		    "variable_name"   : "MESH_DISPLACEMENT",
+		    "value"           : [0.0,0.0,0.0]
+        	}
+	}, 
+	{
+		"python_module"   : "assign_vector_variable_process",
+		"kratos_module" : "KratosMultiphysics",
+		"help"                  : "This process fixes the selected components of a given vector variable",
+		"process_name"          : "AssignVectorVariableProcess",
+		"Parameters"            : {
+		    "mesh_id"         : 0,
+		    "model_part_name" : "Outlet2D_Outlet",
+		    "variable_name"   : "MESH_DISPLACEMENT",
+		    "value"           : [0.0,0.0,0.0]
+        	}
+	},
+	{
+		"python_module"   : "assign_vector_variable_process",
+		"kratos_module" : "KratosMultiphysics",
+		"help"                  : "This process fixes the selected components of a given vector variable",
+		"process_name"          : "AssignVectorVariableProcess",
+		"Parameters"            : {
+		    "mesh_id"         : 0,
+		    "model_part_name" : "NoSlip2D_Wall",
+		    "variable_name"   : "MESH_DISPLACEMENT",
+		    "value"           : [0.0,0.0,0.0]
+        	}
+	}],
+        "design_variables" : {
+            "design_variables_type"     : "vertex_morphing",
+            "optimization_model_part_name"     : "primal/cylinder",
+            "design_surface_sub_model_part_name" : "NoSlip2D_Cylinder",
+            "domain_size"               : 2,
+            "filter" : {
+                "filter_function_type"       : "linear",
+                "filter_radius"              : 1e-2,
+                "max_nodes_in_filter_radius" : 10000,
+                "matrix_free_filtering"      : true
+            },
+            "damping" : {
+                "perform_damping" : false,
+                "damping_regions" : []
+            }
+        },
+        "optimization_algorithm" : {
+            "name"               : "steepest_descent",
+            "max_iterations"     : 5,
+            "relative_tolerance" : 1e-5
+        },
+        "line_search" : {
+            "line_search_type"           : "manual_stepping",
+            "normalize_search_direction" : true,
+            "step_size"                  : 5e-4
+        },
+        "output" : {
+            "output_directory"        : "Optimization_Results",
+            "response_log_filename"   : "response_log",
+            "design_history_filename" : "design_history",
+            "design_output_mode"      : "WriteOptimizationModelPart",            
+            "nodal_results" : [ "NORMALIZED_SURFACE_NORMAL",
+                                "OBJECTIVE_SENSITIVITY",
+                                "CONSTRAINT_SENSITIVITY",
+                                "MAPPED_OBJECTIVE_SENSITIVITY",
+                                "MAPPED_CONSTRAINT_SENSITIVITY",
+                                "CONTROL_POINT_UPDATE",
+                                "CONTROL_POINT_CHANGE",                                                                                    
+                                "SHAPE_UPDATE",
+                                "SHAPE_CHANGE",
+                                "MESH_CHANGE" ],
+            "output_format" : {
+                "name"              : "gid",
+                "gid_configuration" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary"
+                        },
+                        "output_frequency"    : 1.0
+                    }
+                }
+            }
+        }
+    }
+}
