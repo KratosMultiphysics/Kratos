@@ -48,6 +48,8 @@ namespace Kratos
 
   //Define Variables
 
+  //scheme
+
   //solution
 
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( WATER_DISPLACEMENT )

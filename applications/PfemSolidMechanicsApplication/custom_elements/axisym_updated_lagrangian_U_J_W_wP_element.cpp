@@ -6,14 +6,14 @@
 //   Revision:            $Revision:                     -0.1 $
 //
 //
-//   Implementation of the Fluid Saturated porous media in a u-w Formulation
+//   Implementation of the Fluid Saturated porous media in a u-w-pw Formulation
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_J_W_wP_element.hpp"
+#include "custom_elements/axisym_updated_lagrangian_U_J_W_wP_element.hpp"
 #include "includes/constitutive_law.h"
 #include "pfem_solid_mechanics_application_variables.h"
 
@@ -22,8 +22,8 @@ namespace Kratos
 
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
-   UpdatedLagrangianUJWwPElement::UpdatedLagrangianUJWwPElement()
-      : UpdatedLagrangianUJElement()
+   AxisymUpdatedLagrangianUJWwPElement::AxisymUpdatedLagrangianUJWwPElement()
+      : AxisymUpdatedLagrangianUJElement()
    {
       //DO NOT CALL IT: only needed for Register and Serialization!!!
    }
@@ -32,8 +32,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPElement::UpdatedLagrangianUJWwPElement( IndexType NewId, GeometryType::Pointer pGeometry )
-      : UpdatedLagrangianUJElement( NewId, pGeometry )
+   AxisymUpdatedLagrangianUJWwPElement::AxisymUpdatedLagrangianUJWwPElement( IndexType NewId, GeometryType::Pointer pGeometry )
+      : AxisymUpdatedLagrangianUJElement( NewId, pGeometry )
    {
       //DO NOT ADD DOFS HERE!!!
    }
@@ -42,8 +42,8 @@ namespace Kratos
    //******************************CONSTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPElement::UpdatedLagrangianUJWwPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-      : UpdatedLagrangianUJElement( NewId, pGeometry, pProperties )
+   AxisymUpdatedLagrangianUJWwPElement::AxisymUpdatedLagrangianUJWwPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+      : AxisymUpdatedLagrangianUJElement( NewId, pGeometry, pProperties )
    {
    }
 
@@ -51,8 +51,8 @@ namespace Kratos
    //******************************COPY CONSTRUCTOR**************************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPElement::UpdatedLagrangianUJWwPElement( UpdatedLagrangianUJWwPElement const& rOther)
-      :UpdatedLagrangianUJElement(rOther)
+   AxisymUpdatedLagrangianUJWwPElement::AxisymUpdatedLagrangianUJWwPElement( AxisymUpdatedLagrangianUJWwPElement const& rOther)
+      :AxisymUpdatedLagrangianUJElement(rOther)
        ,mTimeStep(rOther.mTimeStep)
    {
    }
@@ -61,9 +61,9 @@ namespace Kratos
    //*******************************ASSIGMENT OPERATOR***********************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPElement&  UpdatedLagrangianUJWwPElement::operator=(UpdatedLagrangianUJWwPElement const& rOther)
+   AxisymUpdatedLagrangianUJWwPElement&  AxisymUpdatedLagrangianUJWwPElement::operator=(AxisymUpdatedLagrangianUJWwPElement const& rOther)
    {
-      UpdatedLagrangianUJElement::operator=(rOther);
+      AxisymUpdatedLagrangianUJElement::operator=(rOther);
 
       mTimeStep = rOther.mTimeStep;
 
@@ -74,19 +74,19 @@ namespace Kratos
    //*********************************OPERATIONS*****************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUJWwPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+   Element::Pointer AxisymUpdatedLagrangianUJWwPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
    {
-      return Element::Pointer( new UpdatedLagrangianUJWwPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+      return Element::Pointer( new AxisymUpdatedLagrangianUJWwPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
    }
 
 
    //************************************CLONE*******************************************
    //************************************************************************************
 
-   Element::Pointer UpdatedLagrangianUJWwPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+   Element::Pointer AxisymUpdatedLagrangianUJWwPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
    {
 
-      UpdatedLagrangianUJWwPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+      AxisymUpdatedLagrangianUJWwPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
       //-----------//
 
@@ -121,14 +121,14 @@ namespace Kratos
       NewElement.SetData(this->GetData());
       NewElement.SetFlags(this->GetFlags());
 
-      return Element::Pointer( new UpdatedLagrangianUJWwPElement(NewElement) );
+      return Element::Pointer( new AxisymUpdatedLagrangianUJWwPElement(NewElement) );
    }
 
 
    //*******************************DESTRUCTOR*******************************************
    //************************************************************************************
 
-   UpdatedLagrangianUJWwPElement::~UpdatedLagrangianUJWwPElement()
+   AxisymUpdatedLagrangianUJWwPElement::~AxisymUpdatedLagrangianUJWwPElement()
    {
    }
 
@@ -139,42 +139,31 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUJWwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void AxisymUpdatedLagrangianUJWwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
    {
       rElementalDofList.resize( 0 );
-
-      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
       for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
       {
          rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
          rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
-
-         if( dimension == 3 )
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
-
          rElementalDofList.push_back( GetGeometry()[i].pGetDof( JACOBIAN) );
-
          rElementalDofList.push_back( GetGeometry()[i].pGetDof( WATER_DISPLACEMENT_X ) );
          rElementalDofList.push_back( GetGeometry()[i].pGetDof( WATER_DISPLACEMENT_Y ) );
-
-         if( dimension == 3 )
-            rElementalDofList.push_back( GetGeometry()[i].pGetDof( WATER_DISPLACEMENT_Z ) );
-
          rElementalDofList.push_back( GetGeometry()[i].pGetDof( WATER_PRESSURE ) );
-      }
+	}
+      
    }
 
 
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJWwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void AxisymUpdatedLagrangianUJWwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-      unsigned int element_size          = number_of_nodes * ( 2  * dimension + 2 );
-      unsigned int dofs_per_node = 2 * dimension + 2;
+      unsigned int element_size          = number_of_nodes * 6;
+      unsigned int dofs_per_node = 6;
 
       if ( rResult.size() != element_size )
          rResult.resize( element_size, false );
@@ -184,24 +173,10 @@ namespace Kratos
          int index =  i  * dofs_per_node;
          rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
          rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-
-         if( dimension == 3)
-         {
-            rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-            rResult[index + 3] = GetGeometry()[i].GetDof( JACOBIAN ).EquationId();
-
-            rResult[index + 4] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_X ).EquationId();
-            rResult[index + 5] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_Y ).EquationId();
-            rResult[index + 6] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_Z ).EquationId();
-            rResult[index + 7] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
-         } else {
             rResult[index + 2] = GetGeometry()[i].GetDof( JACOBIAN ).EquationId();
             rResult[index + 3] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_X ).EquationId();
             rResult[index + 4] = GetGeometry()[i].GetDof( WATER_DISPLACEMENT_Y ).EquationId();
             rResult[index + 5] = GetGeometry()[i].GetDof( WATER_PRESSURE ).EquationId();
-         }
-
-
       }
 
    }
@@ -209,12 +184,11 @@ namespace Kratos
    //*********************************DISPLACEMENT***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJWwPElement::GetValuesVector( Vector& rValues, int Step )
+   void AxisymUpdatedLagrangianUJWwPElement::GetValuesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-      unsigned int element_size          = number_of_nodes * ( 2 * dimension + 2);
-      unsigned int dofs_per_node = 2 * dimension + 2;
+      unsigned int element_size          = number_of_nodes * 6;
+      unsigned int dofs_per_node = 6;
 
       if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
@@ -224,21 +198,10 @@ namespace Kratos
          unsigned int index = i * dofs_per_node;
          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-
-         if ( dimension == 3 ) {
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-            rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( JACOBIAN, Step );
-            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_X, Step );
-            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_Y, Step );
-            rValues[index + 6] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_Z, Step );
-            rValues[index + 7] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE, Step );
-         } else {
             rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( JACOBIAN, Step );
             rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_X, Step );
             rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_DISPLACEMENT_Y, Step );
             rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE, Step );
-         }
-
       }
    }
 
@@ -246,12 +209,11 @@ namespace Kratos
    //************************************VELOCITY****************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJWwPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+   void AxisymUpdatedLagrangianUJWwPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-      unsigned int element_size          = number_of_nodes * ( 2 * dimension + 2);
-      unsigned int dofs_per_node = 2 * dimension + 2;
+      unsigned int element_size          = number_of_nodes * 6;
+      unsigned int dofs_per_node = 6;
 
       if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
@@ -261,33 +223,21 @@ namespace Kratos
          unsigned int index = i * dofs_per_node;
          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
-
-         if ( dimension == 3 ) {
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
-            rValues[index + 3] = 0.0;
-            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_X, Step );
-            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_Y, Step );
-            rValues[index + 6] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_Z, Step );
-            rValues[index + 7] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_VELOCITY, Step );
-         } else {
             rValues[index + 2] = 0.0;
             rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_X, Step );
             rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_VELOCITY_Y, Step );
             rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_VELOCITY, Step );
-         }
-
       }
    }
 
    //*********************************ACCELERATION***************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJWwPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+   void AxisymUpdatedLagrangianUJWwPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
    {
       const unsigned int number_of_nodes = GetGeometry().size();
-      const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-      unsigned int element_size          = number_of_nodes * ( 2 * dimension + 2);
-      unsigned int dofs_per_node = 2 * dimension + 2;
+      unsigned int element_size          = number_of_nodes * 6;
+      unsigned int dofs_per_node = 6;
 
       if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
@@ -298,34 +248,23 @@ namespace Kratos
 
          rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
          rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
-
-         if ( dimension == 3 ) {
-            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
-            rValues[index + 3] = 0.0;
-            rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_X, Step );
-            rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Y, Step );
-            rValues[index + 6] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Z, Step );
-            rValues[index + 7] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATION, Step );
-         } else {
             rValues[index + 2] = 0.0;
             rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_X, Step );
             rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( WATER_ACCELERATION_Y, Step );
             rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( WATER_PRESSURE_ACCELERATION, Step );
-         }
-
       }
    }
 
    //************************************************************************************
    //************************************************************************************
 
-   int  UpdatedLagrangianUJWwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  AxisymUpdatedLagrangianUJWwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
    {
       KRATOS_TRY
 
       int correct = 0;
 
-      correct = UpdatedLagrangianUJElement::Check(rCurrentProcessInfo);
+      correct = AxisymUpdatedLagrangianUJElement::Check(rCurrentProcessInfo);
 
 
       //verify compatibility with the constitutive law
@@ -333,7 +272,7 @@ namespace Kratos
       this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
       if(LawFeatures.mOptions.Is(ConstitutiveLaw::U_P_LAW))
-         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " UpdatedLagrangianUJWwPElement" )
+         KRATOS_THROW_ERROR( std::logic_error, "constitutive law is not compatible with the U-wP element type ", " AxisymUpdatedLagrangianUJWwPElement" )
 
             //verify that the variables are correctly initialized
 
@@ -391,9 +330,9 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJWwPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUJWwPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianUJElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+      AxisymUpdatedLagrangianUJElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
 
       // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -417,12 +356,22 @@ namespace Kratos
       }
       GetProperties().SetValue(INITIAL_POROSITY, initial_porosity);
 
+      //stabilization factor
+     double StabilizationFactor = 1.0;
+     if( GetProperties().Has(STABILIZATION_FACTOR_WP) ){
+       StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
+     }
+     else if( rCurrentProcessInfo.Has(STABILIZATION_FACTOR_WP) ){
+       StabilizationFactor = rCurrentProcessInfo[STABILIZATION_FACTOR_WP];
+     }
+     GetProperties().SetValue(STABILIZATION_FACTOR_WP, StabilizationFactor);
+
    }
 
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJWwPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+   void AxisymUpdatedLagrangianUJWwPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
          VectorType& rRightHandSideVector,
          Flags& rCalculationFlags)
 
@@ -462,7 +411,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -485,7 +434,9 @@ namespace Kratos
       UJLocalSystem.SetLeftHandSideMatrix( LocalLeftHandSideMatrix);
 
       // LHS. base class
-      UpdatedLagrangianUJElement::CalculateAndAddLHS( UJLocalSystem, rVariables, rIntegrationWeight);
+      AxisymUpdatedLagrangianUJElement::CalculateAndAddLHS( UJLocalSystem, rVariables, rIntegrationWeight);
+
+      double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
       // Assemble the Kuj Left Hand Side
       for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -498,13 +449,13 @@ namespace Kratos
          }
       }
 
-      this->CalculateAndAddKWwP( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+      this->CalculateAndAddKWwP( rLeftHandSideMatrix, rVariables, IntegrationWeight);
 
-      this->CalculateAndAddKUwP( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+      this->CalculateAndAddKUwP( rLeftHandSideMatrix, rVariables, IntegrationWeight);
 
-      this->CalculateAndAddKPPStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+      this->CalculateAndAddKPPStab( rLeftHandSideMatrix, rVariables, IntegrationWeight);
       
-      this->CalculateAndAddHighOrderKPP( rLeftHandSideMatrix, rVariables, rIntegrationWeight);
+      this->CalculateAndAddHighOrderKPP( rLeftHandSideMatrix, rVariables, IntegrationWeight);
 
       rVariables.detF = DeterminantF;
       rVariables.detF0 /= rVariables.detF;
@@ -514,7 +465,7 @@ namespace Kratos
 
    // **********************************************************************************
    //          Matrix that may appear due to the stabilization matrix 
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddKPPStab( MatrixType & rLeftHandSideMatrix,ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddKPPStab( MatrixType & rLeftHandSideMatrix,ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -523,7 +474,7 @@ namespace Kratos
 
    // **********************************************************************************
    //          Matrix that may appear due to the high order terms
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderKPP( MatrixType & rLeftHandSideMatrix,ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderKPP( MatrixType & rLeftHandSideMatrix,ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -532,7 +483,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Matrix due to the the water pressure contribution to the internal forces   
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -542,11 +493,11 @@ namespace Kratos
       unsigned int dofs_per_node = 2*dimension + 2;
 
       Matrix Q = ZeroMatrix(number_of_nodes*dimension, number_of_nodes);
-      unsigned int voigtSize = 3;
-      if ( dimension == 3) voigtSize = 6;
 
+      unsigned int voigtSize = 4;
       Matrix m = ZeroMatrix( voigtSize, 1);
-      for ( unsigned int i = 0; i < dimension; i++)
+
+      for ( unsigned int i = 0; i < 3; i++)
          m(i,0) = 1.0;
       Matrix partial =  prod( trans( rVariables.B), m );
 
@@ -571,7 +522,7 @@ namespace Kratos
 
    //************************************************************************************
    //      Water material Matrix
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -608,7 +559,7 @@ namespace Kratos
 
    // ***********************************************************************************
    // ***********************************************************************************
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -631,8 +582,9 @@ namespace Kratos
       BaseClassLocalSystem.SetRightHandSideVector(BaseClassRightHandSideVector );
       Vector VolumeForce = rVolumeForce; 
       VolumeForce *= 0.0;
-      UpdatedLagrangianUJElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
+      AxisymUpdatedLagrangianUJElement::CalculateAndAddRHS( BaseClassLocalSystem, rVariables, VolumeForce, rIntegrationWeight);
 
+      double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
       // Assemble the "UJ" RHS
       for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -642,19 +594,19 @@ namespace Kratos
       }
 
 
-      this->CalculateAndAddExternalForcesUJWwP( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight); 
+      this->CalculateAndAddExternalForcesUJWwP( rRightHandSideVector, rVariables, rVolumeForce, IntegrationWeight); 
 
-      this->CalculateAndAddInternalWaterForces( rRightHandSideVector, rVariables, rIntegrationWeight);
+      this->CalculateAndAddInternalWaterForces( rRightHandSideVector, rVariables, IntegrationWeight);
 
 
       // Calculate the linear momentum of the fluid
-      CalculateAndAddFluidLinearMomentum( rRightHandSideVector, rVariables, rIntegrationWeight);
+      CalculateAndAddFluidLinearMomentum( rRightHandSideVector, rVariables, IntegrationWeight);
 
       // Calculate mass balance equation
-      CalculateAndAddMassBalanceEquation( rRightHandSideVector, rVariables, rIntegrationWeight);
+      CalculateAndAddMassBalanceEquation( rRightHandSideVector, rVariables, IntegrationWeight);
 
-      this->CalculateAndAddStabilizationRHS( rRightHandSideVector, rVariables, rIntegrationWeight);
-      this->CalculateAndAddHighOrderRHS( rRightHandSideVector, rVariables, rIntegrationWeight);
+      this->CalculateAndAddStabilizationRHS( rRightHandSideVector, rVariables, IntegrationWeight);
+      this->CalculateAndAddHighOrderRHS( rRightHandSideVector, rVariables, IntegrationWeight);
 
 
 
@@ -667,7 +619,7 @@ namespace Kratos
 
    // *********************************************************************************
    //    part of the RHS that goes directly to the RHS
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddStabilizationRHS( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddStabilizationRHS( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -676,7 +628,7 @@ namespace Kratos
 
    // *********************************************************************************
    //    High order part of the RHS that goes directly to the RHS
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderRHS( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderRHS( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -685,7 +637,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    mass balance equation of the mixture (aka: Darcy's Law ) 
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
       // a convective term may go here. not coded yet. 
@@ -694,7 +646,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    linear momentum balance equation of the fluid phase (aka: Darcy's Law ) 
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -705,9 +657,9 @@ namespace Kratos
 
       Vector GradP = ZeroVector(dimension);
       for (unsigned int i = 0; i < number_of_nodes; i++) {
-         const double & rWaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
+         const double & WaterPressure = GetGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE);
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
-            GradP(iDim ) += rVariables.DN_DX(i,iDim) * rWaterPressure;
+            GradP(iDim ) += rVariables.DN_DX(i,iDim) * WaterPressure;
          }
       }
 
@@ -732,7 +684,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddExternalForcesUJWwP( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddExternalForcesUJWwP( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -775,7 +727,7 @@ namespace Kratos
 
    // **********************************************************************************
    //         CalculateAndAddInternalForces
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddInternalWaterForces(VectorType& rRightHandSideVector,
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddInternalWaterForces(VectorType& rRightHandSideVector,
          ElementVariables & rVariables,
          double& rIntegrationWeight
          )
@@ -791,11 +743,9 @@ namespace Kratos
       for (unsigned int i = 0; i < number_of_nodes; i++)
          WaterPressure += GetGeometry()[i].FastGetSolutionStepValue( WATER_PRESSURE ) * rVariables.N[i];
 
-      unsigned int voigt_size = 6;
-      if (dimension == 2)
-         voigt_size = 3;
+      unsigned int voigt_size = 4;
       Vector StressVector = ZeroVector(voigt_size);
-      for (unsigned int i = 0; i < dimension; i++)
+      for (unsigned int i = 0; i < 3; i++)
          StressVector(i) -= WaterPressure;
 
       VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), StressVector );
@@ -814,7 +764,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Mass matrix
-   void UpdatedLagrangianUJWwPElement::CalculateMassMatrix( MatrixType & rMassMatrix, ProcessInfo & rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateMassMatrix( MatrixType & rMassMatrix, ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -852,11 +802,7 @@ namespace Kratos
          this->CalculateKinematics( Variables, PointNumber );
 
          //getting informations for integration
-         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-
-         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
-
-
+         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ *2.0 * 3.141592654 * Variables.CurrentRadius;
 
          for ( unsigned int i = 0; i < number_of_nodes; i++ )
          {
@@ -881,7 +827,7 @@ namespace Kratos
 
    // ********************************************************************************
    //      part of the mass matrix that steams from the stabilization factor
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -890,7 +836,7 @@ namespace Kratos
 
    // ********************************************************************************
    //      part of the damping matrix coming from the high order terms
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderDampingMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddHighOrderDampingMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -899,7 +845,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Damping matrix
-   void UpdatedLagrangianUJWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -924,7 +870,7 @@ namespace Kratos
 
 
 
-      const double CurrentPermeability = GetProperties()[PERMEABILITY]; 
+      double CurrentPermeability = GetProperties()[PERMEABILITY]; 
 
       for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
@@ -934,9 +880,7 @@ namespace Kratos
          //std::cout << "N = " << Variables.N << std::endl;
 
          //getting informations for integration
-         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
-
-         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );  // multiplies by thickness
+         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ *2.0 * 3.141592654 * Variables.CurrentRadius;
 
 
          for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -954,10 +898,9 @@ namespace Kratos
          // Q Matrix //
 
          Matrix Q = ZeroMatrix( number_of_nodes, dimension*number_of_nodes);
-         unsigned int voigtSize = 3;
-         if ( dimension == 3) voigtSize = 6;
+         unsigned int voigtSize = 4;
          Matrix m = ZeroMatrix( 1, voigtSize);
-         for ( unsigned int i = 0; i < dimension; i++)
+         for ( unsigned int i = 0; i < 3; i++)
             m(0,i) = 1.0;
          Matrix partial =  prod( m, Variables.B );
          for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -1001,7 +944,7 @@ namespace Kratos
 
    // ********************************************************************************
    //      part of the damping matrix that steams from the stabilization factor
-   void UpdatedLagrangianUJWwPElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
+   void AxisymUpdatedLagrangianUJWwPElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementVariables & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -1041,13 +984,12 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   double & UpdatedLagrangianUJWwPElement::CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabFactor)
+   double & AxisymUpdatedLagrangianUJWwPElement::CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabFactor)
    {
       KRATOS_TRY
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-      //const double & rPermeability = GetProperties()[PERMEABILITY];
 
       double ElementSize = 0;
       for (unsigned int i = 0; i < number_of_nodes; i++) {
@@ -1072,8 +1014,12 @@ namespace Kratos
       }
 
 
-
       double StabilizationFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
+
+
+      //rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
+      //rStabFactor = 2.0 / ConstrainedModulus*(1-rPermeability*DryDensity/mTimeStep/porosity) - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2)*(1-porosity)/porosity; 
+
 
 
       rStabFactor = 2.0 / ConstrainedModulus; // - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
@@ -1087,16 +1033,16 @@ namespace Kratos
       KRATOS_CATCH("")
    }
 
-   void UpdatedLagrangianUJWwPElement::save( Serializer& rSerializer ) const
+   void AxisymUpdatedLagrangianUJWwPElement::save( Serializer& rSerializer ) const
    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangianUJElement )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianUJElement )
    }
 
-   void UpdatedLagrangianUJWwPElement::load( Serializer& rSerializer )
+   void AxisymUpdatedLagrangianUJWwPElement::load( Serializer& rSerializer )
    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangianUJElement )
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, AxisymUpdatedLagrangianUJElement )
    }
 
 
 
-}  // END KATOS NAMESPACE
+}  // END KRATOS NAMESPACE

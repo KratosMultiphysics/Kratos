@@ -87,7 +87,10 @@ namespace Kratos
 	      bases< BaseSchemeType >,  boost::noncopyable >
 	(
 	 "ResidualBasedUWBossakScheme", init< double , double >() )
-	
+   .def(init<>())
+   .def(init<double,double>())
+   .def(init<double,double,double>())
+   .def(init<double,double,double,double,double>())
 	.def("Initialize", &ResidualBasedUWBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 	;
       
