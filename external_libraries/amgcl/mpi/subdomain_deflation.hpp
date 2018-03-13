@@ -301,7 +301,7 @@ class subdomain_deflation {
                             for(ptrdiff_t j = 0; j < ndv; ++j) {
                                 if (marker[j] < az_loc_head) {
                                     marker[j] = az_loc_tail;
-                                    assert(az_loc_tail < az_loc->nnz);
+                                    assert(static_cast<unsigned int>(az_loc_tail) < az_loc->nnz);
                                     az_loc->col[az_loc_tail] = j;
                                     az_loc->val[az_loc_tail] = v * prm.def_vec(loc_c, j);
                                     ++az_loc_tail;
