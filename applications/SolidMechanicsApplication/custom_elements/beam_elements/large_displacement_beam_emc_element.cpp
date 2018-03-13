@@ -260,16 +260,17 @@ namespace Kratos
     Vector CurrentValueVector(3);
     noalias(CurrentValueVector) = ZeroVector(3);
 
-
-    rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
-
     
     //strains due to displacements and rotations
 
     if( mFinalizedStep == true ){
 
-	rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
-	
+        //rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+        
+        Matrix PreviousDeltaPosition;
+        PreviousDeltaPosition = CalculatePreviousDeltaPosition(PreviousDeltaPosition);
+        
+        
 	for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 	    //A: Current Nodes Position
@@ -294,7 +295,7 @@ namespace Kratos
 
 	    for ( unsigned int j = 0; j < 3; j++ )
 	    {
-		CurrentValueVector[j] -= 2.0 * rVariables.DeltaPosition(i,j);
+              CurrentValueVector[j] -= (rVariables.DeltaPosition(i,j) + PreviousDeltaPosition(i,j));
 	    }
 
 	    CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector, rPointNumber );
@@ -361,7 +362,36 @@ namespace Kratos
     KRATOS_CATCH( "" )
   }
 
+  //*************************COMPUTE PREVIOUS DELTA POSITION****************************
+  //************************************************************************************
 
+
+  Matrix& LargeDisplacementBeamEMCElement::CalculatePreviousDeltaPosition(Matrix & rDeltaPosition)
+  {
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+        array_1d<double, 3 > & CurrentStepDisplacement = GetGeometry()[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,1);
+       
+       for ( unsigned int j = 0; j < dimension; j++ )
+	  {
+	    rDeltaPosition(i,j) = CurrentStepDisplacement[j];		    
+	  }
+
+      }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+
+  }
+        
   //*************************COMPUTE FRAME MAPPING*************************************
   //************************************************************************************
 

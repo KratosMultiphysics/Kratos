@@ -27,13 +27,13 @@ namespace Kratos
 
     // predict step variable from previous and current values
     array_1d<double,3>& CurrentStepVariable      = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    0);
-    array_1d<double,3>& PreviousStepVariable     = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    1);
+    // array_1d<double,3>& PreviousStepVariable     = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    1);
      
     array_1d<double,3>& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,        0);
     array_1d<double,3>& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,        1);
 
     // update step variable previous iteration instead of previous step
-    PreviousStepVariable = CurrentStepVariable;
+    // PreviousStepVariable = CurrentStepVariable;
     
     // update delta variable      
     array_1d<double,3> DeltaVariable;
@@ -80,10 +80,11 @@ namespace Kratos
     noalias(CurrentFirstDerivative) = this->mEmc.c0 * CurrentStepVariable - DeltaVariable;
     
     // update second derivative
-    array_1d<double,3>& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative,  0);          
-    noalias(CurrentSecondDerivative) = (this->mEmc.c1/this->mEmc.c0) * (CurrentFirstDerivative - DeltaVariable);
+    array_1d<double,3>& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative,  0);
+    noalias(CurrentSecondDerivative) = this->mEmc.c1 * (CurrentFirstDerivative - DeltaVariable);
+    //noalias(CurrentSecondDerivative) = (this->mEmc.c1/this->mEmc.c0) * (CurrentFirstDerivative - DeltaVariable);
     
-    std::cout<<*this->mpVariable<<" Update Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
+    //std::cout<<*this->mpVariable<<" Update Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
     
     KRATOS_CATCH( "" )
   }
