@@ -39,6 +39,10 @@ Classical FE method theory for small and large displacements.
 
 ## Solid Elements
 
+<p align="center"> 
+  <img src="tests/data/dynamic_3d_beam.gif" alt="Solution" style="width: 200px;"/> 
+</p>
+
 ### Displacement based formulations:
 
 Infinitessimal formulation, Total Lagrangian formulation, Updated Lagrangian formulation.
@@ -58,6 +62,10 @@ Co-rotational thick and thin 3D shells theory. Large displacements and large rot
 ### Beams
 
 Geometrically exact theory for 3D beams. Large displacements and large rotations.
+
+<p align="center"> 
+  <img src="tests/data/rolldown.gif" alt="Solution" style="width: 200px;"/> 
+</p>
 
 ### Material Laws
 
@@ -95,7 +103,3 @@ The Solid Mechanics application is OPEN SOURCE. The main code and program struct
 ## Contact
 
 * **Josep Maria Carbonell** - *Core Development* - [cpuigbo@cimne.upc.edu](mailto:cpuigbo@cimne.upc.edu)
-
-<p align="center"> 
-  <img src="tests/data/rolldown.gif" alt="Solution" style="width: 200px;"/> 
-</p> 
