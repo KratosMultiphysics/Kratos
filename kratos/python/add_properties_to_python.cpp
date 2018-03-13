@@ -59,7 +59,7 @@ void SetArrayValue(
     const std::vector<double> Data)
 {
     if(Data.size() != 3)
-        KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input is " << Data << std::endl;
+        KRATOS_ERROR << "attempting to construct an array<double,3> by passing a list with wrong size. Input size is " << Data.size() << std::endl;
     
     array_1d<double,3> tmp;
     for(unsigned int i=0;i<3; ++i)
