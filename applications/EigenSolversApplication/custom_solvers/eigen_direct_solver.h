@@ -33,6 +33,8 @@ namespace Kratos
 template <typename scalar_t>
 struct SolverType
 {
+    using TScalar = scalar_t;
+
     using TSparseMatrix = Eigen::SparseMatrix<scalar_t, Eigen::RowMajor, int>;
 };
 
