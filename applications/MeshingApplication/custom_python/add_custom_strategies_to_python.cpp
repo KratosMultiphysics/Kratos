@@ -71,9 +71,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
 
     // Displacement Convergence Criterion
-    class_< ErrorMeshCriteriaType, ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >
-            (m, "ErrorMeshCriteria", 
-            init<ModelPart&, Parameters>())
+    class_< ErrorMeshCriteriaType, typename ErrorMeshCriteriaType::Pointer, ConvergenceCriteriaType >(m, "ErrorMeshCriteria") 
+            .def(init<ModelPart&, Parameters>())
             ;
             
     //********************************************************************
