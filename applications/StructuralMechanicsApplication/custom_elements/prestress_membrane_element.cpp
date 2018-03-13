@@ -896,7 +896,10 @@ void PrestressMembraneElement::ProjectPrestress(
         global_prestress_axis2[i] = GetValue(PRESTRESS_AXIS_2_GLOBAL)(i,rPointNumber);
     }
 
-    // Anna here I would add a check in debug if the norm is zero
+    #ifdef KRATOS_DEBUG
+        KRATOS_ERROR_IF(norm_2(global_prestress_axis1) < std::numeric_limits<double>::epsilon() && norm_2(global_prestress_axis1) > -std::numeric_limits<double>::epsilon()) << "division by zero!" << std::endl;
+        KRATOS_ERROR_IF(norm_2(global_prestress_axis2) < std::numeric_limits<double>::epsilon() && norm_2(global_prestress_axis2) > -std::numeric_limits<double>::epsilon()) << "division by zero!" << std::endl;
+    #endif
 
     // normalization global prestress axes
     global_prestress_axis1 /= norm_2(global_prestress_axis1);
@@ -973,6 +976,7 @@ void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurren
                 for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number){
                     if(mAnisotropicPrestress == true)
                         UpdatePrestress(point_number);
+                       if(this->Id() == 1) std::cout<<"prestress updated"<<std::endl;
                 }
             }
             //update base vectors in reference configuration, metrics
@@ -1280,6 +1284,7 @@ void PrestressMembraneElement::ModifyPrestress(const unsigned int& rPointNumber,
     // compute lambda_mod
     double lambda_mod_1, lambda_mod_2;
     double lambda_max = this->GetValue(LAMBDA_MAX);
+    if(this->Id() == 1){std::cout<<"lambda_max: "<<lambda_max<<std::endl;}
     if(Lambda1 > lambda_max)
         lambda_mod_1 = lambda_max;
     else if(Lambda1 < 1.0/lambda_max)
@@ -1330,6 +1335,7 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegration
     this->SetValue(MEMBRANE_PRESTRESS,prestress_matrix);
     this->SetValue(PRESTRESS_AXIS_1_GLOBAL, prestress_direction1);
     this->SetValue(PRESTRESS_AXIS_2_GLOBAL, prestress_direction2);
+
 
     // determine if the prestress state is isotropic or anisotropic
     if(GetProperties().Has(MEMBRANE_PRESTRESS)){

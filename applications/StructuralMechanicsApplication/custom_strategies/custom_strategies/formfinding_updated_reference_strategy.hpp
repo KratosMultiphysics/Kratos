@@ -129,10 +129,10 @@ namespace Kratos
         void Initialize() override
         {
             KRATOS_TRY;
-            BaseType::Initialize();
             // set elemental values for formfinding
             for(auto& elem : BaseType::GetModelPart().Elements())
                 elem.SetValue(IS_FORMFINDING, true);
+            BaseType::Initialize();
 
             KRATOS_CATCH("");
         }
