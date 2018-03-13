@@ -349,11 +349,38 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual double Interpolate(const typename TElementData::NodalScalarData& rValues,
-                               const typename TElementData::ShapeFunctionsType& rN) const;
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual double GetAtCoordinate(
+        const typename TElementData::NodalScalarData& rValues,
+        const typename TElementData::ShapeFunctionsType& rN) const;
 
-    virtual array_1d<double, 3> Interpolate(const typename TElementData::NodalVectorData& rValues,
-                                            const typename TElementData::ShapeFunctionsType& rN) const;
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual array_1d<double, 3> GetAtCoordinate(
+        const typename TElementData::NodalVectorData& rValues,
+        const typename TElementData::ShapeFunctionsType& rN) const;
+
+    /// Get information from TElementData at a given point.
+    /** This function serves as a wrapper so that the element does not need to
+     *  know if the data is an elemental value or interpolated at the point from nodal data.
+     *  @param[in] rValues The field to be read from TElementData.
+     *  @param[in] rN Values of the shape functions at the desired point.
+     *  @return The value evaluated at that coordinate.
+     */
+    virtual double GetAtCoordinate(
+        const double Value,
+        const typename TElementData::ShapeFunctionsType& rN) const;
 
     virtual void CalculateMaterialResponse(TElementData& rData) const;
 

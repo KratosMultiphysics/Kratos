@@ -241,12 +241,12 @@ void QSVMS<TElementData>::ASGSMomentumResidual(
 
     Vector AGradN;
     array_1d<double, 3> convective_velocity =
-        this->Interpolate(rData.Velocity, rData.N) -
-        this->Interpolate(rData.MeshVelocity, rData.N);
+        this->GetAtCoordinate(rData.Velocity, rData.N) -
+        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
     
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 
-    double density = rData.Density;
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const auto& r_body_forces = rData.BodyForce;
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
@@ -279,7 +279,7 @@ void QSVMS<TElementData>::OSSMomentumResidual(
 {
     this->MomentumProjTerm(rData,rMomentumRes);
 
-    array_1d<double,3> momentum_projection = this->Interpolate(rData.MomentumProjection,rData.N);
+    array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection,rData.N);
     for (unsigned int d = 0; d < Dim; d++)
         rMomentumRes[d] -= momentum_projection[d];
 }
@@ -291,7 +291,7 @@ void QSVMS<TElementData>::OSSMassResidual(
     double &rMassRes)
 {
     this->MassProjTerm(rData,rMassRes);
-    double mass_projection = this->Interpolate(rData.MassProjection,rData.N);
+    double mass_projection = this->GetAtCoordinate(rData.MassProjection,rData.N);
     rMassRes -= mass_projection;
 }
 
@@ -302,13 +302,13 @@ void QSVMS<TElementData>::MomentumProjTerm(
     array_1d<double,3> &rMomentumRHS)
 {
         array_1d<double, 3> convective_velocity =
-        this->Interpolate(rData.Velocity, rData.N) -
-        this->Interpolate(rData.MeshVelocity, rData.N);
+        this->GetAtCoordinate(rData.Velocity, rData.N) -
+        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
     
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
 
-    double density = rData.Density;
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
@@ -349,14 +349,16 @@ void QSVMS<TElementData>::AddTimeIntegratedSystem(
 template <class TElementData>
 void QSVMS<TElementData>::AddTimeIntegratedLHS(
     TElementData& rData, MatrixType& rLHS) {
-        KRATOS_ERROR << "AddTimeIntegratedLHS is not implemented." << std::endl;
-    }
+
+    KRATOS_ERROR << "AddTimeIntegratedLHS is not implemented." << std::endl;
+}
 
 template <class TElementData>
 void QSVMS<TElementData>::AddTimeIntegratedRHS(
     TElementData& rData, VectorType& rRHS) {
-        KRATOS_ERROR << "AddTimeIntegratedRHS is not implemented." << std::endl;
-    }
+
+    KRATOS_ERROR << "AddTimeIntegratedRHS is not implemented." << std::endl;
+}
 
 template< class TElementData >
 void QSVMS<TElementData>::AddVelocitySystem(
@@ -368,16 +370,16 @@ void QSVMS<TElementData>::AddVelocitySystem(
     LHS.clear();
 
     // Interpolate nodal data on the integration point
-    double density = rData.Density;
-    array_1d<double,3> body_force = this->Interpolate(rData.BodyForce,rData.N);
-    array_1d<double,3> momentum_projection = this->Interpolate(rData.MomentumProjection,rData.N);
-    double mass_projection = this->Interpolate(rData.MassProjection,rData.N);
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    array_1d<double,3> body_force = this->GetAtCoordinate(rData.BodyForce,rData.N);
+    array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection,rData.N);
+    double mass_projection = this->GetAtCoordinate(rData.MassProjection,rData.N);
 
     double tau_one;
     double tau_two;
     array_1d<double, 3> convective_velocity =
-        this->Interpolate(rData.Velocity, rData.N) -
-        this->Interpolate(rData.MeshVelocity, rData.N);
+        this->GetAtCoordinate(rData.Velocity, rData.N) -
+        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
         
     this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
 
@@ -472,7 +474,7 @@ void QSVMS<TElementData>::AddMassLHS(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
-    double density = rData.Density;
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -505,11 +507,11 @@ void QSVMS<TElementData>::AddMassStabilization(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
-    double density = rData.Density;
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
 
     double tau_one;
     double tau_two;
-    array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
+    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
     this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
 
     Vector AGradN;
@@ -570,7 +572,7 @@ void QSVMS<TElementData>::AddBoundaryIntegral(TElementData& rData,
 
     // RHS: stress computed using current solution
     array_1d<double,Dim> shear_stress = boost::numeric::ublas::prod(normal_projection,rData.ShearStress);
-    const double p_gauss = this->Interpolate(rData.Pressure,rData.N);
+    const double p_gauss = this->GetAtCoordinate(rData.Pressure,rData.N);
 
     // Add -Ni*normal_stress_operator to the LHS, Ni*current_stress to the RHS
     for (unsigned int i = 0; i < NumNodes; i++) {
@@ -612,10 +614,10 @@ double QSVMS<TElementData>::EffectiveViscosity(
     TElementData& rData, double ElementSize) {
     
     double c_s = rData.CSmagorinsky;
-    double viscosity = rData.DynamicViscosity; //this->Interpolate(rData.DynamicViscosity, rData.N);
+    double viscosity = rData.DynamicViscosity; //this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
 
     if (c_s != 0.0) {
-        const double density = rData.Density; //this->Interpolate(rData.Density, rData.N);
+        const double density = this->GetAtCoordinate(rData.Density,rData.N);
         const auto& r_velocities = rData.Velocity;
         const auto& r_dndx = rData.DN_DX;
 
@@ -657,15 +659,17 @@ void QSVMS<TElementData>::CalculateTau(
     constexpr double c2 = 2.0;
 
     const double h = rData.ElementSize;
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
 
     double velocity_norm = Velocity[0]*Velocity[0];
     for (unsigned int d = 1; d < Dim; d++)
         velocity_norm += Velocity[d]*Velocity[d];
     velocity_norm = std::sqrt(velocity_norm);
 
-    double inv_tau = c1 * rData.EffectiveViscosity / (h*h) + rData.Density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h );
+    double inv_tau = c1 * viscosity / (h*h) + density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h );
     TauOne = 1.0/inv_tau;
-    TauTwo = rData.EffectiveViscosity + c2 * rData.Density * velocity_norm * h / c1;
+    TauTwo = viscosity + c2 * density * velocity_norm * h / c1;
 }
 
 
@@ -732,7 +736,7 @@ void QSVMS<TElementData>::SubscaleVelocity(
 {
     double tau_one;
     double tau_two;
-    array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
+    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
     this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
 
     array_1d<double,3> Residual(3,0.0);
@@ -754,8 +758,8 @@ void QSVMS<TElementData>::SubscalePressure(
     double tau_one;
     double tau_two;
     array_1d<double, 3> convective_velocity =
-        this->Interpolate(rData.Velocity, rData.N) -
-        this->Interpolate(rData.MeshVelocity, rData.N);
+        this->GetAtCoordinate(rData.Velocity, rData.N) -
+        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
     this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
     double Residual = 0.0;
