@@ -1,15 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//    |  /           | 
+//    ' /   __| _` | __|  _ \   __| 
+//    . \  |   (   | |   (   |\__ \.
+//   _|\_\_|  \__,_|\__|\___/ ____/ 
+//                   Multi-Physics  
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
+//  Main authors:    Riccardo Rossi
 //
+
 
 // System includes
 
@@ -21,28 +21,16 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
-//#include "containers/hash_data_value_container.h"
-// #include "containers/variables_list_data_value_container.h"
-// #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
-//#include "containers/all_variables_data_value_container.h"
-// #include "includes/kratos_flags.h"
 #include "includes/c2c_variables.h"
-// #include "includes/constitutive_law.h"
 #include "python/add_c2c_variables_to_python.h"
-// #include "python/vector_python_interface.h"
-// #include "python/vector_scalar_operator_python.h"
-// #include "python/vector_vector_operator_python.h"
-// #include "python/bounded_vector_python_interface.h"
-
-// #include "includes/convection_diffusion_settings.h"
-// #include "includes/radiation_settings.h"
 #include "utilities/timer.h"
+
+
 
 
 namespace Kratos
 {
-//KRATOS_CREATE_FLAG(STRUCTURE,   63);
 
 namespace Python
 {
@@ -54,19 +42,10 @@ void  AddC2CVariablesToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  FLUID_TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  AVERAGE_TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  INLET_TEMPERATURE)
-//         KRATOS_REGISTER_IN_PYTHON_VARIABLE(  AMBIENT_TEMPERATURE )
-//         KRATOS_REGISTER_IN_PYTHON_VARIABLE(  Y_WALL)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(  COUNTER )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(  DISTANCE_CORRECTION )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(  COMPUTED_DISTANCE )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(  MATERIAL )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  MOULD_AVERAGE_TEMPERATURE)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(   LAST_AIR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(   PRESSURES)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(   TEMPERATURES)
-    // KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VELOCITIES)
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(VELOCITIES)
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  MOULD_DENSITY)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  MOULD_SPECIFIC_HEAT)
@@ -78,14 +57,7 @@ void  AddC2CVariablesToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  MOULD_TEMPERATURE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(  MOULD_INNER_TEMPERATURE)
 
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NODE_PROPERTY_ID)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( HTC)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( REF_ID)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_RADIUS)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( POSETIVE_DISTANCE)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NAGATIVE_DISTANCE)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_ESCAPED)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_SOLIDIFIED)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLIDFRACTION )
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLIDFRACTION_RATE)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLIDIF_TIME  )
@@ -94,13 +66,6 @@ void  AddC2CVariablesToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MACRO_POROSITY  )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHRINKAGE_POROSITY  )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MAX_VEL  )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_GRAVITY_FILLING)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( VOLUME_FRACTION )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( KAPPA )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( EPSILON )
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHRINKAGE_POROSITY_US)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLIDIF_MODULUS_US)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURES_US)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( FRONT_MEETING)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( LIQUID_TIME)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( FLOW_LENGTH)
@@ -112,6 +77,7 @@ void  AddC2CVariablesToPython()
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(COLD_SHUTS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(NIYAMA)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(TEMPERATURE_GRADIENT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(INITIAL_TEMPERATURE)
 }
-} // namespace Python.
+}  // namespace Python.
 } // Namespace Kratos

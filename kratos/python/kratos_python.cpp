@@ -61,6 +61,7 @@
 #include "add_kratos_parameters_to_python.h"
 #include "add_testing_to_python.h"
 #include "add_logger_to_python.h"
+#include "add_memory_info_to_python.h"
 
 namespace Kratos
 {
@@ -127,6 +128,7 @@ BOOST_PYTHON_MODULE(Kratos)
     AddSearchStrategiesToPython();
     AddTestingToPython();
     AddLoggerToPython();
+    AddMemoryInfoToPython();
 
     def("Hello", greet);
 }

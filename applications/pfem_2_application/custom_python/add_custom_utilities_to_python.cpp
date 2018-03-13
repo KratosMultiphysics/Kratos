@@ -87,9 +87,9 @@ namespace Python
 	using namespace boost::python;
 
 
-	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-	typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+	//typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+	//typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+	//typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
 
 	class_< MoveParticleUtilityPFEM2<2> > ("MoveParticleUtilityPFEM22D", init<ModelPart& , int >())

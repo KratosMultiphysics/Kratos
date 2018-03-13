@@ -367,7 +367,7 @@ public:
 	
         // Creating models part for analysis
         InitializeAuxiliaryModelParts(BaseType::GetModelPart());
-        mstep = BaseType::GetModelPart().GetProcessInfo()[TIME_STEPS];
+        mstep = BaseType::GetModelPart().GetProcessInfo()[STEP];
 	
         if (this->GetEchoLevel() > 0)
         {

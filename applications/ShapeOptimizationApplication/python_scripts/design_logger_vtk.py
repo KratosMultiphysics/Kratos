@@ -27,9 +27,9 @@ from design_logger_base import DesignLogger
 class DesignLoggerVTK( DesignLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, DesignSurface, OptimizationSettings ):
-        self.OptimizationModelPart = OptimizationModelPart
-        self.DesignSurface = DesignSurface
+    def __init__( self, ModelPartController, OptimizationSettings ):
+        self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
+        self.DesignSurface = ModelPartController.GetDesignSurface()
         self.OutputSettings = OptimizationSettings["output"]
         
         self.__DetermineOutputMode()

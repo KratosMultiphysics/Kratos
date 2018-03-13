@@ -15,12 +15,8 @@ from . import pouliot_2012_edge_recoverer
 import weakref
 
 class DerivativeRecoveryStrategy:
-    def __init__(self, pp, fluid_model_part, derivative_recovery_tool = None, custom_functions_tool = None):
+    def __init__(self, pp, fluid_model_part, custom_functions_tool = None):
         self.fluid_model_part = fluid_model_part
-        if derivative_recovery_tool is not None:
-            self.derivative_recovery_tool = weakref.proxy(derivative_recovery_tool)
-        else:
-            self.derivative_recovery_tool = None
         if custom_functions_tool is not None:
             self.custom_functions_tool = weakref.proxy(custom_functions_tool)
         else:

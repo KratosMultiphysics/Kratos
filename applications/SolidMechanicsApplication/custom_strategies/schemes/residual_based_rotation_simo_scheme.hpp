@@ -84,7 +84,7 @@ namespace Kratos
 
     /// Default constructors
     ResidualBasedRotationSimoScheme(double rDynamic = 1, double rAlpha = 0.0)
-      :DerivedType()
+      :DerivedType(rDynamic,rAlpha)
     {    
     }
 

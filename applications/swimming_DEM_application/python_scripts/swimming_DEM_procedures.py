@@ -596,7 +596,7 @@ def CreateRunCode(pp):
         method_name = 'Daitche'
         code.append(method_name)
     else:
-        method_name = pp.CFD_DEM["IntegrationScheme"].GetString()
+        method_name = pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
         code.append(method_name)
 
     DEM_dt = 'Dt=' + str(pp.CFD_DEM["MaxTimeStep"].GetDouble())

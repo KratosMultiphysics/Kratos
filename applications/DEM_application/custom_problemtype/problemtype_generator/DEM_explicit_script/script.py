@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 
 import DEM_explicit_solver_var
 import time as timer
-# import matplotlib
-# from numpy import *
-# from pylab import *
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *

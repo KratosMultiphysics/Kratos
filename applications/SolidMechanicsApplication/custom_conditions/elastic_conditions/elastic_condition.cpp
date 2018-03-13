@@ -131,7 +131,7 @@ namespace Kratos
 	index = dimension * i;
 	for ( unsigned int j = 0; j < dimension; j++ )
 	  {
-	    rLeftHandSideMatrix(index+j, index+j) = rVariables.ExternalVectorValue[j] * rIntegrationWeight;  	
+	    rLeftHandSideMatrix(index+j, index+j) = fabs(rVariables.ExternalVectorValue[j]) * rIntegrationWeight;  	
 	  }
       }
   
@@ -165,7 +165,7 @@ namespace Kratos
 
         for ( unsigned int j = 0; j < dimension; j++ )
 	  {
-	    rRightHandSideVector[index + j] -= CurrentValueVector[j] * rVariables.ExternalVectorValue[j] * rIntegrationWeight;
+	    rRightHandSideVector[index + j] -= CurrentValueVector[j] * fabs(rVariables.ExternalVectorValue[j]) * rIntegrationWeight;
 	  }
 
       }

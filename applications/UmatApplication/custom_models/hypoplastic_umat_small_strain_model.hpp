@@ -160,7 +160,7 @@ namespace Kratos
             rNumberParameters = 16;
             pVector = new double[rNumberParameters];
             pVector[0] = 30.0; // phi_deg
-            pVector[1] = 10.0; // p_t
+            pVector[1] = 1.0; // p_t
             pVector[2] = 5800.0; // hs
             pVector[3] = 0.28; // e_n
             pVector[4] = 0.53; // ed0
@@ -173,8 +173,8 @@ namespace Kratos
             pVector[11] = 1.0e-4; // r_uc
             pVector[12] = 0.05; // beta_r
             pVector[13] = 1.0; // chi
-            pVector[14] = 10.0E5; // bulk_w
-            pVector[15] = 11.1; // ?? line 155
+            pVector[14] = 0.0E5; // bulk_w  // should be set equal to zero
+            pVector[15] = 10.0+0.5; // ?? line 155 (some sort of void ratio that depends on the number does something)
          };
 
          /*
@@ -234,12 +234,12 @@ namespace Kratos
 
          virtual void save(Serializer& rSerializer) const override
          {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveModel )
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrainUmatModel )
          }
 
          virtual void load(Serializer& rSerializer) override
          {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveModel )
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrainUmatModel )
          }
 
          ///@}

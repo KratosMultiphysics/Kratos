@@ -139,11 +139,11 @@ class DamUpliftConditionLoadProcess : public Process
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         // Computing the reference vector (coordinates)
         reference_vector = prod(RotationMatrix, mX0);
@@ -165,20 +165,19 @@ class DamUpliftConditionLoadProcess : public Process
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                     auxiliar_vector.resize(3, false);
-                    auxiliar_vector[0] = it->Coordinate(1);
-                    auxiliar_vector[1] = it->Coordinate(2);
-                    auxiliar_vector[2] = it->Coordinate(3);
+                    const array_1d<double,3>& r_coordinates = it->Coordinates();
+                    noalias(auxiliar_vector) = r_coordinates;
 
                     // Computing the new coordinates
                     newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
                     // We compute the first part of the uplift law
-                    mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (it->Coordinate(direction)))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
+                    mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
 
                     // If uplift pressure is greater than the limit we compute the second part and we update the value
                     if (mUpliftPressure <= mSpecific * aux_drain)
                     {
-                        mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (it->Coordinate(direction)))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
+                        mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
                     }
 
                     if (mUpliftPressure < 0.0)
@@ -199,13 +198,12 @@ class DamUpliftConditionLoadProcess : public Process
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                     auxiliar_vector.resize(3, false);
-                    auxiliar_vector[0] = it->Coordinate(1);
-                    auxiliar_vector[1] = it->Coordinate(2);
-                    auxiliar_vector[2] = it->Coordinate(3);
+                    const array_1d<double,3>& r_coordinates = it->Coordinates();
+                    noalias(auxiliar_vector) = r_coordinates;
 
                     newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
-                    mUpliftPressure = (mSpecific * (ref_coord - (it->Coordinate(direction)))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
+                    mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
 
                     if (mUpliftPressure < 0.0)
                     {
@@ -254,11 +252,11 @@ class DamUpliftConditionLoadProcess : public Process
         int direction;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         // Computing the reference vector (coordinates)
         reference_vector = prod(RotationMatrix, mX0);
@@ -280,20 +278,19 @@ class DamUpliftConditionLoadProcess : public Process
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                     auxiliar_vector.resize(3, false);
-                    auxiliar_vector[0] = it->Coordinate(1);
-                    auxiliar_vector[1] = it->Coordinate(2);
-                    auxiliar_vector[2] = it->Coordinate(3);
+                    const array_1d<double,3>& r_coordinates = it->Coordinates();
+                    noalias(auxiliar_vector) = r_coordinates;
 
                     // Computing the new coordinates
                     newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
                     // We compute the first part of the uplift law
-                    mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (it->Coordinate(direction)))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
+                    mUpliftPressure = (mSpecific * ((ref_coord - aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mDistanceDrain)) * (fabs((newCoordinate(0)) - reference_vector(0))))) + mSpecific * aux_drain;
 
                     // If uplift pressure is greater than the limit we compute the second part and we update the value
                     if (mUpliftPressure <= mSpecific * aux_drain)
                     {
-                        mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (it->Coordinate(direction)))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
+                        mUpliftPressure = (mSpecific * ((mReferenceCoordinate + aux_drain) - (r_coordinates[direction]))) * (1.0 - ((1.0 / (mBaseDam - mDistanceDrain)) * (fabs((newCoordinate(0)) - (reference_vector(0) + mDistanceDrain)))));
                     }
 
                     if (mUpliftPressure < 0.0)
@@ -314,13 +311,12 @@ class DamUpliftConditionLoadProcess : public Process
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                     auxiliar_vector.resize(3, false);
-                    auxiliar_vector[0] = it->Coordinate(1);
-                    auxiliar_vector[1] = it->Coordinate(2);
-                    auxiliar_vector[2] = it->Coordinate(3);
+                    const array_1d<double,3>& r_coordinates = it->Coordinates();
+                    noalias(auxiliar_vector) = r_coordinates;
 
                     newCoordinate = prod(RotationMatrix, auxiliar_vector);
 
-                    mUpliftPressure = (mSpecific * (ref_coord - (it->Coordinate(direction)))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
+                    mUpliftPressure = (mSpecific * (ref_coord - (r_coordinates[direction]))) * (1.0 - ((1.0 / mBaseDam) * (fabs(newCoordinate(0) - reference_vector(0)))));
 
                     if (mUpliftPressure < 0.0)
                     {

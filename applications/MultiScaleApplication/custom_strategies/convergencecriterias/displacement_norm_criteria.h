@@ -85,7 +85,7 @@ namespace Kratos
 /** Residual Norm Criteria.
 */
 template<class TSparseSpace,class TDenseSpace>
-class DisplacementNormCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class DisplacementNormCriteria : public  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     /**@name Type Definitions */

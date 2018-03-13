@@ -59,8 +59,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
+/** 
+ * Mesh is the second level of abstraction in the data structure which hold Nodes, Elements and Conditions and their Properties.
+ * In other words, Mesh is a complete pack of all type of entities without any additional data associated with them. 
+ * So a set of Elements and Conditions with their Nodes and Properties can be grouped together as a Mesh and send to 
+ * procedures like mesh refinement, material optimization, mesh movement or any other procedure which works on entities 
+ * without needing additional data for their processes.
 */
 template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
 class Mesh : public DataValueContainer, public Flags

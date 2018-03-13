@@ -111,11 +111,11 @@ class DamWestergaardConditionLoadProcess : public Process
         double pressure;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         double ref_coord = mReferenceCoordinate + mWaterLevel;
         double unit_acceleration = mAcceleration / 9.81;
@@ -129,7 +129,7 @@ class DamWestergaardConditionLoadProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double y_water = ref_coord - (it->Coordinate(direction));
+                double y_water = ref_coord - (it->Coordinates()[direction]);
 
                 if (y_water < 0.0)
                 {
@@ -173,11 +173,11 @@ class DamWestergaardConditionLoadProcess : public Process
         double pressure;
 
         if (mGravityDirection == "X")
-            direction = 1;
+            direction = 0;
         else if (mGravityDirection == "Y")
-            direction = 2;
+            direction = 1;
         else
-            direction = 3;
+            direction = 2;
 
         double ref_coord = mReferenceCoordinate + mWaterLevel;
         double unit_acceleration = mAcceleration / 9.81;
@@ -191,7 +191,7 @@ class DamWestergaardConditionLoadProcess : public Process
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                double y_water = ref_coord - (it->Coordinate(direction));
+                double y_water = ref_coord - (it->Coordinates()[direction]);
 
                 if (y_water < 0.0)
                 {

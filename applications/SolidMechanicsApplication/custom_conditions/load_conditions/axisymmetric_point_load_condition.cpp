@@ -104,18 +104,21 @@ namespace Kratos
 
     KRATOS_TRY
 
-    rCurrentRadius=0;
-    rReferenceRadius=0;
+    // rCurrentRadius=0;
+    // rReferenceRadius=0;
 
-    //Displacement from the reference to the current configuration
-    array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-    array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1);
-    array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
-    array_1d<double, 3 > & CurrentPosition      = GetGeometry()[0].Coordinates();
-    array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
+    // //Displacement from the reference to the current configuration
+    // array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    // array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1);
+    // array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
+    // array_1d<double, 3 > & CurrentPosition      = GetGeometry()[0].Coordinates();
+    // array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
 
-    rCurrentRadius   = CurrentPosition[0];
-    rReferenceRadius = ReferencePosition[0];
+    // rCurrentRadius   = CurrentPosition[0];
+    // rReferenceRadius = ReferencePosition[0];
+
+    rCurrentRadius   = GetGeometry()[0].X();
+    rReferenceRadius = GetGeometry()[0].X() + GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X,1) - GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
 
     KRATOS_CATCH( "" )
   }

@@ -16,7 +16,7 @@
 #include "custom_conditions/EP_point_rigid_contact_penalty_3D_condition.hpp"
 
 #include "contact_mechanics_application_variables.h"
-
+#include "includes/mat_variables.h"
 namespace Kratos
 {
 
@@ -127,11 +127,17 @@ namespace Kratos
       }
 
       mImplex = false;
-      if ( rCurrentProcessInfo.Has(MIU)  == true) {
-         if ( rCurrentProcessInfo[MIU] > 0.0 ) {
-            mImplex = true;
+      if ( rCurrentProcessInfo.Has(IMPLEX)  == true ) {
+         if ( rCurrentProcessInfo[IMPLEX] > 0.0 ) {
+            if ( GetProperties().Has(IMPLEX_CONTACT) == true) {
+               if ( GetProperties()[IMPLEX_CONTACT] > 0.0 ) {
+                  mImplex = true;
+               }
+            } else {
+               mImplex = true;
+            }
          }
-      } 
+      }
 
       KRATOS_CATCH( "" )
    }
@@ -308,7 +314,7 @@ namespace Kratos
             ProcessInfo SomeProcessInfo;
             for ( unsigned int i = 0; i < rE.size(); i++)
             {
-               rE[i].CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, ModulusVector, SomeProcessInfo);
+               rE[i].CalculateOnIntegrationPoints(YOUNG_MODULUS, ModulusVector, SomeProcessInfo);
                ElasticModulus += ModulusVector[0];
             }
             ElasticModulus /= double(rE.size());
@@ -581,7 +587,7 @@ namespace Kratos
          FrictionVariables.FrictionCoefficient = 0.0;
       }
       FrictionVariables.Alpha = 0; 
-      FrictionVariables.Adhesion = 0;
+      //FrictionVariables.Adhesion = 0;
       if ( GetProperties().Has(VISCOSITY) )
       {
          FrictionVariables.Alpha = GetProperties()[VISCOSITY];
@@ -643,7 +649,7 @@ namespace Kratos
          for ( unsigned int i = 0; i < rElemGeom.size(); i++) {
 
             if ( rElemGeom[i].Is(BOUNDARY) ) {
-               array_1d<double, 3>  CN = rElemGeom[i].FastGetSolutionStepValue(CONTACT_NORMAL);
+               const array_1d<double, 3> &  CN = rElemGeom[i].FastGetSolutionStepValue(CONTACT_NORMAL);
 
                if ( ( fabs(CN[0]) + fabs(CN[1]) + fabs(CN[2])  ) > 0.01) {
                   BoundaryNodes.push_back( i );
@@ -658,7 +664,9 @@ namespace Kratos
          {
             array_1d< double, 3 > Vector1 = rElemGeom[ BoundaryNodes[1] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
             array_1d< double, 3 > Vector2 = rElemGeom[ BoundaryNodes[2] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
-            array_1d< double, 3 > Cross = MathUtils<double>::CrossProduct( Vector1, Vector2 ) / 2.0;
+            array_1d< double, 3 > Cross;
+            MathUtils<double>::CrossProduct( Cross, Vector1, Vector2 );
+            Cross /= 2.0;
             double ThisArea = MathUtils<double>::Norm3( Cross);
             AreaVector.push_back(ThisArea);
          }

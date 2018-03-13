@@ -58,13 +58,12 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
 
     def _apply_dirichlet_BCs(self,mp):
-        for node in mp.Nodes:
-            node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-            node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-            node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-            node.Fix(KratosMultiphysics.ROTATION_X)
-            node.Fix(KratosMultiphysics.ROTATION_Y)
-            node.Fix(KratosMultiphysics.ROTATION_Z)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_X, True, mp.Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Y, True, mp.Nodes)
+        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.ROTATION_Z, True, mp.Nodes)
 
 
     def _apply_neumann_BCs(self,mp):
@@ -190,8 +189,8 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     def test_thick_shell_quadrilateral(self):
         element_name = "ShellThickElementCorotational3D4N"
-        displacement_results = [0.0003605563407 , -0.0006304969456 , 0.0012549432749]
-        rotation_results     = [0.0012002334629 , -0.0004107323793 , -0.0011652421744]
+        displacement_results = [0.0003572969872 , -0.0006341259132 , 0.00127807995001]
+        rotation_results     = [0.0012082600485 , -0.0004098356773 , -0.0011673798349]
 
         self.execute_shell_test(element_name, 
                                 displacement_results, 

@@ -6,7 +6,7 @@ import math
 import time
 import cluster_file_reader
 
-class ExplicitStrategy:
+class ExplicitStrategy(object):
 
     #def __init__(self, all_model_parts, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
@@ -172,7 +172,6 @@ class ExplicitStrategy:
         else:
             model_part.ProcessInfo.SetValue(variable, 0)
 
-
     def SetVariablesAndOptions(self):
 
         # Setting ProcessInfo variables
@@ -194,16 +193,14 @@ class ExplicitStrategy:
         self.spheres_model_part.ProcessInfo.SetValue(PRINT_STRESS_TENSOR_OPTION, self.print_stress_tensor_option)
         self.spheres_model_part.ProcessInfo.SetValue(CONTINUUM_OPTION, self.continuum_type)
 
-        # GLOBAL PHYSICAL ASPECTS
+        self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
         if "PeriodicDomainOption" in self.DEM_parameters.keys():
             if self.DEM_parameters["PeriodicDomainOption"].GetBool():
                 self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 1) #TODO: DOMAIN_IS_PERIODIC should be a bool, and should have the suffix option
-        else:
-            self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_IS_PERIODIC, 0)
+                
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MIN_CORNER, self.bottom_corner)
         self.spheres_model_part.ProcessInfo.SetValue(DOMAIN_MAX_CORNER, self.top_corner)
         self.spheres_model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
-
 
         # GLOBAL MATERIAL PROPERTIES
         self.spheres_model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
@@ -223,17 +220,20 @@ class ExplicitStrategy:
 
         # TIME RELATED PARAMETERS
         self.spheres_model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-               
+        
+        os.chdir('..')
+        
         for properties in self.spheres_model_part.Properties:
             self.ModifyProperties(properties)
-
+        
         for properties in self.inlet_model_part.Properties:
             self.ModifyProperties(properties)
 
-        os.chdir('..')
-
         for properties in self.cluster_model_part.Properties:
             self.ModifyProperties(properties)
+        
+        for properties in self.fem_model_part.Properties:
+            self.ModifyProperties(properties, 1)
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
@@ -275,15 +275,11 @@ class ExplicitStrategy:
         if (self.DEM_parameters["TranslationalIntegrationScheme"].GetString() == 'Velocity_Verlet'):
             self.cplusplus_strategy = IterativeSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                               self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                              #self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
                                                               self.search_strategy, self.do_search_neighbours)
-                                                              #TODO: remove time_integration_scheme. no longer necessary and maybe safety_factor
         else:
             self.cplusplus_strategy = ExplicitSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
-                                                             #self.time_integration_scheme, self.search_strategy, self.do_search_neighbours)
                                                              self.search_strategy, self.do_search_neighbours)
-                                                             #TODO: remove time_integration_scheme. no longer necessary
 
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
@@ -417,8 +413,6 @@ class ExplicitStrategy:
             class_name = 'SymplecticEulerScheme'
         elif name == 'Taylor_Scheme':
             class_name = 'TaylorScheme'
-        elif name == 'Newmark_Beta_Method':
-            class_name = 'NewmarkBetaScheme'
         elif name == 'Velocity_Verlet':
             class_name = 'VelocityVerletScheme'
 
@@ -434,8 +428,6 @@ class ExplicitStrategy:
                 class_name = 'SymplecticEulerScheme'
             elif name_translational == 'Taylor_Scheme':
                 class_name = 'TaylorScheme'
-            elif name_translational == 'Newmark_Beta_Method':
-                class_name = 'NewmarkBetaScheme'
             elif name_translational == 'Velocity_Verlet':
                 class_name = 'VelocityVerletScheme'
         elif name_rotational == 'Runge_Kutta':
@@ -446,16 +438,10 @@ class ExplicitStrategy:
         return class_name
 
     def GetTranslationalSchemeInstance(self, class_name):
-         if not class_name == 'NewmarkBetaScheme':
              return globals().get(class_name)()
-         else:
-             return globals().get(class_name)(0.5,0.25)
     
     def GetRotationalSchemeInstance(self, class_name):
-         if not class_name == 'NewmarkBetaScheme':
              return globals().get(class_name)()
-         else:
-             return globals().get(class_name)(0.5,0.25)
 
     def GetTranslationalScheme(self, name):
         class_name = self.TranslationalIntegrationSchemeTranslator(name)
@@ -495,38 +481,42 @@ class ExplicitStrategy:
 
         return rotational_scheme, error_status, summary
 
-    def ModifyProperties(self, properties):
-        DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
-        DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
-        DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
+    def ModifyProperties(self, properties, param = 0):
 
-        coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
+        if not param:
+            DiscontinuumConstitutiveLawString = properties[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME]
+            DiscontinuumConstitutiveLaw = globals().get(DiscontinuumConstitutiveLawString)()
+            DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, True)
 
-        type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
+            coefficient_of_restitution = properties[COEFFICIENT_OF_RESTITUTION]
 
-        write_gamma = False
+            type_of_law = DiscontinuumConstitutiveLaw.GetTypeOfLaw()
 
-        if (type_of_law == 'Linear'):
-            gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
-            write_gamma = True
+            write_gamma = False
 
-        elif (type_of_law == 'Hertz' or type_of_law == 'Dependent_friction'):
-            gamma = self.GammaForHertzThornton(coefficient_of_restitution)
-            write_gamma = True
+            if (type_of_law == 'Linear'):
+                gamma = self.RootByBisection(self.coeff_of_rest_diff, 0.0, 16.0, 0.0001, 300, coefficient_of_restitution)
+                write_gamma = True
 
-        else:
-            pass
+            elif (type_of_law == 'Hertz' or type_of_law == 'Dependent_friction'):
+                gamma = self.GammaForHertzThornton(coefficient_of_restitution)
+                write_gamma = True
 
-        if write_gamma == True:
-            properties[DAMPING_GAMMA] = gamma
+            else:
+                pass
 
-        if properties.Has(CLUSTER_FILE_NAME):
-            cluster_file_name = properties[CLUSTER_FILE_NAME]
-            [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
-            pre_utils = PreUtilities(self.spheres_model_part)
-            pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
-            self.Procedures.KRATOSprint(properties)
+            if write_gamma == True:
+                properties[DAMPING_GAMMA] = gamma
 
+            if properties.Has(CLUSTER_FILE_NAME):
+                cluster_file_name = properties[CLUSTER_FILE_NAME]
+                [name, list_of_coordinates, list_of_radii, size, volume, inertias] = cluster_file_reader.ReadClusterFile(cluster_file_name)
+                pre_utils = PreUtilities(self.spheres_model_part)
+                pre_utils.SetClusterInformationInProperties(name, list_of_coordinates, list_of_radii, size, volume, inertias, properties)
+                self.Procedures.KRATOSprint(properties)
+                if not properties.Has(BREAKABLE_CLUSTER):
+                    properties.SetValue(BREAKABLE_CLUSTER, False)
+        
         if properties.Has(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME):
             translational_scheme_name = properties[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_NAME]
         else:
@@ -543,4 +533,7 @@ class ExplicitStrategy:
             
         rotational_scheme, error_status, summary_mssg = self.GetRotationalScheme(translational_scheme_name, rotational_scheme_name)
         rotational_scheme.SetRotationalIntegrationSchemeInProperties(properties, True)
+        
+        if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
+            properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 

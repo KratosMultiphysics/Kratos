@@ -17,7 +17,7 @@ for size in irregular_mesh_sizes.union(regular_mesh_n_points):
         with pouliot_benchmark_2D_algorithm.Algorithm(varying_parameters) as algorithm:
             try:
                 test = script.Solution(algorithm, varying_parameters)
-                test.alg.Run()
+                test.Run()
             except:
                 error = sys.exc_info()
                 combinations_that_failed.append({'size':size, 'type':derivatives_type})

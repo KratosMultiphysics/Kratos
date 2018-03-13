@@ -40,7 +40,7 @@ namespace Kratos
 /**
  * Implements a Large Displacement definition for structural analysis.
  * This works for line geometries in 3D :: it must be extended to 2D and large displacements
- * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, DELTA_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
+ * Nodal Variables: DISPLACEMENT, STEP_DISPLACEMENT, VELOCITY, ACCELERATION, ROTATION, STEP_ROTATION, ANGULAR_VELOCITY, ANGULAR_ACCELERATION
  * Nodal Dofs: DISPLACEMENT, ROTATION
  */
 

@@ -339,7 +339,7 @@ void TranslatoryRigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHan
     	    m11 = (1.0-AlphaM) * Newmark1 * TotalMass * DiagonalMatrix;
 
     	    //Building the Local Tangent Inertia Matrix
-    	    MathUtils<double>::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
+    	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
 	    
     	  }
       }
@@ -480,7 +480,7 @@ void TranslatoryRigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, P
 
 	
     	//Building the Local Tangent Inertia Matrix
-    	MathUtils<double>::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
+    	BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
 	
       }
  

@@ -128,7 +128,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-      KRATOS_ERROR << "calling the Constitutive Model base class Variables List... illegal operation" << std::endl;
+    KRATOS_ERROR << "calling the Constitutive Model base class Variables List... illegal operation" << std::endl;
     
     KRATOS_CATCH(" ")
   }  
@@ -137,6 +137,17 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
+  void ConstitutiveModel::InitializeMaterial(const Properties& rMaterialProperties)
+  {
+    KRATOS_TRY
+      
+    //KRATOS_ERROR << "calling ConstitutiveModel Initialize base class " << std::endl;
+      
+    KRATOS_CATCH(" ")
+  }
+
+
+  
   void ConstitutiveModel::InitializeModel(ModelDataType& rValues)
   {
     KRATOS_TRY

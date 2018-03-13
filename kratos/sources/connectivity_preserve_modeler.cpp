@@ -212,7 +212,7 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
 {
     for(auto i_part = rOriginModelPart.SubModelPartsBegin(); i_part != rOriginModelPart.SubModelPartsEnd(); ++i_part)
     {
-        auto& destination_part = rDestinationModelPart.CreateSubModelPart(i_part->Name());
+        ModelPart& destination_part = *(rDestinationModelPart.CreateSubModelPart(i_part->Name()));
 
         destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
 

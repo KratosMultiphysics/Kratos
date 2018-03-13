@@ -15,13 +15,9 @@ set( KRATOS_UMAT_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/umat_application_variables.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/umat_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/umat_3D_law.cpp
 
-	#/${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/small_strain_umat_3D_law.cpp
-	#${CMAKE_CURRENT_SOURCE_DIR}/custom_laws/large_strain_umat_3D_law.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/mises_umat.f
-	#${CMAKE_CURRENT_SOURCE_DIR}/umat_models/umat_hypo.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/hypoplastic_umat.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/umat_fortran_wrapper.f
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_models/xit.f
@@ -38,6 +34,8 @@ set( KRATOS_UMAT_APPLICATION_SOURCES
 add_library(KratosUmatApplication SHARED ${KRATOS_UMAT_APPLICATION_SOURCES})
 target_link_libraries(KratosUmatApplication KratosCore KratosConstitutiveModelsApplication)
 set_target_properties(KratosUmatApplication PROPERTIES PREFIX "")
+set_target_properties(KratosUmatApplication PROPERTIES COMPILE_DEFINITIONS "UMAT_APPLICATION=EXPORT,API")
+
 install(TARGETS KratosUmatApplication DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)

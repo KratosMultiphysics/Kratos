@@ -6,28 +6,21 @@
 //
 //
 
-
-#if !defined(KRATOS_ALE_APPLICATION_H_INCLUDED )
-#define  KRATOS_ALE_APPLICATION_H_INCLUDED
-
-
+#if !defined(KRATOS_ALE_APPLICATION_H_INCLUDED)
+#define KRATOS_ALE_APPLICATION_H_INCLUDED
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 
-
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
@@ -53,12 +46,10 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosExternalSolversApplication : public KratosApplication
-{
-public:
+class KratosExternalSolversApplication : public KratosApplication {
+   public:
     ///@name Type Definitions
     ///@{
-
 
     /// Pointer definition of KratosExternalSolversApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosExternalSolversApplication);
@@ -68,16 +59,15 @@ public:
     ///@{
 
     /// Default constructor.
-    KratosExternalSolversApplication() {}
+    KratosExternalSolversApplication()
+        : KratosApplication("ExternalSolversApplication"){};
 
     /// Destructor.
     ~KratosExternalSolversApplication() override {}
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -85,40 +75,33 @@ public:
 
     void Register() override;
 
-
-
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
+    std::string Info() const override {
         return "KratosExternalSolversApplication";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
+    void PrintInfo(std::ostream& rOStream) const override {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
+    void PrintData(std::ostream& rOStream) const override {
         KRATOS_WATCH("in KratosALEApplication application");
-        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
         rOStream << "Variables:" << std::endl;
         KratosComponents<VariableData>().PrintData(rOStream);
         rOStream << std::endl;
@@ -129,56 +112,45 @@ public:
         KratosComponents<Condition>().PrintData(rOStream);
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
 
-protected:
+   protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
 
-private:
+   private:
     ///@name Static Member Variables
     ///@{
-
-
 
     //       static const ApplicationCondition  msApplicationCondition;
 
@@ -186,48 +158,42 @@ private:
     ///@name Member Variables
     ///@{
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    KratosExternalSolversApplication& operator=(KratosExternalSolversApplication const& rOther);
+    KratosExternalSolversApplication& operator=(
+        KratosExternalSolversApplication const& rOther);
 
     /// Copy constructor.
-    KratosExternalSolversApplication(KratosExternalSolversApplication const& rOther);
-
+    KratosExternalSolversApplication(
+        KratosExternalSolversApplication const& rOther);
 
     ///@}
 
-}; // Class KratosExternalSolversApplication
+};  // Class KratosExternalSolversApplication
 
 ///@}
 
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
@@ -235,9 +201,6 @@ private:
 
 ///@}
 
-
 }  // namespace Kratos.
 
-#endif // KRATOS_ALE_APPLICATION_H_INCLUDED  defined 
-
-
+#endif  // KRATOS_ALE_APPLICATION_H_INCLUDED  defined

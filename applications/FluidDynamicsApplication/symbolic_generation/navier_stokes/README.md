@@ -1,4 +1,4 @@
-# Navier Stokes Element
+# Navier-Stokes Element
 
 ## ELEMENT DESCRIPTION:
 Current directory contains the documentation for the symbolic derivation of the _"navier_stokes"_ element. This element includes a formulation of a quasi-incompressible _Navier-Stokes_ element for both **2D** and **3D** cases.

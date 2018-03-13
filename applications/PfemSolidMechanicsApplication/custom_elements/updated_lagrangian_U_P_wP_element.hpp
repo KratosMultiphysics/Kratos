@@ -110,24 +110,6 @@ namespace Kratos
 
          //************* GETTING METHODS
 
-         //SET
-
-         /**
-          * Set a double  Value on the Element Constitutive Law
-          */
-         void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-
-         //GET:
-
-         /**
-          * Get on rVariable a double Value from the Element Constitutive Law
-          */
-         void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-         void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-         void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValue, const ProcessInfo& rCurrentProcessInfo);
 
          //************* STARTING - ENDING  METHODS
 
@@ -337,17 +319,6 @@ namespace Kratos
          void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                VectorType& rRightHandSideVector,
                Flags& rCalculationFlags);
-
-         //on integration points:
-         /**
-          * Calculate a double Variable on the Element Constitutive Law
-          */
-         void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-         void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
-         void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
 
 
          /**

@@ -228,6 +228,7 @@ class PreUtilities
         outputfile << "COEFFICIENT_OF_RESTITUTION 0.2\n";
         outputfile << "PARTICLE_MATERIAL 1\n";
         outputfile << "ROLLING_FRICTION 0.01\n";
+        outputfile << "ROLLING_FRICTION_WITH_WALLS 0.01\n";
         outputfile << "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_Dempack\n";
         outputfile << "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_viscous_Coulomb\n";
         outputfile << "SLOPE_LIMIT_COEFF_C1 24\n";

@@ -178,7 +178,18 @@ public:
       */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new StokesWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+        return Kratos::make_shared<StokesWallCondition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    }
+
+
+    /// Create a new StokesWallCondition object.
+    /**
+      @param NewId Index of the new condition
+      @param pGeom A pointer to the condition's geometry
+      @param pProperties Pointer to the element's properties
+      */
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
+        return Kratos::make_shared< StokesWallCondition >(NewId, pGeom, pProperties);
     }
 
 

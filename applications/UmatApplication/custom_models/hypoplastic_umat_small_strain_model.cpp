@@ -25,9 +25,7 @@ namespace Kratos
    HypoplasticSmallStrainUmatModel::HypoplasticSmallStrainUmatModel()
       : SmallStrainUmatModel()
    {
-      mStressVectorFinalized(0) = -10.0;
-      mStressVectorFinalized(1) = -10.0;
-      mStressVectorFinalized(2) = -10.0;
+
    }
 
    //******************************COPY CONSTRUCTOR**************************************

@@ -18,10 +18,10 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/nothing_condition.hpp"
-#include "shallow_water_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
+#include "shallow_water_application_variables.h"
+#include "custom_conditions/nothing_condition.hpp"
 
 namespace Kratos
 {

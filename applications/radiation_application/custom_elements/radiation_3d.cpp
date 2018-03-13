@@ -352,8 +352,8 @@ namespace Kratos
 	msAux(3,3)+=N[3]*N[2];
 	msAux(3,3)+=N[3]*N[3];// + N[3]*N[0] + N[3]*N[1] + N[3]*N[2];
 	    
-	    
-	noalias(rLeftHandSideMatrix) += 1.0 * Weight * absorptioncoefficient * msAux; //LO COMENTO AHORA
+	     
+	noalias(rLeftHandSideMatrix) += 1.0 * Weight * absorptioncoefficient * msAux; 
 	noalias(rRightHandSideVector) += 4.0 * absorptioncoefficient * StefenBoltzmann * prod(msAux,msAuxVec)  * Weight;
 	    
       }

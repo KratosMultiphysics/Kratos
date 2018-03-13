@@ -46,6 +46,9 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Counted pointer of TableStreamUtility
+    KRATOS_CLASS_POINTER_DEFINITION( TableStreamUtility );
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -112,8 +115,8 @@ public:
     
     /**
      * It adds a column to the table
-     * @param ThisName: The name of the variable
-     * @param ThisSpaces: The number of spaces to consider
+     * @param ThisName The name of the variable
+     * @param ThisSpaces The number of spaces to consider
      */
         
     void AddColumn(std::string ThisName, unsigned int ThisSpaces)

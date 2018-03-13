@@ -11,23 +11,23 @@ def ConstructPreconditioner(configuration):
     elif(configuration["preconditioner_type"].GetString() == "ILU0Preconditioner"):
         return KratosMultiphysics.ILU0Preconditioner()
     elif(configuration["preconditioner_type"].GetString() == "ILUPreconditioner"):
-        return KratosMultiphysics.ILUPreconditioner() 
+        return KratosMultiphysics.ILUPreconditioner()
     else:
         raise Exception("preconditioner_type specified is not correct. Current choice is :" + configuration["preconditioner_type"].GetString())
 
 def ConstructSolver(configuration):
     import KratosMultiphysics
-    
+
     if(type(configuration) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
-    
+
     solver_type = configuration["solver_type"].GetString()
-    
+
     if configuration.Has("scaling"):
         scaling = configuration["scaling"].GetBool()
     else:
         scaling = False
-        
+
     if(solver_type == "CGSolver"):
         linear_solver = KratosMultiphysics.CGSolver( configuration, ConstructPreconditioner(configuration) )
     elif(solver_type == "BICGSTABSolver"):
@@ -63,18 +63,34 @@ def ConstructSolver(configuration):
     elif(solver_type == "complex_pastix_solver"):
         import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.PastixComplexSolver(configuration)
- 
-    ################################## following solvers need importing the MKLSolversApplication
+
+    ################################## following solvers need importing the EigenSolversApplication
+    elif(solver_type == "eigen_sparse_lu"):
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.SparseLUSolver(configuration)
+    elif(solver_type == "eigen_pardiso_llt"): # needs Intel MKL
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLLTSolver(configuration)
+    elif(solver_type == "eigen_pardiso_ldlt"): # needs Intel MKL
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLDLTSolver(configuration)
+    elif(solver_type == "eigen_pardiso_lu"): # needs Intel MKL
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLUSolver(configuration)
+
+     # emulating the solvers of the MKLSolversApplication through the EigenSolversApplication
     elif (solver_type == "ParallelMKLPardisoSolver"):
-        import KratosMultiphysics.MKLSolversApplication
-        linear_solver = KratosMultiphysics.MKLSolversApplication.ParallelMKLPardisoSolver(configuration)
+        KratosMultiphysics.Logger.PrintWarning("LinearSolverFactor", "Solver Parallel_MKL_Pardiso is deprecated,\
+        please use it through the EigenSolversApplication (see the Readme in the Application)")
+        import KratosMultiphysics.EigenSolversApplication
+        linear_solver = KratosMultiphysics.EigenSolversApplication.PardisoLUSolver(configuration)
 
     ###################################### FAILED TO FIND solver_type
     else:
         raise Exception("solver type not found. Asking for :" + solver_type)
 
 
-    ###### here decide if a prescaling is to be applied 
+    ###### here decide if a prescaling is to be applied
     if(scaling == False):
         return linear_solver
     else:
