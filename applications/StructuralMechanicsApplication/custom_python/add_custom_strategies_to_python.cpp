@@ -32,7 +32,7 @@
 #include "custom_strategies/custom_strategies/eigensolver_strategy.hpp"
 #include "custom_strategies/custom_strategies/harmonic_analysis_strategy.hpp"
 #include "custom_strategies/custom_strategies/formfinding_updated_reference_strategy.hpp"
-#include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp" 
+#include "custom_strategies/custom_strategies/mechanical_explicit_strategy.hpp"
 #include "solving_strategies/strategies/line_search_strategy.h"
 
 // Schemes
@@ -79,7 +79,7 @@ void  AddCustomStrategiesToPython()
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
     typedef LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LineSearchStrategyType;
-    
+
     // Custom strategy types
     typedef ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType , LinearSolverType >  ResidualBasedArcLengthStrategyType;
     typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
@@ -92,7 +92,7 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
-    
+
 
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
@@ -103,8 +103,8 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
-    
-    // Residual Based Arc Length Strategy      
+
+    // Residual Based Arc Length Strategy
     class_< ResidualBasedArcLengthStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable >
             (
                 "ResidualBasedArcLengthStrategy", init<ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer,
@@ -116,11 +116,11 @@ void  AddCustomStrategiesToPython()
             (
                 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer>() )
             ;
-             
+
 
     class_< FormfindingUpdatedReferenceStrategyType, bases< LineSearchStrategyType >, boost::noncopyable >
-        ("FormfindingUpdatedReferenceStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool >())
-        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool >())
+        ("FormfindingUpdatedReferenceStrategy", init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, int, bool, bool, bool, bool >())
+        .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverPointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, int, bool, bool, bool, bool >())
         ;
 
 
@@ -147,7 +147,7 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*************************SCHEME CLASSES*****************************
     //********************************************************************
-    
+
     // Residual Based Relaxation Scheme Type
     class_< ResidualBasedRelaxationSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
@@ -162,7 +162,7 @@ void  AddCustomStrategiesToPython()
             (
                 "EigensolverDynamicScheme", init<>() )
             ;
-    
+
     // Explicit Central Differences Scheme Type
     class_< ExplicitCentralDifferencesSchemeType,
             bases< BaseSchemeType >, boost::noncopyable >
@@ -172,25 +172,25 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
-            
+
     // Displacement and other DoF Convergence Criterion
     class_< DisplacementAndOtherDoFCriteriaType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
-            "DisplacementAndOtherDoFCriteria", 
+            "DisplacementAndOtherDoFCriteria",
             init< double, double, std::string >())
             .def(init< double, double>())
             ;
-            
+
     // Displacement and other DoF residual Convergence Criterion
     class_< ResidualDisplacementAndOtherDoFCriteriaType,
             bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
-            "ResidualDisplacementAndOtherDoFCriteria", 
+            "ResidualDisplacementAndOtherDoFCriteria",
             init< double, double, std::string >())
             .def(init< double, double>())
             ;
-            
+
     //********************************************************************
     //*************************BUILDER AND SOLVER*************************
     //********************************************************************

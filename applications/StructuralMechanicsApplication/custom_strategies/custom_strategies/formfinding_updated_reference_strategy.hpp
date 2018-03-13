@@ -17,6 +17,7 @@
 
 // Project includes
 #include "solving_strategies/strategies/line_search_strategy.h"
+#include "includes/gid_io.h"
 
 
 namespace Kratos
@@ -76,6 +77,8 @@ namespace Kratos
         typedef LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
         typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
         typedef typename BaseType::TSchemeType TSchemeType;
+        typedef GidIO<> IterationIOType;
+        typedef IterationIOType::Pointer IterationIOPointerType;
 
         ///@}
         ///@name Life Cycle
@@ -94,10 +97,20 @@ namespace Kratos
             int MaxIterations = 30,
             bool CalculateReactions = false,
             bool ReformDofSetAtEachStep = false,
-            bool MoveMeshFlag = false
+            bool MoveMeshFlag = false,
+            bool PrintIterations = false
             )
-            : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
-        {}
+            : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
+                pNewLinearSolver,
+                pNewConvergenceCriteria,
+                MaxIterations,
+                CalculateReactions,
+                ReformDofSetAtEachStep,
+                MoveMeshFlag),
+                mPrintIterations(PrintIterations)
+        {
+            InitializeIterationIO();
+        }
 
         // constructor with Builder and Solver
         FormfindingUpdatedReferenceStrategy(
@@ -109,10 +122,15 @@ namespace Kratos
             int MaxIterations = 30,
             bool CalculateReactions = false,
             bool ReformDofSetAtEachStep = false,
-            bool MoveMeshFlag = false
+            bool MoveMeshFlag = false,
+            bool PrintIterations = false
             )
-            : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep, MoveMeshFlag)
-        {}
+            : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
+                pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
+                MoveMeshFlag), mPrintIterations(PrintIterations)
+        {
+            InitializeIterationIO();
+        }
 
         /**
         * Destructor.
@@ -137,7 +155,7 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
-        
+
           ///@}
           ///@name Operators
 
@@ -154,7 +172,7 @@ namespace Kratos
           ///@{
 
 
-    private:
+    protected:
         ///@name Protected static Member Variables
         ///@{
 
@@ -193,7 +211,7 @@ namespace Kratos
 
         ///@}
 
-    protected:
+    private:
         ///@name Static Member Variables
         ///@{
 
@@ -201,6 +219,9 @@ namespace Kratos
         ///@}
         ///@name Member Variables
         ///@{
+
+        bool mPrintIterations;
+        IterationIOPointerType mpIterationIO;
 
 
         ///@}
@@ -214,6 +235,38 @@ namespace Kratos
         FormfindingUpdatedReferenceStrategy(const FormfindingUpdatedReferenceStrategy& Other)
         {
         };
+
+        void EchoInfo(const unsigned int IterationNumber) override
+        {
+            BaseType::EchoInfo(IterationNumber);
+
+            if (this->GetEchoLevel() >= 1 && mPrintIterations)
+            {
+                if (mpIterationIO == nullptr)
+                    InitializeIterationIO();
+
+                mpIterationIO->InitializeResults(0.0, BaseType::GetModelPart().GetMesh());
+
+                mpIterationIO->WriteNodalResults(DISPLACEMENT, BaseType::GetModelPart().Nodes(), 111.6, IterationNumber);
+
+                mpIterationIO->FinalizeResults();
+            }
+        }
+
+        void InitializeIterationIO()
+        {
+            mpIterationIO = Kratos::make_shared<IterationIOType>(
+                "Formfinding_Iterations",
+                GiD_PostBinary, // GiD_PostAscii // for debugging
+                MultiFileFlag::SingleFile,
+                WriteDeformedMeshFlag::WriteUndeformed,
+                WriteConditionsFlag::WriteConditions);
+
+            mpIterationIO->InitializeMesh(0.0);
+            mpIterationIO->WriteMesh(BaseType::GetModelPart().GetMesh());
+            mpIterationIO->WriteNodeMesh(BaseType::GetModelPart().GetMesh());
+            mpIterationIO->FinalizeMesh();
+        }
 
 
         ///@}

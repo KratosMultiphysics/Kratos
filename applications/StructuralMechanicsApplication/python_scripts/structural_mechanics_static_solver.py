@@ -45,7 +45,8 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                 "amp": 1.618,
                 "etmxa": 5,
                 "etmna": 0.1
-            }
+            },
+            "print_formfinding_iterations": false
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, static_settings)
@@ -152,4 +153,5 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                 self.settings["max_iteration"].GetInt(),
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                self.settings["move_mesh_flag"].GetBool())
+                                                                self.settings["move_mesh_flag"].GetBool(),
+                                                                self.settings["print_formfinding_iterations"].GetBool())
