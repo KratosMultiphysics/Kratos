@@ -116,9 +116,9 @@ public:
 
         /**
          * Calculate a Matrix Variable on the Element Constitutive Law
-         * @param rVariable: The variable we want to get
-         * @param rOutput: The values obtained int the integration points
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param rVariable The variable we want to get
+         * @param rOutput The values obtained int the integration points
+         * @param rCurrentProcessInfo the current process info instance
          */
         void CalculateOnIntegrationPoints(
                 const Variable<Matrix>& rVariable,
@@ -128,74 +128,35 @@ public:
 
         /**
          * Calculate a Vector Variable on the Element Constitutive Law
-         * @param rVariable: The variable we want to get
-         * @param rOutput: The values obtained int the integration points
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param rVariable The variable we want to get
+         * @param rOutput The values obtained int the integration points
+         * @param rCurrentProcessInfo the current process info instance
          */
         void CalculateOnIntegrationPoints(
                 const Variable<Vector>& rVariable,
                 std::vector<Vector>& rOutput,
                 const ProcessInfo& rCurrentProcessInfo
-        ) override;
+                ) override;
 
         /**
          * Calculate a double Variable on the Element Constitutive Law
-         * @param rVariable: The variable we want to get
-         * @param rOutput: The values obtained int the integration points
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param rVariable The variable we want to get
+         * @param rOutput The values obtained int the integration points
+         * @param rCurrentProcessInfo the current process info instance
          */
         void CalculateOnIntegrationPoints(
                 const Variable<double>& rVariable,
                 std::vector<double>& rOutput,
                 const ProcessInfo& rCurrentProcessInfo
-        ) override;
+                ) override;
 
         /**
          * Called at the end of eahc solution step
-         * @param rCurrentProcessInfo: the current process info instance
+         * @param rCurrentProcessInfo the current process info instance
          */
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     protected:
-
-        /**
-         * Internal variables used in the kinematic calculations
-         */
-        struct KinematicVariables
-        {
-            Vector  N;
-            Matrix  B;
-            Vector Bh;
-            double  detF;
-            Matrix  F;
-            double  detJ0;
-            Matrix  J0;
-            Matrix  InvJ0;
-            Matrix  DN_DX;
-
-            /**
-             * The default constructor
-             * @param StrainSize: The size of the strain vector in Voigt notation
-             * @param Dimension: The size of the strain vector in Voigt notation
-             * @param NumberOfNodes: The size of the strain vector in Voigt notation
-             */
-            KinematicVariables(
-                    const unsigned int& StrainSize,
-                    const unsigned int& Dimension,
-                    const unsigned int& NumberOfNodes
-            )
-            {
-                detF = 1.0;
-                detJ0 = 1.0;
-                N = ZeroVector(NumberOfNodes);
-                B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
-                Bh = ZeroVector(Dimension * NumberOfNodes);
-                F = IdentityMatrix(Dimension);
-                DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
-                J0 = ZeroMatrix(Dimension, Dimension);
-                InvJ0 = ZeroMatrix(Dimension, Dimension);
-            }
-        };
 
         ///@name Protected static Member Variables
         ///@{
@@ -206,6 +167,7 @@ public:
         ///@}
         ///@name Protected Operators
         ///@{
+        
         SmallDisplacementBbar() : BaseSolidElement()
         {
         }
@@ -217,8 +179,8 @@ public:
 
         /**
          * This functions updates the kinematics variables
-         * @param rThisKinematicVariables: The kinematic variables to be calculated
-         * @param PointNumber: The integration point considered
+         * @param rThisKinematicVariables The kinematic variables to be calculated
+         * @param PointNumber The integration point considered
          */
 
         /**
@@ -231,7 +193,7 @@ public:
                 const Vector& rBodyForce,
                 const Vector& rStressVector,
                 const double IntegrationWeight
-        );
+                );
 
         /**
          * Calculation of B standard matrices and other parameters
@@ -240,17 +202,16 @@ public:
                 KinematicVariables& rThisKinematicVariables,
                 const unsigned int PointNumber,
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-        );
+                ) override;
 
         /**
         * This functions updates the constitutive variables
-        * @param rThisKinematicVariables: The kinematic variables to be calculated
-        * @param rThisConstitutiveVariables: The constitutive variables
-        * @param rValues: The CL parameters
-        * @param PointNumber: The integration point considered
-        * @param IntegrationPoints: The list of integration points
-        * @param ThisStressMeasure: The stress measure considered
-        * @param Displacements: The displacements vector
+        * @param rThisKinematicVariables The kinematic variables to be calculated
+        * @param rThisConstitutiveVariables The constitutive variables
+        * @param rValues The CL parameters
+        * @param PointNumber The integration point considered
+        * @param IntegrationPoints The list of integration points
+        * @param ThisStressMeasure The stress measure considered
         */
         void CalculateConstitutiveVariables(
                 KinematicVariables& rThisKinematicVariables,
@@ -259,15 +220,15 @@ public:
                 const unsigned int PointNumber,
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
                 const ConstitutiveLaw::StressMeasure ThisStressMeasure
-        );
+                ) override;
 
         /**
          * This functions calculates both the RHS and the LHS
-         * @param rLeftHandSideMatrix: The LHS
-         * @param rRightHandSideVector: The RHS
-         * @param rCurrentProcessInfo: The current process info instance
-         * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
-         * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+         * @param rLeftHandSideMatrix The LHS
+         * @param rRightHandSideVector The RHS
+         * @param rCurrentProcessInfo The current process info instance
+         * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
+         * @param CalculateResidualVectorFlag The flag to set if compute the RHS
          */
         void CalculateAll(
                 MatrixType& rLeftHandSideMatrix,
@@ -275,12 +236,12 @@ public:
                 ProcessInfo& rCurrentProcessInfo,
                 const bool CalculateStiffnessMatrixFlag,
                 const bool CalculateResidualVectorFlag
-        ) override;
+                ) override;
 
         /**
          * Calculation of the Deformation Matrix B
-         * @param B: The deformation matrix
-         * @param DN_DX: The derivatives of the shape functions
+         * @param B The deformation matrix
+         * @param DN_DX The derivatives of the shape functions
          */
         virtual void CalculateB(
                 Matrix& rB,
@@ -292,20 +253,20 @@ public:
 
         /**
          * This functions updates the kinematics variables
-         * @param rThisKinematicVariables: The kinematic variables to be calculated
-         * @param PointNumber: The integration point considered
+         * @param rThisKinematicVariables The kinematic variables to be calculated
+         * @param PointNumber The integration point considered
          */
         void CalculateKinematicVariablesBbar(
                 KinematicVariables& rThisKinematicVariables,
                 const unsigned int PointNumber,
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints
-        );
+                );
 
 
         /**
          * Calculation of the Deformation Matrix Bbar
-         * @param B: The deformation matrix
-         * @param DN_DX: The derivatives of the shape functions
+         * @param B The deformation matrix
+         * @param DN_DX The derivatives of the shape functions
          */
         virtual void CalculateBbar(
                 Matrix &rB,
@@ -318,7 +279,7 @@ public:
         // Compute Bbar components
         /**
          * This functions updates the kinematics variables
-         * @param rThisKinematicVariables: The kinematic variables to be calculated
+         * @param rThisKinematicVariables The kinematic variables to be calculated
          */
         void CalculateHydrostaticDeformationMatrix(KinematicVariables& rThisKinematicVariables);
 
