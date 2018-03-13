@@ -4,10 +4,6 @@ This application focuses on the Finite Element Method (FEM) for solids, shells a
 
 The SolidMechanics application team are in charge of all developments related to this application.
 
-<p align="center"> 
-  <img src="tests/data/rolldown.gif" alt="Solution" style="width: 200px;"/> 
-</p> 
-
 ## Getting Started
 
 This application is part of the Kratos Multiphysics Platform. Instructions on how to get you a copy of the project up and running on your local machine for development and testing purposes are available for both [Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.
@@ -99,3 +95,7 @@ The Solid Mechanics application is OPEN SOURCE. The main code and program struct
 ## Contact
 
 * **Josep Maria Carbonell** - *Core Development* - [cpuigbo@cimne.upc.edu](mailto:cpuigbo@cimne.upc.edu)
+
+<p align="center"> 
+  <img src="tests/data/rolldown.gif" alt="Solution" style="width: 200px;"/> 
+</p> 
