@@ -26,24 +26,32 @@ namespace Kratos
 
 template< class TElementData >
 DVMS<TElementData>::DVMS(IndexType NewId):
-    FluidElement<TElementData>(NewId)
+    FluidElement<TElementData>(NewId),
+    mPredictedSubscaleVelocity(),
+    mOldSubscaleVelocity()
 {}
 
 template< class TElementData >
 DVMS<TElementData>::DVMS(IndexType NewId, const NodesArrayType& ThisNodes):
-    FluidElement<TElementData>(NewId,ThisNodes)
+    FluidElement<TElementData>(NewId,ThisNodes),
+    mPredictedSubscaleVelocity(),
+    mOldSubscaleVelocity()
 {}
 
 
 template< class TElementData >
 DVMS<TElementData>::DVMS(IndexType NewId, GeometryType::Pointer pGeometry):
-    FluidElement<TElementData>(NewId,pGeometry)
+    FluidElement<TElementData>(NewId,pGeometry),
+    mPredictedSubscaleVelocity(),
+    mOldSubscaleVelocity()
 {}
 
 
 template< class TElementData >
 DVMS<TElementData>::DVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties):
-    FluidElement<TElementData>(NewId,pGeometry,pProperties)
+    FluidElement<TElementData>(NewId,pGeometry,pProperties),
+    mPredictedSubscaleVelocity(),
+    mOldSubscaleVelocity()
 {}
 
 
@@ -88,6 +96,217 @@ void DVMS<TElementData>::Calculate(const Variable<Vector>& rVariable,
 template <class TElementData>
 void DVMS<TElementData>::Calculate(const Variable<Matrix>& rVariable,
     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) {}
+
+template <class TElementData>
+void DVMS<TElementData>::Initialize()
+{
+    // Base class does things with constitutive law here.
+    FluidElement<TElementData>::Initialize();
+
+    const unsigned int number_of_gauss_points = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
+
+    // The prediction is updated before each non-linear iteration:
+    // It is not stored in a restart and can be safely initialized.
+    mPredictedSubscaleVelocity.resize(0);
+    mPredictedSubscaleVelocity.reserve(number_of_gauss_points);
+    for (unsigned int g = 0; g < number_of_gauss_points; g++)
+        mPredictedSubscaleVelocity.push_back( array_1d<double,Dim>(Dim,0.0) );
+
+    // The old velocity may be already defined (if restarting)
+    // and we want to keep the loaded values in that case.
+    if (mOldSubscaleVelocity.size() != number_of_gauss_points)
+    {
+        mOldSubscaleVelocity.resize(0);
+        mOldSubscaleVelocity.reserve(number_of_gauss_points);
+        for (unsigned int g = 0; g < number_of_gauss_points; g++)
+            mOldSubscaleVelocity.push_back( array_1d<double,Dim>(Dim,0.0) );
+    }
+}
+
+template< unsigned int TDim >
+void DynSS<TDim>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+{
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_derivatives);
+    const unsigned int number_of_integration_points = gauss_weights.size();
+
+    TElementData data;
+    data.Initialize(*this,rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        data.UpdateGeometryValues(gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
+
+        // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
+        array_1d<double,3> UpdatedValue(3,0.0);
+        this->SubscaleVelocity(g,N,rDN_DX,rCurrentProcessInfo,UpdatedValue);
+        noalias(mOldSubscaleVelocity[g]) = UpdatedValue;
+    }
+}
+
+
+template< unsigned int TDim >
+void DynSS<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
+{
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_function_derivatives;
+    this->CalculateGeometryData(gauss_weights,shape_functions,shape_function_derivatives);
+    const unsigned int number_of_integration_points = gauss_weights.size();
+
+    TElementData data;
+    data.Initialize(*this,rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < number_of_integration_points; g++) {
+        data.UpdateGeometryValues(gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
+
+        this->UpdateSubscaleVelocityPrediction(data,mPredictedSubscaleVelocity[g]);
+    }
+
+/*
+    // Get Shape function data
+    GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumNodes = rGeom.PointsNumber();
+
+    Vector GaussWeights;
+    Matrix ShapeFunctions;
+    ShapeFunctionDerivativesArrayType ShapeDerivatives;
+    this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
+    const unsigned int NumGauss = GaussWeights.size();
+
+    double Density = 0.0;
+    array_1d<double,3> CoarseConvVel(3,0.0);
+
+    const double Dt = rCurrentProcessInfo.GetValue(DELTA_TIME);
+
+    // A non-linear equation must be solved for each integration point
+    for (unsigned int g = 0; g < NumGauss; g++)
+    {
+        const ShapeFunctionsType& N = row(ShapeFunctions,g);
+        const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
+
+        // Elemental large-scale velocity gradient
+        Matrix CoarseVelGradient = ZeroMatrix(TDim,TDim);
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            const array_1d<double,3>& rCoarseVelocity = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int m = 0; m < TDim; m++)
+                for (unsigned int n = 0; n < TDim; n++)
+                    CoarseVelGradient(m,n) += rDN_DX(i,n) * rCoarseVelocity[m];
+        }
+
+        const array_1d<double,3>& OldSubscale = mOldSsVel[g];
+
+        this->ResolvedConvectiveVelocity(CoarseConvVel,N);
+        double h = this->ElementSize();
+        //double h = this->ElementSize(CoarseConvVel+OldSubscale,rDN_DX);
+
+        this->EvaluateInPoint(Density,DENSITY,N);
+        const double Viscosity = this->EffectiveViscosity(N,rDN_DX,h,rCurrentProcessInfo);
+
+        // Part of the residual that does not depend on the subscale
+        array_1d<double,3> StaticResidual(3,0.0);
+        // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
+        array_1d<double,3> ResolvedConvVel(3,0.0);
+        this->ResolvedConvectiveVelocity(ResolvedConvVel,N);
+
+        if (rCurrentProcessInfo[OSS_SWITCH] != 1.0)
+            this->ASGSMomentumResidual(N,rDN_DX,ResolvedConvVel,StaticResidual);
+        else
+            this->OSSMomentumResidual(N,rDN_DX,ResolvedConvVel,StaticResidual);
+
+
+        // Add the time discretization term to obtain the part of the residual that does not change during iteration
+        const double MassTerm = Density / Dt;
+        for (unsigned int d = 0; d < TDim; d++)
+            StaticResidual[d] += MassTerm * OldSubscale[d];
+
+        ///@todo: redefine
+        const double SubscaleTol = 1e-14;
+        const double SubscaleRHSTol = 1e-14;
+
+        // Newton-Raphson iterations for the subscale
+        unsigned int Iter = 0;
+        double SubscaleError = 2.0 * SubscaleTol;
+        double SubscaleNorm = 0.0;
+        double ResidualNorm = 2.0 * SubscaleRHSTol;
+        double InvTau = 0.0;
+        Matrix J = ZeroMatrix(TDim,TDim);
+        Vector RHS = ZeroVector(TDim);
+        Vector U = ZeroVector(TDim);
+        Vector dU = ZeroVector(TDim);
+        // Use last result as initial guess
+        const array_1d<double,3>& rSubscale = mPredSsVel[g];
+        for(unsigned int d = 0; d < TDim; d++)
+            U[d] = rSubscale[d];
+
+
+        while (Iter < 10 && SubscaleError > SubscaleTol )
+        {
+            // Update iteration counter
+            ++Iter;
+
+            // Calculate new Tau
+            double ConvVelNorm = 0.0;
+            for (unsigned int d = 0; d < TDim; d++)
+            {
+                double Vd = CoarseConvVel[d] + U[d];
+                ConvVelNorm *= Vd*Vd;
+            }
+            ConvVelNorm = sqrt(ConvVelNorm);
+            InvTau = Density * ( 1.0/Dt + 8.0*Viscosity/(h*h) + 2.0*ConvVelNorm/h );
+
+            // Newton-Raphson LHS
+            noalias(J) = Density * CoarseVelGradient;
+            for (unsigned int d = 0; d < TDim; d++)
+                J(d,d) += InvTau;
+
+            // Newton-Raphson RHS
+            //noalias(RHS) = StaticResidual;
+            for (unsigned int d = 0; d < TDim; d++)
+                RHS[d] = StaticResidual[d];
+            noalias(RHS) -= prod(J,U);
+
+            ResidualNorm = RHS[0]*RHS[0];
+            for (unsigned int d = 1; d < TDim; d++)
+                ResidualNorm += RHS[d]*RHS[d];
+
+            if (ResidualNorm > SubscaleRHSTol)
+            {
+                this->DenseSystemSolve(J,RHS,dU);
+
+                // Update
+                noalias(U) += dU;
+
+                // Convergence check
+                SubscaleError = dU[0]*dU[0];
+                SubscaleNorm = U[0]*U[0];
+                for(unsigned int d = 1; d < TDim; ++d)
+                {
+                    SubscaleError += dU[d]*dU[d];
+                    SubscaleNorm += U[d]*U[d];
+                }
+                SubscaleError /= SubscaleNorm;
+            }
+            else
+            {
+                break; // If RHS is zero, dU is zero too, converged.
+            }
+        }
+
+        //KRATOS_WATCH(Iter)
+
+//        std::cout << "Id: " << this->Id() << " g: " << g << " iter: " << Iter << " ss err: " << SubscaleError << " ss norm: " << SubscaleNorm << " residual: " << ResidualNorm << std::endl;
+
+        // Store new subscale values
+        array_1d<double,3>& rOut = mPredSsVel[g];
+        for(unsigned int d = 0; d < TDim; d++)
+            rOut[d] = U[d];
+    }*/
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
@@ -431,6 +650,7 @@ void DVMS<TElementData>::save(Serializer& rSerializer) const
 {
     typedef FluidElement<TElementData> BaseElement;
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElement );
+    rSerializer.save("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
 
 
@@ -439,6 +659,7 @@ void DVMS<TElementData>::load(Serializer& rSerializer)
 {
     typedef FluidElement<TElementData> BaseElement;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElement);
+    rSerializer.load("mOldSubscaleVelocity",mOldSubscaleVelocity);
 }
 
 

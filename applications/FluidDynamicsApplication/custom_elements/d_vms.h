@@ -197,6 +197,16 @@ public:
         Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
 
+    /// Set up the element.
+    /** Allocate the subscale velocity containers and let base class initialize the constitutive law */
+    void Initialize() override;
+
+    /// Update the values of tracked small scale quantities.
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /// Predict the value of the small scale velocity for the current iteration.
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -370,6 +380,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    // Velocity subscale history, stored at integration points
+    std::vector< array_1d<double,Dim> > mPredictedSubscaleVelocity;
+    std::vector< array_1d<double,Dim> > mOldSubscaleVelocity;
 
     ///@}
     ///@name Friends
