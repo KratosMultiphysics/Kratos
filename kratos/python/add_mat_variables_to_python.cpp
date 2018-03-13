@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/ 
 //                   Multi-Physics  
 //
-//  License:		 BSD License 
-//			 Kratos default license: kratos/license.txt
+//  License:         BSD License 
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:  Josep Maria Carbonell    
 //
@@ -44,7 +44,11 @@ namespace Kratos
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( IMPLEX_CONTACT )
       //elasticity
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( YOUNG_MODULUS )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( POISSON_RATIO )
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( POISSON_RATIO)
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHEAR_MODULUS_GAMMA12)
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHEAR_MODULUS_GAMMA12_2)
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHEAR_MODULUS_GAMMA12_3)
+      KRATOS_REGISTER_IN_PYTHON_VARIABLE( SHEAR_MODULUS_GAMMA12_4)
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( DENSITY )
       KRATOS_REGISTER_IN_PYTHON_VARIABLE( THICKNESS )
       //KRATOS_REGISTER_IN_PYTHON_VARIABLE( EQUIVALENT_YOUNG_MODULUS )

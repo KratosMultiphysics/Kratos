@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -88,6 +88,14 @@ public:
      * @param rFeatures: The Features of the law
      */
     void GetLawFeatures(Features& rFeatures) override;
+
+    /**
+    * Dimension of the law:
+    */
+    SizeType WorkingSpaceDimension() override
+    {
+        return 3;
+    };
 
     /**
      * Voigt tensor size:
@@ -223,11 +231,7 @@ private:
      * @param E: The Young Modulus
      * @param NU: The poisson coefficient
      */
-    virtual void CalculateElasticMatrix(
-        Matrix& C,
-        const double E,
-        const double NU
-    );
+    virtual void CalculateElasticMatrix(Matrix& C, Parameters& rValues);
 
     /**
      * It calculates the stress vector
@@ -239,8 +243,7 @@ private:
     virtual void CalculatePK2Stress(
         const Vector& rStrainVector,
         Vector& rStressVector,
-        const double E,
-        const double NU
+        Parameters& rValues
     );
 
     /**

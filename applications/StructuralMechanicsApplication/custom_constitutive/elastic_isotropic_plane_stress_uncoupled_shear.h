@@ -6,18 +6,18 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Philippe Bussetta
 //
 
-#if !defined (KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED)
-#define  KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED
+#if !defined (KRATOS_ELASTIC_ISOTROPIC_PLANE_STRESS_UNCOUPLED_SHEAR_LAW_H_INCLUDED)
+#define  KRATOS_ELASTIC_ISOTROPIC_PLANE_STRESS_UNCOUPLED_SHEAR_LAW_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/linear_plane_stress.h"
 
 namespace Kratos
 {
@@ -40,7 +40,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AxisymElasticIsotropic : public ElasticIsotropic3D
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ElasticIsotropicPlaneStressUncoupledShear : public LinearPlaneStress
 {
 public:
 
@@ -52,29 +52,29 @@ public:
     typedef std::size_t             SizeType;
 
     /**
-     * Counted pointer of AxisymElasticIsotropic
+     * Counted pointer of ElasticIsotropicPlaneStressUncoupledShear
      */
-    KRATOS_CLASS_POINTER_DEFINITION( AxisymElasticIsotropic );
+    KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropicPlaneStressUncoupledShear );
 
-    ///@name Lyfe Cycle
+    ///@name Life Cycle
     ///@{
 
     /**
      * Default constructor.
      */
-    AxisymElasticIsotropic();
+    ElasticIsotropicPlaneStressUncoupledShear();
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     /**
      * Copy constructor.
      */
-    AxisymElasticIsotropic (const AxisymElasticIsotropic& rOther);
+    ElasticIsotropicPlaneStressUncoupledShear(const ElasticIsotropicPlaneStressUncoupledShear& rOther);
 
     /**
      * Destructor.
      */
-    ~AxisymElasticIsotropic() override;
+    ~ElasticIsotropicPlaneStressUncoupledShear() override;
 
     ///@}
     ///@name Operators
@@ -85,18 +85,19 @@ public:
     ///@{
 
     /**
-     * This function is designed to be called once to check compatibility with element
-     * @param rFeatures: The Features of the law
-     */
-    void GetLawFeatures(Features& rFeatures) override;
-
-    /**
-     * Voigt tensor size:
-     */
-    SizeType GetStrainSize() override
-    {
-        return 4;
-    }
+    * This function provides the place to perform checks on the completeness of the input.
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rMaterialProperties: The properties of the material
+    * @param rElementGeometry: The geometry of the element
+    * @param rCurrentProcessInfo: The current process info instance
+    */
+    int Check(
+        const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     ///@}
     ///@name Access
@@ -139,32 +140,22 @@ private:
 
     ///@name Static Member Variables
     ///@{
+
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
     ///@{
 
     /**
-     * It calculates the constitutive matrix C
-     * @param C: The constitutive matrix
-     * @param E: The Young Modulus
-     * @param NU: The poisson coefficient
-     */
+    * It calculates the constitutive matrix C
+    * @param C: The constitutive matrix
+    * @param E: The Young Modulus
+    * @param NU: The poisson coefficient
+    */
     void CalculateElasticMatrix(Matrix& C, Parameters& rValues) override;
-
-    /**
-     * It calculates the strain vector
-     * @param rValues: The Internalvalues of the law
-     * @param rStrainVector: The strain vector in Voigt notation
-     */
-    void CalculateCauchyGreenStrain(
-        Parameters& rValues,
-        Vector& rStrainVector
-    ) override;
 
     ///@}
     ///@name Private Operations
@@ -193,6 +184,6 @@ private:
     }
 
 
-}; // Class AxisymElasticIsotropic
+}; // Class ElasticIsotropicPlaneStressUncoupledShear
 }  // namespace Kratos.
-#endif // KRATOS_AXISYM_ELASTIC_ISOTROPIC_LAW_H_INCLUDED  defined 
+#endif // KRATOS_ELASTIC_ISOTROPIC_PLANE_STRESS_UNCOUPLED_SHEAR_LAW_H_INCLUDED  defined 

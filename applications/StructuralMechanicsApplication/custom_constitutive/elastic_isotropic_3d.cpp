@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -12,7 +12,6 @@
 #include <iostream>
 
 // External includes
-// #include<cmath>
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
@@ -61,11 +60,8 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
-    const double& E          = MaterialProperties[YOUNG_MODULUS];
-    const double& NU    = MaterialProperties[POISSON_RATIO];
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
@@ -76,16 +72,11 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
         Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix( ConstitutiveMatrix, E, NU );
+        CalculateElasticMatrix( ConstitutiveMatrix, rValues);
     }
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
-        if (rValues.IsSetDeformationGradientF() == true)
-        {
-            CalculateCauchyGreenStrain(rValues, StrainVector);
-        }
-
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
         {
             Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
@@ -93,7 +84,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
         }
         else
         {
-            CalculatePK2Stress( StrainVector, StressVector, E, NU );
+            CalculatePK2Stress( StrainVector, StressVector, rValues);
         }
     }
 }
@@ -161,16 +152,13 @@ void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
 
 double& ElasticIsotropic3D::CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue)
 {
-    const Properties& MaterialProperties  = rParameterValues.GetMaterialProperties();
     Vector& StrainVector                  = rParameterValues.GetStrainVector();
     Vector& StressVector                  = rParameterValues.GetStressVector();
-    const double& E          = MaterialProperties[YOUNG_MODULUS];
-    const double& NU    = MaterialProperties[POISSON_RATIO];
     
     if (rThisVariable == STRAIN_ENERGY)
     {
         CalculateCauchyGreenStrain(rParameterValues, StrainVector);
-        CalculatePK2Stress( StrainVector, StressVector, E, NU );
+        CalculatePK2Stress( StrainVector, StressVector, rParameterValues);
 
         rValue = 0.5 * inner_prod(StrainVector,StressVector); // Strain energy = 0.5*E:C:E
     }
@@ -233,12 +221,12 @@ int ElasticIsotropic3D::Check(
 //************************************************************************************
 //************************************************************************************
 
-void ElasticIsotropic3D::CalculateElasticMatrix(
-    Matrix& C,
-    const double E,
-    const double NU
-)
+void ElasticIsotropic3D::CalculateElasticMatrix(Matrix& C, Parameters& rValues)
 {
+    const Properties& MaterialProperties = rValues.GetMaterialProperties();
+    const double& E = MaterialProperties[YOUNG_MODULUS];
+    const double& NU = MaterialProperties[POISSON_RATIO];
+
     const double c1 = E / (( 1.00 + NU ) * ( 1 - 2 * NU ) );
     const double c2 = c1 * ( 1 - NU );
     const double c3 = c1 * NU;
@@ -288,13 +276,12 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
 void ElasticIsotropic3D::CalculatePK2Stress(
     const Vector& rStrainVector,
     Vector& rStressVector,
-    const double E,
-    const double NU
+    Parameters& rValues
 )
 {
     SizeType SizeSystem = GetStrainSize();
     Matrix C(SizeSystem,SizeSystem);
-    CalculateElasticMatrix(C, E, NU);
+    CalculateElasticMatrix(C, rValues);
     noalias(rStressVector) = prod(C,rStrainVector);
 }
 
@@ -310,7 +297,8 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     const Matrix& F = rValues.GetDeformationGradientF();
 
     Matrix Etensor = prod(trans(F),F);
-    Etensor -= IdentityMatrix(3,3);
+    SizeType SizeSystem = F.size1();
+    Etensor -= IdentityMatrix(SizeSystem, SizeSystem);
     Etensor *= 0.5;
 
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);

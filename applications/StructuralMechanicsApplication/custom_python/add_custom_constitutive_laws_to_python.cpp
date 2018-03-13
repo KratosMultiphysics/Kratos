@@ -22,10 +22,11 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/truss_constitutive_law.h"
 #include "custom_constitutive/beam_constitutive_law.h"
-#include "custom_constitutive/linear_plane_stress.h"
-#include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/elastic_isotropic_3d.h"
 #include "custom_constitutive/axisym_elastic_isotropic.h"
+#include "custom_constitutive/linear_plane_stress.h"
+#include "custom_constitutive/linear_plane_strain.h"
+#include "custom_constitutive/elastic_isotropic_plane_stress_uncoupled_shear.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_3d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_stress_2d.h"
 #include "custom_constitutive/hyper_elastic_isotropic_kirchhoff_plane_strain_2d.h"
@@ -66,6 +67,10 @@ void  AddCustomConstitutiveLawsToPython()
 
     class_< AxisymElasticIsotropic, bases< ConstitutiveLaw >, boost::noncopyable >
     ( "LinearElasticAxisym2DLaw", init<>() )
+    ;
+
+    class_< ElasticIsotropicPlaneStressUncoupledShear, bases< ConstitutiveLaw >, boost::noncopyable >
+    ("ElasticPlaneStressUncoupledShear2DLaw", init<>())
     ;
 
     class_< HyperElasticIsotropicKirchhoff3D, bases< ConstitutiveLaw >, boost::noncopyable >
