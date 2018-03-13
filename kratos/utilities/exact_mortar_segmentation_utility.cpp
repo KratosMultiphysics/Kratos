@@ -252,7 +252,7 @@ bool ExactMortarIntegrationUtility<3, 4, false>::GetExactIntegration(
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
         
-        if (distance_slave > mDistanceThreshold || distance_master > mDistanceThreshold) {
+        if (distance_master > mDistanceThreshold) {
             ConditionsPointsSlave.clear();
             return false;
         }
@@ -542,7 +542,7 @@ bool ExactMortarIntegrationUtility<3, 4, true>::GetExactIntegration(
         MortarUtilities::RotatePoint(aux_point, slave_center, slave_tangent_xi, slave_tangent_eta, false);
         points_array_master[i_node] = Kratos::make_shared<PointType>(aux_point);
         
-        if (distance_slave > mDistanceThreshold || distance_master > mDistanceThreshold) {
+        if (distance_master > mDistanceThreshold) {
             ConditionsPointsSlave.clear();
             return false;
         }

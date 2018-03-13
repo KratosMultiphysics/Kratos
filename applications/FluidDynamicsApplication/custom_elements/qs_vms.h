@@ -266,6 +266,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    // Protected interface of FluidElement ////////////////////////////////////
+
     void AddTimeIntegratedSystem(
         TElementData& rData,
         MatrixType& rLHS,
@@ -288,16 +290,18 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix) override;
 
-    void AddMassStabilization(
-        TElementData& rData,
-        MatrixType& rMassMatrix);
-
     // This function integrates the traction over a cut. It is only required to implement embedded formulations
     void AddBoundaryIntegral(
         TElementData& rData,
         const Vector& rUnitNormal,
         MatrixType& rLHS,
         VectorType& rRHS) override;
+
+    // Implementation details of QSVMS ////////////////////////////////////////
+
+    void AddMassStabilization(
+        TElementData& rData,
+        MatrixType& rMassMatrix);
 
     void AddViscousTerm(
         const TElementData& rData,
@@ -314,15 +318,12 @@ protected:
     KRATOS_DEPRECATED virtual double EffectiveViscosity(
         TElementData& rData,
         double ElementSize);
-
     
-    virtual void CalculateStaticTau(
+    virtual void CalculateTau(
         const TElementData& rData,
-        double Density,
-        double DynamicViscosity,
         const array_1d<double,3> &Velocity,
         double &TauOne,
-        double &TauTwo);    
+        double &TauTwo) const;
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 

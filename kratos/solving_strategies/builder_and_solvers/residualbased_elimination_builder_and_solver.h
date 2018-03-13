@@ -921,14 +921,12 @@ public:
         TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
         for (it2 = BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2)
         {
-            if ((*it2)->IsFixed())
-            {
-                i = (*it2)->EquationId();
-                i -= systemsize;
-                /*KRATOS_WATCH((*it2)->GetSolutionStepReactionValue());
-                KRATOS_WATCH(ReactionsVector[i]);*/
-                (*it2)->GetSolutionStepReactionValue() = -ReactionsVector[i];
-            }
+            i = (*it2)->EquationId();
+            i -= systemsize;
+            /*KRATOS_WATCH((*it2)->GetSolutionStepReactionValue());
+            KRATOS_WATCH(ReactionsVector[i]);*/
+            (*it2)->GetSolutionStepReactionValue() = -ReactionsVector[i];
+
         }
     }
 
