@@ -178,7 +178,8 @@ public:
                             Properties::Pointer pProperties) const override;
 
     /// Set up the element for solution.
-    //* For FluidElement, this initializes the constitutive law using the data in the element's properties.
+    /** For FluidElement, this initializes the constitutive law using the data in the element's properties.
+     */
     void Initialize() override;
 
     /**
