@@ -40,7 +40,9 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mesh_tying_mortar_condition.cpp # Mesh tying
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_mortar_contact_condition.cpp # Base class
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_condition.cpp # Frictionless
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_components_mortar_contact_condition.cpp # Frictionless
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictionless_mortar_contact_axisym_condition.cpp # Frictionless axisym
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/DALM_frictionless_mortar_contact_condition.cpp # Frictionless
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictional_mortar_contact_condition.cpp # Frictional
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/ALM_frictional_mortar_contact_axisym_condition.cpp # Frictional axisym
 )
