@@ -23,7 +23,15 @@ CheckForPreviousImport()
 class OptimizationAlgorithm:
 
     # --------------------------------------------------------------------------
-    def execute( self ):
-        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> execute << .")     
+    def initializeOptimizationLoop( self ):
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> initializeOptimizationLoop << .")
+
+    # --------------------------------------------------------------------------
+    def runOptimizationLoop( self ):
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> runOptimizationLoop << .")
+
+    # --------------------------------------------------------------------------
+    def finalizeOptimizationLoop( self ):
+        raise RuntimeError("Algorithm base class is called. Please check your implementation of the function >> finalizeOptimizationLoop << .")
 
 # ==============================================================================

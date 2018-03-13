@@ -80,7 +80,9 @@ class VertexMorphingMethod:
             self.ModelPartController.ImportOptimizationModelPart()
 
         algorithm = algorithm_factory.CreateAlgorithm( self.ModelPartController, self.Analyzer, self.Communicator, self.OptimizationSettings )
-        algorithm.execute()
+        algorithm.initializeOptimizationLoop()
+        algorithm.runOptimizationLoop()
+        algorithm.finalizeOptimizationLoop()
 
         print("\n> ==============================================================================================================")
         print("> Finished optimization                                                                                           ")

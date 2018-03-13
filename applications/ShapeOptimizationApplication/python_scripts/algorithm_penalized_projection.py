@@ -61,20 +61,14 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
-    def execute( self ):
-        self.__initializeOptimizationLoop()
-        self.__runOptimizationLoop()
-        self.__finalizeOptimizationLoop()
-
-    # --------------------------------------------------------------------------
-    def __initializeOptimizationLoop( self ):
+    def initializeOptimizationLoop( self ):
         self.Analyzer.initializeBeforeOptimizationLoop()
         self.ModelPartController.InitializeMeshController()
         self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
-    def __runOptimizationLoop( self ):
+    def runOptimizationLoop( self ):
 
         for self.optimizationIteration in range(1,self.maxIterations):
             print("\n>===================================================================")
@@ -106,7 +100,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
                 self.__determineAbsoluteChanges()
 
     # --------------------------------------------------------------------------
-    def __finalizeOptimizationLoop( self ):
+    def finalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
         self.Analyzer.finalizeAfterOptimizationLoop()
 
