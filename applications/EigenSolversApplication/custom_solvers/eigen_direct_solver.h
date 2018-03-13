@@ -30,11 +30,13 @@
 namespace Kratos
 {
 
+template <typename scalar_t>
 struct SolverType
 {
-    using TSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
+    using TSparseMatrix = Eigen::SparseMatrix<scalar_t, Eigen::RowMajor, int>;
 };
 
+template <typename scalar_t>
 struct SparseLU : SolverType
 {
     using TSolver = Eigen::SparseLU<TSparseMatrix>;
@@ -42,6 +44,7 @@ struct SparseLU : SolverType
     static constexpr auto Name = "SparseLU";
 };
 
+template <typename scalar_t>
 struct SparseQR : SolverType
 {
     using TSolver = Eigen::SparseQR<TSparseMatrix, Eigen::COLAMDOrdering<int>>;
@@ -50,6 +53,7 @@ struct SparseQR : SolverType
 };
 
 #if defined EIGEN_USE_MKL_ALL
+template <typename scalar_t>
 struct PardisoLLT : SolverType
 {
     using TSolver = Eigen::PardisoLLT<TSparseMatrix>;
@@ -57,6 +61,7 @@ struct PardisoLLT : SolverType
     static constexpr auto Name = "PardisoLLT";
 };
 
+template <typename scalar_t>
 struct PardisoLDLT : SolverType
 {
     using TSolver = Eigen::PardisoLDLT<TSparseMatrix>;
@@ -64,6 +69,7 @@ struct PardisoLDLT : SolverType
     static constexpr auto Name = "PardisoLDLT";
 };
 
+template <typename scalar_t>
 struct PardisoLU : SolverType
 {
     using TSolver = Eigen::PardisoLU<TSparseMatrix>;
