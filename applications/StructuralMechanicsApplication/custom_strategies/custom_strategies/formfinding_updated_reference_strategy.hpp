@@ -165,14 +165,16 @@ namespace Kratos
 
         bool SolveSolutionStep() override
         {
-            BaseType::SolveSolutionStep();
-
             if (mPrintIterations)
             {
                 KRATOS_ERROR_IF_NOT(mpIterationIO) << " IterationIO is uninitialized!" << std::endl;
                 mpIterationIO->InitializeResults(0.0, BaseType::GetModelPart().GetMesh());
-                mpIterationIO->FinalizeResults();
             }
+
+            BaseType::SolveSolutionStep();
+
+            if (mPrintIterations)
+                mpIterationIO->FinalizeResults();
 
             return true;
         }
