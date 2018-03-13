@@ -4,7 +4,9 @@ This application focuses on the Finite Element Method (FEM) for solids, shells a
 
 The SolidMechanics application team are in charge of all developments related to this application.
 
-![Open cylinder pullout animation](tests/data/rolldown.gif)
+<p align="center"> 
+  <img src="tests/data/rolldown.gif" alt="Solution" style="width: 400px;"/> 
+</p> 
 
 ## Getting Started
 
