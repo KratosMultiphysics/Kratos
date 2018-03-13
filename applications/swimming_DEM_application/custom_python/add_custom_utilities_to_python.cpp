@@ -353,6 +353,7 @@ using namespace boost::python;
         .def("CalculateVorticityContributionOfTheGradientOfAComponent", &DerivativeRecovery <3>::CalculateVorticityContributionOfTheGradientOfAComponent)
         .def("RecoverSuperconvergentMatDerivAndLaplacian", &DerivativeRecovery <3>::RecoverSuperconvergentMatDerivAndLaplacian)
         .def("CalculateGradient", &DerivativeRecovery <3>::CalculateGradient< Variable<double> >)
+        .def("SmoothVectorField", &DerivativeRecovery <3>::SmoothVectorField)
         .def("CalculateVectorMaterialDerivative", &DerivativeRecovery <3>::CalculateVectorMaterialDerivative)
         .def("CalculateVectorLaplacian", &DerivativeRecovery <3>::CalculateVectorLaplacian)
         .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <3>::CalculateVelocityLaplacianRate)

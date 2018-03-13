@@ -352,6 +352,44 @@ void DerivativeRecovery<TDim>::CalculateGradient(ModelPart& r_model_part, TScala
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
 template <std::size_t TDim>
+void DerivativeRecovery<TDim>::SmoothVectorField(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_field, Variable<array_1d<double, 3> >& auxiliary_veriable)
+{
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+        noalias(inode->FastGetSolutionStepValue(auxiliary_veriable)) = ZeroVector(3);
+    }
+
+    array_1d <double, TDim + 1 > N; // shape functions vector
+    boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
+
+    for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ++ielem){
+        // computing the shape function derivatives
+
+        Geometry<Node<3> >& geom = ielem->GetGeometry();
+        double Volume;
+
+        GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
+
+        array_1d <double, 3> average = ZeroVector(3); // its dimension is always 3
+
+        for (unsigned int i = 0; i < TDim; ++i){
+            noalias(average) += geom[i].FastGetSolutionStepValue(vector_field);
+        }
+
+        double nodal_area = Volume / static_cast<double>(TDim + 1);
+        average *= nodal_area;
+
+        for (unsigned int i = 0; i < TDim + 1; ++i){
+            geom[i].FastGetSolutionStepValue(auxiliary_veriable) += average;
+        }
+    }
+
+    for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
+        noalias(inode->FastGetSolutionStepValue(vector_field)) = inode->FastGetSolutionStepValue(auxiliary_veriable) / (3 * inode->FastGetSolutionStepValue(NODAL_AREA));
+    }
+}
+//**************************************************************************************************************************************************
+//**************************************************************************************************************************************************
+template <std::size_t TDim>
 template <class TScalarVariable>
 void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container)
 {

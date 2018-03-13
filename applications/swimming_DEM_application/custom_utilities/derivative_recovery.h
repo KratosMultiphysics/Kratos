@@ -152,6 +152,8 @@ void CalculateVorticityContributionOfTheGradientOfAComponent(ModelPart& r_model_
 template <class TScalarVariable>
 void CalculateGradient(ModelPart& r_model_part, TScalarVariable& scalar_container, Variable<array_1d<double, 3> >& gradient_container);
 
+void SmoothVectorField(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_field, Variable<array_1d<double, 3> >& auxiliary_veriable);
+
 void CalculateVectorLaplacian(ModelPart& r_model_part, Variable<array_1d<double, 3> >& vector_container, Variable<array_1d<double, 3> >& laplacian_container);
 
 void CalculateVelocityLaplacianRate(ModelPart& r_model_part);
