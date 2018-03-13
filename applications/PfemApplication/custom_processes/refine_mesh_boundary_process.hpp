@@ -129,13 +129,16 @@ public:
 			list_of_nodes.reserve(conditions_size);
 			list_of_conditions.reserve(conditions_size);
 			
-			// set worthy refining candidates at boundary and contact TO_REFINE
+			//set worthy refining candidates at boundary and contact TO_REFINE
+			//depending on size of the face (RefineOnDistance) and threshold variable (RefineOnThreshld)
 			this->SelectBoundaryToRefine(mrModelPart); //conditions (TO_REFINE) 
 
-			//
+			//'split' the marked (TO_REFINE) conditions and generates the new nodes
+			//add old 'split' conditions and new nodes to list_of_conditions and list_of_nodes
 			this->GenerateNewNodes(mrModelPart, list_of_nodes, list_of_conditions); // new points (NEW_ENTITY)
 			
-	        //
+	        //generate the new conditions based on list_of_conditions and list_of_nodes
+	        //set 'old, split' conditions TO_ERASE and NEW_ENTITY to false
 			this->GenerateNewConditions(mrModelPart, list_of_nodes, list_of_conditions);// new conditions(NEW_ENTITY)  //old conditions (TO_ERASE)
 
 			//
@@ -288,7 +291,7 @@ public:
 			threshold_value /= double(Value.size());
 			threshold_value *= MasterElement.GetGeometry().DomainSize();
 	
-			//calculate condition length
+			//calculate condition length between the two points
 			double face_size = mModelerUtilities.CalculateBoundarySize(pCondition->GetGeometry());
 	
 			// set refine if both threshold value & minimal face size are reached
@@ -357,7 +360,7 @@ public:
 		refine_condition = false;
       
 		// DISTANCE VALUE INSERT: 3.5 * 3.0 * critical_mesh_size
-		double size_for_boundary_face   = 3.50 * mrRemesh.Refine->CriticalSide;
+		double size_for_boundary_face   = 2.0 * mrRemesh.Refine->CriticalSide;
 
 		if ( mrRemesh.Refine->RefiningOptions.Is(ModelerUtilities::REFINE_BOUNDARY_ON_DISTANCE) )
 		{
@@ -403,28 +406,29 @@ public:
 	
 				curved_contact = mModelerUtilities.CheckContactCurvature(pCondition->GetGeometry(), contact_normals);
 
-				//FACTOR VALUE INSERT plane contact transition
+				//FACTOR VALUE INSERT plane contact transition: 2.0
 				factor = 2.0;
 
-				//FACTOR VALUE INSERT curved contact transition
+				//FACTOR VALUE INSERT curved contact transition: 0.75
 				if( curved_contact ){
-					factor = 0.75;
+					factor = 0.5;
 				}
 	        
 				if( contact_active ){
 
-					//FACTOR VALUE INSERT plane contact
+					//FACTOR VALUE INSERT plane contact: 1.5
 					factor = 1.5;
 				  
-					//FACTOR VALUE INSERT curved contact
+					//FACTOR VALUE INSERT curved contact: 0.5
 					if( curved_contact ){
-						factor = 0.5;
+						factor = 0.25;
 					}
 				}
 			}
 
 			if( contact_active || contact_semi_active )
-			{ 
+			{
+				//compare size of contact face via RefineOnDistance
 				double size_for_boundary_contact_face  = factor * mrRemesh.Refine->CriticalSide;
 				refine_condition = this->RefineOnDistance(pCondition, size_for_boundary_contact_face);
 	
@@ -720,6 +724,16 @@ public:
    
     void SelectBoundaryToRefine(ModelPart& rModelPart)
     {
+		/*
+			* loop over conditions -> refine_candidate = true when:
+			* 	CONSTRAINED && BOUNDARY
+			* 	is inside RefiningBox
+			* 
+			* if refine_candidate is NOT TO_ERASE
+			* 	check RefineBoundaryCondition() -> TO_REFINE
+			* 	check RefineContactCondition() -> TO_REFINE
+		*/
+		
 
 		KRATOS_TRY
 
@@ -758,7 +772,7 @@ public:
 				}
 			}
 
-			// 
+			//for refine
 			if( refine_candidate )
 			{
 				//double condition_radius = 0;
@@ -825,7 +839,7 @@ public:
 		unsigned int size  = 0;
 		unsigned int count = 0;
 
-		// loop over conditions of the model part
+		// loop over conditions of the model part -> find TO_REFINE
 		for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(); i_cond!= rModelPart.ConditionsEnd(); i_cond++)
 	    {
 			if( i_cond->Is(TO_REFINE) )
@@ -887,7 +901,7 @@ public:
 
 				//set variables
 				this->SetNewNodeVariables(rModelPart, *(i_cond.base()), pNode);
-          	          
+
 				list_of_nodes.push_back(pNode);
 				list_of_conditions.push_back(*(i_cond.base()));
           
@@ -946,138 +960,133 @@ public:
   
     void GenerateNewConditions(ModelPart& rModelPart, std::vector<NodeType::Pointer >& list_of_nodes, std::vector<ConditionType::Pointer>& list_of_conditions)
     {
-      KRATOS_TRY
+		KRATOS_TRY
 
-      std::vector<ConditionType::Pointer> list_of_new_conditions;
-	
-      unsigned int id = ModelerUtilities::GetMaxConditionId(rModelPart) + 1;
+		std::vector<ConditionType::Pointer> list_of_new_conditions;
 
-      ConditionType::Pointer pCondition;
-      
-      int size = 0;
-      
-      unsigned int counter = 0;
-      
-      for(std::vector<ConditionType::Pointer>::iterator i_cond = list_of_conditions.begin(); i_cond!= list_of_conditions.end(); i_cond++)
-	{
-	  Geometry< Node<3> >& rGeometry = (*i_cond)->GetGeometry();
+		unsigned int id = ModelerUtilities::GetMaxConditionId(rModelPart) + 1;
 
-	  size = rGeometry.size();
-	  
-	  PointsArrayType Nodes(size);
+		ConditionType::Pointer pCondition;
+
+		int size = 0;
+
+		unsigned int counter = 0;
+
+		//loop over new split conditions
+		for(std::vector<ConditionType::Pointer>::iterator i_cond = list_of_conditions.begin(); i_cond!= list_of_conditions.end(); i_cond++)
+		{
+			Geometry< Node<3> >& rGeometry = (*i_cond)->GetGeometry();
+
+			size = rGeometry.size();
+
+			PointsArrayType Nodes(size);
 		
-	  if( size == 2 ){	      	
+			if( size == 2 ){	      	
 
-	    //new condition 1
-	    Nodes(0) = rGeometry(0);
-	    Nodes(1) = list_of_nodes[counter];
+				//new condition 1
+				Nodes(0) = rGeometry(0);
+				Nodes(1) = list_of_nodes[counter];
 	    
-	    pCondition = (*i_cond)->Clone(id, Nodes);
+				pCondition = (*i_cond)->Clone(id, Nodes);
 
-	    //set flags
-	    pCondition->Set(NEW_ENTITY);
+				//set flags
+				pCondition->Set(NEW_ENTITY);
 
-	    SetNewConditionVariables((*i_cond), pCondition);
+				SetNewConditionVariables((*i_cond), pCondition);
 
-	    id++;
+				id++;
 	    
-	    list_of_new_conditions.push_back(pCondition);
+				list_of_new_conditions.push_back(pCondition);
 
-	    //new condition 2
-	    Nodes(0) = list_of_nodes[counter];
-	    Nodes(1) = rGeometry(1);
+				//new condition 2
+				Nodes(0) = list_of_nodes[counter];
+				Nodes(1) = rGeometry(1);
 	    
-	    pCondition = (*i_cond)->Clone(id, Nodes);
+				pCondition = (*i_cond)->Clone(id, Nodes);
 
-	    //set flags
-	    pCondition->Set(NEW_ENTITY);
+				//set flags
+				pCondition->Set(NEW_ENTITY);
 
-	    //set variables
-	    this->SetNewConditionVariables((*i_cond), pCondition);
+				//set variables
+				this->SetNewConditionVariables((*i_cond), pCondition);
 
-	    id++;
+				id++;
 	    
-	    list_of_new_conditions.push_back(pCondition);
-	  }
+				list_of_new_conditions.push_back(pCondition);
+			}
 		    
-	  if( size == 3 ){
-
-	    //new condition 1
-	    Nodes(0) = rGeometry(0);
-	    Nodes(1) = rGeometry(1);
-	    Nodes(2) = list_of_nodes[counter];
+			if( size == 3 ){
+				
+				//new condition 1
+				Nodes(0) = rGeometry(0);
+				Nodes(1) = rGeometry(1);
+				Nodes(2) = list_of_nodes[counter];
 	    
-	    pCondition = (*i_cond)->Clone(id, Nodes);
+				pCondition = (*i_cond)->Clone(id, Nodes);
 
-	    //set flags
-	    pCondition->Set(NEW_ENTITY);
+				//set flags
+				pCondition->Set(NEW_ENTITY);
 
-	    SetNewConditionVariables((*i_cond), pCondition);
+				SetNewConditionVariables((*i_cond), pCondition);
 
-	    id++;
+				id++;
 	    
-	    list_of_new_conditions.push_back(pCondition);
+				list_of_new_conditions.push_back(pCondition);
 
-	    //new condition 2
-	    Nodes(0) = rGeometry(1);
-	    Nodes(1) = rGeometry(2);
-	    Nodes(2) = list_of_nodes[counter];
+				//new condition 2
+				Nodes(0) = rGeometry(1);
+				Nodes(1) = rGeometry(2);
+				Nodes(2) = list_of_nodes[counter];
 	    
+				pCondition = (*i_cond)->Clone(id, Nodes);
+
+				//set flags
+				pCondition->Set(NEW_ENTITY);
+
+				//set variables
+				SetNewConditionVariables((*i_cond), pCondition);
+
+				id++;
 	    
-	    pCondition = (*i_cond)->Clone(id, Nodes);
+				list_of_new_conditions.push_back(pCondition);
 
-	    //set flags
-	    pCondition->Set(NEW_ENTITY);
-
-	    //set variables
-	    SetNewConditionVariables((*i_cond), pCondition);
-
-	    id++;
+				//new condition 3
+				Nodes(0) = rGeometry(2);
+				Nodes(1) = rGeometry(0);
+				Nodes(2) = list_of_nodes[counter];
 	    
-	    list_of_new_conditions.push_back(pCondition);
+				pCondition = (*i_cond)->Clone(id, Nodes);
 
+				//set flags
+				pCondition->Set(NEW_ENTITY);
 
-	    //new condition 3
-	    Nodes(0) = rGeometry(2);
-	    Nodes(1) = rGeometry(0);
-	    Nodes(2) = list_of_nodes[counter];
+				//set variables
+				SetNewConditionVariables((*i_cond), pCondition);
+
+				id++;
 	    
+				list_of_new_conditions.push_back(pCondition);
 	    
-	    pCondition = (*i_cond)->Clone(id, Nodes);
+			}
 
-	    //set flags
-	    pCondition->Set(NEW_ENTITY);
+			// once the condition is refined set to erase
+			(*i_cond)->Set(TO_ERASE);
+			(*i_cond)->Set(TO_REFINE, false);
 
-	    //set variables
-	    SetNewConditionVariables((*i_cond), pCondition);
+			ConditionsContainerType& ChildrenConditions = (*i_cond)->GetValue(CHILDREN_CONDITIONS);
 
-	    id++;
-	    
-	    list_of_new_conditions.push_back(pCondition);
-
-	    
-	  }
-
-	  // once the condition is refined set to erase
-	  (*i_cond)->Set(TO_ERASE);
-	  (*i_cond)->Set(TO_REFINE, false);
-
-	  ConditionsContainerType& ChildrenConditions = (*i_cond)->GetValue(CHILDREN_CONDITIONS);
-
-	  for (ConditionConstantIterator cn = ChildrenConditions.begin() ; cn != ChildrenConditions.end(); ++cn)
-	    {
-	      cn->Set(TO_ERASE);
-	    }
-
+			for (ConditionConstantIterator cn = ChildrenConditions.begin() ; cn != ChildrenConditions.end(); ++cn)
+			{
+				cn->Set(TO_ERASE);
+			}
 	  
-	  counter++;
-	    
-	}
+			counter++;
+		}	
 
-      //update the list of old conditions with the list of new conditions
-      list_of_conditions = list_of_new_conditions;
+		//update the list of old conditions with the list of new conditions
+		list_of_conditions = list_of_new_conditions;
 	      
-      KRATOS_CATCH( "" )
+		KRATOS_CATCH( "" )
     }
 
 

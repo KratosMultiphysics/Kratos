@@ -456,10 +456,17 @@ namespace Kratos
             Values.SetDeterminantF( Variables.detH );
 
             //call the constitutive law to update material variables
-            if( rVariable == CAUCHY_STRESS_VECTOR)
+            if( rVariable == CAUCHY_STRESS_VECTOR){
                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-            else
+               
+               std::cout<<"§§§§§§§§§§§§§§§§§§§§§3CAUCHY-RESPONSE CALLED!!!"<<std::endl;
+               std::cout<<"§§§§§§§§§§§§§§§§§§§§§3CAUCHY-RESPONSE CALLED!!!"<<std::endl;}
+               
+            else{
                mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
+               
+               std::cout<<"§§§§§§§§§§§§§§§§§§§§§§§§§PK2-RESPONSE CALLED!!!"<<std::endl;
+               std::cout<<"§§§§§§§§§§§§§§§§§§§§§§§§§PK2-RESPONSE CALLED!!!"<<std::endl;}
 
             Variables.H = ElementalFT;
             Variables.detH = ElementalDetFT;
@@ -706,6 +713,33 @@ namespace Kratos
 				   rOutput[PointNumber] = rPermeabilityTensor;
             }
       }
+		else if ( rVariable == TOTAL_DEFORMATION_GRADIENT)
+		{
+			const unsigned int& dimension = GetGeometry().WorkingSpaceDimension();
+
+			//create and initialize element variables
+			ElementVariables Variables;
+			this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+            
+            //reading integration points
+			for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
+			{
+				//compute element kinematics B, F, DN_DX ...
+				this->CalculateKinematics(Variables,PointNumber);
+
+				//to take in account previous step writing
+				Matrix FT;
+				if( mFinalizedStep ){
+					this->GetHistoricalVariables(Variables,PointNumber);
+					FT = prod(Variables.F,Variables.F0);
+				}
+
+				if( rOutput[PointNumber].size2() != FT.size2() )
+				rOutput[PointNumber].resize( FT.size1(), FT.size2() , false );
+
+				rOutput[PointNumber] = FT;
+			}    
+		}
       else {
          LargeDisplacementElement::CalculateOnIntegrationPoints( rVariable, rOutput, rCurrentProcessInfo);
       }
@@ -826,6 +860,9 @@ namespace Kratos
          CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
       }
       else if ( rVariable == PERMEABILITY_TENSOR) {
+         CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
+      }
+      else if ( rVariable == TOTAL_DEFORMATION_GRADIENT) {
          CalculateOnIntegrationPoints( rVariable, rValue, rCurrentProcessInfo);
       }
       else {
@@ -2060,6 +2097,10 @@ namespace Kratos
 
          //compute stresses and constitutive parameters
          mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
+         
+         //std::cout<<"§§§§§§§§§§§§§§§§§§§§§§§§§§§§Material-RESPONSE CALLED!!!"<<std::endl;
+         //std::cout<<"§§§§§§§§§§§§§§§§§§§§§§§§§§§§Material-RESPONSE CALLED!!!"<<std::endl;
+         //std::cout<<"§§§§§§§§§§§§§§§§§§§§§§§§§§§§Material-RESPONSE CALLED!!!"<<std::endl;
 
          Variables.H = ElementalFT;
          Variables.detH = ElementalDetFT;

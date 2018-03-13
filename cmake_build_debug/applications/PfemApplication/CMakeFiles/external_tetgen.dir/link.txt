@@ -1,0 +1,2 @@
+/usr/bin/ar qc libexternal_tetgen.a  CMakeFiles/external_tetgen.dir/external_modules/tetgen/tetgen.cxx.o CMakeFiles/external_tetgen.dir/external_modules/tetgen/predicates.cxx.o
+/usr/bin/ranlib libexternal_tetgen.a

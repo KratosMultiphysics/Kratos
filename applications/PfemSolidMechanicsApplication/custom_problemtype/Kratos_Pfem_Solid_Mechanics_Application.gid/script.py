@@ -5,10 +5,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #sys.path.append('/home/cpuigbo/kratos')
 #x = input("stopped to allow debug: set breakpoints and press enter to continue")
 
-# use pdb debugger
-#import pdb
-#pdb.set_trace()
-
 #### TIME MONITORING START ####
 
 # Time control starts
@@ -56,6 +52,10 @@ import KratosMultiphysics.PfemApplication           as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication   as KratosContact
 import KratosMultiphysics.PfemSolidMechanicsApplication as KratosPfemSolid
 import KratosMultiphysics.PfemFluidDynamicsApplication  as KratosPfemFluid
+
+# import python utilities
+import Interpret_CPT_Data           as CPT_Data
+import Interpret_InterestingData   as Interesting_Data
 
 ######################################################################################
 ######################################################################################
@@ -116,6 +116,9 @@ main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, ProjectParam
 if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
     if(main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
         solver.AddDofs()
+        for node in main_model_part.GetNodes():
+            node.SetSolutionStepValue(KratosPfemSolid.JACOBIAN, 1.0)
+
 else:
     solver.AddDofs()
 
@@ -130,7 +133,7 @@ for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_li
 
 
 #print model_part and properties
-if(echo_level>1):
+if(echo_level>=1):
     print("")
     print(main_model_part)
     for properties in main_model_part.Properties:
@@ -195,6 +198,26 @@ gid_output = GiDOutputProcess(computing_model_part,
 
 gid_output.ExecuteInitialize()
 
+# Create output file for results of conditional meshing nodes
+file_name = "ConditionalMeshingData.csv"
+file_path_cond = os.path.join(problem_path, file_name)
+
+# write file headers
+if((main_model_part.ProcessInfo).Has(KratosMultiphysics.IS_RESTARTED)):
+    if(main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+        cond_file = open(file_path_cond, "w")
+        line_header  = "THIS IS A HELL OF A HEADER" +"\n"
+        cond_file.write(line_header)
+        cond_file.close()
+
+# create CPT Interpreter
+cptTest = CPT_Data.InterpretCPTData(main_model_part, problem_path, 0.031, -0.02)
+cptTest.Initialize(0)
+
+# create Interesting_Data Interpreter
+interestingData = Interesting_Data.InterpretInterestingData(main_model_part, problem_path)
+interestingData.Initialize(0)
+
 #### Output settings end ####
 
 # writing a initial state results file
@@ -250,6 +273,10 @@ while(time < end_time):
         process.ExecuteInitializeSolutionStep()
       
     gid_output.ExecuteInitializeSolutionStep()
+#
+    # update velocity for CPt interpreter
+    cptTest.UpdateCPTVelocity(10000)
+
 
     # solve time step
     clock_time = StartTimeMeasuring();
@@ -267,6 +294,10 @@ while(time < end_time):
     StopTimeMeasuring(clock_time,"Solving", False);
 
     gid_output.ExecuteFinalizeSolutionStep()
+#
+    # write output for user-defined interpreters
+    cptTest.SetStepResult()
+    interestingData.SetStepResults()
 
     # processes to be executed at the end of the solution step
     for process in list_of_processes:

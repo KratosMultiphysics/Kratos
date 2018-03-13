@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmyfort.a  CMakeFiles/myfort.dir/mysub.f.o CMakeFiles/myfort.dir/my_sub.f.o CMakeFiles/myfort.dir/mymodule.f90.o CMakeFiles/myfort.dir/my_module.f90.o
+/usr/bin/ranlib libmyfort.a

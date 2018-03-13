@@ -1,0 +1,960 @@
+The system is: Linux - 4.4.0-116-generic - x86_64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /usr/bin/gcc 
+Build flags: ;-msse3
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+
+The C compiler identification is GNU, found in "/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/3.5.1/CompilerIdC/a.out"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /usr/bin/g++ 
+Build flags: ;-msse3;-std=c++11
+Id flags: 
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+
+The CXX compiler identification is GNU, found in "/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/3.5.1/CompilerIdCXX/a.out"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_0b331/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0b331.dir/build.make CMakeFiles/cmTC_0b331.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_0b331.dir/testCCompiler.c.o
+/usr/bin/gcc    -msse3    -o CMakeFiles/cmTC_0b331.dir/testCCompiler.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_0b331
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0b331.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3     CMakeFiles/cmTC_0b331.dir/testCCompiler.c.o  -o cmTC_0b331 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_99bcf/fast"
+/usr/bin/make -f CMakeFiles/cmTC_99bcf.dir/build.make CMakeFiles/cmTC_99bcf.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_99bcf.dir/CMakeCCompilerABI.c.o
+/usr/bin/gcc    -msse3    -o CMakeFiles/cmTC_99bcf.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_99bcf
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_99bcf.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3    -v CMakeFiles/cmTC_99bcf.dir/CMakeCCompilerABI.c.o  -o cmTC_99bcf -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/bin/gcc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.9' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+Thread model: posix
+gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.9) 
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-msse3' '-v' '-o' 'cmTC_99bcf' '-rdynamic' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccnZzSfh.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_99bcf /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_99bcf.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Parsed C implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_99bcf/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_99bcf.dir/build.make CMakeFiles/cmTC_99bcf.dir/build]
+  ignore line: [make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_99bcf.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/gcc    -msse3    -o CMakeFiles/cmTC_99bcf.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_99bcf]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_99bcf.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/gcc   -msse3    -v CMakeFiles/cmTC_99bcf.dir/CMakeCCompilerABI.c.o  -o cmTC_99bcf -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/gcc]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper]
+  ignore line: [Target: x86_64-linux-gnu]
+  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.9' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.9) ]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-msse3' '-v' '-o' 'cmTC_99bcf' '-rdynamic' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccnZzSfh.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_99bcf /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_99bcf.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccnZzSfh.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [--sysroot=/] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-zrelro] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_99bcf] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..]
+    arg [CMakeFiles/cmTC_99bcf.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5] ==> [/usr/lib/gcc/x86_64-linux-gnu/5]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> [/usr/lib]
+  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse library dir [/lib/../lib] ==> [/lib]
+  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> [/usr/lib]
+  implicit libs: [c]
+  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/5;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+  implicit fwks: []
+
+
+
+
+Detecting C [-std=c11] compiler features compiled with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c0c91/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c0c91.dir/build.make CMakeFiles/cmTC_c0c91.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c0c91.dir/feature_tests.c.o
+/usr/bin/gcc    -msse3    -std=c11 -o CMakeFiles/cmTC_c0c91.dir/feature_tests.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/feature_tests.c
+Linking C executable cmTC_c0c91
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c0c91.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3     CMakeFiles/cmTC_c0c91.dir/feature_tests.c.o  -o cmTC_c0c91 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:1c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c99] compiler features compiled with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_5985c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5985c.dir/build.make CMakeFiles/cmTC_5985c.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_5985c.dir/feature_tests.c.o
+/usr/bin/gcc    -msse3    -std=c99 -o CMakeFiles/cmTC_5985c.dir/feature_tests.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/feature_tests.c
+Linking C executable cmTC_5985c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5985c.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3     CMakeFiles/cmTC_5985c.dir/feature_tests.c.o  -o cmTC_5985c -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:1c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:1c_variadic_macros
+
+
+Detecting C [-std=c90] compiler features compiled with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_48161/fast"
+/usr/bin/make -f CMakeFiles/cmTC_48161.dir/build.make CMakeFiles/cmTC_48161.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_48161.dir/feature_tests.c.o
+/usr/bin/gcc    -msse3    -std=c90 -o CMakeFiles/cmTC_48161.dir/feature_tests.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/feature_tests.c
+Linking C executable cmTC_48161
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_48161.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3     CMakeFiles/cmTC_48161.dir/feature_tests.c.o  -o cmTC_48161 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+    Feature record: C_FEATURE:1c_function_prototypes
+    Feature record: C_FEATURE:0c_restrict
+    Feature record: C_FEATURE:0c_static_assert
+    Feature record: C_FEATURE:0c_variadic_macros
+Determining if the CXX compiler works passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_2f2ad/fast"
+/usr/bin/make -f CMakeFiles/cmTC_2f2ad.dir/build.make CMakeFiles/cmTC_2f2ad.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_2f2ad.dir/testCXXCompiler.cxx.o
+/usr/bin/g++     -msse3 -std=c++11    -o CMakeFiles/cmTC_2f2ad.dir/testCXXCompiler.cxx.o -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_2f2ad
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2f2ad.dir/link.txt --verbose=1
+/usr/bin/g++    -msse3 -std=c++11     CMakeFiles/cmTC_2f2ad.dir/testCXXCompiler.cxx.o  -o cmTC_2f2ad -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_8bb33/fast"
+/usr/bin/make -f CMakeFiles/cmTC_8bb33.dir/build.make CMakeFiles/cmTC_8bb33.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_8bb33.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/g++     -msse3 -std=c++11    -o CMakeFiles/cmTC_8bb33.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_8bb33
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8bb33.dir/link.txt --verbose=1
+/usr/bin/g++    -msse3 -std=c++11    -v CMakeFiles/cmTC_8bb33.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_8bb33 -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/bin/g++
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.9' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+Thread model: posix
+gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.9) 
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-msse3' '-std=c++11' '-v' '-o' 'cmTC_8bb33' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccPELmLq.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_8bb33 /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_8bb33.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Parsed CXX implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_8bb33/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_8bb33.dir/build.make CMakeFiles/cmTC_8bb33.dir/build]
+  ignore line: [make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp']
+  ignore line: [Building CXX object CMakeFiles/cmTC_8bb33.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/g++     -msse3 -std=c++11    -o CMakeFiles/cmTC_8bb33.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTC_8bb33]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8bb33.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/g++    -msse3 -std=c++11    -v CMakeFiles/cmTC_8bb33.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_8bb33 -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/g++]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper]
+  ignore line: [Target: x86_64-linux-gnu]
+  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.9' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.9) ]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-msse3' '-std=c++11' '-v' '-o' 'cmTC_8bb33' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccPELmLq.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_8bb33 /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_8bb33.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccPELmLq.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--sysroot=/] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-zrelro] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_8bb33] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..]
+    arg [CMakeFiles/cmTC_8bb33.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5] ==> [/usr/lib/gcc/x86_64-linux-gnu/5]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> [/usr/lib]
+  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse library dir [/lib/../lib] ==> [/lib]
+  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> [/usr/lib]
+  implicit libs: [stdc++;m;c]
+  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/5;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+  implicit fwks: []
+
+
+
+
+Detecting CXX [-std=c++14] compiler features compiled with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_23e68/fast"
+/usr/bin/make -f CMakeFiles/cmTC_23e68.dir/build.make CMakeFiles/cmTC_23e68.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_23e68.dir/feature_tests.cxx.o
+/usr/bin/g++     -msse3 -std=c++11    -std=c++14 -o CMakeFiles/cmTC_23e68.dir/feature_tests.cxx.o -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_23e68
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_23e68.dir/link.txt --verbose=1
+/usr/bin/g++    -msse3 -std=c++11     CMakeFiles/cmTC_23e68.dir/feature_tests.cxx.o  -o cmTC_23e68 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:1cxx_alias_templates
+    Feature record: CXX_FEATURE:1cxx_alignas
+    Feature record: CXX_FEATURE:1cxx_alignof
+    Feature record: CXX_FEATURE:1cxx_attributes
+    Feature record: CXX_FEATURE:1cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:1cxx_auto_type
+    Feature record: CXX_FEATURE:1cxx_binary_literals
+    Feature record: CXX_FEATURE:1cxx_constexpr
+    Feature record: CXX_FEATURE:1cxx_contextual_conversions
+    Feature record: CXX_FEATURE:1cxx_decltype
+    Feature record: CXX_FEATURE:1cxx_decltype_auto
+    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:1cxx_default_function_template_args
+    Feature record: CXX_FEATURE:1cxx_defaulted_functions
+    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:1cxx_delegating_constructors
+    Feature record: CXX_FEATURE:1cxx_deleted_functions
+    Feature record: CXX_FEATURE:1cxx_digit_separators
+    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:1cxx_explicit_conversions
+    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:1cxx_extern_templates
+    Feature record: CXX_FEATURE:1cxx_final
+    Feature record: CXX_FEATURE:1cxx_func_identifier
+    Feature record: CXX_FEATURE:1cxx_generalized_initializers
+    Feature record: CXX_FEATURE:1cxx_generic_lambdas
+    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:1cxx_inline_namespaces
+    Feature record: CXX_FEATURE:1cxx_lambdas
+    Feature record: CXX_FEATURE:1cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:1cxx_local_type_template_args
+    Feature record: CXX_FEATURE:1cxx_long_long_type
+    Feature record: CXX_FEATURE:1cxx_noexcept
+    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:1cxx_nullptr
+    Feature record: CXX_FEATURE:1cxx_override
+    Feature record: CXX_FEATURE:1cxx_range_for
+    Feature record: CXX_FEATURE:1cxx_raw_string_literals
+    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:1cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:1cxx_return_type_deduction
+    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:1cxx_rvalue_references
+    Feature record: CXX_FEATURE:1cxx_sizeof_member
+    Feature record: CXX_FEATURE:1cxx_static_assert
+    Feature record: CXX_FEATURE:1cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:1cxx_thread_local
+    Feature record: CXX_FEATURE:1cxx_trailing_return_types
+    Feature record: CXX_FEATURE:1cxx_unicode_literals
+    Feature record: CXX_FEATURE:1cxx_uniform_initialization
+    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:1cxx_user_literals
+    Feature record: CXX_FEATURE:1cxx_variable_templates
+    Feature record: CXX_FEATURE:1cxx_variadic_macros
+    Feature record: CXX_FEATURE:1cxx_variadic_templates
+
+
+Detecting CXX [-std=c++11] compiler features compiled with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_68d65/fast"
+/usr/bin/make -f CMakeFiles/cmTC_68d65.dir/build.make CMakeFiles/cmTC_68d65.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_68d65.dir/feature_tests.cxx.o
+/usr/bin/g++     -msse3 -std=c++11    -std=c++11 -o CMakeFiles/cmTC_68d65.dir/feature_tests.cxx.o -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_68d65
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_68d65.dir/link.txt --verbose=1
+/usr/bin/g++    -msse3 -std=c++11     CMakeFiles/cmTC_68d65.dir/feature_tests.cxx.o  -o cmTC_68d65 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:1cxx_alias_templates
+    Feature record: CXX_FEATURE:1cxx_alignas
+    Feature record: CXX_FEATURE:1cxx_alignof
+    Feature record: CXX_FEATURE:1cxx_attributes
+    Feature record: CXX_FEATURE:0cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:1cxx_auto_type
+    Feature record: CXX_FEATURE:0cxx_binary_literals
+    Feature record: CXX_FEATURE:1cxx_constexpr
+    Feature record: CXX_FEATURE:0cxx_contextual_conversions
+    Feature record: CXX_FEATURE:1cxx_decltype
+    Feature record: CXX_FEATURE:0cxx_decltype_auto
+    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:1cxx_default_function_template_args
+    Feature record: CXX_FEATURE:1cxx_defaulted_functions
+    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:1cxx_delegating_constructors
+    Feature record: CXX_FEATURE:1cxx_deleted_functions
+    Feature record: CXX_FEATURE:0cxx_digit_separators
+    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:1cxx_explicit_conversions
+    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:1cxx_extern_templates
+    Feature record: CXX_FEATURE:1cxx_final
+    Feature record: CXX_FEATURE:1cxx_func_identifier
+    Feature record: CXX_FEATURE:1cxx_generalized_initializers
+    Feature record: CXX_FEATURE:0cxx_generic_lambdas
+    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:1cxx_inline_namespaces
+    Feature record: CXX_FEATURE:1cxx_lambdas
+    Feature record: CXX_FEATURE:0cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:1cxx_local_type_template_args
+    Feature record: CXX_FEATURE:1cxx_long_long_type
+    Feature record: CXX_FEATURE:1cxx_noexcept
+    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:1cxx_nullptr
+    Feature record: CXX_FEATURE:1cxx_override
+    Feature record: CXX_FEATURE:1cxx_range_for
+    Feature record: CXX_FEATURE:1cxx_raw_string_literals
+    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:0cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:0cxx_return_type_deduction
+    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:1cxx_rvalue_references
+    Feature record: CXX_FEATURE:1cxx_sizeof_member
+    Feature record: CXX_FEATURE:1cxx_static_assert
+    Feature record: CXX_FEATURE:1cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:1cxx_thread_local
+    Feature record: CXX_FEATURE:1cxx_trailing_return_types
+    Feature record: CXX_FEATURE:1cxx_unicode_literals
+    Feature record: CXX_FEATURE:1cxx_uniform_initialization
+    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:1cxx_user_literals
+    Feature record: CXX_FEATURE:0cxx_variable_templates
+    Feature record: CXX_FEATURE:1cxx_variadic_macros
+    Feature record: CXX_FEATURE:1cxx_variadic_templates
+
+
+Detecting CXX [-std=c++98] compiler features compiled with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_8444e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_8444e.dir/build.make CMakeFiles/cmTC_8444e.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_8444e.dir/feature_tests.cxx.o
+/usr/bin/g++     -msse3 -std=c++11    -std=c++98 -o CMakeFiles/cmTC_8444e.dir/feature_tests.cxx.o -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_8444e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8444e.dir/link.txt --verbose=1
+/usr/bin/g++    -msse3 -std=c++11     CMakeFiles/cmTC_8444e.dir/feature_tests.cxx.o  -o cmTC_8444e -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+    Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
+    Feature record: CXX_FEATURE:0cxx_alias_templates
+    Feature record: CXX_FEATURE:0cxx_alignas
+    Feature record: CXX_FEATURE:0cxx_alignof
+    Feature record: CXX_FEATURE:0cxx_attributes
+    Feature record: CXX_FEATURE:0cxx_attribute_deprecated
+    Feature record: CXX_FEATURE:0cxx_auto_type
+    Feature record: CXX_FEATURE:0cxx_binary_literals
+    Feature record: CXX_FEATURE:0cxx_constexpr
+    Feature record: CXX_FEATURE:0cxx_contextual_conversions
+    Feature record: CXX_FEATURE:0cxx_decltype
+    Feature record: CXX_FEATURE:0cxx_decltype_auto
+    Feature record: CXX_FEATURE:0cxx_decltype_incomplete_return_types
+    Feature record: CXX_FEATURE:0cxx_default_function_template_args
+    Feature record: CXX_FEATURE:0cxx_defaulted_functions
+    Feature record: CXX_FEATURE:0cxx_defaulted_move_initializers
+    Feature record: CXX_FEATURE:0cxx_delegating_constructors
+    Feature record: CXX_FEATURE:0cxx_deleted_functions
+    Feature record: CXX_FEATURE:0cxx_digit_separators
+    Feature record: CXX_FEATURE:0cxx_enum_forward_declarations
+    Feature record: CXX_FEATURE:0cxx_explicit_conversions
+    Feature record: CXX_FEATURE:0cxx_extended_friend_declarations
+    Feature record: CXX_FEATURE:0cxx_extern_templates
+    Feature record: CXX_FEATURE:0cxx_final
+    Feature record: CXX_FEATURE:0cxx_func_identifier
+    Feature record: CXX_FEATURE:0cxx_generalized_initializers
+    Feature record: CXX_FEATURE:0cxx_generic_lambdas
+    Feature record: CXX_FEATURE:0cxx_inheriting_constructors
+    Feature record: CXX_FEATURE:0cxx_inline_namespaces
+    Feature record: CXX_FEATURE:0cxx_lambdas
+    Feature record: CXX_FEATURE:0cxx_lambda_init_captures
+    Feature record: CXX_FEATURE:0cxx_local_type_template_args
+    Feature record: CXX_FEATURE:0cxx_long_long_type
+    Feature record: CXX_FEATURE:0cxx_noexcept
+    Feature record: CXX_FEATURE:0cxx_nonstatic_member_init
+    Feature record: CXX_FEATURE:0cxx_nullptr
+    Feature record: CXX_FEATURE:0cxx_override
+    Feature record: CXX_FEATURE:0cxx_range_for
+    Feature record: CXX_FEATURE:0cxx_raw_string_literals
+    Feature record: CXX_FEATURE:0cxx_reference_qualified_functions
+    Feature record: CXX_FEATURE:0cxx_relaxed_constexpr
+    Feature record: CXX_FEATURE:0cxx_return_type_deduction
+    Feature record: CXX_FEATURE:0cxx_right_angle_brackets
+    Feature record: CXX_FEATURE:0cxx_rvalue_references
+    Feature record: CXX_FEATURE:0cxx_sizeof_member
+    Feature record: CXX_FEATURE:0cxx_static_assert
+    Feature record: CXX_FEATURE:0cxx_strong_enums
+    Feature record: CXX_FEATURE:1cxx_template_template_parameters
+    Feature record: CXX_FEATURE:0cxx_thread_local
+    Feature record: CXX_FEATURE:0cxx_trailing_return_types
+    Feature record: CXX_FEATURE:0cxx_unicode_literals
+    Feature record: CXX_FEATURE:0cxx_uniform_initialization
+    Feature record: CXX_FEATURE:0cxx_unrestricted_unions
+    Feature record: CXX_FEATURE:0cxx_user_literals
+    Feature record: CXX_FEATURE:0cxx_variable_templates
+    Feature record: CXX_FEATURE:0cxx_variadic_macros
+    Feature record: CXX_FEATURE:0cxx_variadic_templates
+Performing C SOURCE FILE Test OpenMP_FLAG_DETECTED succeeded with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_8d785/fast"
+/usr/bin/make -f CMakeFiles/cmTC_8d785.dir/build.make CMakeFiles/cmTC_8d785.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_8d785.dir/src.c.o
+/usr/bin/gcc    -msse3 -funroll-loops -Wall -DOpenMP_FLAG_DETECTED -fopenmp   -o CMakeFiles/cmTC_8d785.dir/src.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/src.c
+Linking C executable cmTC_8d785
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8d785.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -DOpenMP_FLAG_DETECTED -fopenmp    CMakeFiles/cmTC_8d785.dir/src.c.o  -o cmTC_8d785 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+#include <omp.h>
+int main() {
+#ifdef _OPENMP
+  return 0;
+#else
+  breaks_on_purpose
+#endif
+}
+
+Performing C++ SOURCE FILE Test OpenMP_FLAG_DETECTED succeeded with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1e67f/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1e67f.dir/build.make CMakeFiles/cmTC_1e67f.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_1e67f.dir/src.cxx.o
+/usr/bin/g++     -msse3 -std=c++11 -funroll-loops -Wall -std=c++11 -DOpenMP_FLAG_DETECTED -fopenmp   -o CMakeFiles/cmTC_1e67f.dir/src.cxx.o -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_1e67f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1e67f.dir/link.txt --verbose=1
+/usr/bin/g++    -msse3 -std=c++11 -funroll-loops -Wall -std=c++11 -DOpenMP_FLAG_DETECTED -fopenmp    CMakeFiles/cmTC_1e67f.dir/src.cxx.o  -o cmTC_1e67f -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+Source file was:
+
+#include <omp.h>
+int main() {
+#ifdef _OPENMP
+  return 0;
+#else
+  breaks_on_purpose
+#endif
+}
+
+Compiling the Fortran compiler identification source file "CMakeFortranCompilerId.F" succeeded.
+Compiler: /usr/bin/gfortran 
+Build flags: 
+Id flags: -v
+
+The output was:
+0
+Driving: /usr/bin/gfortran -v CMakeFortranCompilerId.F -l gfortran -l m -shared-libgcc
+Using built-in specs.
+COLLECT_GCC=/usr/bin/gfortran
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.9' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+Thread model: posix
+gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.9) 
+COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/5/f951 CMakeFortranCompilerId.F -ffixed-form -cpp=/tmp/ccizM5ER.f90 -quiet -v -imultiarch x86_64-linux-gnu CMakeFortranCompilerId.F -quiet -dumpbase CMakeFortranCompilerId.F -mtune=generic -march=x86-64 -auxbase CMakeFortranCompilerId -version -fintrinsic-modules-path /usr/lib/gcc/x86_64-linux-gnu/5/finclude -o /tmp/ccA3KEU2.s
+GNU Fortran (Ubuntu 5.4.0-6ubuntu1~16.04.9) version 5.4.0 20160609 (x86_64-linux-gnu)
+	compiled by GNU C version 5.4.0 20160609, GMP version 6.1.0, MPFR version 3.1.4, MPC version 1.0.3
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"
+ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/5/../../../../x86_64-linux-gnu/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/lib/gcc/x86_64-linux-gnu/5/finclude
+ /usr/lib/gcc/x86_64-linux-gnu/5/include
+ /usr/local/include
+ /usr/lib/gcc/x86_64-linux-gnu/5/include-fixed
+ /usr/include/x86_64-linux-gnu
+ /usr/include
+End of search list.
+GNU Fortran2008 (Ubuntu 5.4.0-6ubuntu1~16.04.9) version 5.4.0 20160609 (x86_64-linux-gnu)
+	compiled by GNU C version 5.4.0 20160609, GMP version 6.1.0, MPFR version 3.1.4, MPC version 1.0.3
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ as -v --64 -o /tmp/ccrsXdde.o /tmp/ccA3KEU2.s
+GNU assembler version 2.26.1 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.26.1
+Reading specs from /usr/lib/gcc/x86_64-linux-gnu/5/libgfortran.spec
+rename spec lib to liborig
+COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccfIeHwp.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lquadmath -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. /tmp/ccrsXdde.o -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o
+
+
+Compilation of the Fortran compiler identification source "CMakeFortranCompilerId.F" produced "a.out"
+
+The Fortran compiler identification is GNU, found in "/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/3.5.1/CompilerIdFortran/a.out"
+
+Determining if the Fortran compiler works passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1e0f0/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1e0f0.dir/build.make CMakeFiles/cmTC_1e0f0.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_1e0f0.dir/testFortranCompiler.f.o
+/usr/bin/gfortran     -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_1e0f0.dir/testFortranCompiler.f.o
+Linking Fortran executable cmTC_1e0f0
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1e0f0.dir/link.txt --verbose=1
+/usr/bin/gfortran       CMakeFiles/cmTC_1e0f0.dir/testFortranCompiler.f.o  -o cmTC_1e0f0  
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Detecting Fortran compiler ABI info compiled with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_ad68a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_ad68a.dir/build.make CMakeFiles/cmTC_ad68a.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o
+/usr/bin/gfortran     -c /usr/share/cmake-3.5/Modules/CMakeFortranCompilerABI.F -o CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o
+Linking Fortran executable cmTC_ad68a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ad68a.dir/link.txt --verbose=1
+/usr/bin/gfortran    -v   CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o  -o cmTC_ad68a   
+Driving: /usr/bin/gfortran -v CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o -o cmTC_ad68a -l gfortran -l m -shared-libgcc
+Using built-in specs.
+COLLECT_GCC=/usr/bin/gfortran
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.9' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+Thread model: posix
+gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.9) 
+Reading specs from /usr/lib/gcc/x86_64-linux-gnu/5/libgfortran.spec
+rename spec lib to liborig
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_ad68a' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_ad68a' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccOAvCH3.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lquadmath -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_ad68a /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Parsed Fortran implicit link information from above output:
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp]
+  ignore line: []
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_ad68a/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_ad68a.dir/build.make CMakeFiles/cmTC_ad68a.dir/build]
+  ignore line: [make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp']
+  ignore line: [Building Fortran object CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o]
+  ignore line: [/usr/bin/gfortran     -c /usr/share/cmake-3.5/Modules/CMakeFortranCompilerABI.F -o CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o]
+  ignore line: [Linking Fortran executable cmTC_ad68a]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ad68a.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/gfortran    -v   CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o  -o cmTC_ad68a   ]
+  ignore line: [Driving: /usr/bin/gfortran -v CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o -o cmTC_ad68a -l gfortran -l m -shared-libgcc]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/gfortran]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper]
+  ignore line: [Target: x86_64-linux-gnu]
+  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.9' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
+  ignore line: [Thread model: posix]
+  ignore line: [gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.9) ]
+  ignore line: [Reading specs from /usr/lib/gcc/x86_64-linux-gnu/5/libgfortran.spec]
+  ignore line: [rename spec lib to liborig]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_ad68a' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_ad68a' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccOAvCH3.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lquadmath -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_ad68a /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o -lgfortran -lm -lgcc_s -lgcc -lquadmath -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccOAvCH3.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lquadmath] ==> ignore
+    arg [-plugin-opt=-pass-through=-lm] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--sysroot=/] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-zrelro] ==> ignore
+    arg [-o] ==> ignore
+    arg [cmTC_ad68a] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..]
+    arg [CMakeFiles/cmTC_ad68a.dir/CMakeFortranCompilerABI.F.o] ==> ignore
+    arg [-lgfortran] ==> lib [gfortran]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lquadmath] ==> lib [quadmath]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5] ==> [/usr/lib/gcc/x86_64-linux-gnu/5]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> [/usr/lib]
+  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse library dir [/lib/../lib] ==> [/lib]
+  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> [/usr/lib]
+  implicit libs: [gfortran;m;quadmath;m;c]
+  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/5;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+  implicit fwks: []
+
+
+Determining if the Fortran compiler supports Fortran 90 passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_b5562/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b5562.dir/build.make CMakeFiles/cmTC_b5562.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_b5562.dir/testFortranCompilerF90.f90.o
+/usr/bin/gfortran     -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/testFortranCompilerF90.f90 -o CMakeFiles/cmTC_b5562.dir/testFortranCompilerF90.f90.o
+Linking Fortran executable cmTC_b5562
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b5562.dir/link.txt --verbose=1
+/usr/bin/gfortran       CMakeFiles/cmTC_b5562.dir/testFortranCompilerF90.f90.o  -o cmTC_b5562  
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Determining if the Fortran sgemm exists passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_8640a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_8640a.dir/build.make CMakeFiles/cmTC_8640a.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_8640a.dir/testFortranCompiler.f.o
+/usr/bin/gfortran     -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_8640a.dir/testFortranCompiler.f.o
+Linking Fortran executable cmTC_8640a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8640a.dir/link.txt --verbose=1
+/usr/bin/gfortran       CMakeFiles/cmTC_8640a.dir/testFortranCompiler.f.o  -o cmTC_8640a  /usr/lib/libblas.so 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file pthread.h exists passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1ad33/fast"
+/usr/bin/make -f CMakeFiles/cmTC_1ad33.dir/build.make CMakeFiles/cmTC_1ad33.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_1ad33.dir/CheckIncludeFile.c.o
+/usr/bin/gcc    -msse3 -funroll-loops -Wall -fopenmp    -o CMakeFiles/cmTC_1ad33.dir/CheckIncludeFile.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_1ad33
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1ad33.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -fopenmp     CMakeFiles/cmTC_1ad33.dir/CheckIncludeFile.c.o  -o cmTC_1ad33 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Determining if the pthread_create exist passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_770b2/fast"
+/usr/bin/make -f CMakeFiles/cmTC_770b2.dir/build.make CMakeFiles/cmTC_770b2.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_770b2.dir/CheckSymbolExists.c.o
+/usr/bin/gcc    -msse3 -funroll-loops -Wall -fopenmp    -o CMakeFiles/cmTC_770b2.dir/CheckSymbolExists.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_770b2
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_770b2.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -fopenmp     CMakeFiles/cmTC_770b2.dir/CheckSymbolExists.c.o  -o cmTC_770b2 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+File /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
+/* */
+#include <pthread.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef pthread_create
+  return ((int*)(&pthread_create))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+
+Determining if the Fortran cheev exists passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c927e/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c927e.dir/build.make CMakeFiles/cmTC_c927e.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building Fortran object CMakeFiles/cmTC_c927e.dir/testFortranCompiler.f.o
+/usr/bin/gfortran     -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/testFortranCompiler.f -o CMakeFiles/cmTC_c927e.dir/testFortranCompiler.f.o
+Linking Fortran executable cmTC_c927e
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c927e.dir/link.txt --verbose=1
+/usr/bin/gfortran       CMakeFiles/cmTC_c927e.dir/testFortranCompiler.f.o  -o cmTC_c927e  /usr/lib/liblapack.so /usr/lib/libblas/libblas.so.3.6.0 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file sys/types.h exists passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_cc8ec/fast"
+/usr/bin/make -f CMakeFiles/cmTC_cc8ec.dir/build.make CMakeFiles/cmTC_cc8ec.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_cc8ec.dir/CheckIncludeFile.c.o
+/usr/bin/gcc    -msse3 -funroll-loops -Wall -fopenmp    -o CMakeFiles/cmTC_cc8ec.dir/CheckIncludeFile.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_cc8ec
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cc8ec.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -fopenmp     CMakeFiles/cmTC_cc8ec.dir/CheckIncludeFile.c.o  -o cmTC_cc8ec -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file stdint.h exists passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_3fc62/fast"
+/usr/bin/make -f CMakeFiles/cmTC_3fc62.dir/build.make CMakeFiles/cmTC_3fc62.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3fc62.dir/CheckIncludeFile.c.o
+/usr/bin/gcc    -msse3 -funroll-loops -Wall -fopenmp    -o CMakeFiles/cmTC_3fc62.dir/CheckIncludeFile.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_3fc62
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3fc62.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -fopenmp     CMakeFiles/cmTC_3fc62.dir/CheckIncludeFile.c.o  -o cmTC_3fc62 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file stddef.h exists passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_966e7/fast"
+/usr/bin/make -f CMakeFiles/cmTC_966e7.dir/build.make CMakeFiles/cmTC_966e7.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_966e7.dir/CheckIncludeFile.c.o
+/usr/bin/gcc    -msse3 -funroll-loops -Wall -fopenmp    -o CMakeFiles/cmTC_966e7.dir/CheckIncludeFile.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_966e7
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_966e7.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -fopenmp     CMakeFiles/cmTC_966e7.dir/CheckIncludeFile.c.o  -o cmTC_966e7 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Determining size of off64_t passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_3498b/fast"
+/usr/bin/make -f CMakeFiles/cmTC_3498b.dir/build.make CMakeFiles/cmTC_3498b.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_3498b.dir/OFF64_T.c.o
+/usr/bin/gcc  -DHAVE_STDDEF_H -DHAVE_STDINT_H -DHAVE_SYS_TYPES_H -D_LARGEFILE64_SOURCE=1  -msse3 -funroll-loops -Wall -fopenmp    -o CMakeFiles/cmTC_3498b.dir/OFF64_T.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CheckTypeSize/OFF64_T.c
+Linking C executable cmTC_3498b
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3498b.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -fopenmp     CMakeFiles/cmTC_3498b.dir/OFF64_T.c.o  -o cmTC_3498b -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Determining if the function fseeko exists passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_4ac69/fast"
+/usr/bin/make -f CMakeFiles/cmTC_4ac69.dir/build.make CMakeFiles/cmTC_4ac69.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_4ac69.dir/CheckFunctionExists.c.o
+/usr/bin/gcc    -msse3 -funroll-loops -Wall -fopenmp -DCHECK_FUNCTION_EXISTS=fseeko   -o CMakeFiles/cmTC_4ac69.dir/CheckFunctionExists.c.o   -c /usr/share/cmake-3.5/Modules/CheckFunctionExists.c
+Linking C executable cmTC_4ac69
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4ac69.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -fopenmp -DCHECK_FUNCTION_EXISTS=fseeko    CMakeFiles/cmTC_4ac69.dir/CheckFunctionExists.c.o  -o cmTC_4ac69 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+
+Determining if the include file unistd.h exists passed with the following output:
+Change Dir: /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_d84a4/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d84a4.dir/build.make CMakeFiles/cmTC_d84a4.dir/build
+make[1]: Entering directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_d84a4.dir/CheckIncludeFile.c.o
+/usr/bin/gcc    -msse3 -funroll-loops -Wall -fopenmp    -o CMakeFiles/cmTC_d84a4.dir/CheckIncludeFile.c.o   -c /home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_d84a4
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d84a4.dir/link.txt --verbose=1
+/usr/bin/gcc   -msse3 -funroll-loops -Wall -fopenmp     CMakeFiles/cmTC_d84a4.dir/CheckIncludeFile.c.o  -o cmTC_d84a4 -rdynamic 
+make[1]: Leaving directory '/home/laurin/kratos_rep_nov17/Kratos/cmake_build_debug/CMakeFiles/CMakeTmp'
+
+

@@ -75,8 +75,9 @@ class PreRefiningModeler(mesh_modeler.MeshModeler):
     def SetPreMeshingProcesses(self):
 
         # process to add nodes of interest
-        add_nodes_process = KratosPfem.AddNodesOfInterest(self.model_part, self.MeshingParameters, self.echo_level)
-        self.mesher.SetPreMeshingProcess(add_nodes_process)
+        if(1==0):
+            add_nodes_process = KratosPfem.AddNodesOfInterest(self.model_part, self.MeshingParameters, self.echo_level)
+            self.mesher.SetPreMeshingProcess(add_nodes_process)
 
         # process to refine elements /refine boundary
         refine_mesh_elements = KratosPfem.SetElementNodesToRefineOnThreshold(self.model_part, self.MeshingParameters, self.echo_level)

@@ -126,7 +126,7 @@ public:
 			// list of new nodes
 			std::vector<NodeType::Pointer> list_of_new_nodes;
 			
-			if(1 == 1)
+			if(1 == 0)
 			{
 				std::cout<<"+++"<<std::endl;
 				std::cout<<"+++Refine: test"<<mrRemesh.Refine->ConditionalMeshingNodes[0][0]<<std::endl;
@@ -289,21 +289,18 @@ protected:
 		
 		//process info
 		ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-		std::cout << CurrentProcessInfo.GetValue(IS_RESTARTED) << std::endl;
-		
-		
-		//check if project was restarted
+		//std::cout << CurrentProcessInfo.GetValue(IS_RESTARTED) << std::endl;
 		
 		//create output files for removed points
 		std::ofstream outFile;
-		const char* outputFileName = "text.csv";
+		const char* outputFileName = "ConditionalMeshingData.csv";
 		
-		
+/*
 		//header
 		std::string headerNodes;
 		std::string headerGauss;
-		
 		headerNodes += "TIME ID X Y Z ";
+		
 		//loop over nodal data double Variables
 		for(unsigned int it = 0; it < mrRemesh.Refine->ConditionalMeshingNodeVariables.DoubleVariables.size(); it++ )
 		{
@@ -356,9 +353,7 @@ protected:
 				outFile.close();
 			}
 		}
-
-		
-		
+*/
 		//initiaite nodal data with time step
 		std::string nodalData = std::to_string(rModelPart.GetProcessInfo().GetValue(TIME)) + " ";
 		std::string auxString;
@@ -413,7 +408,7 @@ protected:
 		std::vector<array_1d<double,3> > ElementArray1DVariableArray (integration_points_number);
 	    std::vector<Vector> ElementVectorVariableArray (integration_points_number);
 	    std::vector<Matrix> ElementMatrixVariableArray (integration_points_number);
-	    
+/*
 	    std::cout << "-----------------Sizes: " << NodesDoubleVariableArray.size() << std::endl;
 	    std::cout << "-----------------Sizes: " << NodesArray1DVariableArray.size() << std::endl;
 	    std::cout << "-----------------Sizes: " << NodesVectorVariableArray.size() << std::endl;
@@ -422,7 +417,7 @@ protected:
 	    std::cout << "-----------------Sizes: " << ElementArray1DVariableArray.size() << std::endl;
 	    std::cout << "-----------------Sizes: " << ElementVectorVariableArray.size() << std::endl;
 	    std::cout << "-----------------Sizes: " << ElementMatrixVariableArray.size() << std::endl;
-	    
+*/
 	    double Area         = 0;
 		double ElementArea  = 0;
 

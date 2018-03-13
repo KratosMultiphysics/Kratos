@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/laurin/kratos_rep_nov17/Kratos/external_libraries/triangle/triangle.c
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+math.h
+-
+sys/time.h
+-
+float.h
+-
+fpu_control.h
+-
+triangle.h
+/home/laurin/kratos_rep_nov17/Kratos/external_libraries/triangle/triangle.h
+
+/home/laurin/kratos_rep_nov17/Kratos/external_libraries/triangle/triangle.h
+

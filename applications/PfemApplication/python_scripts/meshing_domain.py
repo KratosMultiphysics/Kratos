@@ -220,18 +220,19 @@ class MeshingDomain(object):
         self.RefiningParameters.SetRefiningOptions(refining_options)
         self.RefiningParameters.SetRemovingOptions(removing_options)
 
-        #conditional meshing nodes
-        conditional_meshing = self.settings["refining_parameters"]["conditional_meshing"]
-        self.RefiningParameters.SetConditionalMeshingNodes(conditional_meshing)
+        if(1==1):
+            #conditional meshing nodes
+            conditional_meshing = self.settings["refining_parameters"]["conditional_meshing"]
+            self.RefiningParameters.SetConditionalMeshingNodes(conditional_meshing)
 
-        #conditional meshing output variables
-        self.TransferParameters = KratosPfem.TransferParameters()
-        node_variables = self.settings["refining_parameters"]["conditional_meshing"]["conditional_meshing_nodal_variables"]
-        for i in range(0, node_variables.size() ):            
-            self.RefiningParameters.SetConditionalMeshingNodeVariable(KratosMultiphysics.KratosGlobals.GetVariable(node_variables[i].GetString()))
-        gauss_variables = self.settings["refining_parameters"]["conditional_meshing"]["conditional_meshing_gauss_variables"]
-        for i in range(0, gauss_variables.size() ):            
-            self.RefiningParameters.SetConditionalMeshingGaussVariable(KratosMultiphysics.KratosGlobals.GetVariable(gauss_variables[i].GetString()))
+            #conditional meshing output variables
+            self.TransferParameters = KratosPfem.TransferParameters()
+            node_variables = self.settings["refining_parameters"]["conditional_meshing"]["conditional_meshing_nodal_variables"]
+            for i in range(0, node_variables.size() ):            
+                self.RefiningParameters.SetConditionalMeshingNodeVariable(KratosMultiphysics.KratosGlobals.GetVariable(node_variables[i].GetString()))
+            gauss_variables = self.settings["refining_parameters"]["conditional_meshing"]["conditional_meshing_gauss_variables"]
+            for i in range(0, gauss_variables.size() ):            
+                self.RefiningParameters.SetConditionalMeshingGaussVariable(KratosMultiphysics.KratosGlobals.GetVariable(gauss_variables[i].GetString()))
 
     #
     def SetMeshingParameters(self):

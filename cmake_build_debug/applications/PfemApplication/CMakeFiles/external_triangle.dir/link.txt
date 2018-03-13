@@ -1,0 +1,2 @@
+/usr/bin/ar qc libexternal_triangle.a  CMakeFiles/external_triangle.dir/__/__/external_libraries/triangle/triangle.c.o
+/usr/bin/ranlib libexternal_triangle.a

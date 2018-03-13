@@ -87,7 +87,7 @@ VALUE: False
 QUESTION: Convergence_Tolerance
 VALUE: 1E-6
 QUESTION: Absolute_Tolerance
-VALUE: 4E-7
+VALUE: 1E-7
 QUESTION: Max_Iter
 VALUE: 30
 QUESTION: Number_of_threads

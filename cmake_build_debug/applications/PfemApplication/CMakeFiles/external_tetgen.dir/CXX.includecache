@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/laurin/kratos_rep_nov17/Kratos/applications/PfemApplication/external_modules/tetgen/predicates.cxx
+stdio.h
+-
+stdlib.h
+-
+math.h
+-
+float.h
+-
+fpu_control.h
+-
+tetgen.h
+/home/laurin/kratos_rep_nov17/Kratos/applications/PfemApplication/external_modules/tetgen/tetgen.h
+
+/home/laurin/kratos_rep_nov17/Kratos/applications/PfemApplication/external_modules/tetgen/tetgen.cxx
+tetgen.h
+/home/laurin/kratos_rep_nov17/Kratos/applications/PfemApplication/external_modules/tetgen/tetgen.h
+
+/home/laurin/kratos_rep_nov17/Kratos/applications/PfemApplication/external_modules/tetgen/tetgen.h
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+math.h
+-
+time.h
+-
+assert.h
+-
+stdint.h
+-
+

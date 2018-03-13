@@ -219,44 +219,83 @@
 		"velocity": [0.0, 0.0, 0.0]
 	    },
 	    "refining_parameters":{
-		"critical_size": *cond(Critical_Mesh_Size),
-		"threshold_variable": "*cond(Dissipation_Variable)",
-		"reference_threshold" : *cond(Critical_Dissipation),
-		"error_variable": "*cond(Error_Variable)",
-		"reference_error" : *cond(Critical_Error),
-		"add_nodes": true,
-		"insert_nodes": false,
-		"remove_nodes": {
-			"apply_removal": true,
-			"on_distance": true,
-			"on_threshold": true,
-			"on_error": true
-		},
-		"remove_boundary": {
-			"apply_removal": true,
-			"on_distance": true,
-			"on_threshold": true,
-			"on_error": true
-		},
-		"refine_elements": {
-			"apply_refinement": true,
-			"on_distance": true,
-			"on_threshold": true,
-			"on_error": false
-		},
-		"refine_boundary": {
-			"apply_refinement": true,
-			"on_distance": false,
-			"on_threshold": true,
-			"on_error": false
-		},              
-		"refining_box":{
-			"refine_in_box_only": *tcl(string tolower *cond(Refine_on_box_only)),
-			"upper_point": [*tcl(JoinByComma *cond(Upper_Point_rbox))],
-			"lower_point": [*tcl(JoinByComma *cond(Lower_Point_rbox))],
-			"velocity": [*tcl(JoinByComma *cond(Velocity_rbox))]
-		}
-	    },            
+		    "critical_size": *cond(Critical_Mesh_Size),
+		    "threshold_variable": "*cond(Dissipation_Variable)",
+		    "reference_threshold" : *cond(Critical_Dissipation),
+		    "error_variable": "*cond(Error_Variable)",
+		    "reference_error" : *cond(Critical_Error),
+		    "add_nodes": true,
+		    "insert_nodes": false,
+		    "remove_nodes": {
+			    "apply_removal": true,
+			    "on_distance": true,
+			    "on_threshold": true,
+			    "on_error": true
+		    },
+		    "remove_boundary": {
+			    "apply_removal": true,
+			    "on_distance": true,
+			    "on_threshold": true,
+			    "on_error": true
+		    },
+		    "refine_elements": {
+			    "apply_refinement": true,
+			    "on_distance": true,
+			    "on_threshold": true,
+			    "on_error": false
+		    },
+		    "refine_boundary": {
+			    "apply_refinement": true,
+			    "on_distance": false,
+			    "on_threshold": true,
+			    "on_error": false
+		    },              
+		    "refining_box":{
+			    "refine_in_box_only": *tcl(string tolower *cond(Refine_on_box_only)),
+			    "upper_point": [*tcl(JoinByComma *cond(Upper_Point_rbox))],
+			    "lower_point": [*tcl(JoinByComma *cond(Lower_Point_rbox))],
+			    "velocity": [*tcl(JoinByComma *cond(Velocity_rbox))]
+		    },
+            "conditional_meshing":{
+                "conditional_meshing_nodes": [
+                    [0.017841, 0.031, 0.0, 0, -0.02, 0],
+                    [0.019, 0.0, 0.0, 0, 0, 0],
+                    [0.071, 0.0, 0.0, 0, 0, 0],
+                    [0.125, 0.0, 0.0, 0, 0, 0],
+                    [0.161, 0.0, 0.0, 0, 0, 0],
+                    [0.019, -0.1, 0.0, 0, 0, 0],
+                    [0.071, -0.1, 0.0, 0, 0, 0],
+                    [0.125, -0.1, 0.0, 0, 0, 0],
+                    [0.161, -0.1, 0.0, 0, 0, 0],
+                    [0.019, -0.2, 0.0, 0, 0, 0],
+                    [0.071, -0.2, 0.0, 0, 0, 0],
+                    [0.125, -0.2, 0.0, 0, 0, 0],
+                    [0.161, -0.2, 0.0, 0, 0, 0],
+                    [0.019, -0.3, 0.0, 0, 0, 0],
+                    [0.071, -0.3, 0.0, 0, 0, 0],
+                    [0.125, -0.3, 0.0, 0, 0, 0],
+                    [0.161, -0.3, 0.0, 0, 0, 0],
+                    [0.019, -0.4, 0.0, 0, 0, 0],
+                    [0.071, -0.4, 0.0, 0, 0, 0],
+                    [0.125, -0.4, 0.0, 0, 0, 0],
+                    [0.161, -0.4, 0.0, 0, 0, 0]
+                ],
+                "conditional_meshing_nodal_variables": [ "DISPLACEMENT", "WATER_PRESSURE", "JACOBIAN" ],
+                "conditional_meshing_gauss_variables": [ 
+                                        "CAUCHY_STRESS_TENSOR",
+                                        "GREEN_LAGRANGE_STRAIN_TENSOR",
+                                        "STRESS_INV_P",
+                                        "STRESS_INV_J2",
+                                        "STRESS_INV_THETA",
+                                        "INCR_SHEAR_PLASTIC",
+                                        "PLASTIC_STRAIN",
+                                        "PRECONSOLIDATION",
+                                        "VOLUMETRIC_PLASTIC",
+                                        "TOTAL_CAUCHY_STRESS",
+                                        "DARCY_FLOW",
+                                        "PERMEABILITY_TENSOR" ]
+            }
+        },            
 	    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ]
 *if( Counter == numberofdomains )
         }
