@@ -166,10 +166,9 @@ class TestQuadraticElements(KratosUnittest.TestCase):
         mp.CreateNewNode(64,2.0000000000,0.6250000000,0.0000000000)
         mp.CreateNewNode(65,2.0000000000,0.5000000000,0.0000000000)
 
-        for node in mp.Nodes:
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
         # Create Element
         mp.CreateNewElement("SmallDisplacementElement2D8N",1, [45,28,27,49,37,26,38,46], mp.GetProperties()[0])

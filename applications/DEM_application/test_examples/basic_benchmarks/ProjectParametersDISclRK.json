@@ -37,13 +37,12 @@
 "OutputFileType"                   : "Ascii",
 "Multifile"                        : "multiple_files",
 "ElementType"                      : "SphericPartDEMElement3D",
-
-
-"IntegrationScheme"                : "Symplectic_Euler",
+"TranslationalIntegrationScheme"   : "Symplectic_Euler",
+"RotationalIntegrationScheme"      : "Runge_Kutta",
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 1.0e-7,
-"FinalTime"                        : 2.0001,
+"FinalTime"                        : 0.5001,
 "ControlTime"                      : 60.0,
 "NeighbourSearchFrequency"         : 1,
 

@@ -119,6 +119,7 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INERTIA)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( NODAL_INTERNAL_FORCE )
 
 KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
+    KratosApplication("ParticleMechanicsApplication"),
     mUpdatedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mUpdatedLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mUpdatedLagrangianUP2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -128,6 +129,11 @@ KratosParticleMechanicsApplication::KratosParticleMechanicsApplication():
 
     //mTotalLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     //mTotalLagrangian3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) )
+    //mMPMLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    //mMPMLineLoadCondition2D3N( 0, Condition::GeometryType::Pointer( new Line2D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) ),
+    //mMPMLineLoadCondition3D2N( 0, Condition::GeometryType::Pointer( new Line3D2 <Node<3> >( Condition::GeometryType::PointsArrayType( 2 ) ) ) ),
+    //mMPMLineLoadCondition3D3N( 0, Condition::GeometryType::Pointer( new Line3D3 <Node<3> >( Condition::GeometryType::PointsArrayType( 3 ) ) ) )
+
 {}
 
 void KratosParticleMechanicsApplication::Register()
@@ -154,6 +160,10 @@ void KratosParticleMechanicsApplication::Register()
 
     //KRATOS_REGISTER_ELEMENT( "TotalLagrangian2D3N", mTotalLagrangian2D3N )
     //KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D4N", mTotalLagrangian3D4N )
+    //KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition2D2N", mMPMLineLoadCondition2D2N )
+    //KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition2D3N", mMPMLineLoadCondition2D3N )
+    //KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition3D2N", mMPMLineLoadCondition3D2N )
+    //KRATOS_REGISTER_CONDITION( "MPMLineLoadCondition3D3N", mMPMLineLoadCondition3D3N )
 
     //element
     KRATOS_REGISTER_VARIABLE( COUNTER )

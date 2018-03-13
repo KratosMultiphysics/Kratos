@@ -103,7 +103,7 @@ namespace Kratos
         
         void ComputeBuoyancy(NodeType& node, array_1d<double, 3>& buoyancy, const array_1d<double,3>& gravity, const ProcessInfo& r_current_process_info);
         void ComputeDragForce(NodeType& node, array_1d<double, 3>& drag_force, const ProcessInfo& r_current_process_info);
-        void ComputeVirtualMassForce(NodeType& node, array_1d<double, 3>& virtual_mass_force, const ProcessInfo& r_current_process_info);
+        void ComputeVirtualMassPlusUndisturbedFlowForce(NodeType& node, array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force, const ProcessInfo& r_current_process_info);
         void ComputeBassetForce(NodeType& node, array_1d<double, 3>& basset_force, const ProcessInfo& r_current_process_info);
         void ComputeSaffmanLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
         void ComputeMagnusLiftForce(NodeType& node, array_1d<double, 3>& lift_force, const ProcessInfo& r_current_process_info);
@@ -116,6 +116,12 @@ namespace Kratos
         void ComputeParticleAccelerationNumber(const array_1d<double, 3>& slip_acc, double& acc_number);
         void MemberDeclarationFirstStep(const ProcessInfo& r_current_process_info);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_current_process_info);
+        array_1d<double,3> ComputeWeight(const array_1d<double,3>& gravity, const ProcessInfo& r_process_info);
+        void AddCentrifugalForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
+        void AddCoriolisForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
+        void AddRelativeAccelerationForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
+        void AddEulerForces(array_1d<double,3>& weight, const ProcessInfo& r_process_info);
+        virtual double GetFluidMass();
 
       ///@name Protected static Member Variables
       ///@{

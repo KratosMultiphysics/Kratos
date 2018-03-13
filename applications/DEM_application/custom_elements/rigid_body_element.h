@@ -51,7 +51,7 @@ namespace Kratos {
       
         using Element::Initialize;
         virtual void Initialize(ProcessInfo& r_process_info);
-        virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme);
+        virtual void SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme);
         virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {};
         virtual void CustomInitialize(ProcessInfo& r_process_info);
@@ -64,7 +64,8 @@ namespace Kratos {
         virtual void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) override;
         
         virtual void Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag);
-        virtual DEMIntegrationScheme& GetIntegrationScheme() { return *mpIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetTranslationalIntegrationScheme() { return *mpTranslationalIntegrationScheme; }
+        virtual DEMIntegrationScheme& GetRotationalIntegrationScheme() { return *mpRotationalIntegrationScheme; }
    
         double GetSqrtOfRealMass();
         virtual double SlowGetDensity();
@@ -91,7 +92,8 @@ namespace Kratos {
  
     protected:
 
-        DEMIntegrationScheme* mpIntegrationScheme;        
+        DEMIntegrationScheme* mpTranslationalIntegrationScheme;
+        DEMIntegrationScheme* mpRotationalIntegrationScheme;
       
     private:
        

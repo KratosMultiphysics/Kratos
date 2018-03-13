@@ -72,7 +72,7 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
         
         results_read = False
         try: # to read the result ifle
-            result_file  = open(result_file_name, 'r')           
+            result_file  = open(result_file_name, 'r')        
             self.results = Parameters(result_file.read())
             results_read = True
         except:
@@ -839,9 +839,9 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                     self.vector_values_destination_receive)
 
     def AssignPrescribedValues(self, side_interface, direction, value_type, dictionary):
-        coordinates_x = self.results[side_interface + "_Coordinates"]["X"]
-        coordinates_y = self.results[side_interface + "_Coordinates"]["Y"]
-        coordinates_z = self.results[side_interface + "_Coordinates"]["Z"]
+        coordinates_x = self.results[side_interface + "_Coordinates"]["X"].GetVector()
+        coordinates_y = self.results[side_interface + "_Coordinates"]["Y"].GetVector()
+        coordinates_z = self.results[side_interface + "_Coordinates"]["Z"].GetVector()
 
         values = 0
         if (value_type == "Scalar"):
@@ -855,11 +855,12 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         i = 0
         value = 0
+        
         for x in coordinates_x:
             # Retreive Coordinates
-            coords = (coordinates_x[i].GetDouble(), 
-                      coordinates_y[i].GetDouble(), 
-                      coordinates_z[i].GetDouble())
+            coords = (coordinates_x[i], 
+                      coordinates_y[i], 
+                      coordinates_z[i])
 
             # Retreive Values
             if (value_type == "Scalar"):

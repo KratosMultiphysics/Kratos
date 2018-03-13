@@ -85,6 +85,11 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
+# Add Cotire
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosExternalSolversApplication)
+endif(USE_COTIRE MATCHES ON)
+
 install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module

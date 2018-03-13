@@ -168,3 +168,5 @@ class Simple3D2NBeamCrLinearTest(StructuralMechanichsTestFactory):
 class Simple3D2NBeamCrDynamicTest(StructuralMechanichsTestFactory):
     file_name = "beam_test/dynamic_3D2NBeamCr_test"  
 
+class Simple2D2NBeamCrTest(StructuralMechanichsTestFactory):
+    file_name = "beam_test/nonlinear_2D2NBeamCr_test"

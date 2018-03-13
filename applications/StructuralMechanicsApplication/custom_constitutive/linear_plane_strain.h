@@ -147,6 +147,14 @@ public:
     void FinalizeMaterialResponseCauchy (Parameters & rValues) override;
 
     /**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
+
+    /**
      * calculates the value of a specified variable
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned

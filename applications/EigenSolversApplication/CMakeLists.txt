@@ -1,0 +1,69 @@
+# 
+#   KRATOS _______
+#         / ____(_)___ ____  ____
+#        / __/ / / __ `/ _ \/ __ \
+#       / /___/ / /_/ /  __/ / / /
+#      /_____/_/\__, /\___/_/ /_/ SolversApplication
+#              /____/
+# 
+#   Author: Thomas Oberbichler
+# 
+
+set( CMAKE_INCLUDE_CURRENT_DIR ON )
+
+message( "**** configuring KratosEigenSolversApplication ****" )
+
+if( NOT DEFINED EIGEN_ROOT )
+	message( FATAL_ERROR "EIGEN_ROOT not defined" )
+endif()
+
+if( NOT MSVC )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+endif()
+
+add_definitions( -DEIGEN_DEFAULT_TO_ROW_MAJOR -DEIGEN_MPL2_ONLY )
+
+include_directories(
+	${CMAKE_SOURCE_DIR}/kratos
+	${EIGEN_ROOT}
+)
+
+if( DEFINED ENV{MKLROOT} )
+	message( "MKLROOT = $ENV{MKLROOT}" )
+	include_directories( $ENV{MKLROOT}/include )
+	add_definitions( -DEIGEN_USE_MKL_ALL )
+else()
+	message( "MKLROOT not defined" )
+endif()
+
+## generate variables with the sources
+set( KRATOS_EIGENSOLVERS_APPLICATION_SOURCES     
+	${CMAKE_CURRENT_SOURCE_DIR}/eigen_solvers_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/eigen_solvers_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_solvers_to_python.cpp
+)
+
+###############################################################
+## define library Kratos which defines the basic python interface
+add_library( KratosEigenSolversApplication SHARED ${KRATOS_EIGENSOLVERS_APPLICATION_SOURCES} )
+target_link_libraries( KratosEigenSolversApplication KratosCore )
+
+if( DEFINED ENV{MKLROOT} )
+	target_link_libraries( KratosEigenSolversApplication mkl_rt )
+endif()
+	
+set_target_properties( KratosEigenSolversApplication PROPERTIES PREFIX "" )
+install( TARGETS KratosEigenSolversApplication DESTINATION libs )
+
+# changing the .dll suffix to .pyd 
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+	set_target_properties( KratosEigenSolversApplication PROPERTIES SUFFIX .pyd )
+endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+
+if( ${INSTALL_PYTHON_FILES} MATCHES ON )
+	get_filename_component ( CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME )
+	install( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE )
+endif( ${INSTALL_PYTHON_FILES} MATCHES ON )
+
+# Add to the KratosMultiphisics Python module
+install( FILES "${CMAKE_CURRENT_SOURCE_DIR}/EigenSolversApplication.py" DESTINATION KratosMultiphysics )

@@ -31,13 +31,13 @@ namespace Python
  * @kwargs: dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
  **/
-object print(tuple args, dict kwargs) {
+object print(boost::python::tuple args, boost::python::dict kwargs) {
   std::stringstream buffer;
   LoggerOutput output(buffer);
 
   LoggerMessage message;
 
-  list keys = kwargs.keys();
+  boost::python::list keys = kwargs.keys();
 
   // Extract the tuple part
   for(int i = 0; i < len(args); ++i) {

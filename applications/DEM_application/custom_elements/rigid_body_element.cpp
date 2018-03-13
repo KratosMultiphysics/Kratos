@@ -27,17 +27,20 @@ namespace Kratos {
             
     RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
       
     RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
       
     RigidBodyElement::RigidBodyElement(IndexType NewId, NodesArrayType const& ThisNodes)
     : Element(NewId, ThisNodes) {
-        mpIntegrationScheme = NULL;
+        mpTranslationalIntegrationScheme = NULL;
+        mpRotationalIntegrationScheme = NULL;
     }
     
     Element::Pointer RigidBodyElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const {
@@ -53,7 +56,7 @@ namespace Kratos {
 
     }   
     
-    void RigidBodyElement::SetIntegrationScheme(DEMIntegrationScheme::Pointer& integration_scheme){
+    void RigidBodyElement::SetIntegrationScheme(DEMIntegrationScheme::Pointer& translational_integration_scheme, DEMIntegrationScheme::Pointer& rotational_integration_scheme){
 
     }
     

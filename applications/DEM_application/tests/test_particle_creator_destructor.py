@@ -30,7 +30,8 @@ class TestParticleCreatorDestructor(KratosUnittest.TestCase):
         DiscontinuumConstitutiveLaw.SetConstitutiveLawInProperties(properties, False)
 
         scheme = SymplecticEulerScheme()        
-        scheme.SetIntegrationSchemeInProperties(properties, False)
+        scheme.SetTranslationalIntegrationSchemeInProperties(properties, False)
+        scheme.SetRotationalIntegrationSchemeInProperties(properties, False)
 
     def test_CreateSphericParticle1(self):
         

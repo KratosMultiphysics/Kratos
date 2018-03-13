@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Peter Wilson
-//       Contact:    A.Winterstein@tum.de
+//       Contact:    A.Winterstein[at]tum.de
 //
 
 #if !defined(SHELL_THIN_ELEMENT_3D4N_H_INCLUDED )
@@ -276,10 +276,6 @@ Southern California, 2012.
 			Matrix& Output,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
-		void Calculate(const Variable<double>& rVariable,
-			double& Output,
-			const ProcessInfo& rCurrentProcessInfo) override;
-
 		///@}
 
 
@@ -482,12 +478,10 @@ Southern California, 2012.
 
 		IntegrationMethod mThisIntegrationMethod; /*!< Currently selected integration method */
 
-		double mOrthotropicSectionRotation = 0.0; /*!< In-plane rotation angle for orthotropic section */
+        ///@}
 
-												  ///@}
-
-												  ///@name Serialization
-												  ///@{
+        ///@name Serialization
+        ///@{
 		friend class Serializer;
 
 		void save(Serializer& rSerializer) const override;

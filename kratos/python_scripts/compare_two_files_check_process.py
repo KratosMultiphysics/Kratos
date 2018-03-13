@@ -39,8 +39,8 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         self.error_assumed = self.params["error_assumed"].GetDouble()
         
     def ExecuteInitialize(self):
-        self.file_name_1 = os.getcwd() + "/" + self.params["file_name_1"].GetString()
-        self.file_name_2 = os.getcwd() + "/" + self.params["file_name_2"].GetString()
+        self.file_name_1 = os.path.join(os.getcwd(), self.params["file_name_1"].GetString())
+        self.file_name_2 = os.path.join(os.getcwd(), self.params["file_name_2"].GetString())
         
     def ExecuteBeforeSolutionLoop(self):
         pass

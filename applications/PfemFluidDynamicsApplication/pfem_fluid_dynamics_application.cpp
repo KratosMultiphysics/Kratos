@@ -51,7 +51,8 @@
 namespace Kratos
 {
 
-  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication():   
+  KratosPfemFluidDynamicsApplication::KratosPfemFluidDynamicsApplication():
+    KratosApplication("PfemFluidDynamicsApplication"),
     mTwoStepUpdatedLagrangianVPElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mTwoStepUpdatedLagrangianVPElement2Dquadratic(0, Element::GeometryType::Pointer(new Triangle2D6<Node<3> >(Element::GeometryType::PointsArrayType(6)))),
     mTwoStepUpdatedLagrangianVPElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -95,6 +96,10 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(TIME_INTERVAL_CHANGED);
     KRATOS_REGISTER_VARIABLE(BAD_VELOCITY_CONVERGENCE);
     KRATOS_REGISTER_VARIABLE(BAD_PRESSURE_CONVERGENCE);
+
+    KRATOS_REGISTER_VARIABLE(FLOW_INDEX)
+    KRATOS_REGISTER_VARIABLE(YIELD_SHEAR)
+    KRATOS_REGISTER_VARIABLE(ADAPTIVE_EXPONENT)
 
     KRATOS_REGISTER_VARIABLE(PRESSURE_VELOCITY)
       KRATOS_REGISTER_VARIABLE(PRESSURE_ACCELERATION)

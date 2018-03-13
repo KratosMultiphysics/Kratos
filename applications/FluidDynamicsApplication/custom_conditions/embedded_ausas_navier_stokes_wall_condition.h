@@ -27,6 +27,8 @@
 #include "includes/model_part.h"
 #include "includes/serializer.h"
 #include "includes/process_info.h"
+#include "modified_shape_functions/triangle_2d_3_ausas_modified_shape_functions.h"
+#include "modified_shape_functions/tetrahedra_3d_4_ausas_modified_shape_functions.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -71,27 +73,21 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of EmbeddedAusasNavierStokesWallCondition
-    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedAusasNavierStokesWallCondition);
-
-    struct ConditionDataStruct
-    {
-        double wGauss;                 // Gauss point weight
-        // double charVel;                // Problem characteristic velocity (used in the outlet inflow prevention)
-        // double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
-        array_1d<double, 3> Normal;    // Condition normal
-        array_1d<double, TNumNodes> N; // Gauss point shape functions values
-
-        bounded_matrix<double, TNumNodes, TDim> v; // Current step velocity
-    };
-
     typedef Node < 3 > NodeType;
 
     typedef Properties PropertiesType;
 
     typedef Geometry<NodeType> GeometryType;
 
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
+    typedef GeometryType::Pointer GeometryPointerType;
+
+    typedef GeometryType::PointsArrayType NodesArrayType;
+
+    typedef GeometryType::CoordinatesArrayType CoordinatesArrayType;
+
+    typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+
+    typedef Element::WeakPointer ElementWeakPointerType;
 
     typedef Vector VectorType;
 
@@ -103,39 +99,64 @@ public:
 
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
+    /// Pointer definition of EmbeddedAusasNavierStokesWallCondition
+    KRATOS_CLASS_POINTER_DEFINITION(EmbeddedAusasNavierStokesWallCondition);
+
+    struct ConditionDataStruct
+    {
+        // double charVel;                // Problem characteristic velocity (used in the outlet inflow prevention)
+        // double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
+
+        // Data required in the RHS and LHS calculation
+        double wGauss;                              // Gauss point weight
+        array_1d<double, 3> Normal;                 // Condition normal
+        array_1d<double, TNumNodes> N;              // Gauss point shape functions values
+        bounded_matrix<double, TNumNodes, TDim> v;  // Current step velocity
+
+        // Data containers for no-split faces
+        MatrixType N_container;
+        VectorType w_gauss_container;
+        std::vector<VectorType> area_normals_container;
+
+        // Data containers for split faces
+        // Positive face geometry data
+        MatrixType N_pos_face;                          // Positive interface Gauss pts. shape functions values
+        ShapeFunctionsGradientsType DN_DX_pos_face;     // Positive interface Gauss pts. shape functions gradients values
+        VectorType w_gauss_pos_face;                    // Positive interface Gauss pts. weights
+        std::vector<VectorType> pos_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
+
+        // Negative face geometry data
+        MatrixType N_neg_face;                          // Positive interface Gauss pts. shape functions values
+        ShapeFunctionsGradientsType DN_DX_neg_face;     // Positive interface Gauss pts. shape functions gradients values
+        VectorType w_gauss_neg_face;                    // Positive interface Gauss pts. weights
+        std::vector<VectorType> neg_face_area_normals;  // Positive interface unit normal vector in each Gauss pt.
+    };
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     /** Admits an Id as a parameter.
-      @param NewId Index for the new         // Struct to pass around the data
-        ConditionDataStruct data;
-        this->FillElementData(data, rCurrentProcessInfo);condition
-      */
-    EmbeddedAusasNavierStokesWallCondition(IndexType NewId = 0):Condition(NewId)
-    {
-    }
+     @param NewId Index for the new         
+     */
+    EmbeddedAusasNavierStokesWallCondition(IndexType NewId = 0) : Condition(NewId) {}
 
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
      @param ThisNodes An array containing the nodes of the new condition
      */
-    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, const NodesArrayType& ThisNodes):
-        Condition(NewId,ThisNodes)
-    {
-    }
+    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, const NodesArrayType& ThisNodes) :
+        Condition(NewId,ThisNodes) {}
 
     /// Constructor using Geometry
     /**
      @param NewId Index of the new condition
      @param pGeometry Pointer to a geometry object
      */
-    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry):
-        Condition(NewId,pGeometry)
-    {
-    }
+    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry) :
+        Condition(NewId,pGeometry) {}
 
     /// Constructor using Properties
     /**
@@ -143,16 +164,12 @@ public:
      @param pGeometry Pointer to a geometry object
      @param pProperties Pointer to the element's properties
      */
-    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
-        Condition(NewId,pGeometry,pProperties)
-    {
-    }
+    EmbeddedAusasNavierStokesWallCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) :
+        Condition(NewId,pGeometry,pProperties) {}
 
     /// Copy constructor.
-    EmbeddedAusasNavierStokesWallCondition(EmbeddedAusasNavierStokesWallCondition const& rOther):
-        Condition(rOther)
-    {
-    }
+    EmbeddedAusasNavierStokesWallCondition(EmbeddedAusasNavierStokesWallCondition const& rOther) :
+        Condition(rOther) {}
 
     /// Destructor.
     ~EmbeddedAusasNavierStokesWallCondition() override {}
@@ -163,8 +180,7 @@ public:
     ///@{
 
     /// Assignment operator
-    EmbeddedAusasNavierStokesWallCondition & operator=(EmbeddedAusasNavierStokesWallCondition const& rOther)
-    {
+    EmbeddedAusasNavierStokesWallCondition & operator=(EmbeddedAusasNavierStokesWallCondition const& rOther) {
         Condition::operator=(rOther);
         return *this;
     }
@@ -179,8 +195,7 @@ public:
       @param ThisNodes An array containing the nodes of the new condition
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
-    {
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override {
         return Condition::Pointer(new EmbeddedAusasNavierStokesWallCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
@@ -190,8 +205,7 @@ public:
       @param pGeom A pointer to the condition's geometry
       @param pProperties Pointer to the element's properties
       */
-    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
-    {
+    Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override {
         return boost::make_shared< EmbeddedAusasNavierStokesWallCondition >(NewId, pGeom, pProperties);
     }
 
@@ -201,14 +215,109 @@ public:
      * @param ThisNodes: the nodes of the new element
      * @return a Pointer to the new element
      */
-    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
-    {
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override {
         Condition::Pointer pNewCondition = Create(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
         pNewCondition->SetData(this->GetData());
         pNewCondition->SetFlags(this->GetFlags());
 
         return pNewCondition;
+    }
+
+    /**
+     * If the condition is split, sets the flag TO_SPLIT and finds 
+     *  the condition parent element.
+     * Note that this needs to be done at each time step for that cases 
+     * in where the distance function varies.
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override {
+        KRATOS_TRY;
+
+        // Set a reference to the current condition geometry
+        GeometryType &r_geometry = this->GetGeometry();
+
+        // Check if the condition is split
+        unsigned int n_pos = 0, n_neg = 0;
+        for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+            const double aux_dist = r_geometry[i_node].FastGetSolutionStepValue(DISTANCE);
+            if (aux_dist < 0) {
+                n_neg++;
+            } else {
+                n_pos++;
+            }
+        }
+
+        if (n_pos != 0 && n_neg != 0) {
+            this->Set(TO_SPLIT, true);
+        } else {
+            this->Set(TO_SPLIT, false);
+        }
+
+        // If the condition is split, save a pointer to its parent element
+        if (this->Is(TO_SPLIT)) {
+
+            // Get all the possible element candidates
+            WeakPointerVector<Element> element_candidates;
+            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+                WeakPointerVector<Element> &r_node_element_candidates = r_geometry[i_node].GetValue(NEIGHBOUR_ELEMENTS);
+                for (unsigned int j = 0; j < r_node_element_candidates.size(); j++) {
+                    element_candidates.push_back(r_node_element_candidates(j));
+                }
+            }
+
+            // Check that the condition has candidate parent elements
+            KRATOS_ERROR_IF(element_candidates.size() == 0) << 
+                "Condition " << this->Id() << " has no candidate parent elements.\n" << 
+                "Check that the FindNodalNeighboursProcess has been executed.";
+
+            // Get a sort array with the current condition nodal ids 
+            std::vector<unsigned int> node_ids(TNumNodes), element_nodes_ids;
+
+            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+                node_ids[i_node] = r_geometry[i_node].Id();
+            }
+            std::sort(node_ids.begin(), node_ids.end());
+
+            // Iterate the candidate elements
+            for (unsigned int i_candidate = 0; i_candidate < element_candidates.size(); ++i_candidate) {
+                GeometryType &r_elem_geom = element_candidates[i_candidate].GetGeometry();
+                const unsigned int n_elem_nodes = r_elem_geom.PointsNumber();
+
+                // Get a sort array with the iterated candidate element nodal ids
+                element_nodes_ids.resize(n_elem_nodes);
+                for (unsigned int j = 0; j < n_elem_nodes; ++j) {
+                    element_nodes_ids[j] = r_elem_geom[j].Id();
+                }
+                std::sort(element_nodes_ids.begin(), element_nodes_ids.end());
+
+                // Check if the current condition ids are included in the iterated candidate element nodal ids 
+                if (std::includes(element_nodes_ids.begin(), element_nodes_ids.end(), node_ids.begin(), node_ids.end())) {
+                    // Save a pointer to the parent element
+                    mpParentElement = element_candidates(i_candidate);
+
+                    // Save the parent element local ids. corresponding to the condition nodes
+                    mParentElementIds.resize(TNumNodes);
+
+                    std::vector<unsigned int > aux_elem_ids(n_elem_nodes);
+                    for (unsigned int j = 0; j < n_elem_nodes; ++j) {
+                        aux_elem_ids[j] = r_elem_geom[j].Id();
+                    }
+
+                    for (unsigned int i = 0; i < TNumNodes; ++i) {
+                        const unsigned int aux_id = r_geometry[i].Id();
+                        const std::vector<unsigned int >::iterator aux_it = std::find(aux_elem_ids.begin(), aux_elem_ids.end(), aux_id);
+                        mParentElementIds[i] = std::distance(aux_elem_ids.begin(), aux_it);
+                    }
+
+                    // Leave the parent element search
+                    return;
+                }
+            }
+
+            KRATOS_ERROR << "Condition " << this->Id() << " cannot find parent element.";
+        }
+
+        KRATOS_CATCH("Error in EmbeddedAusasNavierStokesWallCondition InitializeSolutionStep() method.");
     }
 
     /// Calculates the LHS and RHS condition contributions
@@ -227,14 +336,14 @@ public:
         constexpr unsigned int MatrixSize = TNumNodes*(TDim+1);
 
         if (rLeftHandSideMatrix.size1() != MatrixSize)
-            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false); //false says not to preserve existing storage!!
+            rLeftHandSideMatrix.resize(MatrixSize, MatrixSize, false);
 
         if (rRightHandSideVector.size() != MatrixSize)
-            rRightHandSideVector.resize(MatrixSize, false); //false says not to preserve existing storage!!
+            rRightHandSideVector.resize(MatrixSize, false);
 
         // Struct to pass around the data
         ConditionDataStruct data;
-        this->FillElementData(data);
+        this->FillConditionData(data);
 
         // Allocate memory needed
         array_1d<double, MatrixSize> rhs_gauss;
@@ -249,26 +358,61 @@ public:
         // const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
         // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
-        // Gauss point information
-        GeometryType& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const unsigned int NumGauss = IntegrationPoints.size();
-        Vector GaussPtsJDet = ZeroVector(NumGauss);
-        rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-        const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
         // Loop on gauss points
-        for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
-        {
-            data.N = row(Ncontainer, igauss);
-            const double J = GaussPtsJDet[igauss];
-            data.wGauss = J * IntegrationPoints[igauss].Weight();
+        if (this->Is(TO_SPLIT)) {
 
-            ComputeGaussPointRHSContribution(rhs_gauss, data);
-            ComputeGaussPointLHSContribution(lhs_gauss, data);
+            // Positive side Gauss pts. loop
+            const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss_pos; ++i_gauss) {
+                
+                Vector aux_N = row(data.N_pos_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
+                data.wGauss = data.w_gauss_pos_face(i_gauss);
+                data.Normal = data.pos_face_area_normals[i_gauss];
+                data.Normal /= norm_2(data.Normal); // Normalize the area normal
 
-            noalias(rLeftHandSideMatrix) += lhs_gauss;
-            noalias(rRightHandSideVector) += rhs_gauss;
+                ComputeGaussPointRHSContribution(rhs_gauss, data);
+                ComputeGaussPointLHSContribution(lhs_gauss, data);
+
+                noalias(rLeftHandSideMatrix) += lhs_gauss;
+                noalias(rRightHandSideVector) += rhs_gauss;
+            }
+
+            // Negative side Gauss pts. loop
+            const unsigned int n_gauss_neg = (data.w_gauss_neg_face).size();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss_neg; ++i_gauss) {
+                
+                Vector aux_N = row(data.N_neg_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
+                data.wGauss = data.w_gauss_neg_face(i_gauss);
+                data.Normal = data.neg_face_area_normals[i_gauss];
+                data.Normal /= norm_2(data.Normal); // Normalize the area normal
+
+                ComputeGaussPointRHSContribution(rhs_gauss, data);
+                ComputeGaussPointLHSContribution(lhs_gauss, data);
+
+                noalias(rLeftHandSideMatrix) += lhs_gauss;
+                noalias(rRightHandSideVector) += rhs_gauss;
+            }
+        } else {
+            const unsigned int n_gauss = (data.w_gauss_container).size();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+
+                data.N = row(data.N_container, i_gauss);
+                data.wGauss = data.w_gauss_container(i_gauss);
+                data.Normal = data.area_normals_container[i_gauss];
+                data.Normal /= norm_2(data.Normal); // Normalize the area normal
+
+                ComputeGaussPointRHSContribution(rhs_gauss, data);
+                ComputeGaussPointLHSContribution(lhs_gauss, data);
+
+                noalias(rLeftHandSideMatrix) += lhs_gauss;
+                noalias(rRightHandSideVector) += rhs_gauss;
+            }
         }
 
         KRATOS_CATCH("")
@@ -292,7 +436,7 @@ public:
 
         // Struct to pass around the data
         ConditionDataStruct data;
-        this->FillElementData(data);
+        this->FillConditionData(data);
 
         // Allocate memory needed
         bounded_matrix<double, MatrixSize, MatrixSize> lhs_gauss;
@@ -300,24 +444,55 @@ public:
         // LHS contributions initialization
         noalias(rLeftHandSideMatrix) = ZeroMatrix(MatrixSize, MatrixSize);
 
-        // Gauss point information
-        GeometryType &rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType &IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const unsigned int NumGauss = IntegrationPoints.size();
-        Vector GaussPtsJDet = ZeroVector(NumGauss);
-        rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-        const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
         // Loop on gauss points
-        for (unsigned int igauss = 0; igauss < NumGauss; igauss++)
-        {
-            data.N = row(Ncontainer, igauss);
-            const double J = GaussPtsJDet[igauss];
-            data.wGauss = J * IntegrationPoints[igauss].Weight();
+        if (this->Is(TO_SPLIT)) {
 
-            ComputeGaussPointLHSContribution(lhs_gauss, data);
+            // Positive side Gauss pts. loop
+            const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss_pos; ++i_gauss) {
 
-            noalias(rLeftHandSideMatrix) += lhs_gauss;
+                Vector aux_N = row(data.N_pos_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
+                data.wGauss = data.w_gauss_pos_face(i_gauss);
+                data.Normal = data.pos_face_area_normals[i_gauss];
+                data.Normal /= norm_2(data.Normal); // Normalize the area normal
+
+                ComputeGaussPointLHSContribution(lhs_gauss, data);
+
+                noalias(rLeftHandSideMatrix) += lhs_gauss;
+            }
+
+            // Negative side Gauss pts. loop
+            const unsigned int n_gauss_neg = (data.w_gauss_neg_face).size();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss_neg; ++i_gauss) {
+
+                Vector aux_N = row(data.N_neg_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
+                data.wGauss = data.w_gauss_neg_face(i_gauss);
+                data.Normal = data.neg_face_area_normals[i_gauss];
+                data.Normal /= norm_2(data.Normal); // Normalize the area normal
+
+                ComputeGaussPointLHSContribution(lhs_gauss, data);
+
+                noalias(rLeftHandSideMatrix) += lhs_gauss;
+            }
+        } else {
+            const unsigned int n_gauss = (data.w_gauss_container).size();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+
+                data.N = row(data.N_container, i_gauss);
+                data.wGauss = data.w_gauss_container(i_gauss);
+                data.Normal = data.area_normals_container[i_gauss];
+                data.Normal /= norm_2(data.Normal); // Normalize the area normal
+
+                ComputeGaussPointLHSContribution(lhs_gauss, data);
+
+                noalias(rLeftHandSideMatrix) += lhs_gauss;
+            }
         }
 
         KRATOS_CATCH("")
@@ -341,7 +516,7 @@ public:
 
         // Struct to pass around the data
         ConditionDataStruct data;
-        this->FillElementData(data);
+        this->FillConditionData(data);
 
         // Allocate memory needed
         array_1d<double,MatrixSize> rhs_gauss;
@@ -354,23 +529,55 @@ public:
         // const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
         // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
-        // Gauss point information
-        GeometryType& rGeom = this->GetGeometry();
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const unsigned int NumGauss = IntegrationPoints.size();
-        Vector GaussPtsJDet = ZeroVector(NumGauss);
-        rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::GI_GAUSS_2);
-        const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        // Loop on gauss points
+        if (this->Is(TO_SPLIT)) {
 
-        for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
-        {
-            data.N = row(Ncontainer, igauss);
-            const double J = GaussPtsJDet[igauss];
-            data.wGauss = J * IntegrationPoints[igauss].Weight();
+            // Positive side Gauss pts. loop
+            const unsigned int n_gauss_pos = (data.w_gauss_pos_face).size();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss_pos; ++i_gauss) {
 
-            ComputeGaussPointRHSContribution(rhs_gauss, data);
+                Vector aux_N = row(data.N_pos_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
+                data.wGauss = data.w_gauss_pos_face(i_gauss);
+                data.Normal = data.pos_face_area_normals[i_gauss];
+                data.Normal /= norm_2(data.Normal); // Normalize the area normal
 
-            noalias(rRightHandSideVector) += rhs_gauss;
+                ComputeGaussPointRHSContribution(rhs_gauss, data);
+
+                noalias(rRightHandSideVector) += rhs_gauss;
+            }
+
+            // Negative side Gauss pts. loop
+            const unsigned int n_gauss_neg = (data.w_gauss_neg_face).size();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss_neg; ++i_gauss) {
+
+                Vector aux_N = row(data.N_neg_face, i_gauss);
+                for (unsigned int i = 0; i < TNumNodes; ++i) {
+                    data.N(i) = aux_N(mParentElementIds[i]);
+                }
+                data.wGauss = data.w_gauss_neg_face(i_gauss);
+                data.Normal = data.neg_face_area_normals[i_gauss];
+                data.Normal /= norm_2(data.Normal); // Normalize the area normal
+
+                ComputeGaussPointRHSContribution(rhs_gauss, data);
+                
+                noalias(rRightHandSideVector) += rhs_gauss;
+            }
+        } else {
+            const unsigned int n_gauss = (data.w_gauss_container).size();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+
+                data.N = row(data.N_container, i_gauss);
+                data.wGauss = data.w_gauss_container(i_gauss);
+                data.Normal = data.area_normals_container[i_gauss];
+                data.Normal /= norm_2(data.Normal); // Normalize the area normal
+
+                ComputeGaussPointRHSContribution(rhs_gauss, data);
+
+                noalias(rRightHandSideVector) += rhs_gauss;
+            }
         }
 
         KRATOS_CATCH("")
@@ -389,12 +596,9 @@ public:
 
         int Check = Condition::Check(rCurrentProcessInfo); // Checks id > 0 and area > 0
 
-        if (Check != 0)
-        {
+        if (Check != 0) {
             return Check;
-        }
-        else
-        {
+        } else {
             // Check that all required variables have been registered
             if(VELOCITY.Key() == 0)
                 KRATOS_ERROR << "VELOCITY Key is 0. Check if the application was correctly registered.";
@@ -410,11 +614,12 @@ public:
                 KRATOS_ERROR << "DYNAMIC_VISCOSITY Key is 0. Check if the application was correctly registered.";
             if(EXTERNAL_PRESSURE.Key() == 0)
                 KRATOS_ERROR << "EXTERNAL_PRESSURE Key is 0. Check if the application was correctly registered.";
+            if(DISTANCE.Key() == 0)
+                KRATOS_ERROR << "DISTANCE Key is 0. Check if the application was correctly registered.";
 
             // Checks on nodes
             // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-            for(unsigned int i=0; i<rGeom.size(); ++i)
-            {
+            for(unsigned int i = 0; i < rGeom.size(); ++i) {
                 if(rGeom[i].SolutionStepsDataHas(VELOCITY) == false)
                     KRATOS_ERROR << "Missing VELOCITY variable on solution step data for node " << rGeom[i].Id();
                 if(rGeom[i].SolutionStepsDataHas(PRESSURE) == false)
@@ -425,6 +630,8 @@ public:
                     KRATOS_ERROR << "Missing ACCELERATION variable on solution step data for node " << rGeom[i].Id();
                 if(rGeom[i].SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
                     KRATOS_ERROR << "Missing EXTERNAL_PRESSURE variable on solution step data for node " << rGeom[i].Id();
+                if(rGeom[i].SolutionStepsDataHas(DISTANCE) == false)
+                    KRATOS_ERROR << "Missing DISTANCE variable on solution step data for node " << rGeom[i].Id();
                 if(rGeom[i].HasDofFor(VELOCITY_X) == false || rGeom[i].HasDofFor(VELOCITY_Y) == false || rGeom[i].HasDofFor(VELOCITY_Z) == false)
                     KRATOS_ERROR << "Missing VELOCITY component degree of freedom on node " << rGeom[i].Id();
                 if(rGeom[i].HasDofFor(PRESSURE) == false)
@@ -466,27 +673,23 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
+    std::string Info() const override {
         std::stringstream buffer;
         buffer << "EmbeddedAusasNavierStokesWallCondition" << TDim << "D";
         return buffer.str();
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "EmbeddedAusasNavierStokesWallCondition";
+    void PrintInfo(std::ostream& rOStream) const override {
+        rOStream << Info() << "\nCondition id: " << Id();
     }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
 
-
     ///@}
     ///@name Friends
     ///@{
-
 
     ///@}
 
@@ -494,22 +697,25 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
 
-    void CalculateNormal(array_1d<double,3>& An);
+    Element::Pointer pGetElement() {
+		return mpParentElement.lock();
+	}
+
+    std::vector<unsigned int > GetParentElementIds() {
+        return mParentElementIds;
+    }
 
     void ComputeGaussPointLHSContribution(bounded_matrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& lhs, const ConditionDataStruct& data);
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
@@ -518,22 +724,128 @@ protected:
     // void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
 
     // Auxiliar function to fill the element data structure
-    void FillElementData(ConditionDataStruct &rData)
+    void FillConditionData(ConditionDataStruct &rData)
     {
-        const GeometryType& rGeom = this->GetGeometry();
+        const GeometryType& r_geometry = this->GetGeometry();
 
-        // Compute condition normal
-        this->CalculateNormal(rData.Normal);    // This already contains the area
-        const double A = norm_2(rData.Normal);  // Compute the element area
-        rData.Normal /= A;                      // Divide by the area to get the unit normal vector
+        // If the element is split, take the values from the parent element modified shape functions utility
+        // Otherwise, take the values from the current condition geometry
+        if (this->Is(TO_SPLIT)) {
+            // Get the parent element nodal distances
+            Element::Pointer p_parent_element = this->pGetElement();
+            GeometryPointerType p_parent_geometry = p_parent_element->pGetGeometry();
+            const Vector &distances = p_parent_element->GetValue(ELEMENTAL_DISTANCES);
+            const unsigned int n_parent_nodes = p_parent_geometry->PointsNumber();
+
+            // Construct the modified shape functions utility with the parent element pointer
+            ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = nullptr;
+            if (n_parent_nodes == 4) {
+                p_ausas_modified_sh_func = boost::make_shared<Tetrahedra3D4AusasModifiedShapeFunctions>(p_parent_geometry, distances);
+            }
+            else if (n_parent_nodes == 3) {
+                p_ausas_modified_sh_func = boost::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_parent_geometry, distances);
+            } else {
+                KRATOS_ERROR << "Asking for a non-implemented geometry modified shape functions utility.";
+            }
+
+            // Get the current condition global ids
+            std::vector<unsigned int> cond_ids(TNumNodes);
+            for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+                cond_ids[i_node] = r_geometry[i_node].Id();
+            }
+            std::sort(cond_ids.begin(), cond_ids.end());
+
+            matrix<unsigned int> elem_face_loc_ids;
+            vector<unsigned int> elem_nodes_in_face;
+            p_parent_geometry->NodesInFaces(elem_face_loc_ids);
+            p_parent_geometry->NumberNodesInFaces(elem_nodes_in_face);
+            const unsigned int n_elem_faces = elem_face_loc_ids.size2();
+
+            // Iterate the element faces to find the condition correspondent one
+            unsigned int face_id = n_elem_faces + 1;
+            for (unsigned int i_face = 0; i_face < n_elem_faces; ++i_face) {
+                const unsigned int n_face_nodes = elem_nodes_in_face(i_face);
+
+                // Get the element face local nodal ids
+                // Note that the first index represent the node out of the face
+                // (check this in case quads or tetras are used).
+                std::vector<unsigned int> face_loc_ids(n_face_nodes);
+                for (unsigned int i_node = 0; i_node < n_face_nodes; ++i_node) {
+                    face_loc_ids[i_node] = elem_face_loc_ids(i_node + 1, i_face);
+                }
+                
+                // Get the element face global nodal ids
+                std::vector<unsigned int> face_glob_ids(n_face_nodes);
+                for (unsigned int i_node = 0; i_node < n_face_nodes; ++i_node) {
+                    const int aux_loc_id = face_loc_ids[i_node];
+                    face_glob_ids[i_node] = (*p_parent_geometry)[aux_loc_id].Id();
+                }
+                std::sort(face_glob_ids.begin(), face_glob_ids.end());
+
+                // Check if the element face global ids correspond with the current condition ones
+                if (std::includes(face_glob_ids.begin(), face_glob_ids.end(), cond_ids.begin(), cond_ids.end())) {
+                    face_id = i_face;
+                    break;
+                }
+            }
+
+            KRATOS_ERROR_IF(face_id == n_elem_faces + 1) << 
+                "No parent element face found for condition " << this->Id() << " and parent element " << p_parent_element->Id();
+
+            // Call the positive and negative sides modified shape functions face utilities
+            p_ausas_modified_sh_func->ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+                rData.N_pos_face,
+                rData.DN_DX_pos_face,
+                rData.w_gauss_pos_face,
+                face_id,
+                GeometryData::GI_GAUSS_2);
+
+            p_ausas_modified_sh_func->ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+                rData.N_neg_face,
+                rData.DN_DX_neg_face,
+                rData.w_gauss_neg_face,
+                face_id,
+                GeometryData::GI_GAUSS_2);
+
+            p_ausas_modified_sh_func->ComputePositiveExteriorFaceAreaNormals(
+                rData.pos_face_area_normals,
+                face_id,
+                GeometryData::GI_GAUSS_2);
+
+            p_ausas_modified_sh_func->ComputeNegativeExteriorFaceAreaNormals(
+                rData.neg_face_area_normals,
+                face_id,
+                GeometryData::GI_GAUSS_2);
+            
+        } else {
+            // If the condition is not split, take the geometry shape function values
+            GeometryType::IntegrationPointsArrayType integration_points = r_geometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
+            const unsigned int n_gauss = integration_points.size();
+
+            // Get the condition geometry shape functions values
+            rData.N_container = r_geometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+            // Compute each Gauss pt. weight
+            Vector gauss_pts_J_det(n_gauss);
+            r_geometry.DeterminantOfJacobian(gauss_pts_J_det, GeometryData::GI_GAUSS_2);
+            (rData.w_gauss_container).resize(n_gauss);
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+                rData.w_gauss_container(i_gauss) = integration_points[i_gauss].Weight() * gauss_pts_J_det(i_gauss);
+            }
+
+            // Compute each Gauss pt. area normal
+            (rData.area_normals_container).clear();
+            for (unsigned int i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+                const CoordinatesArrayType& gauss_pt_loc_coords = integration_points[i_gauss].Coordinates();
+                (rData.area_normals_container).push_back(r_geometry.AreaNormal(gauss_pt_loc_coords));
+            }
+        }
 
         // Fill the nodal velocity array
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            const array_1d<double, 3> &vel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int i = 0; i < TNumNodes; i++) {
+            const array_1d<double, 3> &vel = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
 
-            for (unsigned int k = 0; k < TDim; k++)
-            {
+            for (unsigned int k = 0; k < TDim; k++) {
                 rData.v(i, k) = vel[k];
             }
         }
@@ -564,7 +876,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    
+    ElementWeakPointerType mpParentElement;
+    std::vector<unsigned int> mParentElementIds;
 
     ///@}
     ///@name Serialization

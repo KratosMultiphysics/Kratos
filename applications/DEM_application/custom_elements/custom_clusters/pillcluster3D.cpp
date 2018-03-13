@@ -69,32 +69,32 @@ namespace Kratos {
         double sinusoidal_factor = 0.5 * Globals::Pi / (20.0/4.0 - 1);
              
         for (int i = 0; i < 20; i++) {           
-            mListOfCoordinates[i][0] = 0.45 * cl * cos(sinusoidal_factor * i); ////APPROXIMATE COORDINATES, CALCULATE MORE EXACTLY
-            mListOfCoordinates[i][1] = 0.45 * cl * sin(sinusoidal_factor * i);
+            mListOfCoordinates[i][0] = 0.45 * cl * std::cos(sinusoidal_factor * i); ////APPROXIMATE COORDINATES, CALCULATE MORE EXACTLY
+            mListOfCoordinates[i][1] = 0.45 * cl * std::sin(sinusoidal_factor * i);
             mListOfCoordinates[i][2] = 0.0;
         }
         
         sinusoidal_factor = 0.5 * Globals::Pi / (16.0/4.0 - 1);
         
         for (int i = 0; i < 16; i++) {           
-            mListOfCoordinates[20 + i][0] = 0.35 * cl * cos(sinusoidal_factor * i);
-            mListOfCoordinates[20 + i][1] = 0.35 * cl * sin(sinusoidal_factor * i);
+            mListOfCoordinates[20 + i][0] = 0.35 * cl * std::cos(sinusoidal_factor * i);
+            mListOfCoordinates[20 + i][1] = 0.35 * cl * std::sin(sinusoidal_factor * i);
             mListOfCoordinates[20 + i][2] = 0.0;
         }
         
         sinusoidal_factor = 0.5 * Globals::Pi / (12.0/4.0 - 1);
         
         for (int i = 0; i < 12; i++) {           
-            mListOfCoordinates[36 + i][0] = 0.25 * cl * cos(sinusoidal_factor * i); 
-            mListOfCoordinates[36 + i][1] = 0.25 * cl * sin(sinusoidal_factor * i);
+            mListOfCoordinates[36 + i][0] = 0.25 * cl * std::cos(sinusoidal_factor * i); 
+            mListOfCoordinates[36 + i][1] = 0.25 * cl * std::sin(sinusoidal_factor * i);
             mListOfCoordinates[36 + i][2] = 0.0;
         }
         
         sinusoidal_factor = 0.333333333333333333 * Globals::Pi;
         
         for (int i = 0; i <  6; i++) {           
-            mListOfCoordinates[48 + i][0] = 0.15 * cl * cos(sinusoidal_factor * i); 
-            mListOfCoordinates[48 + i][1] = 0.15 * cl * sin(sinusoidal_factor * i);
+            mListOfCoordinates[48 + i][0] = 0.15 * cl * std::cos(sinusoidal_factor * i); 
+            mListOfCoordinates[48 + i][1] = 0.15 * cl * std::sin(sinusoidal_factor * i);
             mListOfCoordinates[48 + i][2] = 0.0;
         }
         
@@ -116,8 +116,8 @@ namespace Kratos {
 //            
 //                mListOfRadii[i + number_of_spheres_per_pass * j]= 0.1 * cl;
 //            
-//                mListOfCoordinates[i + number_of_spheres_per_pass * j][0] = (0.05 + 0.1 * j) * cl * cos(sinusoidal_factor * i); ////APPROXIMATE COORDINATES, CALCULATE MORE EXACTLY
-//                mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = (0.05 + 0.1 * j) * cl * sin(sinusoidal_factor * i);
+//                mListOfCoordinates[i + number_of_spheres_per_pass * j][0] = (0.05 + 0.1 * j) * cl * std::cos(sinusoidal_factor * i); ////APPROXIMATE COORDINATES, CALCULATE MORE EXACTLY
+//                mListOfCoordinates[i + number_of_spheres_per_pass * j][1] = (0.05 + 0.1 * j) * cl * std::sin(sinusoidal_factor * i);
 //                mListOfCoordinates[i + number_of_spheres_per_pass * j][2] = 0.0;
 //            
 //            }

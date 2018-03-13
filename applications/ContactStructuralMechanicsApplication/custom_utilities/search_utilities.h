@@ -426,7 +426,7 @@ private:
             {
                 Point projected_point;
                 double aux_distance = 0.0;
-                const array_1d<double, 3> normal = Geom1[i_node].GetValue(NORMAL);
+                const array_1d<double, 3>& normal = Geom1[i_node].FastGetSolutionStepValue(NORMAL);
                 if (norm_2(normal) < Tolerance)
                 {
                     aux_distance = MortarUtilities::FastProjectDirection(Geom2, Geom1[i_node], projected_point, ContactNormal2, ContactNormal1);

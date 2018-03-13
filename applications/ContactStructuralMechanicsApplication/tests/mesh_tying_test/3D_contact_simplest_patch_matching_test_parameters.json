@@ -100,7 +100,7 @@
             "node_output"         : true,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
+            "nodal_results"       : ["DISPLACEMENT","NORMAL","REACTION","VECTOR_LAGRANGE_MULTIPLIER"],
             "nodal_flags_results": ["ACTIVE"],
             "gauss_point_results" : []
         },

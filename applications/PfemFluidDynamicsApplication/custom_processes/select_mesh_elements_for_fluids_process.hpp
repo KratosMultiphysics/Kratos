@@ -353,39 +353,41 @@ public:
 	      	// }
 	      }
 	      
-	      //5.- to control that the element has a good shape
-	      if(accepted && (numfreesurf>0 || numrigid==nds))
-	      	{
-	      	  if(dimension==2 && nds==3){
+	      // //5.- to control that the element has a good shape
+	      // if(accepted && (numfreesurf>0 || numrigid==nds))
+	      // 	{
+	      // 	  if(dimension==2 && nds==3){
 
-	      	    Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
-	      	    double Area = triangle->Area();
-	      	    double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
-	      	    if(Area<CriticalArea){
-	      	      std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
-	      	      accepted = false;
-	      	      number_of_slivers++;
-	      	    }
-	      	    delete triangle;
+	      // 	    Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
+	      // 	    double Area = triangle->Area();
+	      // 	    double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
+	      // 	    if(Area<CriticalArea){
+	      // 	      std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
+	      // 	      accepted = false;
+	      // 	      number_of_slivers++;
+	      // 	    }
+	      // 	    delete triangle;
 
-	      	  }else if(dimension==3 && nds==4){
-	      	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
-	      	    double Volume = tetrahedron->Volume();
-	      	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
-	      	    if(Volume<CriticalVolume){
-	      	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
-	      	      // for( unsigned int n=0; n<nds; n++)
-	      	      // 	{
-	      	      // 	  vertices[n].Set(INTERFACE);
-	      	      // 	  sliverNodes++;
-       	      	      // 	}
-	      	      accepted = false;
-	      	      number_of_slivers++;
-	      	    }
-	      	    delete tetrahedron;
-	      	  }
+	      // 	  }else if(dimension==3 && nds==4){
+	      // 	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
+	      // 	    double Volume = tetrahedron->Volume();
+	      // 	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
+	      // 	    if(Volume<CriticalVolume){
+	      // 	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
+	      // 	      // for( unsigned int n=0; n<nds; n++)
+	      // 	      // 	{
+	      // 	      // 	  vertices[n].Set(INTERFACE);
+	      // 	      // 	  sliverNodes++;
+       	      // 	      // 	}
+	      // 	      accepted = false;
+	      // 	      number_of_slivers++;
+	      // 	    }
+	      // 	    delete tetrahedron;
+	      // 	  }
 
-	      	}
+	      // 	}
+
+
 	      // else{
 
 	      // 	if((numisolated+numrigid+numfreesurf)<3 && (numisolated+numfreesurf)<nds && (numisolated+numrigid)<nds && numfreesurf>0 && firstMesh==false){

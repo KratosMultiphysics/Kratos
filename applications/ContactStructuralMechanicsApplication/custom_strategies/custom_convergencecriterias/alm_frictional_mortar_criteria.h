@@ -176,26 +176,26 @@ public:
             
             // Check if the node is slave
             bool node_is_slave = true;
-            if ((it_node)->IsDefined(SLAVE))
+            if (it_node->IsDefined(SLAVE))
             {
-                node_is_slave = (it_node)->Is(SLAVE);
+                node_is_slave = it_node->Is(SLAVE);
             }
             
             if (node_is_slave == true)
             {
-                const array_1d<double,3>& lagrange_multiplier = (it_node)->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                const array_1d<double,3>& nodal_normal = (it_node)->GetValue(NORMAL);
+                const array_1d<double,3>& lagrange_multiplier = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
+                const array_1d<double,3>& nodal_normal = it_node->FastGetSolutionStepValue(NORMAL);
                 const double normal_lagrange_multiplier = inner_prod(nodal_normal, lagrange_multiplier);
                 
-                const double augmented_normal_pressure = scale_factor * normal_lagrange_multiplier + epsilon * (it_node)->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                const double augmented_normal_pressure = scale_factor * normal_lagrange_multiplier + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
                 
                 it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
                 
                 if (augmented_normal_pressure < mTolerance * scale_factor) // NOTE: This could be conflictive (< or <=)
                 {
-                    if ((it_node)->Is(ACTIVE) == false )
+                    if (it_node->Is(ACTIVE) == false )
                     {
-                        (it_node)->Set(ACTIVE, true);
+                        it_node->Set(ACTIVE, true);
                         #pragma omp atomic
                         is_converged_active += 1;
                     }
@@ -205,28 +205,28 @@ public:
                     const double lambda_tangent = norm_2(tangent_lagrange_multiplier); 
                     
                     // The friction coefficient
-                    const double& mu = (it_node)->GetValue(WEIGHTED_FRICTION);
+                    const double& mu = it_node->GetValue(WEIGHTED_FRICTION);
                     
                     // Finally we compute the augmented tangent pressure
-                    const double& gt = (it_node)->FastGetSolutionStepValue(WEIGHTED_SLIP);
+                    const double& gt = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP);
                     const double augmented_tangent_pressure = std::abs(scale_factor * lambda_tangent + tangent_factor * epsilon * gt) + mu * augmented_normal_pressure;
                     
-                    (it_node)->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+                    it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
                     
                     if (augmented_tangent_pressure <= 0.0) // TODO: Check if it is minor equal or just minor
                     {
-                        if ((it_node)->Is(SLIP) == true )
+                        if (it_node->Is(SLIP) == true )
                         {
-                            (it_node)->Set(SLIP, false);
+                            it_node->Set(SLIP, false);
                             #pragma omp atomic
                             is_converged_slip += 1;
                         }
                     }
                     else
                     {
-                        if ((it_node)->Is(SLIP) == false )
+                        if (it_node->Is(SLIP) == false )
                         {
-                            (it_node)->Set(SLIP, true);
+                            it_node->Set(SLIP, true);
                             #pragma omp atomic
                             is_converged_slip += 1;
                         }
@@ -234,9 +234,9 @@ public:
                 }
                 else
                 {
-                    if ((it_node)->Is(ACTIVE) == true )
+                    if (it_node->Is(ACTIVE) == true )
                     {
-                        (it_node)->Set(ACTIVE, false);
+                        it_node->Set(ACTIVE, false);
                         #pragma omp atomic
                         is_converged_active += 1;
                     }

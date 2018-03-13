@@ -75,15 +75,18 @@ public:
 
     typedef typename BaseType::PropertiesType::Pointer    PropertiesPointerType;
 
+    typedef typename BaseType::GeometryType::ShapeFunctionsGradientsType
+                                                    ShapeFunctionsGradientsType;
+
     struct EmbeddedElementDataStruct : public ElementDataType {
         // Element geometry data
         MatrixType                  N_pos_side;             // Positive distance element side shape functions values
-        std::vector<MatrixType>     DN_DX_pos_side;         // Positive distance element side shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_pos_side;         // Positive distance element side shape functions gradients values
         VectorType                  w_gauss_pos_side;       // Positive distance element side Gauss pts. weights
 
         // Intersection geometry data
         MatrixType                  N_pos_int;              // Positive interface Gauss pts. shape functions values
-        std::vector<MatrixType>     DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
+        ShapeFunctionsGradientsType DN_DX_pos_int;          // Positive interface Gauss pts. shape functions gradients values
         VectorType                  w_gauss_pos_int;        // Positive interface Gauss pts. weights
         std::vector<VectorType>     pos_int_unit_normals;   // Positive interface unit normal vector in each Gauss pt.
 
@@ -515,7 +518,7 @@ protected:
         // Compute the element average values
         double avg_rho = 0.0;
         double avg_visc = 0.0;
-        array_1d<double, 3> avg_vel = ZeroVector(3);
+        array_1d<double, TDim> avg_vel = ZeroVector(TDim);
 
         for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
             avg_rho += rData.rho(i_node);

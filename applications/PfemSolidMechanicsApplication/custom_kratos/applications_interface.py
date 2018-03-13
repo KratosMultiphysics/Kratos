@@ -126,7 +126,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/MachiningApplication/Linux')
         from KratosMachiningApplication import *
         solid_mechanics_application = KratosMachiningApplication()
-        kernel.AddApplication(machining_application)
+        kernel.ImportApplication(machining_application)
         print("KratosMachiningApplication Succesfully imported")
 
     if(Import_StringDynamicsApplication):
@@ -135,7 +135,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/StringDynamicsApplication/Linux')
         from KratosStringDynamicsApplication import *
         solid_mechanics_application = KratosStringDynamicsApplication()
-        kernel.AddApplication(string_dynamics_application)
+        kernel.ImportApplication(string_dynamics_application)
         print("KratosStringDynamicsApplication Succesfully imported")
 
 
@@ -145,7 +145,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/SolidMechanicsApplication/Linux')
         from KratosSolidMechanicsApplication import *
         solid_mechanics_application = KratosSolidMechanicsApplication()
-        kernel.AddApplication(solid_mechanics_application)
+        kernel.ImportApplication(solid_mechanics_application)
         print("KratosSolidMechanicsApplication Succesfully imported")
 
     if(Import_PfemApplication):
@@ -154,7 +154,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/PfemApplication/Linux')
         from KratosPfemApplication import *
         solid_mechanics_application = KratosPfemApplication()
-        kernel.AddApplication(pfem_application)
+        kernel.ImportApplication(pfem_application)
         print("KratosPfemApplication Succesfully imported")
 
     if(Import_PfemSolidMechanicsApplication):
@@ -163,7 +163,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/PfemSolidMechanicsApplication/Linux')
         from KratosPfemSolidMechanicsApplication import *
         pfem_solid_mechanics_application = KratosPfemSolidMechanicsApplication()
-        kernel.AddApplication(pfem_solid_mechanics_application)
+        kernel.ImportApplication(pfem_solid_mechanics_application)
         print("KratosPfemSolidMechanicsApplication Succesfully imported")
 
     if(Import_PfemFluidDynamicsApplication):
@@ -172,7 +172,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/PfemFluidDynamicsApplication/Linux')
         from KratosPfemFluidDynamicsApplication import *
         pfem_solid_mechanics_application = KratosPfemFluidDynamicsApplication()
-        kernel.AddApplication(pfem_solid_mechanics_application)
+        kernel.ImportApplication(pfem_solid_mechanics_application)
         print("KratosPfemFluidDynamicsApplication Succesfully imported")
 
     if(Import_ALEApplication):
@@ -181,7 +181,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/ALEapplication/Linux')
         from KratosALEApplication import *
         ale_app = KratosALEApplication()
-        kernel.AddApplication(ale_app)
+        kernel.ImportApplication(ale_app)
         print("KratosALEApplication Succesfully imported")
 
     if(Import_IncompressibleFluidApplication):
@@ -192,7 +192,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         print("KratosIncompressibleFluidApplication lib loaded")
         incompressible_fluid_application = KratosIncompressibleFluidApplication()
         print("KratosIncompressibleFluidApplication application created")
-        kernel.AddApplication(incompressible_fluid_application)
+        kernel.ImportApplication(incompressible_fluid_application)
         print("KratosIncompressibleFluidApplication Succesfully imported")
 
     if(Import_StructuralApplication):
@@ -201,7 +201,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/structural_application/Linux')
         from KratosStructuralApplication import *
         structural_application = KratosStructuralApplication()
-        kernel.AddApplication(structural_application)
+        kernel.ImportApplication(structural_application)
         print("KratosStructuralApplication Succesfully imported")
 
     if(Import_StructuralMechanicsApplication):
@@ -210,7 +210,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/StructuralMechanicsApplication/Linux')
         from StructuralMechanicsApplication import *
         structural_application = StructuralMechanicsApplication()
-        kernel.AddApplication(structural_mechanics_application)
+        kernel.ImportApplication(structural_mechanics_application)
         print("StructuralMechanicsApplication Succesfully imported")
 
     if(Import_ConvectionDiffusionApplication):
@@ -219,7 +219,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/convection_diffusion_application/Linux')
         from KratosConvectionDiffusionApplication import *
         convection_diffusion_application = KratosConvectionDiffusionApplication()
-        kernel.AddApplication(convection_diffusion_application)
+        kernel.ImportApplication(convection_diffusion_application)
         print("KratosConvectionDiffusionApplication Succesfully imported")
 
     if(Import_FSIApplication):
@@ -228,7 +228,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/FSIapplication/Linux')
         from KratosFSIApplication import *
         fsi_application = KratosFSIApplication()
-        kernel.AddApplication(fsi_application)
+        kernel.ImportApplication(fsi_application)
         print("FSIapplication Succesfully imported")
 
     if(Import_PFEMApplication):
@@ -237,7 +237,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/PFEMapplication/Linux')
         from KratosPFEMApplication import *
         pfem_application = KratosPFEMApplication()
-        kernel.AddApplication(pfem_application)
+        kernel.ImportApplication(pfem_application)
         print("KratosPFEMApplication Succesfully imported")
 
     if(Import_ExternalSolversApplication):
@@ -246,7 +246,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/ExternalSolversApplication/Linux')
         from KratosExternalSolversApplication import *
         external_solvers_application = KratosExternalSolversApplication()
-        kernel.AddApplication(external_solvers_application)
+        kernel.ImportApplication(external_solvers_application)
         print("KratosExternalSolversApplication sucessfully imported")
 
     if(Import_ConstitutiveLawsApplication):
@@ -255,7 +255,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/constitutive_laws_application/Linux')
         from KratosConstitutiveLawsApplication import *
         constitutive_laws_application = KratosConstitutiveLawsApplication()
-        kernel.AddApplication(constitutive_laws_application)
+        kernel.ImportApplication(constitutive_laws_application)
         print("KratosConstitutiveLawsApplication successfully imported")
 
     if(Import_ULFApplication):
@@ -264,7 +264,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/ULFapplication/Linux')
         from KratosULFApplication import *
         ulf_application = KratosULFApplication()
-        kernel.AddApplication(ulf_application)
+        kernel.ImportApplication(ulf_application)
         print("KratosULFApplication sucessfully imported")
 
     if(Import_MeshingApplication):
@@ -272,7 +272,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/MeshingApplication/python_scripts')
         from KratosMeshingApplication import *
         meshing_application = KratosMeshingApplication()
-        kernel.AddApplication(meshing_application)
+        kernel.ImportApplication(meshing_application)
         print("KratosMeshingApplication sucessfully imported")
 
     if(Import_KratosMKLSolversApplication):
@@ -280,7 +280,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/mkl_solvers_application/python_scripts')
         from KratosMKLSolversApplication import *
         mkl_solvers_application = KratosMKLSolversApplication()
-        kernel.AddApplication(mkl_solvers_application)
+        kernel.ImportApplication(mkl_solvers_application)
         print("KratosMKLSolversApplication sucessfully imported")
 
     if(Import_KratosMPISearchApplication):
@@ -288,7 +288,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/mpi_search_application/python_scripts')
         from KratosMPISearchApplication import *
         mpi_search_application = KratosMPISearchApplication()
-        kernel.AddApplication(mpi_search_application)
+        kernel.ImportApplication(mpi_search_application)
         print("KratosMPISearchApplication sucessfully imported")
 
     if(Import_KratosTrilinosApplication):
@@ -296,7 +296,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/trilinos_application/python_scripts')
         from KratosTrilinosApplication import *
         trilinos_application = KratosTrilinosApplication()
-        kernel.AddApplication(trilinos_application)
+        kernel.ImportApplication(trilinos_application)
         print("KratosTrilinosApplication sucessfully imported")
 
     if(Import_KratosMetisApplication):
@@ -304,7 +304,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/metis_application/python_scripts')
         from KratosMetisApplication import *
         metis_application = KratosMetisApplication()
-        kernel.AddApplication(metis_application)
+        kernel.ImportApplication(metis_application)
         print("KratosMetisApplication sucessfully imported")
 
     if(Import_PoissonApplication):
@@ -312,7 +312,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/kPoisson/python_scripts')
         from KratosR1PoissonApplication import *
         kPoisson = KratosR1PoissonApplication()
-        kernel.AddApplication(kPoisson)
+        kernel.ImportApplication(kPoisson)
         print("Kratos PoissonApplication1 sucessfully imported")
 
     if(Import_ElectrostaticApplication):
@@ -320,7 +320,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/kElectrostatic/python_scripts')
         from KratosR1ElectrostaticApplication import *
         kElectrostatic = KratosR1ElectrostaticApplication()
-        kernel.AddApplication(kElectrostatic)
+        kernel.ImportApplication(kElectrostatic)
         print("Kratos ElectromagnecticApplication1 sucessfully imported")
 
     if(Import_MagnetostaticApplication):
@@ -328,7 +328,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/kMagnetostatic/python_scripts')
         from KratosR1MagnetostaticApplication import *
         kMagnetostatic = KratosR1MagnetostaticApplication()
-        kernel.AddApplication(kMagnetostatic)
+        kernel.ImportApplication(kMagnetostatic)
         print("Kratos ElectromagneticApplication2 sucessfully imported")
 
     if(Import_DamApplication):
@@ -336,7 +336,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/DamApplication/python_scripts')
         from KratosDamApplication import *
         dam_application = KratosDamApplication()
-        kernel.AddApplication(dam_application)
+        kernel.ImportApplication(dam_application)
         print("Kratos DamApplication sucessfully imported")
 
     if(Import_TestApplication):
@@ -344,7 +344,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/TestApplication/python_scripts')
         from KratosTestApplication import *
         test_application = KratosTestApplication()
-        kernel.AddApplication(test_application)
+        kernel.ImportApplication(test_application)
         print("Kratos TestApplication sucessfully imported")
 
     if(Import_OpenCLApplication):
@@ -352,7 +352,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/OpenCLapplication/python_scripts')
         from KratosOpenCLApplication import *
         opencl_application = KratosOpenCLApplication()
-        kernel.AddApplication(opencl_application)
+        kernel.ImportApplication(opencl_application)
         print("KratosOpenCLApplication sucessfully imported")
 
     if(Import_PodApplication):
@@ -360,7 +360,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/PODApplication/python_scripts')
         from KratosPodApplication import *
         pod_application = KratosPodApplication()
-        kernel.AddApplication(pod_application)
+        kernel.ImportApplication(pod_application)
         print("KratosPodApplication sucessfully imported")
 
     if(Import_LevelSetApplication):
@@ -368,7 +368,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/LevelSetApplication/python_scripts')
         from KratosLevelSetApplication import *
         levelset_application = KratosLevelSetApplication()
-        kernel.AddApplication(levelset_application)
+        kernel.ImportApplication(levelset_application)
         print("KratosLevelSetApplication sucessfully imported")
 
     if(Import_FluidDynamicsApplication):
@@ -376,7 +376,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/FluidDynamicsApplication/python_scripts')
         from KratosFluidDynamicsApplication import *
         fluid_dynamics_application = KratosFluidDynamicsApplication()
-        kernel.AddApplication(fluid_dynamics_application)
+        kernel.ImportApplication(fluid_dynamics_application)
         print("KratosFluidDynamicsApplication sucessfully imported")
 
     if(Import_KratosDEMApplication):
@@ -384,7 +384,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/DEM_application/python_scripts')
         from KratosDEMApplication import *
         DEM_application = KratosDEMApplication()
-        kernel.AddApplication(DEM_application)
+        kernel.ImportApplication(DEM_application)
         print("KratosDEMApplication sucessfully imported")
 
     if(Import_KratosSwimmingDEMApplication):
@@ -392,7 +392,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/swimming_DEM_application/python_scripts')
         from KratosSwimmingDEMApplication import *
         swimming_DEM_application = KratosSwimmingDEMApplication()
-        kernel.AddApplication(swimming_DEM_application)
+        kernel.ImportApplication(swimming_DEM_application)
         print("KratosSwimmingDEMApplication sucessfully imported")
 
     if(Import_KratosMixedElementApplication):
@@ -400,7 +400,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/MixedElementApplication/python_scripts')
         from KratosMixedElementApplication import *
         mixed_element_application = KratosMixedElementApplication()
-        kernel.AddApplication(mixed_element_application)
+        kernel.ImportApplication(mixed_element_application)
         print("KratosMixedElementApplication sucessfully imported")
 
     if(Import_ThermoMechanicalApplication):
@@ -408,7 +408,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/ThermoMechanicalApplication/python_scripts')
         from KratosThermoMechanicalApplication import *
         thermo_mechanical_application = KratosThermoMechanicalApplication()
-        kernel.AddApplication(thermo_mechanical_application)
+        kernel.ImportApplication(thermo_mechanical_application)
         print("KratosThermoMechanicalApplication sucessfully imported")
 
     if(Import_DEM_FEM_Application):
@@ -416,7 +416,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/DEM_FEM_Application/python_scripts')
         from KratosDEM_FEM_Application import *
         dem_fem_application = KratosDEM_FEM_Application()
-        kernel.AddApplication(dem_fem_application)
+        kernel.ImportApplication(dem_fem_application)
         print("KratosDem_Fem_Application sucessfully imported")
 
     if(Import_WindTurbineApplication):
@@ -424,7 +424,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         sys.path.append(applications_path + '/wind_turbine_application/python_scripts')
         from KratosWindTurbineApplication import *
         wind_turbine_application = KratosWindTurbineApplication()
-        kernel.AddApplication(wind_turbine_application)
+        kernel.ImportApplication(wind_turbine_application)
         print("KratosWindTurbineApplication sucessfully imported")
 
     #

@@ -31,7 +31,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactAxisymConditi
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return boost::make_shared< AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return boost::make_shared<  AugmentedLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/

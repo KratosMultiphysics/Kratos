@@ -191,13 +191,16 @@ namespace Kratos
                   // compute solution with change
                   ComputeSolutionWithChange( rValues, Variables, rDeltaDeformationMatrix);
                } else {
-                  // compute unloading condition
-                  ComputeSubsteppingElastoPlasticProblem( rValues, Variables, rDeltaDeformationMatrix);
                   bool UnloadingCondition = false;
+
+                  UnloadingCondition = EvaluateUnloadingCondition( rValues, Variables, rDeltaDeformationMatrix);
                   if (UnloadingCondition) {
                      // compute solution with change
+                     ComputeSolutionWithChange( rValues, Variables, rDeltaDeformationMatrix);
                   } else {
                      // compute plastic problem
+                     // compute unloading condition
+                     ComputeSubsteppingElastoPlasticProblem( rValues, Variables, rDeltaDeformationMatrix);
                   }
                }
 
@@ -505,10 +508,48 @@ namespace Kratos
             }
 
 
+            //***********************************************************************************
+            //***********************************************************************************
+            // Evaluate the elastic unloading condition (Sloan et al, 2001)
+            bool  EvaluateUnloadingCondition( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rDeltaDeformationMatrix)
+            {
+               KRATOS_TRY
+
+               VectorType DeltaStressYieldCondition = this->mYieldSurface.CalculateDeltaStressYieldCondition( rVariables, DeltaStressYieldCondition);
+               VectorType PlasticPotentialDerivative;
+
+               MatrixType DeltaStrainMatrix;
+               noalias(DeltaStrainMatrix) = prod( rDeltaDeformationMatrix, trans( rDeltaDeformationMatrix) );
+               VectorType DeltaStrain; 
+               ConvertCauchyGreenTensorToHenckyVector( DeltaStrainMatrix, DeltaStrain);
+
+               Matrix ElasticMatrix = ZeroMatrix(6);
+               this->mElasticityModel.CalculateConstitutiveTensor( rValues, ElasticMatrix);
+
+               VectorType DeltaStress = prod( ElasticMatrix, DeltaStrain);
+
+
+               double Norm1 = MathUtils<double>::Norm(DeltaStress);
+               double Norm2 = MathUtils<double>::Norm(DeltaStressYieldCondition);
+
+               Norm1 = Norm1*Norm2;
+               if ( Norm1 < 1e-5) 
+                  return false;
+
+               Norm2 = MathUtils<double>::Dot( DeltaStressYieldCondition, DeltaStress);
+
+               if (Norm2 > 0) {
+                  return false;
+               } else {
+                  return true;
+               }
+
+               KRATOS_CATCH("")
+            }
 
             //***********************************************************************************
             //***********************************************************************************
-            // Compute  the elasto-plastic problem
+            // Compute the elasto-plastic problem
             void ComputeSubsteppingElastoPlasticProblem( ModelDataType & rValues, PlasticDataType & rVariables, const MatrixType & rDeltaDeformationMatrix)
             {
                KRATOS_TRY
@@ -689,7 +730,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType EigenVectors;
+               MatrixType EigenVectors;
                EigenVectors.clear();
 
                rStrainMatrix.clear();
@@ -711,7 +752,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType EigenVectors;
+               MatrixType EigenVectors;
                EigenVectors.clear();
 
                rHenckyStrain.clear();

@@ -22,8 +22,8 @@ namespace Kratos {
     
     static inline void RotateAVectorAGivenAngleAroundAUnitaryVector(const array_1d<double, 3>& old_vec, const array_1d<double, 3>& axis,
                                                                     const double ang, array_1d<double, 3>& new_vec) {
-        double cang = cos(ang);
-        double sang = sin(ang);
+        double cang = std::cos(ang);
+        double sang = std::sin(ang);
             
         new_vec[0] = axis[0] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[0] * cang + (-axis[2] * old_vec[1] + axis[1] * old_vec[2]) * sang;
         new_vec[1] = axis[1] * (axis[0] * old_vec[0] + axis[1] * old_vec[1] + axis[2] * old_vec[2]) * (1 - cang) + old_vec[1] * cang + ( axis[2] * old_vec[0] - axis[0] * old_vec[2]) * sang;
@@ -43,8 +43,8 @@ namespace Kratos {
             if (linear_period > 0.0) {
                 double linear_omega = 2.0 * Globals::Pi / linear_period;
                 double inv_linear_omega = 1.0 / linear_omega;
-                noalias(center_position) = initial_center + linear_velocity * sin(linear_omega * time) * inv_linear_omega;
-                noalias(linear_velocity_changed) = linear_velocity * cos(linear_omega * time);
+                noalias(center_position) = initial_center + linear_velocity * std::sin(linear_omega * (time - velocity_start_time)) * inv_linear_omega;
+                noalias(linear_velocity_changed) = linear_velocity * std::cos(linear_omega * (time - velocity_start_time));
                 noalias(previous_displ) = center_position - initial_center;
             } else {
                 center_position[0] = initial_center[0] + previous_displ[0] + dt * linear_velocity[0];
@@ -283,6 +283,21 @@ namespace Kratos {
         ProductMatrices3X3(Temp, RT, GlobalTensor);
     }
 
+    static inline void ConstructLocalTensor(const double moment_of_inertia, double LocalTensor[3][3])
+    {
+        LocalTensor[0][0] = moment_of_inertia; LocalTensor[0][1] = 0.0; LocalTensor[0][2] = 0.0;
+        LocalTensor[1][0] = 0.0; LocalTensor[1][1] = moment_of_inertia; LocalTensor[1][2] = 0.0;
+        LocalTensor[2][0] = 0.0; LocalTensor[2][1] = 0.0; LocalTensor[2][2] = moment_of_inertia;
+    }
+    
+    static inline void ConstructInvLocalTensor(const double moment_of_inertia, double LocalTensorInv[3][3])
+    {
+        double moment_of_inertia_inv = 1/moment_of_inertia;
+        LocalTensorInv[0][0] = moment_of_inertia_inv; LocalTensorInv[0][1] = 0.0; LocalTensorInv[0][2] = 0.0;
+        LocalTensorInv[1][0] = 0.0; LocalTensorInv[1][1] = moment_of_inertia_inv; LocalTensorInv[1][2] = 0.0;
+        LocalTensorInv[2][0] = 0.0; LocalTensorInv[2][1] = 0.0; LocalTensorInv[2][2] = moment_of_inertia_inv;
+    }
+    
     static inline void ConstructLocalTensor(const array_1d<double, 3 >& moments_of_inertia, double LocalTensor[3][3])
     {
         LocalTensor[0][0] = moments_of_inertia[0]; LocalTensor[0][1] = 0.0; LocalTensor[0][2] = 0.0;
@@ -377,9 +392,9 @@ namespace Kratos {
             if (angular_period > 0.0) {
                 double angular_omega = 2.0 * Globals::Pi / angular_period;
                 double inv_angular_omega = 1.0 / angular_omega;
-                noalias(angle) = angular_velocity * sin(angular_omega * (time - angular_velocity_start_time)) * inv_angular_omega;
-                sign_angle = sin(angular_omega * (time - angular_velocity_start_time)) / fabs(sin(angular_omega * (time - angular_velocity_start_time)));
-                noalias(angular_velocity_changed) = angular_velocity * cos(angular_omega * (time - angular_velocity_start_time));
+                noalias(angle) = angular_velocity * std::sin(angular_omega * (time - angular_velocity_start_time)) * inv_angular_omega;
+                sign_angle = std::sin(angular_omega * (time - angular_velocity_start_time)) / fabs(sin(angular_omega * (time - angular_velocity_start_time)));
+                noalias(angular_velocity_changed) = angular_velocity * std::cos(angular_omega * (time - angular_velocity_start_time));
                 noalias(final_angle) = angle;
             } else {
                 noalias(angle) = angular_velocity * (time - angular_velocity_start_time);
@@ -391,7 +406,7 @@ namespace Kratos {
             if (angular_period > 0.0) {
                 double angular_omega = 2.0 * Globals::Pi / angular_period;
                 double inv_angular_omega = 1.0 / angular_omega;
-                noalias(angle) = angular_velocity * sin(angular_omega * (angular_velocity_stop_time - angular_velocity_start_time)) * inv_angular_omega;
+                noalias(angle) = angular_velocity * std::sin(angular_omega * (angular_velocity_stop_time - angular_velocity_start_time)) * inv_angular_omega;
             } else {
                 noalias(angle) = angular_velocity * (angular_velocity_stop_time - angular_velocity_start_time);
             }
@@ -782,29 +797,7 @@ namespace Kratos {
         GlobalTensor[1][0] = GlobalTensorTraspC2[0]; GlobalTensor[1][1] = GlobalTensorTraspC2[1]; GlobalTensor[1][2] = GlobalTensorTraspC2[2];
         GlobalTensor[2][0] = GlobalTensorTraspC3[0]; GlobalTensor[2][1] = GlobalTensorTraspC3[1]; GlobalTensor[2][2] = GlobalTensorTraspC3[2];
     }
-    
-    static inline void UpdateOrientation(array_1d<double, 3>& EulerAngles, const array_1d<double, 3>& RotatedAngle)
-    {
-        Quaternion<double> Orientation = Quaternion<double>::Identity();
-                        
-        array_1d<double, 3 > theta = RotatedAngle;
-        DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
-
-        double thetaMag = DEM_MODULUS_3(theta);
-                    
-        const double epsilon = std::numeric_limits<double>::epsilon();
-                    
-        if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
-            double aux = (1 - thetaMag * thetaMag / 6);
-            Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-        }
-        else {
-            double aux = sin(thetaMag)/thetaMag;
-            Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
-        }
-        Orientation.ToEulerAngles(EulerAngles);
-    }
-    
+       
     static inline void UpdateOrientation(array_1d<double, 3>& EulerAngles, Quaternion<double>& Orientation, const array_1d<double, 3>& DeltaRotation)
     {
         Quaternion<double> DeltaOrientation = Quaternion<double>::Identity();
@@ -818,10 +811,12 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
-            double aux = sin(thetaMag)/thetaMag;
+            double aux = std::sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         Orientation = DeltaOrientation * Orientation;
         Orientation.ToEulerAngles(EulerAngles);
@@ -840,10 +835,12 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag * 0.5), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
-            double aux = sin(thetaMag)/thetaMag;
+            double aux = std::sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         Orientation = DeltaOrientation * Orientation;
     }
@@ -861,12 +858,38 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag * 0.5), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
-            double aux = sin(thetaMag)/thetaMag;
+            double aux = std::sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         NewOrientation = DeltaOrientation * Orientation;
+    }
+    
+    static inline void EulerAnglesFromRotationAngle(array_1d<double, 3>& EulerAngles, const array_1d<double, 3>& RotatedAngle)
+    {
+        Quaternion<double> Orientation = Quaternion<double>::Identity();
+                        
+        array_1d<double, 3 > theta = RotatedAngle;
+        DEM_MULTIPLY_BY_SCALAR_3(theta, 0.5);
+
+        double thetaMag = DEM_MODULUS_3(theta);
+                    
+        const double epsilon = std::numeric_limits<double>::epsilon();
+                    
+        if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
+            double aux = (1 - thetaMag * thetaMag / 6);
+            Orientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            Orientation.normalize();
+        }
+        else {
+            double aux = std::sin(thetaMag)/thetaMag;
+            Orientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            Orientation.normalize();
+        }
+        Orientation.ToEulerAngles(EulerAngles);
     }
     
     static inline void OrientationFromRotationAngle(Quaternion<double>& DeltaOrientation, const array_1d<double, 3>& DeltaRotation)
@@ -880,10 +903,12 @@ namespace Kratos {
         if (thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < epsilon) { //Taylor: low angle
             double aux = (1 - thetaMag * thetaMag / 6);
             DeltaOrientation = Quaternion<double>((1 + thetaMag * thetaMag / 2), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
         else {
-            double aux = sin(thetaMag)/thetaMag;
+            double aux = std::sin(thetaMag)/thetaMag;
             DeltaOrientation = Quaternion<double>(cos(thetaMag), theta[0]*aux, theta[1]*aux, theta[2]*aux);
+            DeltaOrientation.normalize();
         }
     }
 
@@ -1609,7 +1634,7 @@ namespace Kratos {
 
         double cos_alpha = dot_product/norm_a;
         double alpha = acos(cos_alpha);
-        double sin_alpha = sin(alpha);
+        double sin_alpha = std::sin(alpha);
 
         Area = Radius*Radius*alpha;
         double dist = 0.66666666666666*(Radius*sin_alpha/alpha);
@@ -1682,7 +1707,7 @@ namespace Kratos {
 
                 double cos_alpha = GeometryFunctions::DotProduct(a,normal_outwards)/(GeometryFunctions::module(a)*GeometryFunctions::module(normal_outwards));
                 double alpha = acos(cos_alpha);
-                double sin_alpha = sin(alpha);
+                double sin_alpha = std::sin(alpha);
 
                 AreaSegC = Radius_SQ*(alpha-sin_alpha*cos_alpha);
 

@@ -165,7 +165,7 @@ namespace Kratos
          /**
           * Calculation of the Deformation Matrix  BL
           */
-         virtual void CalculateDeformationMatrix(Matrix& rB,
+         void CalculateDeformationMatrix(Matrix& rB,
                                             Matrix& rF,
                                             Vector& rN,
                                             double& rCurrentRadius);

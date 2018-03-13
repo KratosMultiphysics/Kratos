@@ -28,7 +28,7 @@ def AddVariables(model_part, config=None):
     # add specific variables for the problem conditions
     #model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT)
     #model_part.AddNodalSolutionStepVariable(IMPOSED_ROTATION)
-    #model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
+    model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE)
     #model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE)
     model_part.AddNodalSolutionStepVariable(POINT_LOAD)
     model_part.AddNodalSolutionStepVariable(LINE_LOAD)

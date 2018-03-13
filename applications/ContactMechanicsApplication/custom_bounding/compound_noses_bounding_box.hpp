@@ -546,9 +546,9 @@ public:
 	
       unsigned int NodeId = 0;
       if( rModelPart.IsSubModelPart() )
-    	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
+         NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
       else
-    	NodeId = this->GetMaxNodeId( rModelPart );
+         NodeId = this->GetMaxNodeId( rModelPart );
 
       unsigned int InitialNodeId = NodeId;
 
@@ -557,20 +557,20 @@ public:
 
       ModelPart* pMainModelPart = &rModelPart;
       if( rModelPart.IsSubModelPart() )
-    	pMainModelPart = rModelPart.GetParentModelPart();
-	
+         pMainModelPart = rModelPart.GetParentModelPart();
+
       for(ModelPart::SubModelPartIterator i_mp= pMainModelPart->SubModelPartsBegin() ; i_mp!=pMainModelPart->SubModelPartsEnd(); i_mp++)
-    	{
-    	  if( i_mp->Is(BOUNDARY) || i_mp->Is(ACTIVE) ){
-    	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
-    	      {
-    		if( i_node->Id() == rModelPart.Nodes().front().Id() ){
-    		  BoundaryModelPartsName.push_back(i_mp->Name());
-    		  break;
-    		}
-    	      }
-    	  }
-    	}     
+      {
+         if( i_mp->Is(BOUNDARY) || i_mp->Is(ACTIVE) ){
+            for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; i_node++)
+            {
+               if( i_node->Id() == rModelPart.Nodes().front().Id() ){
+                  BoundaryModelPartsName.push_back(i_mp->Name());
+                  break;
+               }
+            }
+         }
+      }     
       //get boundary model parts ( temporary implementation )
 
       PointType DirectionX(3);
@@ -594,191 +594,195 @@ public:
       PointType TipPoint(3);
       PointType RakePoint(3);
       PointType ClearancePoint(3);
-      
+
       std::vector<PointType> FacePoints;
-      
+
       double alpha = 0;
       QuaternionType Quaternion;      
 
       PointType FirstPoint(3);
       bool order_changed = false;
       for(unsigned int i=0; i<mBoxNoses.size(); i++)
-	{
-	  this->GetNosePoints(mBoxNoses[i],RakePoint,ClearancePoint,TipPoint);
+      {
+         this->GetNosePoints(mBoxNoses[i],RakePoint,ClearancePoint,TipPoint);
 
-	  order_changed = false;
-	  
-	  if( i == 0 ){
+         order_changed = false;
 
-	    this->GetRakeNormal(mBoxNoses[i],Normal);
+         if( i == 0 ){
 
-	    this->GetPlaneTangent(Normal,RakePoint,TipPoint,Tangent);
-	    
-	    //point 1
-	    noalias(FirstPoint) = RakePoint + mBox.Radius * Tangent;
-	    
-	  }
-	  else{
-	    
-	    if( norm_2(RakePoint-FirstPoint) > norm_2(ClearancePoint-FirstPoint) ){
-	      
-	      //change the Rake and the Clearance Order
-	      order_changed = true;
-	      BasePoint = ClearancePoint; //temporary
-	      ClearancePoint = RakePoint;
-	      RakePoint = BasePoint;
-	      
-	    }
-	  }
+            this->GetRakeNormal(mBoxNoses[i],Normal);
 
-	  BasePoint     = FirstPoint;
-	  BasePoint[2] += mBoxNoses[i].Center[2];
- 	  FacePoints.push_back(BasePoint);
-	    
-	  
-	  //next first point
-	  FirstPoint = ClearancePoint;
- 
-	  
-	  //rake point
-	  BasePoint     = RakePoint;
-	  BasePoint[2] += mBoxNoses[i].Center[2];
-	  FacePoints.push_back(BasePoint);
+            this->GetPlaneTangent(Normal,RakePoint,TipPoint,Tangent);
 
-	  //tip angle:
-	  double tip_alpha = acos(inner_prod( (RakePoint-mBoxNoses[i].Center), (ClearancePoint-mBoxNoses[i].Center) ));
-	  
-	  for(int k=1; k<=angular_partitions; k++)
-	    {
-	      
-	      alpha = (tip_alpha * k)/(double)(angular_partitions-1);
-	    
-	      //vector of rotation
-	      RotationAxis = DirectionX * alpha;
-	      Quaternion   = QuaternionType::FromRotationVector(RotationAxis);
-		  
-	      RotatedDirectionY = RakePoint - mBoxNoses[i].Center;
-	  
-	      Quaternion.RotateVector3(RotatedDirectionY);	  
-  
-	      noalias(BasePoint) = mBoxNoses[i].Center + RotatedDirectionY;	 
+            //point 1
+            noalias(FirstPoint) = RakePoint + mBox.Radius * Tangent;
 
-	      BasePoint[2] += mBoxNoses[i].Center[2];
-	      FacePoints.push_back(BasePoint);
-	    }
+         }
+         else{
 
-	  
-	  //clearance point
-	  BasePoint     = ClearancePoint;
-	  BasePoint[2] += mBoxNoses[i].Center[2];
-	  FacePoints.push_back(BasePoint);
+            if( norm_2(RakePoint-FirstPoint) > norm_2(ClearancePoint-FirstPoint) ){
+
+               //change the Rake and the Clearance Order
+               order_changed = true;
+               BasePoint = ClearancePoint; //temporary
+               ClearancePoint = RakePoint;
+               RakePoint = BasePoint;
+
+            }
+         }
+
+         BasePoint     = FirstPoint;
+         BasePoint[2] += mBoxNoses[i].Center[2];
+         FacePoints.push_back(BasePoint);
 
 
-	  if( i == mBoxNoses.size()-1 ){
+         //next first point
+         FirstPoint = ClearancePoint;
 
-	    if(order_changed)
-	      this->GetRakeNormal(mBoxNoses[i],Normal);
-	    else
-	      this->GetClearanceNormal(mBoxNoses[i],Normal);	      
 
-	    
-	    this->GetPlaneTangent(Normal,FirstPoint,TipPoint,Tangent);
-	    
-	    //point n
-	    noalias(BasePoint) = FirstPoint + mBox.Radius * Tangent;
+         //rake point
+         BasePoint     = RakePoint;
+         BasePoint[2] += mBoxNoses[i].Center[2];
+         FacePoints.push_back(BasePoint);
 
-	    BasePoint[2] += mBoxNoses[i].Center[2];
-	    FacePoints.push_back(BasePoint);
-	    
-	  }
-	  
-	}
-       
+         //tip angle:
+         double length1 = inner_prod( (RakePoint-mBoxNoses[i].Center), (RakePoint-mBoxNoses[i].Center) );
+         double length2 = inner_prod( (ClearancePoint-mBoxNoses[i].Center), (ClearancePoint-mBoxNoses[i].Center) );
+         length1 = sqrt(length1);
+         length2 = sqrt(length2);
+         double tip_alpha = acos(inner_prod( (RakePoint-mBoxNoses[i].Center), (ClearancePoint-mBoxNoses[i].Center) ) / (length1*length2) );
+
+         for(int k=1; k<=angular_partitions; k++)
+         {
+
+            alpha = (tip_alpha * double(k) )/(double)(angular_partitions-1);
+
+            //vector of rotation
+            RotationAxis = DirectionX * alpha;
+            Quaternion   = QuaternionType::FromRotationVector(RotationAxis);
+
+            RotatedDirectionY = RakePoint - mBoxNoses[i].Center;
+
+            Quaternion.RotateVector3(RotatedDirectionY);	  
+
+            noalias(BasePoint) = mBoxNoses[i].Center + RotatedDirectionY;	 
+
+            BasePoint[2] += mBoxNoses[i].Center[2];
+            FacePoints.push_back(BasePoint);
+         }
+
+
+
+
+         if( i == mBoxNoses.size()-1 ){
+            //clearance point
+            BasePoint     = ClearancePoint;
+            BasePoint[2] += mBoxNoses[i].Center[2];
+            FacePoints.push_back(BasePoint);
+
+            if(order_changed)
+               this->GetRakeNormal(mBoxNoses[i],Normal);
+            else
+               this->GetClearanceNormal(mBoxNoses[i],Normal);	      
+
+
+            this->GetPlaneTangent(Normal,FirstPoint,TipPoint,Tangent);
+
+            //point n
+            noalias(BasePoint) = FirstPoint + mBox.Radius * Tangent;
+
+            BasePoint[2] += mBoxNoses[i].Center[2];
+            FacePoints.push_back(BasePoint);
+
+         }
+
+      }
+
 
       //std::cout<<" Nodes Added "<<NodeId-InitialNodeId<<std::endl;
       if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 ){
-      
-	//create modelpart nodes
-	for(unsigned int i=0; i<FacePoints.size(); i++)
-	  {
-	    
-	    NodeId += 1;
 
-	    NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
-	  
-	    pNode->Set(RIGID,true);
-      
-	    rModelPart.AddNode( pNode );
+         //create modelpart nodes
+         for(unsigned int i=0; i<FacePoints.size(); i++)
+         {
 
-	    //get boundary model parts ( temporary implementation )
-	    for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
-	      (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
-	    //get boundary model parts ( temporary implementation )
-	  
-	  }
-      
-    	this->CreateLinearBoundaryMesh(rModelPart, InitialNodeId);
+            NodeId += 1;
+
+            NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
+
+            pNode->Set(RIGID,true);
+
+            rModelPart.AddNode( pNode );
+
+            //get boundary model parts ( temporary implementation )
+            for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+               (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+            //get boundary model parts ( temporary implementation )
+
+         }
+
+         this->CreateLinearBoundaryMesh(rModelPart, InitialNodeId);
       }
       else{
 
-	//3D case: rotate to local axis 
-	
-	//create modelpart nodes first row
-	for(unsigned int i=0; i<FacePoints.size(); i++)
-	  {	    
-	    NodeId += 1;
+         //3D case: rotate to local axis 
 
-	    Quaternion = QuaternionType::FromRotationVector(RotationAxis);
-	    
-	    mBox.LocalQuaternion.RotateVector3(FacePoints[i]);
+         //create modelpart nodes first row
+         for(unsigned int i=0; i<FacePoints.size(); i++)
+         {	    
+            NodeId += 1;
 
-	    NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
-	  
-	    pNode->Set(RIGID,true);
-      
-	    rModelPart.AddNode( pNode );
+            Quaternion = QuaternionType::FromRotationVector(RotationAxis);
 
-	    //get boundary model parts ( temporary implementation )
-	    for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
-	      (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
-	    //get boundary model parts ( temporary implementation )
-	  
-	  }
+            mBox.LocalQuaternion.RotateVector3(FacePoints[i]);
 
-	double FinalNodeId = NodeId;
+            NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
 
-	//3D case: translate to axis length
+            pNode->Set(RIGID,true);
 
-	PointType Axis(3);
-	Matrix RotationMatrix(3,3);
-	mBox.LocalQuaternion.ToRotationMatrix(RotationMatrix); 
-	Axis[0] = RotationMatrix(2,0);
-	Axis[1] = RotationMatrix(2,1);
-	Axis[2] = RotationMatrix(2,2);
+            rModelPart.AddNode( pNode );
 
-	Axis *= mBox.Radius;
-	
-	//create modelpart nodes second row
-	for(unsigned int i=0; i<FacePoints.size(); i++)
-	  {
-	    NodeId += 1;
+            //get boundary model parts ( temporary implementation )
+            for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+               (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+            //get boundary model parts ( temporary implementation )
 
-	    FacePoints[i] += Axis;
-	    
-	    NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
-	  
-	    pNode->Set(RIGID,true);
-      
-	    rModelPart.AddNode( pNode );
+         }
 
-	    //get boundary model parts ( temporary implementation )
-	    for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
-	      (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
-	    //get boundary model parts ( temporary implementation )
-	  
-	  }
-		
-	this->CreateQuadrilateralBoundaryMesh(rModelPart, InitialNodeId, FinalNodeId);
+         double FinalNodeId = NodeId;
+
+         //3D case: translate to axis length
+
+         PointType Axis(3);
+         Matrix RotationMatrix(3,3);
+         mBox.LocalQuaternion.ToRotationMatrix(RotationMatrix); 
+         Axis[0] = RotationMatrix(2,0);
+         Axis[1] = RotationMatrix(2,1);
+         Axis[2] = RotationMatrix(2,2);
+
+         Axis *= mBox.Radius;
+
+         //create modelpart nodes second row
+         for(unsigned int i=0; i<FacePoints.size(); i++)
+         {
+            NodeId += 1;
+
+            FacePoints[i] += Axis;
+
+            NodeType::Pointer pNode = this->CreateNode(rModelPart, FacePoints[i], NodeId);
+
+            pNode->Set(RIGID,true);
+
+            rModelPart.AddNode( pNode );
+
+            //get boundary model parts ( temporary implementation )
+            for(unsigned int j=0; j<BoundaryModelPartsName.size(); j++)
+               (pMainModelPart->GetSubModelPart(BoundaryModelPartsName[j])).AddNode( pNode );
+            //get boundary model parts ( temporary implementation )
+
+         }
+
+         this->CreateQuadrilateralBoundaryMesh(rModelPart, InitialNodeId, FinalNodeId);
 
       }
       
@@ -857,33 +861,33 @@ protected:
       //add elements to computing model part: (in order to be written)
       ModelPart* pComputingModelPart = NULL;
       if( rModelPart.IsSubModelPart() )
-	for(ModelPart::SubModelPartIterator i_mp= rModelPart.GetParentModelPart()->SubModelPartsBegin() ; i_mp!=rModelPart.GetParentModelPart()->SubModelPartsEnd(); i_mp++)
-	  {
-	    if( i_mp->Is(ACTIVE) )  //computing_domain
-	      pComputingModelPart = &rModelPart.GetParentModelPart()->GetSubModelPart(i_mp->Name());
-	  }
+         for(ModelPart::SubModelPartIterator i_mp= rModelPart.GetParentModelPart()->SubModelPartsBegin() ; i_mp!=rModelPart.GetParentModelPart()->SubModelPartsEnd(); i_mp++)
+         {
+            if( i_mp->Is(ACTIVE) )  //computing_domain
+               pComputingModelPart = &rModelPart.GetParentModelPart()->GetSubModelPart(i_mp->Name());
+         }
       else{
-	for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
-	  {
-	    if( i_mp->Is(ACTIVE) )  //computing_domain
-	      pComputingModelPart = &rModelPart.GetSubModelPart(i_mp->Name());
-	  }
+         for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); i_mp++)
+         {
+            if( i_mp->Is(ACTIVE) )  //computing_domain
+               pComputingModelPart = &rModelPart.GetSubModelPart(i_mp->Name());
+         }
       }
-      
+
       // Create surface of the cylinder/tube with quadrilateral shell conditions
       unsigned int ElementId = 0; 
       if( rModelPart.IsSubModelPart() )
-	ElementId = this->GetMaxElementId( *(rModelPart.GetParentModelPart()) );
+         ElementId = this->GetMaxElementId( *(rModelPart.GetParentModelPart()) );
       else
-	ElementId = this->GetMaxElementId( rModelPart );
+         ElementId = this->GetMaxElementId( rModelPart );
 
       unsigned int NodeId = 0; 
       if( rModelPart.IsSubModelPart() )
-	NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
+         NodeId = this->GetMaxNodeId( *(rModelPart.GetParentModelPart()) );
       else
-	NodeId = this->GetMaxNodeId( rModelPart );
+         NodeId = this->GetMaxNodeId( rModelPart );
 
-      
+
       //GEOMETRY:
       GeometryType::Pointer pFace;
       ElementType::Pointer pElement;
@@ -900,31 +904,31 @@ protected:
 
       while(Id < NodeId){
 
-	counter   += 1;
-	ElementId += 1;
+         counter   += 1;
+         ElementId += 1;
 
-	FaceNodesIds[0] = rInitialNodeId + counter ;
-	FaceNodesIds[1] = rInitialNodeId + counter + 1;
-	
-	GeometryType::PointsArrayType FaceNodes;
-	FaceNodes.reserve(2);
-	      
-	//NOTE: when creating a PointsArrayType
-	//important ask for pGetNode, if you ask for GetNode a copy is created
-	//if a copy is created a segmentation fault occurs when the node destructor is called
+         FaceNodesIds[0] = rInitialNodeId + counter ;
+         FaceNodesIds[1] = rInitialNodeId + counter + 1;
 
-	for(unsigned int j=0; j<2; j++)
-	  FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
-	  	  
-	pFace    = GeometryType::Pointer(new Line2D2<NodeType>( FaceNodes ));      
-	pElement = ElementType::Pointer(new Element(ElementId, pFace, pProperties));
-				       
-	rModelPart.AddElement(pElement);
-	pElement->Set(ACTIVE,false);
-	pComputingModelPart->AddElement(pElement);
+         GeometryType::PointsArrayType FaceNodes;
+         FaceNodes.reserve(2);
 
-	Id = rInitialNodeId + counter + 1;
-	
+         //NOTE: when creating a PointsArrayType
+         //important ask for pGetNode, if you ask for GetNode a copy is created
+         //if a copy is created a segmentation fault occurs when the node destructor is called
+
+         for(unsigned int j=0; j<2; j++) 
+            FaceNodes.push_back(rModelPart.pGetNode(FaceNodesIds[j]));
+
+         pFace    = GeometryType::Pointer(new Line2D2<NodeType>( FaceNodes ));      
+         pElement = ElementType::Pointer(new Element(ElementId, pFace, pProperties));
+
+         rModelPart.AddElement(pElement);
+         pElement->Set(ACTIVE,false);
+         pComputingModelPart->AddElement(pElement);
+
+         Id = rInitialNodeId + counter + 1;
+
       }
 
       KRATOS_CATCH( "" )

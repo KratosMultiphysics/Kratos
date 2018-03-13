@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import difflib
 
 from classes.elementCreator import ElementCreator
 from classes.conditionCreator import ConditionCreator
@@ -21,6 +22,34 @@ class ApplicationGenerator(TemplateRule):
     def __init__(self, name):
 
         super(ApplicationGenerator, self).__init__()
+
+        appStrPos = name.lower().find('application')
+        maxi = 5
+        while appStrPos != -1 and maxi > 0:
+            oldname = name
+            name = name[0:appStrPos] + name[appStrPos+len('application'):len(name)]
+
+            msg = Formatc([
+                {'color': bcolors.WARNING, 'msg': '[WARNING]'},
+                {'color': bcolors.CYAN, 'msg': ' {}'.format(oldname)},
+                {'color': None, 'msg': ' already contains the substring "'},
+                {'color': bcolors.CYAN, 'msg': '{}'.format('Application')},
+                {'color': None, 'msg': '". Removing... : '+name},
+            ], sys.stderr)
+
+            print(msg, file=sys.stderr)
+            appStrPos = name.lower().find('application')
+            maxi = maxi -1
+
+        if difflib.SequenceMatcher(None, name.lower(), 'application').ratio() > 0.65:
+            msg = Formatc([
+                {'color': bcolors.WARNING, 'msg': '[WARNING]'},
+                {'color': None, 'msg': ' Your application name contains something wrong after automatic fix, please select another name.'},
+            ], sys.stderr)
+
+            print(msg, file=sys.stderr)
+            exit()
+
 
         self._appDir = GetApplicationsDirectory()
 
@@ -153,6 +182,9 @@ class ApplicationGenerator(TemplateRule):
             # This is important for some versions of python
             if '.svn' in subfolder:
                 subfolder.remove('.svn')
+
+            if '.git' in subfolder:
+                subfolder.remove('.git')
 
             for f in files:
                 src = os.path.join(root, f)
@@ -348,7 +380,7 @@ class ApplicationGenerator(TemplateRule):
                     newLine = ''
 
                     newLine += 'message("' + self._nameUpper + '_APPLICATION'
-                    newLine += ('.' * (24 - len(self._nameUpper)))
+                    newLine += ('.' * (31 - len(self._nameUpper)))
                     newLine += ' ${' + self._nameUpper + '_APPLICATION}")\n'
 
                     dst.write(newLine)
@@ -418,11 +450,11 @@ class ApplicationGenerator(TemplateRule):
                     currentBlock = 'appDirBlock'
                 if 'def ImportApplications' in l and currentBlock == 'appDirBlock':
                     currentBlock = 'importValueBlock'
-                if 'if(Import_SolidMechanicsApplication):' in l and currentBlock == 'importValueBlock':
+                if 'if(Import_' in l and currentBlock == 'importValueBlock':
                     currentBlock = 'prepareBlock'
-                if '# dynamic renumbering of variables' in l:
+                if '# dynamic renumbering of variables' in l and currentBlock == 'prepareBlock':
                     currentBlock = 'initializeBlock'
-                if '# def ImportApplications(kernel  ):' in l:
+                if '# def ImportApplications(kernel  ):' in l and currentBlock == 'initializeBlock':
                     currentBlock = 'footer'
 
                 # Append the result if its not null
@@ -437,7 +469,7 @@ class ApplicationGenerator(TemplateRule):
             ptab * 2 + 'sys.path.append(applications_path + \'/{CAMEL}/Linux\')\n',
             ptab * 2 + 'from Kratos{CAMEL}Application import *\n',
             ptab * 2 + '{LOWER}_application = Kratos{CAMEL}Application()\n',
-            ptab * 2 + 'kernel.AddApplication({LOWER}_application)\n',
+            ptab * 2 + 'kernel.ImportApplication({LOWER}_application)\n',
             ptab * 2 + 'print("Kratos{CAMEL}Application Succesfully imported")\n',
             '\n'
         ]
@@ -459,10 +491,9 @@ class ApplicationGenerator(TemplateRule):
 
         fileStruct['importValueBlock'].append(
             ptab + 'print("Import_{CAMEL}Application: " + str(Import_{CAMEL}Application))\n'.format(
-                CAMEL=self._nameCamel))
+                CAMEL=self._nameCamel)
+        )
 
-        # This line deletes the last \n
-        fileStruct['prepareBlock'] = fileStruct['prepareBlock'][:-1]
         fileStruct['prepareBlock'].append(
             prepareBlockContent
         )

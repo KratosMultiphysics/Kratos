@@ -32,21 +32,12 @@ namespace Kratos
         // We initialize the penalty parameter
         const double& epsilon = mrThisModelPart.GetProcessInfo()[INITIAL_PENALTY];
         
-        bool init_delta_normal = false;
-        Matrix zero_delta_normal;
-        if (mrThisModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION] == true)
-        {
-            init_delta_normal = true;
-            const unsigned int dimension = mrThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
-            zero_delta_normal = ZeroMatrix( dimension, dimension );
-        }
-        
         // We iterate over the node
         NodesArrayType& nodes_array = mrThisModelPart.Nodes();
         const int num_nodes = static_cast<int>(nodes_array.size());
         
         #pragma omp parallel for firstprivate(zero_vector)
-        for(int i = 0; i < num_nodes; i++) 
+        for(int i = 0; i < num_nodes; ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             
@@ -69,15 +60,6 @@ namespace Kratos
             {
                 it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);
             }
-            
-            // The normal and tangents vectors
-            it_node->SetValue(NORMAL, zero_vector);
-            
-            // The delta normal if necessary
-            if (init_delta_normal == true)
-            {
-                it_node->SetValue(DELTA_NORMAL, zero_delta_normal);
-            }
         }
         
         // Now we iterate over the conditions
@@ -85,7 +67,7 @@ namespace Kratos
         const int num_conditions = static_cast<int>(conditions_array.size());
         
         #pragma omp parallel for firstprivate(zero_vector)
-        for(int i = 0; i < num_conditions; i++) 
+        for(int i = 0; i < num_conditions; ++i) 
         {
             auto it_cond = conditions_array.begin() + i;
             

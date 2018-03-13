@@ -307,7 +307,8 @@ namespace Kratos
       void ComputeMaterialParameters (double& Density,
 				      double& DeviatoricCoeff,
 				      double& VolumetricCoeff,
-				      double timeStep);
+				      double timeStep,
+				      ElementalVariables& rElementalVariables);
 
 
       /// Add integration point contribution to the mass matrix.

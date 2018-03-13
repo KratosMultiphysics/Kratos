@@ -895,11 +895,17 @@ private:
     double bulkModulus=SlaveNode->FastGetSolutionStepValue(BULK_MODULUS);
     double density=SlaveNode->FastGetSolutionStepValue(DENSITY);
     double viscosity=SlaveNode->FastGetSolutionStepValue(VISCOSITY);
+    double yieldShear=SlaveNode->FastGetSolutionStepValue(YIELD_SHEAR);
+    double flowIndex=SlaveNode->FastGetSolutionStepValue(FLOW_INDEX);
+    double adaptiveExponent=SlaveNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT);
 
 
     MasterNode->FastGetSolutionStepValue(BULK_MODULUS)=bulkModulus;
     MasterNode->FastGetSolutionStepValue(DENSITY)=density;
     MasterNode->FastGetSolutionStepValue(VISCOSITY)=viscosity;
+    MasterNode->FastGetSolutionStepValue(YIELD_SHEAR)=yieldShear;
+    MasterNode->FastGetSolutionStepValue(FLOW_INDEX)=flowIndex;
+    MasterNode->FastGetSolutionStepValue(ADAPTIVE_EXPONENT)=adaptiveExponent;
 
     KRATOS_CATCH( "" )
 

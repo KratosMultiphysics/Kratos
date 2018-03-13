@@ -7,7 +7,7 @@
 //  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Author Julio Marti
+//  Main authors:    Author Julio Marti.
 //
 	           
 
@@ -104,7 +104,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
   boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
   array_1d<double,3> msN; //dimension = number of nodes
   array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
-  array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
+  //array_1d<double,3> temp_vec_np; //dimension = number of nodes
   array_1d<double,3> ms_u_DN; //dimension = number of nodes
   //getting data for the given geometry
   
@@ -252,9 +252,9 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
       for(unsigned int iii = 0; iii<number_of_points; iii++)
         {
 	  const array_1d<double,3>& v = (GetGeometry()[iii].FastGetSolutionStepValue(VELOCITY,1) );
-	  ms_temp_vec_np[iii] = v[component_index] / dt * density;
+	  temp_vec_np[iii] = v[component_index] / dt * density;
         }
-      noalias(rhs_aux) += prod(msMassFactors,ms_temp_vec_np) ;
+      noalias(rhs_aux) += prod(msMassFactors,temp_vec_np) ;
       
       //writing the rhs_aux in its place
       for( unsigned int i = 0; i < number_of_points; i++)
@@ -296,7 +296,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
     array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-    array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
+    array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
     boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
@@ -385,19 +385,19 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     //////////////////////////////////////////////////////////
 
     //Dirichlet contribution  (that is: LHS*p_new)
-    ms_temp_vec_np[0] = p0;
-    ms_temp_vec_np[1] = p1;
-    ms_temp_vec_np[2] = p2;
+    temp_vec_np[0] = p0;
+    temp_vec_np[1] = p1;
+    temp_vec_np[2] = p2;
     //LHS is already multiplied by AREA
-    noalias(rRightHandSideVector) = -prod(msWorkMatrix1,ms_temp_vec_np);
+    noalias(rRightHandSideVector) = -prod(msWorkMatrix1,temp_vec_np);
 
     //NOW RHS-=dt L p_old
     //changing the meaning of temp_vec_np
-    ms_temp_vec_np[0] = p0_old;
-    ms_temp_vec_np[1] = p1_old;
-    ms_temp_vec_np[2] = p2_old;
+    temp_vec_np[0] = p0_old;
+    temp_vec_np[1] = p1_old;
+    temp_vec_np[2] = p2_old;
 
-    noalias(rRightHandSideVector) += Area* dt/2.0 * (prod(msWorkMatrix,ms_temp_vec_np)) ;
+    noalias(rRightHandSideVector) += Area* dt/2.0 * (prod(msWorkMatrix,temp_vec_np)) ;
 
     //***************************************************************************
 
@@ -452,7 +452,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
     array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
     array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
     array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-    array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
+    array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
     array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
     boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
@@ -725,7 +725,7 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
         array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
         array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-	array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
+	array_1d<double,3> temp_vec_np = ZeroVector(3); //dimension = number of nodes
 	
 	double dt = CurrentProcessInfo[DELTA_TIME];
 	
@@ -763,24 +763,24 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         //getting the velocity on the nodes and other necessary variabless
         const array_1d<double,3> vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
         double p_n0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
-        const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+        //const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
         const double k0 = GetGeometry()[0].FastGetSolutionStepValue(BULK_MODULUS);
 
         const array_1d<double,3> vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
         double p_n1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
-        const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+        //const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
         const double k1 = GetGeometry()[1].FastGetSolutionStepValue(BULK_MODULUS);
 
         const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
         double p_n2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1);
-        const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
-        const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+        //const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+        //const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 	
         const double k2 = GetGeometry()[2].FastGetSolutionStepValue(BULK_MODULUS);
         double bulk_modulus = -0.3333333333333333333333*(k0 + k1 + k2 ) * dt;
-        double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+        //double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
 	
         temp_vec_np[0] = p_n0;
         temp_vec_np[1] = p_n1;
@@ -795,26 +795,26 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
         Gaux += msDN_DX(1,0) * vel1[0] + msDN_DX(1,1) * vel1[1];
         Gaux += msDN_DX(2,0) * vel2[0] + msDN_DX(2,1) * vel2[1];
 
-	double E_over_R = 28961.49;//24466.81;
-    	double C = 1.4e10; 
-	C=1.19e15;
+	constexpr double E_over_R = 28961.49;//24466.81;
+    	constexpr double C = 1.19e15; 
 	
         double t1 = GetGeometry()[0].FastGetSolutionStepValue(YCH4);
-        double Arr1 = C * exp(-E_over_R/(t1));
+        //double Arr1 = C * exp(-E_over_R/(t1));
         double t2 = GetGeometry()[1].FastGetSolutionStepValue(YCH4);
-        double Arr2 = C * exp(-E_over_R/(t2));
+        //double Arr2 = C * exp(-E_over_R/(t2));
         double t3 = GetGeometry()[2].FastGetSolutionStepValue(YCH4);
-        double Arr3 = C * exp(-E_over_R/(t3));
+        //double Arr3 = C * exp(-E_over_R/(t3));
 
-        double Aver = 0.33333333333333*(Arr1 + Arr2 + Arr3 );
+        //double Aver = 0.33333333333333*(Arr1 + Arr2 + Arr3 );
 
 	double temp=t1 + t2 + t3;
 	temp *= 0.33333333333333;
 	if(temp>1000.0) temp=1000.0;
-
-        GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  C * exp(-E_over_R/(temp)) * 0.33333333333333 * Area ;
-        GalerkinRHS[1] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  C * exp(-E_over_R/(temp)) * 0.33333333333333 * Area ;
-        GalerkinRHS[2] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  C * exp(-E_over_R/(temp)) * 0.33333333333333 * Area ;
+ 
+        double aux_var= C * exp(-E_over_R/(temp));
+        GalerkinRHS[0] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  aux_var * 0.33333333333333 * Area ;
+        GalerkinRHS[1] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  aux_var * 0.33333333333333 * Area ;
+        GalerkinRHS[2] += bulk_modulus * Area * Gaux * 0.33333333333333 + 0.0 * bulk_modulus *  aux_var * 0.33333333333333 * Area ;
 
 	//double ddd=C * exp(-E_over_R/(temp));
 	//KRATOS_WATCH(ddd);
@@ -932,7 +932,7 @@ void QFluid2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& Curr
   void QFluid2D::CalculateViscousMatrix( MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double& nu, const double& dt, const double& kk)//,const double& bulk )
 {
   
-  double deltat = dt;
+  //double deltat = dt;
   double viscosity=nu;
   
   double k=kk;

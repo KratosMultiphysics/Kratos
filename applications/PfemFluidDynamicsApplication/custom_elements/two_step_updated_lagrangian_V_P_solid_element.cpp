@@ -135,7 +135,8 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
   void TwoStepUpdatedLagrangianVPSolidElement<TDim>::ComputeMaterialParameters(double& Density,
 									       double& DeviatoricCoeff,
 									       double& VolumetricCoeff,
-									       double timeStep)
+									       double timeStep,
+									       ElementalVariables& rElementalVariables)
   {
 
     Density=this->GetProperties()[DENSITY];
@@ -158,6 +159,11 @@ Element::Pointer TwoStepUpdatedLagrangianVPSolidElement<TDim>::Clone( IndexType 
     DeviatoricCoeff = timeStep*YoungModulus/(1.0+PoissonRatio)*0.5;
     // BulkModulus = FirstLame + 2.0*SecondLame/3.0;
     VolumetricCoeff = timeStep*PoissonRatio*YoungModulus/((1.0+PoissonRatio)*(1.0-2.0*PoissonRatio)) + 2.0*DeviatoricCoeff/3.0;
+
+    this->mMaterialDeviatoricCoefficient=DeviatoricCoeff;
+    this->mMaterialVolumetricCoefficient=VolumetricCoeff;
+    this->mMaterialDensity=Density;
+
   }
 
 
@@ -357,6 +363,7 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: InitializeElementalVariables
     rElementalVariables.DetFgrad=1;
     rElementalVariables.DetFgradVel=1;
     rElementalVariables.DeviatoricInvariant=1;
+    rElementalVariables.EquivalentStrainRate=1;
     rElementalVariables.VolumetricDefRate=1;
     rElementalVariables.SpatialDefRate.resize(voigtsize);
     rElementalVariables.MDGreenLagrangeMaterial.resize(voigtsize);
@@ -382,12 +389,9 @@ void TwoStepUpdatedLagrangianVPSolidElement<2>:: CalcElasticPlasticCauchySplitte
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
-  double Density  = 0;
-  double CurrSecondLame  = 0;
-  double CurrBulkModulus = 0;
+  double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
+  double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
- 
   double CurrFirstLame  = 0;
   CurrFirstLame  =CurrBulkModulus - 2.0*CurrSecondLame/3.0;
 
@@ -444,12 +448,9 @@ void TwoStepUpdatedLagrangianVPSolidElement<3>:: CalcElasticPlasticCauchySplitte
   rElementalVariables.CurrentTotalCauchyStress=this->mCurrentTotalCauchyStress[g];
   rElementalVariables.CurrentDeviatoricCauchyStress=this->mCurrentDeviatoricCauchyStress[g];
 
-  double Density  = 0;
-  double CurrSecondLame  = 0;
-  double CurrBulkModulus = 0;
+  double CurrSecondLame  = this->mMaterialDeviatoricCoefficient;
+  double CurrBulkModulus = this->mMaterialVolumetricCoefficient;
 
-  this->ComputeMaterialParameters(Density,CurrSecondLame,CurrBulkModulus,TimeStep);
- 
   double CurrFirstLame   = 0;
   CurrFirstLame  = CurrBulkModulus - 2.0*CurrSecondLame/3.0;
   
@@ -612,16 +613,15 @@ void TwoStepUpdatedLagrangianVPSolidElement<TDim>:: UpdateCauchyStress(unsigned 
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
     const unsigned int NumGauss = GaussWeights.size();
 
-    const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
+    // const double TimeStep=rCurrentProcessInfo[DELTA_TIME];
     double theta=this->GetThetaContinuity();
 
     ElementalVariables rElementalVariables;
     this->InitializeElementalVariables(rElementalVariables);
  
-    double Density  = 0;
-    double DeviatoricCoeff = 0;
-    double VolumetricCoeff = 0;   
-    this->ComputeMaterialParameters(Density,DeviatoricCoeff,VolumetricCoeff,TimeStep);
+    // double Density  = mMaterialDensity;
+    // double DeviatoricCoeff = mMaterialVolumetricCoefficient;
+    double VolumetricCoeff = this->mMaterialDeviatoricCoefficient;   
     
     double totalVolume=0;
 

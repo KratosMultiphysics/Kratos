@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics 
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
 import time as timer
 
@@ -142,13 +143,11 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             
             for solid_part in solid_body_model_parts:
 
-                print("SetMaterialPropertiesToSolidNodes")
                 self.SetMaterialPropertiesToSolidNodes(solid_part)
 
             entity_type = "Nodes"
             for fluid_part in fluid_body_model_parts:
 
-                print("SetMaterialPropertiesToFluidNodes")
                 self.SetMaterialPropertiesToFluidNodes(fluid_part)
 
                 for rigid_part in rigid_body_model_parts:
@@ -245,6 +244,14 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
             bulk_modulus = elem.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
             viscosity = elem.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            flow_index = 1
+            yield_shear=0
+            adaptive_exponent=0
+            
+            if(elem.Properties.Has(KratosPfemFluid.YIELD_SHEAR)):
+                flow_index = elem.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
+                yield_shear = elem.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
+                adaptive_exponent = elem.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
             break
 
         for nn in rigid_model_part.Nodes:
@@ -252,6 +259,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             nn.SetSolutionStepValue(KratosMultiphysics.BULK_MODULUS,bulk_modulus)
             nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
             nn.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,viscosity)
+            nn.SetSolutionStepValue(KratosPfemFluid.FLOW_INDEX,flow_index)
+            nn.SetSolutionStepValue(KratosPfemFluid.YIELD_SHEAR,yield_shear)
+            nn.SetSolutionStepValue(KratosPfemFluid.ADAPTIVE_EXPONENT,adaptive_exponent)
 
 
     def SetMaterialPropertiesToFluidNodes(self,model_part):
@@ -261,6 +271,14 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             density = elem.Properties.GetValue(KratosMultiphysics.DENSITY)
             bulk_modulus = elem.Properties.GetValue(KratosMultiphysics.BULK_MODULUS)
             viscosity = elem.Properties.GetValue(KratosMultiphysics.VISCOSITY)
+            flow_index = 1
+            yield_shear=0
+            adaptive_exponent=0
+            
+            if(elem.Properties.Has(KratosPfemFluid.YIELD_SHEAR)):
+                flow_index = elem.Properties.GetValue(KratosPfemFluid.FLOW_INDEX)
+                yield_shear = elem.Properties.GetValue(KratosPfemFluid.YIELD_SHEAR)
+                adaptive_exponent = elem.Properties.GetValue(KratosPfemFluid.ADAPTIVE_EXPONENT)
             break
 
         for nn in model_part.Nodes:
@@ -268,6 +286,9 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
             nn.SetSolutionStepValue(KratosMultiphysics.BULK_MODULUS,bulk_modulus)
             nn.SetSolutionStepValue(KratosMultiphysics.DENSITY,density)
             nn.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,viscosity)
+            nn.SetSolutionStepValue(KratosPfemFluid.FLOW_INDEX,flow_index)
+            nn.SetSolutionStepValue(KratosPfemFluid.YIELD_SHEAR,yield_shear)
+            nn.SetSolutionStepValue(KratosPfemFluid.ADAPTIVE_EXPONENT,adaptive_exponent)
 
 
     def SetMaterialPropertiesToSolidNodes(self,model_part):

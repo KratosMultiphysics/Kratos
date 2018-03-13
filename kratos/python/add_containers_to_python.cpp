@@ -367,8 +367,6 @@ void  AddContainersToPython()
     AddCFDVariablesToPython(); ///@TODO: move variables to CFD application
     AddALEVariablesToPython(); ///@TODO: move variables to ALE application
     AddFSIVariablesToPython(); ///@TODO: move variables to FSI application
-    AddMATVariablesToPython(); ///@TODO: move variables to CFD application
-    AddALEVariablesToPython(); ///@TODO: move variables to ALE application
     AddMappingVariablesToPython(); ///@TODO: move variables to Mapping application
     AddMATVariablesToPython(); ///@TODO: move variables to CL application
     AddLegacyStructuralAppVarsToPython();

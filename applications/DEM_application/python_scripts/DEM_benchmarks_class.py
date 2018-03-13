@@ -212,14 +212,14 @@ def initialize_time_parameters(benchmark_number):
 
     elif benchmark_number==32:
 
-        final_time                      = 1.0
+        final_time                      = 0.5
         dt                              = 1.0e-6
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==33:
 
-        final_time                      = 1.0
+        final_time                      = 0.5
         dt                              = 1.0e-6
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
@@ -3775,7 +3775,7 @@ class Benchmark28:   #pendulo3D
 
 
 
-class Benchmark30: ########## Cylinder with imposed angular velocity (Verlet Velocity + Zhao)
+class Benchmark30: ########## Cylinder with imposed angular velocity (Velocity Verlet + Zhao)
 
     def __init__(self):
         self.number = 29
@@ -4007,7 +4007,7 @@ class Benchmark31: ########## Cylinder with imposed angular velocity (Symplectic
 
         return error1, error2, error3
 
-class Benchmark32: ########## Fiber cluster bouncing without any damping (Verlet velocity + Zhao scheme)
+class Benchmark32: ########## Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)
 
     def __init__(self):
         self.number = 32
@@ -4106,7 +4106,7 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Verlet
 
         return error1, error2
 
-class Benchmark33: ########## Fiber cluster bouncing without any damping (Verlet velocity + Runge-Kutta scheme)
+class Benchmark33: ########## Fiber cluster bouncing without any damping (Velocity Verlet + Runge-Kutta scheme)
 
     def __init__(self):
         self.number = 33

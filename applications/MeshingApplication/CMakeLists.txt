@@ -65,9 +65,6 @@ endif(${INCLUDE_MMG} MATCHES ON)
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES})
-if(USE_COTIRE MATCHES ON)
-    cotire(KratosMeshingApplication)
-endif(USE_COTIRE MATCHES ON)
 target_link_libraries(KratosMeshingApplication KratosCore triangle tetMeshOpt)
 
 
@@ -98,6 +95,10 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMeshingApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosMeshingApplication)
+endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosMeshingApplication DESTINATION libs )
 

@@ -31,7 +31,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactCondition<TDi
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return boost::make_shared< AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return boost::make_shared< AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
@@ -51,8 +51,7 @@ Condition::Pointer AugmentedLagrangianMethodFrictionalMortarContactCondition<TDi
 
 template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
 AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::~AugmentedLagrangianMethodFrictionalMortarContactCondition( )
-{
-}
+= default;
 
 /***************************** BEGIN AD REPLACEMENT ********************************/
 /***********************************************************************************/
@@ -202,6 +201,38 @@ void AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TN
     }
     
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< unsigned int TDim, unsigned int TNumNodes, bool TNormalVariation >
+int AugmentedLagrangianMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    // Base class checks for positive Jacobian and Id > 0
+    int ierr = BaseType::Check(rCurrentProcessInfo);
+    if(ierr != 0) return ierr;
+
+    // Check that all required variables have been registered
+    KRATOS_CHECK_VARIABLE_KEY(VECTOR_LAGRANGE_MULTIPLIER)
+    KRATOS_CHECK_VARIABLE_KEY(WEIGHTED_SLIP)
+
+    // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
+    for ( unsigned int i = 0; i < TNumNodes; i++ )
+    {
+        Node<3> &rnode = this->GetGeometry()[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VECTOR_LAGRANGE_MULTIPLIER,rnode)
+
+        KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_X, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_Y, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(VECTOR_LAGRANGE_MULTIPLIER_Z, rnode)
+    }
+
+    return ierr;
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/

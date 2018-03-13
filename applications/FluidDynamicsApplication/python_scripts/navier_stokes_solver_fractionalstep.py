@@ -1,12 +1,15 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+
+# Importing the Kratos Library
 import KratosMultiphysics
+
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
+
+# Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-## Import base class file
+# Import base class file
 import navier_stokes_base_solver
 
 def CreateSolver(main_model_part, custom_settings):
@@ -38,7 +41,6 @@ class NavierStokesSolver_FractionalStep(navier_stokes_base_solver.NavierStokesBa
             "consider_periodic_conditions": false,
             "time_order": 2,
             "compute_reactions": false,
-            "divergence_clearance_steps": 0,
             "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings":  {
                 "solver_type"                    : "AMGCL",

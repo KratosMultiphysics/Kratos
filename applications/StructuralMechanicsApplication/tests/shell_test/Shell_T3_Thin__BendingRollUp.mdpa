@@ -624,13 +624,13 @@ Begin NodalData ROTATION_Z
          5    1   0.000000
 End NodalData
 
-Begin Conditions PointTorqueCondition3D1N
+Begin Conditions PointMomentCondition3D1N
 	    1   1      241
 	    2   1      242
 	    3   1      243
 End Conditions
 
-Begin NodalData POINT_TORQUE_Y
+Begin NodalData POINT_MOMENT_Y
 		241  0       511.3269000000
 		242  0       511.3269000000
 		243  0       511.3269000000

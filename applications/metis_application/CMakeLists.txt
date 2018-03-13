@@ -45,6 +45,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosMetisApplication PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
+if(USE_COTIRE MATCHES ON)
+    cotire(KratosMetisApplication)
+endif(USE_COTIRE MATCHES ON)
+
 install(TARGETS KratosMetisApplication DESTINATION libs )
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

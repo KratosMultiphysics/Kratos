@@ -498,8 +498,8 @@ namespace Testing {
         Point point_4( 1.2, 0.5, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_3, point_4));
         
-        Point point_5(-0.8,-0.3, 0.0);
-        Point point_6( 0.2, 0.3, 0.0);
+        Point point_5( 0.2, 0.3, 0.0);
+        Point point_6(-0.8,-0.3, 0.0);
         KRATOS_CHECK(geom->HasIntersection(point_5, point_6));
     }
 

@@ -65,7 +65,7 @@ bool Tetrahedra3D4AusasModifiedShapeFunctions::IsSplit() {
 // Internally computes the splitting pattern and returns all the shape function values for the positive side.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideShapeFunctionsAndGradientsValues(
     Matrix &rPositiveSideShapeFunctionsValues,
-    std::vector<Matrix> &rPositiveSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rPositiveSideShapeFunctionsGradientsValues,
     Vector &rPositiveSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -92,7 +92,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideShapeFunctions
 // Internally computes the splitting pattern and returns all the shape function values for the negative side.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeSideShapeFunctionsAndGradientsValues(
     Matrix &rNegativeSideShapeFunctionsValues,
-    std::vector<Matrix> &rNegativeSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rNegativeSideShapeFunctionsGradientsValues,
     Vector &rNegativeSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -119,12 +119,12 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeSideShapeFunctions
 // Internally computes the splitting pattern and returns all the shape function values for the positive interface side.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
     Matrix &rInterfacePositiveSideShapeFunctionsValues,
-    std::vector<Matrix> &rInterfacePositiveSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rInterfacePositiveSideShapeFunctionsGradientsValues,
     Vector &rInterfacePositiveSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
     if (this->IsSplit()) {
-        // Get the interface condensation matrix
+        // Get the intersection condensation matrix
         Matrix p_matrix_pos_side;
         this->SetPositiveSideCondensationMatrix(p_matrix_pos_side,
                                                 mpTetrahedraSplitter->mEdgeNodeI,
@@ -132,7 +132,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfacePositiveSideShape
                                                 mpTetrahedraSplitter->mSplitEdges);
 
         // Compute the positive side interface values
-        this->ComputeInterfaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
+        this->ComputeFaceValuesOnOneSide(rInterfacePositiveSideShapeFunctionsValues,
                                               rInterfacePositiveSideShapeFunctionsGradientsValues,
                                               rInterfacePositiveSideWeightsValues,
                                               mpTetrahedraSplitter->mPositiveInterfaces,
@@ -148,7 +148,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfacePositiveSideShape
 // Internally computes the splitting pattern and returns all the shape function values for the negative interface side.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShapeFunctionsAndGradientsValues(
     Matrix &rInterfaceNegativeSideShapeFunctionsValues,
-    std::vector<Matrix> &rInterfaceNegativeSideShapeFunctionsGradientsValues,
+    ShapeFunctionsGradientsType &rInterfaceNegativeSideShapeFunctionsGradientsValues,
     Vector &rInterfaceNegativeSideWeightsValues,
     const IntegrationMethodType IntegrationMethod) {
 
@@ -161,7 +161,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShape
                                                 mpTetrahedraSplitter->mSplitEdges);
 
         // Compute the positive side interface values
-        this->ComputeInterfaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
+        this->ComputeFaceValuesOnOneSide(rInterfaceNegativeSideShapeFunctionsValues,
                                               rInterfaceNegativeSideShapeFunctionsGradientsValues,
                                               rInterfaceNegativeSideWeightsValues,
                                               mpTetrahedraSplitter->mNegativeInterfaces,
@@ -174,6 +174,90 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeInterfaceNegativeSideShape
     }
 };
 
+// Given a face id, computes the positive side subdivision shape function values in that face.
+void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues(
+    Matrix &rPositiveExteriorFaceShapeFunctionsValues,
+    ShapeFunctionsGradientsType &rPositiveExteriorFaceShapeFunctionsGradientsValues,
+    Vector &rPositiveExteriorFaceWeightsValues,
+    const unsigned int FaceId,
+    const IntegrationMethodType IntegrationMethod
+) {
+    if (this->IsSplit()) {
+        // Get the condensation matrix
+        Matrix p_matrix_pos_side;
+        this->SetPositiveSideCondensationMatrix(
+            p_matrix_pos_side,
+            mpTetrahedraSplitter->mEdgeNodeI,
+            mpTetrahedraSplitter->mEdgeNodeJ,
+            mpTetrahedraSplitter->mSplitEdges);
+        
+        // Get the external faces
+        std::vector < unsigned int > exterior_faces_parent_ids_vector;
+        std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
+        mpTetrahedraSplitter->GenerateExteriorFaces(
+            exterior_faces_vector,
+            exterior_faces_parent_ids_vector,
+            mpTetrahedraSplitter->mPositiveSubdivisions,
+            FaceId);
+        
+        // Compute the positive side external face values
+        this->ComputeFaceValuesOnOneSide(
+            rPositiveExteriorFaceShapeFunctionsValues,
+            rPositiveExteriorFaceShapeFunctionsGradientsValues,
+            rPositiveExteriorFaceWeightsValues,
+            exterior_faces_vector,
+            mpTetrahedraSplitter->mPositiveSubdivisions,
+            exterior_faces_parent_ids_vector,
+            p_matrix_pos_side,
+            IntegrationMethod);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputePositiveExteriorFaceShapeFunctionsAndGradientsValues method for a non divided geometry.";
+    }
+};
+
+// Given a face id, computes the positive side subdivision shape function values in that face.
+void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues(
+    Matrix &rNegativeExteriorFaceShapeFunctionsValues,
+    ShapeFunctionsGradientsType &rNegativeExteriorFaceShapeFunctionsGradientsValues,
+    Vector &rNegativeExteriorFaceWeightsValues,
+    const unsigned int FaceId,
+    const IntegrationMethodType IntegrationMethod
+) {
+    if (this->IsSplit()) {
+        // Get the condensation matrix
+        Matrix p_matrix_neg_side;
+        this->SetNegativeSideCondensationMatrix(
+            p_matrix_neg_side,
+            mpTetrahedraSplitter->mEdgeNodeI,
+            mpTetrahedraSplitter->mEdgeNodeJ,
+            mpTetrahedraSplitter->mSplitEdges);
+        
+        // Get the external faces
+        std::vector < unsigned int > exterior_faces_parent_ids_vector;
+        std::vector < IndexedPointGeometryPointerType > exterior_faces_vector;
+        mpTetrahedraSplitter->GenerateExteriorFaces(
+            exterior_faces_vector,
+            exterior_faces_parent_ids_vector,
+            mpTetrahedraSplitter->mNegativeSubdivisions,
+            FaceId);
+        
+        // Compute the positive side external face values
+        this->ComputeFaceValuesOnOneSide(
+            rNegativeExteriorFaceShapeFunctionsValues,
+            rNegativeExteriorFaceShapeFunctionsGradientsValues,
+            rNegativeExteriorFaceWeightsValues,
+            exterior_faces_vector,
+            mpTetrahedraSplitter->mNegativeSubdivisions,
+            exterior_faces_parent_ids_vector,
+            p_matrix_neg_side,
+            IntegrationMethod);
+
+    } else {
+        KRATOS_ERROR << "Using the ComputeNegativeExteriorFaceShapeFunctionsAndGradientsValues method for a non divided geometry.";
+    }
+};
+
 // Compute the positive side interface outwards area normal vector values.
 void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideInterfaceAreaNormals(
     std::vector<Vector> &rPositiveSideInterfaceAreaNormals,
@@ -181,7 +265,7 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveSideInterfaceAreaN
 
     if (this->IsSplit()) {
         // Compute the positive side interface outwars unit normal values
-        this->ComputeInterfaceNormalOnOneSide(rPositiveSideInterfaceAreaNormals,
+        this->ComputeFaceNormalOnOneSide(rPositiveSideInterfaceAreaNormals,
                                               mpTetrahedraSplitter->mPositiveInterfaces,
                                               IntegrationMethod);
     } else {
@@ -196,11 +280,69 @@ void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeSideInterfaceAreaN
 
     if (this->IsSplit()) {
         // Compute the positive side interface outwars unit normal values
-        this->ComputeInterfaceNormalOnOneSide(rNegativeSideInterfaceAreaNormals,
+        this->ComputeFaceNormalOnOneSide(rNegativeSideInterfaceAreaNormals,
                                               mpTetrahedraSplitter->mNegativeInterfaces,
                                               IntegrationMethod);
     } else {
         KRATOS_ERROR << "Using the ComputeNegativeSideInterfaceAreaNormals method for a non divided geometry.";
+    }
+};
+
+// For a given face, computes the positive side exteriorface outwards area normal vector values.
+void Tetrahedra3D4AusasModifiedShapeFunctions::ComputePositiveExteriorFaceAreaNormals(
+    std::vector<Vector> &rPositiveExteriorFaceAreaNormal,
+    const unsigned int FaceId,
+    const IntegrationMethodType IntegrationMethod)
+{
+
+    if (this->IsSplit())
+    {
+        // Get the external faces
+        std::vector<unsigned int> exterior_faces_parent_ids_vector;
+        std::vector<IndexedPointGeometryPointerType> exterior_faces_vector;
+        mpTetrahedraSplitter->GenerateExteriorFaces(
+            exterior_faces_vector,
+            exterior_faces_parent_ids_vector,
+            mpTetrahedraSplitter->mPositiveSubdivisions,
+            FaceId);
+
+        // Compute the positive side interface outwars area normal values
+        this->ComputeFaceNormalOnOneSide(rPositiveExteriorFaceAreaNormal,
+                                              exterior_faces_vector,
+                                              IntegrationMethod);
+    }
+    else
+    {
+        KRATOS_ERROR << "Using the ComputePositiveExteriorFaceAreaNormals method for a non divided geometry.";
+    }
+};
+
+// For a given face, computes the positive side exterior face outwards area normal vector values.
+void Tetrahedra3D4AusasModifiedShapeFunctions::ComputeNegativeExteriorFaceAreaNormals(
+    std::vector<Vector> &rNegativeExteriorFaceAreaNormal,
+    const unsigned int FaceId,
+    const IntegrationMethodType IntegrationMethod)
+{
+
+    if (this->IsSplit())
+    {
+        // Get the external faces
+        std::vector<unsigned int> exterior_faces_parent_ids_vector;
+        std::vector<IndexedPointGeometryPointerType> exterior_faces_vector;
+        mpTetrahedraSplitter->GenerateExteriorFaces(
+            exterior_faces_vector,
+            exterior_faces_parent_ids_vector,
+            mpTetrahedraSplitter->mNegativeSubdivisions,
+            FaceId);
+
+        // Compute the positive side interface outwars area normal values
+        this->ComputeFaceNormalOnOneSide(rNegativeExteriorFaceAreaNormal,
+                                              exterior_faces_vector,
+                                              IntegrationMethod);
+    }
+    else
+    {
+        KRATOS_ERROR << "Using the ComputeNegativeExteriorFaceAreaNormals method for a non divided geometry.";
     }
 };
 

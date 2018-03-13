@@ -306,13 +306,14 @@ namespace Kratos
       if (YoungModulus < 0.00001)
       {
          std::vector<double> Values;
+         mElementStabilizationNumber = 1.0;
          GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, rCurrentProcessInfo);
-         mElementStabilizationNumber = 1.0 / Values[0];
+         if ( fabs(Values[0]) > 1e-6)
+            mElementStabilizationNumber = 1.0 / Values[0];
 
          GetValueOnIntegrationPoints( BULK_MODULUS, Values, rCurrentProcessInfo);
-         mElementStabilizationNumber *= Values[0];
-
-
+         if ( fabs(Values[0]) > 1e-6)
+            mElementStabilizationNumber *= Values[0];
       }
 
       KRATOS_CATCH( "" );

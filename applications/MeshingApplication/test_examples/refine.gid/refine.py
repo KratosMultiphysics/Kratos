@@ -29,7 +29,7 @@ from KratosMultiphysics.StructuralApplication import *
 sys.path.append(kratos_applications_path + 'meshing_application/python_scripts')
 from KratosMultiphysics.MeshingApplication import *
 meshing_application = KratosMeshingApplication()
-kernel.AddApplication(meshing_application)
+kernel.ImportApplication(meshing_application)
 applications_interface.ImportApplications(kernel, kratos_applications_path)
 
 

@@ -130,10 +130,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
         self.options.Set(KratosMultiphysics.ConstitutiveLaw.USE_ELEMENT_PROVIDED_STRAIN, True)
         self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRESS, True)
         self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_CONSTITUTIVE_TENSOR, True)
-        #self.options.Set(KratosMultiphysics.ConstitutiveLaw.COMPUTE_STRAIN_ENERGY, False)
-        #self.options.Set(KratosMultiphysics.ConstitutiveLaw.ISOCHORIC_TENSOR_ONLY, False)
-        #self.options.Set(KratosMultiphysics.ConstitutiveLaw.VOLUMETRIC_TENSOR_ONLY, False)
-        #self.options.Set(KratosMultiphysics.ConstitutiveLaw.FINALIZE_MATERIAL_RESPONSE, False)
 
         #set calculation variables
         self.stress_vector       = KratosMultiphysics.Vector(self.material_law.GetStrainSize())
@@ -155,16 +151,6 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
         self.parameters.SetMaterialProperties( self.properties )
         self.parameters.SetElementGeometry( self.geometry )
 
-        #feature flags
-        #self.features =KratosMultiphysics. Flags()        
-        #self.features.Set(KratosMultiphysics.ConstitutiveLaw.FINITE_STRAINS, False) 
-        #self.features.Set(KratosMultiphysics.ConstitutiveLaw.INFINITESIMAL_STRAINS, False)
-        #self.features.Set(KratosMultiphysics.ConstitutiveLaw.PLANE_STRAIN_LAW, False)
-        #self.features.Set(KratosMultiphysics.ConstitutiveLaw.PLANE_STRESS_LAW, False)
-        #self.features.Set(KratosMultiphysics.ConstitutiveLaw.AXISYMMETRIC_LAW, False)
-        #self.features.Set(KratosMultiphysics.ConstitutiveLaw.U_P_LAW, False)
-        #self.features.Set(KratosMultiphysics.ConstitutiveLaw.ISOTROPIC, False)
-        #self.features.Set(KratosMultiphysics.ConstitutiveLaw.ANISOTROPIC, False)
 
         
     #
@@ -193,43 +179,19 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
     #
     def CalculateMaterialResponse(self):
     
-        #self.material_law.CalculateMaterialResponsePK2( self.parameters )
-        #if( self.echo_level > 0 ):
-        #    print("PK2 Material Response")
-        #    print( "stress = ", self.parameters.GetStressVector() )
-        #    print( "strain = ", self.parameters.GetStrainVector() )
-        #    print( "C      = ", self.parameters.GetConstitutiveMatrix() )
-        
-        #self.material_law.FinalizeMaterialResponsePK2( self.parameters )
-        #self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
-        for i in range(0, 10):
-            print(" --  ")
-
-        self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
-        if( self.echo_level > 0 ):
-            print("\n Kirchhoff Material Response")
-            print( "stress = ", self.parameters.GetStressVector() )
-            print( "strain = ", self.parameters.GetStrainVector() )
-            print( "C      = ", self.parameters.GetConstitutiveMatrix() )
-
-        self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
-
-        if ( True):
             import numpy as np
             import matplotlib.pyplot as plt
 
-            nSize = 30;
-            final = 0.05;
-            pStrain = np.arange( float(nSize) )
-            pStress = np.arange( float(nSize) )
-            pStrain2 = np.arange( float(nSize) )
-            pStress2 = np.arange( float(nSize) )
+            nSize = 500;
+            final = 1.0;
+            Pressure = np.arange( float(nSize) )
+            Deviatoric= np.arange( float(nSize) )
             for t in range(0, nSize):
-                self.F[0,0] = (1.0 - final * float(t)/float(nSize) )
-                self.F[1,1] = (1.0 - final * float(t)/float(nSize) )
-                self.F[2,2] = (1.0 - final * float(t)/float(nSize) )
+                self.F[0,0] = 1.0
+                self.F[1,1] = 1.0
+                self.F[2,2] = 1.0
+                self.F[0,1] = final * float(t)/float(nSize) 
                 self.parameters.SetDeformationGradientF( self.F )
                 self.detF = pow( (1.0 - final * float(t)/float(nSize) ), 3.0)
                 self.parameters.SetDeterminantF( self.detF )
@@ -244,37 +206,27 @@ class TestConstitutiveModelProcess(KratosMultiphysics.Process):
                 self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
                 self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
                 stress = self.parameters.GetStressVector();
-
-                #Compute Green Lagrange Tensor (my way)
-                strain = self.parameters.GetStrainVector();
-                FTranspose = self.F;
-                for ab in range(0, 3):
-                    for cd in range(0,3):
-                        FTranspose[ab,cd] = self.F[cd,ab]
-
-
-
-                GreenLagrangeTensor = FTranspose * self.F
-                for ab in range(0,3):
-                    GreenLagrangeTensor[ab,ab] = GreenLagrangeTensor[ab,ab] - 1.0;
-                    strain[ab] = GreenLagrangeTensor[ab,ab]
-                strain[3] = GreenLagrangeTensor[0,1]
-                strain[4] = GreenLagrangeTensor[0,2]
-                strain[5] = GreenLagrangeTensor[1,2]
-
+               
+                Pressure[t] = -(stress[0] + stress[1] + stress[2])/3.0 #Geotech sign convention
+                dev = stress;
+                for i in range(0,3):
+                    dev[i] = dev[i] + Pressure[t];
                 
-                pStrain[t] = strain[0];
-                pStress[t] = stress[0];
-                pStrain2[t] = strain[3];
-                pStress2[t] = stress[3];
+                J2 = 0;
+                for i in range(0,3):
+                    J2 = J2 + dev[i] *dev[i];
+                for i in range(3,6):
+                    J2 = J2 + 2.0*dev[i] *dev[i];
+                J2 = np.sqrt(J2*0.5)
+                J2 = np.sqrt(3.0) * J2; ##
+                Deviatoric[t] = J2;
 
 
-        plt.plot( pStrain, pStress, 'ro-', pStrain2, pStress2, 'bo-')
-        plt.show()
-        plt.show(block=False)
 
-        for i in range(0, 10):
-            print(" --  ")
+            plt.plot( Pressure, Deviatoric, 'ro-', [0.0, 60.0], [0.0, 0.9*60.0], 'b')
+            plt.show()
+            plt.show(block=False)
+
 
 
 

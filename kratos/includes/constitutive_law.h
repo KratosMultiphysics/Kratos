@@ -530,6 +530,14 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
+    virtual bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue);
+
+    /**
+     * returns the value of a specified variable
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
     virtual int& GetValue(const Variable<int>& rThisVariable, int& rValue);
 
     /**

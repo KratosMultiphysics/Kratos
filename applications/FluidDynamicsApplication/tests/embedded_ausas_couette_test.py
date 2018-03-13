@@ -115,6 +115,15 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
                 distance = node.Z-self.distance
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, distance)
 
+        # Set the ELEMENTAL_DISTANCES value
+        n_nodes = len(self.main_model_part.Elements[1].GetNodes())
+        for element in self.main_model_part.Elements:
+            elem_dist = KratosMultiphysics.Vector(n_nodes)
+            elem_nodes = element.GetNodes()
+            for i_node in range(0,n_nodes):
+                elem_dist[i_node] = elem_nodes[i_node].GetSolutionStepValue(KratosMultiphysics.DISTANCE)
+            element.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES, elem_dist)
+
     def setUpBoundaryConditions(self):
         # Set the inlet function
         for node in self.main_model_part.GetSubModelPart("Inlet").Nodes:
@@ -196,7 +205,7 @@ class EmbeddedAusasCouetteTest(UnitTest.TestCase):
     def checkResults(self):
         with WorkFolderScope(self.work_folder):
             ## 2D results check
-            if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3): 
+            if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2): 
                 if self.print_reference_values:
                     with open(self.reference_file+'.csv','w') as ref_file:
                         ref_file.write("#ID, VELOCITY_X, VELOCITY_Y\n")

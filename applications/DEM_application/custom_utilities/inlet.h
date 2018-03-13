@@ -11,8 +11,8 @@
 #include <iostream>
 
 // External includes
+
 // Project includes
-//#include "boost/smart_ptr.hpp"
 
 // Project includes
 #include "includes/define.h"
@@ -70,8 +70,9 @@ namespace Kratos {
         virtual void AddRandomPerpendicularComponentToGivenVector(array_1d<double, 3 >& vector, const double angle_in_degrees);
 
     private:
+        void UpdateInjectedParticleVelocity(Element &particle, Element &injector_element);
         virtual void FixInjectorConditions(Element* p_element);
-        virtual void FixInjectionConditions(Element* p_element);
+        virtual void FixInjectionConditions(Element* p_element, Element* p_injector_element);
         virtual void RemoveInjectionConditions(Element &element);
         virtual void UpdateTotalThroughput(SphericParticle& r_spheric_particle); 
         virtual void UpdateTotalThroughput(Cluster3D& r_cluster);
@@ -88,6 +89,7 @@ namespace Kratos {
         bool mStrategyForContinuum;
         int  mTotalNumberOfParticlesInjected;
         std::vector<int> mNumberOfParticlesInjected;
+        std::map<int, std::string> mOriginInletSubmodelPartIndexes;
         double mTotalMassInjected;
         Vector mMassInjected; 
         // The following two ratios mark the limit indentation (normalized by the radius) for releasing a particle

@@ -3,7 +3,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 
-# DEM Application using Verlet 2-step scheme for continuum
+# DEM Application using Velocity Verlet 2-step scheme for continuum
 
 import continuum_sphere_strategy as SolverStrategy
 
@@ -11,9 +11,9 @@ BaseExplicitStrategy = SolverStrategy.ExplicitStrategy
 
 class ExplicitStrategy(BaseExplicitStrategy):   
    
-    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures):
+    def __init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures):
 
-        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, scheme, DEM_parameters, procedures)
+        BaseExplicitStrategy.__init__(self, model_part, fem_model_part, cluster_model_part, inlet_model_part, creator_destructor, dem_fem_search, DEM_parameters, procedures)
 
     def AddAdditionalVariables(self, model_part, DEM_parameters):
         
@@ -88,8 +88,7 @@ class ExplicitStrategy(BaseExplicitStrategy):
         self.settings.inlet_model_part = self.inlet_model_part
         self.settings.cluster_model_part = self.cluster_model_part
 
-        self.cplusplus_strategy = VerletVelocitySolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                    self.delta_option, self.creator_destructor, self.dem_fem_search, self.time_integration_scheme, self.search_strategy)
+        self.cplusplus_strategy = VelocityVerletSolverStrategy(self.settings, self.max_delta_time, self.n_step_search, self.safety_factor, self.delta_option, self.creator_destructor, self.dem_fem_search, self.search_strategy)
     
     def Initialize(self):
 
