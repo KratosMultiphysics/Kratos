@@ -34,7 +34,11 @@ include_directories( ${HDF5_INCLUDE_DIRS} )
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosShapeOptimizationApplication SHARED ${KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES})
-target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication ${HDF5_CXX_LIBRARIES} ${OCE_LIBRARIES} $ENV{EMPIRE_MAPPER_LIBSO_ON_MACHINE} )
+if ( ${EMPIRE_NURBS_VERTEX_MORPHING} MATCHES ON )
+  target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication ${HDF5_CXX_LIBRARIES} ${OCE_LIBRARIES} $ENV{EMPIRE_MAPPER_LIBSO_ON_MACHINE} )
+else (${EMPIRE_NURBS_VERTEX_MORPHING} MATCHES ON)
+  target_link_libraries(KratosShapeOptimizationApplication KratosCore KratosStructuralMechanicsApplication ${HDF5_CXX_LIBRARIES} )
+endif(${EMPIRE_NURBS_VERTEX_MORPHING} MATCHES ON)
 set_target_properties(KratosShapeOptimizationApplication PROPERTIES PREFIX "")
 install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )
 
