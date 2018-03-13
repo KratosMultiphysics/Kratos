@@ -73,7 +73,7 @@ CXX_PERF_FLAGS="-O0 -fopenmp"
 #        CXX_WARN_FLAGS="-Wall"
 # --------------------------------------------------------------------------------------------------------------
 C_WARN_FLAGS="-Wall"
-CXX_WARN_FLAGS="-Wall"
+CXX_WARN_FLAGS="-Wall -Wsuggest-override"
 
 # Other flags
 #    Indicate any other flag you want to add here
