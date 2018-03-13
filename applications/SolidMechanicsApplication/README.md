@@ -4,6 +4,8 @@ This application focuses on the Finite Element Method (FEM) for solids, shells a
 
 The SolidMechanics application team are in charge of all developments related to this application.
 
+![Open cylinder pullout animation](tests/data/rolldown.gif)
+
 ## Getting Started
 
 This application is part of the Kratos Multiphysics Platform. Instructions on how to get you a copy of the project up and running on your local machine for development and testing purposes are available for both [Linux](http://kratos-wiki.cimne.upc.edu/index.php/LinuxInstall) and [Windows](http://kratos-wiki.cimne.upc.edu/index.php/Windows_7_Download_and_Installation) systems.
