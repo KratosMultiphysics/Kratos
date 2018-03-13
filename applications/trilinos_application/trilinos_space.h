@@ -291,13 +291,9 @@ public:
         Epetra_SerialDenseVector values(1);
         indices[0] = i;
         values[0] = value;
-KRATOS_WATCH(indices)
-KRATOS_WATCH(values)
-KRATOS_WATCH(rX)
+
         int ierr = rX.ReplaceGlobalValues(indices, values);
         KRATOS_ERROR_IF(ierr != 0) << "Epetra failure found" << std::endl;
-KRATOS_WATCH(rX )
-
 
         ierr = rX.GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
         KRATOS_ERROR_IF(ierr < 0) << "Epetra failure when attempting to insert value in function SetValue" << std::endl;
@@ -476,9 +472,6 @@ KRATOS_WATCH(rX )
                 }
             }
 
-            /*KRATOS_WATCH(indices);
-            KRATOS_WATCH(values);*/
-
             int ierr = b.SumIntoGlobalValues(indices, values);
             if(ierr != 0) KRATOS_THROW_ERROR(std::logic_error,"Epetra failure found","");
 
@@ -543,7 +536,6 @@ KRATOS_WATCH(rX )
         
         if(error_code != 0)
             KRATOS_ERROR << "error thrown while reading Matrix Market file "<<FileName<< " error code is : " << error_code;
-KRATOS_WATCH(__LINE__)
 
         Comm.Barrier();
 
@@ -555,7 +547,6 @@ KRATOS_WATCH(__LINE__)
         int* MyGlobalElements = new int[NumMyRows];
         rGraph.RowMap().MyGlobalElements(MyGlobalElements);
 
-KRATOS_WATCH(__LINE__)
         for(IndexType i = 0; i < NumMyRows; ++i)
         {
 //             std::cout << pA->Comm().MyPID() << " : I=" << i << std::endl;
@@ -585,7 +576,7 @@ KRATOS_WATCH(__LINE__)
         
         delete [] MyGlobalElements;
         delete pp;
-KRATOS_WATCH(__LINE__)
+
         return paux;
         KRATOS_CATCH("");
     }
