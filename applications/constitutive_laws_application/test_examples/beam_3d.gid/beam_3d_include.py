@@ -23,7 +23,7 @@ from KratosMultiphysics.ConstitutiveLawsApplication import *
 from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
+#from KratosMultiphysics.MKLSolversApplication import *
 #
 #
 
