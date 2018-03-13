@@ -46,6 +46,7 @@ class ModelPartController:
     # --------------------------------------------------------------------------
     def IsOptimizationModelPartAlreadyImported( self ):
         if self.OptimizationModelPart.NumberOfNodes()>0:
+            self.__CheckIfDomainSizeIsSet()
             return True
         else:
             return False
@@ -54,8 +55,7 @@ class ModelPartController:
     def ImportOptimizationModelPart( self ):
         model_part_io = ModelPartIO( self.OptimizationSettings["design_variables"]["optimization_model_part_name"].GetString() )
         model_part_io.ReadModelPart( self.OptimizationModelPart )
-        if self.OptimizationModelPart.ProcessInfo.GetValue(DOMAIN_SIZE) == 0:
-            raise ValueError("DOMAIN_SIZE not specified for given optimization model part!")
+        self.__CheckIfDomainSizeIsSet()
 
     # --------------------------------------------------------------------------
     def InitializeMeshController( self ):
@@ -92,6 +92,11 @@ class ModelPartController:
         if self.DampingRegions is None:
             self.__IdentifyDampingRegions()
         return self.DampingRegions
+
+    # --------------------------------------------------------------------------
+    def __CheckIfDomainSizeIsSet( self ):
+        if self.OptimizationModelPart.ProcessInfo.GetValue(DOMAIN_SIZE) == 0:
+            raise ValueError("DOMAIN_SIZE not specified for given optimization model part!")
 
     # --------------------------------------------------------------------------
     def __IdentifyDesignSurface( self ):
