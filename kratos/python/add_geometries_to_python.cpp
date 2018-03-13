@@ -53,6 +53,7 @@ namespace Python
     
 void  AddGeometriesToPython(pybind11::module& m)
 {
+    using namespace pybind11; 
 
     typedef Node<3> NodeType;
     typedef NodeType::Pointer pNodeType;
