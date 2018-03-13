@@ -92,30 +92,36 @@ namespace Kratos
     double penalty_parameter = 1000;
     penalty_parameter = GetProperties()[PENALTY_PARAMETER];
 
-    ElementType& MasterElement = mContactVariables.GetMasterElement();
+    ElementType& rMasterElement = mContactVariables.GetMasterElement();
   
     //Look at the nodes, get the slave and get the Emin
 
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.back();
 
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
+    const Properties& MasterProperties = rMasterElement.GetProperties();
+    double Eslave  = 1e9;
+    if( SlaveProperties.Has(YOUNG_MODULUS) ){
+	Eslave  = SlaveProperties[YOUNG_MODULUS];
+    }
+    else if( SlaveProperties.Has(C10) ){
+	Eslave = SlaveProperties[C10];
+    }
 
-    double Eslave = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties()[YOUNG_MODULUS];
-    // double Emax   = MasterElement.GetProperties()[YOUNG_MODULUS];
-
-    // //STANDARD OPTION
-    // if(Emax<Eslave)
-    // 	Emax=Eslave;
-
-    // mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emax;
-
-    double Emin   = MasterElement.GetProperties()[YOUNG_MODULUS];
-
+    double Emaster = 1e9;
+    if( MasterProperties.Has(YOUNG_MODULUS) ){
+	Emaster = MasterProperties[YOUNG_MODULUS];
+    }
+    else if( MasterProperties.Has(C10) ){
+	Emaster = MasterProperties[C10];
+    }
+    
     //STANDARD OPTION
-    if(Emin>Eslave)
-      Emin=Eslave;
+    if(Emaster>Eslave)
+      Emaster=Eslave;
 
-    mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emin;
+    mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emaster;
 
     // mContactVariables.PenaltyParameter = 0.5 / mContactVariables.StabilizationFactor ;
    

@@ -123,15 +123,18 @@ class MechanicalSolver(object):
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
-        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
-        load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
-        self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
+        if self.settings["restart_settings"].Has("load_restart"):
+            load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
+        else:
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def AddVariables(self):
         if not self.is_restarted():
@@ -188,13 +191,17 @@ class MechanicalSolver(object):
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
             KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
-            # Check and prepare computing model part and import constitutive laws.
-            self._execute_after_reading()
-            self._set_and_fill_buffer()
+            self.PrepareModelPartForSolver()
         else:
             raise Exception("Other model part input options are not yet implemented.")
         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished importing model part.")
+
+    def PrepareModelPartForSolver(self):
+        if not self.is_restarted():
+            # Check and prepare computing model part and import constitutive laws.
+            self._execute_after_reading()
+            self._set_and_fill_buffer()
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -234,9 +241,10 @@ class MechanicalSolver(object):
     def SaveRestart(self):
         # Check could be integrated in the utility
         # It is here intentionally, this way the utility is only created if it is actually needed!
-        if (self.settings["restart_settings"]["save_restart"].GetBool() == True):
-            # the check if this step is a restart-output step is done internally
-            self.get_restart_utility().SaveRestart()
+        if self.settings["restart_settings"].Has("save_restart"):
+            if (self.settings["restart_settings"]["save_restart"].GetBool() == True):
+                # the check if this step is a restart-output step is done internally
+                self.get_restart_utility().SaveRestart()
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
@@ -408,9 +416,11 @@ class MechanicalSolver(object):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.settings["buffer_size"].GetInt()
-        if buffer_size < self.GetMinimumBufferSize():
-            buffer_size = self.GetMinimumBufferSize()
+        required_buffer_size = self.settings["buffer_size"].GetInt()
+        if required_buffer_size < self.GetMinimumBufferSize():
+            required_buffer_size = self.GetMinimumBufferSize()
+        current_buffer_size = self.main_model_part.GetBufferSize()
+        buffer_size = max(current_buffer_size, required_buffer_size)
         self.main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.

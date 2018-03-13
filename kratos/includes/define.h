@@ -266,6 +266,13 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     KratosComponents<Condition >::Add(name, reference); \
     Serializer::Register(name, reference);
 
+#ifdef KRATOS_REGISTER_CONSTITUTIVE_LAW
+#undef KRATOS_REGISTER_CONSTITUTIVE_LAW
+#endif
+#define KRATOS_REGISTER_CONSTITUTIVE_LAW(name, reference) \
+    KratosComponents<ConstitutiveLaw >::Add(name, reference); \
+    Serializer::Register(name, reference);
+
 #ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #endif

@@ -279,13 +279,13 @@ void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(LocalSystemCompon
   ElementType&  MasterElement  = mContactVariables.GetMasterElement();
   // UL
   //double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius;
-  //if ( MasterElement.GetProperties()[THICKNESS] > 0)
+  //if ( MasterElement.GetProperties().Has(THICKNESS) )
   //   rIntegrationWeight /= MasterElement.GetProperties()[THICKNESS];
 
   // SL
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
-  if ( MasterElement.GetProperties()[THICKNESS] > 0)
-     rIntegrationWeight /= MasterElement.GetProperties()[THICKNESS];
+  if ( MasterElement.GetProperties().Has(THICKNESS) )
+      rIntegrationWeight /= MasterElement.GetProperties()[THICKNESS];
 
   ContactDomainCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
@@ -301,13 +301,13 @@ void AxisymContactDomainPenalty2DCondition::CalculateAndAddRHS(LocalSystemCompon
   ElementType&  MasterElement  = mContactVariables.GetMasterElement();
   // UL
   //double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius;
-  //if ( MasterElement.GetProperties()[THICKNESS] > 0)
+  //if ( MasterElement.GetProperties().Has(THICKNESS) )
   //   rIntegrationWeight /= MasterElement.GetProperties()[THICKNESS];
 
   // SL
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius;
-  if ( MasterElement.GetProperties()[THICKNESS] > 0)
-     rIntegrationWeight /= MasterElement.GetProperties()[THICKNESS];
+  if ( MasterElement.GetProperties().Has(THICKNESS) )
+      rIntegrationWeight /= MasterElement.GetProperties()[THICKNESS];
 
   ContactDomainCondition::CalculateAndAddRHS( rLocalSystem, rVariables, IntegrationWeight );
 

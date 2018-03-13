@@ -14,29 +14,29 @@ def CreateMeshingDomain(main_model_part, custom_settings):
     return ContactDomain(main_model_part, custom_settings)
 
 class ContactDomain(meshing_domain.MeshingDomain):
-    
-    ##constructor. the constructor shall only take care of storing the settings 
+
+    ##constructor. the constructor shall only take care of storing the settings
     ##and the pointer to the main_model part.
     ##
-    ##real construction shall be delayed to the function "Initialize" which 
+    ##real construction shall be delayed to the function "Initialize" which
     ##will be called once the modeler is already filled
     def __init__(self, main_model_part, custom_settings):
-        
+
         self.main_model_part = main_model_part
         self.echo_level      = 1
-        
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
 	    "python_module": "contact_domain",
-            "model_part_name": "model_part_name",
+            "model_part_name": "contact_domain",
             "alpha_shape": 1.4,
             "offset_factor": 0.0,
             "meshing_strategy":{
                "python_module": "contact_meshing_strategy",
                "meshing_frequency": 0.0,
                "remesh": true,
-               "constrained": false,
+               "constrained": true,
                "contact_parameters":{
                    "contact_condition_type": "ContactDomainLM2DCondition",
                    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
@@ -47,19 +47,19 @@ class ContactDomain(meshing_domain.MeshingDomain):
                        "MU_DYNAMIC": 0.2,
                        "PENALTY_PARAMETER": 1000,
                        "TANGENTIAL_PENALTY_RATIO": 0.1,
-                       "TAU_STAB": 1
+                       "TAU_STAB": 1.0
                    }
                }
             },
             "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
-            "contact_sub_model_part_list": []
+            "contact_bodies_list": []
         }
         """)
-        
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
-        self.settings.ValidateAndAssignDefaults(default_settings)
-        
+        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
+
         #construct the solving strategy
         meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
         self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
@@ -70,24 +70,24 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
         print("::[Contact_Domain]:: (",self.settings["model_part_name"].GetString()," ) -BUILT-")
 
-        
 
-    #### 
+
+    ####
 
     def Initialize(self):
 
         print("::[Meshing Contact Domain]:: -START-")
-        
+
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # Set MeshingParameters
         self.SetMeshingParameters()
-        
+
         # Create contact domain model_part
         if( not self.main_model_part.HasSubModelPart(self.settings["model_part_name"].GetString()) ):
             self.main_model_part.CreateSubModelPart(self.settings["model_part_name"].GetString())
-        
-        contact_model_part_names = self.settings["contact_sub_model_part_list"]
+
+        contact_model_part_names = self.settings["contact_bodies_list"]
         self.contact_parts = KratosContact.StringVector()
         for i in range(contact_model_part_names.size()):
             self.contact_parts.PushBack(contact_model_part_names[i].GetString())
@@ -99,10 +99,10 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
         # Meshing Stratety
         self.MeshingStrategy.Initialize(self.MeshingParameters, self.dimension)
-        
+
         print("::[Meshing Contact Domain]:: -END- ")
 
-        
+
     ####
 
     def SetRefiningParameters(self):   #no refine in the contact domain
@@ -113,10 +113,10 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
         # parameters
         self.RefiningParameters.SetAlphaParameter(self.settings["alpha_shape"].GetDouble())
-        
+
 
     def SetMeshingParameters(self):
-              
+
         # Create MeshingParameters
         meshing_domain.MeshingDomain.SetMeshingParameters(self)
 
@@ -125,6 +125,5 @@ class ContactDomain(meshing_domain.MeshingDomain):
 
         #if the boundaries has been changed the contact domain has to be updated
         self.build_contact_model_part.Execute()
-        
+
         self.MeshingStrategy.GenerateMesh()
-        

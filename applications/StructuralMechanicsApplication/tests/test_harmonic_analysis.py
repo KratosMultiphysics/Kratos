@@ -1,9 +1,10 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics 
+import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
 from math import sqrt
 from cmath import phase
@@ -32,8 +33,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)     
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)   
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
         mp.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
 
     def _apply_material_properties(self,mp):
@@ -72,11 +73,11 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
     def _setup_harmonic_solver(self,mp,echo=0):
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(KratosMultiphysics.LinearSolver())
         eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
-        harmonic_strategy = StructuralMechanicsApplication.HarmonicAnalysisStrategy(mp, eigen_scheme, builder_and_solver, False)   
+        harmonic_strategy = StructuralMechanicsApplication.HarmonicAnalysisStrategy(mp, eigen_scheme, builder_and_solver, False)
         harmonic_strategy.SetEchoLevel(echo)
 
         return harmonic_strategy
-        
+
 
     def _add_dofs(self,mp):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
@@ -108,7 +109,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         mass2 = mp.CreateNewElement("NodalConcentratedElement3D1N", 4, [2], mp.GetProperties()[1])
         mp.CreateNewCondition("PointLoadCondition3D1N",1,[1],mp.GetProperties()[1])
         mp.CreateNewCondition("PointLoadCondition3D1N",2,[2],mp.GetProperties()[1])
-        
+
         mass1.SetValue(KratosMultiphysics.NODAL_MASS,mass)
         mass2.SetValue(KratosMultiphysics.NODAL_MASS,mass/2)
         spring1.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS,[stiffness,0,0])
@@ -120,14 +121,14 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
     def test_undamped_mdof_harmonic(self):
         #analytic solution taken from Humar - Dynamics of Structures p. 675
-        
+
         #material properties
         stiffness = 10.0
         mass = 2.0
 
         #create the model
         mp = self._create_2dof_geometry(stiffness, mass)
-        
+
         #solve the eigenproblem
         self._solve_eigen(mp)
 
@@ -137,11 +138,11 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         exfreq = 1.0
         max_exfreq = 20.0
         df = 0.05
-        
+
         while(exfreq <= max_exfreq):
             mp.CloneTimeStep(exfreq)
             harmonic_solver.Solve()
-            
+
             disp_x1_expected = ((1.0/3.0 * stiffness) / (0.5 - (exfreq / sqrt(stiffness/mass))**2) \
                 + (1.0/1.5 * stiffness) / (2.0 - (exfreq / sqrt(stiffness/mass))**2)) / stiffness**2
             disp_x2_expected = ((2.0/3.0 * stiffness) / (0.5 - (exfreq / sqrt(stiffness/mass))**2) \
@@ -151,20 +152,20 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
                 disp_x1_expected,delta=1e-5)
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0), \
                 disp_x2_expected,delta=1e-5)
-            
+
             exfreq = exfreq + df
 
     def test_damped_mdof_harmonic(self):
         #analytic solution taken from Humar - Dynamics of Structures p. 677
-        
+
         #material properties
         stiffness = 10.0
         mass = 2.0
         damping = 0.1
-        
+
         #create the model
         mp = self._create_2dof_geometry(stiffness, mass, damping)
-        
+
         #solve the eigenproblem
         self._solve_eigen(mp)
 
@@ -174,13 +175,13 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
         exfreq = 1.0
         max_exfreq = 20.0
         df = 0.05
-        
+
         while(exfreq <= max_exfreq):
             mp.CloneTimeStep(exfreq)
             harmonic_solver.Solve()
 
             exfreq_d = exfreq / sqrt(stiffness/mass)
-            
+
             disp_x1_expected_complex = 1 / (3*stiffness * complex(0.5 - exfreq_d**2, sqrt(2) * damping * exfreq_d)) \
                 + 2 / (3*stiffness * complex(2 - exfreq_d**2, 2 * sqrt(2) * damping * exfreq_d))
             if disp_x1_expected_complex.real < 0:
@@ -194,7 +195,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
                 disp_x2_expected = - abs(disp_x2_expected_complex)
             else:
                 disp_x2_expected = abs(disp_x2_expected_complex)
-            
+
             #test displacement
             self.assertAlmostEqual(mp.Nodes[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0), \
                 disp_x1_expected,delta=1e-5)
@@ -206,7 +207,7 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
                 phase(disp_x1_expected_complex),delta=1e-5)
             self.assertAlmostEqual(mp.Nodes[2].GetSolutionStepValue(KratosMultiphysics.REACTION_X,0), \
                 phase(disp_x2_expected_complex),delta=1e-5)
-            
+
             exfreq = exfreq + df
 
     def test_harmonic_mdpa_input(self):
@@ -214,27 +215,20 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             import KratosMultiphysics.AdjointFluidApplication as AdjointFluidApplication
         except ImportError as e:
             self.skipTest("AdjointFluidApplication not found: Skipping harmonic analysis mdpa test")
-        
-        import Kratos_Execute_Structural_Test
+
+        import structural_mechanics_analysis
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             #run simulation and write to hdf5 file
-            parameter_file = open("harmonic_analysis_test/harmonic_analysis_test_eigenproblem_parameters.json",'r')
-            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            parameter_file.close()
-            test = Kratos_Execute_Structural_Test.Kratos_Execute_Test(project_parameters)
-            test.Solve()
+            project_parameter_file_name = "harmonic_analysis_test/harmonic_analysis_test_eigenproblem_parameters.json"
+            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameter_file_name)
+            test.Run()
             #start new simulation and read from hdf5 file
-            parameter_file = open("harmonic_analysis_test/harmonic_analysis_test_parameters.json",'r')
-            project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            parameter_file.close()
-            test = Kratos_Execute_Structural_Test.Kratos_Execute_Test(project_parameters)
-            test.Solve()
+            project_parameter_file_name = "harmonic_analysis_test/harmonic_analysis_test_parameters.json"
+            test = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameter_file_name)
+            test.Run()
             # remove hdf5 file
-            if "harmonic_analysis_test_0.h5" in os.listdir("./harmonic_analysis_test"):
-                os.remove("./harmonic_analysis_test/harmonic_analysis_test_0.h5")
-            # remove other generated files
-            if "harmonic_analysis_test.time" in os.listdir("./harmonic_analysis_test"):
-                os.remove("./harmonic_analysis_test/harmonic_analysis_test.time")
+            kratos_utils.DeleteFileIfExisting("/harmonic_analysis_test/harmonic_analysis_test_0.h5")
+            kratos_utils.DeleteFileIfExisting("/harmonic_analysis_test/harmonic_analysis_test.time")
 
 if __name__ == '__main__':
     KratosUnittest.main()
