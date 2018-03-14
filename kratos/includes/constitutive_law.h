@@ -500,129 +500,146 @@ public:
     ~ConstitutiveLaw() override{};
 
     /**
-     * Clone function (has to be implemented by any derived class)
+     * @brief Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
-     * NOTE: implementation scheme:
+     * @note implementation scheme:
      *      ConstitutiveLaw::Pointer p_clone(new ConstitutiveLaw());
      *      return p_clone;
      */
     virtual ConstitutiveLaw::Pointer Clone() const;
 
     /**
-     * @return the working space dimension of the current constitutive law
-     * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
+     * @return The working space dimension of the current constitutive law
+     * @note This function HAS TO BE IMPLEMENTED by any derived class
      */
     virtual SizeType WorkingSpaceDimension();
 
     /**
-     * returns the size of the strain vector of the current constitutive law
-     * NOTE: this function HAS TO BE IMPLEMENTED by any derived class
+     * @return The size of the strain vector of the current constitutive law
+     * @note This function HAS TO BE IMPLEMENTED by any derived class
      */
     virtual SizeType GetStrainSize();
 
     /**
-     * returns whether this constitutive Law has specified variable
+     * @brief Returns whether this constitutive Law has specified variable (boolean)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    virtual bool Has(const Variable<bool>& rThisVariable);
+
+    /**
+     * @brief Returns whether this constitutive Law has specified variable (integer)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
     virtual bool Has(const Variable<int>& rThisVariable);
 
     /**
-     * returns whether this constitutive Law has specified variable
+     * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
     virtual bool Has(const Variable<double>& rThisVariable);
 
     /**
-     * returns whether this constitutive Law has specified variable
+     * @brief Returns whether this constitutive Law has specified variable (Vector)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
     virtual bool Has(const Variable<Vector>& rThisVariable);
 
     /**
-     * returns whether this constitutive Law has specified variable
+     * @brief Returns whether this constitutive Law has specified variable (Matrix)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
     virtual bool Has(const Variable<Matrix>& rThisVariable);
 
     /**
-     * returns whether this constitutive Law has specified variable
+     * @brief Returns whether this constitutive Law has specified variable (array of 3 components)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
-     * NOTE: fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
+     * @note Fixed size array of 3 doubles (e.g. for 2D stresses, plastic strains, ...)
      */
     virtual bool Has(const Variable<array_1d<double, 3 > >& rThisVariable);
 
     /**
-     * returns whether this constitutive Law has specified variable
+     * @brief Returns whether this constitutive Law has specified variable (array of 6 components)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
-     * NOTE: fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
+     * @note Fixed size array of 6 doubles (e.g. for stresses, plastic strains, ...)
      */
     virtual bool Has(const Variable<array_1d<double, 6 > >& rThisVariable);
 
     /**
-     * returns the value of a specified variable
+     * @brief Returns the value of a specified variable (boolean)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
+     * @return rValue output: the value of the specified variable
      */
     virtual bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue);
 
     /**
-     * returns the value of a specified variable
+     * Returns the value of a specified variable (integer)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
+     * @return rValue output: the value of the specified variable
      */
     virtual int& GetValue(const Variable<int>& rThisVariable, int& rValue);
 
     /**
-     * returns the value of a specified variable
+     * @brief Returns the value of a specified variable (double)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @param rValue output: the value of the specified variable
+     * @return rValue output: the value of the specified variable
      */
     virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue);
 
     /**
-     * returns the value of a specified variable
+     * @brief Returns the value of a specified variable (Vector)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @return the value of the specified variable
+     * @return rValue output: the value of the specified variable
      */
     virtual Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue);
 
     /**
-     * returns the value of a specified variable
+     * @brief Returns the value of a specified variable (Matrix)
      * @param rThisVariable the variable to be returned
-     * @return the value of the specified variable
+     * @return rValue output: the value of the specified variable
      */
     virtual Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue);
 
     /**
-     * returns the value of a specified variable
+     * @brief Returns the value of a specified variable (array of 3 components)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @return the value of the specified variable
+     * @return rValue output: the value of the specified variable
      */
-    virtual array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rVariable,
+    virtual array_1d<double, 3 > & GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
                                             array_1d<double, 3 > & rValue);
 
     /**
-     * returns the value of a specified variable
+     * @brief Returns the value of a specified variable (array of 6 components)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return the value of the specified variable
      */
-    virtual array_1d<double, 6 > & GetValue(const Variable<array_1d<double, 6 > >& rVariable,
+    virtual array_1d<double, 6 > & GetValue(const Variable<array_1d<double, 6 > >& rThisVariable,
                                             array_1d<double, 6 > & rValue);
 
     /**
-     * sets the value of a specified variable
+     * @brief Sets the value of a specified variable (boolean)
+     * @param rVariable the variable to be returned
+     * @param Value new value of the specified variable
+     * @param rCurrentProcessInfo the process info
+     */
+    virtual void SetValue(const Variable<bool>& rVariable,
+                          const bool& Value,
+                          const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * @brief Sets the value of a specified variable (integer)
      * @param rVariable the variable to be returned
      * @param Value new value of the specified variable
      * @param rCurrentProcessInfo the process info
@@ -632,7 +649,7 @@ public:
                           const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * sets the value of a specified variable
+     * @brief Sets the value of a specified variable (double)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
@@ -642,7 +659,7 @@ public:
                           const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * sets the value of a specified variable
+     * @brief Sets the value of a specified variable (Vector)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
@@ -652,7 +669,7 @@ public:
 			  const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * sets the value of a specified variable
+     * @brief Sets the value of a specified variable (Matrix)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
@@ -662,7 +679,7 @@ public:
 			  const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * sets the value of a specified variable
+     * @brief Sets the value of a specified variable (array of 3 components)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
@@ -672,7 +689,7 @@ public:
                           const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * sets the value of a specified variable
+     * @brief Sets the value of a specified variable (array of 6 components)
      * @param rVariable the variable to be returned
      * @param rValue new value of the specified variable
      * @param rCurrentProcessInfo the process info
