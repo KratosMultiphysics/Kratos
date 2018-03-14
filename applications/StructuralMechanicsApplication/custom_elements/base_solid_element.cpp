@@ -446,7 +446,28 @@ void BaseSolidElement::CalculateDampingMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateOnIntegrationPoints( 
+void BaseSolidElement::CalculateOnIntegrationPoints(
+    const Variable<bool>& rVariable,
+    std::vector<bool>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints();
+
+    if (rOutput.size() != GetGeometry().IntegrationPoints(  ).size())
+        rOutput.resize(GetGeometry().IntegrationPoints(  ).size());
+
+    for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number){
+        bool flag = false;
+        mConstitutiveLawVector[point_number]->GetValue(rVariable, flag );
+        rOutput[point_number] = flag;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, 
     std::vector<double>& rOutput, 
     const ProcessInfo& rCurrentProcessInfo 
