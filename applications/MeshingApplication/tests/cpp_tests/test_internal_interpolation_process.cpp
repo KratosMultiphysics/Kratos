@@ -34,11 +34,11 @@ namespace Kratos
 {
     namespace Testing 
     {
-        typedef Node<3>                                                    NodeType;
+        typedef Node<3> NodeType;
         
-        void GiDIODebugInternalInterpolation(ModelPart& ThisModelPart)
+        void GiDIODebugInternalInterpolation(ModelPart& ThisModelPart, const std::string name = "")
         {
-            GidIO<> gid_io("TEST_INTERNAL_INTERPOLATION_MMG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+            GidIO<> gid_io("TEST_INTERNAL_INTERPOLATION_MMG"+name, GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
             const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
             const double label = static_cast<double>(nl_iter);
 
@@ -163,7 +163,7 @@ namespace Kratos
             mmg_process.Execute();
             
             // DEBUG
-            GiDIODebugInternalInterpolation(this_model_part);
+            GiDIODebugInternalInterpolation(this_model_part, "1");
             
 //             const double tolerance = 1.0e-4;
 //             for (auto& i_node : this_model_part.Nodes())
@@ -367,7 +367,7 @@ namespace Kratos
             mmg_process.Execute();
             
             // DEBUG
-            GiDIODebugInternalInterpolation(this_model_part);
+            GiDIODebugInternalInterpolation(this_model_part, "2");
 
 //             const double tolerance = 1.0e-2;
 //             KRATOS_CHECK_LESS_EQUAL(std::abs(max - 1.0/std::sqrt(2.0))/max, tolerance);
