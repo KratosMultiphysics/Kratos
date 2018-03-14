@@ -33,7 +33,7 @@ void register_solver(const std::string& name)
 {
 	using namespace boost::python;
 
-	using Space = typename SpaceType<typename SolverType::TScalar>;
+	using Space = SpaceType<typename SolverType::TScalar>;
 
 	using Base = DirectSolver<typename Space::Global, typename Space::Local>;
 	
@@ -48,7 +48,7 @@ void register_eigensystem_solver(const std::string& name = SolverType::Name)
 {
 	using namespace boost::python;
 
-	using Space = typename SpaceType<typename SolverType::TScalar>;
+	using Space = SpaceType<typename SolverType::TScalar>;
 
 	using Base = LinearSolver<typename Space::Global, typename Space::Local>;
 	
