@@ -70,7 +70,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     {
         ModelPart &master_model_part    = mr_model_part.GetSubModelPart(m_parameters["master_sub_model_part_name"].GetString());
         ModelPart &slave_model_part     = mr_model_part.GetSubModelPart(m_parameters["slave_sub_model_part_name"].GetString());
-        const double neighbor_search_radius      = m_parameters["neighbor_search_radius"].GetDouble();
+        double neighbor_search_radius      = m_parameters["neighbor_search_radius"].GetDouble();
         const int bucket_size           =  m_parameters["bucket_size"].GetInt();
         NodesArrayType &r_nodes_master  = master_model_part.Nodes();
         NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
@@ -85,16 +85,30 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
         const int max_number_of_neighbors = 2;
         for(NodeType& node_i : r_nodes_slave)
         {
-
-            //1.) find nodal neighbors
+            neighbor_search_radius      = m_parameters["neighbor_search_radius"].GetDouble();
+            SizeType number_of_neighbors = 0;
             NodeVector neighbor_nodes( max_number_of_neighbors );
             DoubleVector resulting_squared_distances( max_number_of_neighbors );
 
-            SizeType number_of_neighbors = search_tree->SearchInRadius( node_i,
-                                                                    neighbor_search_radius,
-                                                                    neighbor_nodes.begin(),
-                                                                    resulting_squared_distances.begin(),
-                                                                    max_number_of_neighbors );
+            number_of_neighbors = search_tree->SearchInRadius( node_i,
+                                                        neighbor_search_radius,
+                                                        neighbor_nodes.begin(),
+                                                        resulting_squared_distances.begin(),
+                                                        max_number_of_neighbors );
+
+/*             while (number_of_neighbors<1)
+            {            
+                neighbor_nodes.clear();
+                resulting_squared_distances.clear();
+                //1.) find nodal neighbors
+                number_of_neighbors = search_tree->SearchInRadius( node_i,
+                                                                        neighbor_search_radius,
+                                                                        neighbor_nodes.begin(),
+                                                                        resulting_squared_distances.begin(),
+                                                                        max_number_of_neighbors );
+                
+                (neighbor_search_radius>1000.0)?number_of_neighbors=1:neighbor_search_radius*=2.0;
+            } */
 
             
             DoubleVector list_of_weights( number_of_neighbors, 0.0 );
@@ -151,6 +165,7 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     }
 
 
+
     /**
      * @brief This function creates a NodeVector of the master nodes to be used for the Kd tree
      */
@@ -185,7 +200,9 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
             for (SizeType i=0;i<rNumberOfNeighbors;++i) total_nodal_distance+=std::sqrt(rResultingSquaredDistances[i]);   
             for (SizeType i=0;i<rNumberOfNeighbors;++i)
             {
-                rNodalNeighborWeights[i] = std::sqrt(rResultingSquaredDistances[rNumberOfNeighbors-(i+1)])/total_nodal_distance;
+                double current_weight = std::sqrt(rResultingSquaredDistances[rNumberOfNeighbors-(i+1)])/total_nodal_distance;
+                (current_weight>numerical_limit) ? (rNodalNeighborWeights[i]=current_weight) : (rNodalNeighborWeights[i]=0.00);
+                //rNodalNeighborWeights[i] = std::sqrt(rResultingSquaredDistances[rNumberOfNeighbors-(i+1)])/total_nodal_distance;
             }
         }
     }
