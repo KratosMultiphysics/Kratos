@@ -67,19 +67,22 @@ using namespace pybind11;
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    class_<MeshTransfer < 2 > >(m,"MeshTransfer2D", init< >())
+    class_<MeshTransfer < 2 > >(m,"MeshTransfer2D")
+    .def(init< >())
     .def("DirectModelPartInterpolation", &MeshTransfer < 2 > ::DirectInterpolation)
     .def("DirectScalarVarInterpolation", &MeshTransfer < 2 > ::DirectVariableInterpolation<double>)
     .def("DirectVectorialVarInterpolation", &MeshTransfer < 2 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
     ;
 
-    class_<MeshTransfer < 3 > >(m,"MeshTransfer3D", init< >())
+    class_<MeshTransfer < 3 > >(m,"MeshTransfer3D")
+    .def(init< >())
     .def("DirectModelPartInterpolation", &MeshTransfer < 3 > ::DirectInterpolation)
     .def("DirectScalarVarInterpolation", &MeshTransfer < 3 > ::DirectVariableInterpolation<double>)
     .def("DirectVectorialVarInterpolation", &MeshTransfer < 3 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
     ;
 
-    class_<BinBasedMeshTransfer < 2 > >(m,"BinBasedMeshTransfer2D", init< >())
+    class_<BinBasedMeshTransfer < 2 > >(m,"BinBasedMeshTransfer2D")
+    .def(init< >())
     //.def("DirectModelPartInterpolation", &MeshTransfer < 2 > ::DirectInterpolation)
     .def("DirectScalarVarInterpolation", &BinBasedMeshTransfer < 2 > ::DirectVariableInterpolation<double>)
     .def("DirectVectorialVarInterpolation", &BinBasedMeshTransfer < 2 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
@@ -89,7 +92,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def("MappingFromMovingMesh_VariableMeshes_VectorialVar", &BinBasedMeshTransfer < 2 > ::MappingFromMovingMesh_VariableMeshes< array_1d < double, 3 > >)
     ;
 
-    class_<BinBasedMeshTransfer < 3 > >(m,"BinBasedMeshTransfer3D", init< >())
+    class_<BinBasedMeshTransfer < 3 > >(m,"BinBasedMeshTransfer3D")
+    .def(init< >())
     //.def("DirectModelPartInterpolation", &MeshTransfer < 3 > ::DirectInterpolation)
     .def("DirectScalarVarInterpolation", &BinBasedMeshTransfer < 3 > ::DirectVariableInterpolation<double>)
     .def("DirectVectorialVarInterpolation", &BinBasedMeshTransfer < 3 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
@@ -101,39 +105,45 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
 
 
-//            class_<GenerateModelPartUtilities > ("GenerateModelPartUtilities", init< >())
-//                    .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart);
-
+//         class_<GenerateModelPartUtilities > ("GenerateModelPartUtilities")
+//         .def(init< >())
+//         .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart);
 
 
     class_<LocalRefineTriangleMesh >
-    (m,"LocalRefineTriangleMesh", init<ModelPart&>())
+    (m,"LocalRefineTriangleMesh")
+    .def(init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineTriangleMesh::LocalRefineMesh)
     ;
 
     class_<LocalRefinePrismMesh >
-    (m,"LocalRefinePrismMesh", init<ModelPart&>())
+    (m,"LocalRefinePrismMesh")
+    .def(init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefinePrismMesh::LocalRefineMesh)
     ;
 
     class_<LocalRefineSPrismMesh >
-    (m,"LocalRefineSPrismMesh", init<ModelPart&>())
+    (m,"LocalRefineSPrismMesh")
+    .def(init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineSPrismMesh::LocalRefineMesh)
     ;
 
     class_<LocalRefineTetrahedraMesh >
-    (m,"LocalRefineTetrahedraMesh", init<ModelPart&>())
+    (m,"LocalRefineTetrahedraMesh")
+    .def(init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineTetrahedraMesh::LocalRefineMesh)
     ;
 
 #ifdef USE_TETGEN_NONFREE_TPL
     class_<TetgenVolumeMesher >
-    (m,"TetgenVolumeMesher", init<ModelPart&>())
+    (m,"TetgenVolumeMesher")
+    .def(init<ModelPart&>())
     .def("AddHole", &TetgenVolumeMesher::AddHole)
     .def("GenerateMesh", &TetgenVolumeMesher::GenerateMesh)
     ;
     
-    class_<TetrahedraReconnectUtility >(m,"TetrahedraReconnectUtility", init<ModelPart&>())
+    class_<TetrahedraReconnectUtility >(m,"TetrahedraReconnectUtility")
+    .def(init<ModelPart&>())
     .def("EvaluateQuality", &TetrahedraReconnectUtility::EvaluateQuality)
     .def("TestRemovingElements", &TetrahedraReconnectUtility::TestRemovingElements)
     .def("OptimizeQuality", &TetrahedraReconnectUtility::OptimizeQuality)
@@ -146,12 +156,14 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 #endif
     
 #ifdef PRAGMATIC_ACTIVATED
-    class_<PragmaticAdaptor >(m,"PragmaticAdaptor", init< >())
+    class_<PragmaticAdaptor >(m,"PragmaticAdaptor")
+    .def(init< >())
     .def("AdaptMesh", &PragmaticAdaptor::AdaptMesh)
     ;
 #endif
     
-    class_<Cutting_Isosurface_Application >(m,"Cutting_Isosurface_Application", init< >())
+    class_<Cutting_Isosurface_Application >(m,"Cutting_Isosurface_Application")
+    .def(init< >())
     .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)
     .def("GenerateVectorialComponentVarCut", &Cutting_Isosurface_Application::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
     .def("GenerateVectorialVarCut", &Cutting_Isosurface_Application::GenerateVariableCut< array_1d < double, 3 > >)
