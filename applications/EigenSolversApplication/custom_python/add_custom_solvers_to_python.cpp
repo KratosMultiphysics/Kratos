@@ -29,7 +29,7 @@ namespace Python
 {
 
 template <typename SolverType>
-auto register_solver(const std::string& name)
+void register_solver(const std::string& name)
 {
 	using namespace boost::python;
 
@@ -37,14 +37,14 @@ auto register_solver(const std::string& name)
 
 	using Base = DirectSolver<typename Space::Global, typename Space::Local>;
 	
-	return class_<EigenDirectSolver<SolverType>, bases<Base>, boost::noncopyable>
+	class_<EigenDirectSolver<SolverType>, bases<Base>, boost::noncopyable>
 		(name.c_str(), init<>())
 		.def(init<Parameters>())
 	;
 }
 
 template <typename SolverType>
-auto register_eigensystem_solver(const std::string& name = SolverType::Name)
+void register_eigensystem_solver(const std::string& name = SolverType::Name)
 {
 	using namespace boost::python;
 
@@ -54,7 +54,7 @@ auto register_eigensystem_solver(const std::string& name = SolverType::Name)
 	
 	using EigenSolver = EigensystemSolver<SolverType>;
 
-	return class_<EigenSolver, bases<Base>, boost::noncopyable>
+	class_<EigenSolver, bases<Base>, boost::noncopyable>
 		(name.c_str(), init<Parameters>())
     	.def("Solve", &EigenSolver::Solve)
     	.def("GetEigenValue", &EigenSolver::GetEigenValue)
