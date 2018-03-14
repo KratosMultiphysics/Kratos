@@ -205,7 +205,41 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
     ProcessInfo const& rCurrentProcessInfo)
 {
     if (rVariable == SUBSCALE_VELOCITY) {
+        // Get Shape function data
+        Vector GaussWeights;
+        Matrix ShapeFunctions;
+        ShapeFunctionDerivativesArrayType ShapeDerivatives;
+        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
+        const unsigned int number_of_integration_points = GaussWeights.size();
+        
+        rValues.resize(number_of_integration_points);
 
+        // fill only if the subscale has already been initialized
+        if (mPredictedSubscaleVelocity.size() > 0) {
+            
+            TElementData data;
+            data.Initialize(*this, rCurrentProcessInfo);
+            
+            for (unsigned int g = 0; g < number_of_integration_points; g++) {
+                
+                data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+                
+                array_1d<double,Dim> subscale(Dim,0.0);
+                this->SubscaleVelocity(data, subscale);
+
+                // Note: the output is always of size 3, but the subscale is of size Dim.
+                auto& output = rValues[g];
+                output.clear();
+                for (unsigned int  d = 0; d < Dim; d++) {
+                    output[d] = subscale[d];
+                }
+            }
+        }
+        else {
+            for (unsigned int g = 0; g < number_of_integration_points; g++) {
+                rValues[g].clear();
+            }
+        }
     }
     else {
         FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
@@ -220,6 +254,33 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
     ProcessInfo const& rCurrentProcessInfo)
 {
     if (rVariable == SUBSCALE_PRESSURE) {
+        // Get Shape function data
+        Vector GaussWeights;
+        Matrix ShapeFunctions;
+        ShapeFunctionDerivativesArrayType ShapeDerivatives;
+        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
+        const unsigned int number_of_integration_points = GaussWeights.size();
+        
+        rValues.resize(number_of_integration_points);
+
+        // fill only if the subscale has already been initialized
+        if (mPredictedSubscaleVelocity.size() > 0) {
+            
+            TElementData data;
+            data.Initialize(*this, rCurrentProcessInfo);
+            
+            for (unsigned int g = 0; g < number_of_integration_points; g++) {
+                
+                data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+                
+                this->SubscalePressure(data, rValues[g]);
+            }
+        }
+        else {
+            for (unsigned int g = 0; g < number_of_integration_points; g++) {
+                rValues[g] = 0.0;
+            }
+        }
     }
     else {
         FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
