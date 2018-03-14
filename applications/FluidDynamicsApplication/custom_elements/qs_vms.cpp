@@ -298,10 +298,10 @@ void QSVMS<TElementData>::OSSMassResidual(
 
 template< class TElementData >
 void QSVMS<TElementData>::MomentumProjTerm(
-    TElementData& rData,
-    array_1d<double,3> &rMomentumRHS)
+    const TElementData& rData,
+    array_1d<double,3> &rMomentumRHS) const
 {
-        array_1d<double, 3> convective_velocity =
+    array_1d<double, 3> convective_velocity =
         this->GetAtCoordinate(rData.Velocity, rData.N) -
         this->GetAtCoordinate(rData.MeshVelocity, rData.N);
     
@@ -310,10 +310,8 @@ void QSVMS<TElementData>::MomentumProjTerm(
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
 
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
-        for (unsigned int d = 0; d < Dim; d++)
-        {
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        for (unsigned int d = 0; d < Dim; d++) {
             rMomentumRHS[d] += density * ( rData.N[i]*(rData.BodyForce(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.Velocity(i,d)) - rData.DN_DX(i,d)*rData.Pressure[i];
         }
     }
@@ -322,15 +320,13 @@ void QSVMS<TElementData>::MomentumProjTerm(
 
 template< class TElementData >
 void QSVMS<TElementData>::MassProjTerm(
-    TElementData& rData,
-    double &rMassRHS)
+    const TElementData& rData,
+    double &rMassRHS) const
 {
-    for (unsigned int i = 0; i < NumNodes; i++)
-    {
+    for (unsigned int i = 0; i < NumNodes; i++) {
         for (unsigned int d = 0; d < Dim; d++)
             rMassRHS -= rData.DN_DX(i,d)*rData.Velocity(i,d);
     }
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

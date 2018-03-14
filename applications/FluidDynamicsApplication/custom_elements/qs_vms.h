@@ -328,12 +328,12 @@ protected:
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
     virtual void MomentumProjTerm(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRHS);
+        const TElementData& rData,
+        array_1d<double,3>& rMomentumRHS) const;
 
     virtual void MassProjTerm(
-        TElementData& rData,
-        double& rMassRHS);
+        const TElementData& rData,
+        double& rMassRHS) const;
 
 
     virtual void SubscaleVelocity(
