@@ -269,7 +269,7 @@ Southern California, 2012.
 
 		void CalculateOnIntegrationPoints(const Variable<array_1d<double,
 			6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
-			const ProcessInfo& rCurrentProcessInfo);
+			const ProcessInfo& rCurrentProcessInfo) override;
 
 		// Calculate functions
 		void Calculate(const Variable<Matrix >& rVariable,

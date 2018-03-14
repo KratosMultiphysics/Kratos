@@ -36,7 +36,7 @@ t0 = clock()
 # including kratos path
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
+# from KratosMultiphysics.MKLSolversApplication import *
 
 
 # setting the domain size for the problem to be solved
@@ -90,8 +90,8 @@ RotationalDofs()
 # importing the solver files
 SolverType.AddDofs(model_part)
 solver = SolverType.StaticStructuralSolver(model_part, domain_size)
-solver.structure_linear_solver = ParallelMKLPardisoSolver()
-# solver.structure_linear_solver =  ParallelSkylineLUFactorizationSolver()
+# solver.structure_linear_solver = ParallelMKLPardisoSolver()
+solver.structure_linear_solver =  ParallelSkylineLUFactorizationSolver()
 
 
 CT = Kratos_Structural_Application_var.Convergence_Tolerance;

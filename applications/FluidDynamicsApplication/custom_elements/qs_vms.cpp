@@ -121,12 +121,12 @@ int QSVMS<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 3 > > const& rVariable,
-                                            std::vector<array_1d<double, 3 > >& rValues,
-                                            ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<array_1d<double, 3 > > const& rVariable,
+    std::vector<array_1d<double, 3 > >& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
-    if (rVariable == SUBSCALE_VELOCITY)
-    {
+    if (rVariable == SUBSCALE_VELOCITY) {
         // Get Shape function data
         Vector GaussWeights;
         Matrix ShapeFunctions;
@@ -146,32 +146,19 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 
             this->SubscaleVelocity(data, rCurrentProcessInfo, rValues[g]);
         }
     }
-    else if (rVariable == VORTICITY)
-    {
-        // Get Shape function data
-        Vector GaussWeights;
-        Matrix ShapeFunctions;
-        ShapeFunctionDerivativesArrayType ShapeDerivatives;
-        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-        const unsigned int NumGauss = GaussWeights.size();
-
-        rValues.resize(NumGauss);
-
-        for (unsigned int g = 0; g < NumGauss; g++)
-        {
-            this->IntegrationPointVorticity(ShapeDerivatives[g],rValues[g]);
-        }
+    else {
+        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
 }
 
 
 template< class TElementData >
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<double> const& rVariable,
-                                            std::vector<double>& rValues,
-                                            ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<double> const& rVariable,
+    std::vector<double>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
-    if (rVariable == SUBSCALE_PRESSURE)
-    {
+    if (rVariable == SUBSCALE_PRESSURE) {
         // Get Shape function data
         Vector GaussWeights;
         Matrix ShapeFunctions;
@@ -192,86 +179,36 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<double> const& rV
         }
 
     }
-    else if (rVariable == Q_VALUE)
-    {
-		Vector GaussWeights;
-		Matrix ShapeFunctions;
-		ShapeFunctionDerivativesArrayType ShapeDerivatives;
-		this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-		const unsigned int NumGauss = GaussWeights.size();
-
-		rValues.resize(NumGauss);
-		Matrix GradVel;
-
-		// Loop on integration points
-		for (unsigned int g = 0; g < NumGauss; g++)
-		{
-			GradVel = ZeroMatrix(Dim,Dim);
-			const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
-
-			// Compute velocity gradient
-			for (unsigned int i=0; i < Dim; ++i)
-				for (unsigned int j=0; j < Dim; ++j)
-					for (unsigned int iNode=0; iNode < NumNodes; ++iNode)
-					{
-						array_1d<double,3>& Vel =
-							this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-						GradVel(i,j) += Vel[i] * rDN_DX(iNode,j);
-					}
-
-			// Compute Q-value
-			double qval = 0.0;
-			for (unsigned int i=0; i < Dim; ++i)
-				for (unsigned int j=0; j < Dim; ++j)
-					qval += GradVel(i,j) * GradVel(j,i);
-
-			qval *= -0.5;
-			rValues[g] = qval;
-		}
-	}
-	else if (rVariable == VORTICITY_MAGNITUDE)
-	{
-		Vector GaussWeights;
-		Matrix ShapeFunctions;
-		ShapeFunctionDerivativesArrayType ShapeDerivatives;
-		this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
-		const unsigned int NumGauss = GaussWeights.size();
-
-		rValues.resize(NumGauss);
-		
-  		// Loop on integration points
-		for (unsigned int g = 0; g < NumGauss; g++)
-		{
-			const ShapeFunctionDerivativesType& rDN_DX = ShapeDerivatives[g];
-			array_1d<double,3> Vorticity(3,0.0);
-
-            this->IntegrationPointVorticity(rDN_DX,Vorticity);
-
-			rValues[g] = sqrt(Vorticity[0] * Vorticity[0] + Vorticity[1] * Vorticity[1]
-					+ Vorticity[2] * Vorticity[2]);
-		}
-	}
+    else {
+        FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    }
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<array_1d<double, 6>> const& rVariable,
-                                                    std::vector<array_1d<double, 6>>& rValues,
-                                                    ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<array_1d<double, 6>> const& rVariable,
+    std::vector<array_1d<double, 6>>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
+    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<Vector> const& rVariable,
-                                                    std::vector<Vector>& rValues,
-                                                    ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<Vector> const& rVariable,
+    std::vector<Vector>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
+    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void QSVMS<TElementData>::GetValueOnIntegrationPoints(Variable<Matrix> const& rVariable,
-                                                    std::vector<Matrix>& rValues,
-                                                    ProcessInfo const& rCurrentProcessInfo)
+void QSVMS<TElementData>::GetValueOnIntegrationPoints(
+    Variable<Matrix> const& rVariable,
+    std::vector<Matrix>& rValues,
+    ProcessInfo const& rCurrentProcessInfo)
 {
+    FluidElement<TElementData>::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -432,18 +369,17 @@ void QSVMS<TElementData>::AddVelocitySystem(
 
     // Interpolate nodal data on the integration point
     double density = rData.Density;
-    double dynamic_viscosity = rData.EffectiveViscosity; // TODO: this must go through the constitutive law (JC)
     array_1d<double,3> body_force = this->Interpolate(rData.BodyForce,rData.N);
     array_1d<double,3> momentum_projection = this->Interpolate(rData.MomentumProjection,rData.N);
     double mass_projection = this->Interpolate(rData.MassProjection,rData.N);
 
-    double TauOne;
-    double TauTwo;
+    double tau_one;
+    double tau_two;
     array_1d<double, 3> convective_velocity =
         this->Interpolate(rData.Velocity, rData.N) -
         this->Interpolate(rData.MeshVelocity, rData.N);
         
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
+    this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
@@ -468,7 +404,7 @@ void QSVMS<TElementData>::AddVelocitySystem(
             // Some terms are the same for all velocity components, calculate them once for each i,j
             //K = 0.5*(rN[i]*AGradN[j] - AGradN[i]*rN[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
             K = rData.N[i]*AGradN[j];
-            K += AGradN[i]*TauOne*(AGradN[j]); // Stabilization: u*grad(v) * TauOne * u*grad(u)
+            K += AGradN[i]*tau_one*(AGradN[j]); // Stabilization: u*grad(v) * tau_one * u*grad(u)
             K *= rData.Weight;
 
             // q-p stabilization block (initialize result)
@@ -484,7 +420,7 @@ void QSVMS<TElementData>::AddVelocitySystem(
                 LHS(row+d,col+d) += K;
 
                 // v * Grad(p) block
-                G = TauOne * AGradN[i] * rData.DN_DX(j,d); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                G = tau_one * AGradN[i] * rData.DN_DX(j,d); // Stabilization: (a * Grad(v)) * tau_one * Grad(p)
                 PDivV = rData.DN_DX(i,d) * rData.N[j]; // Div(v) * p
 
                 // Write v * Grad(p) component
@@ -493,14 +429,14 @@ void QSVMS<TElementData>::AddVelocitySystem(
                 LHS(col+Dim,row+d) += rData.Weight * (G + PDivV);
 
                 // q-p stabilization block
-                laplacian += rData.DN_DX(i,d) * rData.DN_DX(j,d); // Stabilization: Grad(q) * TauOne * Grad(p)
+                laplacian += rData.DN_DX(i,d) * rData.DN_DX(j,d); // Stabilization: Grad(q) * tau_one * Grad(p)
 
-                for (unsigned int e = 0; e < Dim; e++) // Stabilization: Div(v) * TauTwo * Div(u)
-                    LHS(row+d,col+e) += rData.Weight*TauTwo*rData.DN_DX(i,d)*rData.DN_DX(j,e);
+                for (unsigned int e = 0; e < Dim; e++) // Stabilization: Div(v) * tau_two * Div(u)
+                    LHS(row+d,col+e) += rData.Weight*tau_two*rData.DN_DX(i,d)*rData.DN_DX(j,e);
             }
 
             // Write q-p term
-            LHS(row+Dim,col+Dim) += rData.Weight*TauOne*laplacian;
+            LHS(row+Dim,col+Dim) += rData.Weight*tau_one*laplacian;
         }
 
         // RHS terms
@@ -508,11 +444,11 @@ void QSVMS<TElementData>::AddVelocitySystem(
         for (unsigned int d = 0; d < Dim; ++d)
         {
             rLocalRHS[row+d] += rData.Weight * rData.N[i] * body_force[d]; // v*BodyForce
-            rLocalRHS[row+d] += rData.Weight * TauOne * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-            rLocalRHS[row+d] -= rData.Weight * TauTwo * rData.DN_DX(i,d) * mass_projection;
+            rLocalRHS[row+d] += rData.Weight * tau_one * AGradN[i] * ( body_force[d] - momentum_projection[d]); // ( a * Grad(v) ) * tau_one * (Density * BodyForce)
+            rLocalRHS[row+d] -= rData.Weight * tau_two * rData.DN_DX(i,d) * mass_projection;
             forcing += rData.DN_DX(i, d) * (body_force[d] - momentum_projection[d]);
         }
-        rLocalRHS[row + Dim] += rData.Weight * TauOne * forcing; // Grad(q) * TauOne * (Density * BodyForce)
+        rLocalRHS[row + Dim] += rData.Weight * tau_one * forcing; // Grad(q) * tau_one * (Density * BodyForce)
     }
 
     // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
@@ -570,12 +506,11 @@ void QSVMS<TElementData>::AddMassStabilization(
     MatrixType &rMassMatrix)
 {
     double density = rData.Density;
-    double dynamic_viscosity = rData.EffectiveViscosity; //TODO this must go through the constitutive law (JC)
 
-    double TauOne;
-    double TauTwo;
+    double tau_one;
+    double tau_two;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
+    this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
 
     Vector AGradN;
     this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
@@ -585,7 +520,7 @@ void QSVMS<TElementData>::AddMassStabilization(
 
     // Temporary container
     double K;
-    double weight = rData.Weight * TauOne * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
+    double weight = rData.Weight * tau_one * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
 
     // Note: Dof order is (u,v,[w,]p) for each node
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -712,13 +647,11 @@ double QSVMS<TElementData>::EffectiveViscosity(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void QSVMS<TElementData>::CalculateStaticTau(
+void QSVMS<TElementData>::CalculateTau(
     const TElementData& rData,
-    double Density,
-    double DynamicViscosity,
     const array_1d<double,3> &Velocity,
     double &TauOne,
-    double &TauTwo)
+    double &TauTwo) const
 {
     constexpr double c1 = 8.0;
     constexpr double c2 = 2.0;
@@ -730,9 +663,9 @@ void QSVMS<TElementData>::CalculateStaticTau(
         velocity_norm += Velocity[d]*Velocity[d];
     velocity_norm = std::sqrt(velocity_norm);
 
-    double inv_tau = c1 * DynamicViscosity / (h*h) + Density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h );
+    double inv_tau = c1 * rData.EffectiveViscosity / (h*h) + rData.Density * ( rData.DynamicTau/rData.DeltaTime + c2 * velocity_norm / h );
     TauOne = 1.0/inv_tau;
-    TauTwo = DynamicViscosity + c2 * Density * velocity_norm * h / c1;
+    TauTwo = rData.EffectiveViscosity + c2 * rData.Density * velocity_norm * h / c1;
 }
 
 
@@ -797,13 +730,10 @@ void QSVMS<TElementData>::SubscaleVelocity(
     const ProcessInfo &rProcessInfo,
     array_1d<double,3> &rVelocitySubscale)
 {
-    double dynamic_viscosity = rData.EffectiveViscosity;
-
-    double TauOne;
-    double TauTwo;
-    double density = rData.Density;
+    double tau_one;
+    double tau_two;
     array_1d<double,3> convective_velocity = this->Interpolate(rData.Velocity,rData.N) - this->Interpolate(rData.MeshVelocity,rData.N);
-    this->CalculateStaticTau(rData,density,dynamic_viscosity,convective_velocity,TauOne,TauTwo);
+    this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
 
     array_1d<double,3> Residual(3,0.0);
 
@@ -812,7 +742,7 @@ void QSVMS<TElementData>::SubscaleVelocity(
     else
         this->OSSMomentumResidual(rData,Residual);
 
-    rVelocitySubscale = TauOne*Residual;
+    rVelocitySubscale = tau_one*Residual;
 }
 
 template< class TElementData >
@@ -821,15 +751,12 @@ void QSVMS<TElementData>::SubscalePressure(
         const ProcessInfo& rProcessInfo,
         double &rPressureSubscale)
 {
-    double dynamic_viscosity = rData.EffectiveViscosity;
-
-    double TauOne;
-    double TauTwo;
-    double density = rData.Density;
+    double tau_one;
+    double tau_two;
     array_1d<double, 3> convective_velocity =
         this->Interpolate(rData.Velocity, rData.N) -
         this->Interpolate(rData.MeshVelocity, rData.N);
-    this->CalculateStaticTau(rData, density, dynamic_viscosity, convective_velocity, TauOne, TauTwo);
+    this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
     double Residual = 0.0;
 
@@ -838,7 +765,7 @@ void QSVMS<TElementData>::SubscalePressure(
     else
         this->OSSMassResidual(rData,Residual);
 
-    rPressureSubscale = TauTwo*Residual;
+    rPressureSubscale = tau_two*Residual;
 }
 
 
