@@ -310,10 +310,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mInelasticFlag;                 /// This flags tells if we are in a elastic or ineslastic regime
-    Vector mPlasticStrain;               /// The current plastic strain (one for each of the strain components)
-    Vector mPlasticStrainOld;            /// The previous plastic strain (one for each of the strain components)
-    double mAccumulatedPlasticStrain;    /// The current accumulated plastic strain
+    bool mInelasticFlag; /// This flags tells if we are in a elastic or ineslastic regime
+    Vector mPlasticStrain; /// The current plastic strain (one for each of the strain components)
+    Vector mPlasticStrainOld; /// The previous plastic strain (one for each of the strain components)
+    double mAccumulatedPlasticStrain; /// The current accumulated plastic strain
     double mAccumulatedPlasticStrainOld; /// The previous accumulated plastic strain
 
     ///@}

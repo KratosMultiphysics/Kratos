@@ -65,6 +65,9 @@ bool LinearJ2Plasticity3D::Has(const Variable<bool>& rThisVariable)
 
 bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
 {
+    if(rThisVariable == STRAIN_ENERGY){
+        return true;
+    }
     if(rThisVariable == PLASTIC_STRAIN){
         return true;
     }
@@ -139,6 +142,7 @@ void LinearJ2Plasticity3D::InitializeMaterial(
     )
 {
     mPlasticStrainOld = ZeroVector(this->GetStrainSize());
+    mPlasticStrain = mPlasticStrainOld;
     mAccumulatedPlasticStrainOld = 0.0;
 }
 
@@ -296,15 +300,16 @@ double& LinearJ2Plasticity3D::CalculateValue(
     )
 {
     if(rThisVariable == STRAIN_ENERGY){
-        Flags &Options = rParameterValues.GetOptions();
-        Options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        CalculateMaterialResponseCauchy(rParameterValues);
         Vector& strain_vector = rParameterValues.GetStrainVector();
+        if (rParameterValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+            noalias(strain_vector) += rParameterValues.GetProcessInfo()[INITIAL_STRAIN];
+        }
         const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
         Matrix elastic_tensor(6, 6);
         CalculateElasticMatrix(elastic_tensor, r_material_properties);
-        // Linear + exponential hardening
-        rValue = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain)) + GetPlasticPotential(r_material_properties);
+
+        rValue = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain))
+                 + GetPlasticPotential(r_material_properties);
     }
     if(rThisVariable == PLASTIC_STRAIN){
         rValue = mAccumulatedPlasticStrain;
