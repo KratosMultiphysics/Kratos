@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosEmpireApplication 
+KratosEmpireApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,28 +41,28 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  $
 //   Date:                $Date: $
 //   Revision:            $Revision: 1.3 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "empire_application.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
- 
+
 namespace Kratos
 {
 
@@ -72,26 +72,24 @@ namespace Python
   using namespace boost::python;
 
 
-  
+
   BOOST_PYTHON_MODULE(KratosEmpireApplication)
   {
 
-	  class_<KratosEmpireApplication, 
-			  KratosEmpireApplication::Pointer, 
+	  class_<KratosEmpireApplication,
+			  KratosEmpireApplication::Pointer,
 			  bases<KratosApplication>, boost::noncopyable >("KratosEmpireApplication")
 			;
-
-	AddCustomProcessesToPython();
 
 	//registering variables in python
 //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
 
   }
-  
-  
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined
