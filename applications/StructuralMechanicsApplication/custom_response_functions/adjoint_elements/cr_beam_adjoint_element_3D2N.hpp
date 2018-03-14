@@ -19,12 +19,12 @@
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "includes/serializer.h"
-#include "custom_elements/cr_beam_element_3D2N.hpp"
+#include "custom_elements/cr_beam_element_linear_3D2N.hpp"
 
 namespace Kratos
 {
 
-	class CrBeamAdjointElement3D2N : public CrBeamElement3D2N
+	class CrBeamAdjointElement3D2N : public CrBeamElementLinear3D2N
 	{
 	public:
 		KRATOS_CLASS_POINTER_DEFINITION(CrBeamAdjointElement3D2N);
@@ -107,7 +107,7 @@ namespace Kratos
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 	protected:
-		CrBeamAdjointElement3D2N(): CrBeamElement3D2N()
+		CrBeamAdjointElement3D2N(): CrBeamElementLinear3D2N()
 		{
 		}
 
