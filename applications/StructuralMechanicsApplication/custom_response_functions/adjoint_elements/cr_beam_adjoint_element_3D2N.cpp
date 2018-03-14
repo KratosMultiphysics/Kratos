@@ -21,14 +21,14 @@ namespace Kratos
 
 	CrBeamAdjointElement3D2N::CrBeamAdjointElement3D2N(IndexType NewId,
 		GeometryType::Pointer pGeometry)
-		: CrBeamElement3D2N(NewId, pGeometry)
+		: CrBeamElementLinear3D2N(NewId, pGeometry)
 	{
 	}
 
 	CrBeamAdjointElement3D2N::CrBeamAdjointElement3D2N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
 		PropertiesType::Pointer pProperties)
-		: CrBeamElement3D2N(NewId, pGeometry, pProperties)
+		: CrBeamElementLinear3D2N(NewId, pGeometry, pProperties)
 	{
 	}
 
@@ -335,9 +335,9 @@ namespace Kratos
     		std::vector< array_1d<double, 3 > > stress_vector;
 
     		if(item_1 == 'M')
-        		CrBeamElement3D2N::GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
+        		CrBeamElementLinear3D2N::GetValueOnIntegrationPoints(MOMENT, stress_vector, rCurrentProcessInfo);
     		else if(item_1 == 'F')
-        		CrBeamElement3D2N::GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
+        		CrBeamElementLinear3D2N::GetValueOnIntegrationPoints(FORCE, stress_vector, rCurrentProcessInfo);
     		else
         		KRATOS_ERROR << "Invalid stress type! " << traced_stress_type << (" is not supported!")  << std::endl;
 
@@ -453,7 +453,7 @@ namespace Kratos
     	this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
 		DofsVectorType element_dof_list;
-    	CrBeamElement3D2N::GetDofList(element_dof_list, copy_process_info);
+    	CrBeamElementLinear3D2N::GetDofList(element_dof_list, copy_process_info);
 
 		unsigned int size_stress_vec = stress_vector_undist.size();
     	rOutput.resize(num_dofs, size_stress_vec);
@@ -855,21 +855,20 @@ namespace Kratos
 
 		KRATOS_CATCH("")
 	}
-
-	/*std::string CrBeamAdjointElement3D2N::Info() const
+    /*
+	std::string CrBeamAdjointElement3D2N::Info() const
     {
 		return "CrBeamAdjointElement3D2N";
-		//fusseder TODO: seperate between linear and nonliner case!!!!
     }*/
 
 	void CrBeamAdjointElement3D2N::save(Serializer& rSerializer) const
 	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElementLinear3D2N);
 	}
 
 	void CrBeamAdjointElement3D2N::load(Serializer& rSerializer)
 	{
-		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N);
+		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElementLinear3D2N);
 	}
 
 } // namespace Kratos.

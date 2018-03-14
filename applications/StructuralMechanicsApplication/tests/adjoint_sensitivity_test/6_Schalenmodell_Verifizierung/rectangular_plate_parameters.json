@@ -18,8 +18,7 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "rectangular_plate",
-            "input_file_label" : 0
+            "input_filename"   : "rectangular_plate"
         },
         "material_import_settings"           : {
             "materials_filename" : "StructuralMaterials.json"

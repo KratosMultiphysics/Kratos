@@ -50,7 +50,7 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
   this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
   Vector nodal_deformation = ZeroVector(msElementSize);
-  this->GetValuesVector(nodal_deformation);
+  CrBeamElement3D2N::GetValuesVector(nodal_deformation); // modified by M.Fusseder
   rRightHandSideVector = ZeroVector(msElementSize);
   rRightHandSideVector -= prod(rLeftHandSideMatrix, nodal_deformation);
 
@@ -68,7 +68,7 @@ void CrBeamElementLinear3D2N::CalculateRightHandSide(
   Matrix left_hand_side_matrix = ZeroMatrix(msElementSize, msElementSize);
   this->CalculateLeftHandSide(left_hand_side_matrix, rCurrentProcessInfo);
   Vector nodal_deformation = ZeroVector(msElementSize);
-  this->GetValuesVector(nodal_deformation);
+  CrBeamElement3D2N::GetValuesVector(nodal_deformation); // modified by M.Fusseder
   rRightHandSideVector = ZeroVector(msElementSize);
   noalias(rRightHandSideVector) -=
       prod(left_hand_side_matrix, nodal_deformation);
@@ -192,7 +192,7 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
   Matrix left_hand_side_matrix = CreateElementStiffnessMatrix_Material();
 
   Vector nodal_deformation = ZeroVector(msElementSize);
-  this->GetValuesVector(nodal_deformation);
+  CrBeamElement3D2N::GetValuesVector(nodal_deformation); // modified by M.Fusseder
 
   bounded_matrix<double, msElementSize, msElementSize> transformation_matrix =
       this->CalculateInitialLocalCS();
@@ -267,6 +267,11 @@ void CrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
   }
 
   KRATOS_CATCH("");
+}
+
+std::string CrBeamElementLinear3D2N::Info() const // added by M.Fusseder
+{
+  return "CrLinearBeamElement3D2N";
 }
 
 void CrBeamElementLinear3D2N::save(Serializer &rSerializer) const {
