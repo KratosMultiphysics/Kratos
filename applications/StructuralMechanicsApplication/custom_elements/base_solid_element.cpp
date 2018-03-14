@@ -879,6 +879,24 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void BaseSolidElement::SetValueOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const std::size_t integration_points_number = GetGeometry().IntegrationPoints(  ).size();
+        for ( std::size_t i_gp = 0; i_gp < integration_points_number; ++i_gp ) {
+            mConstitutiveLawVector[i_gp] = rValues[i_gp];
+        }
+    }
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::SetValueOnIntegrationPoints( 
     const Variable<Matrix>& rVariable, 
     std::vector<Matrix>& rValues, 
@@ -952,13 +970,31 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::GetValueOnIntegrationPoints( 
+void BaseSolidElement::GetValueOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues, 
-    const ProcessInfo& rCurrentProcessInfo 
+    std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::GetValueOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const std::size_t integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != mConstitutiveLawVector.size())
+            rValues.resize(integration_points_number);
+        for (std::size_t i_gp = 0; i_gp < integration_points_number; ++i_gp)
+            rValues[i_gp] = mConstitutiveLawVector[i_gp];
+    }
 }
 
 /***********************************************************************************/
