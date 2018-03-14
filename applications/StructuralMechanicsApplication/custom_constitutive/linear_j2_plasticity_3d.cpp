@@ -390,7 +390,7 @@ double LinearJ2Plasticity3D::GetDeltaGamma(
         const double kp_new = theta * hardening_modulus + delta_k * (hardening_exponent * std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
         const double yieldfunction = - sqrt_two_thirds * k_new + NormStressTrial - 2. * mu * dgamma;
         const double derivative_yieldfunction = -2. * mu * (1. + kp_new / (3. * mu));
-        dgamma = dgamma - yieldfunction / derivative_yieldfunction;
+        dgamma -= yieldfunction / derivative_yieldfunction;
         mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld + sqrt_two_thirds * dgamma;
         norm_yieldfunction = std::abs(yieldfunction);
     }
