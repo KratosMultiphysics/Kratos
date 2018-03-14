@@ -1401,61 +1401,6 @@ protected:
         }
     }
 
-    /**
-    * This functions sets the B strain matrix (pressure columns are set to zero)
-    * @param rData reference to element data structure (it contains the shape functions derivatives)
-    * @param[out] rBmatrix reference to the computed B strain matrix
-    */
-    void SetExpandedStrainMatrix(
-        const bounded_matrix<double, TNumNodes, TDim> &rDN_DX,
-        bounded_matrix<double, (TDim-1)*3, TNumNodes*(TDim+1)> &rBmatrix) {
-
-        constexpr unsigned int block_size = TDim + 1;
-        rBmatrix.clear();
-
-        // Set the shape function derivatives values
-        if (TDim == 3) {
-            for (unsigned int i = 0; i < TNumNodes; i++) {
-                rBmatrix(0, i * block_size)     = rDN_DX(i, 0);
-                rBmatrix(1, i * block_size + 1) = rDN_DX(i, 1);
-                rBmatrix(2, i * block_size + 2) = rDN_DX(i, 2);
-                rBmatrix(3, i * block_size)     = rDN_DX(i, 1);
-                rBmatrix(3, i * block_size + 1) = rDN_DX(i, 0);
-                rBmatrix(4, i * block_size + 1) = rDN_DX(i, 2);
-                rBmatrix(4, i * block_size + 2) = rDN_DX(i, 1);
-                rBmatrix(5, i * block_size)     = rDN_DX(i, 2);
-                rBmatrix(5, i * block_size + 2) = rDN_DX(i, 0);
-            }
-        } else {
-            for (unsigned int i = 0; i < TNumNodes; i++) {
-                rBmatrix(0, i * block_size)     = rDN_DX(i, 0);
-                rBmatrix(1, i * block_size + 1) = rDN_DX(i, 1);
-                rBmatrix(2, i * block_size)     = rDN_DX(i, 1);
-                rBmatrix(2, i * block_size + 1) = rDN_DX(i, 0);
-            }
-        }
-    }
-
-    /**
-    * This functions sets the test function matrix given the Gauss pt. shape function values
-    * @param rN shape function values on a Gauss pt.
-    * @return Computed test function matrix
-    */
-    void SetTestMatrix(
-        const array_1d<double, TNumNodes> &rN,
-        bounded_matrix<double, (TDim+1)*TNumNodes, TDim> &rTestMatrix) {
-
-        constexpr unsigned int block_size = TDim + 1;
-        rTestMatrix.clear();
-
-        // Set the test function matrix using the shape functions values
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            for (unsigned int d = 0; d < TDim; ++d) {
-                rTestMatrix(i * block_size + d, d) = rN(i);
-            }
-        }
-    }
-
     ///@}
     ///@name Protected  Access
     ///@{
