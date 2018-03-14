@@ -70,7 +70,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointStructuralScheme(Parameters& rParameters, StructuralResponseFunction::Pointer pResponseFunction)
+    AdjointStructuralScheme(Parameters& rParameters, AdjointStructuralResponseFunction::Pointer pResponseFunction)
         : Scheme<TSparseSpace, TDenseSpace>()
     {
         KRATOS_TRY;
@@ -380,7 +380,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    StructuralResponseFunction::Pointer mpResponseFunction;
+    AdjointStructuralResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
 
     ///@}

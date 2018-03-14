@@ -6,8 +6,8 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#if !defined(STRUCTURAL_RESPONSE_FUNCTION_H)
-#define STRUCTURAL_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
+#define ADJOINT_STRUCTURAL_RESPONSE_FUNCTION_H
 
 // System includes
 #include <vector>
@@ -37,13 +37,13 @@ namespace Kratos
 ///@{
 
 /// A base class for response functions.
-class StructuralResponseFunction
+class AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(StructuralResponseFunction);
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointStructuralResponseFunction);
 
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
     typedef Variable<array_1d<double, 3>> VariableWithComponentsType;
@@ -53,7 +53,7 @@ public:
     ///@{
 
     /// Constructor.
-    StructuralResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
+    AdjointStructuralResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
       : mrModelPart(rModelPart)
     {
         KRATOS_TRY;
@@ -69,12 +69,12 @@ public:
         Parameters element_sensitivity_variables = rParameters["element_sensitivity_variables"];
         mElementSensitivityVariables.resize(element_sensitivity_variables.size());
         for (unsigned int i = 0; i < element_sensitivity_variables.size(); ++i)
-			mElementSensitivityVariables[i] = element_sensitivity_variables[i].GetString();	
+			mElementSensitivityVariables[i] = element_sensitivity_variables[i].GetString();
 
 		Parameters condition_sensitivity_variables = rParameters["condition_sensitivity_variables"];
         mConditionSensitivityVariables.resize(condition_sensitivity_variables.size());
         for (unsigned int i = 0; i < condition_sensitivity_variables.size(); ++i)
-			mConditionSensitivityVariables[i] = condition_sensitivity_variables[i].GetString();	
+			mConditionSensitivityVariables[i] = condition_sensitivity_variables[i].GetString();
 
         // Set gradient mode
 		std::string gradientMode = rParameters["gradient_mode"].GetString();
@@ -87,14 +87,14 @@ public:
 			mDelta = delta;
 		}
 		else
-			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);    
+			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: semi_analytic. Specified gradient_mode: ", gradientMode);
 
 
         KRATOS_CATCH("");
     }
 
     /// Destructor.
-    virtual ~StructuralResponseFunction()
+    virtual ~AdjointStructuralResponseFunction()
     {
     }
 
@@ -144,8 +144,8 @@ public:
                 r_model_part.GetSubModelPart(mSensitivityModelPartName).Elements(),
                 elements_begin, elements_end);
             for (auto it = elements_begin; it != elements_end; ++it)
-                it->SetValue(UPDATE_SENSITIVITIES, true);   
-                
+                it->SetValue(UPDATE_SENSITIVITIES, true);
+
         }
 #pragma omp parallel
         {
@@ -155,9 +155,9 @@ public:
                 r_model_part.GetSubModelPart(mSensitivityModelPartName).Conditions(),
                 conditions_begin, conditions_end);
             for (auto it = conditions_begin; it != conditions_end; ++it)
-                it->SetValue(UPDATE_SENSITIVITIES, true);   
-                
-        }  
+                it->SetValue(UPDATE_SENSITIVITIES, true);
+
+        }
 
     if(mGradientMode == 1)
     {
@@ -168,7 +168,7 @@ public:
             OpenMPUtils::PartitionedIterators(r_model_part.Elements(), elements_begin, elements_end);
             for (auto it = elements_begin; it != elements_end; ++it)
                 it->SetValue(DISTURBANCE_MEASURE, mDelta);
-        } 
+        }
 #pragma omp parallel
         {
             ModelPart::ConditionIterator conditions_begin;
@@ -176,8 +176,8 @@ public:
             OpenMPUtils::PartitionedIterators(r_model_part.Conditions(), conditions_begin, conditions_end);
             for (auto it = conditions_begin; it != conditions_end; ++it)
                 it->SetValue(DISTURBANCE_MEASURE, mDelta);
-        } 
-    }   
+        }
+    }
 
         KRATOS_CATCH("");
     }
@@ -291,11 +291,11 @@ public:
                 {
                     ModelPart::ElementIterator elements_begin;
                     ModelPart::ElementIterator elements_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Elements(), 
+                    OpenMPUtils::PartitionedIterators(r_model_part.Elements(),
                                                       elements_begin, elements_end);
                     for (auto it = elements_begin; it != elements_end; ++it)
-                        it->SetValue(r_variable, r_variable.Zero()); 
-                        
+                        it->SetValue(r_variable, r_variable.Zero());
+
                 }
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(output_variable_label) == true)
@@ -307,7 +307,7 @@ public:
                 {
                     ModelPart::ElementIterator elements_begin;
                     ModelPart::ElementIterator elements_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Elements(), 
+                    OpenMPUtils::PartitionedIterators(r_model_part.Elements(),
                                                       elements_begin, elements_end);
                     for (auto it = elements_begin; it != elements_end; ++it)
                         it->SetValue(r_variable, r_variable.Zero());
@@ -330,16 +330,16 @@ public:
                 {
                     ModelPart::ConditionIterator conditions_begin;
                     ModelPart::ConditionIterator conditions_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Conditions(), 
+                    OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),
                                                       conditions_begin, conditions_end);
                     for (auto it = conditions_begin; it != conditions_end; ++it)
                     {
                         //loop nodes
                         const unsigned int NumberOfNodes = it->GetGeometry().size();
                         for(unsigned int i = 0; i < NumberOfNodes; ++i)
-                            it->GetGeometry()[i].FastGetSolutionStepValue(r_variable) = r_variable.Zero();   
+                            it->GetGeometry()[i].FastGetSolutionStepValue(r_variable) = r_variable.Zero();
                     }
-                        
+
                 }
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(output_variable_label) == true)
@@ -351,14 +351,14 @@ public:
                 {
                     ModelPart::ConditionIterator conditions_begin;
                     ModelPart::ConditionIterator conditions_end;
-                    OpenMPUtils::PartitionedIterators(r_model_part.Conditions(), 
+                    OpenMPUtils::PartitionedIterators(r_model_part.Conditions(),
                                                       conditions_begin, conditions_end);
                     for (auto it = conditions_begin; it != conditions_end; ++it)
                     {
                         //loop nodes
                         const unsigned int NumberOfNodes = it->GetGeometry().size();
                         for(unsigned int i = 0; i < NumberOfNodes; ++i)
-                            it->GetGeometry()[i].FastGetSolutionStepValue(r_variable) = r_variable.Zero(); 
+                            it->GetGeometry()[i].FastGetSolutionStepValue(r_variable) = r_variable.Zero();
                     }
                 }
             }
@@ -516,35 +516,35 @@ public:
             {
                 const Variable<double>& r_variable =
                     KratosComponents<Variable<double>>::Get(label);
-				
+
 				//check for output variable to save later the computed sensitivity
 				if( KratosComponents<Variable<double>>::Has(output_label) == true )
 				{
 					const Variable<double>& r_output_variable =
-                    	KratosComponents<Variable<double>>::Get(output_label);	
-					this->UpdateElementSensitivities(r_variable, r_output_variable);	
+                    	KratosComponents<Variable<double>>::Get(output_label);
+					this->UpdateElementSensitivities(r_variable, r_output_variable);
 				}
 				else
                 	KRATOS_ERROR << "Unsupported element variable for output: " << output_label << "." << std::endl;
 
-                
+
             }
             else if (KratosComponents<Variable<array_1d<double,3>>>::Has(label) == true)
             {
                 const Variable<array_1d<double,3>>& r_variable =
                     KratosComponents<Variable<array_1d<double,3>>>::Get(label);
-				
+
 				//check for output variable to save later the computed sensitivity
 				if (KratosComponents<Variable<array_1d<double,3>>>::Has(output_label) == true)
 				{
 					const Variable<array_1d<double,3>>& r_output_variable =
                     	KratosComponents<Variable<array_1d<double,3>>>::Get(output_label);
-					this->UpdateElementSensitivities(r_variable, r_output_variable);	
+					this->UpdateElementSensitivities(r_variable, r_output_variable);
 				}
 				else
-                	KRATOS_ERROR << "Unsupported element variable for output: " << output_label << "." << std::endl;	
-			
-               
+                	KRATOS_ERROR << "Unsupported element variable for output: " << output_label << "." << std::endl;
+
+
             }
             else
                 KRATOS_ERROR << "Unsupported element variable: " << label << "." << std::endl;
@@ -564,11 +564,11 @@ public:
 				if( KratosComponents<Variable<double>>::Has(output_label) == true )
 				{
 					const Variable<double>& r_output_variable =
-                    	KratosComponents<Variable<double>>::Get(output_label);	
-                    this->UpdateConditionSensitivities(r_variable, r_output_variable);	
+                    	KratosComponents<Variable<double>>::Get(output_label);
+                    this->UpdateConditionSensitivities(r_variable, r_output_variable);
 				}
 				else
-                	KRATOS_ERROR << "Unsupported condition variable for output: " << output_label << "." << std::endl;    
+                	KRATOS_ERROR << "Unsupported condition variable for output: " << output_label << "." << std::endl;
             }
             else if (KratosComponents<Variable<array_1d<double,3>>>::Has(label) == true)
             {
@@ -579,17 +579,17 @@ public:
 				if (KratosComponents<Variable<array_1d<double,3>>>::Has(output_label) == true)
 				{
 					const Variable<array_1d<double,3>>& r_output_variable =
-                    	KratosComponents<Variable<array_1d<double,3>>>::Get(output_label);	
+                    	KratosComponents<Variable<array_1d<double,3>>>::Get(output_label);
                     this->UpdateConditionSensitivities(r_variable, r_output_variable);
 				}
 				else
-                	KRATOS_ERROR << "Unsupported condition variable for output: " << output_label << "." << std::endl;	    
-   
+                	KRATOS_ERROR << "Unsupported condition variable for output: " << output_label << "." << std::endl;
+
             }
             else
                 KRATOS_ERROR << "Unsupported condition variable: " << label << "." << std::endl;
-        }    
-      
+        }
+
         KRATOS_CATCH("");
     }
 
@@ -614,7 +614,7 @@ protected:
 
     ///@}
     ///@name Protected Operations
-    ///@{ 
+    ///@{
 
     /// Calculate and add the sensitivity from the current adjoint and primal solutions.
     /*
@@ -765,7 +765,7 @@ protected:
    //     KRATOS_CATCH("")
     //}
     template <typename TDataType>
-    void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable) 
+    void UpdateNodalSensitivities(Variable<TDataType> const& rSensitivityVariable)
 	{
 		KRATOS_TRY;
 
@@ -889,17 +889,17 @@ protected:
                     			/*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
-		
+
 			    /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
 			    {
 					std::cout << ("SA result conditions = ") << i << sensitivity_vector[i] << std::endl;
-			    }*/							
+			    }*/
 
                 this->AssembleNodalSensitivityContribution(
                     rSensitivityVariable, sensitivity_vector[k], r_geom);	//----> check for correct output
-            }        
+            }
         }
-    
+
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
 		KRATOS_CATCH("");
@@ -907,7 +907,7 @@ protected:
 
 	// ==============================================================================
 	template <typename TDataType>
-	void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)  
+	void UpdateElementSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
 	{
 		KRATOS_TRY;
 
@@ -920,7 +920,7 @@ protected:
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
-  
+
         //std::cout << ("I compute now element sensitivities") << std::endl;
 	#pragma omp parallel
         {
@@ -939,14 +939,14 @@ protected:
                     // Compute the pseudo load
                     it->CalculateSensitivityMatrix(
             	        rSensitivityVariable, sensitivity_matrix[k], r_process_info);
-                        
+
                     // This part of the sensitivity is computed from the objective
                     // with primal variables treated as constant.
                     this->CalculateSensitivityGradient(
                         *it, rSensitivityVariable, sensitivity_matrix[k],
-                            response_gradient[k], r_process_info);      
-      
-			        // Get the adjoint displacement field		
+                            response_gradient[k], r_process_info);
+
+			        // Get the adjoint displacement field
                     it->GetValuesVector(adjoint_vector[k]);
 
                     if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
@@ -961,11 +961,11 @@ protected:
                     this->AssembleElementSensitivityContribution(
                   	        rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
 
-                    //std::cout <<  sensitivity_vector[k][0] << std::endl;              
+                    //std::cout <<  sensitivity_vector[k][0] << std::endl;
                 }
             }
         }
-       
+
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
 		KRATOS_CATCH("");
@@ -973,7 +973,7 @@ protected:
 
 	// ==============================================================================
 	template <typename TDataType>
-    void UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable) 
+    void UpdateConditionSensitivities(Variable<TDataType> const& rSensitivityVariable, Variable<TDataType> const& rOutputVariable)
 	{
 		KRATOS_TRY;
 
@@ -997,9 +997,9 @@ protected:
 
             for (auto it = conditions_begin; it != conditions_end; ++it)
             {
-            
+
                 if (it->GetValue(UPDATE_SENSITIVITIES) == true)
-                {   
+                {
                     // Compute the pseudo load
                     it->CalculateSensitivityMatrix(
                         rSensitivityVariable, sensitivity_matrix[k], r_process_info);
@@ -1021,7 +1021,7 @@ protected:
                     			/*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
-			
+
 			        /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
 			        {
 					    std::cout << ("SA result = ") << sensitivity_vector[i] << std::endl;
@@ -1034,7 +1034,7 @@ protected:
                 }
             }
         }
-    
+
         r_model_part.GetCommunicator().AssembleCurrentData(rSensitivityVariable);
 
 		KRATOS_CATCH("");
@@ -1060,7 +1060,7 @@ protected:
         KRATOS_TRY;
 
         KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
-       
+
         KRATOS_CATCH("");
     }
 
@@ -1108,7 +1108,7 @@ protected:
         KRATOS_TRY;
 
         KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
-                        
+
         KRATOS_CATCH("");
     }
 
@@ -1155,10 +1155,10 @@ protected:
 
     void AssembleElementSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                                 Vector const& rSensitivityVector,
-                                                Element& rElem) 
-    {  
+                                                Element& rElem)
+    {
 		rElem.SetValue(rSensitivityVariable , rSensitivityVector[0]);
-		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points	
+		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points
 	}
 
     void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
@@ -1166,7 +1166,7 @@ protected:
                                                 Element& rElem)
     {
 		rElem.SetValue(rSensitivityVariable , rSensitivityVector);
-		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points	
+		// attention: one has to ensure that element is able to print the variable type later on his Gauss-Points
 	}
 
     void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,

@@ -28,12 +28,12 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "response_function.h"
 
 // ==============================================================================
@@ -67,7 +67,7 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class EigenfrequencyResponseFunctionLinScal : ResponseFunction
+class EigenfrequencyResponseFunctionLinScal : public ResponseFunction
 {
 public:
 	///@name Type Definitions
@@ -229,7 +229,7 @@ public:
 		// First gradients are initialized
 		array_3d zeros_array(3, 0.0);
 		for (auto& node_i : mr_model_part.Nodes())
-			noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT) ) = zeros_array;
+			noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) ) = zeros_array;
 
 		// Gradient calculation is done by a semi-analytic approaches
 		// The gradient is computed in one step
@@ -268,7 +268,7 @@ public:
 
 		// Fill dictionary with gradient information
 		for (auto& node_i : mr_model_part.Nodes())
-			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT);
+			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY);
 
 		return dFdX;
 
@@ -454,7 +454,7 @@ protected:
 				// End derivative of response w.r.t. z-coord --------------------
 
 				// Assemble sensitivity to node
-				noalias(node_i.FastGetSolutionStepValue(EIGENFREQUENCY_SHAPE_GRADIENT)) += gradient_contribution;
+				noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
 
 			}// End loop over nodes of element
 

@@ -158,21 +158,21 @@ class AdjointStructuralSolver:
             if (domain_size == 2):
                 raise Exception("Currently only availible for 3D. Your choice is 2D")
             elif (domain_size == 3):
-                self.response_function = StructuralMechanicsApplication.LocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         elif self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_nodal_displacement":
             if (domain_size == 2):
                 raise Exception("Currently only availible for 3D. Your choice is 2D")
             elif (domain_size == 3):
-                self.response_function = StructuralMechanicsApplication.NodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         elif self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_strain_energy":
             if (domain_size == 2):
                 raise Exception("Currently only availible for 3D. Your choice is 2D")
             elif (domain_size == 3):
-                self.response_function = StructuralMechanicsApplication.StrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+                self.response_function = StructuralMechanicsApplication.AdjointStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
             else:
                 raise Exception("Invalid DOMAIN_SIZE: " + str(domain_size))
         else:

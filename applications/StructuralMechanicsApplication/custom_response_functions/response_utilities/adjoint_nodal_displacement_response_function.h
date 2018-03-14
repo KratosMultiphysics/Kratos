@@ -9,8 +9,8 @@
 //
 // ==============================================================================
 
-#ifndef NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
-#define NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
+#define ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -28,12 +28,12 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "adjoint_structural_response_function.h"
 
 
@@ -72,13 +72,13 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class NodalDisplacementResponseFunction : public StructuralResponseFunction
+class AdjointNodalDisplacementResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
 	///@name Type Definitions
 	///@{
 
-	typedef StructuralResponseFunction BaseType;
+	typedef AdjointStructuralResponseFunction BaseType;
 	//typedef array_1d<double, 3> array_3d;
 	typedef Element::DofsVectorType DofsVectorType;
 	typedef Node<3>::Pointer PointTypePointer; //try to ensure that this response function also works for 2D
@@ -87,16 +87,16 @@ public:
 
 
 
-	/// Pointer definition of NodalDisplacementResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(NodalDisplacementResponseFunction);
+	/// Pointer definition of AdjointNodalDisplacementResponseFunction
+	KRATOS_CLASS_POINTER_DEFINITION(AdjointNodalDisplacementResponseFunction);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	NodalDisplacementResponseFunction(ModelPart& model_part, Parameters& responseSettings)
-	: StructuralResponseFunction(model_part, responseSettings)
+	AdjointNodalDisplacementResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	: AdjointStructuralResponseFunction(model_part, responseSettings)
 	{
 		ModelPart& r_model_part = this->GetModelPart();
 
@@ -144,7 +144,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~NodalDisplacementResponseFunction()
+	virtual ~AdjointNodalDisplacementResponseFunction()
 	{
 	}
 
@@ -249,13 +249,13 @@ public:
 	/// Turn back information as a string.
 	/*virtual std::string Info() const            old function, don't needed for sensitivity analysis
 	{
-		return "NodalDisplacementResponseFunction";
+		return "AdjointNodalDisplacementResponseFunction";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const    old function, don't needed for sensitivity analysis
 	{
-		rOStream << "NodalDisplacementResponseFunction";
+		rOStream << "AdjointNodalDisplacementResponseFunction";
 	}
 
 	/// Print object's data.
@@ -446,14 +446,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      NodalDisplacementResponseFunction& operator=(SNodalDisplacementResponseFunction const& rOther);
+	//      AdjointNodalDisplacementResponseFunction& operator=(SAdjointNodalDisplacementResponseFunction const& rOther);
 
 	/// Copy constructor.
-	//      NodalDisplacementResponseFunction(NodalDisplacementResponseFunction const& rOther);
+	//      AdjointNodalDisplacementResponseFunction(AdjointNodalDisplacementResponseFunction const& rOther);
 
 	///@}
 
-}; // Class NodalDisplacementResponseFunction
+}; // Class AdjointNodalDisplacementResponseFunction
 
 ///@}
 
@@ -468,4 +468,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H
+#endif // ADJOINT_NODAL_DISPLACEMENT_RESPONSE_FUNCTION_H

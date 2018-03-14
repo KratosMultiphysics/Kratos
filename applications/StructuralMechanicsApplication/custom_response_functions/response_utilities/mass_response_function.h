@@ -66,7 +66,7 @@ namespace Kratos
 
  */
 
-class MassResponseFunction : ResponseFunction
+class MassResponseFunction : public ResponseFunction
 {
 public:
 	///@name Type Definitions
@@ -161,7 +161,7 @@ public:
 		// First gradients are initialized
 		array_3d zeros_array(3, 0.0);
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			noalias(node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT)) = zeros_array;
+			noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = zeros_array;
 
 		switch (m_gradient_mode)
 		{
@@ -258,7 +258,7 @@ public:
 				node_i->Z() -= mDelta;
 
 				// Compute sensitivity
-				noalias(node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT)) = gradient;
+				noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
 			}
 
 			if (mConsiderDiscretization)
@@ -291,7 +291,7 @@ public:
 
 		// Fill dictionary with gradient information
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT);
+			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY);
 
 		return dFdX;
 
@@ -322,7 +322,7 @@ public:
 			}
 
 			// apply scaling
-			node_i->FastGetSolutionStepValue(MASS_SHAPE_GRADIENT) /= scaling_factor;
+			node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
 		}
 	}
 

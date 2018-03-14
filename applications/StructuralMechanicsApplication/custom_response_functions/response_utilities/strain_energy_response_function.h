@@ -28,12 +28,12 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "response_function.h"
 
@@ -66,7 +66,7 @@ namespace Kratos
 
  */
 
-class StrainEnergyResponseFunction : ResponseFunction
+class StrainEnergyResponseFunction : public ResponseFunction
 {
 public:
 	///@name Type Definitions
@@ -199,7 +199,7 @@ public:
 		// First gradients are initialized
 		array_3d zeros_array(3, 0.0);
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) = zeros_array;
+			noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = zeros_array;
 
 		// Gradient calculation separated in analytic and semi-analytic approaches
 		// In each approach, three following steps are performed:
@@ -255,7 +255,7 @@ public:
 
 		// Fill dictionary with gradient information
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT);
+			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY);
 
 		return dFdX;
 
@@ -330,39 +330,39 @@ protected:
 	{
 		KRATOS_TRY;
 
-		// Working variables
-		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
+		// // Working variables
+		// ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 
-		// Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
-		for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
-		{
-			Vector u;
-			Vector lambda;
+		// // Computation of: \frac{1}{2} u^T \cdot ( - \frac{\partial K}{\partial x} )
+		// for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
+		// {
+		// 	Vector u;
+		// 	Vector lambda;
 
-			// Get state solution
-			elem_i->GetValuesVector(u,0);
+		// 	// Get state solution
+		// 	elem_i->GetValuesVector(u,0);
 
-			// Get adjoint variables (Corresponds to 1/2*u)
-			lambda = 0.5*u;
+		// 	// Get adjoint variables (Corresponds to 1/2*u)
+		// 	lambda = 0.5*u;
 
-			// Analytic computation of partial derivative of state equation w.r.t. node coordinates
-			for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
-			{
-				array_3d gradient_contribution(3, 0.0);
-				int node_index = node_i - elem_i->GetGeometry().begin();
+		// 	// Analytic computation of partial derivative of state equation w.r.t. node coordinates
+		// 	for (ModelPart::NodeIterator node_i = elem_i->GetGeometry().begin(); node_i != elem_i->GetGeometry().end(); ++node_i)
+		// 	{
+		// 		array_3d gradient_contribution(3, 0.0);
+		// 		int node_index = node_i - elem_i->GetGeometry().begin();
 
-				// Specify node for which DKDXU (including DKDXU_X,DKDXU_Y,DKDXU_Z) shall be computed
-				elem_i->SetValue(ACTIVE_NODE_INDEX, node_index);
-				elem_i->Calculate(DKDXU, u, CurrentProcessInfo);
+		// 		// Specify node for which DKDXU (including DKDXU_X,DKDXU_Y,DKDXU_Z) shall be computed
+		// 		elem_i->SetValue(ACTIVE_NODE_INDEX, node_index);
+		// 		elem_i->Calculate(DKDXU, u, CurrentProcessInfo);
 
-				gradient_contribution[0] = -inner_prod(lambda, elem_i->GetValue(DKDXU_X));
-				gradient_contribution[1] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Y));
-				gradient_contribution[2] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Z));
+		// 		gradient_contribution[0] = -inner_prod(lambda, elem_i->GetValue(DKDXU_X));
+		// 		gradient_contribution[1] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Y));
+		// 		gradient_contribution[2] = -inner_prod(lambda, elem_i->GetValue(DKDXU_Z));
 
-				// Assemble gradient to node
-				noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
-			}
-		}
+		// 		// Assemble gradient to node
+		// 		noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
+		// 	}
+		// }
 
 		KRATOS_CATCH("");
 	}
@@ -420,7 +420,7 @@ protected:
 				node_i->Z0() -= mDelta;
 
 				// Assemble sensitivity to node
-				noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
+				noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
 			}
 		}
 
@@ -479,7 +479,7 @@ protected:
 					node_i->Z0() -= mDelta;
 
 					// Assemble shape gradient to node
-					noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
+					noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
 				}
 			}
 		}
@@ -548,7 +548,7 @@ protected:
 					node_i->Z0() -= mDelta;
 
 					// Assemble shape gradient to node
-					noalias(node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT)) += gradient_contribution;
+					noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
 				}
 			}
 		}
@@ -580,7 +580,7 @@ protected:
 					scaling_factor += element_geometry.Volume();
 			}
 
-			node_i->FastGetSolutionStepValue(STRAIN_ENERGY_SHAPE_GRADIENT) /= scaling_factor;
+			node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
 		}
 	}
 

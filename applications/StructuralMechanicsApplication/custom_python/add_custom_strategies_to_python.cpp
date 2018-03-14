@@ -175,7 +175,7 @@ void  AddCustomStrategiesToPython()
             "ExplicitCentralDifferencesScheme", init< const double, const double, const double>() );
 
     class_<AdjointStructuralScheme<SparseSpaceType, LocalSpaceType>, bases<BaseSchemeType>, boost::noncopyable>(
-            "AdjointStructuralScheme", init<Parameters&, StructuralResponseFunction::Pointer>())
+            "AdjointStructuralScheme", init<Parameters&, AdjointStructuralResponseFunction::Pointer>())
             ;
 
 

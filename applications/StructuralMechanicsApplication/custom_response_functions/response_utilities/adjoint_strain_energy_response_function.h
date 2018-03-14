@@ -9,8 +9,8 @@
 //
 // ==============================================================================
 
-#ifndef STRAIN_ENERGY_RESPONSE_FUNCTION_H
-#define STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#define ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -28,12 +28,12 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "adjoint_structural_response_function.h"
 
 
@@ -72,27 +72,27 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class StrainEnergyResponseFunction : public StructuralResponseFunction
+class AdjointStrainEnergyResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
 	///@name Type Definitions
 	///@{
 
-	typedef StructuralResponseFunction BaseType;
+	typedef AdjointStructuralResponseFunction BaseType;
 	typedef array_1d<double, 3> array_3d;
 
 
 
-	/// Pointer definition of StrainEnergyResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(StrainEnergyResponseFunction);
+	/// Pointer definition of AdjointStrainEnergyResponseFunction
+	KRATOS_CLASS_POINTER_DEFINITION(AdjointStrainEnergyResponseFunction);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	StrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
-	: StructuralResponseFunction(model_part, responseSettings)
+	AdjointStrainEnergyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
+	: AdjointStructuralResponseFunction(model_part, responseSettings)
 	{
 
 		// Initialize member variables to NULL
@@ -101,7 +101,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~StrainEnergyResponseFunction()
+	virtual ~AdjointStrainEnergyResponseFunction()
 	{
 	}
 
@@ -226,13 +226,13 @@ public:
 	/// Turn back information as a string.
 	virtual std::string Info() const
 	{
-		return "StrainEnergyResponseFunction";
+		return "AdjointStrainEnergyResponseFunction";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const
 	{
-		rOStream << "StrainEnergyResponseFunction";
+		rOStream << "AdjointStrainEnergyResponseFunction";
 	}
 
 	/// Print object's data.
@@ -406,14 +406,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      StrainEnergyResponseFunction& operator=(StrainEnergyResponseFunction const& rOther);
+	//      AdjointStrainEnergyResponseFunction& operator=(AdjointStrainEnergyResponseFunction const& rOther);
 
 	/// Copy constructor.
-	//      StrainEnergyResponseFunction(StrainEnergyResponseFunction const& rOther);
+	//      AdjointStrainEnergyResponseFunction(AdjointStrainEnergyResponseFunction const& rOther);
 
 	///@}
 
-}; // Class StrainEnergyResponseFunction
+}; // Class AdjointStrainEnergyResponseFunction
 
 ///@}
 
@@ -428,4 +428,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // STRAIN_ENERGY_RESPONSE_FUNCTION_H
+#endif // ADJOINT_STRAIN_ENERGY_RESPONSE_FUNCTION_H

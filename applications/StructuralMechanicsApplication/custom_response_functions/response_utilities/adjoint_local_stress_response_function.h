@@ -9,8 +9,8 @@
 //	TODO: Check that this response function  works in a correct way for all conditions
 // ==============================================================================
 
-#ifndef LOCAL_STRESS_RESPONSE_FUNCTION_H
-#define LOCAL_STRESS_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
+#define ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -28,12 +28,12 @@
 // ------------------------------------------------------------------------------
 // Project includes
 // ------------------------------------------------------------------------------
-#include "../../kratos/includes/define.h"
-#include "../../kratos/processes/process.h"
-#include "../../kratos/includes/node.h"
-#include "../../kratos/includes/element.h"
-#include "../../kratos/includes/model_part.h"
-#include "../../kratos/includes/kratos_flags.h"
+#include "includes/define.h"
+#include "processes/process.h"
+#include "includes/node.h"
+#include "includes/element.h"
+#include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "adjoint_structural_response_function.h"
 
 
@@ -74,19 +74,19 @@ namespace Kratos
 
 //template<class TDenseSpace>
 
-class LocalStressResponseFunction : public StructuralResponseFunction
+class AdjointLocalStressResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
 	///@name Type Definitions
 	///@{
 
-	typedef StructuralResponseFunction BaseType;
+	typedef AdjointStructuralResponseFunction BaseType;
 	typedef array_1d<double, 3> array_3d;
 
 
 
-	/// Pointer definition of LocalStressResponseFunction
-	KRATOS_CLASS_POINTER_DEFINITION(LocalStressResponseFunction);
+	/// Pointer definition of AdjointLocalStressResponseFunction
+	KRATOS_CLASS_POINTER_DEFINITION(AdjointLocalStressResponseFunction);
 
 	///@}
 	///@name Life Cycle
@@ -94,8 +94,8 @@ public:
 
 	/// Default constructor.
 
-	LocalStressResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
-	: StructuralResponseFunction(rModelPart, rParameters)
+	AdjointLocalStressResponseFunction(ModelPart& rModelPart, Parameters& rParameters)
+	: AdjointStructuralResponseFunction(rModelPart, rParameters)
 	{
 		ModelPart& r_model_part = this->GetModelPart();
 
@@ -127,7 +127,7 @@ public:
 	}
 
 	/// Destructor.
-	virtual ~LocalStressResponseFunction()
+	virtual ~AdjointLocalStressResponseFunction()
 	{
 	}
 
@@ -241,13 +241,13 @@ public:
 	/// Turn back information as a string.
 	/*virtual std::string Info() const            old function, don't needed for sensitivity analysis
 	{
-		return "LocalStressResponseFunction";
+		return "AdjointLocalStressResponseFunction";
 	}
 
 	/// Print information about this object.
 	virtual void PrintInfo(std::ostream &rOStream) const    old function, don't needed for sensitivity analysis
 	{
-		rOStream << "LocalStressResponseFunction";
+		rOStream << "AdjointLocalStressResponseFunction";
 	}
 
 	/// Print object's data.
@@ -573,14 +573,14 @@ private:
 	///@{
 
 	/// Assignment operator.
-	//      LocalStressResponseFunction& operator=(SLocalStressResponseFunction const& rOther);
+	//      AdjointLocalStressResponseFunction& operator=(SAdjointLocalStressResponseFunction const& rOther);
 
 	/// Copy constructor.
-	//      LocalStressResponseFunction(LocalStressResponseFunction const& rOther);
+	//      AdjointLocalStressResponseFunction(AdjointLocalStressResponseFunction const& rOther);
 
 	///@}
 
-}; // Class LocalStressResponseFunction
+}; // Class AdjointLocalStressResponseFunction
 
 ///@}
 
@@ -595,4 +595,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // LOCAL_STRESS_RESPONSE_FUNCTION_H
+#endif // ADJOINT_LOCAL_STRESS_RESPONSE_FUNCTION_H
