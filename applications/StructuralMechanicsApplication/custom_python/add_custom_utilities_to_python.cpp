@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
