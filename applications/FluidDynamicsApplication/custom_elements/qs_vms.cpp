@@ -143,7 +143,7 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
         {
             data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
-            this->SubscaleVelocity(data, rCurrentProcessInfo, rValues[g]);
+            this->SubscaleVelocity(data, rValues[g]);
         }
     }
     else {
@@ -175,7 +175,7 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
         {
             data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
-            this->SubscalePressure(data,rCurrentProcessInfo,rValues[g]);
+            this->SubscalePressure(data,rValues[g]);
         }
 
     }
@@ -234,8 +234,8 @@ void QSVMS<TElementData>::PrintInfo(std::ostream& rOStream) const
 
 template< class TElementData >
 void QSVMS<TElementData>::ASGSMomentumResidual(
-    TElementData& rData,
-    array_1d<double,3> &rMomentumRes)
+    const TElementData& rData,
+    array_1d<double,3> &rMomentumRes) const
 {
     const GeometryType rGeom = this->GetGeometry();
 
@@ -265,8 +265,8 @@ void QSVMS<TElementData>::ASGSMomentumResidual(
 
 template< class TElementData >
 void QSVMS<TElementData>::ASGSMassResidual(
-    TElementData& rData,
-    double &rMomentumRes)
+    const TElementData& rData,
+    double &rMomentumRes) const
 {
     this->MassProjTerm(rData,rMomentumRes);
 }
@@ -274,8 +274,8 @@ void QSVMS<TElementData>::ASGSMassResidual(
 
 template< class TElementData >
 void QSVMS<TElementData>::OSSMomentumResidual(
-    TElementData& rData,
-    array_1d<double,3> &rMomentumRes)
+    const TElementData& rData,
+    array_1d<double,3> &rMomentumRes) const
 {
     this->MomentumProjTerm(rData,rMomentumRes);
 
@@ -287,8 +287,8 @@ void QSVMS<TElementData>::OSSMomentumResidual(
 
 template< class TElementData >
 void QSVMS<TElementData>::OSSMassResidual(
-    TElementData& rData,
-    double &rMassRes)
+    const TElementData& rData,
+    double &rMassRes) const
 {
     this->MassProjTerm(rData,rMassRes);
     double mass_projection = this->GetAtCoordinate(rData.MassProjection,rData.N);
@@ -726,9 +726,8 @@ void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProces
 
 template< class TElementData >
 void QSVMS<TElementData>::SubscaleVelocity(
-    TElementData& rData,
-    const ProcessInfo &rProcessInfo,
-    array_1d<double,3> &rVelocitySubscale)
+    const TElementData& rData,
+    array_1d<double,3> &rVelocitySubscale) const
 {
     double tau_one;
     double tau_two;
@@ -747,9 +746,8 @@ void QSVMS<TElementData>::SubscaleVelocity(
 
 template< class TElementData >
 void QSVMS<TElementData>::SubscalePressure(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        double &rPressureSubscale)
+        const TElementData& rData,
+        double &rPressureSubscale) const
 {
     double tau_one;
     double tau_two;
@@ -760,7 +758,7 @@ void QSVMS<TElementData>::SubscalePressure(
 
     double Residual = 0.0;
 
-    if (rProcessInfo[OSS_SWITCH] != 1.0)
+    if (rData.UseOSS != 1.0)
         this->ASGSMassResidual(rData,Residual);
     else
         this->OSSMassResidual(rData,Residual);

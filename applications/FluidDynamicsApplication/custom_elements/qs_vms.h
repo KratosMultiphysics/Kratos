@@ -337,31 +337,29 @@ protected:
 
 
     virtual void SubscaleVelocity(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        array_1d<double,3>& rVelocitySubscale);
+        const TElementData& rData,
+        array_1d<double,3>& rVelocitySubscale) const;
 
     virtual void SubscalePressure(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        double &rPressureSubscale);
+        const TElementData& rData,
+        double &rPressureSubscale) const;
 
     virtual void ASGSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
+        const TElementData& rData,
+        array_1d<double,3>& rMomentumRes) const;
 
 
     virtual void ASGSMassResidual(
-        TElementData& rData,
-        double& rMomentumRes);
+        const TElementData& rData,
+        double& rMomentumRes) const;
 
     virtual void OSSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
+        const TElementData& rData,
+        array_1d<double,3>& rMomentumRes) const;
 
     virtual void OSSMassResidual(
-        TElementData& rData,
-        double& rMassRes);
+        const TElementData& rData,
+        double& rMassRes) const;
 
     ///@}
     ///@name Protected  Access
