@@ -108,20 +108,6 @@ double& LinearJ2Plasticity3D::GetValue(
 //************************************************************************************
 
 void LinearJ2Plasticity3D::SetValue(
-    const Variable<bool>& rThisVariable,
-    const bool& rValue,
-    const ProcessInfo& rCurrentProcessInfo
-    )
-{
-    if(rThisVariable == INELASTIC_FLAG){
-        mInelasticFlag = rValue;
-    }
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2Plasticity3D::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo
