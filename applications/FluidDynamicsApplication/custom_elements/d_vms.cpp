@@ -423,7 +423,56 @@ void DVMS<TElementData>::AddViscousTerm(
 template< class TElementData >
 void DVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcessInfo)
 {
+    // Get Shape function data
+    Vector GaussWeights;
+    Matrix ShapeFunctions;
+    ShapeFunctionDerivativesArrayType ShapeDerivatives;
+    this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
+    const unsigned int NumGauss = GaussWeights.size();
 
+    VectorType MomentumRHS = ZeroVector(NumNodes * Dim);
+    VectorType MassRHS = ZeroVector(NumNodes);
+    VectorType NodalArea = ZeroVector(NumNodes);
+
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
+
+    for (unsigned int g = 0; g < NumGauss; g++)
+    {
+        data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+
+        array_1d<double, 3> MomentumRes(3, 0.0);
+        double MassRes = 0.0;
+
+        array_1d<double, 3> convection_velocity = this->FullConvectiveVelocity(data);
+
+        this->MomentumProjTerm(data, convection_velocity, MomentumRes);
+        this->MassProjTerm(data, MassRes);
+
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            double W = data.Weight*data.N[i];
+            unsigned int Row = i*Dim;
+            for (unsigned int d = 0; d < Dim; d++)
+                MomentumRHS[Row+d] += W*MomentumRes[d];
+            NodalArea[i] += W;
+            MassRHS[i] += W*MassRes;
+        }
+    }
+
+    // Add carefully to nodal variables to avoid OpenMP race condition
+    GeometryType& r_geometry = this->GetGeometry();
+    unsigned int Row = 0;
+    for (SizeType i = 0; i < NumNodes; ++i)
+    {
+        r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
+        array_1d<double,3>& rMomValue = rGeom[i].FastGetSolutionStepValue(ADVPROJ);
+        for (unsigned int d = 0; d < Dim; ++d)
+            rMomValue[d] += MomentumRHS[Row++];
+        r_geometry[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
+        r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
+        r_geometry[i].UnSetLock(); // Free the node for other threads
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
