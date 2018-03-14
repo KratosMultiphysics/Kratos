@@ -90,13 +90,13 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
             NodeVector neighbor_nodes( max_number_of_neighbors );
             DoubleVector resulting_squared_distances( max_number_of_neighbors );
 
-            number_of_neighbors = search_tree->SearchInRadius( node_i,
+/*             number_of_neighbors = search_tree->SearchInRadius( node_i,
                                                         neighbor_search_radius,
                                                         neighbor_nodes.begin(),
                                                         resulting_squared_distances.begin(),
-                                                        max_number_of_neighbors );
+                                                        max_number_of_neighbors ); */
 
-/*             while (number_of_neighbors<1)
+            while (number_of_neighbors<1)
             {            
                 neighbor_nodes.clear();
                 resulting_squared_distances.clear();
@@ -108,9 +108,11 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                                                                         max_number_of_neighbors );
                 
                 (neighbor_search_radius>1000.0)?number_of_neighbors=1:neighbor_search_radius*=2.0;
-            } */
+            }
 
-            
+
+
+            if(m_parameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << std::endl;
             DoubleVector list_of_weights( number_of_neighbors, 0.0 );
 
             this->CalculateNodalWeights(resulting_squared_distances,list_of_weights,number_of_neighbors);
