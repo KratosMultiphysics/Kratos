@@ -26,6 +26,7 @@ class ResponseFunctionBase(object):
 class AdjointResponseFunction(ResponseFunctionBase):
     def __init__(self, identifier, project_parameters, model_part = None):
         # TODO use **kwargs for optional model_part, primal_analysis, adjoint_analysis
+        # TODO remember the name of the hdf5 file written
         super(AdjointResponseFunction, self).__init__(identifier, project_parameters)
 
         # Create the primal solver
