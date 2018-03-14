@@ -45,79 +45,93 @@ namespace Python
 void  AddProcessesToPython(pybind11::module& m)
 {
 
-// 	   class_<SetHMapProcess, SetHMapProcess::Pointer, Process >(m, "SetHMapProcess",init<ModelPart&>())
-// 		   .def("CalculateOptimalH",&SetHMapProcess::CalculateOptimalH)
+// 	   class_<SetHMapProcess, SetHMapProcess::Pointer, Process >(m, "SetHMapProcess")
+//     .def(init<ModelPart&>())
+//     .def("CalculateOptimalH",&SetHMapProcess::CalculateOptimalH)
 // 		 ;
-// 	  class_<EmbeddedMeshLocatorProcess, EmbeddedMeshLocatorProcess::Pointer, Process >(m, "EmbeddedMeshLocatorProcess",init<ModelPart&>())
-// 		   .def("Locate",&EmbeddedMeshLocatorProcess::Locate)
+// 	  class_<EmbeddedMeshLocatorProcess, EmbeddedMeshLocatorProcess::Pointer, Process >(m, "EmbeddedMeshLocatorProcess")
+//     .def(init<ModelPart&>())
+//     .def("Locate",&EmbeddedMeshLocatorProcess::Locate)
 // 		 ;
 //         // The process to interpolate nodal values
-//         class_<NodalValuesInterpolationProcess<2>, NodalValuesInterpolationProcess<2>::Pointer, Process >(m, "NodalValuesInterpolationProcess2D",init<ModelPart&, ModelPart&>())
+//         class_<NodalValuesInterpolationProcess<2>, NodalValuesInterpolationProcess<2>::Pointer, Process >(m, "NodalValuesInterpolationProcess2D")
+//         .def(init<ModelPart&, ModelPart&>())
 //         .def(init<ModelPart&, ModelPart&, Parameters>())
 //         .def("Execute",&NodalValuesInterpolationProcess<2>::Execute)
 //         ;
-//         
-//         class_<NodalValuesInterpolationProcess<3>, NodalValuesInterpolationProcess<3>::Pointer, Process >(m, "NodalValuesInterpolationProcess3D",init<ModelPart&, ModelPart&>())
+//         class_<NodalValuesInterpolationProcess<3>, NodalValuesInterpolationProcess<3>::Pointer, Process >(m, "NodalValuesInterpolationProcess3D")
+//         .def(init<ModelPart&, ModelPart&>())
 //         .def(init<ModelPart&, ModelPart&, Parameters>())
 //         .def("Execute",&NodalValuesInterpolationProcess<3>::Execute)
 //         ;
     
         // The process to interpolate internal variables 
-        class_<InternalVariablesInterpolationProcess, InternalVariablesInterpolationProcess::Pointer, Process >(m, "InternalVariablesInterpolationProcess",init<ModelPart&, ModelPart&>())
+        class_<InternalVariablesInterpolationProcess, InternalVariablesInterpolationProcess::Pointer, Process >(m, "InternalVariablesInterpolationProcess")
+        .def(init<ModelPart&, ModelPart&>())
         .def(init<ModelPart&, ModelPart&, Parameters>())
         .def("Execute",&InternalVariablesInterpolationProcess::Execute)
         ;
         
         /* METRICS PROCESSES */
         // Fast metric initializer
-        class_<MetricFastInit<2>, MetricFastInit<2>::Pointer, Process >(m, "MetricFastInit2D", init<ModelPart&>())
+        class_<MetricFastInit<2>, MetricFastInit<2>::Pointer, Process >(m, "MetricFastInit2D")
+        .def(init<ModelPart&>())
         .def("Execute",&MetricFastInit<2>::Execute)
         ;
         
-        class_<MetricFastInit<3>, MetricFastInit<3>::Pointer, Process >(m, "MetricFastInit3D", init<ModelPart&>())
+        class_<MetricFastInit<3>, MetricFastInit<3>::Pointer, Process >(m, "MetricFastInit3D")
+        .def(init<ModelPart&>())
         .def("Execute",&MetricFastInit<3>::Execute)
         ;
         
         // LEVEL SET
-        class_<ComputeLevelSetSolMetricProcess<2>, ComputeLevelSetSolMetricProcess<2>::Pointer, Process >(m, "ComputeLevelSetSolMetricProcess2D", init<ModelPart&, const Variable<array_1d<double,3>>>())
+        class_<ComputeLevelSetSolMetricProcess<2>, ComputeLevelSetSolMetricProcess<2>::Pointer, Process >(m, "ComputeLevelSetSolMetricProcess2D")
+        .def(init<ModelPart&, const Variable<array_1d<double,3>>>())
         .def(init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
         .def("Execute",&ComputeLevelSetSolMetricProcess<2>::Execute)
         ;
         
-        class_<ComputeLevelSetSolMetricProcess<3>, ComputeLevelSetSolMetricProcess<3>::Pointer, Process >(m, "ComputeLevelSetSolMetricProcess3D", init<ModelPart&, const Variable<array_1d<double,3>>>())
+        class_<ComputeLevelSetSolMetricProcess<3>, ComputeLevelSetSolMetricProcess<3>::Pointer, Process >(m, "ComputeLevelSetSolMetricProcess3D")
+        .def(init<ModelPart&, const Variable<array_1d<double,3>>>())
         .def(init<ModelPart&, const Variable<array_1d<double,3>>, Parameters>())
         .def("Execute",&ComputeLevelSetSolMetricProcess<3>::Execute)
         ;
         
         // HESSIAN DOUBLE
-        class_<ComputeHessianSolMetricProcess<2, Variable<double>>, ComputeHessianSolMetricProcess<2, Variable<double>>::Pointer, Process >(m, "ComputeHessianSolMetricProcess2D", init<ModelPart&, Variable<double>&>())
+        class_<ComputeHessianSolMetricProcess<2, Variable<double>>, ComputeHessianSolMetricProcess<2, Variable<double>>::Pointer, Process >(m, "ComputeHessianSolMetricProcess2D")
+        .def(init<ModelPart&, Variable<double>&>())
         .def(init<ModelPart&, Variable<double>&, Parameters>())
         .def("Execute",&ComputeHessianSolMetricProcess<2, Variable<double>>::Execute)
         ;
    
-        class_<ComputeHessianSolMetricProcess<3, Variable<double>>, ComputeHessianSolMetricProcess<3, Variable<double>>::Pointer, Process >(m, "ComputeHessianSolMetricProcess3D", init<ModelPart&, Variable<double>&>())
+        class_<ComputeHessianSolMetricProcess<3, Variable<double>>, ComputeHessianSolMetricProcess<3, Variable<double>>::Pointer, Process >(m, "ComputeHessianSolMetricProcess3D")
+        .def(init<ModelPart&, Variable<double>&>())
         .def(init<ModelPart&, Variable<double>&, Parameters>())
         .def("Execute",&ComputeHessianSolMetricProcess<3, Variable<double>>::Execute)
         ;
         
         // HESSIAN ARRAY 1D
-        class_<ComputeHessianSolMetricProcess<2, ComponentType>, ComputeHessianSolMetricProcess<2, ComponentType>::Pointer, Process >(m, "ComputeHessianSolMetricProcessComp2D", init<ModelPart&, ComponentType&>())
+        class_<ComputeHessianSolMetricProcess<2, ComponentType>, ComputeHessianSolMetricProcess<2, ComponentType>::Pointer, Process >(m, "ComputeHessianSolMetricProcessComp2D")
+        .def(init<ModelPart&, ComponentType&>())
         .def(init<ModelPart&, ComponentType&, Parameters>())
         .def("Execute",&ComputeHessianSolMetricProcess<2, ComponentType>::Execute)
         ;
         
-        class_<ComputeHessianSolMetricProcess<3, ComponentType>, ComputeHessianSolMetricProcess<3, ComponentType>::Pointer, Process >(m, "ComputeHessianSolMetricProcessComp3D", init<ModelPart&, ComponentType&>())
+        class_<ComputeHessianSolMetricProcess<3, ComponentType>, ComputeHessianSolMetricProcess<3, ComponentType>::Pointer, Process >(m, "ComputeHessianSolMetricProcessComp3D")
+        .def(init<ModelPart&, ComponentType&>())
         .def(init<ModelPart&, ComponentType&, Parameters>())
         .def("Execute",&ComputeHessianSolMetricProcess<3, ComponentType>::Execute)
         ;
         
         // ERROR
-        class_<ComputeErrorSolMetricProcess<2>, ComputeErrorSolMetricProcess<2>::Pointer, Process >(m, "ComputeErrorSolMetricProcess2D", init<ModelPart&>())
+        class_<ComputeErrorSolMetricProcess<2>, ComputeErrorSolMetricProcess<2>::Pointer, Process >(m, "ComputeErrorSolMetricProcess2D")
+        .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         .def("Execute",&ComputeErrorSolMetricProcess<2>::Execute)
         ;
    
-        class_<ComputeErrorSolMetricProcess<3>, ComputeErrorSolMetricProcess<3>::Pointer, Process >(m, "ComputeErrorSolMetricProcess3D", init<ModelPart&>())
+        class_<ComputeErrorSolMetricProcess<3>, ComputeErrorSolMetricProcess<3>::Pointer, Process >(m, "ComputeErrorSolMetricProcess3D")
+        .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         .def("Execute",&ComputeErrorSolMetricProcess<3>::Execute)
         ;
@@ -125,15 +139,15 @@ void  AddProcessesToPython(pybind11::module& m)
         /* MMG PROCESS */
     #ifdef INCLUDE_MMG
         // 2D
-        class_<MmgProcess<2>, MmgProcess<2>::Pointer, Process >
-        (m, "MmgProcess2D", init<ModelPart&>())
+        class_<MmgProcess<2>, MmgProcess<2>::Pointer, Process >(m, "MmgProcess2D")
+        .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         .def("Execute", &MmgProcess<2>::Execute)
         ;
         
         // 3D
-        class_<MmgProcess<3>, MmgProcess<3>::Pointer, Process >
-        (m, "MmgProcess3D", init<ModelPart&>())
+        class_<MmgProcess<3>, MmgProcess<3>::Pointer, Process >(m, "MmgProcess3D")
+        .def(init<ModelPart&>())
         .def(init<ModelPart&, Parameters>())
         .def("Execute", &MmgProcess<3>::Execute)
         ;
