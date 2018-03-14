@@ -43,7 +43,8 @@ class ALMContactProcess(python_process.PythonProcess):
             "type_search"                 : "InRadius",
             "check_gap"                   : "CheckMapping",
             "database_step_update"        : 1,
-            "integration_order"           : 3,
+            "integration_order"           : 2,
+            "adapt_penalty"               : false,
             "max_gap_factor"              : 1.0e-3,
             "debug_mode"                  : false,
             "remeshing_with_contact_bc"   : false
