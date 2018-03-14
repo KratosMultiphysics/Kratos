@@ -51,7 +51,7 @@ int FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::Check(
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::UpdateGeometryValues(double NewWeight,
     const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
-    const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX)
+    const ShapeDerivativesType& rDN_DX)
 {
     this->Weight = NewWeight;
     noalias(this->N) = rN;
