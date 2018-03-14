@@ -7,7 +7,7 @@
         "time_step"       : 0.01,
         "start_time"      : 0.01,
         "end_time"        : 0.02,
-        "echo_level"      : 3
+        "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
@@ -56,7 +56,7 @@
         "Parameters"    : {
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",  
+            "variable_name"   : "DISPLACEMENT",
             "constrained"     : [false,false,true],
             "value"           : [0.0,0.0,0.0]
         }
@@ -91,9 +91,9 @@
     ],
     "loads_process_list" : [],
     "list_other_processes" : [{
-        "python_module"  :"sprism_process", 
-        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication", 
-        "help"                 : "", 
+        "python_module"  :"sprism_process",
+        "kratos_module":"KratosMultiphysics.StructuralMechanicsApplication",
+        "help"                 : "",
         "process_name"         : "SPRISMProcess",
         "Parameters":{
             "model_part_name"  : "Parts_Parts_Auto1"

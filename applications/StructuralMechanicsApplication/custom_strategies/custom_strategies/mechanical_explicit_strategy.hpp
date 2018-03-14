@@ -135,12 +135,14 @@ public:
   // 3 -> Print of debug informations:
   //    Echo of stiffness matrix, Dx, b...
 
-  void SetEchoLevel(int Level) { this->BaseType::mEchoLevel = Level; }
+  void SetEchoLevel(int Level) override { 
+      this->BaseType::mEchoLevel = Level; 
+  }
 
   //**********************************************************************
   //**********************************************************************
 
-  void Initialize() {
+  void Initialize() override {
     KRATOS_TRY
     // pointers needed in the solution
     typename TSchemeType::Pointer pScheme = GetScheme();
@@ -188,7 +190,7 @@ public:
   //**********************************************************************
   //**********************************************************************
 
-  void InitializeSolutionStep() {
+  void InitializeSolutionStep() override {
     KRATOS_TRY
     typename TSchemeType::Pointer pScheme = GetScheme();
     ModelPart &r_model_part = BaseType::GetModelPart();
@@ -319,7 +321,7 @@ public:
   //**********************************************************************
   //**********************************************************************
 
-  void Clear() {
+  void Clear() override {
     KRATOS_TRY
     std::cout << "Explicit strategy Clear function used" << std::endl;
 
@@ -438,7 +440,7 @@ protected:
    * It is designed to be called ONCE to verify that the input is correct.
    */
 
-  int Check() {
+  int Check() override {
     KRATOS_TRY
 
     BaseType::Check();

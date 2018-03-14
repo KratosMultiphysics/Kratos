@@ -64,7 +64,6 @@ class KratosGlobals:
         self -- It signifies an instance of a class.
         VarName -- The name of the variable to check
         """
-
         kernel = self.Kernel
 
         if kernel.HasDoubleVariable(VarName):
@@ -123,5 +122,29 @@ class KratosGlobals:
             return "Flag"
         else:
             return "NONE"
+
+    def GetConstitutiveLaw(self, ConstitutiveLawName):
+        """ This method returns the constitutive law with the given name
+        It throws an error if the ConstitutiveLawName does not exist/is not
+        registered in KratosComponenets. In this case it prints the names
+        of the registeres constitutive laws
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ConstitutiveLawName -- The name of the constitutive law to return
+        """
+        return self.Kernel.GetConstitutiveLaw(ConstitutiveLawName)
+
+    def HasConstitutiveLaw(self, ConstitutiveLawName):
+        """ This method checks if a constitutive law exists
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        ConstitutiveLawName -- The name of the constitutive law to check
+        """
+        if self.Kernel.HasConstitutiveLaw(ConstitutiveLawName):
+            return True
+        else:
+            return False
 
 
