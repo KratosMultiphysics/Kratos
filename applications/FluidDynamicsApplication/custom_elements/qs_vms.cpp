@@ -141,7 +141,7 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
-            data.UpdateGeometryValues(GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+            data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
             this->SubscaleVelocity(data, rCurrentProcessInfo, rValues[g]);
         }
@@ -173,7 +173,7 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
-            data.UpdateGeometryValues(GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+            data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
             this->SubscalePressure(data,rCurrentProcessInfo,rValues[g]);
         }
@@ -691,7 +691,7 @@ void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProces
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {
-        data.UpdateGeometryValues(GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+        data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
 
         array_1d<double, 3> MomentumRes(3, 0.0);
         double MassRes = 0.0;

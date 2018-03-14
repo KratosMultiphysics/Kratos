@@ -104,11 +104,12 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
 }
 
 void UpdateGeometryValues(
+    const unsigned int IntegrationPointIndex,
     double NewWeight,
     const boost::numeric::ublas::matrix_row<Kratos::Matrix> rN,
     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rDN_DX) override
 {
-    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(NewWeight,rN,rDN_DX);
+    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex,NewWeight,rN,rDN_DX);
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
 }
 

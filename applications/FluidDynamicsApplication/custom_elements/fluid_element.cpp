@@ -124,7 +124,7 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
 
-            data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
             this->CalculateMaterialResponse(data);
@@ -159,7 +159,7 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
             this->CalculateMaterialResponse(data);
@@ -192,7 +192,7 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
             this->CalculateMaterialResponse(data);
@@ -232,7 +232,7 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             const auto& r_dndx = shape_derivatives[g];
             data.UpdateGeometryValues(
-                gauss_weights[g], row(shape_functions, g), r_dndx);
+                g, gauss_weights[g], row(shape_functions, g), r_dndx);
             
             this->CalculateMaterialResponse(data);
 
@@ -265,7 +265,7 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(gauss_weights[g], row(shape_functions, g),
+            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
                 shape_derivatives[g]);
 
             this->CalculateMaterialResponse(data);
