@@ -104,8 +104,5 @@
     "constraints_data"         : {
         "incremental_load"         : false,
         "incremental_displacement" : false
-    },
-    "material_import_settings" : {
-        "materials_filename" : "StructuralMaterials.json"
     }
 }
