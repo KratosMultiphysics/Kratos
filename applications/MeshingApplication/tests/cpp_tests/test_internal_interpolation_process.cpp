@@ -35,6 +35,7 @@ namespace Kratos
     namespace Testing 
     {
         typedef Node<3> NodeType;
+        typedef Geometry<NodeType> GeometryType;
         
         void GiDIODebugInternalInterpolation(ModelPart& ThisModelPart, const std::string name = "")
         {
@@ -65,8 +66,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto this_law = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2D");
-            auto p_this_law = this_law.Clone();
+            auto p_this_law = Kratos::make_shared<LinearJ2PlasticityPlaneStrain2D>();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
             
             auto& process_info = this_model_part.GetProcessInfo();
@@ -105,12 +105,24 @@ namespace Kratos
             element_nodes_3[1] = p_node_6;
             element_nodes_3[2] = p_node_3;
             Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
+
+            // Creating pointers
+            auto p_triangle_0 = Kratos::make_shared<GeometryType> (triangle_0);
+            auto p_triangle_1 = Kratos::make_shared<GeometryType> (triangle_1);
+            auto p_triangle_2 = Kratos::make_shared<GeometryType> (triangle_2);
+            auto p_triangle_3 = Kratos::make_shared<GeometryType> (triangle_3);
             
-            Element::Pointer p_elem_0 = this_model_part.CreateNewElement("SmallDisplacementBbarElement2D3N", 1, triangle_0, p_elem_prop);
-            Element::Pointer p_elem_1 = this_model_part.CreateNewElement("SmallDisplacementBbarElement2D3N", 2, triangle_1, p_elem_prop);
-            Element::Pointer p_elem_2 = this_model_part.CreateNewElement("SmallDisplacementBbarElement2D3N", 3, triangle_2, p_elem_prop);
-            Element::Pointer p_elem_3 = this_model_part.CreateNewElement("SmallDisplacementBbarElement2D3N", 4, triangle_3, p_elem_prop);
+            Element::Pointer p_elem_0 = Kratos::make_shared<SmallDisplacementBbar>(1, p_triangle_0, p_elem_prop);;
+            Element::Pointer p_elem_1 = Kratos::make_shared<SmallDisplacementBbar>(2, p_triangle_1, p_elem_prop);
+            Element::Pointer p_elem_2 = Kratos::make_shared<SmallDisplacementBbar>(3, p_triangle_2, p_elem_prop);
+            Element::Pointer p_elem_3 = Kratos::make_shared<SmallDisplacementBbar>(4, p_triangle_3, p_elem_prop);
             
+            // Adding to the model part
+            this_model_part.AddElement(p_elem_0);
+            this_model_part.AddElement(p_elem_1);
+            this_model_part.AddElement(p_elem_2);
+            this_model_part.AddElement(p_elem_3);
+
             // Initialize Elements
             p_elem_0->Initialize();
             p_elem_1->Initialize();
@@ -185,8 +197,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto this_law = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3D");
-            auto p_this_law = this_law.Clone();
+            auto p_this_law = Kratos::make_shared<LinearJ2Plasticity3D>();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
@@ -292,20 +303,48 @@ namespace Kratos
             element_nodes_11[2] = p_node_1;
             element_nodes_11[3] = p_node_6;
             Tetrahedra3D4 <NodeType> tetrahedra_11( element_nodes_11 );
+
+            // Creating pointers
+            auto p_tetrahedra_0 = Kratos::make_shared<GeometryType> (tetrahedra_0);
+            auto p_tetrahedra_1 = Kratos::make_shared<GeometryType> (tetrahedra_1);
+            auto p_tetrahedra_2 = Kratos::make_shared<GeometryType> (tetrahedra_2);
+            auto p_tetrahedra_3 = Kratos::make_shared<GeometryType> (tetrahedra_3);
+            auto p_tetrahedra_4 = Kratos::make_shared<GeometryType> (tetrahedra_4);
+            auto p_tetrahedra_5 = Kratos::make_shared<GeometryType> (tetrahedra_5);
+            auto p_tetrahedra_6 = Kratos::make_shared<GeometryType> (tetrahedra_6);
+            auto p_tetrahedra_7 = Kratos::make_shared<GeometryType> (tetrahedra_7);
+            auto p_tetrahedra_8 = Kratos::make_shared<GeometryType> (tetrahedra_8);
+            auto p_tetrahedra_9 = Kratos::make_shared<GeometryType> (tetrahedra_9);
+            auto p_tetrahedra_10 = Kratos::make_shared<GeometryType> (tetrahedra_10);
+            auto p_tetrahedra_11 = Kratos::make_shared<GeometryType> (tetrahedra_11);
+
+            Element::Pointer p_elem_0 = Kratos::make_shared<SmallDisplacementBbar>(1, p_tetrahedra_0, p_elem_prop);
+            Element::Pointer p_elem_1 = Kratos::make_shared<SmallDisplacementBbar>(2, p_tetrahedra_1, p_elem_prop);
+            Element::Pointer p_elem_2 = Kratos::make_shared<SmallDisplacementBbar>(3, p_tetrahedra_2, p_elem_prop);
+            Element::Pointer p_elem_3 = Kratos::make_shared<SmallDisplacementBbar>(4, p_tetrahedra_3, p_elem_prop);
+            Element::Pointer p_elem_4 = Kratos::make_shared<SmallDisplacementBbar>(5, p_tetrahedra_4, p_elem_prop);
+            Element::Pointer p_elem_5 = Kratos::make_shared<SmallDisplacementBbar>(6, p_tetrahedra_5, p_elem_prop);
+            Element::Pointer p_elem_6 = Kratos::make_shared<SmallDisplacementBbar>(7, p_tetrahedra_6, p_elem_prop);
+            Element::Pointer p_elem_7 = Kratos::make_shared<SmallDisplacementBbar>(8, p_tetrahedra_7, p_elem_prop);
+            Element::Pointer p_elem_8 = Kratos::make_shared<SmallDisplacementBbar>(9, p_tetrahedra_8, p_elem_prop);
+            Element::Pointer p_elem_9 = Kratos::make_shared<SmallDisplacementBbar>(10, p_tetrahedra_9, p_elem_prop);
+            Element::Pointer p_elem_10 = Kratos::make_shared<SmallDisplacementBbar>(11, p_tetrahedra_10, p_elem_prop);
+            Element::Pointer p_elem_11 = Kratos::make_shared<SmallDisplacementBbar>(12, p_tetrahedra_11, p_elem_prop);
             
-            Element::Pointer p_elem_0 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 1, tetrahedra_0, p_elem_prop);
-            Element::Pointer p_elem_1 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 2, tetrahedra_1, p_elem_prop);
-            Element::Pointer p_elem_2 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 3, tetrahedra_2, p_elem_prop);
-            Element::Pointer p_elem_3 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 4, tetrahedra_3, p_elem_prop);
-            Element::Pointer p_elem_4 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 5, tetrahedra_4, p_elem_prop);
-            Element::Pointer p_elem_5 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 6, tetrahedra_5, p_elem_prop);
-            Element::Pointer p_elem_6 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 7, tetrahedra_6, p_elem_prop);
-            Element::Pointer p_elem_7 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 8, tetrahedra_7, p_elem_prop);
-            Element::Pointer p_elem_8 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 9, tetrahedra_8, p_elem_prop);
-            Element::Pointer p_elem_9 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 10, tetrahedra_9, p_elem_prop);
-            Element::Pointer p_elem_10 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 11, tetrahedra_10, p_elem_prop);
-            Element::Pointer p_elem_11 = this_model_part.CreateNewElement("SmallDisplacementBbarElement3D4N", 12, tetrahedra_11, p_elem_prop);
-            
+            // Adding to the model part
+            this_model_part.AddElement(p_elem_0);
+            this_model_part.AddElement(p_elem_1);
+            this_model_part.AddElement(p_elem_2);
+            this_model_part.AddElement(p_elem_3);
+            this_model_part.AddElement(p_elem_4);
+            this_model_part.AddElement(p_elem_5);
+            this_model_part.AddElement(p_elem_6);
+            this_model_part.AddElement(p_elem_7);
+            this_model_part.AddElement(p_elem_8);
+            this_model_part.AddElement(p_elem_9);
+            this_model_part.AddElement(p_elem_10);
+            this_model_part.AddElement(p_elem_11);
+
             // Initialize Elements
             p_elem_0->Initialize();
             p_elem_1->Initialize();
