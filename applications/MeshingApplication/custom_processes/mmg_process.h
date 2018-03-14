@@ -126,6 +126,9 @@ public:
     ///@name Type Definitions
     ///@{
     
+    /// Pointer definition of MmgProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
+    
     ///@}
     ///@name Life Cycle
     ///@{
