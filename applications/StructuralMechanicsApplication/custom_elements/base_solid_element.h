@@ -64,6 +64,7 @@ protected:
     {
         Vector  N;
         Matrix  B;
+        Vector Bh;
         double  detF;
         Matrix  F;
         double  detJ0;
@@ -87,6 +88,7 @@ protected:
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            Bh = ZeroVector(Dimension * NumberOfNodes);
             F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
