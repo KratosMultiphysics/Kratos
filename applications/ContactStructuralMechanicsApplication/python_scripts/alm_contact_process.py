@@ -28,7 +28,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "assume_master_slave"         : "",
             "contact_type"                : "Frictionless",
             "frictional_law"              : "Coulomb",
-            "search_factor"               : 2.0,
+            "search_factor"               : 3.5,
             "active_check_factor"         : 0.01,
             "max_number_results"          : 1000,
             "bucket_size"                 : 4,

@@ -75,12 +75,9 @@
             "assume_master_slave"         : "Parts_Parts_Auto1",
             "contact_type"                : "Frictionless",
             "search_factor"               : 1.0,
-            "max_number_results"          : 1000,
             "manual_ALM"                  : true,
             "penalty"                     : 1.0e3,
-            "scale_factor"                : 1.0e3,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 3
+            "scale_factor"                : 1.0e3
         }
     }
     ],
