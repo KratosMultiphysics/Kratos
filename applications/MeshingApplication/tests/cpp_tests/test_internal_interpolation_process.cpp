@@ -40,7 +40,7 @@ namespace Kratos
         
         void GiDIODebugInternalInterpolation(ModelPart& ThisModelPart)
         {
-            GidIO<> gid_io("TEST_MMG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
+            GidIO<> gid_io("TEST_INTERNAL_INTERPOLATION_MMG", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
             const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
             const double label = static_cast<double>(nl_iter);
 
@@ -49,7 +49,7 @@ namespace Kratos
             gid_io.FinalizeMesh();
             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
             gid_io.WriteNodalResults(NODAL_H, ThisModelPart.Nodes(), label, 0);
-//             gid_io.PrintOnGaussPoints(PLASTIC_STRAIN, ThisModelPart.Nodes(), label);
+            gid_io.PrintOnGaussPoints(PLASTIC_STRAIN, ThisModelPart, label);
         }
         
         /** 
@@ -61,11 +61,12 @@ namespace Kratos
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
+            ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            ConstitutiveLaw::Pointer this_law = Kratos::make_shared<LinearJ2PlasticityPlaneStrain2D>();
+            auto this_law = Kratos::make_shared<ConstitutiveLaw>();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, this_law);
             
             auto& process_info = this_model_part.GetProcessInfo();
@@ -126,6 +127,31 @@ namespace Kratos
                 it_node->SetValue(MMG_METRIC, ref_metric);
             }
                          
+            // Set PLASTIC_STRAIN on the GP
+            for (auto& elem : this_model_part.Elements()) {
+                auto& r_this_geometry = elem.GetGeometry();
+
+                // Getting the integration points
+                auto this_integration_method = elem.GetIntegrationMethod();
+                const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+                const std::size_t integration_points_number = integration_points.size();
+
+                // Computing the Jacobian
+                Vector vector_det_j(integration_points_number);
+                r_this_geometry.DeterminantOfJacobian(vector_det_j,this_integration_method);
+
+                // Getting the CL
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
+                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+
+                for (std::size_t i = 0; i <integration_points_number; i++) {
+                    constitutive_law_vector[i]->SetValue(PLASTIC_STRAIN, 1.0, current_process_info);
+                }
+            }
+
+            // Old model part
+//             ModelPart old_model_part = this_model_part;
+
             // Compute remesh
             Parameters params = Parameters(R"({ "echo_level" : 0 })" );
             MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
@@ -159,7 +185,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_AREA);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            ConstitutiveLaw::Pointer this_law = Kratos::make_shared<LinearJ2Plasticity3D>();
+            auto this_law = Kratos::make_shared<ConstitutiveLaw>();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, this_law);
             
             auto& process_info = this_model_part.GetProcessInfo();
