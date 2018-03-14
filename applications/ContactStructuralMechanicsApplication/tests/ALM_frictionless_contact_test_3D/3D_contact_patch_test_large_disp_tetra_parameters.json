@@ -73,11 +73,7 @@
             "model_part_name"             : "Structure",
             "contact_model_part"          : "Contact_Part",
             "assume_master_slave"         : "Parts_Parts_Auto1",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 1.0,
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e3,
-            "scale_factor"                : 1.0e3
+            "contact_type"                : "Frictionless"
         }
     }
     ],

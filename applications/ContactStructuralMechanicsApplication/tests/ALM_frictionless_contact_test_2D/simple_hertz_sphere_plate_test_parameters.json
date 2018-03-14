@@ -94,12 +94,7 @@
             "assume_master_slave"         : "Parts_parts_hemisphere",
             "contact_model_part"          : "Contact_Part",
             "contact_type"                : "Frictionless",
-            "search_factor"               : 10.0,
-            "active_check_factor"         : 4.0e-02,
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e6,
-            "scale_factor"                : 1.0e0,
-            "debug_mode"                  : false
+            "active_check_factor"         : 4.0e-02
         }
     }
     ],

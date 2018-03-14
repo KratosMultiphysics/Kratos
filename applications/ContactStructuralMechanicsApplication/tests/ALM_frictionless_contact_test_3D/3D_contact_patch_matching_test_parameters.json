@@ -147,10 +147,7 @@
             "model_part_name"             : "Structure",
             "contact_model_part"          : "Contact_Part",
             "assume_master_slave"         : "Parts_Part_punch",
-            "contact_type"                : "Frictionless",
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e-6,
-            "scale_factor"                : 1.0e0
+            "contact_type"                : "Frictionless"
         }
     }
     ],

@@ -87,15 +87,7 @@
             "contact_model_part"          : "Contact_Part",
             "contact_type"                : "Frictionless",
             "assume_master_slave"         : "Parts_Parts_Nodes1",
-            "search_factor"               : 20.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "active_check_factor"         : 5.0e-1,
-            "manual_ALM"                  : false,
-            "penalty"                     : 1.0e0,
-            "scale_factor"                : 1.0e0,
-            "debug_mode"                  : false
+            "active_check_factor"         : 5.0e-1
         }
     }
     ],

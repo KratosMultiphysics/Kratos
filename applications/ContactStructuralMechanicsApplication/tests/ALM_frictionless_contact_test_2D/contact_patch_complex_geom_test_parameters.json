@@ -91,12 +91,7 @@
             "assume_master_slave"         : "Parts_Parts_Auto1",
             "contact_model_part"          : "CONTACT_Contact_Auto1",
             "contact_type"                : "Frictionless",
-            "search_factor"               : 2.5,
-            "active_check_factor"         : 1.0e0,
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e0,
-            "scale_factor"                : 1.0e0,
-            "debug_mode"                  : false
+            "active_check_factor"         : 1.0e0
         }
     }
     ],
