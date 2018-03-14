@@ -398,17 +398,14 @@ private:
     
     void SubscaleVelocity(
         const TElementData& rData,
-        const unsigned int GaussPointIndex,
-        array_1d<double,3>& rVelocitySubscale);
+        array_1d<double,Dim>& rVelocitySubscale);
 
     void SubscalePressure(
         const TElementData& rData,
-        const unsigned int GaussPointIndex,
         double &rPressureSubscale);
 
     void UpdateSubscaleVelocityPrediction(
-        const TElementData& rData,
-        const unsigned int GaussPointIndex);
+        const TElementData& rData);
 
     void ASGSMomentumResidual(
         const TElementData& rData,
@@ -427,6 +424,9 @@ private:
     void OSSMassResidual(
         const TElementData& rData,
         double& rResidual) const;
+
+    array_1d<double,3> FullConvectiveVelocity(
+        const TElementData& rData) const;
 
     ///@}
     ///@name Private  Access

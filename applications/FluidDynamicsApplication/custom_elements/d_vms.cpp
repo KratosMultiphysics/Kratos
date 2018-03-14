@@ -137,11 +137,11 @@ void DVMS<TElementData>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
     data.Initialize(*this,rCurrentProcessInfo);
 
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        data.UpdateGeometryValues(gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
+        data.UpdateGeometryValues(g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
 
         // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
-        array_1d<double,3> UpdatedValue(3,0.0);
-        this->SubscaleVelocity(data,g,UpdatedValue);
+        array_1d<double,Dim> UpdatedValue(Dim,0.0);
+        this->SubscaleVelocity(data,UpdatedValue);
         noalias(mOldSubscaleVelocity[g]) = UpdatedValue;
     }
 }
@@ -161,9 +161,9 @@ void DVMS<TElementData>::InitializeNonLinearIteration(ProcessInfo &rCurrentProce
     data.Initialize(*this,rCurrentProcessInfo);
 
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
-        data.UpdateGeometryValues(gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
+        data.UpdateGeometryValues(g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
 
-        this->UpdateSubscaleVelocityPrediction(data,g);
+        this->UpdateSubscaleVelocityPrediction(data);
     }
 }
 
@@ -509,12 +509,10 @@ void DVMS<TElementData>::MassProjTerm(
 template< class TElementData >
 void DVMS<TElementData>::SubscaleVelocity(
     const TElementData& rData,
-    const unsigned int GaussPointIndex,
-    array_1d<double,3>& rVelocitySubscale)
+    array_1d<double,Dim>& rVelocitySubscale)
 {
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
-    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
-    noalias(convective_velocity) += mPredictedSubscaleVelocity[GaussPointIndex];
+    array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
 
     double tau_one;
     double tau_two;
@@ -532,17 +530,19 @@ void DVMS<TElementData>::SubscaleVelocity(
         this->OSSMomentumResidual(rData,convective_velocity,residual);
     }
 
-    rVelocitySubscale = tau_one*(residual + (density/dt)*mOldSubscaleVelocity[GaussPointIndex]);
+    // Note: residual is always of size 3, but stored subscale is of size Dim
+    const auto& rOldSubscaleVelocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
+    for (unsigned int d = 0; d < Dim; d++) {
+        rVelocitySubscale[d] = tau_one*(residual[d] + (density/dt)*rOldSubscaleVelocity[d]);
+    }
 }
 
 template< class TElementData >
 void DVMS<TElementData>::SubscalePressure(
     const TElementData& rData,
-    const unsigned int GaussPointIndex,
     double &rPressureSubscale)
 {
-    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
-    noalias(convective_velocity) += mPredictedSubscaleVelocity[GaussPointIndex];
+    array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
 
     double tau_one;
     double tau_two;
@@ -573,8 +573,7 @@ void DVMS<TElementData>::SubscalePressure(
 
 template< class TElementData >
 void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
-    const TElementData& rData,
-    const unsigned int GaussPointIndex)
+    const TElementData& rData)
 {
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.EffectiveViscosity,rData.N);
@@ -595,19 +594,20 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
         }
     }
 
-    const array_1d<double,3>& old_subscale_velocity = mOldSubscaleVelocity[GaussPointIndex];
+    const array_1d<double,Dim>& old_subscale_velocity = mOldSubscaleVelocity[rData.IntegrationPointIndex];
 
     // Part of the residual that does not depend on the subscale
     array_1d<double,3> static_residual(3,0.0);
-    // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
 
+    // Note I'm only using large scale convection here, small-scale convection is re-evaluated at each iteration.
     if (rData.UseOSS != 1.0)
         this->ASGSMomentumResidual(rData,resolved_convection_velocity,static_residual);
     else
         this->OSSMomentumResidual(rData,resolved_convection_velocity,static_residual);
 
     // Add the time discretization term to obtain the part of the residual that does not change during iteration
-    noalias(static_residual) += (density/dt) * old_subscale_velocity;
+    for (unsigned int d = 0; d < Dim; d++)
+        static_residual[d] += density/dt * old_subscale_velocity[d];
 
     // Newton-Raphson iterations for the subscale
     unsigned int iter = 0;
@@ -615,7 +615,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
         
     boost::numeric::ublas::bounded_matrix<double,Dim,Dim> J = ZeroMatrix(Dim,Dim);
     array_1d<double,Dim> rhs(Dim,0.0);
-    array_1d<double,Dim> u = mPredictedSubscaleVelocity[GaussPointIndex]; // Use last result as initial guess
+    array_1d<double,Dim> u = mPredictedSubscaleVelocity[rData.IntegrationPointIndex]; // Use last result as initial guess
     array_1d<double,Dim> du(Dim,0.0);
 
     while (iter++ < mSubscalePredictionMaxIterations && subscale_velocity_error > mSubscalePredictionVelocityTolerance) {
@@ -671,7 +671,7 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
 //        std::cout << "Id: " << this->Id() << " g: " << g << " iter: " << Iter << " ss err: " << SubscaleError << " ss norm: " << SubscaleNorm << " residual: " << ResidualNorm << std::endl;
 
         // Store new subscale values
-    noalias(mPredictedSubscaleVelocity[GaussPointIndex]) = u;
+    noalias(mPredictedSubscaleVelocity[rData.IntegrationPointIndex]) = u;
 }
 
 template< class TElementData >
@@ -727,6 +727,19 @@ void DVMS<TElementData>::OSSMassResidual(
     rResidual -= this->GetAtCoordinate(rData.MassProjection,rData.N);
 }
 
+template< class TElementData >
+array_1d<double,3> DVMS<TElementData>::FullConvectiveVelocity(
+    const TElementData& rData) const
+{
+    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
+    // Adding subscale term componentwise because return type is of size 3, but subscale is of size Dim
+    const array_1d<double,Dim>& r_predicted_subscale = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
+    for (unsigned int d = 0; d < Dim; d++) {
+        convective_velocity[d] += r_predicted_subscale[d];
+    }
+
+    return convective_velocity;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Internals
