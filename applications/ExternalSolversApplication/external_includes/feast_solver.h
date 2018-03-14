@@ -75,7 +75,7 @@ public:
     typedef ComplexLinearSolverType::SparseMatrixType ComplexSparseMatrixType;
 
     typedef ComplexLinearSolverType::VectorType ComplexVectorType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -105,7 +105,7 @@ public:
 
         if (mpParam->GetValue("linear_solver_settings")["solver_type"].GetString() != "complex_skyline_lu_solver")
             KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
-            
+
         mpLinearSolver = boost::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
     }
 
@@ -113,8 +113,8 @@ public:
     /**
      * Parameters let the user control the settings of the FEAST library.
      * Warning: For iterative solvers, very small tolerances (~1e-15)
-     *          may be needed for FEAST to work properly. Common iterative 
-     *          solvers normally don't perform efficiently with FEAST 
+     *          may be needed for FEAST to work properly. Common iterative
+     *          solvers normally don't perform efficiently with FEAST
      *          (M. Galgon et al., Parallel Computing (49) 2015 153-163).
      */
     FEASTSolver(Parameters::Pointer pParam, ComplexLinearSolverType::Pointer pLinearSolver)
@@ -135,6 +135,10 @@ public:
 
         // don't validate linear_solver_settings here
         mpParam->ValidateAndAssignDefaults(default_params);
+
+        std::string solver_type = mpParam->GetValue("linear_solver_settings")["solver_type"].GetString();
+        if ((solver_type == "complex_eigen_pardiso_llt") or (solver_type == "complex_eigen_pardiso_ldlt"))
+            KRATOS_ERROR << "FEAST is not tested with the following linear solvers: complex_eigen_pardiso_llt, complex_eigen_pardiso_ldlt!" << std::endl;
     }
 
     /// Deleted copy constructor.
@@ -214,6 +218,25 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
+    }
+
+    /**
+     * This method returns directly the first eigen value obtained
+     * @param rK: The stiffness matrix
+     * @param rM: The mass matrix
+     * @return The first eigenvalue
+     */
+    double GetEigenValue(
+        SparseMatrixType& rK,
+        SparseMatrixType& rM
+        )
+    {
+        DenseVectorType eigen_values;
+        DenseMatrixType eigen_vectors;
+
+        Solve(rK, rM, eigen_values, eigen_vectors);
+
+        return eigen_values[0];
     }
 
     ///@}
@@ -319,7 +342,7 @@ private:
                     {
                         for (int i=0; i < SystemSize; i++)
                             b[i] = zwork(i,j);
-                        mpLinearSolver->Solve(Az,x,b);
+                        mpLinearSolver->PerformSolutionStep(Az,x,b);
                         for (int i=0; i < SystemSize; i++)
                             zwork(i,j) = x[i];
                     }
