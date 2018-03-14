@@ -328,17 +328,6 @@ protected:
         TElementData& rData,
         double& rMassRHS);
 
-
-    virtual void SubscaleVelocity(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        array_1d<double,3>& rVelocitySubscale);
-
-    virtual void SubscalePressure(
-        TElementData& rData,
-        const ProcessInfo& rProcessInfo,
-        double &rPressureSubscale);
-
     virtual void ASGSMomentumResidual(
         TElementData& rData,
         array_1d<double,3>& rMomentumRes);
@@ -376,6 +365,12 @@ private:
 
     ///@name Static Member Variables
     ///@{
+    
+    constexpr static double mTauC1 = 8.0;
+    constexpr static double mTauC2 = 2.0;
+    constexpr static double mSubscalePredictionVelocityTolerance = 1e-14;
+    constexpr static double mSubscalePredictionResidualTolerance = 1e-14;
+    constexpr static unsigned int mSubscalePredictionMaxIterations = 10;
 
     ///@}
     ///@name Member Variables
@@ -410,6 +405,47 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CalculateTau(
+        const TElementData& rData,
+        const array_1d<double,3> &Velocity,
+        double &TauOne,
+        double &TauTwo,
+        double &TauP) const;
+    
+    void SubscaleVelocity(
+        const TElementData& rData,
+        const unsigned int GaussPointIndex,
+        array_1d<double,3>& rVelocitySubscale);
+
+    void SubscalePressure(
+        const TElementData& rData,
+        const unsigned int GaussPointIndex,
+        double &rPressureSubscale);
+
+    void UpdateSubscaleVelocityPrediction(
+        const TElementData& rData,
+        const unsigned int GaussPointIndex);
+
+    void ASGSMomentumResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const;
+
+    void ASGSMassResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        double& rResidual) const;
+
+
+    void OSSMomentumResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        array_1d<double,3>& rResidual) const;
+
+    void OSSMassResidual(
+        const TElementData& rData,
+        const array_1d<double,3> &rConvectionVelocity,
+        double& rResidual) const;
 
     ///@}
     ///@name Private  Access
