@@ -1,0 +1,37 @@
+BeginZE /home/aditya/work/officePC/aditya/software/kratos/applications/ChimeraApplication/tests/test_case/outer.gid/outer.vv
+   x -4.30705738067626953 15.1450614929199219
+   y 9.24934864044189453 -2.44789028167724609
+   z -14.7474489212036133 9.74744892120361328
+   e 6.12372446060180664
+   v 0.258009799196806444 0.322536869454610575 0.0226637548551759938
+   r -0.910432453137364872
+   m 0.790912628173828125 0.207702979445457458 -0.575601100921630859 0 0.125167712569236755 0.865834593772888184 0.4844207763671875 0 0.598991036415100098 -0.45518118143081665 0.658801794052124023 0 0 0 0 1
+   c 5 2.5 2.5
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/aditya/work/officePC/aditya/software/kratos/applications/ChimeraApplication/tests/test_case/outer.gid/outer.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+

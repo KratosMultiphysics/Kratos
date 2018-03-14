@@ -1,0 +1,80 @@
+BeginZE /home/aditya/software/kratos/applications/ChimeraApplication/tests/test_case/outerMesh.gid/outer.post.vv
+   x -4.09878873825073242 17.7622470855712891
+   y 7.9053959846496582 -4.34205007553100586
+   z -8.62584495544433594 3.62990236282348633
+   e 6.12372446060180664
+   v 0.343896938408532526 -0.110306549076418708 -0.0428811075801477856
+   r 0.931519511542212353
+   m 0.971987366676330566 0.00402100756764411926 -0.234998762607574463 0 -0.155757352709770203 0.759792208671569824 -0.631233274936676025 0 0.176012039184570312 0.650153577327728271 0.739134728908538818 0 0 0 0 1
+   c 4.996917724609375 2.49810385704040527 2.4979710578918457
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/aditya/software/kratos/applications/ChimeraApplication/tests/test_case/outerMesh.gid/outer.post.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 1
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "Kratos_Tetrahedra3D4_Mesh_1"
+    IdSet: 2
+    Color Type: 0
+    Color Ambient: 0 0 0.3 0.5
+    Color Diffuse: 0 0 1 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 8323314
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+  Set: 0
+  State: On
+    Name: "Kratos_Triangle3D3_Mesh_0"
+    IdSet: 1
+    Color Type: 0
+    Color Ambient: 0.2 0.2 0.2 0.5
+    Color Diffuse: 0.6 0.6 0.6 0.5
+    Color Specular: 1 1 1 0.5
+    Color Shininess: 0.5
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 8323314
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 15} {No results} {} {} {} {} 4 0
+EndPostState
+

@@ -1,0 +1,16 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 5.0.15642
+Initializing KratosIncompressibleFluidApplication... 
+Initializing KratosIncompressibleFluidApplication...Register completed 
+Initializing KratosIncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosIncompressibleFluidApplication...elements succesfully registered 
+Initializing KratosFluidDynamicsApplication... 
+Initializing KratosExternalSolversApplication... 
+Initializing Kratos MeshingApplication... 
+  [Reading Nodes    : 56525 nodes read]
+  [Reading Elements : 312750 elements read] [Type: Element3D4N]
+  [Reading Conditions : 1412 conditions read] [Type: WallCondition3D3N]
+  [Reading Conditions : 1412 conditions read] [Type: WallCondition3D3N]
