@@ -109,7 +109,7 @@ class MeshMeshMovingAnalysis(object): # TODO in the future this could derive fro
 
         if not self.using_external_model_part:
             ## Read the model - note that SetBufferSize is done here
-            self.solver.ImportModelPart() # TODO move to global instance
+            self.solver.ReadModelPart() # TODO move to global instance
 
     def __InitializeIO(self):
         """ Initialize GiD  I/O """
