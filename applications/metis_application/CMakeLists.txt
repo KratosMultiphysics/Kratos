@@ -6,7 +6,6 @@ include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
-#find mkl solver package -- this is our own find package!!
 if(${USE_METIS_5} MATCHES ON)
     message("using metis (and not Parmetis) version 5")
     add_definitions(-DKRATOS_USE_METIS_5)
@@ -20,9 +19,6 @@ else(${USE_METIS_5} MATCHES ON)
     include_directories(${PARMETIS_INCLUDE_DIR})
     link_directories(${PARMETIS_LIBRARIES})
 endif(${USE_METIS_5} MATCHES ON)
-
-##add definitions needed
-add_definitions(-DMKL_ILP64)
 
 ## generate variables with the sources
 set( KRATOS_METIS_APPLICATION_SOURCES    
