@@ -34,7 +34,7 @@
 #include "../../kratos/includes/element.h"
 #include "../../kratos/includes/model_part.h"
 #include "../../kratos/includes/kratos_flags.h"
-#include "structural_response_function.h"
+#include "adjoint_structural_response_function.h"
 
 
 #include "includes/kratos_parameters.h"

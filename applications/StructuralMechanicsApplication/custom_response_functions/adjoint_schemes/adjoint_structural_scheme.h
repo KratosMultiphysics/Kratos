@@ -29,7 +29,7 @@
 #include "containers/variable.h"
 
 // Application includes
-#include "custom_response_functions/adjoint_utilities/structural_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_structural_response_function.h"
 
 namespace Kratos
 {

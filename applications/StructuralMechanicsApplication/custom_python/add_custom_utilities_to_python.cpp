@@ -20,17 +20,17 @@
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_response_functions/adjoint_utilities/finite_differences_utilities.h" //M.Fusseder TODO: maybe remove this (used only for controlling results)
+#include "custom_response_functions/custom_utilities/finite_differences_utilities.h" //M.Fusseder TODO: maybe remove this (used only for controlling results)
 
 #include "custom_response_functions/adjoint_processes/output_primal_solution_process.h"
 #include "custom_response_functions/adjoint_processes/input_primal_solution_process.h"
 #include "custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.h"
 
 //Response Functions
-#include "custom_response_functions/adjoint_utilities/structural_response_function.h"
-#include "custom_response_functions/adjoint_utilities/local_stress_response_function.h"
-#include "custom_response_functions/adjoint_utilities/nodal_displacement_response_function.h"
-#include "custom_response_functions/adjoint_utilities/strain_energy_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_structural_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_strain_energy_response_function.h"
 
 
 namespace Kratos
