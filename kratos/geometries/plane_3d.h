@@ -99,7 +99,7 @@ public:
     /** Return the plane distance value
     @return Plane distance value
     */
-    double GetDistance()
+    double GetDistanceToOrigin()
     { 
         return mD; 
     }
@@ -141,7 +141,9 @@ public:
     */
     void PrintData(std::ostream& rOStream) const
     {
-        rOStream << "a 3D plane auxiliar class";
+        rOStream << "a 3D plane auxiliar class with:\n";
+        rOStream << "\t- distance to origin: " << mD << "\n";
+        rOStream << "\t- normal: (" << mNormal[0] << " , " << mNormal[1] << " , " << mNormal[2] << ")";
     }
 
     ///@}
@@ -151,91 +153,14 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
 
-    ///@name Static Member Variables
+    ///@name Member Variables
     ///@{
 
     double                       mD;
     array_1d<double,3>      mNormal;
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
    
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Private Friends
-    ///@{
-
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
     ///@}
 
 }; // Class Plane3D
