@@ -32,6 +32,7 @@
 #include "includes/define.h"
 #include "trilinos_application.h"
 #include "trilinos_space.h"
+#include "custom_python/add_trilinos_space_to_python.h"
 // #include "spaces/ublas_space.h"
 // #include "add_trilinos_linear_solvers_to_python.h"
 #include "includes/model_part.h"
@@ -59,10 +60,10 @@ class AuxiliaryMatrixWrapper
 {
 public:
     AuxiliaryMatrixWrapper(TrilinosSparseSpaceType::MatrixPointerType p): mp(p){};
-    
+
     TrilinosSparseSpaceType::MatrixPointerType& GetPointer(){return mp;}
     TrilinosSparseSpaceType::MatrixType& GetReference(){return *mp;}
-    
+
 private:
     TrilinosSparseSpaceType::MatrixPointerType mp;
 };
@@ -71,10 +72,10 @@ class AuxiliaryVectorWrapper
 {
 public:
     AuxiliaryVectorWrapper(TrilinosSparseSpaceType::VectorPointerType p): mp(p){};
-    
+
     TrilinosSparseSpaceType::VectorPointerType& GetPointer(){return mp;}
     TrilinosSparseSpaceType::VectorType& GetReference(){return *mp;}
-    
+
 private:
     TrilinosSparseSpaceType::VectorPointerType mp;
 };

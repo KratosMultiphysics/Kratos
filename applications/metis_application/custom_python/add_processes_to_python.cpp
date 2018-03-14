@@ -64,12 +64,12 @@ void AddProcessesToPython(pybind11::module& m)
     .def(init<IO&, unsigned int>())
     ;
 
-    class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess")
+    class_<MetisContactPartitioningProcess, MetisPartitioningProcess >(m, "MetisContactPartitioningProcess")
     .def(init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
     ;
 
-    class_<MetisPartitioningProcessQuadratic, bases<MetisPartitioningProcess> >("MetisPartitioningProcessQuadratic")
+    class_<MetisPartitioningProcessQuadratic, MetisPartitioningProcess >(m, "MetisPartitioningProcessQuadratic")
     .def(init<ModelPart&, IO&, unsigned int, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int>())
     ;
