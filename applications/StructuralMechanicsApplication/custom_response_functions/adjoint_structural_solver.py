@@ -112,7 +112,7 @@ class AdjointStructuralSolver:
                 raise Exception("there is currently no 2D adjoint element")
             else:
                 raise Exception("domain size is not 2 or 3")
-
+                
             StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
             import check_and_prepare_model_process_structural
             check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.main_model_part, aux_params).Execute()
@@ -235,7 +235,7 @@ class AdjointStructuralSolver:
             self.solver.FinalizeSolutionStep()
 
     def Solve(self):
-        if self.settings["response_function_settings"]["response_type"].GetString() == "strain_energy":
+        if self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_strain_energy":
             self._SolveSpecialStrainEnergy()
         else:
             self.solver.Solve()
