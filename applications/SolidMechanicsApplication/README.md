@@ -39,9 +39,7 @@ Classical FE method theory for small and large displacements.
 
 ## Solid Elements
 
-<p align="center"> 
-  <img src="tests/data/dynamic_3d_beam.gif" alt="Solution" style="width: 200px;"/> 
-</p>
+![Open cylinder pullout animation](tests/tests_data/dynamic_3d_beam.gif)
 
 ### Displacement based formulations:
 
@@ -59,13 +57,13 @@ U-P formulation for linear triangles and linear tetrahedra. Monolitich approach 
 
 Co-rotational thick and thin 3D shells theory. Large displacements and large rotations.
 
+![Open cylinder pullout animation](tests/tests_data/shell_roll_up.gif)
+
 ### Beams
 
 Geometrically exact theory for 3D beams. Large displacements and large rotations.
 
-<p align="center"> 
-  <img src="tests/data/rolldown.gif" alt="Solution" style="width: 200px;"/> 
-</p>
+![Open cylinder pullout animation](tests/tests_data/beam_roll_down.gif)
 
 ### Material Laws
 

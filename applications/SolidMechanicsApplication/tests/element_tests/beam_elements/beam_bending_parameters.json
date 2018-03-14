@@ -1,6 +1,6 @@
 {
     "input_settings":{
-	"materials_file_name" : "element_tests/beam_bending_materials.json"
+	"materials_file_name" : "element_tests/beam_elements/beam_bending_materials.json"
     },
     "model_settings"           : {
         "domain_parts_list"    : ["Parts_Parts_Auto1"],

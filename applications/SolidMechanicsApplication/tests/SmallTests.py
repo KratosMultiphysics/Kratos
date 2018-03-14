@@ -121,38 +121,48 @@ class UL_Element3D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_3D4N_tension"
     file_parameters = "element_tests/tension_3D_parameters.json"
 
-# Large displacement beam elements
+# Large displacement dynamic tests DYN
+class Dynamic_Test_Bossak_TL_3D(TF.TestFactory):
+    file_name = "dynamic_tests/solid_elements/dynamic_bossak_TL3D"
+    file_parameters = None
+
+class Dynamic_Test_Simo_TL_3D(TF.TestFactory):
+    file_name = "dynamic_tests/solid_elements/dynamic_bossak_TL3D"
+    file_parameters  = "dynamic_tests/solid_elements/dynamic_simo_TL3D_input.json"
+
+    
+# Large displacement beam elements BEM
 class LD_Beam_BendingRollUpTest(TF.TestFactory):
     file_name = "element_tests/beam_elements/static_beam_bending"
-    file_parameters = "element_tests/beam_bending_parameters.json"
+    file_parameters = "element_tests/beam_elements/beam_bending_parameters.json"
 
 class EMC_Beam_BendingRollUpTest(TF.TestFactory):
     file_name = "element_tests/beam_elements/emc_static_beam_bending"
-    file_parameters = "element_tests/beam_bending_parameters.json"
+    file_parameters = "element_tests/beam_elements/beam_bending_parameters.json"
 
 class LD_Beam_DynamicRotation(TF.TestFactory):
     file_name = "dynamic_tests/beam_elements/dynamic_beam"
-    file_parameters = "dynamic_tests/beam_elements/dynamic_beam_parameters.json"
+    file_parameters = None
 
 class EMC_Beam_DynamicRotation(TF.TestFactory):
     file_name = "dynamic_tests/beam_elements/emc_dynamic_beam"
-    file_parameters = "dynamic_tests/beam_elements/emc_dynamic_beam_parameters.json"  
+    file_parameters = None  
     
 # Large displacement shells SHE        
 class Thick_Shell3D4N_BendingRollUpTest(TF.TestFactory):
-    file_name = "element_tests/shell_elements/Shell_Q4_Thick__BendingRollUp"
+    file_name = "element_tests/shell_elements/thick_quadrilateral_shell_bending"
     file_parameters = None
 
 class Thick_Shell3D4N_DrillingRollUpTest(TF.TestFactory):
-    file_name = "element_tests/shell_elements/Shell_Q4_Thick__DrillingRollUp"
+    file_name = "element_tests/shell_elements/thick_quadrilateral_shell_drilling"
     file_parameters = None
 
 class Thin_Shell3D3N_BendingRollUpTest(TF.TestFactory):
-    file_name = "element_tests/shell_elements/Shell_T3_Thin__BendingRollUp"
+    file_name = "element_tests/shell_elements/thin_triangular_shell_bending"
     file_parameters = None
 
 class Thin_Shell3D3N_DrillingRollUpTest(TF.TestFactory):
-    file_name = "element_tests/shell_elements/Shell_T3_Thin__DrillingRollUp"
+    file_name = "element_tests/shell_elements/thin_triangular_shell_drilling"
     file_parameters = None
     
 # Eigen modal analysis tests
@@ -201,6 +211,9 @@ def SetTestSuite(suites):
             UL_Element3D4N_ShearTest,
             UL_Element3D8N_TensionTest,
             UL_Element3D4N_TensionTest,
+            #DYN
+            Dynamic_Test_Bossak_TL_3D,
+            Dynamic_Test_Simo_TL_3D,
             #BEM
             LD_Beam_BendingRollUpTest,
             EMC_Beam_BendingRollUpTest,
