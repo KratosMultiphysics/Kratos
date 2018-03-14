@@ -23,9 +23,10 @@
 
 // Project includes
 #include "includes/define.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 
-namespace Kratos
+namespace Kratosadjoint_structural_response_function
 {
 
 namespace Python
@@ -37,4 +38,4 @@ void  AddCustomUtilitiesToPython();
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined

@@ -19,7 +19,6 @@
 #include "custom_python/add_custom_response_functions_to_python.h"
 
 //Utilities
-#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_response_functions/custom_utilities/finite_differences_utilities.h" //M.Fusseder TODO: maybe remove this (used only for controlling results)
 
 #include "custom_response_functions/adjoint_processes/output_primal_solution_process.h"

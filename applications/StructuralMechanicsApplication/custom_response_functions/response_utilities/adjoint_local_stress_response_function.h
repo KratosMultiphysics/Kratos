@@ -35,6 +35,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "adjoint_structural_response_function.h"
+#include "structural_mechanics_application_variables.h"
 
 
 #include "includes/kratos_parameters.h"
