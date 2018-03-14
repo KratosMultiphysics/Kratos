@@ -63,6 +63,7 @@ namespace Kratos
       /// Destructor.
       virtual ~SphericSwimmingParticle(){}
 
+      SphericSwimmingParticle<TBaseElement>& operator=(const SphericSwimmingParticle<TBaseElement>& rOther);  
       
       void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity);
 

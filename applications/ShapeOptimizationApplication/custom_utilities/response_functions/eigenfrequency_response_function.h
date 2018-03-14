@@ -110,8 +110,6 @@ public:
 		m_traced_eigenvalue = responseSettings["traced_eigenfrequency"].GetInt();
 
 		// Initialize member variables to NULL
-		m_initial_value = 0.0;
-		m_initial_value_defined = false;
 		m_eigenvalue = 0.0;
 	}
 
@@ -151,14 +149,6 @@ public:
 
 		m_eigenvalue = 	(mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1];
 
-		// Set initial value if not done yet
-		if(!m_initial_value_defined)
-		{
-			m_initial_value = m_eigenvalue;
-			m_initial_value_defined = true;
-		}
-
-
 		KRATOS_CATCH("");
 	}
 
@@ -189,18 +179,6 @@ public:
 		}
 
 		}// End switch mGradientMode
-
-		KRATOS_CATCH("");
-	}
-	// --------------------------------------------------------------------------
-	double GetInitialValue()
-	{
-		KRATOS_TRY;
-
-		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"CalculateValue()\"", m_initial_value_defined);
-
-		return m_initial_value;
 
 		KRATOS_CATCH("");
 	}
@@ -320,7 +298,7 @@ protected:
 
 				for (int i = 0; i < NumNodeDofs; i++)
                     eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((m_traced_eigenvalue-1),i);
-					
+
 				k++;
 			}
 
@@ -437,8 +415,6 @@ private:
 	unsigned int mWeightingMethod;
 	double m_eigenvalue;
 	double mDelta;
-	double m_initial_value;
-	bool m_initial_value_defined;
 	int m_traced_eigenvalue;
 
 

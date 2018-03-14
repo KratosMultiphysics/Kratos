@@ -122,7 +122,6 @@ public:
     ///@name Friends
     ///@{
 
-
     /**
      * returns the value of a specified variable
      * @param rThisVariable the variable to be returned
@@ -201,4 +200,4 @@ private:
 
 }; // Class LinearPlaneStress
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_PLANE_STRESS_LAW_H_INCLUDED  defined

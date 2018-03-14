@@ -3,6 +3,7 @@
 #include <sstream>
 #include "includes/kratos_components.h"
 #include "custom_io/hdf5_data_value_container_io.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
@@ -11,49 +12,42 @@ namespace HDF5
 namespace Internals
 {
 
-PropertiesIO::PropertiesIO(std::string Prefix, File::Pointer pFile)
-    : mPrefix(Prefix), mpFile(pFile)
-{
-}
-
-void PropertiesIO::ReadProperties(PropertiesContainerType& rProperties)
+void ReadProperties(File& rFile, std::string const& rPrefix, PropertiesContainerType& rProperties)
 {
     KRATOS_TRY;
 
     Vector<int> prop_ids;
-    mpFile->ReadAttribute(mPrefix + "/Properties", "Ids", prop_ids);
+    rFile.ReadAttribute(rPrefix + "/Properties", "Ids", prop_ids);
 
-    for (unsigned i = 0; i < prop_ids.size(); ++i)
+    for (auto pid : prop_ids)
     {
         std::stringstream pstream;
-        pstream << mPrefix << "/Properties/(" << prop_ids[i] << ")";
+        pstream << rPrefix << "/Properties/(" << pid << ")";
         std::string path = pstream.str();
 
-        DataValueContainerIO data_io(path, mpFile);
-        PropertiesType::ContainerType& r_data = rProperties[prop_ids[i]].Data();
-        data_io.ReadDataValueContainer(r_data);
+        PropertiesType::ContainerType& r_data = rProperties[pid].Data();
+        Internals::ReadDataValueContainer(rFile, path, r_data);
     }
 
     KRATOS_CATCH("");
 }
 
-void PropertiesIO::WriteProperties(PropertiesType const& rProperties)
+void WriteProperties(File& rFile, std::string const& rPrefix, PropertiesType const& rProperties)
 {
     KRATOS_TRY;
 
     std::stringstream pstream;
-    pstream << mPrefix << "/Properties/(" << rProperties.Id() << ")";
+    pstream << rPrefix << "/Properties/(" << rProperties.Id() << ")";
     std::string path = pstream.str();
-    mpFile->AddPath(path);
+    rFile.AddPath(path);
 
-    DataValueContainerIO data_io(path, mpFile);
     const PropertiesType::ContainerType& r_data = rProperties.Data();
-    data_io.WriteDataValueContainer(r_data);
+    Internals::WriteDataValueContainer(rFile, path, r_data);
 
     KRATOS_CATCH("");
 }
 
-void PropertiesIO::WriteProperties(PropertiesContainerType const& rProperties)
+void WriteProperties(File& rFile, std::string const& rPrefix, PropertiesContainerType const& rProperties)
 {
     KRATOS_TRY;
 
@@ -62,10 +56,10 @@ void PropertiesIO::WriteProperties(PropertiesContainerType const& rProperties)
     for (const PropertiesType& r_properties : rProperties)
     {
         prop_ids[i++] = r_properties.Id();
-        WriteProperties(r_properties);
+        WriteProperties(rFile, rPrefix, r_properties);
     }
-    mpFile->AddPath(mPrefix + "/Properties");
-    mpFile->WriteAttribute(mPrefix + "/Properties", "Ids", prop_ids);
+    rFile.AddPath(rPrefix + "/Properties");
+    rFile.WriteAttribute(rPrefix + "/Properties", "Ids", prop_ids);
 
     KRATOS_CATCH("");
 }

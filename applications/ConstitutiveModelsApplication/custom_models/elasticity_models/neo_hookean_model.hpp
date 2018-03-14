@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/mooney_rivlin_model.hpp"
 
 namespace Kratos
 {
@@ -44,7 +44,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NeoHookeanModel : public HyperElasticModel
+  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NeoHookeanModel : public MooneyRivlinModel
   {
   public:
 
@@ -59,15 +59,15 @@ namespace Kratos
     ///@{
 
     /// Default constructor.
-    NeoHookeanModel() : HyperElasticModel() {}
+    NeoHookeanModel() : MooneyRivlinModel() {}
     
     /// Copy constructor.
-    NeoHookeanModel(NeoHookeanModel const& rOther) : HyperElasticModel(rOther) {}
+    NeoHookeanModel(NeoHookeanModel const& rOther) : MooneyRivlinModel(rOther) {}
     
     /// Assignment operator.
     NeoHookeanModel& operator=(NeoHookeanModel const& rOther)
     {
-      HyperElasticModel::operator=(rOther);
+      MooneyRivlinModel::operator=(rOther);
       return *this;
     }
 
@@ -111,7 +111,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      HyperElasticModel::Check(rMaterialProperties,rCurrentProcessInfo);
+      MooneyRivlinModel::Check(rMaterialProperties,rCurrentProcessInfo);
 
       if( C10.Key() == 0 || rMaterialProperties[C10] <= 0.00 )
 	KRATOS_ERROR << "C10 has an invalid key or value" << std::endl;
@@ -436,12 +436,12 @@ namespace Kratos
     
     virtual void save(Serializer& rSerializer) const override
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MooneyRivlinModel )
     }
 
     virtual void load(Serializer& rSerializer) override
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )      
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MooneyRivlinModel )      
     }
 
     ///@}

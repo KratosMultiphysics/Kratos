@@ -256,8 +256,9 @@ private:
         )
     {
         Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
+        array_1d<double,3> center = rConditionGeometry.Center();
 
-        rValue = mpFunction->RotateAndCallFunction(rConditionGeometry.Center().X(),rConditionGeometry.Center().Y(),rConditionGeometry.Center().Z(),time  );
+        rValue = mpFunction->CallFunction(center[0],center[1],center[2],time  );
 
     }
 
@@ -296,7 +297,9 @@ private:
     {
         Condition::GeometryType& rConditionGeometry = pCondition->GetGeometry();
 
-        rValue = mpFunction->RotateAndCallFunction(rConditionGeometry.Center().X(),rConditionGeometry.Center().Y(),rConditionGeometry.Center().Z(),time  );
+        array_1d<double,3> center = rConditionGeometry.Center();
+
+        rValue = mpFunction->RotateAndCallFunction(center[0],center[1],center[2],time  );
     }
 
     /**
@@ -383,7 +386,7 @@ private:
         )
     {
         const int nconditions = mrModelPart.GetMesh(mMeshId).Conditions().size();
-
+        
         if(nconditions != 0)
         {
             ModelPart::ConditionsContainerType::iterator itBegin = mrModelPart.GetMesh(mMeshId).ConditionsBegin();

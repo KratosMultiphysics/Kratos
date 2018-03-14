@@ -16,16 +16,18 @@ def CreateSolver(main_model_part, custom_settings):
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type == "Dynamic"):
+        if (solver_type == "dynamic" or solver_type == "Dynamic"):
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "structural_mechanics_implicit_dynamic_solver"
+            elif ( time_integration_method == "explicit"):
+                solver_module_name = "structural_mechanics_explicit_dynamic_solver"
             else:
                 err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
-                err_msg += "Available options are: \"implicit\""
+                err_msg += "Available options are: \"implicit\", \"explicit\""
                 raise Exception(err_msg)
 
-        elif (solver_type == "Static"):
+        elif (solver_type == "static" or solver_type == "Static"):
             solver_module_name = "structural_mechanics_static_solver"
 
         elif (solver_type == "eigen_value"):
@@ -36,12 +38,12 @@ def CreateSolver(main_model_part, custom_settings):
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"Static\", \"Dynamic\", \"eigen_value\", \"harmonic_analysis\""
+            err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\""
             raise Exception(err_msg)
 
     # Solvers for MPI parallelism
     elif (parallelism == "MPI"):
-        if (solver_type == "Dynamic"):
+        if (solver_type == "dynamic" or solver_type == "Dynamic"):
             time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
             if (time_integration_method == "implicit"):
                 solver_module_name = "trilinos_structural_mechanics_implicit_dynamic_solver"
@@ -50,12 +52,12 @@ def CreateSolver(main_model_part, custom_settings):
                 err_msg += "Available options are: \"implicit\""
                 raise Exception(err_msg)
 
-        elif (solver_type == "Static"):
+        elif (solver_type == "static" or solver_type == "Static"):
             solver_module_name = "trilinos_structural_mechanics_static_solver"
 
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"Static\", \"Dynamic\""
+            err_msg += "Available options are: \"static\", \"dynamic\""
             raise Exception(err_msg)
     else:
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
@@ -64,8 +66,7 @@ def CreateSolver(main_model_part, custom_settings):
 
     # Remove settings that are not needed any more
     custom_settings["solver_settings"].RemoveValue("solver_type")
-    if custom_settings["solver_settings"].Has("time_integration_method"):
-        custom_settings["solver_settings"].RemoveValue("time_integration_method")
+    custom_settings["solver_settings"].RemoveValue("time_integration_method") # does not throw even if the value is not existing
 
     solver_module = __import__(solver_module_name)
     solver = solver_module.CreateSolver(main_model_part, custom_settings["solver_settings"])

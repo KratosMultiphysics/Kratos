@@ -113,7 +113,7 @@ public:
      * @see   Parameters
      */
     void CalculateMaterialResponseCauchy (Parameters & rValues) override;
-    
+
     /**
      * Finalizes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix
@@ -160,9 +160,9 @@ public:
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
-     */ 
+     */
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -183,15 +183,15 @@ protected:
 
     ///@name Protected static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected member Variables
     ///@{
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -201,7 +201,7 @@ private:
 
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -250,8 +250,17 @@ private:
         //1.-Compute total deformation gradient
         const Matrix& F = rValues.GetDeformationGradientF();
 
-        Matrix Etensor = prod(trans(F),F);
-        Etensor -= IdentityMatrix(2,2);
+        // for shells/membranes in case the DeformationGradient is of size 3x3
+        bounded_matrix<double, 2, 2> F2x2;
+        for (unsigned int i=0; i<2; ++i)
+            for (unsigned int j=0; j<2; ++j)
+                F2x2(i,j) = F(i,j);
+
+        Matrix Etensor = prod(trans(F2x2),F2x2);
+
+        for (unsigned int i=0; i<2; ++i)
+            Etensor(i,i) -= 1.0;
+
         Etensor *= 0.5;
 
         noalias(StrainVector) = MathUtils<double>::StrainTensorToVector(Etensor);
@@ -287,4 +296,4 @@ private:
 
 }; // Class LinearPlaneStrain
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRAIN_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_PLANE_STRAIN_LAW_H_INCLUDED  defined

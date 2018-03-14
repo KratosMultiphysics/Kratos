@@ -67,8 +67,9 @@ void TotalStructuralMassProcess::Execute()
         for (std::size_t i_node = 0; i_node < number_of_nodes; ++i_node)
              r_this_geometry[i_node].Coordinates() = current_coordinates[i_node];
     }
-    
-    std::cout << "The total mass of the system is :" << total_mass/1000.0 << " Tn\n" << "Check variable NODAL_MASS in the process info in order to access to it in any moment" << std::endl;
+
+    KRATOS_INFO("Total Mass") << total_mass << std::endl;
+    KRATOS_INFO("Hint")  << "Check variable NODAL_MASS in the process info in order to access to it in any moment" << std::endl;
     
     mrThisModelPart.GetProcessInfo()[NODAL_MASS] = total_mass;
     

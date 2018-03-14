@@ -130,8 +130,7 @@ namespace Kratos {
     void RigidBodyElement3D::SetOrientation(const Quaternion<double> Orientation) {
         this->GetGeometry()[0].FastGetSolutionStepValue(ORIENTATION) = Orientation;
     }
-
-    void RigidBodyElement3D::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& r_process_info) {}
+    
 
     void RigidBodyElement3D::UpdateLinearDisplacementAndVelocityOfNodes() {
         

@@ -14,16 +14,15 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         # Create new nodes
         node1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
         node2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
 
         if (dim == 2):
             nnodes = 3
-            node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
 
             # Allocate a geometry
             geom = KratosMultiphysics.Triangle2D3(node1,node2,node3)
         elif (dim == 3):
             nnodes = 4
-            node3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0)
             node4 = model_part.CreateNewNode(4, 0.0, 0.0, 1.0)
 
             # Allocate a geometry
@@ -31,13 +30,6 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         else:
             raise Exception("Error: bad dimension value: ", dim)
         return [geom, nnodes]
-
-    def _create_properties_old(self, model_part, young_modulus, poisson_ratio):
-        prop_id = 0
-        properties = model_part.Properties[prop_id]
-        properties.SetValue(KratosMultiphysics.YOUNG_MODULUS, young_modulus)
-        properties.SetValue(KratosMultiphysics.POISSON_RATIO, poisson_ratio)
-        return properties
 
     def _set_cl_parameters(self, cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part, properties, geom):
         # Setting the parameters - note that a constitutive law may not need them all!
@@ -112,7 +104,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         cl.FinalizeMaterialResponsePK2(cl_params)
         cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
-        print("\n The Material Response Kirchhoff")
+        print("\nThe Material Response Kirchhoff")
         cl.CalculateMaterialResponseKirchhoff(cl_params)
         print("Stress = ", cl_params.GetStressVector())
         print("Strain = ", cl_params.GetStrainVector())
@@ -121,7 +113,7 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         cl.FinalizeMaterialResponseKirchhoff(cl_params)
         cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
 
-        print("\n The Material Response Cauchy")
+        print("\nThe Material Response Cauchy")
         cl.CalculateMaterialResponseCauchy(cl_params)
         print("Stress = ", cl_params.GetStressVector())
         print("Strain = ", cl_params.GetStrainVector())
@@ -163,23 +155,19 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
 
         # Setting the parameters - note that a constitutive law may not need them all!
         cl_params = self._set_cl_parameters(cl_options, F, detF, strain_vector, stress_vector, constitutive_matrix, N, DN_DX, model_part, properties, geom)
+        cl.InitializeMaterial(properties, geom, N)
 
         # Check the results
-        reference_stress = KratosMultiphysics.Vector(cl.GetStrainSize())
-        for i in range(cl.GetStrainSize()):
-            reference_stress[i] = 0.0
+        deformation_test.initialize_reference_stress(cl.GetStrainSize())
 
-        for i in range(100):
-            F = deformation_test.get_deformation_gradientF(i)
-            detF = deformation_test.get_determinantF(i)
-            cl_params.SetDeformationGradientF(F)
-            cl_params.SetDeterminantF(detF)
+        for i in range(deformation_test.nr_timesteps):
+            deformation_test.set_deformation(cl_params, i)
 
             # Chauchy
             cl.CalculateMaterialResponseCauchy(cl_params)
             cl.FinalizeMaterialResponseCauchy(cl_params)
             cl.FinalizeSolutionStep(properties, geom, N, model_part.ProcessInfo)
-            deformation_test.set_reference_stress(reference_stress, i)
+            reference_stress = deformation_test.get_reference_stress(i)
 
             stress = cl_params.GetStressVector()
 
@@ -190,107 +178,126 @@ class TestConstitutiveLaw(KratosUnittest.TestCase):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = UniaxialKirchhoffSaintVenant3D(0.05)
+        deformation_test = UniaxialKirchhoffSaintVenant3D(0.05)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_KirchhoffSaintVenant_3D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = SimpleShearKirchhoffSaintVenant3D(0.02)
+        deformation_test = SimpleShearKirchhoffSaintVenant3D(0.02)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_Plus_Strech_KirchhoffSaintVenant_3D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = ShearPlusStrechKirchhoffSaintVenant3D()
+        deformation_test = ShearPlusStrechKirchhoffSaintVenant3D()
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Uniaxial_HyperElastic_3D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = UniaxialHyperElastic3D(0.2)
+        deformation_test = UniaxialHyperElastic3D(0.2)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_HyperElastic_3D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = SimpleShearHyperElastic3D(0.2)
+        deformation_test = SimpleShearHyperElastic3D(0.2)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_Plus_Strech_HyperElastic_3D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = ShearPlusStrechHyperElastic3D()
+        deformation_test = ShearPlusStrechHyperElastic3D()
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Uniaxial_Linear_Elastic_3D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = UniaxialLinearElastic3D(0.2)
+        deformation_test = UniaxialLinearElastic3D(0.2)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_Linear_Elastic_3D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = SimpleShearLinearElastic3D(0.2)
+        deformation_test = SimpleShearLinearElastic3D(0.2)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_Plus_Strech_Linear_Elastic_3D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = ShearPlusStrechLinearElastic3D()
+        deformation_test = ShearPlusStrechLinearElastic3D()
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Uniaxial_Linear_Elastic_Plane_Stress_2D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = UniaxialLinearElasticPlaneStress2D(0.2)
+        deformation_test = UniaxialLinearElasticPlaneStress2D(0.2)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_Linear_Elastic_Plane_Stress_2D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = SimpleShearLinearElasticPlaneStress2D(0.2)
+        deformation_test = SimpleShearLinearElasticPlaneStress2D(0.2)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Uniaxial_Linear_Elastic_Plane_Stress_Uncoupled_Shear_2D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = UniaxialElasticPlaneStressUncoupledShear2D(0.2)
+        deformation_test = UniaxialElasticPlaneStressUncoupledShear2D(0.2)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
     def test_Shear_Linear_Elastic_Plane_Stress_Uncoupled_Shear_2D(self):
         # Define a model
         model_part = KratosMultiphysics.ModelPart("test")
 
-        deformation_Test = SimpleShearElasticPlaneStressUncoupledShear2D(0.2)
+        deformation_test = SimpleShearElasticPlaneStressUncoupledShear2D(0.2)
 
-        self._generic_constitutive_law_test(model_part, deformation_Test)
+        self._generic_constitutive_law_test(model_part, deformation_test)
+
+    def test_J2_Plasticity_3D(self):
+        # Define a model
+        model_part = KratosMultiphysics.ModelPart("test")
+
+        deformation_test = DeformationLinearJ2Plasticity3D()
+
+        self._generic_constitutive_law_test(model_part, deformation_test)
+
+    def test_J2_Plasticity_Plane_Strain_2D(self):
+        # Define a model
+        model_part = KratosMultiphysics.ModelPart("test")
+
+        deformation_test = DeformationLinearJ2PlasticityPlaneStrain2D()
+
+        self._generic_constitutive_law_test(model_part, deformation_test)
 
 class Deformation():
+    def __init__(self):
+        self.nr_timesteps = 100
+
     def get_init_deformation_gradientF(self):
         self.F = KratosMultiphysics.Matrix(self.cl.dim,self.cl.dim)
         for i in range(self.cl.dim):
@@ -300,6 +307,17 @@ class Deformation():
                 else:
                     self.F[i,j] = 0.0
         return self.F
+
+    def initialize_reference_stress(self, strain_size):
+        self.reference_stress = KratosMultiphysics.Vector(strain_size)
+        for i in range(strain_size):
+            self.reference_stress[i] = 0.0
+
+    def set_deformation(self, cl_params, i):
+        F = self.get_deformation_gradientF(i)
+        detF = self.get_determinantF(i)
+        cl_params.SetDeformationGradientF(F)
+        cl_params.SetDeterminantF(detF)
 
 class UniaxialDeformation(Deformation):
     def __init__(self, deltaDef):
@@ -318,53 +336,57 @@ class UniaxialKirchhoffSaintVenant3D(UniaxialDeformation):
         UniaxialDeformation.__init__(self, deltaDef)
         self.cl = KirchhoffSaintVenant3D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         lame_lambda = (self.cl.young_modulus * self.cl.poisson_ratio) / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         lame_mu = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
         detF = self.get_determinantF(i)
 
-        reference_stress[0] =( (lame_lambda * 0.5 + lame_mu) * (detF ** 2.0 - 1.0)*(detF ** 2.0) ) / detF
-        reference_stress[1] = 0.5*lame_lambda*(detF ** 2.0 - 1.0) / detF
-        reference_stress[2] = reference_stress[1]
+        self.reference_stress[0] =( (lame_lambda * 0.5 + lame_mu) * (detF ** 2.0 - 1.0)*(detF ** 2.0) ) / detF
+        self.reference_stress[1] = 0.5*lame_lambda*(detF ** 2.0 - 1.0) / detF
+        self.reference_stress[2] = self.reference_stress[1]
+        return self.reference_stress
 
 class UniaxialHyperElastic3D(UniaxialDeformation):
     def __init__(self, deltaDef):
         UniaxialDeformation.__init__(self, deltaDef)
         self.cl = HyperElastic3D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         lame_lambda = (self.cl.young_modulus * self.cl.poisson_ratio) / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         lame_mu = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
         detF = self.get_determinantF(i)
 
-        reference_stress[0] = (lame_lambda * math.log(detF) + lame_mu * (detF ** 2.0 - 1.0)) / detF
-        reference_stress[1] = (lame_lambda * math.log(detF)) / detF
-        reference_stress[2] = reference_stress[1]
+        self.reference_stress[0] = (lame_lambda * math.log(detF) + lame_mu * (detF ** 2.0 - 1.0)) / detF
+        self.reference_stress[1] = (lame_lambda * math.log(detF)) / detF
+        self.reference_stress[2] = self.reference_stress[1]
+        return self.reference_stress
 
 class UniaxialLinearElastic3D(UniaxialDeformation):
     def __init__(self, deltaDef):
         UniaxialDeformation.__init__(self, deltaDef)
         self.cl = LinearElastic3D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         c0 = self.cl.young_modulus / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         F00 = self.get_deformation_gradientF(i)[0,0]
 
-        reference_stress[0] = c0 * (1.0 - self.cl.poisson_ratio) * (F00**2.0-1.0)/2.0
-        reference_stress[1] = c0 * self.cl.poisson_ratio * (F00**2.0-1.0)/2.0
-        reference_stress[2] = reference_stress[1]
+        self.reference_stress[0] = c0 * (1.0 - self.cl.poisson_ratio) * (F00**2.0-1.0)/2.0
+        self.reference_stress[1] = c0 * self.cl.poisson_ratio * (F00**2.0-1.0)/2.0
+        self.reference_stress[2] = self.reference_stress[1]
+        return self.reference_stress
 
 class UniaxialLinearElasticPlaneStress2D(UniaxialDeformation):
     def __init__(self, deltaDef):
         UniaxialDeformation.__init__(self, deltaDef)
         self.cl = LinearElasticPlaneStress2D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         c0 = self.cl.young_modulus / (1.0 - self.cl.poisson_ratio**2)
         F00 = self.get_deformation_gradientF(i)[0,0]
 
-        reference_stress[0] = c0 * (F00**2.0-1.0)/2.0
-        reference_stress[1] = c0 * self.cl.poisson_ratio * (F00**2.0-1.0)/2.0
+        self.reference_stress[0] = c0 * (F00**2.0-1.0)/2.0
+        self.reference_stress[1] = c0 * self.cl.poisson_ratio * (F00**2.0-1.0)/2.0
+        return self.reference_stress
 
 class UniaxialElasticPlaneStressUncoupledShear2D(UniaxialLinearElasticPlaneStress2D):
     def __init__(self, deltaDef):
@@ -388,68 +410,73 @@ class SimpleShearKirchhoffSaintVenant3D(SimpleShearDeformation):
         SimpleShearDeformation.__init__(self, deltaDef)
         self.cl = KirchhoffSaintVenant3D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         lame_lambda = (self.cl.young_modulus * self.cl.poisson_ratio) / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         lame_mu = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
         F01 = self.get_deformation_gradientF(i)[0,1]
 
-        reference_stress[0] = (0.5*lame_lambda + 2*lame_mu) * (F01)**2.0 + (0.5*lame_lambda + lame_mu) * (F01)**4.0
-        reference_stress[1] = (0.5*lame_lambda + lame_mu) * (F01)**2.0
-        reference_stress[2] = 0.5*lame_lambda  * (F01)**2.0
-        reference_stress[3] = lame_mu * (F01) + (0.5*lame_lambda + lame_mu) * (F01)**3.0
+        self.reference_stress[0] = (0.5*lame_lambda + 2*lame_mu) * (F01)**2.0 + (0.5*lame_lambda + lame_mu) * (F01)**4.0
+        self.reference_stress[1] = (0.5*lame_lambda + lame_mu) * (F01)**2.0
+        self.reference_stress[2] = 0.5*lame_lambda  * (F01)**2.0
+        self.reference_stress[3] = lame_mu * (F01) + (0.5*lame_lambda + lame_mu) * (F01)**3.0
+        return self.reference_stress
 
 class SimpleShearHyperElastic3D(SimpleShearDeformation):
     def __init__(self, deltaDef):
         SimpleShearDeformation.__init__(self, deltaDef)
         self.cl = HyperElastic3D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         lame_lambda = (self.cl.young_modulus * self.cl.poisson_ratio) / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         lame_mu = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
 
-        reference_stress[0] = lame_mu * (self.deltaDef * i)**2.0
-        reference_stress[3] = lame_mu * (self.deltaDef * i)
+        self.reference_stress[0] = lame_mu * (self.deltaDef * i)**2.0
+        self.reference_stress[3] = lame_mu * (self.deltaDef * i)
+        return self.reference_stress
 
 class SimpleShearLinearElastic3D(SimpleShearDeformation):
     def __init__(self, deltaDef):
         SimpleShearDeformation.__init__(self, deltaDef)
         self.cl = LinearElastic3D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         c0 = self.cl.young_modulus / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         F01 = self.get_deformation_gradientF(i)[0,1]
 
-        reference_stress[0] = c0 * self.cl.poisson_ratio * (F01**2.0)/2.0
-        reference_stress[1] = c0 * (1.0 - self.cl.poisson_ratio) * (F01**2.0)/2.0
-        reference_stress[2] = reference_stress[0]
-        reference_stress[3] = self.cl.young_modulus / ((1.0 + self.cl.poisson_ratio) * 2.0) * F01
+        self.reference_stress[0] = c0 * self.cl.poisson_ratio * (F01**2.0)/2.0
+        self.reference_stress[1] = c0 * (1.0 - self.cl.poisson_ratio) * (F01**2.0)/2.0
+        self.reference_stress[2] = self.reference_stress[0]
+        self.reference_stress[3] = self.cl.young_modulus / ((1.0 + self.cl.poisson_ratio) * 2.0) * F01
+        return self.reference_stress
 
 class SimpleShearLinearElasticPlaneStress2D(SimpleShearDeformation):
     def __init__(self, deltaDef):
         SimpleShearDeformation.__init__(self, deltaDef)
         self.cl = LinearElasticPlaneStress2D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         c0 = self.cl.young_modulus / (1.0 - self.cl.poisson_ratio**2)
         F01 = self.get_deformation_gradientF(i)[0,1]
 
-        reference_stress[0] = c0 * self.cl.poisson_ratio * (F01**2.0)/2.0
-        reference_stress[1] = c0 * (F01**2.0)/2.0
-        reference_stress[2] = self.cl.young_modulus / ((1.0 + self.cl.poisson_ratio) * 2.0) * F01
+        self.reference_stress[0] = c0 * self.cl.poisson_ratio * (F01**2.0)/2.0
+        self.reference_stress[1] = c0 * (F01**2.0)/2.0
+        self.reference_stress[2] = self.cl.young_modulus / ((1.0 + self.cl.poisson_ratio) * 2.0) * F01
+        return self.reference_stress
 
 class SimpleShearElasticPlaneStressUncoupledShear2D(SimpleShearDeformation):
     def __init__(self, deltaDef):
         SimpleShearDeformation.__init__(self, deltaDef)
         self.cl = ElasticPlaneStressUncoupledShear2D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         c0 = self.cl.young_modulus / (1.0 - self.cl.poisson_ratio**2)
         F01 = self.get_deformation_gradientF(i)[0,1]
         absGamma12 = abs(F01)
 
-        reference_stress[0] = c0 * self.cl.poisson_ratio * (F01**2.0)/2.0
-        reference_stress[1] = c0 * (F01**2.0)/2.0
-        reference_stress[2] = (self.cl.shear_modulus + self.cl.shear_modulus_gamma12 * absGamma12 + self.cl.shear_modulus_gamma12_2 * absGamma12**2 + self.cl.shear_modulus_gamma12_3 * absGamma12**3 + self.cl.shear_modulus_gamma12_4 * absGamma12**4)* F01
+        self.reference_stress[0] = c0 * self.cl.poisson_ratio * (F01**2.0)/2.0
+        self.reference_stress[1] = c0 * (F01**2.0)/2.0
+        self.reference_stress[2] = (self.cl.shear_modulus + self.cl.shear_modulus_gamma12 * absGamma12 + self.cl.shear_modulus_gamma12_2 * absGamma12**2 + self.cl.shear_modulus_gamma12_3 * absGamma12**3 + self.cl.shear_modulus_gamma12_4 * absGamma12**4)* F01
+        return self.reference_stress
 
 class ShearPlusStrechDeformation(Deformation):
     def __init__(self):
@@ -475,56 +502,131 @@ class ShearPlusStrechKirchhoffSaintVenant3D(ShearPlusStrechDeformation):
         ShearPlusStrechDeformation.__init__(self)
         self.cl = KirchhoffSaintVenant3D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         lame_lambda = (self.cl.young_modulus * self.cl.poisson_ratio) / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         lame_mu = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
         x1beta = self.x1beta
         x2beta = self.x2beta
         x3beta = self.x3beta
 
-        reference_stress[0]= math.cos(x3beta * i)*(x2beta*lame_mu*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) + (lame_lambda*math.cos(x3beta * i)*(x1beta**2 + x2beta**2))/2) + (x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i))*((lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) + x2beta*lame_mu*math.cos(x3beta * i) + x1beta*lame_mu*math.sin(x3beta * i)) + math.sin(x3beta * i)*((lame_lambda*math.sin(x3beta * i)*(x1beta**2 + x2beta**2))/2 + x1beta*lame_mu*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)))
-        reference_stress[1]= math.cos(x3beta * i)*(x1beta*lame_mu*(x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i)) + (lame_lambda*math.cos(x3beta * i)*(x1beta**2 + x2beta**2))/2) + (x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i))*((lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i)) + x1beta*lame_mu*math.cos(x3beta * i) - x2beta*lame_mu*math.sin(x3beta * i)) + math.sin(x3beta * i)*((lame_lambda*math.sin(x3beta * i)*(x1beta**2 + x2beta**2))/2 - x2beta*lame_mu*(x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i)))
-        reference_stress[2]=(lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)
-        reference_stress[3]= math.sin(x3beta * i)*(x2beta*lame_mu*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) + (lame_lambda*math.cos(x3beta * i)*(x1beta**2 + x2beta**2))/2) - math.cos(x3beta * i)*((lame_lambda*math.sin(x3beta * i)*(x1beta**2 + x2beta**2))/2 + x1beta*lame_mu*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i))) - (x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i))*((lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) + x2beta*lame_mu*math.cos(x3beta * i) + x1beta*lame_mu*math.sin(x3beta * i))
-        reference_stress[4]=(lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i)) + x1beta*lame_mu*math.cos(x3beta * i) - x2beta*lame_mu*math.sin(x3beta * i)
-        reference_stress[5]=- (lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) - x2beta*lame_mu*math.cos(x3beta * i) - x1beta*lame_mu*math.sin(x3beta * i)
+        self.reference_stress[0]= math.cos(x3beta * i)*(x2beta*lame_mu*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) + (lame_lambda*math.cos(x3beta * i)*(x1beta**2 + x2beta**2))/2) + (x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i))*((lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) + x2beta*lame_mu*math.cos(x3beta * i) + x1beta*lame_mu*math.sin(x3beta * i)) + math.sin(x3beta * i)*((lame_lambda*math.sin(x3beta * i)*(x1beta**2 + x2beta**2))/2 + x1beta*lame_mu*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)))
+        self.reference_stress[1]= math.cos(x3beta * i)*(x1beta*lame_mu*(x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i)) + (lame_lambda*math.cos(x3beta * i)*(x1beta**2 + x2beta**2))/2) + (x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i))*((lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i)) + x1beta*lame_mu*math.cos(x3beta * i) - x2beta*lame_mu*math.sin(x3beta * i)) + math.sin(x3beta * i)*((lame_lambda*math.sin(x3beta * i)*(x1beta**2 + x2beta**2))/2 - x2beta*lame_mu*(x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i)))
+        self.reference_stress[2]=(lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)
+        self.reference_stress[3]= math.sin(x3beta * i)*(x2beta*lame_mu*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) + (lame_lambda*math.cos(x3beta * i)*(x1beta**2 + x2beta**2))/2) - math.cos(x3beta * i)*((lame_lambda*math.sin(x3beta * i)*(x1beta**2 + x2beta**2))/2 + x1beta*lame_mu*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i))) - (x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i))*((lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) + x2beta*lame_mu*math.cos(x3beta * i) + x1beta*lame_mu*math.sin(x3beta * i))
+        self.reference_stress[4]=(lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x1beta*math.cos(x3beta * i) - x2beta*math.sin(x3beta * i)) + x1beta*lame_mu*math.cos(x3beta * i) - x2beta*lame_mu*math.sin(x3beta * i)
+        self.reference_stress[5]=- (lame_lambda/2 + lame_mu)*(x1beta**2 + x2beta**2)*(x2beta*math.cos(x3beta * i) + x1beta*math.sin(x3beta * i)) - x2beta*lame_mu*math.cos(x3beta * i) - x1beta*lame_mu*math.sin(x3beta * i)
+        return self.reference_stress
 
 class ShearPlusStrechHyperElastic3D(ShearPlusStrechDeformation):
     def __init__(self):
         ShearPlusStrechDeformation.__init__(self)
         self.cl = HyperElastic3D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         lame_lambda = (self.cl.young_modulus * self.cl.poisson_ratio) / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         lame_mu = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
         x1beta = self.x1beta
         x2beta = self.x2beta
         x3beta = self.x3beta
 
-        reference_stress[0] = (x2beta * math.cos(i * x3beta) + x1beta * math.sin(i * x3beta))**2.0
-        reference_stress[1] = (x1beta * math.cos(i * x3beta) - x2beta * math.sin(i * x3beta))**2.0
-        reference_stress[3] = (x2beta * math.cos(i * x3beta) + x1beta * math.sin(i * x3beta)) * (- x1beta * math.cos(i * x3beta) + x2beta * math.sin(i * x3beta))
-        reference_stress[4] = x1beta * math.cos(i * x3beta) - x2beta * math.sin(i * x3beta)
-        reference_stress[5] = - x2beta * math.cos(i * x3beta) - x1beta * math.sin(i * x3beta)
-        reference_stress *= lame_mu
+        self.reference_stress[0] = (x2beta * math.cos(i * x3beta) + x1beta * math.sin(i * x3beta))**2.0
+        self.reference_stress[1] = (x1beta * math.cos(i * x3beta) - x2beta * math.sin(i * x3beta))**2.0
+        self.reference_stress[3] = (x2beta * math.cos(i * x3beta) + x1beta * math.sin(i * x3beta)) * (- x1beta * math.cos(i * x3beta) + x2beta * math.sin(i * x3beta))
+        self.reference_stress[4] = x1beta * math.cos(i * x3beta) - x2beta * math.sin(i * x3beta)
+        self.reference_stress[5] = - x2beta * math.cos(i * x3beta) - x1beta * math.sin(i * x3beta)
+        self.reference_stress *= lame_mu
+        return self.reference_stress
 
 class ShearPlusStrechLinearElastic3D(ShearPlusStrechDeformation):
     def __init__(self):
         ShearPlusStrechDeformation.__init__(self)
         self.cl = LinearElastic3D()
 
-    def set_reference_stress(self, reference_stress, i):
+    def get_reference_stress(self, i):
         c0 = self.cl.young_modulus / ((1.0 + self.cl.poisson_ratio) * (1.0 - 2.0 * self.cl.poisson_ratio))
         c1 = self.cl.young_modulus / (2.0 * (1.0 + self.cl.poisson_ratio))
         x1beta = self.x1beta
         x2beta = self.x2beta
         x3beta = self.x3beta
 
-        reference_stress[0] = c0 * self.cl.poisson_ratio * (x1beta**2.0 + x2beta**2.0) / 2.0
-        reference_stress[1] = reference_stress[0]
-        reference_stress[2] = c0 * (1.0 - self.cl.poisson_ratio) * (x1beta**2.0 + x2beta**2.0) / 2.0
-        reference_stress[4] = x2beta * c1
-        reference_stress[5] = -c1 * x1beta
+        self.reference_stress[0] = c0 * self.cl.poisson_ratio * (x1beta**2.0 + x2beta**2.0) / 2.0
+        self.reference_stress[1] = self.reference_stress[0]
+        self.reference_stress[2] = c0 * (1.0 - self.cl.poisson_ratio) * (x1beta**2.0 + x2beta**2.0) / 2.0
+        self.reference_stress[4] = x2beta * c1
+        self.reference_stress[5] = -c1 * x1beta
+        return self.reference_stress
+
+class DeformationLinearJ2Plasticity(Deformation):
+    def __init__(self):
+        Deformation.__init__(self)
+        self.nr_timesteps = 10
+
+    def set_deformation(self, cl_params, i):
+        self.strain = (i+1)/ self.nr_timesteps * self.initial_strain
+        cl_params.SetStrainVector(self.strain)
+
+class DeformationLinearJ2Plasticity3D(DeformationLinearJ2Plasticity):
+    def __init__(self):
+        DeformationLinearJ2Plasticity.__init__(self)
+        self.cl = LinearJ2Plasticity3D()
+
+    def initialize_reference_stress(self, strain_size):
+        self.initial_strain = KratosMultiphysics.Vector(strain_size)
+        self.initial_strain[0] = 0.001
+        self.initial_strain[1] = 0.001
+        self.initial_strain[2] = 0.0
+        self.initial_strain[3] = 0.001
+        self.initial_strain[4] = 0.0
+        self.initial_strain[5] = 0.001
+
+        r_stress = []
+        for i in range(self.nr_timesteps):
+            r_stress.append(KratosMultiphysics.Vector(strain_size))
+        r_stress[0][0] = 4.03846; r_stress[0][1] = 4.03846; r_stress[0][2] = 2.42308; r_stress[0][3] = 0.80769; r_stress[0][4] = 0.0; r_stress[0][5] = 0.80769;
+        r_stress[1][0] = 8.07692; r_stress[1][1] = 8.07692; r_stress[1][2] = 4.84615; r_stress[1][3] = 1.61538; r_stress[1][4] = 0.0; r_stress[1][5] = 1.61538;
+        r_stress[2][0] = 11.6595; r_stress[2][1] = 11.6595; r_stress[2][2] = 8.18099; r_stress[2][3] = 1.73926; r_stress[2][4] = 0.0; r_stress[2][5] = 1.73926;
+        r_stress[3][0] = 15.1595; r_stress[3][1] = 15.1595; r_stress[3][2] = 11.681 ; r_stress[3][3] = 1.73926; r_stress[3][4] = 0.0; r_stress[3][5] = 1.73926;
+        r_stress[4][0] = 18.6595; r_stress[4][1] = 18.6595; r_stress[4][2] = 15.181 ; r_stress[4][3] = 1.73926; r_stress[4][4] = 0.0; r_stress[4][5] = 1.73926;
+        r_stress[5][0] = 22.1595; r_stress[5][1] = 22.1595; r_stress[5][2] = 18.681 ; r_stress[5][3] = 1.73927; r_stress[5][4] = 0.0; r_stress[5][5] = 1.73927;
+        r_stress[6][0] = 25.6595; r_stress[6][1] = 25.6595; r_stress[6][2] = 22.181 ; r_stress[6][3] = 1.73927; r_stress[6][4] = 0.0; r_stress[6][5] = 1.73927;
+        r_stress[7][0] = 29.1595; r_stress[7][1] = 29.1595; r_stress[7][2] = 25.681 ; r_stress[7][3] = 1.73928; r_stress[7][4] = 0.0; r_stress[7][5] = 1.73928;
+        r_stress[8][0] = 32.6595; r_stress[8][1] = 32.6595; r_stress[8][2] = 29.181 ; r_stress[8][3] = 1.73928; r_stress[8][4] = 0.0; r_stress[8][5] = 1.73928;
+        r_stress[9][0] = 36.1595; r_stress[9][1] = 36.1595; r_stress[9][2] = 32.681; r_stress[9][3] = 1.73929; r_stress[9][4] = 0.0; r_stress[9][5] = 1.73929;
+        self.reference_stress = r_stress
+
+    def get_reference_stress(self, i):
+        return self.reference_stress[i]
+
+class DeformationLinearJ2PlasticityPlaneStrain2D(DeformationLinearJ2Plasticity):
+    def __init__(self):
+        DeformationLinearJ2Plasticity.__init__(self)
+        self.cl = LinearJ2PlasticityPlaneStrain2D()
+
+    def initialize_reference_stress(self, strain_size):
+        self.initial_strain = KratosMultiphysics.Vector(strain_size)
+        self.initial_strain[0] = 0.001
+        self.initial_strain[1] = 0.001
+        self.initial_strain[2] = 0.0
+        self.initial_strain[3] = 0.001
+
+        r_stress = []
+        for i in range(self.nr_timesteps):
+            r_stress.append(KratosMultiphysics.Vector(strain_size))
+        r_stress[0][0] = 4.03846; r_stress[0][1] = 4.03846; r_stress[0][2] = 2.42308; r_stress[0][3] = 0.807692;
+        r_stress[1][0] = 8.07692; r_stress[1][1] = 8.07692; r_stress[1][2] = 4.84615; r_stress[1][3] = 1.61538;
+        r_stress[2][0] = 11.8859; r_stress[2][1] = 11.8859; r_stress[2][2] = 7.72826; r_stress[2][3] = 2.07881;
+        r_stress[3][0] = 15.3859; r_stress[3][1] = 15.3859; r_stress[3][2] = 11.2283; r_stress[3][3] = 2.07881;
+        r_stress[4][0] = 18.8859; r_stress[4][1] = 18.8859; r_stress[4][2] = 14.7282; r_stress[4][3] = 2.07882;
+        r_stress[5][0] = 22.3859; r_stress[5][1] = 22.3859; r_stress[5][2] = 18.2282; r_stress[5][3] = 2.07882;
+        r_stress[6][0] = 25.8859; r_stress[6][1] = 25.8859; r_stress[6][2] = 21.7282; r_stress[6][3] = 2.07882;
+        r_stress[7][0] = 29.3859; r_stress[7][1] = 29.3859; r_stress[7][2] = 25.2282; r_stress[7][3] = 2.07883;
+        r_stress[8][0] = 32.8859; r_stress[8][1] = 32.8859; r_stress[8][2] = 28.7282; r_stress[8][3] = 2.07883;
+        r_stress[9][0] = 36.3859; r_stress[9][1] = 36.3859; r_stress[9][2] = 32.2282; r_stress[9][3] = 2.07884;
+        self.reference_stress = r_stress
+
+    def get_reference_stress(self, i):
+        return self.reference_stress[i]
+
 
 class LinearElastic():
     def __init__(self):
@@ -590,6 +692,41 @@ class ElasticPlaneStressUncoupledShear2D(LinearElasticPlaneStress2D):
 
     def create_constitutive_Law(self):
         return StructuralMechanicsApplication.ElasticPlaneStressUncoupledShear2DLaw()
+
+class LinearJ2Plasticity(LinearElastic):
+    def __init__(self):
+        self.young_modulus = 21000
+        self.poisson_ratio = 0.3
+        self.yield_stress = 5.5
+        self.reference_hardening_modulus = 1.0
+        self.isotropic_hardening_modulus = 0.12924
+        self.infinity_hardening_modulus = 0.0
+        self.hardening_exponent = 1.0
+
+    def create_properties(self, model_part):
+        properties = LinearElastic.create_properties(self, model_part)
+        properties.SetValue(KratosMultiphysics.YIELD_STRESS, self.yield_stress)
+        properties.SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, self.reference_hardening_modulus)
+        properties.SetValue(KratosMultiphysics.ISOTROPIC_HARDENING_MODULUS, self.isotropic_hardening_modulus)
+        properties.SetValue(KratosMultiphysics.INFINITY_HARDENING_MODULUS, self.infinity_hardening_modulus)
+        properties.SetValue(KratosMultiphysics.HARDENING_EXPONENT, self.hardening_exponent)
+        return properties
+
+class LinearJ2Plasticity3D(LinearJ2Plasticity):
+    def __init__(self):
+        LinearJ2Plasticity.__init__(self)
+        self.dim = 3
+
+    def create_constitutive_Law(self):
+        return StructuralMechanicsApplication.LinearJ2Plasticity3DLaw()
+
+class LinearJ2PlasticityPlaneStrain2D(LinearJ2Plasticity):
+    def __init__(self):
+        LinearJ2Plasticity.__init__(self)
+        self.dim = 2
+
+    def create_constitutive_Law(self):
+        return StructuralMechanicsApplication.LinearJ2PlasticityPlaneStrain2DLaw()
 
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -104,11 +104,9 @@ public:
 		else
 			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
 
-		mConsiderDiscretization =  responseSettings["discretization_weighting"].GetBool();
+		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 
 		// Initialize member variables to NULL
-		m_initial_value = 0.0;
-		m_initial_value_defined = false;
 		m_strain_energy = 0.0;
 	}
 
@@ -179,13 +177,6 @@ public:
 			m_strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
 		}
 
-		// Set initial value if not done yet
-		if(!m_initial_value_defined)
-		{
-			m_initial_value = m_strain_energy;
-			m_initial_value_defined = true;
-		}
-
 		KRATOS_CATCH("");
 	}
 
@@ -240,18 +231,6 @@ public:
 
 		if (mConsiderDiscretization)
 			this->ConsiderDiscretization();
-
-		KRATOS_CATCH("");
-	}
-	// --------------------------------------------------------------------------
-	double GetInitialValue()
-	{
-		KRATOS_TRY;
-
-		if(!m_initial_value_defined)
-		KRATOS_ERROR << "Initial value not yet defined! First compute it by calling \"CalculateValue()\"!" << std::endl;
-
-		return m_initial_value;
 
 		KRATOS_CATCH("");
 	}
@@ -642,8 +621,6 @@ private:
 	unsigned int mGradientMode;
 	double m_strain_energy;
 	double mDelta;
-	double m_initial_value;
-	bool m_initial_value_defined;
 	bool mConsiderDiscretization;
 
 	///@}

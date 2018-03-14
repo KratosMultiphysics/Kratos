@@ -43,38 +43,56 @@ namespace Kratos
 
         Vector RHS_Contribution;
         Matrix LHS_Contribution;
-        ProcessInfo& rCurrentProcessInfo = root_model_part.GetProcessInfo();
-        const unsigned int domain_size = rCurrentProcessInfo[DOMAIN_SIZE];
+        ProcessInfo& r_current_process_info = root_model_part.GetProcessInfo();
+        const unsigned int domain_size = r_current_process_info[DOMAIN_SIZE];
 
-        #pragma omp parallel for private(RHS_Contribution, LHS_Contribution) firstprivate(domain_size)
-        for (int i_elem = 0; i_elem < static_cast<int>(root_model_part.NumberOfElements()); ++i_elem){
-            auto it_elem = root_model_part.ElementsBegin() + i_elem;
-
-            // Build local system
-            it_elem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, rCurrentProcessInfo);
-
-            // Get geometry
-            Element::GeometryType& r_geom = it_elem->GetGeometry();
-            const unsigned int n_nodes = r_geom.PointsNumber();
-            const unsigned int block_size = RHS_Contribution.size()/n_nodes;
-
-            for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
-                r_geom[i_node].SetLock();
-                array_1d<double,3>& r_reaction = r_geom[i_node].FastGetSolutionStepValue(REACTION);
-                for (unsigned int d = 0; d < domain_size; ++d)
-                    r_reaction[d] -= RHS_Contribution[block_size*i_node + d];
-
-                r_geom[i_node].UnSetLock();
-            }
+        // Fractional step case: set the step index to compute the momentum equation
+        int current_fractional_step = 0;
+        if (r_current_process_info.Has(FRACTIONAL_STEP)) {
+            current_fractional_step = r_current_process_info[FRACTIONAL_STEP];
+            r_current_process_info[FRACTIONAL_STEP] = 1;
         }
 
-        // Assemble reaction data
-        root_model_part.GetCommunicator().AssembleCurrentData(REACTION);
+        // Calculate only if the buffer size is full and the solution is already running
+        // otherwise we might encounter errors due to uninitialized things required by the elements.
+        unsigned int solution_step = r_current_process_info[STEP];
+        if (solution_step+1 >= rModelPart.GetBufferSize() ) {
+
+            #pragma omp parallel for private(RHS_Contribution, LHS_Contribution) firstprivate(domain_size)
+            for (int i_elem = 0; i_elem < static_cast<int>(root_model_part.NumberOfElements()); ++i_elem){
+                auto it_elem = root_model_part.ElementsBegin() + i_elem;
+
+                // Build local system
+                it_elem->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, r_current_process_info);
+
+                // Get geometry
+                Element::GeometryType& r_geom = it_elem->GetGeometry();
+                const unsigned int n_nodes = r_geom.PointsNumber();
+                const unsigned int block_size = RHS_Contribution.size()/n_nodes;
+
+                for (unsigned int i_node = 0; i_node < n_nodes; ++i_node){
+                    r_geom[i_node].SetLock();
+                    array_1d<double,3>& r_reaction = r_geom[i_node].FastGetSolutionStepValue(REACTION);
+                    for (unsigned int d = 0; d < domain_size; ++d)
+                        r_reaction[d] -= RHS_Contribution[block_size*i_node + d];
+
+                    r_geom[i_node].UnSetLock();
+                }
+            }
+
+            // Assemble reaction data
+            root_model_part.GetCommunicator().AssembleCurrentData(REACTION);
+        }
 
         // Sum the reactions in the model part of interest
         VariableUtils variable_utils;
         array_1d<double, 3> drag_force = variable_utils.SumHistoricalNodeVectorVariable(REACTION, rModelPart, 0);
         drag_force *= -1.0;
+
+        // Fractional step case: restore the step index
+        if (r_current_process_info.Has(FRACTIONAL_STEP)) {
+            r_current_process_info[FRACTIONAL_STEP] = current_fractional_step;
+        }
 
         return drag_force;
 

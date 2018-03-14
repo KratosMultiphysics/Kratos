@@ -225,8 +225,6 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         label = self.fluid_model_part.ProcessInfo[TIME]
         gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
         gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(DENSITY,self.fluid_model_part.Nodes,label,0)
-        gid_io.WriteNodalResults(DYNAMIC_VISCOSITY,self.fluid_model_part.Nodes,label,0)
 
         gid_io.FinalizeResults()
 

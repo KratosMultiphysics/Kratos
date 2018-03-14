@@ -90,6 +90,57 @@ SphericParticle::~SphericParticle(){
     }
 }
 
+SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
+    DiscreteElement::operator=(rOther);
+    mElasticEnergy = rOther.mElasticEnergy;
+    mInelasticFrictionalEnergy = rOther.mInelasticFrictionalEnergy;
+    mInelasticViscodampingEnergy = rOther.mInelasticViscodampingEnergy;
+    mNeighbourElements = rOther.mNeighbourElements;
+    mContactingNeighbourIds = rOther.mContactingNeighbourIds;
+    mContactingFaceNeighbourIds = rOther.mContactingFaceNeighbourIds;
+    mNeighbourRigidFaces = rOther.mNeighbourRigidFaces;
+    mNeighbourPotentialRigidFaces = rOther.mNeighbourPotentialRigidFaces;
+    mContactConditionWeights = rOther.mContactConditionWeights;
+    mContactConditionContactTypes = rOther.mContactConditionContactTypes;
+    mConditionContactPoints = rOther.mConditionContactPoints;
+    mNeighbourRigidFacesTotalContactForce = rOther.mNeighbourRigidFacesTotalContactForce;
+    mNeighbourRigidFacesElasticContactForce = rOther.mNeighbourRigidFacesElasticContactForce;
+    mNeighbourElasticContactForces = rOther.mNeighbourElasticContactForces;
+    mNeighbourElasticExtraContactForces = rOther.mNeighbourElasticExtraContactForces;
+    mContactMoment = rOther.mContactMoment;
+    mPartialRepresentativeVolume = rOther.mPartialRepresentativeVolume; //TODO: to continuum!
+    mFemOldNeighbourIds = rOther.mFemOldNeighbourIds;
+    mRadius = rOther.mRadius;
+    mSearchRadius = rOther.mSearchRadius;
+    mRealMass = rOther.mRealMass;
+    mClusterId = rOther.mClusterId;
+    mBoundDeltaDispSq = rOther.mBoundDeltaDispSq;
+    mGlobalDamping = rOther.mGlobalDamping;
+
+    if(rOther.mStressTensor != NULL) {
+        mStressTensor  = new Matrix(3,3);
+        *mStressTensor = *rOther.mStressTensor;
+
+        mSymmStressTensor  = new Matrix(3,3);
+        *mSymmStressTensor = *rOther.mSymmStressTensor;
+    }
+    else {
+
+        mStressTensor     = NULL;
+        mSymmStressTensor = NULL;
+    }
+
+    mFastProperties = rOther.mFastProperties; //This might be unsafe
+
+    DEMIntegrationScheme::Pointer& translational_integration_scheme = GetProperties()[DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER];
+    DEMIntegrationScheme::Pointer& rotational_integration_scheme = GetProperties()[DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER];
+    SetIntegrationScheme(translational_integration_scheme, rotational_integration_scheme);
+
+    mDiscontinuumConstitutiveLaw = GetProperties()[DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER]->Clone();
+        
+    return *this;
+}
+
 void SphericParticle::Initialize(const ProcessInfo& r_process_info)
 {
     KRATOS_TRY
