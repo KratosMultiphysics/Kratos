@@ -274,59 +274,6 @@ void DVMS<TElementData>::PrintInfo(std::ostream& rOStream) const
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected functions
 
-template< class TElementData >
-void DVMS<TElementData>::ASGSMomentumResidual(
-    TElementData& rData,
-    array_1d<double,3> &rMomentumRes)
-{
-
-}
-
-
-template< class TElementData >
-void DVMS<TElementData>::ASGSMassResidual(
-    TElementData& rData,
-    double &rMomentumRes)
-{
-
-}
-
-
-template< class TElementData >
-void DVMS<TElementData>::OSSMomentumResidual(
-    TElementData& rData,
-    array_1d<double,3> &rMomentumRes)
-{
-
-}
-
-
-template< class TElementData >
-void DVMS<TElementData>::OSSMassResidual(
-    TElementData& rData,
-    double &rMassRes)
-{
-
-}
-
-
-template< class TElementData >
-void DVMS<TElementData>::MomentumProjTerm(
-    TElementData& rData,
-    array_1d<double,3> &rMomentumRHS)
-{
-
-}
-
-
-template< class TElementData >
-void DVMS<TElementData>::MassProjTerm(
-    TElementData& rData,
-    double &rMassRHS)
-{
-
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Evaluation of system terms on Gauss Points
 
@@ -530,6 +477,36 @@ void DVMS<TElementData>::CalculateTau(
 }
 
 template< class TElementData >
+void DVMS<TElementData>::MomentumProjTerm(
+    const TElementData& rData,
+    const array_1d<double,3>& rConvectionVelocity,
+    array_1d<double,3> &rMomentumRHS) const
+{
+    Vector AGradN;
+    this->ConvectionOperator(AGradN,rConvectionVelocity,rData.DN_DX);
+
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        for (unsigned int d = 0; d < Dim; d++) {
+            rMomentumRHS[d] += density * ( rData.N[i]*(rData.BodyForce(i,d) /*- rAcc[d]*/) - AGradN[i]*rData.Velocity(i,d)) - rData.DN_DX(i,d)*rData.Pressure[i];
+        }
+    }
+}
+
+
+template< class TElementData >
+void DVMS<TElementData>::MassProjTerm(
+    const TElementData& rData,
+    double &rMassRHS) const
+{
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        for (unsigned int d = 0; d < Dim; d++)
+            rMassRHS -= rData.DN_DX(i,d)*rData.Velocity(i,d);
+    }
+}
+
+template< class TElementData >
 void DVMS<TElementData>::SubscaleVelocity(
     const TElementData& rData,
     const unsigned int GaussPointIndex,
@@ -587,9 +564,9 @@ void DVMS<TElementData>::SubscalePressure(
     double residual = 0.0;
 
     if (rData.UseOSS != 1.0)
-        this->ASGSMassResidual(rData,convective_velocity,residual);
+        this->ASGSMassResidual(rData,residual);
     else
-        this->OSSMassResidual(rData,convective_velocity,residual);
+        this->OSSMassResidual(rData,residual);
 
     rPressureSubscale = (tau_two+tau_p)*residual - tau_p*old_residual;
 }
@@ -724,10 +701,9 @@ void DVMS<TElementData>::ASGSMomentumResidual(
 template< class TElementData >
 void DVMS<TElementData>::ASGSMassResidual(
     const TElementData& rData,
-    const array_1d<double,3> &rConvectionVelocity,
     double& rResidual) const
 {
-
+    this->MassProjTerm(rData,rResidual);
 }
 
 template< class TElementData >
@@ -736,16 +712,19 @@ void DVMS<TElementData>::OSSMomentumResidual(
     const array_1d<double,3> &rConvectionVelocity,
     array_1d<double,3>& rResidual) const
 {
+    this->MomentumProjTerm(rData,rConvectionVelocity,rResidual);
 
+    const array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection,rData.N);
+    noalias(rResidual) -= momentum_projection;
 }
 
 template< class TElementData >
 void DVMS<TElementData>::OSSMassResidual(
     const TElementData& rData,
-    const array_1d<double,3> &rConvectionVelocity,
     double& rResidual) const
 {
-
+    this->MassProjTerm(rData,rResidual);
+    rResidual -= this->GetAtCoordinate(rData.MassProjection,rData.N);
 }
 
 

@@ -320,31 +320,6 @@ protected:
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo);
 
-    virtual void MomentumProjTerm(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRHS);
-
-    virtual void MassProjTerm(
-        TElementData& rData,
-        double& rMassRHS);
-
-    virtual void ASGSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
-
-
-    virtual void ASGSMassResidual(
-        TElementData& rData,
-        double& rMomentumRes);
-
-    virtual void OSSMomentumResidual(
-        TElementData& rData,
-        array_1d<double,3>& rMomentumRes);
-
-    virtual void OSSMassResidual(
-        TElementData& rData,
-        double& rMassRes);
-
     ///@}
     ///@name Protected  Access
     ///@{
@@ -411,6 +386,15 @@ private:
         double &TauOne,
         double &TauTwo,
         double &TauP) const;
+
+    void MomentumProjTerm(
+        const TElementData& rData,
+        const array_1d<double,3>& rConvectionVelocity,
+        array_1d<double,3>& rMomentumRHS) const;
+
+    void MassProjTerm(
+        const TElementData& rData,
+        double& rMassRHS) const;
     
     void SubscaleVelocity(
         const TElementData& rData,
@@ -433,9 +417,7 @@ private:
 
     void ASGSMassResidual(
         const TElementData& rData,
-        const array_1d<double,3> &rConvectionVelocity,
         double& rResidual) const;
-
 
     void OSSMomentumResidual(
         const TElementData& rData,
@@ -444,7 +426,6 @@ private:
 
     void OSSMassResidual(
         const TElementData& rData,
-        const array_1d<double,3> &rConvectionVelocity,
         double& rResidual) const;
 
     ///@}
