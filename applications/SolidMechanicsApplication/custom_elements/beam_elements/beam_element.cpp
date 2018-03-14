@@ -645,14 +645,10 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-        // array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-        // array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-
        array_1d<double, 3 > & CurrentStepDisplacement = GetGeometry()[i].FastGetSolutionStepValue(STEP_DISPLACEMENT,0);
        
        for ( unsigned int j = 0; j < dimension; j++ )
 	  {
-            // rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
 	    rDeltaPosition(i,j) = CurrentStepDisplacement[j];		    
 	  }
 

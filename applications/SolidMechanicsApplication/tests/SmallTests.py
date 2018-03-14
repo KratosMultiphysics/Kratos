@@ -120,6 +120,23 @@ class UL_Element3D8N_TensionTest(TF.TestFactory):
 class UL_Element3D4N_TensionTest(TF.TestFactory):
     file_name = "element_tests/updated_lagrangian_elements/patch_test_3D4N_tension"
     file_parameters = "element_tests/tension_3D_parameters.json"
+
+# Large displacement beam elements
+class LD_Beam_BendingRollUpTest(TF.TestFactory):
+    file_name = "element_tests/beam_elements/static_beam_bending"
+    file_parameters = "element_tests/beam_bending_parameters.json"
+
+class EMC_Beam_BendingRollUpTest(TF.TestFactory):
+    file_name = "element_tests/beam_elements/emc_static_beam_bending"
+    file_parameters = "element_tests/beam_bending_parameters.json"
+
+class LD_Beam_DynamicRotation(TF.TestFactory):
+    file_name = "dynamic_tests/beam_elements/dynamic_beam"
+    file_parameters = "dynamic_tests/beam_elements/dynamic_beam_parameters.json"
+
+class EMC_Beam_DynamicRotation(TF.TestFactory):
+    file_name = "dynamic_tests/beam_elements/emc_dynamic_beam"
+    file_parameters = "dynamic_tests/beam_elements/emc_dynamic_beam_parameters.json"  
     
 # Large displacement shells SHE        
 class Thick_Shell3D4N_BendingRollUpTest(TF.TestFactory):
@@ -184,11 +201,17 @@ def SetTestSuite(suites):
             UL_Element3D4N_ShearTest,
             UL_Element3D8N_TensionTest,
             UL_Element3D4N_TensionTest,
+            #BEM
+            LD_Beam_BendingRollUpTest,
+            EMC_Beam_BendingRollUpTest,
+            LD_Beam_DynamicRotation,
+            EMC_Beam_DynamicRotation,
             #SHE
             Thick_Shell3D4N_BendingRollUpTest,
             Thick_Shell3D4N_DrillingRollUpTest,
             Thin_Shell3D3N_BendingRollUpTest,
             Thin_Shell3D3N_DrillingRollUpTest
+
         ])
     )
     
