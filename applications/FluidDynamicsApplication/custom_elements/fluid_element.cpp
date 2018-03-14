@@ -606,7 +606,7 @@ void FluidElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
 template< class TElementData >
 void FluidElement<TElementData>::ConvectionOperator(Vector &rResult,
                                    const array_1d<double,3> &rConvVel,
-                                   const ShapeFunctionDerivativesType &DN_DX)
+                                   const ShapeFunctionDerivativesType &DN_DX) const
 {
     if(rResult.size() != NumNodes) rResult.resize(NumNodes,false);
 

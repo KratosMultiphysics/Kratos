@@ -399,7 +399,7 @@ protected:
      */
     void ConvectionOperator(Vector& rResult,
                             const array_1d<double,3>& rConvVel,
-                            const ShapeFunctionDerivativesType& DN_DX);
+                            const ShapeFunctionDerivativesType& DN_DX) const;
 
     virtual void AddTimeIntegratedSystem(
         TElementData& rData,
