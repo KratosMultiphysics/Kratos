@@ -20,6 +20,8 @@
 #include "custom_python/add_custom_solvers_to_python.h"
 
 #include "spaces/ublas_space.h"
+#include "includes/ublas_interface.h"
+#include "includes/ublas_complex_interface.h"
 #include "linear_solvers/linear_solver.h"
 #include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
@@ -36,17 +38,18 @@ void AddCustomSolversToPython()
 	using namespace boost::python;
 
 	using complex_t = std::complex<double>;
-	
+
 	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-	
+
     typedef UblasSpace<complex_t, ComplexCompressedMatrix, ComplexVector> ComplexSparseSpaceType;
     typedef UblasSpace<complex_t, ComplexMatrix, ComplexVector> ComplexLocalSpaceType;
 
 	typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
 	typedef DirectSolver<SparseSpaceType, LocalSpaceType> DirectSolverType;
 
-    typedef LinearSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexLinearSolverType;
+    typedef LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType> ComplexLinearSolverType;
+    typedef DirectSolver<ComplexSparseSpaceType, ComplexLocalSpaceType> ComplexDirectSolverType;
 
 	// --- direct solvers
 
@@ -55,9 +58,9 @@ void AddCustomSolversToPython()
 		("SparseLUSolver", init<>())
 		.def(init<Parameters>())
 	;
-	
+
 	using ComplexSparseLUSolver = EigenDirectSolver<SparseLU<complex_t>, ComplexSparseSpaceType, ComplexLocalSpaceType>;
-	class_<ComplexSparseLUSolver, bases<ComplexLinearSolverType>, boost::noncopyable>
+	class_<ComplexSparseLUSolver, bases<ComplexDirectSolverType>, boost::noncopyable>
 		("ComplexSparseLUSolver", init<>())
 		.def(init<Parameters>())
 	;
@@ -79,7 +82,26 @@ void AddCustomSolversToPython()
 	class_<PardisoLUSolver, bases<DirectSolverType>, boost::noncopyable>
 		("PardisoLUSolver", init<>())
 		.def(init<Parameters>())
-	;	
+	;
+
+
+	using ComplexPardisoLLTSolver = EigenDirectSolver<PardisoLLT<complex_t>, ComplexSparseSpaceType, ComplexLocalSpaceType>;
+	class_<ComplexPardisoLLTSolver, bases<ComplexDirectSolverType>, boost::noncopyable>
+		("ComplexPardisoLLTSolver", init<>())
+		.def(init<Parameters>())
+	;
+
+	using ComplexPardisoLDLTSolver = EigenDirectSolver<PardisoLDLT<complex_t>, ComplexSparseSpaceType, ComplexLocalSpaceType>;
+	class_<ComplexPardisoLDLTSolver, bases<ComplexDirectSolverType>, boost::noncopyable>
+		("ComplexPardisoLDLTSolver", init<>())
+		.def(init<Parameters>())
+	;
+
+	using ComplexPardisoLUSolver = EigenDirectSolver<PardisoLU<complex_t>, ComplexSparseSpaceType, ComplexLocalSpaceType>;
+	class_<ComplexPardisoLUSolver, bases<ComplexDirectSolverType>, boost::noncopyable>
+		("ComplexPardisoLUSolver", init<>())
+		.def(init<Parameters>())
+	;
 	#endif // defined USE_EIGEN_MKL
 
 	using SparseQRSolver = EigenDirectSolver<SparseQR<double>, SparseSpaceType, LocalSpaceType>;

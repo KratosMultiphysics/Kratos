@@ -37,42 +37,42 @@ struct SolverType
 };
 
 template <typename scalar_t>
-struct SparseLU : SolverType
+struct SparseLU : public SolverType<scalar_t>
 {
-    using TSolver = Eigen::SparseLU<TSparseMatrix>;
+    using TSolver = Eigen::SparseLU<typename SolverType<scalar_t>::TSparseMatrix>;
 
     static constexpr auto Name = "SparseLU";
 };
 
 template <typename scalar_t>
-struct SparseQR : SolverType
+struct SparseQR : SolverType<scalar_t>
 {
-    using TSolver = Eigen::SparseQR<TSparseMatrix, Eigen::COLAMDOrdering<int>>;
+    using TSolver = Eigen::SparseQR<typename SolverType<scalar_t>::TSparseMatrix, Eigen::COLAMDOrdering<int>>;
 
     static constexpr auto Name = "SparseQR";
 };
 
 #if defined EIGEN_USE_MKL_ALL
 template <typename scalar_t>
-struct PardisoLLT : SolverType
+struct PardisoLLT : SolverType<scalar_t>
 {
-    using TSolver = Eigen::PardisoLLT<TSparseMatrix>;
+    using TSolver = Eigen::PardisoLLT<typename SolverType<scalar_t>::TSparseMatrix>;
 
     static constexpr auto Name = "PardisoLLT";
 };
 
 template <typename scalar_t>
-struct PardisoLDLT : SolverType
+struct PardisoLDLT : SolverType<scalar_t>
 {
-    using TSolver = Eigen::PardisoLDLT<TSparseMatrix>;
+    using TSolver = Eigen::PardisoLDLT<typename SolverType<scalar_t>::TSparseMatrix>;
 
     static constexpr auto Name = "PardisoLDLT";
 };
 
 template <typename scalar_t>
-struct PardisoLU : SolverType
+struct PardisoLU : SolverType<scalar_t>
 {
-    using TSolver = Eigen::PardisoLU<TSparseMatrix>;
+    using TSolver = Eigen::PardisoLU<typename SolverType<scalar_t>::TSparseMatrix>;
 
     static constexpr auto Name = "PardisoLU";
 };
@@ -101,6 +101,8 @@ class EigenDirectSolver
 
     typedef typename TSparseSpaceType::VectorType VectorType;
 
+    typedef typename TSparseSpaceType::DataType DataType;
+
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
     EigenDirectSolver() {}
@@ -120,7 +122,7 @@ class EigenDirectSolver
      */
     void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        UblasWrapper<> a_wrapper(rA);
+        UblasWrapper<DataType> a_wrapper(rA);
 
         const auto& a = a_wrapper.matrix();
 
@@ -138,9 +140,9 @@ class EigenDirectSolver
      */
     void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
-        Eigen::Map<Eigen::VectorXd> x(rX.data().begin(), rX.size());
-        Eigen::Map<Eigen::VectorXd> b(rB.data().begin(), rB.size());
-        
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1> > x(rX.data().begin(), rX.size());
+        Eigen::Map<Eigen::Matrix<DataType, Eigen::Dynamic, 1> > b(rB.data().begin(), rB.size());
+
         x = m_solver.solve(b);
 
         KRATOS_ERROR_IF(m_solver.info() != Eigen::Success) << "Solving failed!" << std::endl;

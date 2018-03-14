@@ -103,8 +103,8 @@ class EigensystemSolver
 
         // --- wrap ublas matrices
 
-        UblasWrapper<> a_wrapper(rK);
-        UblasWrapper<> b_wrapper(rM);
+        UblasWrapper<scalar_t> a_wrapper(rK);
+        UblasWrapper<scalar_t> b_wrapper(rM);
 
         const auto& a = a_wrapper.matrix();
         const auto& b = b_wrapper.matrix();
