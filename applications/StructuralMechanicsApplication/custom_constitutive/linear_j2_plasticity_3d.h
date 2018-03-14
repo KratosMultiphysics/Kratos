@@ -162,18 +162,6 @@ public:
     double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
     /**
-     * @brief Sets the value of a specified variable (boolean)
-     * @param rThisVariable The variable to be returned
-     * @param rValue New value of the specified variable
-     * @param rCurrentProcessInfo the process info
-     */
-    void SetValue(
-        const Variable<bool>& rThisVariable,
-        const bool& rValue,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-    /**
      * @brief Sets the value of a specified variable (double)
      * @param rThisVariable The variable to be returned
      * @param rValue New value of the specified variable
@@ -310,10 +298,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mInelasticFlag;                 /// This flags tells if we are in a elastic or ineslastic regime
-    Vector mPlasticStrain;               /// The current plastic strain (one for each of the strain components)
-    Vector mPlasticStrainOld;            /// The previous plastic strain (one for each of the strain components)
-    double mAccumulatedPlasticStrain;    /// The current accumulated plastic strain
+    bool mInelasticFlag; /// This flags tells if we are in a elastic or ineslastic regime
+    Vector mPlasticStrain; /// The current plastic strain (one for each of the strain components)
+    Vector mPlasticStrainOld; /// The previous plastic strain (one for each of the strain components)
+    double mAccumulatedPlasticStrain; /// The current accumulated plastic strain
     double mAccumulatedPlasticStrainOld; /// The previous accumulated plastic strain
 
     ///@}

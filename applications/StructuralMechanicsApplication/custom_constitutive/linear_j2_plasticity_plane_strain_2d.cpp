@@ -314,11 +314,6 @@ void LinearJ2PlasticityPlaneStrain2D::GetLawFeatures(Features& rFeatures)
 void LinearJ2PlasticityPlaneStrain2D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearJ2Plasticity3D);
-    rSerializer.save("mInelasticFlag", mInelasticFlag);
-    rSerializer.save("mPlasticStrain", mPlasticStrain);
-    rSerializer.save("mPlasticStrainOld", mPlasticStrainOld);
-    rSerializer.save("mAccumulatedPlasticStrain", mAccumulatedPlasticStrain);
-    rSerializer.save("mAccumulatedPlasticStrainOld", mAccumulatedPlasticStrainOld);
 }
 
 //************************************************************************************
@@ -327,11 +322,6 @@ void LinearJ2PlasticityPlaneStrain2D::save(Serializer& rSerializer) const
 void LinearJ2PlasticityPlaneStrain2D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearJ2Plasticity3D);
-    rSerializer.load("mInelasticFlag", mInelasticFlag);
-    rSerializer.load("mPlasticStrain", mPlasticStrain);
-    rSerializer.load("mPlasticStrainOld", mPlasticStrainOld);
-    rSerializer.load("mAccumulatedPlasticStrain", mAccumulatedPlasticStrain);
-    rSerializer.load("mAccumulatedPlasticStrainOld", mAccumulatedPlasticStrainOld);
 }
 
 } /* namespace Kratos.*/
