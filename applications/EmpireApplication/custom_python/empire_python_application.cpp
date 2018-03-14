@@ -60,7 +60,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "empire_application.h"
-#include "custom_python/add_custom_processes_to_python.h"
 
 
 namespace Kratos
@@ -80,9 +79,6 @@ namespace Python
 			  KratosEmpireApplication::Pointer,
 			  bases<KratosApplication>, boost::noncopyable >("KratosEmpireApplication")
 			;
-
-	//registering variables in python
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
 
   }
