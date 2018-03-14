@@ -37,7 +37,8 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         self.material_name =  self.settings["material_name"].GetString()
         
         #material properties
-        self.properties = self.model_part.Properties[self.settings["properties_id"].GetInt()]
+        self.main_model_part = self.model_part.GetRootModelPart()
+        self.properties      = self.main_model_part.Properties[self.settings["properties_id"].GetInt()]
 
         #read variables
         self.variables = self.settings["variables"]
@@ -74,8 +75,6 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
         
         #create constitutive law
         self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())
-
-        print( self.material_law )
         
         self.properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, self.material_law.Clone())
 
