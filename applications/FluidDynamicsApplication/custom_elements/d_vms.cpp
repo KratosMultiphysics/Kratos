@@ -310,6 +310,131 @@ void DVMS<TElementData>::AddVelocitySystem(
     auto& LHS = rData.LHS;
     LHS.clear();
 
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
+
+    const array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
+
+    double tau_one;
+    double tau_two;
+    double tau_p;
+    this->CalculateTau(rData,convective_velocity,tau_one,tau_two,tau_p);
+
+    const double dt = rData.DeltaTime;
+
+    // small scale velocity contributions (subscale tracking)
+    array_1d<double,Dim> OldUssTerm = (density/dt) * mOldSubscaleVelocity[rData.IntegrationPointIndex]; // rho * u_ss^{n-1}/dt
+
+    // Old mass residual for dynamic pressure subscale: -Div(u^n)
+    double OldResidual = 0.0;
+    for (unsigned int a = 0; a < NumNodes; a++)
+    {
+        const array_1d<double,3>& rOldVel = this->GetGeometry()[a].FastGetSolutionStepValue(VELOCITY,1);
+        double OldDivProj = this->GetGeometry()[a].FastGetSolutionStepValue(DIVPROJ,1);
+        for (unsigned int d = 0; d < Dim; d++)
+            OldResidual -= rData.DN_DX(a,d)*rOldVel[d] + rData.N[a]*OldDivProj;
+    }
+
+    Vector AGradN;
+    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
+
+    // These two should be zero unless we are using OSS
+    const array_1d<double,3> MomentumProj = this->GetAtCoordinate(rData.MomentumProjection,rData.N);
+    const double MassProj = this->GetAtCoordinate(rData.MassProjection,rData.N);
+
+    // Multiplying convective operator by density to have correct units
+    AGradN *= density;
+
+    // Note: Dof order is (u,v,[w,]p) for each node
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        
+        unsigned int row = i*BlockSize;
+
+        // LHS terms
+        for (unsigned int j = 0; j < NumNodes; j++) {
+            unsigned int col = j*BlockSize;
+
+            // Some terms are the same for all velocity components, calculate them once for each i,j
+
+            // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
+            //double K = 0.5*(rN[i]*AGradN[j] - AGradN[i]*rN[j]);
+            double K = rData.N[i]*AGradN[j];
+
+            // Stabilization: u*grad(v) * TauOne * u*grad(u) - vh * TauOne/Dt u*grad(u)
+            // The last term comes from vh*d(u_ss)/dt
+            K += (AGradN[i] - density*rData.N[i]/dt)*tau_one*(AGradN[j]);
+            K *= rData.Weight;
+
+            // q-p stabilization block (reset result)
+            double L = 0;
+
+            for (unsigned int d = 0; d < Dim; d++) {
+                LHS(row+d,col+d) += K;
+
+                /* v * Grad(p) block */
+                // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                double G = tau_one * AGradN[i] * rData.DN_DX(j,d);
+
+                // From vh*d(u_ss)/dt: vh * TauOne/Dt * Grad(p)
+                double Sg = tau_one * density*rData.N[i]/dt * rData.DN_DX(j,d);
+
+                // Galerkin pressure term: Div(v) * p
+                double PDivV = rData.DN_DX(i,d) * rData.N[j];
+
+                // Write v * Grad(p) component
+                LHS(row+d,col+Dim) += rData.Weight * (G - Sg - PDivV);
+                // Use symmetry to write the q * Div(u) component
+                LHS(col+Dim,row+d) += rData.Weight * (G + PDivV);
+
+                /* q-p stabilization block */
+                // Stabilization: Grad(q) * TauOne * Grad(p)
+                L += rData.DN_DX(i,d) * rData.DN_DX(j,d);
+
+                /* v-u block */
+                // Stabilization: Div(v) * TauTwo * Div(u)
+                for (unsigned int e = 0; e < Dim; e++)
+                    LHS(row+d,col+e) += rData.Weight*(tau_two + tau_p)*rData.DN_DX(i,d)*rData.DN_DX(j,e);
+            }
+
+            // Write q-p term
+            LHS(row+Dim,col+Dim) += rData.Weight*tau_one*L;
+        }
+
+        // RHS terms
+        double qF = 0.0;
+        for (unsigned int d = 0; d < Dim; ++d)
+        {
+            // v*BodyForce + v * du_ss/dt
+            rLocalRHS[row+d] += rData.Weight * rData.N[i] * (body_force[d] + OldUssTerm[d]);
+
+            // ( a * Grad(v) ) * TauOne * (Density * BodyForce - Projection)
+            // vh * TauOne/Dt * f (from vh*d(uss)/dt
+            rLocalRHS[row+d] += rData.Weight * tau_one * (AGradN[i] - density*rData.N[i]/dt ) * ( body_force[d] - MomentumProj[d] + OldUssTerm[d] );
+
+            // OSS pressure subscale projection
+            rLocalRHS[row+d] -= rData.Weight * rData.DN_DX(i,d) * (tau_two + tau_p ) * MassProj;
+
+            // Dynamic term in pressure subscale div(vh) * h^2/(c1*dt) * (-div(uh^n) )
+            rLocalRHS[row+d] -= rData.Weight * rData.DN_DX(i,d) * tau_p * OldResidual;
+
+            // Grad(q) * TauOne * (Density * BodyForce - Projection)
+            qF += rData.DN_DX(i, d) * (body_force[d] - MomentumProj[d] + OldUssTerm[d]);
+        }
+        rLocalRHS[row+Dim] += rData.Weight * tau_one * qF; // Grad(q) * TauOne * (Density * BodyForce)
+    }
+
+    // Write (the linearized part of the) local contribution into residual form (A*dx = b - A*x)
+    array_1d<double,LocalSize> values;
+    this->GetCurrentValuesVector(rData,values);
+    noalias(rLocalRHS) -= prod(LHS, values);
+
+    /* Viscous contribution (with symmetric gradient 2*nu*{E(u) - 1/3 Tr(E)} )
+     * For a generic (potentially non-linear) constitutive law, one cannot assume that RHS = F - LHS*current_values.
+     * Because of this, the AddViscousTerm function manages both the LHS and the RHS.
+     */ 
+    this->AddViscousTerm(rData,LHS,rLocalRHS);
+
+    noalias(rLocalLHS) += LHS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -352,7 +477,43 @@ void DVMS<TElementData>::AddMassStabilization(
     TElementData& rData,
     MatrixType &rMassMatrix)
 {
+    const double density = this->GetAtCoordinate(rData.Density,rData.N);
+    const array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
 
+    double tau_one;
+    double tau_two;
+    double tau_p;
+    this->CalculateTau(rData,convective_velocity,tau_one,tau_two,tau_p);
+
+    const double dt = rData.DeltaTime;
+
+    Vector AGradN;
+    this->ConvectionOperator(AGradN,convective_velocity,rData.DN_DX);
+    
+    // Multiplying convective operator by density to have correct units
+    AGradN *= density;
+
+    double W = rData.Weight * tau_one * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
+
+    // Note: Dof order is (u,v,[w,]p) for each node
+    for (unsigned int i = 0; i < NumNodes; i++) {
+        unsigned int row = i*BlockSize;
+
+        for (unsigned int j = 0; j < NumNodes; j++) {
+            unsigned int col = j*BlockSize;
+
+            // u*grad(v) * TauOne * du/dt
+            // v * TauOne/dt * du/dt (from v*d(uss)/dt)
+            double K = W * (AGradN[i] - rData.N[i]/dt) * rData.N[j];
+
+            for (unsigned int d = 0; d < Dim; d++)
+            {
+                rMassMatrix(row+d,col+d) += K;
+                // grad(q) * TauOne * du/dt
+                rMassMatrix(row+Dim,col+d) += W*rData.DN_DX(i,d)*rData.N[j];
+            }
+        }
+    }
 }
 
 template <class TElementData>
@@ -466,7 +627,7 @@ void DVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcess
     for (SizeType i = 0; i < NumNodes; ++i)
     {
         r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
-        array_1d<double,3>& rMomValue = rGeom[i].FastGetSolutionStepValue(ADVPROJ);
+        array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(ADVPROJ);
         for (unsigned int d = 0; d < Dim; ++d)
             rMomValue[d] += MomentumRHS[Row++];
         r_geometry[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
