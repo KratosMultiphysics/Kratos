@@ -43,10 +43,6 @@ namespace Python
     //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    class_<CalculateMeanTemperature > ("CalculateMeanTemperature", init<ModelPart& >())  // The input parameters is a model part 
-        .def("Execute", &CalculateMeanTemperature::Calculate)  // When we call "Execute" in python, Calculate is called in C++. Notice we don't write the input parameters here 
-        ;
-
   }
 
 

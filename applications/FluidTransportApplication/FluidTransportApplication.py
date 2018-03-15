@@ -2,10 +2,10 @@
 from __future__ import print_function, absolute_import, division
 
 # Application dependent names and paths
-from KratosMyLaplacianApplication import *
-application = KratosMyLaplacianApplication()
-application_name = "KratosMyLaplacianApplication"
-application_folder = "MyLaplacianApplication"
+from KratosFluidTransportApplication import *
+application = KratosFluidTransportApplication()
+application_name = "KratosFluidTransportApplication"
+application_folder = "FluidTransportApplication"
 
 # The following lines are common for all applications
 from . import application_importer

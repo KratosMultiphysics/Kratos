@@ -11,26 +11,26 @@
 //
 
 
-#if !defined(KRATOS_MY_LAPLACIAN_APPLICATION_H_INCLUDED )
-#define  KRATOS_MY_LAPLACIAN_APPLICATION_H_INCLUDED
+#if !defined(KRATOS_FLUID_TRANSPORT_APPLICATION_H_INCLUDED )
+#define  KRATOS_FLUID_TRANSPORT_APPLICATION_H_INCLUDED
 
 
 // System includes
 #include <string>
 #include <iostream>
 
-
-// External includes
-#include "custom_elements/my_laplacian_element.h"
-#include "custom_conditions/point_source_condition.h"
-
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
+
+// Application includes
+#include "fluid_transport_application_variables.h"
+
+#include "custom_elements/steady_convection_diffusion_FIC_element.h"
 
 
-namespace Kratos {
+namespace Kratos 
+{
 
 ///@name Kratos Globals
 ///@{
@@ -54,24 +54,26 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
 */
-class KratosMyLaplacianApplication : public KratosApplication {
+class KratosFluidTransportApplication : public KratosApplication 
+{
+
 public:
 	///@name Type Definitions
 	///@{
 
 
-	/// Pointer definition of KratosMyLaplacianApplication
-	KRATOS_CLASS_POINTER_DEFINITION(KratosMyLaplacianApplication);
+	/// Pointer definition of KratosFluidTransportApplication
+	KRATOS_CLASS_POINTER_DEFINITION(KratosFluidTransportApplication);
 
 	///@}
 	///@name Life Cycle
 	///@{
 
 	/// Default constructor.
-	KratosMyLaplacianApplication();
+	KratosFluidTransportApplication();
 
 	/// Destructor.
-	virtual ~KratosMyLaplacianApplication(){}
+	virtual ~KratosFluidTransportApplication(){}
 
 
 	///@}
@@ -103,7 +105,7 @@ public:
 
 	/// Turn back information as a string.
 	virtual std::string Info() const {
-		return "KratosMyLaplacianApplication";
+		return "KratosFluidTransportApplication";
 	}
 
 	/// Print information about this object.
@@ -116,7 +118,6 @@ public:
 	virtual void PrintData(std::ostream& rOStream) const {
   		KRATOS_WATCH("in my application");
   		KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-
 		rOStream << "Variables:" << std::endl;
 		KratosComponents<VariableData>().PrintData(rOStream);
 		rOStream << std::endl;
@@ -181,8 +182,7 @@ private:
 	///@}
 	///@name Member Variables
 	///@{
-	const MyLaplacianElement mMyLaplacianElement;
-	const PointSourceCondition mPointSourceCondition;
+	const SteadyConvectionDiffusionFICElement<2,3> mSteadyConvectionDiffusionFICElement2D3N;
 
 	// const Elem2D   mElem2D;
 	// const Elem3D   mElem3D;
@@ -212,15 +212,15 @@ private:
 	///@{
 
 	/// Assignment operator.
-	KratosMyLaplacianApplication& operator=(KratosMyLaplacianApplication const& rOther);
+	KratosFluidTransportApplication& operator=(KratosFluidTransportApplication const& rOther);
 
 	/// Copy constructor.
-	KratosMyLaplacianApplication(KratosMyLaplacianApplication const& rOther);
+	KratosFluidTransportApplication(KratosFluidTransportApplication const& rOther);
 
 
 	///@}
 
-}; // Class KratosMyLaplacianApplication
+}; // Class KratosFluidTransportApplication
 
 ///@}
 
