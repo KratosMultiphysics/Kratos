@@ -9,7 +9,7 @@
 # ==============================================================================
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
+from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 from KratosMultiphysics import *
@@ -19,18 +19,18 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # ==============================================================================
-class analyzerBaseClass:
+class AnalyzerBaseClass:
 
-    # --------------------------------------------------------------------------    
-    def initializeBeforeOptimizationLoop( self ):
+    # --------------------------------------------------------------------------
+    def InitializeBeforeOptimizationLoop( self ):
         pass
 
-    # --------------------------------------------------------------------------    
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
+    # --------------------------------------------------------------------------
+    def AnalyzeDesignAndReportToCommunicator( self, current_design, unique_iterator, communicator ):
         raise RuntimeError("Analyzer base class is called. Please check your implementation of the function >> analyzeDesignAndReportToCommunicator << .")
 
-    # --------------------------------------------------------------------------    
-    def finalizeAfterOptimizationLoop( self ):
+    # --------------------------------------------------------------------------
+    def FinalizeAfterOptimizationLoop( self ):
         pass
-        
+
 # ==============================================================================
