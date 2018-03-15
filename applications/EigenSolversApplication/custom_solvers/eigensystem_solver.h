@@ -33,8 +33,8 @@ namespace Kratos
 
 template<
     class TSolver,
-    class TSparseSpaceType = typename TSolver::TGlobalSpace,
-    class TDenseSpaceType = typename TSolver::TLocalSpace,
+    class TSparseSpaceType,
+    class TDenseSpaceType,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigensystemSolver
@@ -103,8 +103,8 @@ class EigensystemSolver
 
         // --- wrap ublas matrices
 
-        UblasWrapper<scalar_t> a_wrapper(rK);
-        UblasWrapper<scalar_t> b_wrapper(rM);
+        UblasWrapper<> a_wrapper(rK);
+        UblasWrapper<> b_wrapper(rM);
 
         const auto& a = a_wrapper.matrix();
         const auto& b = b_wrapper.matrix();

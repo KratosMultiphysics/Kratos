@@ -38,7 +38,7 @@
   #include "external_includes/pastix_solver.h"
   #include "external_includes/pastix_complex_solver.h"
 #endif
-
+  
 
 namespace Kratos
 {
@@ -77,16 +77,15 @@ void  AddLinearSolversToPython()
     class_<FEASTSolverType, FEASTSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
         ( "FEASTSolver", init<Parameters::Pointer>() )
         .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
-    	.def("GetEigenValue", &FEASTSolverType::GetEigenValue)
         ;
-#endif
-
-
+#endif    
+          
+    
     class_<SuperLUSolverType, bases<DirectSolverType>, boost::noncopyable >
     ( "SuperLUSolver",
       init<>() )
       .def(init<Parameters>());
-
+      
     class_<SuperLUIterativeSolverType, bases<LinearSolverType>, boost::noncopyable >
     ( "SuperLUIterativeSolver",init<>() )
     .def(init<double,int,int,double,double,double>())
@@ -105,7 +104,7 @@ void  AddLinearSolversToPython()
     ("PastixComplexSolver",init<Parameters&>())
     ;
 #endif
-
+    
     class_<GMRESSolverType, bases<IterativeSolverType>, boost::noncopyable >
     ( "GMRESSolver")
     .def(init<Parameters >())

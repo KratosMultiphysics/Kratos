@@ -18,10 +18,12 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_solvers_to_python.h"
+
+#include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
-#include "custom_utilities/matrixmarket.h"
 
 namespace Kratos
 {
@@ -29,79 +31,62 @@ namespace Kratos
 namespace Python
 {
 
-template <typename SolverType>
-auto register_solver(const std::string& name)
-{
-	using namespace boost::python;
-
-	using Space = typename SpaceType<typename SolverType::TScalar>;
-
-	using Base = DirectSolver<typename Space::Global, typename Space::Local>;
-	
-	return class_<EigenDirectSolver<SolverType>, bases<Base>, boost::noncopyable>
-		(name.c_str(), init<>())
-		.def(init<Parameters>())
-	;
-}
-
-template <typename SolverType>
-auto register_eigensystem_solver(const std::string& name = SolverType::Name)
-{
-	using namespace boost::python;
-
-	using Space = typename SpaceType<typename SolverType::TScalar>;
-
-	using Base = LinearSolver<typename Space::Global, typename Space::Local>;
-	
-	using EigenSolver = EigensystemSolver<SolverType>;
-
-	return class_<EigenSolver, bases<Base>, boost::noncopyable>
-		(name.c_str(), init<Parameters>())
-    	.def("Solve", &EigenSolver::Solve)
-    	.def("GetEigenValue", &EigenSolver::GetEigenValue)
-	;
-}
-
 void AddCustomSolversToPython()
 {
 	using namespace boost::python;
 
-	using complex = std::complex<double>;
+	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+	typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
+	typedef DirectSolver<SparseSpaceType, LocalSpaceType> DirectSolverType;
 
 	// --- direct solvers
 
-	register_solver<SparseLU<double>>("SparseLUSolver");
-	register_solver<SparseLU<complex>>("ComplexSparseLUSolver");
-	
-	register_solver<SparseQR<double>>("SparseQRSolver");
-	register_solver<SparseQR<complex>>("ComplexSparseQRSolver");
+	using SparseLUSolver = EigenDirectSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
+	class_<SparseLUSolver, bases<DirectSolverType>, boost::noncopyable>
+		("SparseLUSolver", init<>())
+		.def(init<Parameters>())
+	;
 
 	#if defined USE_EIGEN_MKL
-	register_solver<PardisoLLT<double>>("PardisoLLTSolver");
-	register_solver<PardisoLLT<complex>>("ComplexPardisoLLTSolver");
+	using PardisoLLTSolver = EigenDirectSolver<PardisoLLT, SparseSpaceType, LocalSpaceType>;
+	class_<PardisoLLTSolver, bases<DirectSolverType>, boost::noncopyable>
+		("PardisoLLTSolver", init<>())
+		.def(init<Parameters>())
+	;
 
-	register_solver<PardisoLDLT<double>>("PardisoLDLTSolver");
-	register_solver<PardisoLDLT<complex>>("ComplexPardisoLDLTSolver");
-	
-	register_solver<PardisoLU<double>>("PardisoLUSolver");
-	register_solver<PardisoLU<complex>>("ComplexPardisoLUSolver");
+	using PardisoLDLTSolver = EigenDirectSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
+	class_<PardisoLDLTSolver, bases<DirectSolverType>, boost::noncopyable>
+		("PardisoLDLTSolver", init<>())
+		.def(init<Parameters>())
+	;
+
+	using PardisoLUSolver = EigenDirectSolver<PardisoLU, SparseSpaceType, LocalSpaceType>;
+	class_<PardisoLUSolver, bases<DirectSolverType>, boost::noncopyable>
+		("PardisoLUSolver", init<>())
+		.def(init<Parameters>())
+	;	
 	#endif // defined USE_EIGEN_MKL
+
+	using SparseQRSolver = EigenDirectSolver<SparseQR, SparseSpaceType, LocalSpaceType>;
+	class_<SparseQRSolver, bases<DirectSolverType>, boost::noncopyable>
+		("SparseQRSolver", init<>())
+		.def(init<Parameters>())
+	;
 
 	// --- eigensystem solver
 
-	#if !defined USE_EIGEN_MKL
-	register_eigensystem_solver<SparseLU<double>>("EigensystemSolver");
-	#else  // !defined USE_EIGEN_MKL
-	register_eigensystem_solver<PardisoLDLT<double>>("EigensystemSolver");
-	#endif // !defined USE_EIGEN_MKL
-
-	class_<boost::numeric::ublas::matrix<complex>>("ComplexMatrix");
-	class_<boost::numeric::ublas::compressed_matrix<complex>>("ComplexCompressedMatrix");
-
-	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::matrix<double>>);
-	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::matrix<complex>>);
-	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::compressed_matrix<double>>);
-	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::compressed_matrix<complex>>);
+	#if defined USE_EIGEN_MKL
+	using EigensystemSolverType = EigensystemSolver<PardisoLDLT, SparseSpaceType, LocalSpaceType>;
+	#else  // defined USE_EIGEN_MKL
+	using EigensystemSolverType = EigensystemSolver<SparseLU, SparseSpaceType, LocalSpaceType>;
+	#endif // defined USE_EIGEN_MKL
+	class_<EigensystemSolverType, EigensystemSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable>
+    	("EigensystemSolver", init<Parameters>())
+    	.def("Solve", &EigensystemSolverType::Solve)
+    	.def("GetEigenValue", &EigensystemSolverType::GetEigenValue)
+	;
+;
 }
 
 } // namespace Python

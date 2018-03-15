@@ -119,72 +119,20 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             import KratosMultiphysics.EigenSolversApplication
         except:
             self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type": "eigen_eigensystem",
-                        "number_of_eigenvalues": 5,
-                        "max_iteration": 100,
-                        "tolerance": 1e-8,
-                        "echo_level": 1
-                    }
-                ]
-            }
-            """)
 
-    def test_FEAST_with_mkl_solver(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-            import KratosMultiphysics.EigenSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.EigenSolversApplication or KratosMultiphysics.ExternalSolversApplication is not available")
-        #first Eigenvalues = [ 0.0614628, 0.153184, 0.153184, 0.243965, 0.305007 ]
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type": "FEAST",
-                        "print_feast_output": true,
-                        "perform_stochastic_estimate": true,
-                        "solve_eigenvalue_problem": true,
-                        "lambda_min": 0.01,
-                        "lambda_max": 0.20,
-                        "number_of_eigenvalues": 3,
-                        "search_dimension": 8,
-                        "linear_solver_settings": {
-                            "solver_type" : "complex_eigen_pardiso_lu"
+            self._RunParametrized("""
+                {
+                    "test_list" : [
+                        {
+                            "solver_type": "eigen_sparse_eigensystem",
+                            "number_of_eigenvalues": 1,
+                            "max_iteration": 100,
+                            "tolerance": 1e-8,
+                            "echo_level": 1
                         }
-                    }
-                ]
-            }
-            """)
-
-    def test_FEAST_with_skyline_solver(self):
-        try:
-            import KratosMultiphysics.ExternalSolversApplication
-        except:
-            self.skipTest("KratosMultiphysics.ExternalSolversApplication is not available")
-        #first Eigenvalues = [ 0.0614628, 0.153184, 0.153184, 0.243965, 0.305007 ]
-        self._RunParametrized("""
-            {
-                "test_list" : [
-                    {
-                        "solver_type": "FEAST",
-                        "print_feast_output": true,
-                        "perform_stochastic_estimate": true,
-                        "solve_eigenvalue_problem": true,
-                        "lambda_min": 0.01,
-                        "lambda_max": 0.20,
-                        "number_of_eigenvalues": 3,
-                        "search_dimension": 8,
-                        "linear_solver_settings": {
-                            "solver_type" : "complex_skyline_lu_solver"
-                        }
-                    }
-                ]
-            }
-            """)
+                    ]
+                }
+                """)
 
 if __name__ == '__main__':
     KratosUnittest.main()
