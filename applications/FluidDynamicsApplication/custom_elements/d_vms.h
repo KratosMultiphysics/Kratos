@@ -50,7 +50,7 @@ namespace Kratos
 // Forward decalration of auxiliary class
 namespace Internals {
 template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem;
+class SpecializedAddTimeIntegratedSystemDyn;
 }
 
 template< class TElementData >
@@ -359,7 +359,7 @@ private:
     ///@name Friends
     ///@{
 
-    friend class Internals::SpecializedAddTimeIntegratedSystem<TElementData, TElementData::ElementManagesTimeIntegration>;
+    friend class Internals::SpecializedAddTimeIntegratedSystemDyn<TElementData, TElementData::ElementManagesTimeIntegration>;
 
     ///@}
     ///@name Serialization
@@ -490,21 +490,21 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 namespace Internals {
 
 template <class TElementData, bool TDataKnowsAboutTimeIntegration>
-class SpecializedAddTimeIntegratedSystem {
+class SpecializedAddTimeIntegratedSystemDyn {
    public:
     static void AddSystem(DVMS<TElementData>* pElement,
         TElementData& rData, Matrix& rLHS, Vector& rRHS);
 };
 
 template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, true> {
+class SpecializedAddTimeIntegratedSystemDyn<TElementData, true> {
    public:
     static void AddSystem(DVMS<TElementData>* pElement,
         TElementData& rData, Matrix& rLHS, Vector& rRHS);
 };
 
 template <class TElementData>
-class SpecializedAddTimeIntegratedSystem<TElementData, false> {
+class SpecializedAddTimeIntegratedSystemDyn<TElementData, false> {
    public:
     static void AddSystem(DVMS<TElementData>* pElement,
         TElementData& rData, Matrix& rLHS, Vector& rRHS);

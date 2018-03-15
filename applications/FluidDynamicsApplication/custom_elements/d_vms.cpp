@@ -343,7 +343,7 @@ void DVMS<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData, MatrixType& rLHS, VectorType& rRHS) {
 
     // Call specialized implementation (it is on a helper class to avoid partial template specialization problems)
-    Internals::SpecializedAddTimeIntegratedSystem<TElementData,
+    Internals::SpecializedAddTimeIntegratedSystemDyn<TElementData,
         TElementData::ElementManagesTimeIntegration>::AddSystem(this, rData,
         rLHS, rRHS);
 }
@@ -1022,7 +1022,7 @@ namespace Internals {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
-void SpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
+void SpecializedAddTimeIntegratedSystemDyn<TElementData, false>::AddSystem(
     DVMS<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
     Vector& rRHS) {
     KRATOS_TRY;
@@ -1037,7 +1037,7 @@ void SpecializedAddTimeIntegratedSystem<TElementData, false>::AddSystem(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
-void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
+void SpecializedAddTimeIntegratedSystemDyn<TElementData, true>::AddSystem(
     DVMS<TElementData>* pElement, TElementData& rData, Matrix& rLHS,
     Vector& rRHS) {
         Matrix mass_matrix = ZeroMatrix(rLHS.size1(),rLHS.size2());
@@ -1075,5 +1075,6 @@ void SpecializedAddTimeIntegratedSystem<TElementData, true>::AddSystem(
 // Class template instantiation
 
 template class DVMS< QSVMSData<2,3> >;
+template class DVMS< QSVMSData<3,4> >;
 
 } // namespace Kratos
