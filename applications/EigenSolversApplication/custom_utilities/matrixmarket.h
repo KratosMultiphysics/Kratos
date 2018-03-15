@@ -1,3 +1,14 @@
+/*
+//  KRATOS _______
+//        / ____(_)___ ____  ____
+//       / __/ / / __ `/ _ \/ __ \
+//      / /___/ / /_/ /  __/ / / /
+//     /_____/_/\__, /\___/_/ /_/ SolversApplication
+//             /____/
+//
+//  Author: Thomas Oberbichler
+*/
+
 #pragma once
 
 #include <cctype>
