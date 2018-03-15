@@ -18,34 +18,32 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
-# Additional imports
-import time as timer
-
 # ==============================================================================
-def CreateController( OptimizationModelPart, OptimizationSettings ):
-    return ModelPartController( OptimizationModelPart, OptimizationSettings )
+def CreateController( optimization_settings, optimization_mdpa ):
+    return ModelPartController( optimization_settings, optimization_mdpa )
 
 # ==============================================================================
 class ModelPartController:
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, OptimizationSettings ):
-        self.OptimizationModelPart = OptimizationModelPart
-        self.OptimizationSettings = OptimizationSettings
+    def __init__( self, optimization_settings, optimization_mdpa ):
+        self.optimization_settings = optimization_settings
+        self.optimization_mdpa = optimization_mdpa
 
-        self.DesignSurface = None
-        self.DampingRegions = None
+        self.design_surface = None
+        self.damping_regions = None
 
-        MeshMotionSettings = self.OptimizationSettings["design_variables"]["mesh_motion"]
-        if MeshMotionSettings["apply_ale_mesh_solver"].GetBool():
+        mesh_motion_settings = self.optimization_settings["design_variables"]["mesh_motion"]
+
+        if mesh_motion_settings["apply_ale_mesh_solver"].GetBool():
             from mesh_controller_ale_solver import MeshControllerUsingALESolver
-            self.MeshController = MeshControllerUsingALESolver( self.OptimizationModelPart, MeshMotionSettings)
+            self.mesh_controller = MeshControllerUsingALESolver( self.optimization_mdpa, mesh_motion_settings)
         else:
             from mesh_controller_basic_updating import MeshControllerBasicUpdating
-            self.MeshController = MeshControllerBasicUpdating( self.OptimizationModelPart )
+            self.mesh_controller = MeshControllerBasicUpdating( self.optimization_mdpa )
 
     # --------------------------------------------------------------------------
     def IsOptimizationModelPartAlreadyImported( self ):
-        if self.OptimizationModelPart.NumberOfNodes()>0:
+        if self.optimization_mdpa.NumberOfNodes()>0:
             self.__CheckIfDomainSizeIsSet()
             return True
         else:
@@ -53,71 +51,71 @@ class ModelPartController:
 
     # --------------------------------------------------------------------------
     def ImportOptimizationModelPart( self ):
-        model_part_io = ModelPartIO( self.OptimizationSettings["design_variables"]["optimization_model_part_name"].GetString() )
-        model_part_io.ReadModelPart( self.OptimizationModelPart )
+        model_part_io = ModelPartIO( self.optimization_settings["design_variables"]["optimization_model_part_name"].GetString() )
+        model_part_io.ReadModelPart( self.optimization_mdpa )
         self.__CheckIfDomainSizeIsSet()
 
     # --------------------------------------------------------------------------
     def InitializeMeshController( self ):
-        self.MeshController.Initialize()
+        self.mesh_controller.Initialize()
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
-        self.MeshController.UpdateMeshAccordingInputVariable( InputVariable )
+        self.mesh_controller.UpdateMeshAccordingInputVariable( InputVariable )
 
     # --------------------------------------------------------------------------
     def SetMeshToReferenceMesh( self ):
-        MeshControllerUtilities( self.OptimizationModelPart ).SetMeshToReferenceMesh()
+        MeshControllerUtilities( self.optimization_mdpa ).SetMeshToReferenceMesh()
 
     # --------------------------------------------------------------------------
     def SetReferenceMeshToMesh( self ):
-        MeshControllerUtilities( self.OptimizationModelPart ).SetReferenceMeshToMesh()
+        MeshControllerUtilities( self.optimization_mdpa ).SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def SetDeformationVariablesToZero( self ):
-        MeshControllerUtilities( self.OptimizationModelPart ).SetDeformationVariablesToZero()
+        MeshControllerUtilities( self.optimization_mdpa ).SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def GetOptimizationModelPart( self ):
-        return self.OptimizationModelPart
+        return self.optimization_mdpa
 
     # --------------------------------------------------------------------------
     def GetDesignSurface( self ):
-        if self.DesignSurface is None:
+        if self.design_surface is None:
             self.__IdentifyDesignSurface()
-        return self.DesignSurface
+        return self.design_surface
 
     # --------------------------------------------------------------------------
     def GetDampingRegions( self ):
-        if self.DampingRegions is None:
+        if self.damping_regions is None:
             self.__IdentifyDampingRegions()
-        return self.DampingRegions
+        return self.damping_regions
 
     # --------------------------------------------------------------------------
     def __CheckIfDomainSizeIsSet( self ):
-        if self.OptimizationModelPart.ProcessInfo.GetValue(DOMAIN_SIZE) == 0:
+        if self.optimization_mdpa.ProcessInfo.GetValue(DOMAIN_SIZE) == 0:
             raise ValueError("DOMAIN_SIZE not specified for given optimization model part!")
 
     # --------------------------------------------------------------------------
     def __IdentifyDesignSurface( self ):
-        nameOfDesingSurface = self.OptimizationSettings["design_variables"]["design_surface_sub_model_part_name"].GetString()
-        if self.OptimizationModelPart.HasSubModelPart( nameOfDesingSurface ):
-            self.DesignSurface = self.OptimizationModelPart.GetSubModelPart( nameOfDesingSurface )
-            print("> The following design surface was defined:\n\n",self.DesignSurface)
+        nameOfDesingSurface = self.optimization_settings["design_variables"]["design_surface_sub_model_part_name"].GetString()
+        if self.optimization_mdpa.HasSubModelPart( nameOfDesingSurface ):
+            self.design_surface = self.optimization_mdpa.GetSubModelPart( nameOfDesingSurface )
+            print("> The following design surface was defined:\n\n",self.design_surface)
         else:
             raise ValueError("The following sub-model part (design surface) specified for shape optimization does not exist: ",nameOfDesingSurface)
 
     # --------------------------------------------------------------------------
     def __IdentifyDampingRegions( self ):
         print("> The following damping regions are defined: \n")
-        self.DampingRegions = {}
-        if self.OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool():
-            if self.OptimizationSettings["design_variables"]["damping"].Has("damping_regions"):
-                for regionNumber in range(self.OptimizationSettings["design_variables"]["damping"]["damping_regions"].size()):
-                    regionName = self.OptimizationSettings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
-                    if self.OptimizationModelPart.HasSubModelPart(regionName):
+        self.damping_regions = {}
+        if self.optimization_settings["design_variables"]["damping"]["perform_damping"].GetBool():
+            if self.optimization_settings["design_variables"]["damping"].Has("damping_regions"):
+                for regionNumber in range(self.optimization_settings["design_variables"]["damping"]["damping_regions"].size()):
+                    regionName = self.optimization_settings["design_variables"]["damping"]["damping_regions"][regionNumber]["sub_model_part_name"].GetString()
+                    if self.optimization_mdpa.HasSubModelPart(regionName):
                         print(regionName)
-                        self.DampingRegions[regionName] = self.OptimizationModelPart.GetSubModelPart(regionName)
+                        self.damping_regions[regionName] = self.optimization_mdpa.GetSubModelPart(regionName)
                     else:
                         raise ValueError("The following sub-model part specified for damping does not exist: ",regionName)
             else:
