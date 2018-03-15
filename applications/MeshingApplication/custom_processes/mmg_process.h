@@ -572,19 +572,6 @@ private:
         const int Color,
         const int Index
         );
-    
-    /**
-     * This functions gets the "colors", parts of a model part to process
-     * @param NodeColors Map where the submodelparts and nodes are stored
-     * @param CondColors Map where the submodelparts and conditions are stored
-     * @param ElemColors Map where the submodelparts and elements are stored
-     */
-    
-    void ComputeColors(
-        std::unordered_map<int,int>& NodeColors,
-        std::unordered_map<int,int>& CondColors,
-        std::unordered_map<int,int>& ElemColors
-        );
 
     /**
      * This function is used to compute the metric scalar
