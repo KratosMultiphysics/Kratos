@@ -7,6 +7,7 @@
 #include <limits>
 #include <iostream>
 #include <iomanip>
+#include <list>
 
 // External includes
 #ifdef _OPENMP
@@ -133,8 +134,6 @@ void AnalyticParticleWatcher::SetNodalMaxFaceImpactVelocities(ModelPart& analyti
 }
 
 
-
-
 void AnalyticParticleWatcher::SetNodalMaxLinearImpulse(ModelPart& analytic_model_part)
 {
     for (ElementsIteratorType i_elem = analytic_model_part.ElementsBegin(); i_elem != analytic_model_part.ElementsEnd(); ++i_elem){
@@ -153,69 +152,67 @@ void AnalyticParticleWatcher::SetNodalMaxLinearImpulse(ModelPart& analytic_model
     }
 }
 
-void AnalyticParticleWatcher::ClearList(boost::python::list& my_list)
-{
-    while(len(my_list)){
-        my_list.pop(); // only way I found to remove all entries
-    }
-}
-
 void AnalyticParticleWatcher::GetParticleData(int id,
-                                              boost::python::list times,
-                                              boost::python::list neighbour_ids,
-                                              boost::python::list normal_relative_vel,
-                                              boost::python::list tangential_relative_vel)
+                                              std::list<double> times,
+                                              std::list<int> neighbour_ids,
+                                              std::list<double> normal_relative_vel,
+                                              std::list<double> tangential_relative_vel)
 {
     mInterParticleImpactDataOfAllTimeSteps[id].FillUpPythonLists(times, neighbour_ids, normal_relative_vel, tangential_relative_vel);
 }
 
 void AnalyticParticleWatcher::GetAllParticlesData(ModelPart& analytic_model_part,
-                                                  boost::python::list times,
-                                                  boost::python::list neighbour_ids,
-                                                  boost::python::list normal_relative_vel,
-                                                  boost::python::list tangential_relative_vel)
+                                                  std::list<double> times,
+                                                  std::list<int> neighbour_ids,
+                                                  std::list<double> normal_relative_vel,
+                                                  std::list<double> tangential_relative_vel)
 {
-    ClearList(times);
-    ClearList(neighbour_ids);
-    ClearList(normal_relative_vel);
-    ClearList(tangential_relative_vel);
+    times.clear();
+    neighbour_ids.clear();
+    normal_relative_vel.clear();
+    tangential_relative_vel.clear();
 
     for (ElementsIteratorType i_elem = analytic_model_part.ElementsBegin(); i_elem != analytic_model_part.ElementsEnd(); ++i_elem){
-        boost::python::list times_i;
-        boost::python::list neighbour_ids_i;
-        boost::python::list normal_relative_vel_i;
-        boost::python::list tangential_relative_vel_i;
+        std::list<double> times_i;
+        std::list<int> neighbour_ids_i;
+        std::list<double> normal_relative_vel_i;
+        std::list<double> tangential_relative_vel_i;
+
         const int id = int(i_elem->Id());
+
         GetParticleData(id, times_i, neighbour_ids_i, normal_relative_vel_i, tangential_relative_vel_i);
-        times.append(times_i);
-        neighbour_ids.append(neighbour_ids_i);
-        normal_relative_vel.append(normal_relative_vel_i);
-        tangential_relative_vel.append(tangential_relative_vel_i);
+        times.insert(times.end(), times_i.begin(), times_i.end());
+        neighbour_ids.insert(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
+        normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
+        tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
 
 }
 
-void AnalyticParticleWatcher::GetTimeStepsData(boost::python::list ids,
-                                               boost::python::list neighbour_ids,
-                                               boost::python::list normal_relative_vel,
-                                               boost::python::list tangential_relative_vel)
+void AnalyticParticleWatcher::GetTimeStepsData(std::list<int> ids,
+                                               std::list<int> neighbour_ids,
+                                               std::list<double> normal_relative_vel,
+                                               std::list<double> tangential_relative_vel)
 {
-    ClearList(ids);
-    ClearList(neighbour_ids);
-    ClearList(normal_relative_vel);
-    ClearList(tangential_relative_vel);
+    ids.clear();
+    neighbour_ids.clear();
+    normal_relative_vel.clear();
+    tangential_relative_vel.clear();
+
     const int n_time_steps = mInterParticleImpactDataOfAllParticles.size();
 
+    std::list<int> ids_i;
+    std::list<int> neighbour_ids_i;
+    std::list<double> normal_relative_vel_i;
+    std::list<double> tangential_relative_vel_i;
+    
     for (int i = 0; i < n_time_steps; ++i){
-        boost::python::list ids_i;
-        boost::python::list neighbour_ids_i;
-        boost::python::list normal_relative_vel_i;
-        boost::python::list tangential_relative_vel_i;
         mInterParticleImpactDataOfAllParticles[i].FillUpPythonLists(ids_i, neighbour_ids_i, normal_relative_vel_i, tangential_relative_vel_i);
-        ids.append(ids_i);
-        neighbour_ids.append(neighbour_ids_i);
-        normal_relative_vel.append(normal_relative_vel_i);
-        tangential_relative_vel.append(tangential_relative_vel_i);
+        
+        ids.insert(ids.end(), ids_i.begin(), ids_i.end());
+        neighbour_ids.insert(neighbour_ids.end(), neighbour_ids_i.begin(), neighbour_ids_i.end());
+        normal_relative_vel.insert(normal_relative_vel.end(), normal_relative_vel_i.begin(), normal_relative_vel_i.end());
+        tangential_relative_vel.insert(tangential_relative_vel.end(), tangential_relative_vel_i.begin(), tangential_relative_vel_i.end());
     }
 }
 

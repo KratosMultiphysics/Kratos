@@ -83,9 +83,11 @@ set(KRATOS_DEM_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_search/bins_dynamic_objects_periodic.cpp
 )
 
+include(pybind11Tools)
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosDEMApplication SHARED ${KRATOS_DEM_APPLICATION_SOURCES})
+pybind11_add_module(KratosDEMApplication MODULE ${KRATOS_DEM_APPLICATION_SOURCES})
 #if(NOT EXISTS "${PROJECT_SOURCE_DIR}/applications/DEM_application/kratos_DEMApplication_export_dll.h")
 #GENERATE_EXPORT_HEADER( KratosDEMApplication
 #             BASE_NAME KratosDEMApplication

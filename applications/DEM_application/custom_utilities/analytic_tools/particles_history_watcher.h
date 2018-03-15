@@ -17,7 +17,6 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
-#include "boost/python/list.hpp"
 
 namespace Kratos
 {
@@ -35,16 +34,14 @@ ParticlesHistoryWatcher(){}
 
 virtual ~ParticlesHistoryWatcher(){}
 
-static void ClearList(boost::python::list& my_list); // its best to pass empty lists in the first place to avoid this operation
-
 void ClearData();
 
-void GetNewParticlesData(boost::python::list ids,
-                         boost::python::list X0s,
-                         boost::python::list Y0s,
-                         boost::python::list Z0s,
-                         boost::python::list radii,
-                         boost::python::list times_of_creation);
+void GetNewParticlesData(std::list<int> ids,
+                         std::list<double> X0s,
+                         std::list<double> Y0s,
+                         std::list<double> Z0s,
+                         std::list<double> radii,
+                         std::list<double> times_of_creation);
 
 void MakeMeasurements(ModelPart& analytic_model_part);
 
