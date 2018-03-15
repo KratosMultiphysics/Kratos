@@ -262,7 +262,8 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
-
+    using HyperElasticModel::AddConstitutiveComponent;
+    
     ///@}
     ///@name Private  Access
     ///@{

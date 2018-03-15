@@ -45,14 +45,14 @@ void AddCustomStrategiesToPython(pybind11::module& m) {
     LaplacianMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
     BaseSolvingStrategyType>(
       m,"LaplacianMeshMovingStrategy")
-        .def(init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
+        .def(init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
       .def("UpdateReferenceMesh",&LaplacianMeshMovingStrategyType::UpdateReferenceMesh)
       ;
 
   class_<StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>, 
   StructuralMeshMovingStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType>::Pointer,
   BaseSolvingStrategyType>(m,"StructuralMeshMovingStrategy")
-      .def(init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, int>())
+      .def(init<ModelPart &, LinearSolverType::Pointer, int, bool, bool, bool, int>())
       .def("UpdateReferenceMesh",&StructuralMeshMovingStrategyType::UpdateReferenceMesh)
       ;
 }
