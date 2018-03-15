@@ -127,8 +127,8 @@ void PrestressMembraneElement::Initialize()
     // define container sizes
     mDetJ0.resize(integration_points.size());
     mGab0.resize(integration_points.size());
-    mG1.resize(integration_points.size());
-    mG2.resize(integration_points.size());
+    //mG1.resize(integration_points.size());
+    //mG2.resize(integration_points.size());
     mGVector.resize(integration_points.size(), ZeroMatrix(2, 2));
 
     // compute base vectors in reference configuration, metrics
@@ -242,7 +242,6 @@ void PrestressMembraneElement::CalculateDampingMatrix(
     ProcessInfo& rCurrentProcessInfo)
 
 {
-    // Anna unless you need this exactly, then please copy past this function from the solids
     KRATOS_TRY
 
     // LUMPED DAMPING MATRIX
@@ -464,7 +463,7 @@ void PrestressMembraneElement::ClearNodalForces()
 //***********************************************************************************
 //***********************************************************************************
 
-void PrestressMembraneElement::CalculateQ( // Anna I don't know Qbut I guess it is sth specific to membranes?
+void PrestressMembraneElement::CalculateQ( 
     bounded_matrix<double, 3, 3>& Q,
     const unsigned int& rPointNumber)
 
@@ -712,11 +711,6 @@ void PrestressMembraneElement::CalculateAll(
 
         mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
 
-        //Vector cartesian_strain_vector = prod(Q, Values.GetStrainVector()); //in refence configuration
-        //Vector cartesian_strain_vector = prod(Q, strain_vector); //in refence configuration
-        //if(this->Id() ==1){
-        //    std::cout<<"strain computed by the constitutive law: "<<Values.GetStrainVector()<<std::endl;
-        //}
         // Deformations for Non-linear force vector
         Vector strain_deformation;
 
@@ -910,9 +904,11 @@ void PrestressMembraneElement::ProjectPrestress(
     global_prestress_axis3 /= norm_2(global_prestress_axis3);
 
     // Compute local cartesian basis E1, E2, E3
-    array_1d<double,3> E1 = mG1[rPointNumber]/norm_2(mG1[rPointNumber]);
+    //array_1d<double,3> E1 = mG1[rPointNumber]/norm_2(mG1[rPointNumber]);
+    array_1d<double,3> E1 = column( GetValue(BASE_REF_1),rPointNumber )/norm_2(column( GetValue(BASE_REF_1),rPointNumber ));
     array_1d<double,3> E2, E3;
-    MathUtils<double>::CrossProduct(E3,E1,mG2[rPointNumber]);
+    //MathUtils<double>::CrossProduct(E3,E1,mG2[rPointNumber]);
+    MathUtils<double>::CrossProduct(E3,E1,column( GetValue(BASE_REF_2),rPointNumber ));
     E3 /= norm_2(E3);
     MathUtils<double>::CrossProduct(E2,E3,E1);
     E2 /= norm_2(E2);
@@ -969,18 +965,18 @@ void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurren
     // for formfinding: update basevectors (and prestress in case of anisotropy)
     if(this->Has(IS_FORMFINDING)){
         if(this->GetValue(IS_FORMFINDING)){
-
+            //if(this->Id() == 10){std::cout<<"G1 before:"<<mG1[0]<<std::endl;}
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
             if(mAnisotropicPrestress == true){
                 // update prestress in the anisotropic case
                 for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number){
                     if(mAnisotropicPrestress == true)
                         UpdatePrestress(point_number);
-                       if(this->Id() == 1) std::cout<<"prestress updated"<<std::endl;
                 }
             }
             //update base vectors in reference configuration, metrics
             ComputeBaseVectors(integration_points);
+            //if(this->Id() == 10){std::cout<<"G1 after:"<<mG1[0]<<std::endl;}
         }
     }
 
@@ -1072,7 +1068,8 @@ void PrestressMembraneElement::ComputeRelevantCoSys(const unsigned int& rPointNu
     rg3 /= norm_2(rg3);
 
     // computation of the out-of-plane direction in the reference configuration
-    MathUtils<double>::CrossProduct(rG3,mG1[rPointNumber],mG2[rPointNumber]);
+    //MathUtils<double>::CrossProduct(rG3,mG1[rPointNumber],mG2[rPointNumber]);
+    MathUtils<double>::CrossProduct(rG3,column( GetValue(BASE_REF_1),rPointNumber ),column( GetValue(BASE_REF_2),rPointNumber ));
     rG3 /= norm_2(rG3);
 
     //Compute cartesian basis in total reference configuration
@@ -1084,7 +1081,8 @@ void PrestressMembraneElement::ComputeRelevantCoSys(const unsigned int& rPointNu
 
     //Compute cartesian basis in (updated) reference configuration
     // rE1 = mG1/|mG1|, rE3 = mG3Initial
-    rE1 = mG1[rPointNumber]/norm_2(mG1[rPointNumber]);
+    //rE1 = mG1[rPointNumber]/norm_2(mG1[rPointNumber]);
+    rE1 = column( GetValue(BASE_REF_1),rPointNumber )/norm_2(column( GetValue(BASE_REF_1),rPointNumber));
     rE3 = rG3;
     MathUtils<double>::CrossProduct(rE2,rE3,rE1);
     rE2 /= norm_2(rE2);
@@ -1246,8 +1244,10 @@ void PrestressMembraneElement::ModifyPrestress(const unsigned int& rPointNumber,
         rOrigin(i,0) = rE1(i);
         rOrigin(i,1) = rE2(i);
         rOrigin(i,2) = rE3(i);
-        rTarget(i,0) = mG1[rPointNumber](i);
-        rTarget(i,1) = mG2[rPointNumber](i);
+        rTarget(i,0) = GetValue(BASE_REF_1)(i,rPointNumber);
+        rTarget(i,1) = GetValue(BASE_REF_2)(i,rPointNumber);
+        //rTarget(i,0) = mG1[rPointNumber](i);
+        //rTarget(i,1) = mG2[rPointNumber](i);
         rTarget(i,2) = rG3(i);
     }
     rTensor.clear();
@@ -1261,9 +1261,11 @@ void PrestressMembraneElement::ModifyPrestress(const unsigned int& rPointNumber,
     // Computation actual stress in the covariant basis
     double detF;
     array_1d<double, 3> G1G2, g1g2;
-    MathUtils<double>::CrossProduct(G1G2,mG1[rPointNumber],mG2[rPointNumber]);
+    //MathUtils<double>::CrossProduct(G1G2,mG1[rPointNumber],mG2[rPointNumber]);
+    MathUtils<double>::CrossProduct(G1G2,column( GetValue(BASE_REF_1),rPointNumber ),column( GetValue(BASE_REF_2),rPointNumber ));
     MathUtils<double>::CrossProduct(g1g2,rg1,rg2);
-    detF = norm_2(g1g2)/norm_2(G1G2);
+    //detF = norm_2(g1g2)/norm_2(G1G2);
+    detF = 1.0;
     rTensor(0,0) /= detF;
     rTensor(1,1) /= detF;
     rTensor(1,0) /= detF;
@@ -1284,7 +1286,6 @@ void PrestressMembraneElement::ModifyPrestress(const unsigned int& rPointNumber,
     // compute lambda_mod
     double lambda_mod_1, lambda_mod_2;
     double lambda_max = this->GetValue(LAMBDA_MAX);
-    if(this->Id() == 1){std::cout<<"lambda_max: "<<lambda_max<<std::endl;}
     if(Lambda1 > lambda_max)
         lambda_mod_1 = lambda_max;
     else if(Lambda1 < 1.0/lambda_max)
@@ -1395,6 +1396,16 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
     J0 = GetGeometry().Jacobian(J0);
 
     mTotalDomainInitialSize = 0.00;
+    Matrix dummy;
+    SetValue(BASE_REF_1,dummy);
+    SetValue(BASE_REF_2, dummy);
+
+    Matrix& base_1 = GetValue(BASE_REF_1);
+    Matrix& base_2 = GetValue(BASE_REF_2);
+    base_1.resize(3,rIntegrationPoints.size());
+    base_2.resize(3,rIntegrationPoints.size());
+    
+
 
     // Calculating geometry tensors in reference configuration on Integration points
     for (unsigned int point_number = 0; point_number < rIntegrationPoints.size(); point_number++)
@@ -1415,9 +1426,10 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
         G2[2] = J0[point_number](2, 1);
 
         // Store base vectors in reference configuration
-        mG1[point_number] = G1;
-        mG2[point_number] = G2;
-
+        //mG1[point_number] = G1;
+        //mG2[point_number] = G2;
+        column(base_1,point_number) = G1;
+        column(base_2,point_number) = G2;
         // base vector G3
         MathUtils<double>::CrossProduct(G3, G1, G2);
         // differential area dA
@@ -1478,8 +1490,10 @@ void PrestressMembraneElement::ComputeContravariantBaseVectors(
     metric_contra[2]= -1.0/det_metric * mGab0[rPointNumber][2];
 
     // contravariant base vectors
-    rG1Contra = metric_contra[0]*mG1[rPointNumber] + metric_contra[2]*mG2[rPointNumber];
-    rG2Contra = metric_contra[2]*mG1[rPointNumber] + metric_contra[1]*mG2[rPointNumber];
+    //rG1Contra = metric_contra[0]*mG1[rPointNumber] + metric_contra[2]*mG2[rPointNumber];
+    //rG2Contra = metric_contra[2]*mG1[rPointNumber] + metric_contra[1]*mG2[rPointNumber];
+    rG1Contra = metric_contra[0]*column( GetValue(BASE_REF_1),rPointNumber ) + metric_contra[2]*column( GetValue(BASE_REF_2),rPointNumber );
+    rG2Contra = metric_contra[2]*column( GetValue(BASE_REF_1),rPointNumber ) + metric_contra[1]*column( GetValue(BASE_REF_2),rPointNumber );
 }
 //***********************************************************************************
 //***********************************************************************************
@@ -1491,7 +1505,8 @@ const Matrix PrestressMembraneElement::CalculateDeformationGradient(const unsign
 
     // Compute G3
     array_1d<double, 3> G3;
-    MathUtils<double>::CrossProduct(G3, mG1[rPointNumber], mG2[rPointNumber]);
+    //MathUtils<double>::CrossProduct(G3, mG1[rPointNumber], mG2[rPointNumber]);
+    MathUtils<double>::CrossProduct(G3, column( GetValue(BASE_REF_1),rPointNumber ), column( GetValue(BASE_REF_2),rPointNumber ));
     G3 = G3/ norm_2(G3);
 
     // Compute g1, g2, g3
@@ -1523,8 +1538,10 @@ void PrestressMembraneElement::InitializeFormfinding(const unsigned int& rIntegr
         mG3Initial.resize(rIntegrationPointSize);
 
         for(unsigned int point_number = 0; point_number < rIntegrationPointSize;point_number ++){
-            mG1Initial[point_number] = mG1[point_number];
-            mG2Initial[point_number] = mG2[point_number];
+            //mG1Initial[point_number] = mG1[point_number];
+            //mG2Initial[point_number] = mG2[point_number];
+            mG1Initial[point_number] = column( GetValue(BASE_REF_1),point_number );
+            mG2Initial[point_number] = column( GetValue(BASE_REF_2),point_number );
 
             // out-of-plane direction
             MathUtils<double>::CrossProduct(mG3Initial[point_number],mG1Initial[point_number],mG2Initial[point_number]);

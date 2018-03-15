@@ -52,7 +52,7 @@ namespace Kratos
  *
  * @ingroup StrucutralMechanicsApplication
  *
- * @brief inherited class from LineSearchStrategy for formfinding
+ * @brief inherited class from ResidualBasedNewtonRaphsonStrategy for formfinding
  *
  * @details additions in formfinding: update the reference configuration for each element, initialize the elements for formfinding
  *
@@ -64,7 +64,7 @@ namespace Kratos
     class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
     >
     class FormfindingUpdatedReferenceStrategy
-        : public LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+        : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
     {
     public:
         ///@name Type Definitions
@@ -74,11 +74,13 @@ namespace Kratos
         // Counted pointer of ClassName
         KRATOS_CLASS_POINTER_DEFINITION(FormfindingUpdatedReferenceStrategy);
 
-        typedef LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+        typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
         typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
         typedef typename BaseType::TSchemeType TSchemeType;
         typedef GidIO<> IterationIOType;
         typedef IterationIOType::Pointer IterationIOPointerType;
+        typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+        typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
         ///@}
         ///@name Life Cycle
@@ -98,16 +100,18 @@ namespace Kratos
             bool CalculateReactions = false,
             bool ReformDofSetAtEachStep = false,
             bool MoveMeshFlag = false,
-            bool PrintIterations = false
+            bool PrintIterations = false,
+            bool IncludeLineSearch = false
             )
-            : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
+            : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
                 pNewLinearSolver,
                 pNewConvergenceCriteria,
                 MaxIterations,
                 CalculateReactions,
                 ReformDofSetAtEachStep,
                 MoveMeshFlag),
-                mPrintIterations(PrintIterations)
+                mPrintIterations(PrintIterations),
+                mIncludeLineSearch(IncludeLineSearch)
         {
             InitializeIterationIO();
         }
@@ -123,11 +127,12 @@ namespace Kratos
             bool CalculateReactions = false,
             bool ReformDofSetAtEachStep = false,
             bool MoveMeshFlag = false,
-            bool PrintIterations = false
+            bool PrintIterations = false,
+            bool IncludeLineSearch = false
             )
-            : LineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
+            : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
                 pNewLinearSolver,pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
-                MoveMeshFlag), mPrintIterations(PrintIterations)
+                MoveMeshFlag), mPrintIterations(PrintIterations), mIncludeLineSearch(IncludeLineSearch)
         {
             InitializeIterationIO();
         }
@@ -151,7 +156,7 @@ namespace Kratos
             for(auto& elem : BaseType::GetModelPart().Elements())
                 elem.SetValue(IS_FORMFINDING, true);
             BaseType::Initialize();
-
+            std::cout<<"print: "<<mPrintIterations<<std::endl;
             KRATOS_CATCH("");
         }
 
@@ -186,6 +191,95 @@ namespace Kratos
         ///@name Protected Operators
         ///@{
 
+void UpdateDatabase(
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b,
+        const bool MoveMesh
+    ) override
+    {
+        if(mIncludeLineSearch == false){
+            BaseType::UpdateDatabase(A,Dx, b, MoveMesh);
+        }
+        else{
+            typename TSchemeType::Pointer pScheme = this->GetScheme();
+            typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
+
+            TSystemVectorType aux(b.size()); //TODO: do it by using the space
+            TSparseSpace::Assign(aux,0.5, Dx);
+
+            //compute residual without update
+            TSparseSpace::SetToZero(b);
+            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
+            double ro = TSparseSpace::TwoNorm(b);
+
+            //compute half step residual
+            BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+            TSparseSpace::SetToZero(b);
+            std::map<int,Matrix> prestress;
+            std::map<int,Matrix> base_1;
+            std::map<int,Matrix> base_2;
+            for(auto& elem:BaseType::GetModelPart().Elements()){
+                prestress.insert(std::make_pair(elem.Id(),elem.GetValue(MEMBRANE_PRESTRESS)));
+                base_1.insert(std::make_pair(elem.Id(),elem.GetValue(BASE_REF_1)));
+                base_2.insert(std::make_pair(elem.Id(),elem.GetValue(BASE_REF_2)));
+                elem.InitializeNonLinearIteration(BaseType::GetModelPart().GetProcessInfo());
+            }
+            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
+            double rh = TSparseSpace::TwoNorm(b);
+
+            //compute full step residual (add another half Dx to the previous half)
+            BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+            TSparseSpace::SetToZero(b);
+            for(auto& elem:BaseType::GetModelPart().Elements()){
+                elem.SetValue(MEMBRANE_PRESTRESS,prestress[elem.Id()]);
+                elem.SetValue(BASE_REF_1,base_1[elem.Id()]);
+                elem.SetValue(BASE_REF_2,base_2[elem.Id()]);
+                elem.InitializeNonLinearIteration(BaseType::GetModelPart().GetProcessInfo());
+            }
+            pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
+            double rf = TSparseSpace::TwoNorm(b);
+            std::cout<<"r0: "<<ro<<", rh: "<<rh<<", rf: "<<rf<<std::endl;
+            //compute optimal (limited to the range 0-1)
+            //parabola is y = a*x^2 + b*x + c -> min/max for
+            //x=0   --> r=ro
+            //x=1/2 --> r=rh
+            //x=1   --> r =
+            //c= ro,     b= 4*rh -rf -3*ro,  a= 2*rf - 4*rh + 2*ro
+            //max found if a>0 at the position  xmax = (rf/4 - rh)/(rf - 2*rh);
+            double parabola_a = 2*rf + 2*ro - 4*rh;
+            double parabola_b = 4*rh - rf - 3*ro;
+            double xmin = 1.0e-3;
+            double xmax = 1.0;
+            if( parabola_a > 0) //if parabola has a local minima
+            {
+                xmax = -0.5 * parabola_b/parabola_a; // -b / 2a
+                std::cout<<"x_max: "<<xmax<<std::endl;
+                if( xmax > 1.0)
+                    xmax = 1.0;
+                else if(xmax < 0.0)
+                    xmax = xmin;
+            }
+            else //parabola degenerates to either a line or to have a local max. best solution on either extreme
+            {
+                if(rf < ro){
+                    xmax = 1.0;
+                    std::cout<<"full step"<<std::endl;}
+                else{
+                    xmax = xmin; //should be zero, but otherwise it will stagnate
+                    std::cout<<"minimal step"<<std::endl;}
+            }
+
+            //perform final update
+            TSparseSpace::Assign(aux,-(1.0-xmax), Dx);
+            for(auto& elem:BaseType::GetModelPart().Elements()){
+                elem.SetValue(MEMBRANE_PRESTRESS,prestress[elem.Id()]);
+                elem.SetValue(BASE_REF_1,base_1[elem.Id()]);
+                elem.SetValue(BASE_REF_2,base_2[elem.Id()]);
+            }
+            BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+        }
+    }
 
         ///@}
         ///@name Protected Operations
@@ -221,6 +315,7 @@ namespace Kratos
         ///@{
 
         bool mPrintIterations;
+        bool mIncludeLineSearch;
         IterationIOPointerType mpIterationIO;
 
 
