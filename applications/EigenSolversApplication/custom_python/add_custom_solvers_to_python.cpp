@@ -25,6 +25,8 @@
 #include "custom_solvers/eigen_direct_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
 
+#include "custom_utilities/matrixmarket.h"
+
 namespace Kratos
 {
 
@@ -65,7 +67,7 @@ void AddCustomSolversToPython()
 	class_<PardisoLUSolver, bases<DirectSolverType>, boost::noncopyable>
 		("PardisoLUSolver", init<>())
 		.def(init<Parameters>())
-	;	
+	;
 	#endif // defined USE_EIGEN_MKL
 
 	using SparseQRSolver = EigenDirectSolver<SparseQR, SparseSpaceType, LocalSpaceType>;
@@ -86,7 +88,14 @@ void AddCustomSolversToPython()
     	.def("Solve", &EigensystemSolverType::Solve)
     	.def("GetEigenValue", &EigensystemSolverType::GetEigenValue)
 	;
-;
+
+	class_<boost::numeric::ublas::matrix<complex>>("ComplexMatrix");
+	class_<boost::numeric::ublas::compressed_matrix<complex>>("ComplexCompressedMatrix");
+
+	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::matrix<double>>);
+	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::matrix<complex>>);
+	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::compressed_matrix<double>>);
+	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::compressed_matrix<complex>>);
 }
 
 } // namespace Python
