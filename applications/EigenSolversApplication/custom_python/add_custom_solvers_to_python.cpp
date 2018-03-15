@@ -89,6 +89,8 @@ void AddCustomSolversToPython()
     	.def("GetEigenValue", &EigensystemSolverType::GetEigenValue)
 	;
 
+	using complex = std::complex<double>;
+
 	class_<boost::numeric::ublas::matrix<complex>>("ComplexMatrix");
 	class_<boost::numeric::ublas::compressed_matrix<complex>>("ComplexCompressedMatrix");
 

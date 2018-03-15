@@ -33,7 +33,7 @@ class MatrixMarket
 
         // skip delimiters at beginning
         std::string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-        
+
         // find first "non-delimiter"
         std::string::size_type pos     = str.find_first_of(delimiters, lastPos);
 
@@ -41,10 +41,10 @@ class MatrixMarket
         {
             // Found a token, add it to the vector.
             tokens.push_back(str.substr(lastPos, pos - lastPos));
-            
+
             // Skip delimiters.  Note the "not_of"
             lastPos = str.find_first_not_of(delimiters, pos);
-            
+
             // Find next "non-delimiter"
             pos = str.find_first_of(delimiters, lastPos);
         }
@@ -61,7 +61,7 @@ class MatrixMarket
         using matrix_t = boost::numeric::ublas::compressed_matrix<Scalar>;
 
         using scalar_t = Scalar;
-        
+
         using index_t = typename matrix_t::size_type;
 
         matrix_t& m_matrix;
@@ -125,7 +125,7 @@ class MatrixMarket
             m_matrix.resize(rows, cols);
             m_matrix.clear();
         }
-        
+
         void begin_array(
             const index_t& rows,
             const index_t& cols
@@ -154,13 +154,13 @@ class MatrixMarket
         static std::complex<T> from(TStream& input)
         {
             using complex_t = std::complex<T>;
-            
+
             T re(1);
             T im(0);
-            
-            input >> re;    
+
+            input >> re;
             input >> im;
-            
+
             return complex_t(re, im);
         }
     };
@@ -170,11 +170,11 @@ class MatrixMarket
     {
         template <typename TStream>
         static T from(TStream& input)
-        {        
+        {
             T value(1);
 
             input >> value;
-            
+
             return value;
         }
     };
@@ -183,14 +183,14 @@ class MatrixMarket
     struct read_coordinates
     {
         template <typename TStream>
-        static auto from(TStream& input)
+        static std::pair<TIndex, TIndex> from(TStream& input)
         {
             TIndex row;
             TIndex col;
-            
+
             input >> row;
             input >> col;
-            
+
             return std::make_pair(row - 1, col - 1);
         }
     };
@@ -248,7 +248,7 @@ class MatrixMarket
         // --- read entries
 
         matrix_builder<TMatrix> builder(matrix);
-        
+
         if (storage == "coordinate")
         {
             tokens = split(line);
@@ -273,7 +273,7 @@ class MatrixMarket
 
                 int row;
                 int col;
-                
+
                 std::tie(row, col) = read_coordinates<index_t>::from(is);
 
                 scalar_t value = read<scalar_t>::from(is);
@@ -293,16 +293,16 @@ class MatrixMarket
 
             std::istringstream(tokens[0]) >> rows;
             std::istringstream(tokens[1]) >> cols;
-            
+
             builder.begin_array(rows, cols);
-            
+
             for (size_t i = 0; i != cols && !input.eof(); ++i) {
                 for (size_t j = 0; j != rows && !input.eof(); ++j) {
                     get_data_line(input, line);
                     std::istringstream is(line);
-                    
+
                     scalar_t value = read<scalar_t>::from(is);
-                    
+
                     builder.add_value(i, j, value);
                 }
             }
@@ -317,7 +317,7 @@ class MatrixMarket
         if (!file) {
             throw std::exception();
         }
-        
+
         read_stream(matrix, file);
     }
 };
