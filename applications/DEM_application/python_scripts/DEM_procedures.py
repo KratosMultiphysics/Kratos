@@ -1377,7 +1377,7 @@ class DEMIo(object):
         self.spheres_local_axis_variables = []
         self.fem_boundary_variables = []
         self.clusters_variables = []
-        self.rigid_body_variables                      = []
+        self.rigid_body_variables = []
         self.contact_variables = []
         self.multifilelists = []
 
@@ -1415,6 +1415,11 @@ class DEMIo(object):
         self.PostNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostNormalImpactVelocity")
         self.PostTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostTangentialImpactVelocity")
         self.VelTrapGraphExportFreq = self.DEM_parameters["VelTrapGraphExportFreq"].GetDouble()
+        if not "PostCharacteristicLength" in self.DEM_parameters.keys():
+            self.PostCharacteristicLength = 0
+        else:
+            self.PostCharacteristicLength = self.DEM_parameters["PostCharacteristicLength"].GetBool()
+
         #self.PostFaceNormalImpactVelocity = getattr(self.DEM_parameters, "PostFaceNormalImpactVelocity", 0)
         #self.PostFaceTangentialImpactVelocity = getattr(self.DEM_parameters, "PostFaceTangentialImpactVelocity", 0)
 
@@ -1581,8 +1586,10 @@ class DEMIo(object):
             self.PushPrintVar(1, IMPACT_WEAR, self.fem_boundary_variables)
 
     def AddClusterVariables(self):
-        self.PushPrintVar(
-            self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
+        
+        if self.PostCharacteristicLength:
+            self.PushPrintVar(self.PostRadius, CHARACTERISTIC_LENGTH, self.clusters_variables)
+        
         if self.DEM_parameters["PostEulerAngles"].GetBool():
             # JIG: SHOULD BE REMOVED IN THE FUTURE
             self.PushPrintVar(self.PostEulerAngles, ORIENTATION_REAL, self.clusters_variables)

@@ -46,8 +46,12 @@ namespace Kratos
 ///@{
     
 /**
+ * @class BaseSolidElement
+ * @ingroup StructuralMechanicsApplication
  * @brief This is base clase used to define the solid elements
  * @details The elements derived from this class are the small displacement element, the total lagrangian element and the updated lagrangian element
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseSolidElement
     : public Element
@@ -60,6 +64,7 @@ protected:
     {
         Vector  N;
         Matrix  B;
+        Vector Bh;
         double  detF;
         Matrix  F;
         double  detJ0;
@@ -83,6 +88,7 @@ protected:
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            Bh = ZeroVector(Dimension * NumberOfNodes);
             F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
@@ -276,6 +282,18 @@ public:
         ) override;
 
     /**
+     * @brief Calculate a boolean Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
      * @brief Calculate a double Variable on the Element Constitutive Law
      * @param rVariable The variable we want to get
      * @param rOutput The values obtained int the integration points
@@ -443,7 +461,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; // The vector containing the constitutive laws
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
     ///@}
     ///@name Protected Operators
@@ -454,14 +472,19 @@ protected:
     ///@{
     
     /**
-     * It initializes the material
+     * @brief It initializes the material
      */
     virtual void InitializeMaterial();
     
     /**
-     * Gives the StressMeasure used
+     * @brief Gives the StressMeasure used
      */
     virtual ConstitutiveLaw::StressMeasure GetStressMeasure() const;
+    
+    /**
+     * @brief This method returns if the element provides the strain
+     */
+    virtual bool UseElementProvidedStrain();
     
     /**
      * @brief This functions calculates both the RHS and the LHS

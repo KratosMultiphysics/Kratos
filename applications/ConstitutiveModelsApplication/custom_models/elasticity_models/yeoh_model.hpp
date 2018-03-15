@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_models/elasticity_models/hyperelastic_model.hpp"
+#include "custom_models/elasticity_models/mooney_rivlin_model.hpp"
 
 namespace Kratos
 {

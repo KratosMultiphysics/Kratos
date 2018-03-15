@@ -125,13 +125,7 @@ class FluidElementTest(UnitTest.TestCase):
         ymin = 0.0
         ymax = 1.0
 
-        rho = 1.0
-        mu = 0.01
         ux = 1.0
-
-        self.fluid_model_part.Properties[1].SetValue(DENSITY,rho)
-        self.fluid_model_part.Properties[1].SetValue(DYNAMIC_VISCOSITY,mu)
-        self.fluid_model_part.Properties[1].SetValue(CONSTITUTIVE_LAW,Newtonian2DLaw())
 
         for element in self.fluid_model_part.Elements:
             element.Initialize()

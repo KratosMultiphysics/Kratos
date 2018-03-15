@@ -619,10 +619,12 @@ public:
 
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
-        std::cout << rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize << std::endl;
-        std::cout << rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl;
-        std::cout << rank << " : free_offset = " << free_offset << std::endl;
-        //std::cout << rank << " : fixed_offset = " << fixed_offset << std::endl;
+        if(BaseType::GetEchoLevel()>0){
+            std::cout << rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize << std::endl;
+            std::cout << rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl;
+            std::cout << rank << " : free_offset = " << free_offset << std::endl;
+            //std::cout << rank << " : fixed_offset = " << fixed_offset << std::endl;
+        }
 
         //by Riccardo ... it may be wrong!
         mFirstMyId = free_offset-mLocalSystemSize;
@@ -943,13 +945,10 @@ public:
         {
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
-            if (dof_iterator->IsFixed())
-            {
-                const int i = (dof_iterator)->EquationId();
-                // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
-                const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
-                (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
-            }
+            const int i = (dof_iterator)->EquationId();
+            // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
+            const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
+            (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
         }
     }
 

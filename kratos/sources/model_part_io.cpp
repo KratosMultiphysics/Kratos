@@ -1330,6 +1330,10 @@ namespace Kratos
             {
                 ReadVectorialValue(temp_properties[KratosComponents<Variable<Matrix> >::Get(variable_name)]);
             }
+            else if(KratosComponents<Variable<ConstitutiveLaw::Pointer> >::Has(variable_name))
+            {
+                ReadConstitutiveLawValue(temp_properties[KratosComponents<Variable<ConstitutiveLaw::Pointer> >::Get(variable_name)]);
+            }
             else
             {
                 std::stringstream buffer;
@@ -2014,6 +2018,10 @@ namespace Kratos
         {
             ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
         }
+        else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+        {
+            ReadElementalVectorialVariableData(rThisElements, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
+        }
         else
         {
             std::stringstream buffer;
@@ -2129,6 +2137,10 @@ namespace Kratos
         else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
         {
             ReadConditionalVectorialVariableData(rThisConditions, static_cast<Variable<Matrix > const& >(KratosComponents<Variable<Matrix> >::Get(variable_name)), Matrix(3,3));
+        }
+        else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+        {
+            ReadConditionalVectorialVariableData(rThisConditions, static_cast<Variable<Vector > const& >(KratosComponents<Variable<Vector> >::Get(variable_name)), Vector(3));
         }
         else
         {
@@ -4516,6 +4528,12 @@ namespace Kratos
         value >> rValue;
 
         return rValue;
+    }
+
+    void ModelPartIO::ReadConstitutiveLawValue(ConstitutiveLaw::Pointer& rValue) {
+        std::string value;
+        ReadWord(value);
+        rValue = KratosComponents<ConstitutiveLaw>::Get(value).Clone();
     }
 
 

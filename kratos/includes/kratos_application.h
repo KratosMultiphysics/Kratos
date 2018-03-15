@@ -349,6 +349,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Element mElement3D8N;
     const Element mElement3D10N;
 
+    const ConstitutiveLaw mConstitutiveLaw;
+
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
 
     KratosComponents<Variable<int> >::ComponentsContainerType* mpIntVariables;
