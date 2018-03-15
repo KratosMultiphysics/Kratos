@@ -254,8 +254,8 @@ void  AddMeshersToPython(pybind11::module& m)
 
     
     //class that allows 2D adaptive remeshing (inserting and erasing nodes) as well as preserving the topology (avoiding "holes" at the boundaries). made for droplet simulation
-    class_<TriGenDropletModeler >("TriGenDropletModeler",
-                               init< >())
+    class_<TriGenDropletModeler, TriGenDropletModeler::Pointer >(m,"TriGenDropletModeler")
+    .def(init< >())
     .def("ReGenerateMeshDROPLET",TriRegenerateMeshDROPLET)
     .def("ReGenerateMeshDROPLET",&TriGenDropletModeler::ReGenerateMesh)
     ;
