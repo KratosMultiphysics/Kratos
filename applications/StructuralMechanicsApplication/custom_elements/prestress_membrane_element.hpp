@@ -113,6 +113,7 @@ namespace Kratos
     ///@name Static Member Variables
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     Vector mDetJ0;
+    double mTotalDomainInitialSize;
 
     std::vector< Matrix >              mGVector;
     std::vector< array_1d<double, 3> > mGab0;
@@ -146,8 +147,6 @@ namespace Kratos
         Matrix& rB12,
         Vector& rSD,
         const double& rWeight);
-
-    void ClearNodalForces();
 
     void CalculateQ(
       bounded_matrix<double, 3, 3>& rQ,
@@ -192,10 +191,6 @@ namespace Kratos
         Matrix& Strain_locCartesian22,
         Matrix& Strain_locCartesian12,
         bounded_matrix<double, 3, 3>& Q);
-
-    void CalculateMembraneElasticityTensor(
-        Matrix& D
-        );
 
     void InitializeFormfinding(const unsigned int& rIntegrationPointSize);
 

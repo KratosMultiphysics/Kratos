@@ -429,37 +429,6 @@ void PrestressMembraneElement::CalculateAndAddNonlinearKm(
 
 //***********************************************************************************
 //***********************************************************************************
-// Anna is this function used?
-void PrestressMembraneElement::ClearNodalForces()
-{
-    KRATOS_TRY
-
-        const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        if (GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[i].SolutionStepsDataHas(INTERNAL_FORCE))
-        {
-
-            array_1d<double, 3 > & external_force = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-            array_1d<double, 3 > & internal_force = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
-
-            GetGeometry()[i].SetLock();
-            external_force.clear();
-            internal_force.clear();
-            GetGeometry()[i].UnSetLock();
-
-        }
-
-    }
-
-    KRATOS_CATCH("")
-}
-
-
-
-
-//***********************************************************************************
-//***********************************************************************************
 
 void PrestressMembraneElement::CalculateQ( 
     bounded_matrix<double, 3, 3>& Q,
@@ -688,7 +657,8 @@ void PrestressMembraneElement::CalculateAll(
         array_1d<double, 3> gab;
 
         // Transformation Matrix Q
-        bounded_matrix<double, 3, 3> Q = ZeroMatrix(3, 3); // Anna noalias?
+        bounded_matrix<double, 3, 3> Q;
+        noalias(Q) = ZeroMatrix(3, 3);
         // basis vectors in deformed system
         array_1d<double, 3> g1;
         array_1d<double, 3> g2;
@@ -696,7 +666,7 @@ void PrestressMembraneElement::CalculateAll(
 
         CalculateQ(Q, point_number);
         CalculateMetricDeformed(point_number, DN_De, gab, g1, g2);
-        CalculateStrain(strain_vector, gab, mGab0[point_number]); // Anna why do you calculate the Strain yourself? it is also calculated by the CLaw. Could this be used?
+        CalculateStrain(strain_vector, gab, mGab0[point_number]);
 
         Vector cartesian_strain_vector = prod(Q, strain_vector); //in refence configuration
 
@@ -719,7 +689,8 @@ void PrestressMembraneElement::CalculateAll(
             strain_deformation[i] += GetValue(MEMBRANE_PRESTRESS)(i,point_number);
 
         // calculate B matrices
-        Matrix B = ZeroMatrix(3, mat_size); // Anna noalias?
+        Matrix B(3, mat_size);
+        noalias(B) = ZeroMatrix(3, mat_size);
         CalculateB(B, Q, DN_De, g1, g2);
 
         // integration on the REFERENCE CONFIGURATION
@@ -727,9 +698,12 @@ void PrestressMembraneElement::CalculateAll(
         double int_reference_weight = integration_weight * DetJ0 * GetProperties()[THICKNESS];
 
         // Nonlinear Deformation
-        Matrix strain_local_cart_11 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3); // Anna noalias?
-        Matrix strain_local_cart_22 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3); // Anna noalias?
-        Matrix strain_local_cart_12 = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3); // Anna noalias?
+        Matrix strain_local_cart_11(number_of_nodes * 3, number_of_nodes * 3);
+        noalias(strain_local_cart_11) = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+        Matrix strain_local_cart_22(number_of_nodes * 3, number_of_nodes * 3);
+        noalias(strain_local_cart_22) = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
+        Matrix strain_local_cart_12(number_of_nodes * 3, number_of_nodes * 3);
+        noalias(strain_local_cart_12) = ZeroMatrix(number_of_nodes * 3, number_of_nodes * 3);
 
         CalculateSecondVariationStrain(DN_De, strain_local_cart_11, strain_local_cart_22, strain_local_cart_12, Q);
 
@@ -822,7 +796,7 @@ void PrestressMembraneElement::CalculateSecondVariationStrain(Matrix DN_De,
 {
     const unsigned int number_of_nodes = GetGeometry().size();
 
-    Vector dd_strain_curvilinear = ZeroVector(3); // Anna noalias?
+    Vector dd_strain_curvilinear(3);
 
     for (unsigned int n = 0; n < number_of_nodes; ++n)
     {
@@ -836,7 +810,7 @@ void PrestressMembraneElement::CalculateSecondVariationStrain(Matrix DN_De,
                     limit = 3;
                 for (unsigned int j = 0; j < limit; j++)
                 {
-                    dd_strain_curvilinear = ZeroVector(3); // Anna noalias?
+                    noalias(dd_strain_curvilinear) = ZeroVector(3);
                     if (j == i)
                     {
                         dd_strain_curvilinear[0] = DN_De(n, 0)*DN_De(m, 0);
@@ -852,28 +826,6 @@ void PrestressMembraneElement::CalculateSecondVariationStrain(Matrix DN_De,
             }
         }
     }
-}
-//************************************************************************************
-//************************************************************************************
-// Anna is this function used?
-void PrestressMembraneElement::CalculateMembraneElasticityTensor(
-    Matrix& D
-    )
-{
-    double NU = GetProperties()[POISSON_RATIO];
-    double E = GetProperties()[YOUNG_MODULUS];
-    double coeff = E / (1 - NU*NU);
-    D(0, 0) = coeff;
-    D(0, 1) = NU*coeff;
-    D(0, 2) = 0.0;
-
-    D(1, 0) = NU*coeff;
-    D(1, 1) = coeff;
-    D(1, 2) = 0.0;
-
-    D(2, 0) = 0.0;
-    D(2, 1) = 0.0;
-    D(2, 2) = 0.5*(1 - NU)*coeff;
 }
 
 //***********************************************************************************
@@ -921,9 +873,10 @@ void PrestressMembraneElement::ProjectPrestress(
     T3 = E3;
 
     // Transform prestresses in the local cartesian cosy in reference configuration
-    bounded_matrix<double,3,3> origin = ZeroMatrix(3,3); // Anna noalias?
-    bounded_matrix<double,3,3> target = ZeroMatrix(3,3); // Anna noalias?
-    bounded_matrix<double,3,3> tensor = ZeroMatrix(3,3); // Anna noalias?
+    bounded_matrix<double,3,3> origin, target, tensor;
+    noalias(origin) = ZeroMatrix(3,3);
+    noalias(target) = ZeroMatrix(3,3);
+    noalias(tensor) = ZeroMatrix(3,3);
 
     for (int i=0;i<3;i++){
         origin(i,0) = T1(i);
@@ -994,8 +947,6 @@ void PrestressMembraneElement::InitializeMaterial(const unsigned int& NumberInte
 
 //***********************************************************************************
 //***********************************************************************************
-// Anna these functions have a LOT of arguments
-// maybe you can come up with some private Struct to combie some of these? (e.g. the "ConstitutiveVariables" in the BaseSolid)
 void PrestressMembraneElement::UpdatePrestress(const unsigned int& rPointNumber){
     // --1--computation relevant CoSys
     array_1d<double, 3> g1, g2, g3, gab; //base vectors/metric actual config
@@ -1015,9 +966,10 @@ void PrestressMembraneElement::UpdatePrestress(const unsigned int& rPointNumber)
     }
 
     //--3--Compute the eigenvalues of the total deformation gradient
-    bounded_matrix<double,3,3> origin = ZeroMatrix(3,3); // Anna noalias?
-    bounded_matrix<double,3,3> target = ZeroMatrix(3,3); // Anna noalias?
-    bounded_matrix<double,3,3> tensor = ZeroMatrix(3,3); // Anna noalias?
+    bounded_matrix<double,3,3> origin, target, tensor;
+    noalias(origin) = ZeroMatrix(3,3);
+    noalias(target) = ZeroMatrix(3,3);
+    noalias(tensor) = ZeroMatrix(3,3);
     double lambda_1, lambda_2;
 
     ComputeEigenvaluesDeformationGradient(rPointNumber,
@@ -1028,7 +980,8 @@ void PrestressMembraneElement::UpdatePrestress(const unsigned int& rPointNumber)
                     lambda_1, lambda_2);
 
     //--4--Compute the eigenvectors in the reference and actual configuration
-    bounded_matrix<double,3,3> N_act = ZeroMatrix(3,3); // eigenvectors in actual configuration // Anna noalias?
+    bounded_matrix<double,3,3> N_act; // eigenvectors in actual configuration
+    noalias(N_act) = ZeroMatrix(3,3);
     ComputeEigenvectorsDeformationGradient(rPointNumber,
                                 tensor, origin,
                                 deformation_gradient_total,
@@ -1158,7 +1111,7 @@ void PrestressMembraneElement::ComputeEigenvectorsDeformationGradient(const unsi
         principal_strain_state = true;
 
     // compute C (=rTensor)
-    rTensor = prec_prod(trans(rDeformationGradientTotal),rDeformationGradientTotal); // Anna noalias?
+    noalias(rTensor) = prod(trans(rDeformationGradientTotal),rDeformationGradientTotal);
 
     // Eigenvectors in reference configuration: N_ref
     array_1d<double, 3> N_ref_1, N_ref_2, N_ref_3;
@@ -1181,7 +1134,7 @@ void PrestressMembraneElement::ComputeEigenvectorsDeformationGradient(const unsi
         column(rOrigin,1) = mG2Initial[rPointNumber];
 
         bounded_matrix<double,3,3> B;
-        B = prec_prod(rTensor, rOrigin); // Anna noalias?
+        noalias(B) = prec_prod(rTensor, rOrigin);
 
         // compute alpha1 and alpha2
         double alpha_1,alpha_2;
@@ -1447,7 +1400,7 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
         G(1, 0) = inner_prod(E2, Gab_contravariant_1);
         G(1, 1) = inner_prod(E2, Gab_contravariant_2);
 
-        mGVector[point_number] = ZeroMatrix(2, 2); // Anna noalias?
+        noalias(mGVector[point_number]) = ZeroMatrix(2, 2);
         // saving the G matrix for this point number
         noalias(mGVector[point_number]) = G;
 
@@ -1562,34 +1515,12 @@ int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
     }
 
-    /*  // Anna please have a look at the solids and use the same checks (maybe more, see what is commented below)
     // Verify that the constitutive law exists
     KRATOS_ERROR_IF_NOT(this->GetProperties().Has( CONSTITUTIVE_LAW )) << "Constitutive law not provided for property " << this->GetProperties().Id() << std::endl;
 
     // Verify that the constitutive law has the correct dimension
     const unsigned int strain_size = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
-    if ( dimension == 2 ) {
-        KRATOS_ERROR_IF( strain_sizestrain_size < 3 || strain_size > 4) << "Wrong constitutive law used. This is a 2D element! expected strain size is 3 or 4 (el id = ) " << this->Id() << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  this->Id() << std::endl;
-    }
-
-    // Check constitutive law
-    if ( mConstitutiveLawVector.size() > 0 ) {
-        return mConstitutiveLawVector[0]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
-    }
-    */
-
-    //verify that the constitutive law exists
-    /*if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
-    {
-        KRATOS_THROW_ERROR(std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id())
-    }
-
-
-    //verify that the constitutive law has the correct dimension
-    if (this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() != 3)
-        KRATOS_THROW_ERROR(std::logic_error, "wrong constitutive law used. This is a 3D element with expected strain size is 3 (el id = ) ", this->Id())
+    KRATOS_ERROR_IF( strain_size != 3) << "Wrong constitutive law used. This is a membrane element! expected strain size is 3 (el id = ) " << this->Id() << std::endl;
 
     //check constitutive law
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
@@ -1607,7 +1538,6 @@ int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 
                 if (LawFeatures.mStrainSize != 3) KRATOS_THROW_ERROR(std::logic_error, "Constitutive law expects a strain size different from 3 for membrane element with Id", this->Id())
     }
-    */
     return 0;
 
     KRATOS_CATCH("");
