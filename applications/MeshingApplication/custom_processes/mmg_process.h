@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "containers/variables_list.h"
+#include "utilities/model_part_colors.h"
 
 // NOTE: The following contains the license of the MMG library
 /* =============================================================================
