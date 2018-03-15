@@ -110,18 +110,12 @@ namespace Kratos
 
 
   private:
-    // Anna please think carefully if you really need all of these members.
-    // Sometimes it is better to recompute than to store them
-    // => update the serializer if you change sth here
     ///@name Static Member Variables
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     Vector mDetJ0;
-    double mTotalDomainInitialSize;
 
     std::vector< Matrix >              mGVector;
     std::vector< array_1d<double, 3> > mGab0;
-    std::vector< array_1d<double, 3> > mG1;                   // Base vector 1 in updated reference configuration
-    std::vector< array_1d<double, 3> > mG2;                   // Base vector 2 in updated reference configuration
 
     bool mAnisotropicPrestress;                               // determines if isotropic or anisotropic prestress is applied
     std::vector< array_1d<double, 3> > mG1Initial;            // Base vector 1 in initial reference configuration

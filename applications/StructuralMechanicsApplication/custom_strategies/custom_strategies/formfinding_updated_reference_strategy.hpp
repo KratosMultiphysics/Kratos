@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Long Chen, Anna Rehr
+//  Main authors:    Anna Rehr
 //
 
 #if !defined(KRATOS_FORMFINDING_UPDATED_REFERENCE_STRATEGY )
@@ -54,9 +54,10 @@ namespace Kratos
  *
  * @brief inherited class from ResidualBasedNewtonRaphsonStrategy for formfinding
  *
- * @details additions in formfinding: update the reference configuration for each element, initialize the elements for formfinding
+ * @details additions for formfinding: update the reference configuration for each element, initialize the elements for formfinding,
+ * adaption line search for formfinding, print formfinding output (different nonlinear iterations)
  *
- * @author Pooyan Dadvand
+ * @author Anna Rehr
  */
 
     template<class TSparseSpace,
@@ -164,7 +165,6 @@ namespace Kratos
             for(auto& elem : BaseType::GetModelPart().Elements())
                 elem.SetValue(IS_FORMFINDING, true);
             BaseType::Initialize();
-            std::cout<<"print: "<<mPrintIterations<<std::endl;
             KRATOS_CATCH("");
         }
 
