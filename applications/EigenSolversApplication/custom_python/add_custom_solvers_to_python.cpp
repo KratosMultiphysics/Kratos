@@ -21,6 +21,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
+#include "custom_utilities/matrixmarket.h"
 
 namespace Kratos
 {
@@ -93,6 +94,14 @@ void AddCustomSolversToPython()
 	#else  // !defined USE_EIGEN_MKL
 	register_eigensystem_solver<PardisoLDLT<double>>("EigensystemSolver");
 	#endif // !defined USE_EIGEN_MKL
+
+	class_<boost::numeric::ublas::matrix<complex>>("ComplexMatrix");
+	class_<boost::numeric::ublas::compressed_matrix<complex>>("ComplexCompressedMatrix");
+
+	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::matrix<double>>);
+	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::matrix<complex>>);
+	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::compressed_matrix<double>>);
+	def("mmread", MatrixMarket::read_file<boost::numeric::ublas::compressed_matrix<complex>>);
 }
 
 } // namespace Python
