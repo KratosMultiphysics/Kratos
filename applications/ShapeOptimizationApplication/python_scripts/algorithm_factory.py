@@ -21,30 +21,21 @@ CheckForPreviousImport()
 # Additional imports
 from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
-import mapper_factory
-import data_logger_factory
 
 # ==============================================================================
 def CreateAlgorithm( optimization_settings, mdpa_controller, analyzer, communicator ):
     algorithm_name = optimization_settings["optimization_algorithm"]["name"].GetString()
 
-    mapper = mapper_factory.CreateMapper( mdpa_controller, optimization_settings )
-    data_logger = data_logger_factory.CreateDataLogger( mdpa_controller, communicator, optimization_settings )
-
     if algorithm_name == "steepest_descent":
-        return AlgorithmSteepestDescent( mdpa_controller,
+        return AlgorithmSteepestDescent( optimization_settings,
+                                         mdpa_controller,
                                          analyzer,
-                                         communicator,
-                                         mapper,
-                                         data_logger,
-                                         optimization_settings )
+                                         communicator )
     elif algorithm_name == "penalized_projection":
-        return AlgorithmPenalizedProjection( mdpa_controller,
+        return AlgorithmPenalizedProjection( optimization_settings,
+                                             mdpa_controller,
                                              analyzer,
-                                             communicator,
-                                             mapper,
-                                             data_logger,
-                                             optimization_settings )
+                                             communicator )
     else:
         raise NameError("The following optimization algorithm not supported by the algorithm factory: " + AlgorithmName)
 

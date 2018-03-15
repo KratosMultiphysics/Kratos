@@ -22,30 +22,18 @@ CheckForPreviousImport()
 # Import algorithm base classes
 from algorithm_base import OptimizationAlgorithm
 
-# Additional imports
-from timer import Timer
-
 # ==============================================================================
 class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
-    def __init__( self,
-                  ModelPartController,
-                  Analyzer,
-                  Communicator,
-                  Mapper,
-                  DataLogger,
-                  OptimizationSettings ):
-
-        self.ModelPartController = ModelPartController
+    def __init__( self, OptimizationSettings, MdpaController, Analyzer, Communicator ):
+        self.OptimizationSettings = OptimizationSettings
+        self.MdpaController = MdpaController
         self.Analyzer = Analyzer
         self.Communicator = Communicator
-        self.Mapper = Mapper
-        self.DataLogger = DataLogger
-        self.OptimizationSettings = OptimizationSettings
 
-        self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
-        self.DesignSurface = ModelPartController.GetDesignSurface()
+        self.OptimizationModelPart = MdpaController.GetOptimizationModelPart()
+        self.DesignSurface = MdpaController.GetDesignSurface()
 
         self.onlyObjectiveId = OptimizationSettings["objectives"][0]["identifier"].GetString()
         self.onlyConstraintId = OptimizationSettings["constraints"][0]["identifier"].GetString()
@@ -54,20 +42,26 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
         self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
 
+        import mapper_factory
+        self.Mapper = mapper_factory.CreateMapper( MdpaController, OptimizationSettings )
+        import data_logger_factory
+        self.DataLogger = data_logger_factory.CreateDataLogger( MdpaController, Communicator, OptimizationSettings )
+
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
         if self.dampingIsSpecified:
-            damping_regions = self.ModelPartController.GetDampingRegions()
+            damping_regions = self.MdpaController.GetDampingRegions()
             self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop( self ):
         self.Analyzer.InitializeBeforeOptimizationLoop()
-        self.ModelPartController.InitializeMeshController()
+        self.MdpaController.InitializeMeshController()
         self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
+        from custom_timer import Timer
         timer = Timer()
         timer.StartTimer()
 
@@ -110,8 +104,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeNewShape( self ):
-        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
-        self.ModelPartController.SetReferenceMeshToMesh()
+        self.MdpaController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
+        self.MdpaController.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def __analyzeShape( self ):
@@ -140,8 +134,8 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __RevertPossibleShapeModificationsDuringAnalysis( self ):
-        self.ModelPartController.SetMeshToReferenceMesh()
-        self.ModelPartController.SetDeformationVariablesToZero()
+        self.MdpaController.SetMeshToReferenceMesh()
+        self.MdpaController.SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def __projectSensitivitiesOnSurfaceNormals( self ):
