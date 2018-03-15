@@ -77,10 +77,9 @@ class ModelPartColors
     
     /**
      * This is the default constructor, which is used to read the input files 
-     * @param rThisModelPart The model part
-     * @param ThisParameters The parameters
+     * @param rModelPart The model part
      */
-    ModelPartColors(ModelPart& rThisModelPart);
+    ModelPartColors(ModelPart& rModelPart);
 
     /// Destructor.
     ~ModelPartColors();
@@ -102,12 +101,11 @@ class ModelPartColors
      * @param CondColors Map where the submodelparts and conditions are stored
      * @param ElemColors Map where the submodelparts and elements are stored
      */
-    
     void ComputeColors(
         std::unordered_map<int,int>& NodeColors,
         std::unordered_map<int,int>& CondColors,
         std::unordered_map<int,int>& ElemColors,
-        std::unordered_map<int,std::vector<std::string>>& Colors
+        std::unordered_map<int,std::vector<std::string>>& rColors
         );
 
     ///@}
