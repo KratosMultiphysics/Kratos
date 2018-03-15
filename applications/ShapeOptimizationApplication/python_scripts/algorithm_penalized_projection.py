@@ -61,13 +61,13 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
             self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
-    def initializeOptimizationLoop( self ):
-        self.Analyzer.initializeBeforeOptimizationLoop()
+    def InitializeOptimizationLoop( self ):
+        self.Analyzer.InitializeBeforeOptimizationLoop()
         self.ModelPartController.InitializeMeshController()
         self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
-    def runOptimizationLoop( self ):
+    def RunOptimizationLoop( self ):
         timer = Timer()
         timer.StartTimer()
 
@@ -104,9 +104,9 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
                 self.__determineAbsoluteChanges()
 
     # --------------------------------------------------------------------------
-    def finalizeOptimizationLoop( self ):
+    def FinalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
-        self.Analyzer.finalizeAfterOptimizationLoop()
+        self.Analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def __initializeNewShape( self ):
@@ -121,7 +121,7 @@ class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
         self.Communicator.requestGradientOf( self.onlyObjectiveId )
         self.Communicator.requestGradientOf( self.onlyConstraintId )
 
-        self.Analyzer.analyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
+        self.Analyzer.AnalyzeDesignAndReportToCommunicator( self.DesignSurface, self.optimizationIteration, self.Communicator )
 
         self.__storeResultOfSensitivityAnalysisOnNodes()
         self.__RevertPossibleShapeModificationsDuringAnalysis()

@@ -59,13 +59,13 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
             self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
-    def initializeOptimizationLoop( self ):
+    def InitializeOptimizationLoop( self ):
         self.Analyzer.initializeBeforeOptimizationLoop()
         self.ModelPartController.InitializeMeshController()
         self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
-    def runOptimizationLoop( self ):
+    def RunOptimizationLoop( self ):
         timer = Timer()
         timer.StartTimer()
 
@@ -102,7 +102,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
                 self.__determineAbsoluteChanges()
 
     # --------------------------------------------------------------------------
-    def finalizeOptimizationLoop( self ):
+    def FinalizeOptimizationLoop( self ):
         self.DataLogger.FinalizeDataLogging()
         self.Analyzer.finalizeAfterOptimizationLoop()
 
