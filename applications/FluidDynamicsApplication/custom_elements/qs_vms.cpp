@@ -142,6 +142,7 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
         for (unsigned int g = 0; g < NumGauss; g++)
         {
             data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+            this->CalculateMaterialResponse(data);
 
             this->SubscaleVelocity(data, rValues[g]);
         }
@@ -174,6 +175,7 @@ void QSVMS<TElementData>::GetValueOnIntegrationPoints(
         for (unsigned int g = 0; g < NumGauss; g++)
         {
             data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+            this->CalculateMaterialResponse(data);
 
             this->SubscalePressure(data,rValues[g]);
         }
@@ -681,8 +683,7 @@ void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProces
     this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
     const unsigned int NumGauss = GaussWeights.size();
 
-    GeometryType& rGeom = this->GetGeometry();
-    VectorType MomentumRHS = ZeroVector(NumNodes * Dim);
+    array_1d<double,NumNodes*Dim> momentum_rhs(NumNodes*Dim,0.0);
     VectorType MassRHS = ZeroVector(NumNodes);
     VectorType NodalArea = ZeroVector(NumNodes);
 
@@ -692,6 +693,7 @@ void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProces
     for (unsigned int g = 0; g < NumGauss; g++)
     {
         data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+        this->CalculateMaterialResponse(data);
 
         array_1d<double, 3> MomentumRes(3, 0.0);
         double MassRes = 0.0;
@@ -702,25 +704,26 @@ void QSVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProces
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             double W = data.Weight*data.N[i];
-            unsigned int Row = i*Dim;
+            unsigned int row = i*Dim;
             for (unsigned int d = 0; d < Dim; d++)
-                MomentumRHS[Row+d] += W*MomentumRes[d];
+                momentum_rhs[row+d] += W*MomentumRes[d];
             NodalArea[i] += W;
             MassRHS[i] += W*MassRes;
         }
     }
 
     // Add carefully to nodal variables to avoid OpenMP race condition
-    unsigned int Row = 0;
+    GeometryType& r_geometry = this->GetGeometry();
     for (SizeType i = 0; i < NumNodes; ++i)
     {
-        rGeom[i].SetLock(); // So it is safe to write in the node in OpenMP
-        array_1d<double,3>& rMomValue = rGeom[i].FastGetSolutionStepValue(ADVPROJ);
-        for (unsigned int d = 0; d < Dim; ++d)
-            rMomValue[d] += MomentumRHS[Row++];
-        rGeom[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
-        rGeom[i].UnSetLock(); // Free the node for other threads
+        r_geometry[i].SetLock(); // So it is safe to write in the node in OpenMP
+        array_1d<double,3>& rMomValue = r_geometry[i].FastGetSolutionStepValue(ADVPROJ);
+        unsigned int row = i*Dim;
+        for (unsigned int d = 0; d < Dim; d++)
+            rMomValue[d] += momentum_rhs[row + d];
+        r_geometry[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
+        r_geometry[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
+        r_geometry[i].UnSetLock(); // Free the node for other threads
     }
 }
 

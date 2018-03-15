@@ -139,6 +139,8 @@ void DVMS<TElementData>::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
         data.UpdateGeometryValues(g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
 
+        this->CalculateMaterialResponse(data);
+
         // Not doing the update "in place" because SubscaleVelocity uses mOldSubscaleVelocity
         array_1d<double,Dim> UpdatedValue(Dim,0.0);
         this->SubscaleVelocity(data,UpdatedValue);
@@ -162,6 +164,7 @@ void DVMS<TElementData>::InitializeNonLinearIteration(ProcessInfo &rCurrentProce
 
     for (unsigned int g = 0; g < number_of_integration_points; g++) {
         data.UpdateGeometryValues(g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g]);
+        this->CalculateMaterialResponse(data);
 
         this->UpdateSubscaleVelocityPrediction(data);
     }
@@ -223,6 +226,7 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
             for (unsigned int g = 0; g < number_of_integration_points; g++) {
                 
                 data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+                this->CalculateMaterialResponse(data);
                 
                 array_1d<double,Dim> subscale(Dim,0.0);
                 this->SubscaleVelocity(data, subscale);
@@ -272,6 +276,7 @@ void DVMS<TElementData>::GetValueOnIntegrationPoints(
             for (unsigned int g = 0; g < number_of_integration_points; g++) {
                 
                 data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+                this->CalculateMaterialResponse(data);
                 
                 this->SubscalePressure(data, rValues[g]);
             }
@@ -662,6 +667,7 @@ void DVMS<TElementData>::CalculateProjections(const ProcessInfo &rCurrentProcess
     for (unsigned int g = 0; g < NumGauss; g++)
     {
         data.UpdateGeometryValues(g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+        this->CalculateMaterialResponse(data);
 
         array_1d<double, 3> MomentumRes(3, 0.0);
         double MassRes = 0.0;
@@ -856,8 +862,8 @@ void DVMS<TElementData>::UpdateSubscaleVelocityPrediction(
     // Elemental large-scale velocity gradient
     boost::numeric::ublas::bounded_matrix<double,Dim,Dim> resolved_velocity_gradient = ZeroMatrix(Dim,Dim);
     
+    const auto& r_resolved_velocities = rData.Velocity;
     for (unsigned int i = 0; i < NumNodes; i++) {
-        const auto& r_resolved_velocities = rData.Velocity;
         for (unsigned int m = 0; m < Dim; m++) {
             for (unsigned int n = 0; n < Dim; n++) {
                 resolved_velocity_gradient(m,n) += rData.DN_DX(i,n) * r_resolved_velocities(i,m);
