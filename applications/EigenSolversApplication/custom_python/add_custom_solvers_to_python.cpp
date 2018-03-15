@@ -18,12 +18,7 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_solvers_to_python.h"
-
-#include "spaces/ublas_space.h"
-#include "includes/ublas_interface.h"
-#include "includes/ublas_complex_interface.h"
 #include "linear_solvers/linear_solver.h"
-#include "linear_solvers/iterative_solver.h"
 #include "custom_solvers/eigen_direct_solver.h"
 #include "custom_solvers/eigensystem_solver.h"
 
@@ -33,96 +28,71 @@ namespace Kratos
 namespace Python
 {
 
+template <typename SolverType>
+void register_solver(const std::string& name)
+{
+	using namespace boost::python;
+
+	using Space = SpaceType<typename SolverType::TScalar>;
+
+	using Base = DirectSolver<typename Space::Global, typename Space::Local>;
+	
+	class_<EigenDirectSolver<SolverType>, bases<Base>, boost::noncopyable>
+		(name.c_str(), init<>())
+		.def(init<Parameters>())
+	;
+}
+
+template <typename SolverType>
+void register_eigensystem_solver(const std::string& name = SolverType::Name)
+{
+	using namespace boost::python;
+
+	using Space = SpaceType<typename SolverType::TScalar>;
+
+	using Base = LinearSolver<typename Space::Global, typename Space::Local>;
+	
+	using EigenSolver = EigensystemSolver<SolverType>;
+
+	class_<EigenSolver, bases<Base>, boost::noncopyable>
+		(name.c_str(), init<Parameters>())
+    	.def("Solve", &EigenSolver::Solve)
+    	.def("GetEigenValue", &EigenSolver::GetEigenValue)
+	;
+}
+
 void AddCustomSolversToPython()
 {
 	using namespace boost::python;
 
-	using complex_t = std::complex<double>;
-
-	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-	typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-
-    typedef UblasSpace<complex_t, ComplexCompressedMatrix, ComplexVector> ComplexSparseSpaceType;
-    typedef UblasSpace<complex_t, ComplexMatrix, ComplexVector> ComplexLocalSpaceType;
-
-	typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-	typedef DirectSolver<SparseSpaceType, LocalSpaceType> DirectSolverType;
-
-    typedef LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType> ComplexLinearSolverType;
-    typedef DirectSolver<ComplexSparseSpaceType, ComplexLocalSpaceType> ComplexDirectSolverType;
+	using complex = std::complex<double>;
 
 	// --- direct solvers
 
-	using SparseLUSolver = EigenDirectSolver<SparseLU<double>, SparseSpaceType, LocalSpaceType>;
-	class_<SparseLUSolver, bases<DirectSolverType>, boost::noncopyable>
-		("SparseLUSolver", init<>())
-		.def(init<Parameters>())
-	;
-
-	using ComplexSparseLUSolver = EigenDirectSolver<SparseLU<complex_t>, ComplexSparseSpaceType, ComplexLocalSpaceType>;
-	class_<ComplexSparseLUSolver, bases<ComplexDirectSolverType>, boost::noncopyable>
-		("ComplexSparseLUSolver", init<>())
-		.def(init<Parameters>())
-	;
+	register_solver<SparseLU<double>>("SparseLUSolver");
+	register_solver<SparseLU<complex>>("ComplexSparseLUSolver");
+	
+	register_solver<SparseQR<double>>("SparseQRSolver");
+	register_solver<SparseQR<complex>>("ComplexSparseQRSolver");
 
 	#if defined USE_EIGEN_MKL
-	using PardisoLLTSolver = EigenDirectSolver<PardisoLLT<double>, SparseSpaceType, LocalSpaceType>;
-	class_<PardisoLLTSolver, bases<DirectSolverType>, boost::noncopyable>
-		("PardisoLLTSolver", init<>())
-		.def(init<Parameters>())
-	;
+	register_solver<PardisoLLT<double>>("PardisoLLTSolver");
+	register_solver<PardisoLLT<complex>>("ComplexPardisoLLTSolver");
 
-	using PardisoLDLTSolver = EigenDirectSolver<PardisoLDLT<double>, SparseSpaceType, LocalSpaceType>;
-	class_<PardisoLDLTSolver, bases<DirectSolverType>, boost::noncopyable>
-		("PardisoLDLTSolver", init<>())
-		.def(init<Parameters>())
-	;
-
-	using PardisoLUSolver = EigenDirectSolver<PardisoLU<double>, SparseSpaceType, LocalSpaceType>;
-	class_<PardisoLUSolver, bases<DirectSolverType>, boost::noncopyable>
-		("PardisoLUSolver", init<>())
-		.def(init<Parameters>())
-	;
-
-
-	using ComplexPardisoLLTSolver = EigenDirectSolver<PardisoLLT<complex_t>, ComplexSparseSpaceType, ComplexLocalSpaceType>;
-	class_<ComplexPardisoLLTSolver, bases<ComplexDirectSolverType>, boost::noncopyable>
-		("ComplexPardisoLLTSolver", init<>())
-		.def(init<Parameters>())
-	;
-
-	using ComplexPardisoLDLTSolver = EigenDirectSolver<PardisoLDLT<complex_t>, ComplexSparseSpaceType, ComplexLocalSpaceType>;
-	class_<ComplexPardisoLDLTSolver, bases<ComplexDirectSolverType>, boost::noncopyable>
-		("ComplexPardisoLDLTSolver", init<>())
-		.def(init<Parameters>())
-	;
-
-	using ComplexPardisoLUSolver = EigenDirectSolver<PardisoLU<complex_t>, ComplexSparseSpaceType, ComplexLocalSpaceType>;
-	class_<ComplexPardisoLUSolver, bases<ComplexDirectSolverType>, boost::noncopyable>
-		("ComplexPardisoLUSolver", init<>())
-		.def(init<Parameters>())
-	;
+	register_solver<PardisoLDLT<double>>("PardisoLDLTSolver");
+	register_solver<PardisoLDLT<complex>>("ComplexPardisoLDLTSolver");
+	
+	register_solver<PardisoLU<double>>("PardisoLUSolver");
+	register_solver<PardisoLU<complex>>("ComplexPardisoLUSolver");
 	#endif // defined USE_EIGEN_MKL
-
-	using SparseQRSolver = EigenDirectSolver<SparseQR<double>, SparseSpaceType, LocalSpaceType>;
-	class_<SparseQRSolver, bases<DirectSolverType>, boost::noncopyable>
-		("SparseQRSolver", init<>())
-		.def(init<Parameters>())
-	;
 
 	// --- eigensystem solver
 
-	#if defined USE_EIGEN_MKL
-	using EigensystemSolverType = EigensystemSolver<PardisoLDLT<double>, SparseSpaceType, LocalSpaceType>;
-	#else  // defined USE_EIGEN_MKL
-	using EigensystemSolverType = EigensystemSolver<SparseLU<double>, SparseSpaceType, LocalSpaceType>;
-	#endif // defined USE_EIGEN_MKL
-	class_<EigensystemSolverType, EigensystemSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable>
-    	("EigensystemSolver", init<Parameters>())
-    	.def("Solve", &EigensystemSolverType::Solve)
-    	.def("GetEigenValue", &EigensystemSolverType::GetEigenValue)
-	;
-;
+	#if !defined USE_EIGEN_MKL
+	register_eigensystem_solver<SparseLU<double>>("EigensystemSolver");
+	#else  // !defined USE_EIGEN_MKL
+	register_eigensystem_solver<PardisoLDLT<double>>("EigensystemSolver");
+	#endif // !defined USE_EIGEN_MKL
 }
 
 } // namespace Python

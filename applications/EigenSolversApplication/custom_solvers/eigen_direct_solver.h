@@ -25,10 +25,30 @@
 #include "includes/define.h"
 #include "linear_solvers/direct_solver.h"
 #include "custom_utilities/ublas_wrapper.h"
+#include "spaces/ublas_space.h"
+#include "includes/ublas_interface.h"
+#include "includes/ublas_complex_interface.h"
 
 
 namespace Kratos
 {
+
+template <typename Scalar>
+struct SpaceType;
+
+template <>
+struct SpaceType<double>
+{
+	using Global = UblasSpace<double, CompressedMatrix, Vector>;
+	using Local = UblasSpace<double, Matrix, Vector>;
+};
+
+template <>
+struct SpaceType<std::complex<double>>
+{
+	using Global = UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector>;
+	using Local = UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector>;
+};
 
 template <typename scalar_t>
 struct SolverType
@@ -36,6 +56,10 @@ struct SolverType
     using TScalar = scalar_t;
 
     using TSparseMatrix = Eigen::SparseMatrix<scalar_t, Eigen::RowMajor, int>;
+    
+    using TGlobalSpace = typename SpaceType<scalar_t>::Global;
+
+    using TLocalSpace = typename SpaceType<scalar_t>::Local;
 };
 
 template <typename scalar_t>
@@ -82,8 +106,8 @@ struct PardisoLU : SolverType<scalar_t>
 
 template <
     class TSolver,
-    class TSparseSpaceType,
-    class TDenseSpaceType,
+    class TSparseSpaceType = typename TSolver::TGlobalSpace,
+    class TDenseSpaceType = typename TSolver::TLocalSpace,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigenDirectSolver
     : public DirectSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>

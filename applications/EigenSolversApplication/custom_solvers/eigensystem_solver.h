@@ -33,8 +33,8 @@ namespace Kratos
 
 template<
     class TSolver,
-    class TSparseSpaceType,
-    class TDenseSpaceType,
+    class TSparseSpaceType = typename TSolver::TGlobalSpace,
+    class TDenseSpaceType = typename TSolver::TLocalSpace,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
 class EigensystemSolver
