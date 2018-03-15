@@ -12,10 +12,10 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -31,12 +31,13 @@ namespace Kratos
 {
 namespace Python
 {
-void  AddCustomUtilitiesToPython()
-{
-    using namespace boost::python;
+using namespace pybind11;
 
+void  AddCustomUtilitiesToPython(pybind11::module& m)
+{
     // Tree contact search
-    class_<TreeContactSearch<2, 2>>("TreeContactSearch2D2N", init<ModelPart&>())
+    class_<TreeContactSearch<2, 2>, TreeContactSearch<2, 2>::Pointer>(m, "TreeContactSearch2D2N")
+    .def(init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<2, 2>::InitializeMortarConditions)
     .def("ClearScalarMortarConditions",&TreeContactSearch<2, 2>::ClearScalarMortarConditions)
@@ -49,7 +50,8 @@ void  AddCustomUtilitiesToPython()
     .def("CheckMortarConditions",&TreeContactSearch<2, 2>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<2, 2>::InvertSearch)
     ;
-    class_<TreeContactSearch<3, 3>>("TreeContactSearch3D3N", init<ModelPart&>())
+    class_<TreeContactSearch<3, 3>, TreeContactSearch<3, 3>::Pointer>(m, "TreeContactSearch3D3N")
+    .def(init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 3>::InitializeMortarConditions)
     .def("ClearScalarMortarConditions",&TreeContactSearch<3, 3>::ClearScalarMortarConditions)
@@ -62,7 +64,8 @@ void  AddCustomUtilitiesToPython()
     .def("CheckMortarConditions",&TreeContactSearch<3, 3>::CheckMortarConditions)
     .def("InvertSearch",&TreeContactSearch<3, 3>::InvertSearch)
     ;
-    class_<TreeContactSearch<3, 4>>("TreeContactSearch3D4N", init<ModelPart&>())
+    class_<TreeContactSearch<3, 4>, TreeContactSearch<3, 4>::Pointer>(m, "TreeContactSearch3D4N")
+    .def(init<ModelPart&>())
     .def(init<ModelPart&, Parameters>())
     .def("InitializeMortarConditions",&TreeContactSearch<3, 4>::InitializeMortarConditions)
     .def("ClearScalarMortarConditions",&TreeContactSearch<3, 4>::ClearScalarMortarConditions)
@@ -77,20 +80,21 @@ void  AddCustomUtilitiesToPython()
     ;
 
     // Adding search related enums
-    enum_<SearchTreeType>("SearchTreeType")
+    enum_<SearchTreeType>(m, "SearchTreeType")
     .value("KdtreeInRadius", KdtreeInRadius)
     .value("KdtreeInBox", KdtreeInBox)
     .value("Kdop", Kdop)
     ;
 
-    enum_<CheckGap>("CheckGap")
+    enum_<CheckGap>(m, "CheckGap")
     .value("NoCheck", NoCheck)
     .value("DirectCheck", DirectCheck)
     .value("MappingCheck", MappingCheck)
     ;
 
     // Process Factory utility
-    class_<ProcessFactoryUtility>("ProcessFactoryUtility", init<boost::python::list&>())
+    class_<ProcessFactoryUtility, ProcessFactoryUtility::Pointer>(m, "ProcessFactoryUtility")
+    .def(init<boost::python::list&>())
     .def(init< >())
     .def("AddProcess",&ProcessFactoryUtility::AddProcess)
     .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)
@@ -105,7 +109,8 @@ void  AddCustomUtilitiesToPython()
     ;
 
     // Sparse matrix multiplication utility
-    class_<SparseMatrixMultiplicationUtility>("SparseMatrixMultiplicationUtility", init<>())
+    class_<SparseMatrixMultiplicationUtility, SparseMatrixMultiplicationUtility::Pointer>(m, "SparseMatrixMultiplicationUtility")
+    .def(init<>())
     .def("MatrixMultiplicationSaad",&SparseMatrixMultiplicationUtility::MatrixMultiplicationSaad<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixMultiplicationRMerge",&SparseMatrixMultiplicationUtility::MatrixMultiplicationRMerge<CompressedMatrix, CompressedMatrix, CompressedMatrix>)
     .def("MatrixAdd",&SparseMatrixMultiplicationUtility::MatrixAdd<CompressedMatrix, CompressedMatrix>)
