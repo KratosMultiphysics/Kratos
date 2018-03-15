@@ -23,10 +23,6 @@ CheckForPreviousImport()
 import time
 
 # ==============================================================================
-def CreateTimer():
-    return Timer()
-
-# ==============================================================================
 class Timer:
 
     # --------------------------------------------------------------------------
@@ -46,8 +42,8 @@ class Timer:
         return round( LapTime, self.Precision )
 
     # --------------------------------------------------------------------------
-    def StartNewLap( self ):    
-        self.StartLapTime = time.time()    
+    def StartNewLap( self ):
+        self.StartLapTime = time.time()
 
     #---------------------------------------------------------------------------
     def GetTotalTime( self ):

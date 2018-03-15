@@ -19,10 +19,10 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 CheckForPreviousImport()
 
 # Additional imports
-import timer_factory
 import algorithm_factory
 import communicator_factory
 import model_part_controller_factory
+from timer import Timer
 
 # ==============================================================================
 def CreateOptimizer( OptimizationSettings, OptimizationModelPart ):
@@ -67,11 +67,10 @@ class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
     def optimize( self ):
-        timer = timer_factory.CreateTimer()
         algorithm_name = self.OptimizationSettings["optimization_algorithm"]["name"].GetString()
 
         print("\n> ==============================================================================================================")
-        print("> ",timer.GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
+        print("> ",Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
         print("> ==============================================================================================================\n")
 
         if self.ModelPartController.IsOptimizationModelPartAlreadyImported():

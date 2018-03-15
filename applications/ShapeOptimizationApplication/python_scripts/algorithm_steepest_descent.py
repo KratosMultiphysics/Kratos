@@ -22,6 +22,9 @@ CheckForPreviousImport()
 # Import algorithm base classes
 from algorithm_base import OptimizationAlgorithm
 
+# Additional imports
+from timer import Timer
+
 # ==============================================================================
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
@@ -59,15 +62,19 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     def initializeOptimizationLoop( self ):
         self.Analyzer.initializeBeforeOptimizationLoop()
         self.ModelPartController.InitializeMeshController()
-        self.DataLogger.StartTimer()
         self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
     def runOptimizationLoop( self ):
+        timer = Timer()
+        timer.StartTimer()
+
         for self.optimizationIteration in range(1,self.maxIterations):
             print("\n>===================================================================")
-            print("> ",self.DataLogger.GetTimeStamp(),": Starting optimization iteration ",self.optimizationIteration)
+            print("> ",timer.GetTimeStamp(),": Starting optimization iteration ",self.optimizationIteration)
             print(">===================================================================\n")
+
+            timer.StartNewLap()
 
             self.__initializeNewShape()
 
@@ -86,7 +93,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
             self.__logCurrentOptimizationStep()
 
-            self.__timeOptimizationStep()
+            print("\n> Time needed for current optimization step = ", timer.GetLapTime(), "s")
+            print("> Time needed for total optimization so far = ", timer.GetTotalTime(), "s")
 
             if self.__isAlgorithmConverged():
                 break
@@ -156,11 +164,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep( self ):
         self.DataLogger.LogCurrentData( self.optimizationIteration )
-
-    # --------------------------------------------------------------------------
-    def __timeOptimizationStep( self ):
-        print("\n> Time needed for current optimization step = ", self.DataLogger.GetLapTime(), "s")
-        print("> Time needed for total optimization so far = ", self.DataLogger.GetTotalTime(), "s")
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged( self ):

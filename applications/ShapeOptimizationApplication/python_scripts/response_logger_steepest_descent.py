@@ -24,15 +24,15 @@ from response_logger_base import ResponseLogger
 
 # Import additional libraries
 import csv
+from timer import Timer
 
 # ==============================================================================
 class ResponseLoggerSteepestDescent( ResponseLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, communicator, optimizationSettings, timer ):
+    def __init__( self, communicator, optimizationSettings ):
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
-        self.timer = timer
 
         self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()
 
@@ -63,8 +63,6 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
             row.append("{:>12s}".format("df_abs[%]"))
             row.append("{:>12s}".format("df_rel[%]"))
             row.append("{:>13s}".format("step_size[-]"))
-            row.append("{:>12s}".format("t_itr[s]"))
-            row.append("{:>16s}".format("t_total[s]"))
             row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
 
@@ -156,9 +154,7 @@ class ResponseLoggerSteepestDescent( ResponseLogger ):
             row.append(str("{:>12f}".format(absoluteChangeOfObjectiveValue)))
             row.append(str("{:>12f}".format(relativeChangeOfObjectiveValue)))
             row.append(str("{:>13f}".format(self.optimizationSettings["line_search"]["step_size"].GetDouble())))
-            row.append(str("{:>12f}".format(self.timer.GetLapTime())))
-            row.append(str("{:>16f}".format(self.timer.GetTotalTime())))
-            row.append("{:>25}".format(self.timer.GetTimeStamp()))
+            row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 
 # ==============================================================================
