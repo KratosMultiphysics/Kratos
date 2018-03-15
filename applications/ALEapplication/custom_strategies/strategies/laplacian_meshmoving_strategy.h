@@ -77,7 +77,9 @@ public:
                               typename TLinearSolver::Pointer pNewLinearSolver,
                               int TimeOrder = 1,
                               bool ReformDofSetAtEachStep = false,
-                              bool ComputeReactions = false, int EchoLevel = 0)
+                              bool ComputeReactions = false,
+                              bool CalculateMeshVelocities = true,
+                              int EchoLevel = 0)
       : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(ModelPart) {
 
     KRATOS_TRY;
@@ -85,6 +87,7 @@ public:
     mreform_dof_set_at_each_step = ReformDofSetAtEachStep;
     mecho_level = EchoLevel;
     mcompute_reactions = ComputeReactions;
+    mcalculate_mesh_velocities = CalculateMeshVelocities;
     mtime_order = TimeOrder;
     bool calculate_norm_dx_flag = false;
 
@@ -191,8 +194,9 @@ public:
     const double delta_time =
         BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
-    MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
-                                               delta_time);
+    if (mcalculate_mesh_velocities == true)
+        MoveMeshUtilities::CalculateMeshVelocities(mpmesh_model_part, mtime_order,
+                                                   delta_time);
     MoveMeshUtilities::MoveMesh(
         mpmesh_model_part->GetCommunicator().LocalMesh().Nodes());
 
@@ -284,6 +288,8 @@ private:
   bool mcompute_reactions;
   int mtime_order;
   int mecho_level;
+  bool mcalculate_mesh_velocities;
+
   /*@} */
   /**@name Private Operators*/
   /*@{ */

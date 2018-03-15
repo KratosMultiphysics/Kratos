@@ -229,7 +229,7 @@ void DynSS<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
             for (unsigned int d = 0; d < TDim; d++)
             {
                 double Vd = CoarseConvVel[d] + U[d];
-                ConvVelNorm *= Vd*Vd;
+                ConvVelNorm += Vd*Vd;
             }
             ConvVelNorm = sqrt(ConvVelNorm);
             InvTau = Density * ( 1.0/Dt + 8.0*Viscosity/(h*h) + 2.0*ConvVelNorm/h );
