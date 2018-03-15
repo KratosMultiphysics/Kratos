@@ -24,7 +24,7 @@ from response_logger_base import ResponseLogger
 
 # Import additional libraries
 import csv
-from timer import Timer
+from custom_timer import Timer
 
 # ==============================================================================
 class ResponseLoggerSteepestDescent( ResponseLogger ):
