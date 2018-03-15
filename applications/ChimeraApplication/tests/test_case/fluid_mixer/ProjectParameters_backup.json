@@ -1,0 +1,137 @@
+{
+    "problem_data"                     : {
+        "problem_name"    : "fluid_2d",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
+        "start_step"      : 0.0,
+        "end_time"        : 5,
+        "time_step"       : 0.0025
+    },
+    "output_configuration"             : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostBinary",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 5,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["VELOCITY","PRESSURE","DISTANCE","NORMAL"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"                  : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "solver_settings"                  : {
+            "solver_type": "navier_stokes_solver_vmsmonolithic_chimera",
+            "model_import_settings": {
+                "input_type": "mdpa",
+                "input_filename": "fluid_mixer"
+            },
+            "implementation"		  : "MPC",
+            "maximum_iterations": 10,
+            "dynamic_tau": 0.01,
+            "oss_switch": 0,
+            "echo_level": 1,
+            "consider_periodic_conditions": false,
+            "compute_reactions": false,
+            "reform_dofs_at_each_step": true,
+            "relative_velocity_tolerance": 1e-3,
+            "absolute_velocity_tolerance": 1e-5,
+            "relative_pressure_tolerance": 1e-3,
+            "absolute_pressure_tolerance": 1e-5,
+            "linear_solver_settings"        : {
+                "solver_type" : "AMGCL_NS_Solver"
+            },
+            "volume_model_part_name" : "Parts_all",
+            "skin_parts": ["NoSlip2D_walls","NoSlip2D_structure1","NoSlip2D_structure2"],
+            "no_skin_parts":[""],
+            "time_stepping"                : {
+                "automatic_time_step" : true,
+                "CFL_number"          : 1,
+                "minimum_delta_time"  : 1e-4,
+                "maximum_delta_time"  : 0.01
+            },
+            "alpha":-0.3,
+            "move_mesh_strategy": 0,
+            "periodic": "periodic",
+            "move_mesh_flag": false,
+            "turbulence_model": "None",
+            "reorder": false 
+                    },
+
+        
+        
+    "initial_conditions_process_list"  : [{
+        "implemented_in_file"   : "process_factory",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "VELOCITY_all",
+            "variable_name"   : "VELOCITY",
+            "modulus"          : 0,
+            "direction"       : [1,0.0,0.0]
+        }
+    },{
+        "implemented_in_file"   : "process_factory",
+        "implemented_in_module" : "KratosMultiphysics",
+        "help"                  : "This process ",
+        "process_name"          : "ApplyConstantScalarValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "PRESSURE_all",
+            "variable_name"   : "PRESSURE",
+            "value"           : 0
+        }
+    }],
+    "boundary_conditions_process_list" : [{
+        "implemented_in_file"   : "apply_noslip_process",
+        "implemented_in_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"          : "ApplySlipProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip2D_walls"
+        }
+    },{
+        "implemented_in_file"   : "apply_noslip_process",
+        "implemented_in_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"          : "ApplyNoSlipProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip2D_structure1"
+        }
+    },{
+        "implemented_in_file"   : "apply_noslip_process",
+        "implemented_in_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"          : "ApplyNoSlipProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "NoSlip2D_structure2"
+        }
+    }],
+    "gravity"                          : [{
+        "implemented_in_file"   : "process_factory",
+        "implemented_in_module" : "KratosMultiphysics",
+        "process_name"          : "ApplyConstantVectorValueProcess",
+        "Parameters"            : {
+            "mesh_id"         : 0,
+            "model_part_name" : "Parts_all",
+            "variable_name"   : "BODY_FORCE",
+            "modulus"          : 0,
+            "direction"       : [0.0,-1.0,0.0]
+        }
+    }]
+}
