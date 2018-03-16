@@ -25,7 +25,6 @@ def CreateListOfResponseFunctions( optimization_settings, optimization_model_par
 
 # ==============================================================================
 class ResponseFunctionCreator:
-
     # --------------------------------------------------------------------------
     def __init__( self, optimization_settings,optimization_model_part ):
         self.optimization_settings = optimization_settings

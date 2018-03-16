@@ -21,7 +21,6 @@ from algorithm_base import OptimizationAlgorithm
 
 # ==============================================================================
 class AlgorithmPenalizedProjection( OptimizationAlgorithm ) :
-
     # --------------------------------------------------------------------------
     def __init__( self, OptimizationSettings, MdpaController, Analyzer, Communicator ):
         self.OptimizationSettings = OptimizationSettings

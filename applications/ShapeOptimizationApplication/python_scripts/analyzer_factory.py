@@ -17,7 +17,6 @@ def CreateAnalyzer( project_parameters, model_part_controller, external_anlyzer 
 
 # ==============================================================================
 class Analyzer:
-
     # --------------------------------------------------------------------------
     def __init__( self, project_parameters, model_part_controller, external_anlyzer ):
         self.external_anlyzer = external_anlyzer

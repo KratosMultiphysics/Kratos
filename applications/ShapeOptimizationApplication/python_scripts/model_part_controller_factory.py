@@ -33,10 +33,10 @@ class ModelPartController:
 
         if mesh_motion_settings["apply_ale_mesh_solver"].GetBool():
             from mesh_controller_ale_solver import MeshControllerUsingALESolver
-            self.mesh_controller = MeshControllerUsingALESolver( self.optimization_mdpa, mesh_motion_settings)
+            self.mesh_controller = MeshControllerUsingALESolver( optimization_mdpa, mesh_motion_settings)
         else:
             from mesh_controller_basic_updating import MeshControllerBasicUpdating
-            self.mesh_controller = MeshControllerBasicUpdating( self.optimization_mdpa )
+            self.mesh_controller = MeshControllerBasicUpdating( optimization_mdpa )
 
     # --------------------------------------------------------------------------
     def IsOptimizationModelPartAlreadyImported( self ):

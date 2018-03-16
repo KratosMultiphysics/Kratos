@@ -13,24 +13,21 @@
 from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
-from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
 
 # Additional imports
 import time as timer
 
 # ==============================================================================
 class KratosInternalAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
-
     # --------------------------------------------------------------------------
     def __init__( self, project_parameters, model_part ):
 
         import response_function_factory
         self.listOfResponseFunctions = response_function_factory.CreateListOfResponseFunctions(project_parameters["optimization_settings"], model_part)
 
-        import structural_mechanics_analysis
-        self.csm_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(project_parameters, model_part)
+        from structural_mechanics_analysis import StructuralMechanicsAnalysis
+        self.csm_analysis = StructuralMechanicsAnalysis(project_parameters, model_part)
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop( self ):

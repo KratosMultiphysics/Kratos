@@ -14,7 +14,6 @@ from __future__ import print_function, absolute_import, division
 # ==============================================================================
 
 class EmptyAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
-
     # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
         pass
