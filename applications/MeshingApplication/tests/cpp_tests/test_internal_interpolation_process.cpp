@@ -56,13 +56,14 @@ namespace Kratos
         * Test triangle 
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcess1, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT1, KratosInternalInterpolationProcessFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 2;
             
+            this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
@@ -107,11 +108,11 @@ namespace Kratos
             Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
 
             // Creating pointers
-            auto p_triangle_0 = Kratos::make_shared<GeometryType> (triangle_0);
-            auto p_triangle_1 = Kratos::make_shared<GeometryType> (triangle_1);
-            auto p_triangle_2 = Kratos::make_shared<GeometryType> (triangle_2);
-            auto p_triangle_3 = Kratos::make_shared<GeometryType> (triangle_3);
-            
+            auto p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_0);
+            auto p_triangle_1 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_1);
+            auto p_triangle_2 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_2);
+            auto p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_3);
+
             Element::Pointer p_elem_0 = Kratos::make_shared<SmallDisplacementBbar>(1, p_triangle_0, p_elem_prop);;
             Element::Pointer p_elem_1 = Kratos::make_shared<SmallDisplacementBbar>(2, p_triangle_1, p_elem_prop);
             Element::Pointer p_elem_2 = Kratos::make_shared<SmallDisplacementBbar>(3, p_triangle_2, p_elem_prop);
@@ -148,10 +149,6 @@ namespace Kratos
                 const auto& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
                 const std::size_t integration_points_number = integration_points.size();
 
-                // Computing the Jacobian
-                Vector vector_det_j(integration_points_number);
-                r_this_geometry.DeterminantOfJacobian(vector_det_j,this_integration_method);
-
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
                 elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
@@ -166,20 +163,39 @@ namespace Kratos
             "framework"                            : "Lagrangian",
             "internal_variables_parameters"        :
             {
-                "interpolation_type"                   : "LST",
+                "interpolation_type"                   : "CPT",
                 "internal_variable_interpolation_list" : ["PLASTIC_STRAIN"]
             },
             "echo_level" : 0
             })" );
+
+//             // DEBUG
+//             GiDIODebugInternalInterpolation(this_model_part, "pre1");
+
             MmgProcess<2> mmg_process = MmgProcess<2>(this_model_part, params);
             mmg_process.Execute();
+
+//             // DEBUG
+//             GiDIODebugInternalInterpolation(this_model_part, "1");
             
-            // DEBUG
-            GiDIODebugInternalInterpolation(this_model_part, "1");
-            
-//             const double tolerance = 1.0e-4;
-//             for (auto& i_node : this_model_part.Nodes())
-//                 KRATOS_CHECK_LESS_EQUAL(std::abs(i_node.FastGetSolutionStepValue(NODAL_H) - 1.0/std::sqrt(2.0))*std::sqrt(2.0), tolerance);
+            const double tolerance = 1.0e-4;
+            for (auto& elem : this_model_part.Elements()) {
+                auto& r_this_geometry = elem.GetGeometry();
+
+                // Getting the integration points
+                auto this_integration_method = elem.GetIntegrationMethod();
+                const auto& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+                const std::size_t integration_points_number = integration_points.size();
+
+                // Getting the CL
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
+                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+
+                for (std::size_t i = 0; i <integration_points_number; i++) {
+                    double aux;
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(PLASTIC_STRAIN, aux) - 1.0), tolerance);
+                }
+            }
         }
         
         /** 
@@ -187,13 +203,14 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcess2, KratosInternalInterpolationProcessFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestInternalInterpolationProcessCPT2, KratosInternalInterpolationProcessFastSuite)
         {
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
             ProcessInfo& current_process_info = this_model_part.GetProcessInfo();
             current_process_info[DOMAIN_SIZE] = 3;
 
+            this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
@@ -305,18 +322,18 @@ namespace Kratos
             Tetrahedra3D4 <NodeType> tetrahedra_11( element_nodes_11 );
 
             // Creating pointers
-            auto p_tetrahedra_0 = Kratos::make_shared<GeometryType> (tetrahedra_0);
-            auto p_tetrahedra_1 = Kratos::make_shared<GeometryType> (tetrahedra_1);
-            auto p_tetrahedra_2 = Kratos::make_shared<GeometryType> (tetrahedra_2);
-            auto p_tetrahedra_3 = Kratos::make_shared<GeometryType> (tetrahedra_3);
-            auto p_tetrahedra_4 = Kratos::make_shared<GeometryType> (tetrahedra_4);
-            auto p_tetrahedra_5 = Kratos::make_shared<GeometryType> (tetrahedra_5);
-            auto p_tetrahedra_6 = Kratos::make_shared<GeometryType> (tetrahedra_6);
-            auto p_tetrahedra_7 = Kratos::make_shared<GeometryType> (tetrahedra_7);
-            auto p_tetrahedra_8 = Kratos::make_shared<GeometryType> (tetrahedra_8);
-            auto p_tetrahedra_9 = Kratos::make_shared<GeometryType> (tetrahedra_9);
-            auto p_tetrahedra_10 = Kratos::make_shared<GeometryType> (tetrahedra_10);
-            auto p_tetrahedra_11 = Kratos::make_shared<GeometryType> (tetrahedra_11);
+            auto p_tetrahedra_0 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_0);
+            auto p_tetrahedra_1 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_1);
+            auto p_tetrahedra_2 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_2);
+            auto p_tetrahedra_3 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_3);
+            auto p_tetrahedra_4 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_4);
+            auto p_tetrahedra_5 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_5);
+            auto p_tetrahedra_6 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_6);
+            auto p_tetrahedra_7 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_7);
+            auto p_tetrahedra_8 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_8);
+            auto p_tetrahedra_9 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_9);
+            auto p_tetrahedra_10 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_10);
+            auto p_tetrahedra_11 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_11);
 
             Element::Pointer p_elem_0 = Kratos::make_shared<SmallDisplacementBbar>(1, p_tetrahedra_0, p_elem_prop);
             Element::Pointer p_elem_1 = Kratos::make_shared<SmallDisplacementBbar>(2, p_tetrahedra_1, p_elem_prop);
@@ -378,10 +395,6 @@ namespace Kratos
                 const auto& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
                 const std::size_t integration_points_number = integration_points.size();
 
-                // Computing the Jacobian
-                Vector vector_det_j(integration_points_number);
-                r_this_geometry.DeterminantOfJacobian(vector_det_j,this_integration_method);
-
                 // Getting the CL
                 std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
                 elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
@@ -396,20 +409,39 @@ namespace Kratos
                 "framework"                            : "Lagrangian",
                 "internal_variables_parameters"        :
                 {
-                    "interpolation_type"                   : "LST",
+                    "interpolation_type"                   : "CPT",
                     "internal_variable_interpolation_list" : ["PLASTIC_STRAIN"]
                 },
                 "echo_level" : 0
                 })" );
 
+//             // DEBUG
+//             GiDIODebugInternalInterpolation(this_model_part, "pre2");
+
             MmgProcess<3> mmg_process = MmgProcess<3>(this_model_part, params);
             mmg_process.Execute();
-            
-            // DEBUG
-            GiDIODebugInternalInterpolation(this_model_part, "2");
 
-//             const double tolerance = 1.0e-2;
-//             KRATOS_CHECK_LESS_EQUAL(std::abs(max - 1.0/std::sqrt(2.0))/max, tolerance);
+//             // DEBUG
+//             GiDIODebugInternalInterpolation(this_model_part, "2");
+
+            const double tolerance = 1.0e-4;
+            for (auto& elem : this_model_part.Elements()) {
+                auto& r_this_geometry = elem.GetGeometry();
+
+                // Getting the integration points
+                auto this_integration_method = elem.GetIntegrationMethod();
+                const auto& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
+                const std::size_t integration_points_number = integration_points.size();
+
+                // Getting the CL
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
+                elem.GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
+
+                for (std::size_t i = 0; i <integration_points_number; i++) {
+                    double aux;
+                    KRATOS_CHECK_LESS_EQUAL(std::abs(constitutive_law_vector[i]->GetValue(PLASTIC_STRAIN, aux) - 1.0), tolerance);
+                }
+            }
         }
     } // namespace Testing
 }  // namespace Kratos.
