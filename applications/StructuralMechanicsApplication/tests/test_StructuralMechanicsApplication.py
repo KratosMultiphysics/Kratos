@@ -20,7 +20,7 @@ except ImportError as e:
 
 ##### SELF-CONTAINED TESTS #####
 # CL tests
-from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
+from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 # Simple patch tests

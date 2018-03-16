@@ -64,6 +64,7 @@ protected:
     {
         Vector  N;
         Matrix  B;
+        Vector Bh;
         double  detF;
         Matrix  F;
         double  detJ0;
@@ -87,6 +88,7 @@ protected:
             detJ0 = 1.0;
             N = ZeroVector(NumberOfNodes);
             B = ZeroMatrix(StrainSize, Dimension * NumberOfNodes);
+            Bh = ZeroVector(Dimension * NumberOfNodes);
             F = IdentityMatrix(Dimension);
             DN_DX = ZeroMatrix(NumberOfNodes, Dimension);
             J0 = ZeroMatrix(Dimension, Dimension);
@@ -277,6 +279,18 @@ public:
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo 
+        ) override;
+
+    /**
+     * @brief Calculate a boolean Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained int the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
+        std::vector<bool>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
