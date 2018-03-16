@@ -125,6 +125,7 @@ class MechanicalSolver(object):
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def AddVariables(self):
+        # this can safely be called also for restarts, it is internally checked if the variables exist already
         # Add displacements.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -155,6 +156,7 @@ class MechanicalSolver(object):
         return 2
 
     def AddDofs(self):
+        # this can safely be called also for restarts, it is internally checked if the dofs exist already
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
@@ -580,6 +582,3 @@ class MechanicalSolver(object):
         rest_utility = restart_utility.RestartUtility(self.main_model_part,
                                                       self._get_restart_settings())
         return rest_utility
-
-
-
