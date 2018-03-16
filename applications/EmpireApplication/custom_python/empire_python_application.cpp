@@ -1,17 +1,20 @@
 /*
 ==============================================================================
-KratosULFApplication
+KratosEmpireApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
 pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
+janosch.stascheit@rub.de
+nagel@sd.rub.de
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
+- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
 
 
 Permission is hereby granted, free  of charge, to any person obtaining
@@ -39,27 +42,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: anonymous $
-//   Date:                $Date: 2008-05-28 15:29:01 $
-//   Revision:            $Revision: 1.2 $
+//   Last modified by:    $Author:  $
+//   Date:                $Date: $
+//   Revision:            $Revision: 1.3 $
 //
 //
-
 
 // System includes
 
+#if defined(KRATOS_PYTHON)
 // External includes
 #include <boost/python.hpp>
 
+
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
-#include "includes/node.h"
-#include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/wrapper_process.h"
+#include "empire_application.h"
 
 
 namespace Kratos
@@ -68,24 +68,24 @@ namespace Kratos
 namespace Python
 {
 
+  using namespace boost::python;
 
-void  AddCustomProcessesToPython()
-{
-    using namespace boost::python;
 
-    class_<WrapperProcess, bases<Process> >("WrapperProcess", init<ModelPart&,ModelPart&,int>())
-    .def("ExtractInterface", &WrapperProcess::ExtractInterface)
-    .def("ExtractPressureFromModelPart", &WrapperProcess::ExtractPressureFromModelPart)
-    .def("ExtractPressureFromEmbeddedModelPart", &WrapperProcess::ExtractPressureFromEmbeddedModelPart)
-    .def("ExtractForcesFromModelPart", &WrapperProcess::ExtractForcesFromModelPart)
-    .def("ExtractMeshInfo", &WrapperProcess::ExtractMeshInfo)
-    .def("ExtractDisplacementsFromModelPart", &WrapperProcess::ExtractDisplacementsFromModelPart)
-    .def("CreateEmbeddedInterfacePart", &WrapperProcess::CreateEmbeddedInterfacePart)
-    ;
-}
+
+  BOOST_PYTHON_MODULE(KratosEmpireApplication)
+  {
+
+	  class_<KratosEmpireApplication,
+			  KratosEmpireApplication::Pointer,
+			  bases<KratosApplication>, boost::noncopyable >("KratosEmpireApplication")
+			;
+
+
+  }
 
 
 }  // namespace Python.
 
-} // Namespace Kratos
+}  // namespace Kratos.
 
+#endif // KRATOS_PYTHON defined

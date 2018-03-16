@@ -419,7 +419,7 @@ public:
         //if needed resize the vector for the calculation of reactions
         if(BaseType::mCalculateReactionsFlag == true)
         {
-            unsigned int ReactionsVectorSize = BaseType::mDofSet.size()-BaseType::mEquationSystemSize;
+            unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
             if(BaseType::mpReactionsVector->size() != ReactionsVectorSize)
                 BaseType::mpReactionsVector->resize(ReactionsVectorSize,false);
         }

@@ -9,7 +9,7 @@
         "end_time"        : 1.0,
         "time_step"       : 0.1
     },
-    "output_configuration"             : {
+    "_output_configuration"             : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
