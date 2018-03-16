@@ -192,8 +192,8 @@ void MmgProcess<TDim>::InitializeMeshData()
 {                
     // First we compute the colors
     std::unordered_map<int,int> nodes_colors, cond_colors, elem_colors;
-    ModelPartColors model_part_colors(mrThisModelPart);
-    model_part_colors.ComputeColors(nodes_colors, cond_colors, elem_colors, mColors);
+    SubModelPartsListUtility sub_model_parts_list(mrThisModelPart);
+    sub_model_parts_list.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, mColors);
     
     /////////* MESH FILE */////////
     // Build mesh in MMG5 format //
