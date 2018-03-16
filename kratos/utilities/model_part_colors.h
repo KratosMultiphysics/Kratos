@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Miguel Maso Sotomayor
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_MODEL_PART_COLORS_H_INCLUDED)
@@ -60,8 +61,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// Get the list of submodelparts each node, condition and element belongs to
+/** 
+ * This class compute a colormap which is a key to get the submodelparts or 
+ * combinations of submodelparts each node, condition and element belongs to.
+ * Modelpart key is 0. Each submodelpart has 1, 2... key. A submodelpart
+ * combination has another key
  */
 class ModelPartColors
     {
@@ -97,9 +102,10 @@ class ModelPartColors
     
     /**
      * This functions gets the "colors", parts of a model part to process
-     * @param NodeColors Map where the submodelparts and nodes are stored
-     * @param CondColors Map where the submodelparts and conditions are stored
-     * @param ElemColors Map where the submodelparts and elements are stored
+     * @param NodeColors Map where the nodes id and keys are stored
+     * @param CondColors Map where the condition id and keys are stored
+     * @param ElemColors Map where the element Id and keys are stored
+     * @param rColors Map where the keys (colors) and associated submodelparts combinations are stored
      */
     void ComputeColors(
         std::unordered_map<int,int>& NodeColors,
