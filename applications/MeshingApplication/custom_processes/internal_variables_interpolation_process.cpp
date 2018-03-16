@@ -292,13 +292,13 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTra
 
                 if (number_points_found > 0) {
                     for (auto& this_var : mInternalDoubleVariableList) {
-                        GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length,constitutive_law_vector[i_gauss_point],current_process_info);
+                        GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length, constitutive_law_vector[i_gauss_point], current_process_info);
                     }
                     for (auto& this_var : mInternalArrayVariableList) {
-                        GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length,constitutive_law_vector[i_gauss_point],current_process_info);
+                        GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length, constitutive_law_vector[i_gauss_point], current_process_info);
                     }
                     for (auto& this_var : mInternalVectorVariableList) {
-                        GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length,constitutive_law_vector[i_gauss_point],current_process_info);
+                        GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length, constitutive_law_vector[i_gauss_point], current_process_info);
                     }
                 } else
                     KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;
