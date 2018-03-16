@@ -206,6 +206,12 @@ protected:
     virtual void CalculateKinematics(ElementVariables& rVariables,
                                      const unsigned int& rPointNumber) override;
 
+    /**
+     * Calculation of the increment of position (step displacement)
+     */
+    Matrix& CalculatePreviousDeltaPosition(Matrix & rDeltaPosition);
+
+  
     /**   
      * Calculate Element Frame
      */
