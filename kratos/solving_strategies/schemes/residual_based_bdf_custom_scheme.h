@@ -465,14 +465,12 @@ private:
         double& dotun0 = itNode->FastGetSolutionStepValue(DerivedVariable);
         double& un0 = itNode->FastGetSolutionStepValue(iVar);
 
-        if (itNode->HasDofFor(Derived2Variable)) {
-            if (itNode -> IsFixed(Derived2Variable)) {
-                dotun0 = (dot2un0 - BDFBaseType::mBDF[1] * dotun1)/BDFBaseType::mBDF[0];
-                un0 = (dotun0 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
-        } } else if (itNode->HasDofFor(DerivedVariable)) {
-            if (itNode -> IsFixed(DerivedVariable)) {
-                un0 = (dotun1 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
-        } } else if (itNode -> IsFixed(iVar) == false) {
+        if (itNode->IsFixed(Derived2Variable)) {
+            dotun0 = (dot2un0 - BDFBaseType::mBDF[1] * dotun1)/BDFBaseType::mBDF[0];
+            un0 = (dotun0 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
+        } else if (itNode->IsFixed(DerivedVariable)) {
+            un0 = (dotun1 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
+        } else if (itNode->IsFixed(iVar) == false) {
             un0 = un1 + DeltaTime * dotun1 + 0.5 * std::pow(DeltaTime, 2) * dot2un1;
         }
 
@@ -480,14 +478,12 @@ private:
             const double dotun = itNode->FastGetSolutionStepValue(DerivedVariable, i_order);
             const double un = itNode->FastGetSolutionStepValue(iVar, i_order);
 
-            if (itNode->HasDofFor(Derived2Variable)) {
-                if (itNode -> IsFixed(Derived2Variable)) {
-                    dotun0 -= (BDFBaseType::mBDF[i_order] * dotun)/BDFBaseType::mBDF[0];
-                    un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
-            } } else if (itNode->HasDofFor(DerivedVariable)) {
-                if (itNode -> IsFixed(DerivedVariable)) {
-                    un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
-            } }
+            if (itNode->IsFixed(Derived2Variable)) {
+                dotun0 -= (BDFBaseType::mBDF[i_order] * dotun)/BDFBaseType::mBDF[0];
+                un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
+            } else if (itNode->IsFixed(DerivedVariable)) {
+                un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
+            }
         }
     }
 
