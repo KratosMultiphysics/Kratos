@@ -74,6 +74,6 @@ class ResponseFunctionCreator:
         if response_type in ["strain_energy", "mass", "eigenfrequency", "adjoint_nodal_displacement"]:
             self.listOfResponseFunctions[response_id] = structural_response_function_factory.CreateResponseFunction(response_id, response_settings, self.optimization_model_part)
         else:
-            raise NameError("The following response function is not specified: " + response_id)
+            raise NameError("The following response function is available for optimization: " + response_id)
 
 # ==============================================================================

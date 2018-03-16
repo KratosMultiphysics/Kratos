@@ -93,13 +93,9 @@ public:
 	EigenfrequencyResponseFunction(ModelPart& model_part, Parameters& responseSettings)
 	: mr_model_part(model_part)
 	{
-		// Set gradient mode
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
-
-		// Mode 1: semi-analytic sensitivities
 		if (gradientMode.compare("semi_analytic") == 0)
 		{
-			mGradientMode = 1;
 			mDelta = responseSettings["step_size"].GetDouble();
 		}
 		else

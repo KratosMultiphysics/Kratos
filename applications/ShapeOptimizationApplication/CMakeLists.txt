@@ -8,12 +8,11 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_SOURCE_DIR}/applications/StructuralMechanicsApplication )
 
 ## generate variables with the sources
-set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application.cpp 
+set( KRATOS_SHAPEOPTIMIZATION_APPLICATION_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}/shape_optimization_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/shape_optimization_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/shape_optimization_condition.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_analytic_sensitivity_element.cpp
 )
 
 ###############################################################
@@ -26,7 +25,7 @@ install(TARGETS KratosShapeOptimizationApplication DESTINATION libs )
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosShapeOptimizationApplication PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

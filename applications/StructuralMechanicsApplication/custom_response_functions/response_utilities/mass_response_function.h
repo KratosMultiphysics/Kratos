@@ -85,21 +85,14 @@ public:
 	MassResponseFunction(ModelPart& model_part, Parameters responseSettings)
 	: mr_model_part(model_part)
 	{
-		// Set gradient mode
 		std::string gradientMode = responseSettings["gradient_mode"].GetString();
-
-		// Strings for comparison
-
-		// Mode 3: global finite differencing
 		if (gradientMode.compare("finite_differencing") == 0)
 		{
-			m_gradient_mode = 3;
 			double delta = responseSettings["step_size"].GetDouble();
 			mDelta = delta;
 		}
-		// Throw error message in case of wrong specification
 		else
-			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: finite_differencing. Specified gradient_mode: " << gradientMode << std::endl;
+			KRATOS_THROW_ERROR(std::invalid_argument, "Specified gradient_mode not recognized. The only option is: finite_differencing. Specified gradient_mode: ", gradientMode);
 
 		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 	}
@@ -162,110 +155,102 @@ public:
 		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
 			noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = zeros_array;
 
-		switch (m_gradient_mode)
-		{
-		// Global finite differencing
-    	case 3:
-		{
-			// Start process to identify element neighbors for every node
-			FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mr_model_part, 10, 10);
-			neighorFinder.Execute();
+		// Start process to identify element neighbors for every node
+		FindNodalNeighboursProcess neighorFinder = FindNodalNeighboursProcess(mr_model_part, 10, 10);
+		neighorFinder.Execute();
 
-			for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+		for(ModelPart::NodeIterator node_i=mr_model_part.NodesBegin(); node_i!=mr_model_part.NodesEnd(); node_i++)
+		{
+			// Get all neighbor elements of current node
+			WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+
+			// Compute total mass of all neighbor elements before finite differencing
+			double mass_before_fd = 0.0;
+			for(unsigned int i = 0; i < ng_elem.size(); i++)
 			{
-				// Get all neighbor elements of current node
-				WeakPointerVector<Element >& ng_elem = node_i->GetValue(NEIGHBOUR_ELEMENTS);
+				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+				double elem_density = ng_elem_i.GetProperties()[DENSITY];
 
-				// Compute total mass of all neighbor elements before finite differencing
-				double mass_before_fd = 0.0;
-				for(unsigned int i = 0; i < ng_elem.size(); i++)
-				{
-					Kratos::Element& ng_elem_i = ng_elem[i];
-					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
-					double elem_density = ng_elem_i.GetProperties()[DENSITY];
-
-					// Compute mass according to element dimension
-					double elem_volume = 0.0;
-					if( IsElementOfTypeShell(element_geometry) )
-						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
-					else
-						elem_volume = element_geometry.Volume();
-					mass_before_fd +=  elem_density*elem_volume;
-				}
-
-				// Compute sensitivities using finite differencing in the three spatial direction
-				array_3d gradient(3, 0.0);
-
-				// Apply pertubation in X-direction and recompute total mass of all neighbor elements
-				double mass_after_fd = 0.0;
-				node_i->X() += mDelta;
-				for(unsigned int i = 0; i < ng_elem.size(); i++)
-				{
-					Kratos::Element& ng_elem_i = ng_elem[i];
-					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
-					double elem_density = ng_elem_i.GetProperties()[DENSITY];
-
-					// Compute mass according to element dimension
-					double elem_volume = 0.0;
-					if( IsElementOfTypeShell(element_geometry) )
-						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
-					else
-						elem_volume = element_geometry.Volume();
-					mass_after_fd +=  elem_density*elem_volume;
-				}
-				gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
-				node_i->X() -= mDelta;
-
-				// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
-				mass_after_fd = 0.0;
-				node_i->Y() += mDelta;
-				for(unsigned int i = 0; i < ng_elem.size(); i++)
-				{
-					Kratos::Element& ng_elem_i = ng_elem[i];
-					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
-					double elem_density = ng_elem_i.GetProperties()[DENSITY];
-
-					// Compute mass according to element dimension
-					double elem_volume = 0.0;
-					if( IsElementOfTypeShell(element_geometry) )
-						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
-					else
-						elem_volume = element_geometry.Volume();
-					mass_after_fd +=  elem_density*elem_volume;
-				}
-				gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
-				node_i->Y() -= mDelta;
-
-				// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
-				mass_after_fd = 0.0;
-				node_i->Z() += mDelta;
-				for(unsigned int i = 0; i < ng_elem.size(); i++)
-				{
-					Kratos::Element& ng_elem_i = ng_elem[i];
-					Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
-					double elem_density = ng_elem_i.GetProperties()[DENSITY];
-
-					// Compute mass according to element dimension
-					double elem_volume = 0.0;
-					if( IsElementOfTypeShell(element_geometry) )
-						elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
-					else
-						elem_volume = element_geometry.Volume();
-					mass_after_fd +=  elem_density*elem_volume;
-				}
-				gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
-				node_i->Z() -= mDelta;
-
-				// Compute sensitivity
-				noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
+				// Compute mass according to element dimension
+				double elem_volume = 0.0;
+				if( IsElementOfTypeShell(element_geometry) )
+					elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
+				else
+					elem_volume = element_geometry.Volume();
+				mass_before_fd +=  elem_density*elem_volume;
 			}
 
-			if (mConsiderDiscretization)
-				this->ConsiderDiscretization();
-		}
+			// Compute sensitivities using finite differencing in the three spatial direction
+			array_3d gradient(3, 0.0);
+
+			// Apply pertubation in X-direction and recompute total mass of all neighbor elements
+			double mass_after_fd = 0.0;
+			node_i->X() += mDelta;
+			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			{
+				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+				double elem_density = ng_elem_i.GetProperties()[DENSITY];
+
+				// Compute mass according to element dimension
+				double elem_volume = 0.0;
+				if( IsElementOfTypeShell(element_geometry) )
+					elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
+				else
+					elem_volume = element_geometry.Volume();
+				mass_after_fd +=  elem_density*elem_volume;
+			}
+			gradient[0] = (mass_after_fd - mass_before_fd) / mDelta;
+			node_i->X() -= mDelta;
+
+			// Apply pertubation in Y-direction and recompute total mass of all neighbor elements
+			mass_after_fd = 0.0;
+			node_i->Y() += mDelta;
+			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			{
+				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+				double elem_density = ng_elem_i.GetProperties()[DENSITY];
+
+				// Compute mass according to element dimension
+				double elem_volume = 0.0;
+				if( IsElementOfTypeShell(element_geometry) )
+					elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
+				else
+					elem_volume = element_geometry.Volume();
+				mass_after_fd +=  elem_density*elem_volume;
+			}
+			gradient[1] = (mass_after_fd - mass_before_fd) / mDelta;
+			node_i->Y() -= mDelta;
+
+			// Apply pertubation in Z-direction and recompute total mass of all neighbor elements
+			mass_after_fd = 0.0;
+			node_i->Z() += mDelta;
+			for(unsigned int i = 0; i < ng_elem.size(); i++)
+			{
+				Kratos::Element& ng_elem_i = ng_elem[i];
+				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
+				double elem_density = ng_elem_i.GetProperties()[DENSITY];
+
+				// Compute mass according to element dimension
+				double elem_volume = 0.0;
+				if( IsElementOfTypeShell(element_geometry) )
+					elem_volume = element_geometry.Area()*ng_elem_i.GetProperties()[THICKNESS];
+				else
+					elem_volume = element_geometry.Volume();
+				mass_after_fd +=  elem_density*elem_volume;
+			}
+			gradient[2] = (mass_after_fd - mass_before_fd) / mDelta;
+			node_i->Z() -= mDelta;
+
+			// Compute sensitivity
+			noalias(node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY)) = gradient;
 
 		}
 
+		if (mConsiderDiscretization)
+			this->ConsiderDiscretization();
 
 		KRATOS_CATCH("");
 	}
@@ -385,7 +370,6 @@ private:
 	///@{
 
 	ModelPart &mr_model_part;
-	unsigned int m_gradient_mode;
 	double mDelta;
 	bool mConsiderDiscretization;
 
