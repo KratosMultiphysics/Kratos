@@ -52,18 +52,11 @@ class MechanicalSolver(object):
             "analysis_type": "non_linear",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "perform_partitioning": true
+                "input_filename": "unknown_name"
             },
             "restart_settings" : {
-                "load_restart"                   : false,
-                "restart_load_file_label"        : "",
-                "load_restart_files_from_folder" : true,
-                "save_restart"                   : false,
-                "restart_save_frequency"         : 1.0,
-                "restart_control_type"           : "time",
-                "save_restart_files_in_folder"   : true,
-                "serializer_trace"               : "no_trace"
+                "load_restart"  : false,
+                "save_restart"  : false
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
@@ -115,11 +108,6 @@ class MechanicalSolver(object):
             warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
             self.print_warning_on_rank_zero("Time integration method", warning)
-        if custom_settings["model_import_settings"].Has("input_file_label"):
-            custom_settings["model_import_settings"].RemoveValue("input_file_label")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "model_import_settings/input_file_label", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_warning_on_rank_zero("Input file label", warning)
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
