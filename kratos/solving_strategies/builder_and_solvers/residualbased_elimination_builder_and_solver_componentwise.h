@@ -357,7 +357,7 @@ public:
 
         if ((!all_dofs_have_reactions) && BaseType::GetCalculateReactionsFlag())
         {
-            KRATOS_ERROR<<"All the DOFs do not have reaction variables set. Not possible to calculate reactions."<<std::endl;
+            KRATOS_THROW_ERROR(std::logic_error, "All the DOFs do not have reaction variables set. Not possible to calculate reactions.", "");
         }
         
     #endif        
