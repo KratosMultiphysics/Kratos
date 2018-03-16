@@ -82,7 +82,6 @@ public:
 	typedef Variable<DenseVectorType> VariableDenseVectorType;
 	typedef Variable<DenseMatrixType> VariableDenseMatrixType;
 
-
 	/// Pointer definition of EigenfrequencyResponseFunction
 	KRATOS_CLASS_POINTER_DEFINITION(EigenfrequencyResponseFunction);
 
@@ -108,9 +107,6 @@ public:
 
 		// Get number of eigenfrequency for which the structure has to be optimized
 		m_traced_eigenvalue = responseSettings["traced_eigenfrequency"].GetInt();
-
-		// Initialize member variables to NULL
-		m_eigenvalue = 0.0;
 	}
 
 	/// Destructor.
@@ -133,11 +129,11 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateValue()
+	double CalculateValue()
 	{
 		KRATOS_TRY;
 
-		m_eigenvalue = 0.0;
+		double eigenvalue = 0.0;
 
 		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
             KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
@@ -147,7 +143,9 @@ public:
 		if(num_of_computed_eigenvalues < m_traced_eigenvalue)
 			KRATOS_THROW_ERROR(std::runtime_error, "The chosen eigenvalue was not solved by the eigenvalue analysis!", "");
 
-		m_eigenvalue = 	(mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1];
+		eigenvalue = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1];
+
+		return eigenvalue;
 
 		KRATOS_CATCH("");
 	}
@@ -179,33 +177,6 @@ public:
 		}
 
 		}// End switch mGradientMode
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	double GetValue()
-	{
-		KRATOS_TRY;
-
-		return m_eigenvalue;
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	boost::python::dict GetGradient()
-	{
-		KRATOS_TRY;
-
-		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
-
-		// Fill dictionary with gradient information
-		for (auto& node_i : mr_model_part.Nodes())
-			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY);
-
-		return dFdX;
 
 		KRATOS_CATCH("");
 	}
@@ -271,6 +242,10 @@ protected:
 		// Working variables
 		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
 
+		const VariableDenseVectorType& rEIGENVALUE_VECTOR =
+            KratosComponents<VariableDenseVectorType>::Get("EIGENVALUE_VECTOR");
+		const double eigenvalue = (mr_model_part.GetProcessInfo()[rEIGENVALUE_VECTOR])[m_traced_eigenvalue - 1];
+
 		// Computation of: \frac{dF}{dx} = eigenvector^T\cdot (frac{\partial RHS}{\partial x} -
 		//				                   eigenvalue frac{\partial mass_matrix}{\partial x})\cdot eigenvector
 		for (auto& elem_i : mr_model_part.Elements())
@@ -316,7 +291,7 @@ protected:
 
 				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				perturbed_mass_matrix *= m_eigenvalue;
+				perturbed_mass_matrix *= eigenvalue;
 
 				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
@@ -340,7 +315,7 @@ protected:
 				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				perturbed_mass_matrix *= m_eigenvalue;
+				perturbed_mass_matrix *= eigenvalue;
 
 				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 
@@ -363,7 +338,7 @@ protected:
 
 				elem_i.CalculateMassMatrix(perturbed_mass_matrix, CurrentProcessInfo);
 				perturbed_mass_matrix = (perturbed_mass_matrix - mass_matrix_org) / mDelta;
-				perturbed_mass_matrix *= m_eigenvalue;
+				perturbed_mass_matrix *= eigenvalue;
 
 				elem_i.CalculateLocalSystem(perturbed_LHS, dummy ,CurrentProcessInfo);
 				perturbed_LHS = (perturbed_LHS - LHS_org) / mDelta;
@@ -413,7 +388,6 @@ private:
 	ModelPart &mr_model_part;
 	unsigned int mGradientMode;
 	unsigned int mWeightingMethod;
-	double m_eigenvalue;
 	double mDelta;
 	int m_traced_eigenvalue;
 

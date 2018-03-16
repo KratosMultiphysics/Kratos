@@ -105,9 +105,6 @@ public:
 			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: analytic , semi_analytic. Specified gradient_mode: " << gradientMode << std::endl;
 
 		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
-
-		// Initialize member variables to NULL
-		m_strain_energy = 0.0;
 	}
 
 	/// Destructor.
@@ -154,12 +151,12 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateValue()
+	double CalculateValue()
 	{
 		KRATOS_TRY;
 
 		ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
-		m_strain_energy = 0.0;
+		double strain_energy = 0.0;
 
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
 		for (ModelPart::ElementIterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
@@ -174,8 +171,10 @@ public:
 			elem_i->CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
 			// Compute strain energy
-			m_strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
+			strain_energy += 0.5 * inner_prod(u,prod(LHS,u));
 		}
+
+		return strain_energy;
 
 		KRATOS_CATCH("");
 	}
@@ -231,33 +230,6 @@ public:
 
 		if (mConsiderDiscretization)
 			this->ConsiderDiscretization();
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	double GetValue()
-	{
-		KRATOS_TRY;
-
-		return m_strain_energy;
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	boost::python::dict GetGradient()
-	{
-		KRATOS_TRY;
-
-		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
-
-		// Fill dictionary with gradient information
-		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY);
-
-		return dFdX;
 
 		KRATOS_CATCH("");
 	}
@@ -619,7 +591,6 @@ private:
 
 	ModelPart &mr_model_part;
 	unsigned int mGradientMode;
-	double m_strain_energy;
 	double mDelta;
 	bool mConsiderDiscretization;
 

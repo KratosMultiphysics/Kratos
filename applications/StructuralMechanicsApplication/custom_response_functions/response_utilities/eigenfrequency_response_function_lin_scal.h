@@ -136,9 +136,6 @@ public:
 
 			std::cout << "> The sum of the chosen weighting factors is unequal to one. A scaling process was executed for them!" << std::endl;
 		}
-
-		// Initialize member variables to NULL
-		m_resp_function_value = 0.0;
 	}
 
 	/// Destructor.
@@ -161,15 +158,17 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	void CalculateValue()
+	double CalculateValue()
 	{
 		KRATOS_TRY;
 
-		m_resp_function_value = 0.0;
+		double m_resp_function_value = 0.0;
 
 		// Compute response function by weighting with linear scalarization
 		for(int i = 0; i < m_num_eigenvalues; i++)
 			m_resp_function_value += m_vector_weight_fac[i] * get_single_eigenvalue(m_vector_ev[i]);
+
+		return m_resp_function_value;
 
 		KRATOS_CATCH("");
 	}
@@ -248,32 +247,7 @@ public:
 		KRATOS_CATCH("");
 	}
 
-	// --------------------------------------------------------------------------
-	double GetValue()
-	{
-		KRATOS_TRY;
 
-		return m_resp_function_value;
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	boost::python::dict GetGradient()
-	{
-		KRATOS_TRY;
-
-		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
-
-		// Fill dictionary with gradient information
-		for (auto& node_i : mr_model_part.Nodes())
-			dFdX[node_i.Id()] = node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY);
-
-		return dFdX;
-
-		KRATOS_CATCH("");
-	}
 
 	// ==============================================================================
 
@@ -491,7 +465,6 @@ private:
 
 	ModelPart &mr_model_part;
 	unsigned int mGradientMode;
-	double m_resp_function_value;
 	double mDelta;
 	int m_num_eigenvalues;
 	std::vector<int> m_vector_ev;

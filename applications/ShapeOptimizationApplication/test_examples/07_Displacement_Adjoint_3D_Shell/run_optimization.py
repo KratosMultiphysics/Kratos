@@ -62,8 +62,8 @@ class kratosAdjointAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         # response values
         for identifier, response in response_function_list.items():
             if communicator.isRequestingValueOf(identifier):
-                response.CalculateValue()
-                communicator.reportValue(identifier, response.GetValue())
+                value = response.CalculateValue()
+                communicator.reportValue(identifier, value)
 
         # add optional custom responses
 
@@ -71,7 +71,7 @@ class kratosAdjointAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         for identifier, response in response_function_list.items():
             if communicator.isRequestingGradientOf(identifier):
                 response.CalculateGradient()
-                communicator.reportGradient(identifier, response.GetGradient())
+                communicator.reportGradient(identifier, response.GetShapeGradient())
 
         # add optional custom gradients
 

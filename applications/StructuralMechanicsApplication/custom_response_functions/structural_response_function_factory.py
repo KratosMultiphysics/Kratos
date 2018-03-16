@@ -14,7 +14,7 @@ def CreateResponseFunction(response_id, response_settings, model_part):
 
     elif response_type == "mass":
         response_function_utility = StructuralMechanicsApplication.MassResponseFunction( model_part, response_settings )
-        return structural_response.MassResponseFunctionWrapper(response_id, response_settings, response_function_utility)
+        return structural_response.MassResponseFunctionWrapper(response_id, response_settings, response_function_utility, model_part)
 
     elif response_type == "eigenfrequency":
         if not response_settings.Has("weighting_method") or response_settings["weighting_method"].GetString() == "none":

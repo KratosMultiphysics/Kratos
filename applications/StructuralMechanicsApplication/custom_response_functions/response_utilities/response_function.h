@@ -99,16 +99,10 @@ public:
   virtual void Initialize() = 0;
 
   // --------------------------------------------------------------------------
-  virtual void CalculateValue() = 0;
+  virtual double CalculateValue() = 0;
 
   // --------------------------------------------------------------------------
   virtual void CalculateGradient() = 0;
-
-  // --------------------------------------------------------------------------
-  virtual double GetValue() = 0;
-
-  // --------------------------------------------------------------------------
-  virtual boost::python::dict GetGradient() = 0;
 
   // --------------------------------------------------------------------------
   virtual void ConsiderDiscretization() = 0;

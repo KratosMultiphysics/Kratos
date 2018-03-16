@@ -31,6 +31,7 @@
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_strain_energy_response_function.h"
 
+#include "custom_response_functions/response_utilities/response_function.h"
 #include "custom_response_functions/response_utilities/strain_energy_response_function.h"
 #include "custom_response_functions/response_utilities/mass_response_function.h"
 #include "custom_response_functions/response_utilities/eigenfrequency_response_function.h"
@@ -72,37 +73,23 @@ void  AddCustomResponseFunctionsToPython()
     class_<AdjointStrainEnergyResponseFunction, bases<AdjointStructuralResponseFunction>, boost::noncopyable>
       ("AdjointStrainEnergyResponseFunction", init<ModelPart&, Parameters&>());
 
-    class_<StrainEnergyResponseFunction, boost::noncopyable >
-      ("StrainEnergyResponseFunction", init<ModelPart&, Parameters>())
-      .def("Initialize", &StrainEnergyResponseFunction::Initialize)
-      .def("CalculateValue", &StrainEnergyResponseFunction::CalculateValue)
-      .def("CalculateGradient", &StrainEnergyResponseFunction::CalculateGradient)
-      .def("GetValue", &StrainEnergyResponseFunction::GetValue)
-      .def("GetGradient", &StrainEnergyResponseFunction::GetGradient);
+    class_<ResponseFunction, boost::noncopyable >
+      ("ResponseFunction", no_init)
+      .def("Initialize", &ResponseFunction::Initialize)
+      .def("CalculateValue", &ResponseFunction::CalculateValue)
+      .def("CalculateGradient", &ResponseFunction::CalculateGradient);
 
-    class_<MassResponseFunction, boost::noncopyable >
-      ("MassResponseFunction", init<ModelPart&, Parameters>())
-      .def("Initialize", &MassResponseFunction::Initialize)
-      .def("CalculateValue", &MassResponseFunction::CalculateValue)
-      .def("CalculateGradient", &MassResponseFunction::CalculateGradient)
-      .def("GetValue", &MassResponseFunction::GetValue)
-      .def("GetGradient", &MassResponseFunction::GetGradient);
+    class_<StrainEnergyResponseFunction, bases<ResponseFunction>, boost::noncopyable >
+      ("StrainEnergyResponseFunction", init<ModelPart&, Parameters>());
 
-    class_<EigenfrequencyResponseFunction, boost::noncopyable >
-      ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>())
-      .def("Initialize", &EigenfrequencyResponseFunction::Initialize)
-      .def("CalculateValue", &EigenfrequencyResponseFunction::CalculateValue)
-      .def("CalculateGradient", &EigenfrequencyResponseFunction::CalculateGradient)
-      .def("GetValue", &EigenfrequencyResponseFunction::GetValue)
-      .def("GetGradient", &EigenfrequencyResponseFunction::GetGradient);
+    class_<MassResponseFunction, bases<ResponseFunction>, boost::noncopyable >
+      ("MassResponseFunction", init<ModelPart&, Parameters>());
 
-    class_<EigenfrequencyResponseFunctionLinScal, boost::noncopyable >
-      ("EigenfrequencyResponseFunctionLinScal", init<ModelPart&, Parameters&>())
-      .def("Initialize", &EigenfrequencyResponseFunctionLinScal::Initialize)
-      .def("CalculateValue", &EigenfrequencyResponseFunctionLinScal::CalculateValue)
-      .def("CalculateGradient", &EigenfrequencyResponseFunctionLinScal::CalculateGradient)
-      .def("GetValue", &EigenfrequencyResponseFunctionLinScal::GetValue)
-      .def("GetGradient", &EigenfrequencyResponseFunctionLinScal::GetGradient);
+    class_<EigenfrequencyResponseFunction, bases<ResponseFunction>, boost::noncopyable >
+      ("EigenfrequencyResponseFunction", init<ModelPart&, Parameters&>());
+
+    class_<EigenfrequencyResponseFunctionLinScal, bases<ResponseFunction>, boost::noncopyable >
+      ("EigenfrequencyResponseFunctionLinScal", init<ModelPart&, Parameters&>());
 
     //For global finite differences
     class_<FiniteDifferencesUtilities, boost::noncopyable>("FiniteDifferencesUtilities", init< >())

@@ -102,9 +102,6 @@ public:
 			KRATOS_ERROR << "Specified gradient_mode not recognized. Options are: finite_differencing. Specified gradient_mode: " << gradientMode << std::endl;
 
 		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
-
-		// Initialize member variables to NULL
-		m_total_mass = 0.0;
 	}
 
 	/// Destructor.
@@ -125,12 +122,12 @@ public:
 	{}
 
 	// --------------------------------------------------------------------------
-	void CalculateValue()
+	double CalculateValue()
 	{
 		KRATOS_TRY;
 
 		// Variables
-		m_total_mass = 0.0;
+		double total_mass = 0.0;
 
 		// Incremental computation of total mass
 		for (ModelPart::ElementsContainerType::iterator elem_i = mr_model_part.ElementsBegin(); elem_i != mr_model_part.ElementsEnd(); ++elem_i)
@@ -144,8 +141,10 @@ public:
 				elem_volume = element_geometry.Area()*elem_i->GetProperties()[THICKNESS];
 			else
 				elem_volume = element_geometry.Volume();
-			m_total_mass +=  elem_density*elem_volume;
+			total_mass +=  elem_density*elem_volume;
 		}
+
+		return total_mass;
 
 		KRATOS_CATCH("");
 	}
@@ -272,33 +271,6 @@ public:
 	}
 
 	// --------------------------------------------------------------------------
-	double GetValue()
-	{
-		KRATOS_TRY;
-
-		return m_total_mass;
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
-	boost::python::dict GetGradient()
-	{
-		KRATOS_TRY;
-
-		// Dictionary to store all sensitivities along with Ids of corresponding nodes
-		boost::python::dict dFdX;
-
-		// Fill dictionary with gradient information
-		for (ModelPart::NodeIterator node_i = mr_model_part.NodesBegin(); node_i != mr_model_part.NodesEnd(); ++node_i)
-			dFdX[node_i->Id()] = node_i->FastGetSolutionStepValue(SHAPE_SENSITIVITY);
-
-		return dFdX;
-
-		KRATOS_CATCH("");
-	}
-
-	// --------------------------------------------------------------------------
   	virtual void ConsiderDiscretization(){
 
 		std::cout<< "> Considering discretization size!" << std::endl;
@@ -414,7 +386,6 @@ private:
 
 	ModelPart &mr_model_part;
 	unsigned int m_gradient_mode;
-	double m_total_mass;
 	double mDelta;
 	bool mConsiderDiscretization;
 
