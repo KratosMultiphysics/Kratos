@@ -945,13 +945,10 @@ public:
         {
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
-            if (dof_iterator->IsFixed())
-            {
-                const int i = (dof_iterator)->EquationId();
-                // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
-                const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
-                (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
-            }
+            const int i = (dof_iterator)->EquationId();
+            // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
+            const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
+            (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
         }
     }
 
