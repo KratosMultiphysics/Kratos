@@ -1059,9 +1059,12 @@ void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
 }
 //***********************************************************************************
 //***********************************************************************************
-void PrestressMembraneElement::InitializeNonLinearIteration(){
+
+void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
 
 }
+
 //***********************************************************************************
 //***********************************************************************************
 

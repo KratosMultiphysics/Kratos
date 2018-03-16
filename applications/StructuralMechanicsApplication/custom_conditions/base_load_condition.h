@@ -217,10 +217,10 @@ public:
      * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled 
       * @param rCurrentProcessInfo the current process info instance
      */      
-    virtual void AddExplicitContribution(const VectorType& rRHS, 
+    void AddExplicitContribution(const VectorType& rRHS, 
         const Variable<VectorType>& rRHSVariable, 
         Variable<array_1d<double,3> >& rDestinationVariable, 
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This function provides the place to perform checks on the completeness of the input.

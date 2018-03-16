@@ -58,6 +58,7 @@ ModelPart::ModelPart(std::string const& NewName)
     , mpParentModelPart(NULL)
     , mSubModelParts()
 {
+    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
     MeshType mesh;
     mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
@@ -76,6 +77,7 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
     , mpParentModelPart(NULL)
     , mSubModelParts()
 {
+    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
     MeshType mesh;
     mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
