@@ -194,6 +194,134 @@ public:
         mGaussPointId = Id;
     }
 
+
+    /**
+    * It checks if an ID exists in the map
+    * @param VariableKey The condition ID to remove
+    * @return If the ID already exists or not
+    */
+    bool Has(const IndexType VariableKey)
+    {
+        auto double_set = mMapDoubleVariables.find(VariableKey);
+        if(double_set != mMapDoubleVariables.end()) {
+            return true;
+        }
+        auto array_set = mMapArrayVariables.find(VariableKey);
+        if(array_set != mMapArrayVariables.end()) {
+            return true;
+        }
+        auto vector_set = mMapVectorVariables.find(VariableKey);
+        if(vector_set != mMapVectorVariables.end()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+    * It adds a new value to the map (double)
+    * @param VariableKey The variable ID to set
+    * @param rValue The value to assign
+    */
+    void SetrValue(
+        const IndexType VariableKey,
+        const double rValue
+        )
+    {
+        mMapDoubleVariables.insert({VariableKey, rValue});
+    }
+
+    /**
+    * It adds a new value to the map (array_1d<double, 3>)
+    * @param VariableKey The variable ID to set
+    * @param rValue The value to assign
+    */
+    void SetrValue(
+        const IndexType VariableKey,
+        const array_1d<double, 3>& rValue
+        )
+    {
+        mMapArrayVariables.insert({VariableKey, rValue});
+    }
+
+    /**
+    * It adds a new value to the map (Vector)
+    * @param VariableKey The variable ID to set
+    * @param rValue The value to assign
+    */
+    void SetrValue(
+        const IndexType VariableKey,
+        const Vector& rValue
+        )
+    {
+        mMapVectorVariables.insert({VariableKey, rValue});
+    }
+
+    /**
+    * It return a value from the map (double)
+    * @param VariableKey The variable ID to set
+    * @param rValue The value to recover
+    * @return rValue The value to recover
+    */
+    double GetValue(
+        const IndexType VariableKey,
+        double& rValue
+        )
+    {
+        rValue = mMapDoubleVariables[VariableKey];
+        return rValue;
+    }
+    /**
+    * It return a value from the map (array_1d<double, 3>)
+    * @param VariableKey The variable ID to set
+    * @param rValue The value to recover
+    * @return rValue The value to recover
+    */
+    array_1d<double, 3> GetValue(
+        const IndexType VariableKey,
+        array_1d<double, 3>& rValue
+        )
+    {
+        rValue = mMapArrayVariables[VariableKey];
+        return rValue;
+    }
+    /**
+    * It return a value from the map (Vector)
+    * @param VariableKey The variable ID to set
+    * @param rValue The value to recover
+    * @return rValue The value to recover
+    */
+    Vector GetValue(
+        const IndexType VariableKey,
+        Vector& rValue
+        )
+    {
+        rValue = mMapVectorVariables[VariableKey];
+        return rValue;
+    }
+
+    /**
+    * It removes one particular pair from the map
+    * @param VariableKey The variable ID to remove
+    */
+    void RemoveId(const IndexType VariableKey)
+    {
+        auto double_set = mMapDoubleVariables.find(VariableKey);
+        if(double_set != mMapDoubleVariables.end()) {
+            mMapDoubleVariables.erase(double_set);
+            return void();
+        }
+        auto array_set = mMapArrayVariables.find(VariableKey);
+        if(array_set != mMapArrayVariables.end()) {
+            mMapArrayVariables.erase(array_set);
+            return void();
+        }
+        auto vector_set = mMapVectorVariables.find(VariableKey);
+        if(vector_set != mMapVectorVariables.end()) {
+            mMapVectorVariables.erase(vector_set);
+            return void();
+        }
+    }
 protected:
 
     ///@name Protected static Member Variables
