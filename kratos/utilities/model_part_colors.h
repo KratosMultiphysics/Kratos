@@ -78,10 +78,10 @@ class ModelPartColors
     ///@name Type Definitions
     ///@{
 
-    /// The map containing the colors integers and the corresponding id for each component
+    /// The map containing the id for each component and the corresponding colors integers
     typedef std::unordered_map<int,int> IntIntMapType;
 
-    /// The map containing the colors integers and the name of the submodelparts related
+    /// The map containing the colors integers and the names of the submodelparts related
     typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
 
     /// Pointer definition of ModelPartColors
