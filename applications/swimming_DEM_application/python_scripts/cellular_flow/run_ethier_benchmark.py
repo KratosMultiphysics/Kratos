@@ -11,15 +11,15 @@ import ProjectParameters as pp
 import DEM_explicit_solver_var as DEM_parameters
 from DEM_procedures import KratosPrint as Say
 import case_runner
-import ethier_benchmark_algorithm as algorithm
-#import product_of_sines_benchmark_algorithm as algorithm
+#import ethier_benchmark_algorithm as algorithm
+import product_of_sines_benchmark_algorithm as algorithm
 
 varying_parameters = dict()
 combinations_that_failed = []
 errors = []
-irregular_mesh_sizes = [0.4, 0.2]
+irregular_mesh_sizes = [0.4, 0.2, 0.1]
 regular_mesh_n_points = [10, 20, 40]
-derivatives_types = [1, 3, 7, 6]
+derivatives_types = [1, 3, 4, 6, 7]
 number_of_simulations = len(irregular_mesh_sizes)
 number_of_simulations += len(regular_mesh_n_points)
 number_of_simulations *= len(derivatives_types)

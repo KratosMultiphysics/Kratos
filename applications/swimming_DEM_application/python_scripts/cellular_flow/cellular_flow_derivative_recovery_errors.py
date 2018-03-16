@@ -2,10 +2,10 @@ import math
 import matplotlib.pyplot as plt
 import h5py
 
-regular_mesh = True
+regular_mesh = False
 show_math_deriv_or_laplacian = 'M' # 'M' or 'L'
-mat_deriv_recovery_types = [1, 2, 3, 4, 6]
-laplacian_recovery_types = [1, 2, 3, 4, 6]#[1, 4, 3, 6]
+mat_deriv_recovery_types = [1, 3, 4, 6, 7]
+laplacian_recovery_types = [1, 3, 4, 6, 7]#[1, 4, 3, 6]
 
 marker_size = 10
 line_width = 1
@@ -81,7 +81,17 @@ if show_math_deriv_or_laplacian == 'M':
         expected_order = 2
         min_error = min(min_error, average_errors[-1])
         max_error = max(max_error, average_errors[0])
-        plt.plot(sizes, average_errors, marker = marker_type, ms = marker_size, color=color, label= mat_deriv_type + mat_deriv_slope_msg, linewidth = line_width, linestyle='solid', markersize = 20)
+        if (sizes):
+            plt.plot(sizes,
+                    average_errors,
+                    marker=marker_type,
+                    ms=marker_size,
+                    color=color,
+                    label=mat_deriv_type + mat_deriv_slope_msg,
+                    linewidth=line_width,
+                    linestyle='solid',
+                    markersize=20)
+        print('DADADADDAD', sizes, average_errors)
         #plt.plot(sizes, mat_deriv_max_errors,'-*', color=color, label= mat_deriv_type + ' material derivative (maximum)', linewidth = 2 * line_width, linestyle='dashed', markersize = 20)
 
 elif show_math_deriv_or_laplacian == 'L':
@@ -121,7 +131,7 @@ elif show_math_deriv_or_laplacian == 'L':
 plt.semilogx()
 plt.semilogy()
 plt.axis('equal')
-plt.xlim([10 ** -4, 1])
+plt.xlim([10 ** -4, 10])
 
 min_error /= 2
 if regular_mesh:
@@ -136,10 +146,10 @@ plt.ylim((min(slope) / 10, max_error * 10))
 plt.xlabel('$h$', fontsize = 20)
 
 if show_math_deriv_or_laplacian == 'M':
-    plt.ylabel('$E_1$', fontsize = 20)
+    plt.ylabel('$E_1$', fontsize=20)
 else:
-    plt.ylabel('$E_2$', fontsize = 20)
+    plt.ylabel('$E_2$', fontsize=20)
 
-plt.legend(loc = 'upper left')
-plt.savefig(plot_name, format='eps', bbox_inches = 'tight')
+plt.legend(loc='upper left')
+plt.savefig(plot_name, format='pdf', bbox_inches = 'tight')
 plt.show()
