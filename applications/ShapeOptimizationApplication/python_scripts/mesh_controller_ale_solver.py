@@ -22,11 +22,9 @@ from mesh_controller_base import MeshController
 from ale_analysis import ALEAnalysis
 
 # # ==============================================================================
-class MeshControllerUsingALESolver( MeshController) :
+class MeshControllerUsingALESolver(MeshController) :
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart, MeshSolverSettings ):
-        self.OptimizationModelPart = OptimizationModelPart
-
+    def __init__(self, MeshSolverSettings, OptimizationModelPart):
         default_settings = Parameters("""
         {
             "apply_ale_mesh_solver" : true,
@@ -56,16 +54,18 @@ class MeshControllerUsingALESolver( MeshController) :
         self.MeshSolverSettings.ValidateAndAssignDefaults(default_settings)
 
         self.MeshSolverSettings["problem_data"].AddEmptyValue("domain_size")
-        self.MeshSolverSettings["problem_data"]["domain_size"].SetInt( self.OptimizationModelPart.ProcessInfo[DOMAIN_SIZE] )
+        self.MeshSolverSettings["problem_data"]["domain_size"].SetInt(OptimizationModelPart.ProcessInfo[DOMAIN_SIZE])
 
-        self.mesh_solver = ALEAnalysis( self.MeshSolverSettings, self.OptimizationModelPart )
+        self.OptimizationModelPart = OptimizationModelPart
+
+        self.mesh_solver = ALEAnalysis(self.MeshSolverSettings, OptimizationModelPart)
 
     # --------------------------------------------------------------------------
-    def Initialize( self ):
+    def Initialize(self):
         self.mesh_solver.Initialize()
 
     # --------------------------------------------------------------------------
-    def UpdateMeshAccordingInputVariable( self, InputVariable ):
+    def UpdateMeshAccordingInputVariable(self, InputVariable):
         print("\n> Starting to update the mesh...")
         startTime = timer.time()
 
@@ -84,12 +84,12 @@ class MeshControllerUsingALESolver( MeshController) :
         self.mesh_solver.SolveTimeStep()
         self.mesh_solver.FinalizeTimeStep()
 
-        MeshControllerUtilities( self.OptimizationModelPart ).LogMeshChangeAccordingInputVariable( MESH_DISPLACEMENT )
+        MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(MESH_DISPLACEMENT)
 
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
     # --------------------------------------------------------------------------
-    def Finalize( self ):
+    def Finalize(self):
         self.mesh_solver.Finalize()
 
 # ==============================================================================

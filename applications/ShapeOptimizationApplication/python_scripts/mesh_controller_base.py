@@ -14,11 +14,11 @@ from __future__ import print_function, absolute_import, division
 # ==============================================================================
 class MeshController:
     # --------------------------------------------------------------------------
-    def Initialize( self ):
-        raise NotImplementedError("Mesh controller base class is called. Please check your implementation of the function >> Initialize << .")
+    def Initialize(self):
+        pass
 
     # --------------------------------------------------------------------------
-    def UpdateMeshAccordingInputVariable( self, InputVariable ):
+    def UpdateMeshAccordingInputVariable(self, InputVariable):
         raise NotImplementedError("Mesh controller base class is called. Please check your implementation of the function >> UpdateMeshAccordingInputVariable << .")
 
 # ==============================================================================

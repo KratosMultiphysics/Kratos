@@ -19,21 +19,17 @@ import time as timer
 from mesh_controller_base import MeshController
 
 # ==============================================================================
-class MeshControllerBasicUpdating( MeshController ):
+class MeshControllerBasicUpdating(MeshController):
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationModelPart ):
+    def __init__(self, OptimizationModelPart):
         self.OptimizationModelPart = OptimizationModelPart
 
     # --------------------------------------------------------------------------
-    def Initialize( self ):
-        pass
-
-    # --------------------------------------------------------------------------
-    def UpdateMeshAccordingInputVariable( self, InputVariable ):
+    def UpdateMeshAccordingInputVariable(self, InputVariable):
         print("\n> Starting to update the mesh")
         startTime = timer.time()
-        MeshControllerUtilities( self.OptimizationModelPart ).UpdateMeshAccordingInputVariable( InputVariable )
-        MeshControllerUtilities( self.OptimizationModelPart ).LogMeshChangeAccordingInputVariable( InputVariable )
+        MeshControllerUtilities(self.OptimizationModelPart).UpdateMeshAccordingInputVariable(InputVariable)
+        MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(InputVariable)
         print("> Time needed for updating the mesh = ",round(timer.time() - startTime,2),"s")
 
 # ==============================================================================
