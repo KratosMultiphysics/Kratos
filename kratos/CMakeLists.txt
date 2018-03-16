@@ -42,9 +42,9 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_intersected_geometrical_objects_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_discontinuous_distance_to_skin_process.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_distance_to_skin_process.cpp;
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp    
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp    
-    ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp    
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/exception.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
@@ -53,6 +53,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/geometrical_sensitivity_utility.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/utilities/point_locator.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/variable_utils.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_ball.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/tetrahedra_edge_shell.cpp;
@@ -157,7 +158,7 @@ if(USE_COTIRE MATCHES ON)
     ## This soruces in particular take too much ram by their own
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_amgcl_solver_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/python/add_utilities_to_python.cpp PROPERTIES COTIRE_EXCLUDED TRUE)
-    
+
     cotire(Kratos)
 endif(USE_COTIRE MATCHES ON)
 
