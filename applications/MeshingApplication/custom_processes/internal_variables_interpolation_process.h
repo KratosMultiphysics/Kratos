@@ -67,7 +67,14 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    enum class InterpolationTypes {CPT = 0, LST = 1, SFT = 2};
+    /**
+     * @brief This enum it used to list the different types of interpolations available
+     */
+    enum class InterpolationTypes {
+        CPT = 0, /// Closest Point Transfer. It transfer the values from the closest GP
+        LST = 1, /// Least-Square projection Transfer. It transfers from the closest GP from the old mesh
+        SFT = 2  /// It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+        };
 
 ///@}
 ///@name  Functions
@@ -139,9 +146,9 @@ public:
     /**
      * @brief We execute the search relative to the old and new model part
      * @details There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
-     * - CPT: Closest point transfer. It transfer the values from the closest GP
-     * - LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
-     * - SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time 
+     * - CPT: Closest Point Transfer. It transfer the values from the closest GP
+     * - LST: Least-Square projection Transfer. It transfers from the closest GP from the old mesh
+     * - SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
      * @note SFT THIS DOESN'T WORK, AND REQUIRES EXTRA STORE
      */
     void Execute() override;
