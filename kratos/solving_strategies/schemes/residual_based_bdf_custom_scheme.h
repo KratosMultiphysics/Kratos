@@ -214,50 +214,12 @@ public:
                 const Variable<double> dvar = mFirtsDoubleDerivatives[counter];
                 const Variable<double> d2var = mSecondDoubleDerivatives[counter];
                 
-                // Values
-                const double dot2un1 = it_node->FastGetSolutionStepValue(d2var, 1);
-                const double dotun1 = it_node->FastGetSolutionStepValue(dvar, 1);
-                const double un1 = it_node->FastGetSolutionStepValue(i_var, 1);
-                const double dot2un0 = it_node->FastGetSolutionStepValue(d2var);
-                double& dotun0 = it_node->FastGetSolutionStepValue(dvar);
-                double& un0 = it_node->FastGetSolutionStepValue(i_var);
-                
-                if (it_node->HasDofFor(d2var)) {
-                    if (it_node -> IsFixed(d2var)) {
-                        dotun0 = (dot2un0 - BDFBaseType::mBDF[1] * dotun1)/BDFBaseType::mBDF[0];
-                        un0 = (dotun0 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
-                } } else if (it_node->HasDofFor(dvar)) {
-                    if (it_node -> IsFixed(dvar)) {
-                        un0 = (dotun1 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
-                } } else if (it_node -> IsFixed(i_var) == false) {
-                    un0 = un1 + delta_time * dotun1 + 0.5 * std::pow(delta_time, 2) * dot2un1;
-                }
-                
-                for (std::size_t i_order = 2; i_order < BDFBaseType::mOrder + 1; ++i_order) {
-                    const double dotun = it_node->FastGetSolutionStepValue(dvar, i_order);
-                    const double un = it_node->FastGetSolutionStepValue(i_var, i_order);
-                    
-                    if (it_node->HasDofFor(d2var)) {
-                        if (it_node -> IsFixed(d2var)) {
-                            dotun0 -= (BDFBaseType::mBDF[i_order] * dotun)/BDFBaseType::mBDF[0];
-                            un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
-                    } } else if (it_node->HasDofFor(dvar)) {
-                        if (it_node -> IsFixed(dvar)) {
-                            un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
-                    } }
-                }
+                ComputePredictComponent(it_node, i_var, dvar, d2var, delta_time);
+
                 counter++;
             }
             counter = 0;
             for ( const auto& i_var : mArrayVariable) {
-                // Values
-                const array_1d<double, 3>& dot2un1 = it_node->FastGetSolutionStepValue(mSecondArrayDerivatives[counter], 1);
-                const array_1d<double, 3>& dotun1 = it_node->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter], 1);
-                const array_1d<double, 3>& un1 = it_node->FastGetSolutionStepValue(i_var, 1);
-                const array_1d<double, 3>& dot2un0 = it_node->FastGetSolutionStepValue(mSecondArrayDerivatives[counter]);
-                array_1d<double, 3>& dotun0 = it_node->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter]);
-                array_1d<double, 3>& un0 = it_node->FastGetSolutionStepValue(i_var);
-                
                 // Components
                 const std::string& variable_name = (i_var).Name();
                 const VariableComponent<ComponentType>& var_x = KratosComponents< VariableComponent<ComponentType>>::Get(variable_name+"_X");
@@ -266,81 +228,16 @@ public:
                 const std::string& dvariable_name = (mFirtsArrayDerivatives[counter]).Name();
                 const VariableComponent<ComponentType>& dvar_x = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_X");
                 const VariableComponent<ComponentType>& dvar_y = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_Y");
-                const VariableComponent<ComponentType>& dvar_z = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_Z");
                 const std::string& d2variable_name = (mSecondArrayDerivatives[counter]).Name();
                 const VariableComponent<ComponentType>& d2var_x = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_X");
                 const VariableComponent<ComponentType>& d2var_y = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_Y");
-                const VariableComponent<ComponentType>& d2var_z = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_Z");
-                
-                if (it_node->HasDofFor(d2var_x)) {
-                    if (it_node -> IsFixed(d2var_x)) {
-                        dotun0[0] = (dot2un0[0] - BDFBaseType::mBDF[1] * dotun1[0])/BDFBaseType::mBDF[0];
-                        un0[0] = (dotun0[0] - BDFBaseType::mBDF[1] * un1[0])/BDFBaseType::mBDF[0];
-                } } else if (it_node->HasDofFor(dvar_x)) {
-                    if (it_node -> IsFixed(dvar_x)) {
-                        un0[0] = (dotun1[0] - BDFBaseType::mBDF[1] * un1[0])/BDFBaseType::mBDF[0];
-                } } else if (it_node -> IsFixed(var_x) == false) {
-                    un0[0] = un1[0] + delta_time * dotun1[0] + 0.5 * std::pow(delta_time, 2) * dot2un1[0];
-                }
 
-                if (it_node->HasDofFor(d2var_y)) {
-                    if (it_node -> IsFixed(d2var_y)) {
-                        dotun0[1] = (dot2un0[1] - BDFBaseType::mBDF[1] * dotun1[1])/BDFBaseType::mBDF[0];
-                        un0[1] = (dotun0[1] - BDFBaseType::mBDF[1] * un1[1])/BDFBaseType::mBDF[0];
-                } } else if (it_node->HasDofFor(dvar_y)) {
-                    if (it_node -> IsFixed(dvar_y)) {
-                        un0[1] = (dotun1[1] - BDFBaseType::mBDF[1] * un1[1])/BDFBaseType::mBDF[0];
-                } } else if (it_node -> IsFixed(var_y) == false) {
-                    un0[1] = un1[1] + delta_time * dotun1[1] + 0.5 * std::pow(delta_time, 2) * dot2un1[1];
-                }
-
-                // For 3D cases
+                ComputePredictComponent(it_node, var_x, dvar_x, d2var_x, delta_time);
+                ComputePredictComponent(it_node, var_y, dvar_y, d2var_y, delta_time);
                 if (it_node -> HasDofFor(var_z)) {
-                    if (it_node->HasDofFor(d2var_z)) {
-                        if (it_node -> IsFixed(d2var_z)) {
-                            dotun0[2] = (dot2un0[2] - BDFBaseType::mBDF[1] * dotun1[2])/BDFBaseType::mBDF[0];
-                            un0[2] = (dotun0[2] - BDFBaseType::mBDF[1] * un1[2])/BDFBaseType::mBDF[0];
-                    } } else if (it_node->HasDofFor(dvar_z)) {
-                        if (it_node -> IsFixed(dvar_z)) {
-                            un0[2] = (dotun1[2] - BDFBaseType::mBDF[1] * un1[2])/BDFBaseType::mBDF[0];
-                    } } else if (it_node -> IsFixed(var_z) == false) {
-                        un0[2] = un1[2] + delta_time * dotun1[2] + 0.5 * std::pow(delta_time, 2) * dot2un1[2];
-                    }
-                }
-                
-                for (std::size_t i_order = 2; i_order < BDFBaseType::mOrder + 1; ++i_order) {
-                    const array_1d<double, 3>& dotun = it_node->FastGetSolutionStepValue(mFirtsArrayDerivatives[counter], i_order);
-                    const array_1d<double, 3>& un = it_node->FastGetSolutionStepValue(i_var, i_order);
-                    
-                    if (it_node->HasDofFor(d2var_x)) {
-                        if (it_node -> IsFixed(d2var_x)) {
-                            dotun0[0] -= (BDFBaseType::mBDF[i_order] * dotun[0])/BDFBaseType::mBDF[0];
-                            un0[0] -= (BDFBaseType::mBDF[i_order] * un[0])/BDFBaseType::mBDF[0];
-                    } } else if (it_node->HasDofFor(dvar_x)) {
-                        if (it_node -> IsFixed(dvar_x)) {
-                            un0[0] -= (BDFBaseType::mBDF[i_order] * un[0])/BDFBaseType::mBDF[0];
-                    } }
-
-                    if (it_node->HasDofFor(d2var_y)) {
-                        if (it_node -> IsFixed(d2var_y)) {
-                            dotun0[1] -= (BDFBaseType::mBDF[i_order] * dotun[1])/BDFBaseType::mBDF[0];
-                            un0[1] -= (BDFBaseType::mBDF[i_order] * un[1])/BDFBaseType::mBDF[0];
-                    } } else if (it_node->HasDofFor(dvar_y)) {
-                        if (it_node -> IsFixed(dvar_x)) {
-                            un0[1] -= (BDFBaseType::mBDF[i_order] * un[1])/BDFBaseType::mBDF[0];
-                    } }
-
-                    // For 3D cases
-                    if (it_node -> HasDofFor(var_z)) {
-                        if (it_node->HasDofFor(d2var_z)) {
-                            if (it_node -> IsFixed(d2var_z)) {
-                                dotun0[1] -= (BDFBaseType::mBDF[i_order] * dotun[2])/BDFBaseType::mBDF[0];
-                                un0[1] -= (BDFBaseType::mBDF[i_order] * un[2])/BDFBaseType::mBDF[0];
-                        } } else if (it_node->HasDofFor(dvar_y)) {
-                            if (it_node -> IsFixed(dvar_x)) {
-                                un0[1] -= (BDFBaseType::mBDF[i_order] * un[2])/BDFBaseType::mBDF[0];
-                        } }
-                    }
+                    const VariableComponent<ComponentType>& dvar_z = KratosComponents< VariableComponent<ComponentType>>::Get(dvariable_name+"_Z");
+                    const VariableComponent<ComponentType>& d2var_z = KratosComponents< VariableComponent<ComponentType>>::Get(d2variable_name+"_Z");
+                    ComputePredictComponent(it_node, var_z, dvar_z, d2var_z, delta_time);
                 }
                 counter++;
             }
@@ -542,6 +439,57 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method reduces the code duplication for each components when computing the prediction
+     * @param itNode The node iterator of the node currently being computed
+     * @param iVar The variable currently being integrated
+     * @param DerivedVariable The first time derivative of the current variable
+     * @param Derived2Variable The second time derivative of the current variable
+     * @param DeltaTime The increment of time for the time integration
+     */
+    template<class TClassVar>
+    void ComputePredictComponent(
+        NodesArrayType::iterator itNode,
+        const TClassVar& iVar,
+        const TClassVar& DerivedVariable,
+        const TClassVar& Derived2Variable,
+        const double DeltaTime
+        )
+    {
+        // Values
+        const double dot2un1 = itNode->FastGetSolutionStepValue(Derived2Variable, 1);
+        const double dotun1 = itNode->FastGetSolutionStepValue(DerivedVariable, 1);
+        const double un1 = itNode->FastGetSolutionStepValue(iVar, 1);
+        const double dot2un0 = itNode->FastGetSolutionStepValue(Derived2Variable);
+        double& dotun0 = itNode->FastGetSolutionStepValue(DerivedVariable);
+        double& un0 = itNode->FastGetSolutionStepValue(iVar);
+
+        if (itNode->HasDofFor(Derived2Variable)) {
+            if (itNode -> IsFixed(Derived2Variable)) {
+                dotun0 = (dot2un0 - BDFBaseType::mBDF[1] * dotun1)/BDFBaseType::mBDF[0];
+                un0 = (dotun0 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
+        } } else if (itNode->HasDofFor(DerivedVariable)) {
+            if (itNode -> IsFixed(DerivedVariable)) {
+                un0 = (dotun1 - BDFBaseType::mBDF[1] * un1)/BDFBaseType::mBDF[0];
+        } } else if (itNode -> IsFixed(iVar) == false) {
+            un0 = un1 + DeltaTime * dotun1 + 0.5 * std::pow(DeltaTime, 2) * dot2un1;
+        }
+
+        for (std::size_t i_order = 2; i_order < BDFBaseType::mOrder + 1; ++i_order) {
+            const double dotun = itNode->FastGetSolutionStepValue(DerivedVariable, i_order);
+            const double un = itNode->FastGetSolutionStepValue(iVar, i_order);
+
+            if (itNode->HasDofFor(Derived2Variable)) {
+                if (itNode -> IsFixed(Derived2Variable)) {
+                    dotun0 -= (BDFBaseType::mBDF[i_order] * dotun)/BDFBaseType::mBDF[0];
+                    un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
+            } } else if (itNode->HasDofFor(DerivedVariable)) {
+                if (itNode -> IsFixed(DerivedVariable)) {
+                    un0 -= (BDFBaseType::mBDF[i_order] * un)/BDFBaseType::mBDF[0];
+            } }
+        }
+    }
 
     /**
      * @brief This method returns the defaulr parameters in order to avoid code duplication
