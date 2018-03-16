@@ -108,9 +108,9 @@ class ModelPartColors
      * @param rColors Map where the keys (colors) and associated submodelparts combinations are stored
      */
     void ComputeColors(
-        std::unordered_map<int,int>& NodeColors,
-        std::unordered_map<int,int>& CondColors,
-        std::unordered_map<int,int>& ElemColors,
+        std::unordered_map<int,int>& rNodeColors,
+        std::unordered_map<int,int>& rCondColors,
+        std::unordered_map<int,int>& rElemColors,
         std::unordered_map<int,std::vector<std::string>>& rColors
         );
 

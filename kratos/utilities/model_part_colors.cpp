@@ -34,9 +34,9 @@ ModelPartColors::~ModelPartColors() {};
 
 // Compute colors
 void ModelPartColors::ComputeColors(
-    std::unordered_map<int,int>& NodesColors,
-    std::unordered_map<int,int>& CondColors,
-    std::unordered_map<int,int>& ElemColors,
+    std::unordered_map<int,int>& rNodesColors,
+    std::unordered_map<int,int>& rCondColors,
+    std::unordered_map<int,int>& rElemColors,
     std::unordered_map<int,std::vector<std::string>>& rColors
     )
 {
@@ -113,11 +113,11 @@ void ModelPartColors::ComputeColors(
         const std::set<int>& value = aux_nodes_color.second;
         
         if (value.size() == 0)
-            NodesColors[key] = 0; // Main Model Part
+            rNodesColors[key] = 0; // Main Model Part
         else if (value.size() == 1) // Another Model Part
-            NodesColors[key] = *value.begin();
+            rNodesColors[key] = *value.begin();
         else // There is a combination
-            NodesColors[key] = combinations[value];
+            rNodesColors[key] = combinations[value];
     }
     
     /* Conditions */
@@ -126,11 +126,11 @@ void ModelPartColors::ComputeColors(
         const std::set<int>& value = aux_cond_color.second;
         
         if (value.size() == 0)
-            CondColors[key] = 0; // Main Model Part
+            rCondColors[key] = 0; // Main Model Part
         else if (value.size() == 1) // Another Model Part
-            CondColors[key] = *value.begin();
+            rCondColors[key] = *value.begin();
         else // There is a combination
-            CondColors[key] = combinations[value];
+            rCondColors[key] = combinations[value];
     }
     
     /* Elements */
@@ -139,11 +139,11 @@ void ModelPartColors::ComputeColors(
         const std::set<int>& value = aux_elem_color.second;
         
         if (value.size() == 0)
-            ElemColors[key] = 0; // Main Model Part
+            rElemColors[key] = 0; // Main Model Part
         else if (value.size() == 1) // Another Model Part
-            ElemColors[key] = *value.begin();
+            rElemColors[key] = *value.begin();
         else // There is a combination
-            ElemColors[key] = combinations[value];
+            rElemColors[key] = combinations[value];
     }
 }
 
