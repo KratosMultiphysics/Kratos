@@ -19,7 +19,7 @@
 #include "includes/kratos_flags.h"
 
 /* Utilities */
-#include "utilities/model_part_colors.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 namespace Kratos
 {
@@ -30,10 +30,10 @@ namespace Kratos
         typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
 
         /**
-        * Checks the correct work of the modelparts colors utility
+        * Checks the correct work of the sub modelparts list utility
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsColors, KratosModelpartColorsUtilityFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsListUtility, KratosSubModelpartsListUtilityFastSuite)
         {
             // Creating the refrence model part and the relative submodelparts
             ModelPart first_model_part("Main");
@@ -96,11 +96,11 @@ namespace Kratos
 //             // Debug
 //             KRATOS_WATCH(first_model_part)
 
-            ModelPartColors colors_utility(first_model_part);
+            SubModelPartsListUtility colors_utility(first_model_part);
 
             IntIntMapType nodes_colors, cond_colors, elem_colors;
             IntStringMapType colors;
-            colors_utility.ComputeColors(nodes_colors, cond_colors, elem_colors, colors);
+            colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 
             // Creating the second model part
             ModelPart second_model_part("Main");
@@ -167,7 +167,7 @@ namespace Kratos
 //         * Checks the correct work of the modelparts colors utility (with different sublevels of modelparts)
 //         */
 //
-//         KRATOS_TEST_CASE_IN_SUITE(TestSubmodelPartsColorsWithSublevels, KratosModelpartColorsUtilityFastSuite)
+//         KRATOS_TEST_CASE_IN_SUITE(TestSubModelPartsListUtilityWithSublevels, KratosSubModelPartsListUtilityFastSuite)
 //         {
 //             // Creating the refrence model part and the relative submodelparts
 //             ModelPart first_model_part("Main");
@@ -236,11 +236,11 @@ namespace Kratos
 // //             // Debug
 // //             KRATOS_WATCH(first_model_part)
 //
-//             ModelPartColors colors_utility(first_model_part);
+//             SubModelPartsListUtility colors_utility(first_model_part);
 //
 //             IntIntMapType nodes_colors, cond_colors, elem_colors;
 //             IntStringMapType colors;
-//             colors_utility.ComputeColors(nodes_colors, cond_colors, elem_colors, colors);
+//             colors_utility.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, colors);
 //
 //             // Creating the second model part
 //             ModelPart second_model_part("Main");
