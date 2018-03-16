@@ -18,21 +18,21 @@
 // External includes 
 
 // Project includes
-#include "utilities/model_part_colors.h"
+#include "utilities/sub_model_parts_list_utility.h"
 
 
 namespace Kratos
 {
 // Default constructor
-ModelPartColors::ModelPartColors(ModelPart& rModelPart):mrModelPart(rModelPart) {};
+SubModelPartsListUtility::SubModelPartsListUtility(ModelPart& rModelPart):mrModelPart(rModelPart) {};
 
 
 // Destructor
-ModelPartColors::~ModelPartColors() {};
+SubModelPartsListUtility::~SubModelPartsListUtility() {};
 
 
 // Compute colors
-void ModelPartColors::ComputeColors(
+void SubModelPartsListUtility::ComputeSubModelPartsList(
     IntIntMapType& rNodesColors,
     IntIntMapType& rCondColors,
     IntIntMapType& rElemColors,

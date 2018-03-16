@@ -62,7 +62,7 @@ namespace Kratos
 ///@{
 
 /** 
- * @class ModelPartColors
+ * @class SubModelPartsListUtility
  * @ingroup KratosCore
  * @brief Get the list of submodelparts each node, condition and element belongs to
  * @details This class compute a colormap which is a key to get the submodelparts or
@@ -72,7 +72,7 @@ namespace Kratos
  * @author Miguel Maso Sotomayor
  * @author Vicente Mataix Ferrandiz
  */
-class ModelPartColors
+class SubModelPartsListUtility
 {
     public:
     ///@name Type Definitions
@@ -84,8 +84,8 @@ class ModelPartColors
     /// The map containing the colors integers and the names of the submodelparts related
     typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
 
-    /// Pointer definition of ModelPartColors
-    KRATOS_CLASS_POINTER_DEFINITION( ModelPartColors );
+    /// Pointer definition of SubModelPartsListUtility
+    KRATOS_CLASS_POINTER_DEFINITION( SubModelPartsListUtility );
 
     ///@}
     ///@name Life Cycle
@@ -97,10 +97,10 @@ class ModelPartColors
      * This is the default constructor, which is used to read the input files 
      * @param rModelPart The model part
      */
-    ModelPartColors(ModelPart& rModelPart);
+    SubModelPartsListUtility(ModelPart& rModelPart);
 
     /// Destructor.
-    ~ModelPartColors();
+    ~SubModelPartsListUtility();
 
 
     ///@}
@@ -120,7 +120,7 @@ class ModelPartColors
      * @param rElemColors Map where the element Id and keys are stored
      * @param rColors Map where the keys (colors) and associated submodelparts combinations are stored
      */
-    void ComputeColors(
+    void ComputeSubModelPartsList(
         IntIntMapType& rNodeColors,
         IntIntMapType& rCondColors,
         IntIntMapType& rElemColors,
@@ -144,7 +144,7 @@ class ModelPartColors
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "ModelPartColors";
+        return "SubModelPartsListUtility";
     }
 
     /// Print information about this object.
@@ -240,15 +240,15 @@ class ModelPartColors
     ///@{
 
     /// Assignment operator.
-    ModelPartColors& operator=(ModelPartColors const& rOther);
+    SubModelPartsListUtility& operator=(SubModelPartsListUtility const& rOther);
 
     /// Copy constructor.
-    ModelPartColors(ModelPartColors const& rOther);
+    SubModelPartsListUtility(SubModelPartsListUtility const& rOther);
 
 
     ///@}
 
-    }; // Class ModelPartColors
+    }; // Class SubModelPartsListUtility
 
 ///@}
 
@@ -263,11 +263,11 @@ class ModelPartColors
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                    ModelPartColors& rThis);
+                    SubModelPartsListUtility& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                    const ModelPartColors& rThis)
+                    const SubModelPartsListUtility& rThis)
     {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
