@@ -693,6 +693,28 @@ public:
             std::cout << "End of setupdofset\n" << std::endl;
         }
 
+        // If reactions are to be calculated, we check if all the dofs have reactions defined
+        // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG        
+        std::size_t num_dofs = BaseType::mDofSet.size();
+        bool all_dofs_have_reactions = true;
+
+#pragma omp parallel for firstprivate(num_dofs) reduction(&: all_dofs_have_reactions)        
+        for(std::size_t i = 0; i<num_dofs; i++)
+        {
+            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
+            all_dofs_have_reactions = dof_iterator->HasReaction();
+        }
+
+        if ((!all_dofs_have_reactions) && BaseType::GetCalculateReactionsFlag())
+        {
+            KRATOS_ERROR<<"All the DOFs do not have reaction variables set. Not possible to calculate reactions."<<std::endl;
+        }
+        
+    #endif
+
+
         KRATOS_CATCH("");
     }
 
