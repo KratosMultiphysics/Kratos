@@ -152,6 +152,9 @@ public:
 
     void WriteModelPart(ModelPart & rThisModelPart) override;
 
+    template<class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName);
+
 
     /// Read the input file and create the nodal connectivities graph, stored in CSR format.
     /**
@@ -354,8 +357,6 @@ protected:
     void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable, TDataType Dummy);
 
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
-    template<class TObjectsContainerType>
-    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName);
     template<class TVariableType, class TObjectsContainerType>
     void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName);
 

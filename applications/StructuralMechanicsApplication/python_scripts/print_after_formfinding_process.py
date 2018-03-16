@@ -35,8 +35,7 @@ class PrintAfterFormfinding(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
         KratosMultiphysics.Process.__init__(self)
         model = Model[settings["Parameters"]["model_part_name"].GetString()]
-        self.print_after_formfinding_process = StructuralMechanicsApplication.PrintAfterFormfindingProcess(
-                                    model, settings)
+        self.print_prestress = StructuralMechanicsApplication.FormfindingPrintUtility(model, settings)
                                                                               
     def ExecuteInitialize(self):
         pass
@@ -58,4 +57,4 @@ class PrintAfterFormfinding(KratosMultiphysics.Process):
             
 
     def ExecuteFinalize(self):
-        self.print_after_formfinding_process.Execute()
+        self.print_prestress.PrintModelPart()

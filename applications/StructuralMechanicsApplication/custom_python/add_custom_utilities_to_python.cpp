@@ -18,8 +18,10 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
+
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
+#include "custom_utilities/formfinding_print_utility.h"
 
 namespace Kratos
 {
@@ -37,6 +39,10 @@ void  AddCustomUtilitiesToPython()
     class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
     .def("Execute",&SprismNeighbours::Execute)
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
+    ;
+
+    class_<FormfindingPrintUtility>("FormfindingPrintUtility", init<const ModelPart&, const Parameters>())
+    .def("PrintModelPart",&FormfindingPrintUtility::PrintModelPart)
     ;
 
 }

@@ -27,54 +27,28 @@
 #include "includes/define.h"
 #include "includes/element.h"
 #include "includes/properties.h"
+#include "includes/model_part.h"
+#include "includes/kratos_parameters.h"
 
 
 namespace Kratos
 {
-	namespace FormfindingUtilities
+	class FormfindingPrintUtility
 	{
-		void PrintModelPart(const ModelPart& rModelPart){
-			// erase nodal data
-        	mModelPart.GetNodalSolutionStepVariablesList().clear();
+		public:
+		
+		FormfindingPrintUtility(const ModelPart& rModelPart, const Parameters rParameter);
 
-        	// erase elemental data
-        	for( auto& ele: mModelPart.Elements()){
-        	    const Variable<Matrix> variable = KratosComponents<Variable<Matrix>>::Get("MEMBRANE_PRESTRESS");
-        	    if(ele.Has(variable)){
-        	        const Matrix membrane_prestress(ele.GetValue(MEMBRANE_PRESTRESS));
-        	        ele.Data().Clear();
-        	        ele.SetValue(MEMBRANE_PRESTRESS, membrane_prestress);
-        	    }
-        	    else
-        	        ele.Data().Clear();
+		~FormfindingPrintUtility(){}
 
-        	}
+		void PrintModelPart();
 
-        	// erase conditional data
-        	for( auto& cond: mModelPart.Conditions()){
-        	        cond.Data().Clear();
-        	}
+		private:
 
-			// erase properties
-
-        	ModelPartIO model_part_io("formfinding_out", IO::WRITE);
-        	model_part_io.WriteModelPart(mModelPart);
-			
-		}
-
-		void PrintElementalData(ModelPart& rModelPart){
-			const TVariableType variable = KratosComponents<Matrix>::Get(MEMBRANE_PRESTRESS);
-        	(*mpStream) << "Begin "<<rObjectName<<"alData "<<variable.Name()<<std::endl;
-        	for(auto& object : rThisObjectContainer){
-        	    if(object.Has(variable)){
-        	        (*mpStream)<<object.Id()<<"\t"<<object.GetValue(variable)<<std::endl;
-        	    }
-        	}
-        	(*mpStream)<<"End "<<rObjectName<<"alData\n"<<std::endl;
-		}
+		ModelPart mModelPart;
 
 
-	}  // namespace Formfinding Utilities.
+	};  // class Formfinding Utilities.
   
 }  // namespace Kratos.
 
