@@ -9,22 +9,16 @@
 # ==============================================================================
 
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division 
-
-# importing the Kratos Library
-from KratosMultiphysics import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
+from __future__ import print_function, absolute_import, division
 
 # ==============================================================================
 class MeshController:
     # --------------------------------------------------------------------------
     def Initialize( self ):
-        raise NotImplementedError("Mesh controller base class is called. Please check your implementation of the function >> Initialize << .")     
+        raise NotImplementedError("Mesh controller base class is called. Please check your implementation of the function >> Initialize << .")
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable( self, InputVariable ):
-        raise NotImplementedError("Mesh controller base class is called. Please check your implementation of the function >> UpdateMeshAccordingInputVariable << .")     
+        raise NotImplementedError("Mesh controller base class is called. Please check your implementation of the function >> UpdateMeshAccordingInputVariable << .")
 
 # ==============================================================================

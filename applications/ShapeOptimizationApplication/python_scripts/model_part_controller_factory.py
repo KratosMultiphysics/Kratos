@@ -15,9 +15,6 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 # ==============================================================================
 def CreateController( optimization_settings, optimization_mdpa ):
     return ModelPartController( optimization_settings, optimization_mdpa )

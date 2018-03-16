@@ -12,12 +12,9 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 # Import logger base classes
 from response_logger_base import ResponseLogger

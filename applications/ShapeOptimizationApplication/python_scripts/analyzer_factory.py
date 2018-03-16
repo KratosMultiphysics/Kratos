@@ -11,12 +11,6 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
-from KratosMultiphysics import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 # ==============================================================================
 def CreateAnalyzer( project_parameters, model_part_controller, external_anlyzer ):
     return Analyzer(project_parameters, model_part_controller, external_anlyzer)

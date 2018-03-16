@@ -1,15 +1,23 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+# ==============================================================================
+#  KratosShapeOptimizationApplication
+#
+#  License:         BSD License
+#                   license: ShapeOptimizationApplication/license.txt
+#
+#  Main authors:    Baumgaertner Daniel, https://github.com/dbaumgaertner
+#                   Geiser Armin, https://github.com/armingeiser
+#
+# ==============================================================================
 
-#import kratos core and applications
+# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division
+
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
-# For time measures
+# Additional imports
 import time as timer
 
 # ==============================================================================

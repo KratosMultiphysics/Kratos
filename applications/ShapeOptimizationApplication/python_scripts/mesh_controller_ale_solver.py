@@ -11,17 +11,13 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 # Additional imports
 import time as timer
-
 from mesh_controller_base import MeshController
 from ale_analysis import ALEAnalysis
 

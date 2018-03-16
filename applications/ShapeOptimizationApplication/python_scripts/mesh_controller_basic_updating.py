@@ -12,15 +12,10 @@
 from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
-from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 # Additional imports
 import time as timer
-
 from mesh_controller_base import MeshController
 
 # ==============================================================================
