@@ -107,17 +107,16 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                                                                         resulting_squared_distances.begin(),
                                                                         max_number_of_neighbors );
                 
-                (neighbor_search_radius>1000.0)?number_of_neighbors=1:neighbor_search_radius*=2.0;
+                (neighbor_search_radius>1000.0)?(KRATOS_ERROR << "found no neighbor for slave node "
+                 << node_i.Id() << " " << node_i.Coordinates() << std::endl):neighbor_search_radius*=2.0;
+
             }
-
-
 
             if(m_parameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << std::endl;
             DoubleVector list_of_weights( number_of_neighbors, 0.0 );
 
             this->CalculateNodalWeights(resulting_squared_distances,list_of_weights,number_of_neighbors);
             this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,list_of_weights,number_of_neighbors);
-
             this->SetmIsInitialized(true);
 
             //DoubleVector list_of_weights2( number_of_neighbors, 0.0 );
@@ -149,10 +148,11 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
         for(SizeType dof_iterator=0;dof_iterator<m_parameters["variable_names"].size();++dof_iterator)
         {
             VariableComponentType current_dof = KratosComponents<VariableComponentType>::Get(m_parameters["variable_names"][dof_iterator].GetString());
-            //KRATOS_WATCH(current_dof);
 
             for(SizeType master_iterator =0;master_iterator<rNumberOfNeighbors;++master_iterator)
             {
+
+
                 ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents(
                     r_nodes_master[rNeighborNodes[master_iterator]->Id()],current_dof,
                     r_nodes_slave[rCurrentSlaveNode.Id()],current_dof,rNodalNeighborWeights[master_iterator],0);
