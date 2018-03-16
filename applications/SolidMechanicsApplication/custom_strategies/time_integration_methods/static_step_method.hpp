@@ -124,10 +124,9 @@ namespace Kratos
     {
      KRATOS_TRY
      
-     DerivedType::Predict(rNode);
-
      this->PredictStepVariable(rNode);
-	
+     this->PredictVariable(rNode);
+     
      KRATOS_CATCH( "" )
     }
 
@@ -138,10 +137,8 @@ namespace Kratos
     {
      KRATOS_TRY
        
-     DerivedType::Update(rNode);
-
      this->UpdateStepVariable(rNode);
-
+     this->UpdateVariable(rNode);
 
      KRATOS_CATCH( "" )
     }
@@ -208,12 +205,31 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
+    virtual void PredictVariable(NodeType& rNode) override
+    {
+      KRATOS_TRY
+
+      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      TValueType& PreviousVariable               = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+	
+      // update variable previous iteration instead of previous step
+      PreviousVariable = CurrentVariable;
+      
+      KRATOS_CATCH( "" )
+    }
+
     virtual void PredictStepVariable(NodeType& rNode)
     {
       KRATOS_TRY
 
-      this->UpdateStepVariable(rNode);
-	
+      // predict step variable from previous and current values
+      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
+      
+      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+
+      CurrentStepVariable = CurrentVariable-PreviousVariable;
+      
       KRATOS_CATCH( "" )
     }
 
@@ -228,11 +244,23 @@ namespace Kratos
       const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
       
-      CurrentStepVariable = CurrentVariable-PreviousVariable;
+      CurrentStepVariable += CurrentVariable-PreviousVariable;
 	
       KRATOS_CATCH( "" )
     }
     
+    virtual void UpdateVariable(NodeType& rNode) override
+    {
+      KRATOS_TRY
+
+      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      TValueType& PreviousVariable               = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+	
+      // update variable previous iteration instead of previous step
+      PreviousVariable = CurrentVariable;     
+	
+      KRATOS_CATCH( "" )
+    }
     
     ///@}
     ///@name Protected  Access

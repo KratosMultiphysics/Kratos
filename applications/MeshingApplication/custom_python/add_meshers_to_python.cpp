@@ -35,6 +35,8 @@
 
 #include "external_includes/trigen_glass_forming.h"
 
+#include "external_includes/trigen_droplet_refine.h"
+
 
 //#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
@@ -148,6 +150,19 @@ void TriRegenerateMeshGLASS(TriGenGLASSModeler& Mesher, char* ElementName, char*
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //											//
+//				ADAPTIVE 2D MESHER specifically for DROPLET FORMING 	//
+//											//
+//////////////////////////////////////////////////////////////////////////////////////////
+
+void TriRegenerateMeshDROPLET(TriGenDropletModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
+{
+    Mesher.ReGenerateMesh(model_part,
+                          KratosComponents<Element>::Get(ElementName),
+                          KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//											//
 //				BOUNDARY CONFORMANT 2D MESHER				//
 //											//
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -236,6 +251,14 @@ void  AddMeshersToPython()
                                init< >())
     .def("ReGenerateMeshGlass",TriRegenerateMeshGLASS)
     .def("ReGenerateMeshGlass",&TriGenGLASSModeler::ReGenerateMesh)
+    ;
+
+    
+    //class that allows 2D adaptive remeshing (inserting and erasing nodes) as well as preserving the topology (avoiding "holes" at the boundaries). made for droplet simulation
+    class_<TriGenDropletModeler >("TriGenDropletModeler",
+                               init< >())
+    .def("ReGenerateMeshDROPLET",TriRegenerateMeshDROPLET)
+    .def("ReGenerateMeshDROPLET",&TriGenDropletModeler::ReGenerateMesh)
     ;
 
 

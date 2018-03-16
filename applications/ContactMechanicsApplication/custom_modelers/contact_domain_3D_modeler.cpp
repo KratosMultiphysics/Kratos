@@ -50,12 +50,12 @@ namespace Kratos
       }
 
 
-    double hnodal_offset_conversion = 0.35;
+    double hnodal_offset_conversion = 0.30;
     if( rMeshingVariables.OffsetFactor > nodal_h_min*hnodal_offset_conversion || rMeshingVariables.OffsetFactor < nodal_h_min*0.01){
       rMeshingVariables.OffsetFactor = nodal_h_min*hnodal_offset_conversion;
     }
 
-    //std::cout<<"   Minimum Nodal_h "<<nodal_h_min<<" OffsetFactor "<<rMeshingVariables.OffsetFactor<<std::endl;
+    std::cout<<"   Minimum Nodal_h "<<nodal_h_min<<" OffsetFactor "<<rMeshingVariables.OffsetFactor<<std::endl;
 
     std::vector<PointType> BoxVertices;
     BoxVertices.resize(0);
@@ -65,7 +65,7 @@ namespace Kratos
       //std::cout<<"   Constrained Contact Meshing "<<std::endl;
       
       //PART 1: node list
-      double extra_radius = rMeshingVariables.OffsetFactor*4; 
+      double extra_radius = rMeshingVariables.OffsetFactor*3.0; 
       SpatialBoundingBox DomainBox (rModelPart, extra_radius);
       
       ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();

@@ -72,6 +72,13 @@
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
 
+#include "custom_constitutive/bingham_3d_law.h"
+#include "custom_constitutive/euler_2d_law.h"
+#include "custom_constitutive/euler_3d_law.h"
+#include "custom_constitutive/herschel_bulkley_3d_law.h"
+#include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/newtonian_3d_law.h"
+
 
 namespace Kratos
 {
@@ -341,6 +348,14 @@ private:
     const EmbeddedAusasNavierStokes<3> mEmbeddedAusasNavierStokes3D;
     const EmbeddedAusasNavierStokesWallCondition<2> mEmbeddedAusasNavierStokesWallCondition2D;
     const EmbeddedAusasNavierStokesWallCondition<3> mEmbeddedAusasNavierStokesWallCondition3D;
+
+    /// Fluid constitutive laws
+    const Bingham3DLaw mBingham3DLaw;
+    const Euler2DLaw mEuler2DLaw;
+    const Euler3DLaw mEuler3DLaw;
+    const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
+    const Newtonian2DLaw mNewtonian2DLaw;
+    const Newtonian3DLaw mNewtonian3DLaw;
 
     ///@}
     ///@name Private Operators

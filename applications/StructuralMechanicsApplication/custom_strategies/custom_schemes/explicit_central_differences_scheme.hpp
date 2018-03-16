@@ -89,7 +89,7 @@ public:
    */
   /*@{ */
 
-  virtual int Check(ModelPart &rModelPart) {
+  virtual int Check(ModelPart &rModelPart) override {
     KRATOS_TRY
 
     BaseType::Check(rModelPart);
@@ -103,7 +103,7 @@ public:
     KRATOS_CATCH("");
   }
 
-  virtual void Initialize(ModelPart &rModelPart) {
+  virtual void Initialize(ModelPart &rModelPart) override {
     KRATOS_TRY
 
     if ((mDeltaTime.PredictionLevel > 0) && (mSchemeIsInitialized == false)) {
@@ -133,7 +133,7 @@ public:
   virtual void InitializeSolutionStep(ModelPart &rModelPart,
                                       TSystemMatrixType &rA,
                                       TSystemVectorType &rDx,
-                                      TSystemVectorType &rb) {
+                                      TSystemVectorType &rb) override {
     KRATOS_TRY
     BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
     if (mDeltaTime.PredictionLevel > 1)CalculateDeltaTime(rModelPart);
@@ -294,7 +294,7 @@ public:
   //***************************************************************************
   virtual void Update(ModelPart &rModelPart, DofsArrayType &rDofSet,
                       TSystemMatrixType &A, TSystemVectorType &Dx,
-                      TSystemVectorType &b) {
+                      TSystemVectorType &b) override {
     KRATOS_TRY
     ProcessInfo &r_current_process_info = rModelPart.GetProcessInfo();
     NodesArrayType &r_nodes = rModelPart.Nodes();
