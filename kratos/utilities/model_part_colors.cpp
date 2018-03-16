@@ -45,14 +45,22 @@ void ModelPartColors::ComputeColors(
     
     std::vector<std::string> model_part_names;
     model_part_names.push_back(mrModelPart.Name());
-    for (const auto & sub_model_part_name : sub_model_part_names)
+    for (const auto & sub_model_part_name : sub_model_part_names) {
         model_part_names.push_back(sub_model_part_name);
-    
+//         ModelPart& r_sub_model_part = mrModelPart.GetSubModelPart(sub_model_part_name); // We check for sub sub model parts (no more sublevels)
+//         if (r_sub_model_part.NumberOfSubModelParts() > 0) {
+//             const std::vector<std::string> sub_sub_model_part_names = r_sub_model_part.GetSubModelPartNames();
+//             for (const auto& sub_sub_model_part_name : sub_sub_model_part_names) {
+//                 model_part_names.push_back(sub_sub_model_part_name);
+//             }
+//         }
+    }
+
     // Initialize Colors
     int color = 0;
     for (SizeType i_sub_model_part = 0; i_sub_model_part < model_part_names.size(); ++i_sub_model_part) {
         rColors[i_sub_model_part].push_back(model_part_names[i_sub_model_part]);
-        
+
         if (color > 0) {            
             ModelPart& r_sub_model_part = mrModelPart.GetSubModelPart(model_part_names[i_sub_model_part]);
 
