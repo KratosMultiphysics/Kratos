@@ -55,6 +55,10 @@ public:
 
     ///@name Type Definitions
     ///@{
+
+    /// The type used to idenify index and key
+    typedef std::size_t IndexType;
+
     /// Counted pointer of GaussPointItem
     KRATOS_CLASS_POINTER_DEFINITION( GaussPointItem );
 
@@ -87,10 +91,12 @@ public:
     GaussPointItem(
         const array_1d<double, 3>& Coordinates,
         ConstitutiveLaw::Pointer pConstitutiveLaw,
-        const double Weight
+        const double Weight,
+        const IndexType Id = 0
         ):Point(Coordinates),
           mpConstitutiveLaw(std::move(pConstitutiveLaw)),
-          mWeight(Weight)
+          mWeight(Weight),
+          mGaussPointId(Id)
     {
     }
 
@@ -112,7 +118,6 @@ public:
      * @brief Returns the point
      * @return The point
      */
-
     Point GetPoint()
     {
         Point Point(this->Coordinates());
@@ -124,7 +129,6 @@ public:
      * @brief Set the point
      * @param Point The point
      */
-
     void SetPoint(const Point& Point)
     {
         this->Coordinates() = Point.Coordinates();
@@ -170,6 +174,26 @@ public:
         mWeight = Weight;
     }
 
+    /**
+     * @brief Returns the id associated to the point
+     * @return mGaussPointId: The "id" to identify the GP inside the element
+     */
+
+    double GetGaussPointId() const
+    {
+        return mGaussPointId;
+    }
+
+    /**
+     * @brief Sets the gauss point id associated to the point
+     * @param Id The "id" to identify the GP inside the element
+     */
+
+    void SetGaussPointId(const IndexType Id)
+    {
+        mGaussPointId = Id;
+    }
+
 protected:
 
     ///@name Protected static Member Variables
@@ -207,8 +231,14 @@ private:
     ///@name Member Variables
     ///@{
 
-    ConstitutiveLaw::Pointer mpConstitutiveLaw; // The constitutive law pointer
-    double mWeight;                             // The integration weight of the GP
+    ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The constitutive law pointer
+    double mWeight;                             /// The integration weight of the GP
+
+    /* For values not available on the constitutive law */
+    IndexType mGaussPointId;                                              /// This is the position on the list of GP inside the element
+    std::unordered_map<IndexType,double> mMapDoubleVariables;             /// This maps stores auxiliar doubles to interpolate later
+    std::unordered_map<IndexType,array_1d<double, 3>> mMapArrayVariables; /// This maps stores auxiliar arrays to interpolate later
+    std::unordered_map<IndexType,Vector> mMapVectorVariables;             /// This maps stores auxi liar vectors to interpolate later
 
     ///@}
     ///@name Private Operators
