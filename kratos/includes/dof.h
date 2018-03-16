@@ -135,6 +135,7 @@ public:
         const TVariableType& rThisVariable)
         : IndexedObject(NodeId),
           mIsFixed(false),
+          mHasReaction(false),
           mEquationId(IndexType()),
           mpSolutionStepsData(pThisSolutionStepsData),
           mpVariable(&rThisVariable),
@@ -176,6 +177,7 @@ public:
         const TReactionType& rThisReaction)
         : IndexedObject(NodeId),
           mIsFixed(false),
+          mHasReaction(false),
           mEquationId(IndexType()),
           mpSolutionStepsData(pThisSolutionStepsData),
           mpVariable(&rThisVariable),
@@ -189,6 +191,7 @@ public:
     Dof()
         : IndexedObject(0),
           mIsFixed(false),
+          mHasReaction(false),
           mEquationId(IndexType()),
           mpSolutionStepsData(),
           mpVariable(&msNone),
@@ -230,6 +233,7 @@ public:
     Dof(Dof const& rOther)
         : IndexedObject(rOther),
           mIsFixed(rOther.mIsFixed),
+          mHasReaction(rOther.mHasReaction),
           mEquationId(rOther.mEquationId),
           mpSolutionStepsData(rOther.mpSolutionStepsData),
           mpVariable(rOther.mpVariable),
@@ -259,6 +263,7 @@ public:
         mpReaction = rOther.mpReaction;
         mVariableType = rOther.mVariableType;
         mReactionType = rOther.mReactionType;
+        mHasReaction = rOther.mHasReaction;
 
         return *this;
     }
@@ -405,6 +410,7 @@ public:
     {
         mReactionType = DofTrait<TDataType, TReactionType>::Id;
         mpReaction = &rReaction;
+        mHasReaction = true;
     }
 
     /** Return the Equation Id related to this degree eof freedom.
@@ -445,6 +451,11 @@ public:
     void SetSolutionStepsData(SolutionStepsDataContainerType* pNewSolutionStepsData)
     {
         mpSolutionStepsData = pNewSolutionStepsData;
+    }
+
+    bool HasReaction()
+    {
+        return mHasReaction;
     }
 
     ///@}
@@ -564,6 +575,9 @@ private:
 
     /** True is is fixed */
     bool mIsFixed;
+
+    /** True if has reaction */
+    bool mHasReaction;    
 
     /** Equation identificator of the degree of freedom */
     EquationIdType mEquationId;
