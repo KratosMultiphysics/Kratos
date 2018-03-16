@@ -164,6 +164,12 @@ class FluidDynamicsAnalysis(object):
             time = 0.0
             step = 0
 
+        for process in self.simulation_processes:
+            process.ExecuteInitializeSolutionStep()
+            
+        if self.have_output:
+            self.output.ExecuteBeforeSolutionLoop()
+
         while time <= self.end_time:
             dt = self.solver.ComputeDeltaTime()
             time = time + dt
