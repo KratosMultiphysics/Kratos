@@ -17,7 +17,6 @@
 
 // External includes 
 
-
 // Project includes
 #include "utilities/model_part_colors.h"
 
@@ -34,10 +33,10 @@ ModelPartColors::~ModelPartColors() {};
 
 // Compute colors
 void ModelPartColors::ComputeColors(
-    std::unordered_map<int,int>& rNodesColors,
-    std::unordered_map<int,int>& rCondColors,
-    std::unordered_map<int,int>& rElemColors,
-    std::unordered_map<int,std::vector<std::string>>& rColors
+    IntIntMapType& rNodesColors,
+    IntIntMapType& rCondColors,
+    IntIntMapType& rElemColors,
+    IntStringMapType& rColors
     )
 {
     // Initialize and create the auxiliar maps

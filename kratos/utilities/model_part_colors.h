@@ -61,18 +61,31 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Get the list of submodelparts each node, condition and element belongs to
 /** 
- * This class compute a colormap which is a key to get the submodelparts or 
+ * @class ModelPartColors
+ * @ingroup KratosCore
+ * @brief Get the list of submodelparts each node, condition and element belongs to
+ * @details This class compute a colormap which is a key to get the submodelparts or
  * combinations of submodelparts each node, condition and element belongs to.
  * Modelpart key is 0. Each submodelpart has 1, 2... key. A submodelpart
  * combination has another key
+ * @author Miguel Maso Sotomayor
+ * @author Vicente Mataix Ferrandiz
  */
 class ModelPartColors
-    {
+{
     public:
     ///@name Type Definitions
     ///@{
+
+    /// The map containing the colors integers and the corresponding id for each component
+    typedef std::unordered_map<int,int> IntIntMapType;
+
+    /// The map containing the colors integers and the name of the submodelparts related
+    typedef std::unordered_map<int,std::vector<std::string>> IntStringMapType;
+
+    /// Pointer definition of ModelPartColors
+    KRATOS_CLASS_POINTER_DEFINITION( ModelPartColors );
 
     ///@}
     ///@name Life Cycle
@@ -101,17 +114,17 @@ class ModelPartColors
     ///@{
     
     /**
-     * This functions gets the "colors", parts of a model part to process
-     * @param NodeColors Map where the nodes id and keys are stored
-     * @param CondColors Map where the condition id and keys are stored
-     * @param ElemColors Map where the element Id and keys are stored
+     * @brief This functions gets the "colors", parts of a model part to process
+     * @param rNodeColors Map where the nodes id and keys are stored
+     * @param rCondColors Map where the condition id and keys are stored
+     * @param rElemColors Map where the element Id and keys are stored
      * @param rColors Map where the keys (colors) and associated submodelparts combinations are stored
      */
     void ComputeColors(
-        std::unordered_map<int,int>& rNodeColors,
-        std::unordered_map<int,int>& rCondColors,
-        std::unordered_map<int,int>& rElemColors,
-        std::unordered_map<int,std::vector<std::string>>& rColors
+        IntIntMapType& rNodeColors,
+        IntIntMapType& rCondColors,
+        IntIntMapType& rElemColors,
+        IntStringMapType& rColors
         );
 
     ///@}
@@ -199,8 +212,8 @@ class ModelPartColors
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;                                       // The model part to compute  
-    std::unordered_map<int,std::vector<std::string>> mColors;     // Where the sub model parts IDs are stored
+    ModelPart& mrModelPart;                                       /// The model part to compute
+    std::unordered_map<int,std::vector<std::string>> mColors;     /// Where the sub model parts IDs are stored
 
     ///@}
     ///@name Private Operators
