@@ -18,7 +18,7 @@ class Algorithm(BaseAlgorithm):
         Add("size_parameter").SetDouble(1)
         Add("store_full_gradient_option").SetBool(True)
         Add("regular_mesh_option").SetBool(True)
-        Add("use_gid_meshes").SetBool(False)
+        Add("mesh_tag").SetString('')
         Add("print_VECTORIAL_ERROR_option").SetBool(True)
 
     def SetCustomBetaParameters(self, custom_parameters):
@@ -34,10 +34,8 @@ class Algorithm(BaseAlgorithm):
     def ReadFluidModelParts(self):
         problem_name = self.pp.problem_name.replace('Fluid', '')
         is_regular_mesh = self.pp.CFD_DEM["regular_mesh_option"].GetBool()
-        use_gid_meshes = self.pp.CFD_DEM["use_gid_meshes"].GetBool()
-        tag = ''
-        if use_gid_meshes:
-            tag = 'GiD'
+        tag =  self.pp.CFD_DEM["mesh_tag"].GetString()
+
         if is_regular_mesh:
             mdpa_name = problem_name + '_ndiv_' + str(int(self.pp.CFD_DEM.size_parameter)) + tag + 'Fluid'
         else:
@@ -75,8 +73,8 @@ class Algorithm(BaseAlgorithm):
         self.laplacian_errors = []
         self.current_mat_deriv_errors = np.zeros(2)
         self.current_laplacian_errors = np.zeros(2)
-        fluid_model_part = self.all_model_parts.Get('FluidPart')
-        for node in fluid_model_part.Nodes:
+
+        for node in self.fluid_model_part.Nodes:
             vel = Vector(3)
             coor = Vector(3)
             coor[0]=node.X
@@ -88,9 +86,8 @@ class Algorithm(BaseAlgorithm):
             node.SetSolutionStepValue(VELOCITY_Z, vel[2])
 
     def FluidSolve(self, time = 'None', solve_system = True):
-        fluid_model_part = self.all_model_parts.Get('FluidPart')
 
-        for node in fluid_model_part.Nodes:
+        for node in self.fluid_model_part.Nodes:
             vel= Vector(3)
             coor= Vector(3)
             coor[0]=node.X
@@ -107,100 +104,63 @@ class Algorithm(BaseAlgorithm):
         self.CalculateRecoveryErrors(time)
 
     def CalculateRecoveryErrors(self, time):
-        error_mat_deriv = 0.
+        approx_L2_norm_mat_deriv = 0.
+        approx_L2_norm_mat_deriv_error = 0.
+        approx_L2_norm_laplacian = 0.
+        approx_L2_norm_laplacian_error = 0.
         max_error_mat_deriv = - float('inf')
-        error_laplacian = 0.
         max_error_laplacian = - float('inf')
-
         total_volume = 0.
-        mat_deriv_average = Vector(3)
-        laplacian_average = Vector(3)
-        for k in range(3):
-            mat_deriv_average[k] = 0.0
-            laplacian_average[k] = 0.0
-        norm_mat_deriv_average = 0.
-        norm_laplacian_average = 0.
 
-        module_mat_deriv = 0.
-        module_laplacian = 0.
-        fluid_model_part = self.all_model_parts.Get('FluidPart')
+        calc_mat_deriv = np.zeros(3)
+        calc_laplacian = np.zeros(3)
+        mat_deriv= Vector(3)
+        laplacian= Vector(3)
 
-        for i_node, node in enumerate(fluid_model_part.Nodes):
-            calc_mat_deriv = [0.] * 3
-            calc_laplacian = [0.] * 3
-            mat_deriv= Vector(3)
-            laplacian= Vector(3)
-            coor= Vector(3)
-            coor[0]=node.X
-            coor[1]=node.Y
-            coor[2]=node.Z
+        for i_node, node in enumerate(self.fluid_model_part.Nodes, 1):
+            nodal_volume = node.GetSolutionStepValue(NODAL_AREA)
+            total_volume += nodal_volume
+            coor = Vector([node.X, node.Y, node.Z])
             self.flow_field.CalculateMaterialAcceleration(time, coor, mat_deriv, 0)
             self.flow_field.CalculateLaplacian(time, coor, laplacian, 0)
-            calc_mat_deriv[0] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_X)
-            calc_mat_deriv[1] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Y)
-            calc_mat_deriv[2] = node.GetSolutionStepValue(MATERIAL_ACCELERATION_Z)
-            calc_laplacian[0] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_X)
-            calc_laplacian[1] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Y)
-            calc_laplacian[2] = node.GetSolutionStepValue(VELOCITY_LAPLACIAN_Z)
-            module_mat_deriv += math.sqrt(calc_mat_deriv[0] ** 2 + calc_mat_deriv[1] ** 2 + calc_mat_deriv[2] ** 2)
-            module_laplacian += math.sqrt(calc_laplacian[0] ** 2 + calc_laplacian[1] ** 2 + calc_laplacian[2] ** 2)
-            #module_mat_deriv = max(math.sqrt(mat_deriv[0] ** 2 + mat_deriv[1] ** 2 + mat_deriv[2] ** 2), 1e-8)
-            #module_laplacian = max(math.sqrt(laplacian[0] ** 2 + laplacian[1] ** 2 + laplacian[2] ** 2), 1e-8)
-            #laplacian[0] = 14
-            #laplacian[1] = 2
-            #laplacian[2] = 0
-            #nodal_volume = node.GetSolutionStepValue(NODAL_AREA)
-            #total_volume += nodal_volume
-            current_error = SDP.NormOfDifference(calc_mat_deriv, mat_deriv)
-            error_mat_deriv += current_error
-            max_error_mat_deriv = max(max_error_mat_deriv, current_error)
-            current_error = SDP.NormOfDifference(calc_laplacian, laplacian)
-            error_laplacian += current_error
-            max_error_laplacian = max(max_error_laplacian, current_error)
-            diff_mat_deriv = [calc_d - analytic_d for calc_d, analytic_d in zip(calc_mat_deriv, mat_deriv)]
-            diff_laplacian = [calc_l - analytic_l for calc_l, analytic_l in zip(calc_laplacian, laplacian)]
-            #mat_deriv_averager.SDP.Norm(diff_mat_deriv)
-            #laplacian_averager.SDP.Norm(diff_laplacian)
-            #for k in range(3):
-                #mat_deriv_average[k] += mat_deriv[k]
-                #laplacian_average[k] += laplacian[k]
-            norm_mat_deriv_average += SDP.Norm(mat_deriv)
-            norm_laplacian_average += SDP.Norm(laplacian)
-            node.SetSolutionStepValue(VECTORIAL_ERROR_X, diff_mat_deriv[0])
-            node.SetSolutionStepValue(VECTORIAL_ERROR_Y, diff_mat_deriv[1])
-            node.SetSolutionStepValue(VECTORIAL_ERROR_Z, diff_mat_deriv[2])
+            calc_mat_deriv = node.GetSolutionStepValue(MATERIAL_ACCELERATION)
+            calc_laplacian = node.GetSolutionStepValue(VELOCITY_LAPLACIAN)
 
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_X, mat_deriv[0])
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Y, mat_deriv[1])
-            #node.SetSolutionStepValue(MATERIAL_ACCELERATION_Z, mat_deriv[2])
+            module_mat_deriv = math.sqrt(sum(x**2 for x in mat_deriv))
+            module_laplacian = math.sqrt(sum(x**2 for x in laplacian))
+            approx_L2_norm_mat_deriv += module_mat_deriv * nodal_volume
+            approx_L2_norm_laplacian += module_laplacian * nodal_volume
+            diff_mat_deriv = calc_mat_deriv - mat_deriv
+            diff_laplacian = calc_laplacian - laplacian
+            module_mat_deriv_error = math.sqrt(sum(x**2 for x in diff_mat_deriv))
+            module_laplacian_error = math.sqrt(sum(x**2 for x in diff_laplacian))
+            approx_L2_norm_mat_deriv_error += module_mat_deriv_error * nodal_volume
+            approx_L2_norm_laplacian_error += module_laplacian_error * nodal_volume
+            max_error_mat_deriv = max(max_error_mat_deriv, module_mat_deriv_error)
+            max_error_laplacian = max(max_error_laplacian, module_laplacian_error)
+            node.SetSolutionStepValue(VECTORIAL_ERROR, Vector(list(diff_mat_deriv)))
+            node.SetSolutionStepValue(VELOCITY_LAPLACIAN, Vector(list(diff_laplacian)))
 
+        approx_L2_norm_mat_deriv **= 0.5
+        approx_L2_norm_mat_deriv_error **= 0.5
+        approx_L2_norm_laplacian **= 0.5
+        approx_L2_norm_laplacian_error **= 0.5
 
-            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, diff_laplacian[0])
-            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, diff_laplacian[1])
-            node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, diff_laplacian[2])
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, calc_laplacian_0)
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, calc_laplacian_1)
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, calc_laplacian_2)
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_X, laplacian[0])
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Y, laplacian[1])
-            #node.SetSolutionStepValue(VELOCITY_LAPLACIAN_Z, laplacian[2])
-
-        module_mat_deriv /= len(fluid_model_part.Nodes)
-        module_laplacian /= len(fluid_model_part.Nodes)
-        SDP.MultiplyNodalVariableByFactor(fluid_model_part, VECTORIAL_ERROR, 1.0 / module_mat_deriv)
-        SDP.MultiplyNodalVariableByFactor(fluid_model_part, VELOCITY_LAPLACIAN, 1.0 / module_laplacian)
-
-        if norm_mat_deriv_average > 0 and norm_laplacian_average > 0:
-            self.current_mat_deriv_errors[0] = error_mat_deriv / norm_mat_deriv_average
-            self.current_mat_deriv_errors[1] = max_error_mat_deriv / norm_mat_deriv_average * len(fluid_model_part.Nodes)
-            self.current_laplacian_errors[0] = error_laplacian / norm_laplacian_average
-            self.current_laplacian_errors[1] = max_error_laplacian / norm_laplacian_average * len(fluid_model_part.Nodes)
+        if approx_L2_norm_mat_deriv > 0 and approx_L2_norm_laplacian > 0:
+            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, VECTORIAL_ERROR, 1.0 / approx_L2_norm_mat_deriv)
+            SDP.MultiplyNodalVariableByFactor(self.fluid_model_part, VELOCITY_LAPLACIAN, 1.0 / approx_L2_norm_laplacian)
+            self.current_mat_deriv_errors[0] = approx_L2_norm_mat_deriv_error / approx_L2_norm_mat_deriv
+            self.current_mat_deriv_errors[1] = max_error_mat_deriv / approx_L2_norm_mat_deriv
+            self.current_laplacian_errors[0] = approx_L2_norm_laplacian_error / approx_L2_norm_laplacian
+            self.current_laplacian_errors[1] = max_error_laplacian / approx_L2_norm_laplacian
             self.mat_deriv_errors.append(self.current_mat_deriv_errors)
             self.laplacian_errors.append(self.current_laplacian_errors)
             #print('mat_deriv: min, max, avg, ', mat_deriv_averager.GetCurrentData())
             #print('laplacian: min, max, avg, ', laplacian_averager.GetCurrentData())
-            print('rel_error_mat_deriv', error_mat_deriv / norm_mat_deriv_average)
-            print('rel_error_laplacian', error_laplacian / norm_laplacian_average)
+            print('L2 error for the material derivative', approx_L2_norm_mat_deriv_error / approx_L2_norm_mat_deriv)
+            print('max error for the material derivative', max_error_mat_deriv / approx_L2_norm_mat_deriv)
+            print('L2 error for the laplacian', approx_L2_norm_laplacian_error / approx_L2_norm_laplacian)
+            print('max error for the laplacian', max_error_laplacian / approx_L2_norm_laplacian)
 
     def PerformFinalOperations(self, time = None):
 

@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/constant_velocity_field.h"
 #include "custom_utilities/fields/cellular_flow_field.h"
 #include "custom_utilities/fields/ethier_flow_field.h"
+#include "custom_utilities/fields/product_of_sines_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
 #include "custom_utilities/fields/pouliot_flow_field_2D.h"
 #include "custom_utilities/fields/shear_flow_1D_with_exponential_viscosity_field.h"
@@ -173,6 +174,14 @@ using namespace boost::python;
     typedef void (VelocityField::*CalculateTimeDerivative)(const double, const vector<double>&, vector<double>&, const int);
     CalculateTimeDerivative CalculateTimeDerivativeVector = &VelocityField::CalculateTimeDerivative;
 
+    typedef void (VelocityField::*CalculateGradient)(const double,
+                                                     const array_1d<double, 3>&,
+                                                     vector< double>&,
+                                                     vector< double>&,
+                                                     vector< double>&,
+                                                     const int);
+    CalculateGradient CalculateGradientVector = &VelocityField::CalculateGradient;
+
     typedef double (VelocityField::*CalculateDivergence)(const double, const vector<double>&, const int);
     CalculateDivergence CalculateDivergenceVector = &VelocityField::CalculateDivergence;
 
@@ -188,7 +197,7 @@ using namespace boost::python;
     class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
         .def("Evaluate", EvaluateVector)
         .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
-        .def("CalculateGradient", &VelocityField::CalculateGradient)
+        .def("CalculateGradient", CalculateGradientVector)
         .def("CalculateDivergence", CalculateDivergenceVector)
         .def("CalculateRotational", CalculateRotationalVector)
         .def("CalculateLaplacian", CalculateLaplacianVector)
@@ -206,6 +215,9 @@ using namespace boost::python;
         ;
 
     class_<EthierFlowField, bases<VelocityField> > ("EthierFlowField",  init<const double, const double>())
+        ;
+
+    class_<ProductOfSines, bases<VelocityField> > ("ProductOfSines",  init<>())
         ;
 
     class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())

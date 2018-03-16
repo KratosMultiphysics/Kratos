@@ -2,10 +2,10 @@ import math
 import matplotlib.pyplot as plt
 import h5py
 
-regular_mesh = False
+regular_mesh = True
 show_math_deriv_or_laplacian = 'M' # 'M' or 'L'
-mat_deriv_recovery_types = [1, 3, 4, 5, 6, 7]
-laplacian_recovery_types = [1, 4, 3, 6]
+mat_deriv_recovery_types = [1, 2, 3, 4, 6]
+laplacian_recovery_types = [1, 2, 3, 4, 6]#[1, 4, 3, 6]
 
 marker_size = 10
 line_width = 1

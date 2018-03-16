@@ -6,6 +6,15 @@ from . import recoverer
 
 
 class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
+    def GetFieldUtility(self):
+        import math
+        a = math.pi / 4
+        d = math.pi / 2*0
+
+        self.flow_field = EthierFlowField(a, d)
+        space_time_set = SpaceTimeSet()
+        self.field_utility = FluidFieldUtility(space_time_set, self.flow_field, 1000.0, 1e-6)
+        return self.field_utility
     def __init__(self, pp, model_part):
         recoverer.DerivativesRecoverer.__init__(self, pp, model_part)
         self.dimension = pp.domain_size
@@ -14,29 +23,14 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.recovery_model_part = ModelPart("PostGradientFluidPart")
         self.custom_functions_tool = CustomFunctionsCalculator3D()
         self.calculate_vorticity = pp.CFD_DEM["vorticity_calculation_type"].GetInt() > 0
-
+        self.GetFieldUtility()
         self.CreateCPluPlusStrategies()
 
     def FillUpModelPart(self, element_type):
-        set_of_all_edges = set()
-        #self.FillSetOfAllEdges(set_of_all_edges)
         self.recovery_model_part.Nodes = self.model_part.Nodes
         self.recovery_model_part.ProcessInfo = self.model_part.ProcessInfo
         self.meshing_tool = self.GetMeshingTool()
         self.meshing_tool.FillUpEdgesModelPartFromSimplicesModelPart(self.recovery_model_part, self.model_part, element_type)
-        # for i, edge in enumerate(set_of_all_edges):
-        #     self.recovery_model_part.CreateNewElement(element_type, i + 1000000, list(edge), self.model_part.GetProperties()[0])
-        number_of_elements = len(self.recovery_model_part.Elements)
-        i_rep_edge = 0
-
-        for elem in self.model_part.Elements:
-            a = 1
-            for i, first_node in enumerate(elem.GetNodes()[: - 1]):
-                for j, second_node in enumerate(elem.GetNodes()[i + 1 :]):
-                    i_rep_edge += 1
-
-                    edge = tuple(sorted((first_node.Id, second_node.Id)))
-                    set_of_all_edges.add(edge)
 
     def FillSetOfAllEdges(self, set_of_all_edges):
         for elem in self.model_part.Elements:
@@ -58,7 +52,7 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         scheme = ResidualBasedIncrementalUpdateStaticScheme()
         amgcl_smoother = AMGCLSmoother.SPAI0
         amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK
-        tolerance = 1e-6
+        tolerance = 1e-8
         max_iterations = 400
         verbosity = 2 #0->shows no information, 1->some information, 2->all the information
         gmres_size = 400

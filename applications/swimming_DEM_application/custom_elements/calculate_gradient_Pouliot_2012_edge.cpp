@@ -90,10 +90,10 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::AddPouliot2012LHS(MatrixTy
     KRATOS_TRY
     const GeometryType& rGeom = this->GetGeometry();
     const array_1d<double, 3> le = rGeom[1].Coordinates() - rGeom[0].Coordinates(); // vector from node 0 to node 1
-    const double h_edge = std::sqrt(SWIMMING_INNER_PRODUCT_3(le, le));
-    const double h_edge_inv_2 = 1.0 / (h_edge * h_edge);
+    const double h_edge = SWIMMING_MODULUS_3(le);
+    const double h_edge_inv_2 = 1.0 / SWIMMING_INNER_PRODUCT_3(le, le);
 
-    const double epsilon = 1e-6 * h_edge;
+    const double epsilon = 1e-5 * h_edge;
     for (unsigned int node_e = 0; node_e < TNumNodes; ++node_e){
         for (unsigned int i = 0; i < TDim; ++i){
             for (unsigned int node_f = 0; node_f < TNumNodes; ++node_f){
