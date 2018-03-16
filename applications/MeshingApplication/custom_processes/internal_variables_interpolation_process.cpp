@@ -61,11 +61,11 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
 void InternalVariablesInterpolationProcess::Execute()
 {
     if (mThisInterpolationType == InterpolationTypes::CPT && mInternalVariableList.size() > 0) {
-        InterpolateGaussPointsCPT();
+        InterpolateGaussPointsClosestPointTransfer();
     } else if (mThisInterpolationType == InterpolationTypes::LST && mInternalVariableList.size() > 0) {
-        InterpolateGaussPointsLST();
+        InterpolateGaussPointsLeastSquareTransfer();
     } else if (mThisInterpolationType == InterpolationTypes::SFT && mInternalVariableList.size() > 0) {
-//         InterpolateGaussPointsSFT();
+//         InterpolateGaussPointsShapeFunctionTransfer();
         KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: SFT THIS DOESN'T WORK, AND REQUIRES EXTRA STORE. PLEASE COOSE ANY OTHER ALTERNATIVE" << std::endl;
     } else
         KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: INTERPOLATION TYPE NOT AVALAIBLE OR EMPTY LIST" << std::endl;
@@ -144,7 +144,7 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InternalVariablesInterpolationProcess::InterpolateGaussPointsCPT()
+void InternalVariablesInterpolationProcess::InterpolateGaussPointsClosestPointTransfer()
 {
     // We Initialize the process info
     const ProcessInfo& current_process_info = mrDestinationMainModelPart.GetProcessInfo();
@@ -205,7 +205,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsCPT()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InternalVariablesInterpolationProcess::InterpolateGaussPointsLST()
+void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTransfer()
 {
     // We Initialize the process info
     const ProcessInfo& current_process_info = mrDestinationMainModelPart.GetProcessInfo();
@@ -308,7 +308,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLST()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
+void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionTransfer()
 {
     // Initialize some values
     GeometryData::IntegrationMethod this_integration_method;

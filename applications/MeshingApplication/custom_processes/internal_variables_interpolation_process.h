@@ -62,7 +62,7 @@ namespace Kratos
     enum class InterpolationTypes {
         CPT = 0, /// Closest Point Transfer. It transfer the values from the closest GP
         LST = 1, /// Least-Square projection Transfer. It transfers from the closest GP from the old mesh
-        SFT = 2  /// It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+        SFT = 2  /// Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
         };
 
 ///@}
@@ -140,7 +140,7 @@ public:
      * @details There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
      * - CPT: Closest Point Transfer. It transfer the values from the closest GP
      * - LST: Least-Square projection Transfer. It transfers from the closest GP from the old mesh
-     * - SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+     * - SFT: Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
      * @note SFT THIS DOESN'T WORK, AND REQUIRES EXTRA STORE
      */
     void Execute() override;
@@ -255,19 +255,19 @@ private:
      * @brief This method interpolate the values of the GP using the CPT method
      */
 
-    void InterpolateGaussPointsCPT();
+    void InterpolateGaussPointsClosestPointTransfer();
 
     /**
      * @brief This method interpolate the values of the GP using the LST method
      */
 
-    void InterpolateGaussPointsLST();
+    void InterpolateGaussPointsLeastSquareTransfer();
 
     /**
      * @brief This method interpolate the values of the GP using the SFT method
      */
 
-    void InterpolateGaussPointsSFT();
+    void InterpolateGaussPointsShapeFunctionTransfer();
 
     /**
      * @brief This converts the interpolation string to an enum
