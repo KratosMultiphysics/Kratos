@@ -185,7 +185,7 @@ class MechanicalSolver(object):
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished importing model part.")
 
     def ReadModelPart(self):
-        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Importing model part.")
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
         if self.is_restarted():
