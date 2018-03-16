@@ -13,42 +13,54 @@ from __future__ import print_function, absolute_import, division
 
 # importing the Kratos Library
 from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
-# Additional imports
-from analyzer_internal import KratosInternalAnalyzer
-
 # ==============================================================================
 def CreateAnalyzer( project_parameters, model_part_controller, external_anlyzer ):
-    return CombinedAnalyzer(project_parameters, model_part_controller, external_anlyzer)
+    return Analyzer(project_parameters, model_part_controller, external_anlyzer)
 
 # ==============================================================================
-class CombinedAnalyzer:
+class Analyzer:
 
     # --------------------------------------------------------------------------
     def __init__( self, project_parameters, model_part_controller, external_anlyzer ):
         self.external_anlyzer = external_anlyzer
-        self.internal_analyzer = KratosInternalAnalyzer(project_parameters, model_part_controller.GetOptimizationModelPart())
+
+        if self.__IsInternalAnalyzerRequired( project_parameters["optimization_settings"] ):
+            from analyzer_internal import KratosInternalAnalyzer
+            self.internal_analyzer = KratosInternalAnalyzer(project_parameters, model_part_controller.GetOptimizationModelPart())
+        else:
+            from analyzer_empty import EmptyAnalyzer
+            self.internal_analyzer = EmptyAnalyzer()
+            if isinstance(external_anlyzer, EmptyAnalyzer):
+                raise RuntimeError("Neither an internal nor an external analyzer is defined!")
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop( self ):
+        self.external_anlyzer.InitializeBeforeOptimizationLoop()
         self.internal_analyzer.InitializeBeforeOptimizationLoop()
-        if self.external_anlyzer is not None:
-            self.external_anlyzer.InitializeBeforeOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator( self, current_design, unique_iterator, communicator ):
+        self.external_anlyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
         self.internal_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
-        if self.external_anlyzer is not None:
-            self.external_anlyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
 
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop( self ):
+        self.external_anlyzer.FinalizeAfterOptimizationLoop()
         self.internal_analyzer.FinalizeAfterOptimizationLoop()
-        if self.external_anlyzer is not None:
-            self.external_anlyzer.FinalizeAfterOptimizationLoop()
+
+    # --------------------------------------------------------------------------
+    def __IsInternalAnalyzerRequired( self, optimization_settings ):
+        for objective_number in range(optimization_settings["objectives"].size()):
+            if optimization_settings["objectives"][objective_number]["use_kratos"].GetBool():
+                return True
+
+        for constraint_number in range(optimization_settings["constraints"].size()):
+            if optimization_settings["constraints"][constraint_number]["use_kratos"].GetBool():
+                return True
+        return False
 
 # ==============================================================================
