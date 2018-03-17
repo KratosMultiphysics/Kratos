@@ -223,11 +223,16 @@ public:
     * @param VariableKey The variable ID to set
     * @param rValue The value to assign
     */
-    void SetrValue(
+    void SetValue(
         const IndexType VariableKey,
         const double rValue
         )
     {
+        auto double_set = mMapDoubleVariables.find(VariableKey);
+        if(double_set != mMapDoubleVariables.end()) {
+            mMapDoubleVariables[VariableKey] = rValue;
+            return void();
+        }
         mMapDoubleVariables.insert({VariableKey, rValue});
     }
 
@@ -236,11 +241,16 @@ public:
     * @param VariableKey The variable ID to set
     * @param rValue The value to assign
     */
-    void SetrValue(
+    void SetValue(
         const IndexType VariableKey,
         const array_1d<double, 3>& rValue
         )
     {
+        auto array_set = mMapArrayVariables.find(VariableKey);
+        if(array_set != mMapArrayVariables.end()) {
+            mMapArrayVariables[VariableKey] = rValue;
+            return void();
+        }
         mMapArrayVariables.insert({VariableKey, rValue});
     }
 
@@ -249,11 +259,16 @@ public:
     * @param VariableKey The variable ID to set
     * @param rValue The value to assign
     */
-    void SetrValue(
+    void SetValue(
         const IndexType VariableKey,
         const Vector& rValue
         )
     {
+        auto vector_set = mMapVectorVariables.find(VariableKey);
+        if(vector_set != mMapVectorVariables.end()) {
+            mMapVectorVariables[VariableKey] = rValue;
+            return void();
+        }
         mMapVectorVariables.insert({VariableKey, rValue});
     }
 
@@ -268,6 +283,7 @@ public:
         double& rValue
         )
     {
+
         rValue = mMapDoubleVariables[VariableKey];
         return rValue;
     }
