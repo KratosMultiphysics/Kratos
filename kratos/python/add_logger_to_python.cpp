@@ -100,7 +100,7 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
  * @kwargs pybind11::dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
  **/
-object printDefault(pybind11::args args, pybind11::kwargs kwargs) {
+void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
     printImpl(args, kwargs, Logger::Severity::INFO, true);
 }
 
@@ -110,7 +110,7 @@ object printDefault(pybind11::args args, pybind11::kwargs kwargs) {
  * @kwargs pybind11::dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
  **/
-object printInfo(pybind11::args args, pybind11::kwargs kwargs) {
+void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
     printImpl(args, kwargs, Logger::Severity::INFO, false);
 }
 
@@ -120,7 +120,7 @@ object printInfo(pybind11::args args, pybind11::kwargs kwargs) {
  * @kwargs pybind11::dictionary of boost::python::objects resenting key-value pairs for
  * name arguments
  **/
-object printWarning(pybind11::args args, pybind11::kwargs kwargs) {
+void printWarning(pybind11::args args, pybind11::kwargs kwargs) {
     printImpl(args, kwargs, Logger::Severity::WARNING, false);
 }
 

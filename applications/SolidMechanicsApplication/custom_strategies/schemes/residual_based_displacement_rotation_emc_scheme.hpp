@@ -110,20 +110,20 @@ namespace Kratos
     virtual std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "Displacement-Rotation SimoScheme";
+        buffer << "Displacement-Rotation EMCScheme";
         return buffer.str();
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Displacement-Rotation SimoScheme";
+        rOStream << "Displacement-Rotation EMCScheme";
     }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "Displacement-Rotation SimoScheme Data";     
+      rOStream << "Displacement-Rotation EMCScheme Data";     
     }
     
     ///@}
@@ -173,6 +173,7 @@ namespace Kratos
 
       // Modify ProcessInfo scheme parameters
       this->mpIntegrationMethod->SetProcessInfoParameters(rCurrentProcessInfo);
+      
       rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
     }
 

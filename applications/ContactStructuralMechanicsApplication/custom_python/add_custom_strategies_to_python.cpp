@@ -95,7 +95,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
             
     // Residual Based Newton Raphson Contact Strategy      
-    class_< ResidualBasedNewtonRaphsonContactStrategyType, BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonContactStrategy")
+    class_< ResidualBasedNewtonRaphsonContactStrategyType, 
+            typename ResidualBasedNewtonRaphsonContactStrategyType::Pointer,
+            BaseSolvingStrategyType  >  (m, "ResidualBasedNewtonRaphsonContactStrategy")
             .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
             .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters, ProcessesListType>())
             .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
@@ -107,7 +109,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
             
     // Line search Contact Strategy      
-    class_< LineSearchContactStrategyType, BaseSolvingStrategyType  >(m, "LineSearchContactStrategy")
+    class_< LineSearchContactStrategyType,
+            typename LineSearchContactStrategyType::Pointer,
+            BaseSolvingStrategyType  >(m, "LineSearchContactStrategy")
             .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, unsigned int, bool, bool, bool, Parameters >())
             .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, unsigned int, bool, bool, bool, Parameters >())
             .def("SetMaxIterationNumber", &LineSearchContactStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
@@ -135,7 +139,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
             
     // Weighted residual values update
-    class_< MeshTyingMortarConvergenceCriteriaType,
+    class_< MeshTyingMortarConvergenceCriteriaType, typename MeshTyingMortarConvergenceCriteriaType::Pointer,
             ConvergenceCriteriaType >
             (m, "MeshTyingMortarConvergenceCriteria") 
             .def(init< >())

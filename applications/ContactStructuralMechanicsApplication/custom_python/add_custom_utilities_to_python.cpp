@@ -14,7 +14,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -94,7 +93,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // Process Factory utility
     class_<ProcessFactoryUtility, ProcessFactoryUtility::Pointer>(m, "ProcessFactoryUtility")
-    .def(init<boost::python::list&>())
+    .def(init<  list&>())
     .def(init< >())
     .def("AddProcess",&ProcessFactoryUtility::AddProcess)
     .def("AddProcesses",&ProcessFactoryUtility::AddProcesses)

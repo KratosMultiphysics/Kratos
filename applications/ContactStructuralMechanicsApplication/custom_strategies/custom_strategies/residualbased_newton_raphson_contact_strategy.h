@@ -15,7 +15,6 @@
 /* System Includes */
 
 /* External Includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "contact_structural_mechanics_application_variables.h"

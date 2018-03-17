@@ -15,8 +15,7 @@
 // System includes
 #include <iostream>
 #include <vector>
-#include "boost/smart_ptr.hpp"
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 #include "includes/serializer.h"
 
 // External includes
@@ -56,9 +55,9 @@ public:
     /// Counted pointer of ProcessFactoryUtility
     KRATOS_CLASS_POINTER_DEFINITION( ProcessFactoryUtility );
 
-    typedef boost::python::object ObjectType;
+    typedef pybind11::object ObjectType;
     
-    typedef boost::python::list     ListType;
+    typedef pybind11::list     ListType;
     
     ///@}
     ///@name Life Cycle
@@ -71,7 +70,7 @@ public:
     {
         for (unsigned int iProcess = 0; iProcess < len(ProcessesList); ++iProcess)
         {
-            mProcesses.push_back(boost::python::extract<ObjectType>(ProcessesList[iProcess]));
+            mProcesses.push_back(pybind11::cast<ObjectType>(ProcessesList[iProcess]));
         }
     }
 
@@ -108,7 +107,7 @@ public:
     {
         for (unsigned int iProcess = 0; iProcess < len(ProcessesList); ++iProcess)
         {
-            mProcesses.push_back(boost::python::extract<ObjectType>(ProcessesList[iProcess]));
+            mProcesses.push_back(pybind11::cast<ObjectType>(ProcessesList[iProcess]));
         }
     }
     

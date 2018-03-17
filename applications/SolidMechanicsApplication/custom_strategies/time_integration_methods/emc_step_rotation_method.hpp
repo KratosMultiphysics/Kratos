@@ -102,10 +102,6 @@ namespace Kratos
 
     // update
     virtual void Update(NodeType& rNode) override;
-     
-    virtual void UpdateFirstDerivative(NodeType& rNode) override;
-
-    virtual void UpdateSecondDerivative(NodeType& rNode) override;
        
     ///@}
     ///@name Access
@@ -164,23 +160,7 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
-    virtual void PredictStepVariable(NodeType& rNode) override
-    {
-      KRATOS_TRY
-
-      // predict step variable from previous and current values
-      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
-	
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-      
-      CurrentStepVariable = CurrentVariable-PreviousVariable;
-	
-      KRATOS_CATCH( "" )
-    }
-
-    
+   
     ///@}
     ///@name Protected  Access
     ///@{
@@ -263,42 +243,6 @@ namespace Kratos
   }
 
 
-  template<>
-  void EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::UpdateFirstDerivative(NodeType& rNode);
-  
-  template<class TVariableType, class TValueType>
-  void EmcStepRotationMethod<TVariableType,TValueType>::UpdateFirstDerivative(NodeType& rNode)
-  {
-      KRATOS_TRY
-	
-      const TValueType& CurrentVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      TValueType& CurrentFirstDerivative        = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
- 	          
-      const TValueType& PreviousVariable        = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-
-      CurrentFirstDerivative = this->mEmc.c0 * (CurrentVariable-PreviousVariable);
-      
-      KRATOS_CATCH( "" )
-  }
-
-  template<>
-  void EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::UpdateSecondDerivative(NodeType& rNode);
-  
-  template<class TVariableType, class TValueType>
-  void EmcStepRotationMethod<TVariableType,TValueType>::UpdateSecondDerivative(NodeType& rNode)
-  {
-      KRATOS_TRY
-	
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
- 	          
-      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-      
-      CurrentSecondDerivative = this->mEmc.c1 * (CurrentVariable-PreviousVariable);
-	
-      KRATOS_CATCH( "" )
-  }
-  
   ///@}
   ///@name Input and output
   ///@{
