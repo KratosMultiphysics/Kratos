@@ -217,7 +217,7 @@ using namespace boost::python;
     class_<EthierFlowField, bases<VelocityField> > ("EthierFlowField",  init<const double, const double>())
         ;
 
-    class_<ProductOfSines, bases<VelocityField> > ("ProductOfSines",  init<>())
+    class_<ProductOfSines, bases<VelocityField> > ("ProductOfSines",  init<const double>())
         ;
 
     class_<PouliotFlowField, bases<VelocityField> > ("PouliotFlowField", init<>())

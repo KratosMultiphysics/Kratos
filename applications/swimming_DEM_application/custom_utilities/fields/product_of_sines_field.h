@@ -7,6 +7,7 @@
 
 // Project includes
 #include "includes/variables.h"
+#include "swimming_DEM_application.h"
 
 /* System includes */
 #include <limits>
@@ -41,12 +42,19 @@ ProductOfSines():VelocityField()
 {
     unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
+    mOmega = Globals::Pi;
 }
 
-ProductOfSines(const double a, const double b)                 
+ProductOfSines(const double period)
 {
     unsigned int number_of_threads = OpenMPUtils::GetNumThreads();
     ResizeVectorsForParallelism(number_of_threads);
+
+    if (period == 0.0){
+        KRATOS_THROW_ERROR(std::invalid_argument, "The period must be non-negative.", 0);
+    }
+
+    mOmega = Globals::Pi / period;
 }
 
 
@@ -168,7 +176,7 @@ private:
 ///@}
 ///@name Member r_variables
 ///@{
-
+double mOmega;
 std::vector<int> mCoordinatesAreUpToDate;
 std::vector<double> mSin0;
 std::vector<double> mCos0;

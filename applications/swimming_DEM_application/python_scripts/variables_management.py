@@ -487,6 +487,7 @@ def ChangeListOfFluidNodalResultsToPrint(pp):
 
     if pp.CFD_DEM["print_VECTORIAL_ERROR_option"].GetBool():
         pp.nodal_results += ["VECTORIAL_ERROR"]
+        pp.nodal_results += ["VECTORIAL_ERROR_1"]
 
 def ChangeInputDataForConsistency(pp):
     if pp.CFD_DEM["coupling_level_type"].GetInt() == 0:

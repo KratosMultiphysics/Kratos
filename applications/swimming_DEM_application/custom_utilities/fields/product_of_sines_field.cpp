@@ -22,12 +22,15 @@ void ProductOfSines::UpdateCoordinates(const double time, const array_1d<double,
     (void)time;
 
     if (!mCoordinatesAreUpToDate[i_thread]){
-        mSin0[i_thread]  = std::sin(Globals::Pi * coor[0]);
-        mCos0[i_thread]  = std::cos(Globals::Pi * coor[0]);
-        mSin1[i_thread]  = std::sin(Globals::Pi * coor[1]);
-        mCos1[i_thread]  = std::cos(Globals::Pi * coor[1]);
-        mSin2[i_thread]  = std::sin(Globals::Pi * coor[2]);
-        mCos2[i_thread]  = std::cos(Globals::Pi * coor[2]);
+        const double alpha_0 = mOmega * coor[0];
+        const double alpha_1 = mOmega * coor[1];
+        const double alpha_2 = mOmega * coor[2];
+        mSin0[i_thread] = std::sin(alpha_0);
+        mCos0[i_thread] = std::cos(alpha_0);
+        mSin1[i_thread] = std::sin(alpha_1);
+        mCos1[i_thread] = std::cos(alpha_1);
+        mSin2[i_thread] = std::sin(alpha_2);
+        mCos2[i_thread] = std::cos(alpha_2);
     }
 }
 
@@ -36,12 +39,15 @@ void ProductOfSines::UpdateCoordinates(const double time, const vector<double>& 
     (void)time;
 
     if (!mCoordinatesAreUpToDate[i_thread]){
-        mSin0[i_thread]  = std::sin(Globals::Pi * coor[0]);
-        mCos0[i_thread]  = std::cos(Globals::Pi * coor[0]);
-        mSin1[i_thread]  = std::sin(Globals::Pi * coor[1]);
-        mCos1[i_thread]  = std::cos(Globals::Pi * coor[1]);
-        mSin2[i_thread]  = std::sin(Globals::Pi * coor[2]);
-        mCos2[i_thread]  = std::cos(Globals::Pi * coor[2]);
+        const double alpha_0 = mOmega * coor[0];
+        const double alpha_1 = mOmega * coor[1];
+        const double alpha_2 = mOmega * coor[2];
+        mSin0[i_thread] = std::sin(alpha_0);
+        mCos0[i_thread] = std::cos(alpha_0);
+        mSin1[i_thread] = std::sin(alpha_1);
+        mCos1[i_thread] = std::cos(alpha_1);
+        mSin2[i_thread] = std::sin(alpha_2);
+        mCos2[i_thread] = std::cos(alpha_2);
     }
 }
 
@@ -66,41 +72,41 @@ double ProductOfSines::U0(const int i)
 
 double ProductOfSines::U0D0(const int i)
 {
-    return Globals::Pi * mCos0[i]  * mSin1[i]  * mSin2[i];
+    return mOmega * mCos0[i]  * mSin1[i]  * mSin2[i];
 }
 double ProductOfSines::U0D1(const int i)
 {
-    return Globals::Pi * mSin0[i]  * mCos1[i]  * mSin2[i];
+    return mOmega * mSin0[i]  * mCos1[i]  * mSin2[i];
 }
 double ProductOfSines::U0D2(const int i)
 {
-    return Globals::Pi * mSin0[i]  * mSin1[i]  * mCos2[i];
+    return mOmega * mSin0[i]  * mSin1[i]  * mCos2[i];
 }
 
 // Second-order derivatives
 double ProductOfSines::U0D0D0(const int i)
 {
-    return - Globals::Pi * Globals::Pi * mSin0[i]  * mSin1[i]  * mSin2[i];
+    return - mOmega * mOmega * mSin0[i]  * mSin1[i]  * mSin2[i];
 }
 double ProductOfSines::U0D0D1(const int i)
 {
-    return Globals::Pi * Globals::Pi * mCos0[i]  * mCos1[i]  * mSin2[i];
+    return mOmega * mOmega * mCos0[i]  * mCos1[i]  * mSin2[i];
 }
 double ProductOfSines::U0D0D2(const int i)
 {
-    return Globals::Pi * Globals::Pi * mCos0[i]  * mSin1[i]  * mCos2[i];
+    return mOmega * mOmega * mCos0[i]  * mSin1[i]  * mCos2[i];
 }
 double ProductOfSines::U0D1D1(const int i)
 {
-    return - Globals::Pi * Globals::Pi * mSin0[i]  * mSin1[i]  * mSin2[i];
+    return - mOmega * mOmega * mSin0[i]  * mSin1[i]  * mSin2[i];
 }
 double ProductOfSines::U0D1D2(const int i)
 {
-    return Globals::Pi * Globals::Pi * mSin0[i]  * mCos1[i]  * mCos2[i];
+    return mOmega * mOmega * mSin0[i]  * mCos1[i]  * mCos2[i];
 }
 double ProductOfSines::U0D2D2(const int i)
 {
-    return - Globals::Pi * Globals::Pi * mSin0[i]  * mSin1[i]  * mSin2[i];
+    return - mOmega * mOmega * mSin0[i]  * mSin1[i]  * mSin2[i];
 }
 
 } // namespace Kratos.

@@ -15,7 +15,7 @@ if __name__ == "__main__":
     nz = int(sys.argv[3])
 
     # name tag for the mdpa
-    tag = ''
+    tag = 'Kratos'
 
     if len(sys.argv) > 4:
         tag = sys.argv[4]

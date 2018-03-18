@@ -641,7 +641,7 @@ class Algorithm(object):
             self.derivative_recovery_counter.Activate(self.time > interaction_start_time)
 
             if self.derivative_recovery_counter.Tick():
-                self.recovery.Recover()
+                self.RecoverDerivatives()
 
             Say('Solving DEM... (', self.spheres_model_part.NumberOfElements(0), 'elements )')
             first_dem_iter = True
@@ -757,6 +757,9 @@ class Algorithm(object):
 
     def UpdateALEMeshMovement(self, time):
         pass
+
+    def RecoverDerivatives(self):
+        self.recovery.Recover()
 
     def FluidSolve(self, time='None', solve_system=True):
         Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
