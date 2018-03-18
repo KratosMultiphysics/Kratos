@@ -214,6 +214,10 @@ public:
         if(vector_set != mMapVectorVariables.end()) {
             return true;
         }
+        auto matrix_set = mMapMatrixVariables.find(VariableKey);
+        if(matrix_set != mMapMatrixVariables.end()) {
+            return true;
+        }
 
         return false;
     }
@@ -273,6 +277,24 @@ public:
     }
 
     /**
+    * It adds a new value to the map (Matrix)
+    * @param VariableKey The variable ID to set
+    * @param rValue The value to assign
+    */
+    void SetValue(
+        const IndexType VariableKey,
+        const Matrix& rValue
+        )
+    {
+        auto matrix_set = mMapMatrixVariables.find(VariableKey);
+        if(matrix_set != mMapMatrixVariables.end()) {
+            mMapMatrixVariables[VariableKey] = rValue;
+            return void();
+        }
+        mMapMatrixVariables.insert({VariableKey, rValue});
+    }
+
+    /**
     * It return a value from the map (double)
     * @param VariableKey The variable ID to set
     * @param rValue The value to recover
@@ -287,6 +309,7 @@ public:
         rValue = mMapDoubleVariables[VariableKey];
         return rValue;
     }
+
     /**
     * It return a value from the map (array_1d<double, 3>)
     * @param VariableKey The variable ID to set
@@ -301,6 +324,7 @@ public:
         rValue = mMapArrayVariables[VariableKey];
         return rValue;
     }
+
     /**
     * It return a value from the map (Vector)
     * @param VariableKey The variable ID to set
@@ -313,6 +337,21 @@ public:
         )
     {
         rValue = mMapVectorVariables[VariableKey];
+        return rValue;
+    }
+
+    /**
+    * It return a value from the map (Matrix)
+    * @param VariableKey The variable ID to set
+    * @param rValue The value to recover
+    * @return rValue The value to recover
+    */
+    Matrix GetValue(
+        const IndexType VariableKey,
+        Matrix& rValue
+        )
+    {
+        rValue = mMapMatrixVariables[VariableKey];
         return rValue;
     }
 
@@ -335,6 +374,11 @@ public:
         auto vector_set = mMapVectorVariables.find(VariableKey);
         if(vector_set != mMapVectorVariables.end()) {
             mMapVectorVariables.erase(vector_set);
+            return void();
+        }
+        auto matrix_set = mMapMatrixVariables.find(VariableKey);
+        if(matrix_set != mMapMatrixVariables.end()) {
+            mMapMatrixVariables.erase(matrix_set);
             return void();
         }
     }
@@ -382,7 +426,8 @@ private:
     IndexType mGaussPointId;                                              /// This is the position on the list of GP inside the element
     std::unordered_map<IndexType,double> mMapDoubleVariables;             /// This maps stores auxiliar doubles to interpolate later
     std::unordered_map<IndexType,array_1d<double, 3>> mMapArrayVariables; /// This maps stores auxiliar arrays to interpolate later
-    std::unordered_map<IndexType,Vector> mMapVectorVariables;             /// This maps stores auxi liar vectors to interpolate later
+    std::unordered_map<IndexType,Vector> mMapVectorVariables;             /// This maps stores auxiliar vectors to interpolate later
+    std::unordered_map<IndexType,Matrix> mMapMatrixVariables;             /// This maps stores auxiliar matrixes to interpolate later
 
     ///@}
     ///@name Private Operators
