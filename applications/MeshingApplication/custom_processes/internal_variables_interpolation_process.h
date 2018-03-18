@@ -290,23 +290,23 @@ private:
     /**
      * @brief This method saves the values on the gauss point object
      * @param rThisVar The variable to transfer
-     * @param pPoint The pointer to the current GP
-     * @param itElem The origin element iterator to save on the auxilir point
+     * @param pPointOrigin The pointer to the current GP
+     * @param itElemOrigin The origin element iterator to save on the auxiliar point
      * @param GaussPointId The index of te current GaussPoint computed
      * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
     inline void SaveValuesOnGaussPoint(
         const Variable<TVarType>& rThisVar,
-        PointTypePointer pPoint,
-        ElementsArrayType::iterator itElem,
+        PointTypePointer pPointOrigin,
+        ElementsArrayType::iterator itElemOrigin,
         const IndexType GaussPointId,
         const ProcessInfo& rCurrentProcessInfo
         )
     {
         std::vector<TVarType> values;
-        itElem->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
-        pPoint->SetValue(rThisVar.Key(), values[GaussPointId]);
+        itElemOrigin->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        pPointOrigin->SetValue(rThisVar.Key(), values[GaussPointId]);
     }
 
     /**
@@ -314,20 +314,44 @@ private:
      * @param rThisVar The variable to transfer
      * @param pOriginConstitutiveLaw The CL on the original mesh
      * @param pDestinationConstitutiveLaw The Cl on the destination mesh
-     * @param rCurrentProcessInfo The process info 
+     * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
     inline void GetAndSetDirectVariableOnConstitutiveLaw(
         const Variable<TVarType>& rThisVar,
         ConstitutiveLaw::Pointer pOriginConstitutiveLaw,
         ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
-        const ProcessInfo& rCurrentProcessInfo 
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         TVarType origin_value;
         origin_value = pOriginConstitutiveLaw->GetValue(rThisVar, origin_value);
 
         pDestinationConstitutiveLaw->SetValue(rThisVar, origin_value, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief This method sets the value directly on the elementusing the value from the closest gauss point from the old mesh
+     * @param rThisVar The variable to transfer
+     * @param pPointOrigin The pointer to the current GP
+     * @param itElemDestination The destination element iterato where to set the values
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param rCurrentProcessInfo The process info 
+     */
+    template<class TVarType>
+    inline void GetAndSetDirectVariableOnElements(
+        const Variable<TVarType>& rThisVar,
+        PointTypePointer pPointOrigin,
+        ElementsArrayType::iterator itElemDestination,
+        const IndexType GaussPointId,
+        const ProcessInfo& rCurrentProcessInfo 
+        )
+    {
+        std::vector<TVarType> values;
+        itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        TVarType aux_value;
+        values[GaussPointId] = pPointOrigin->GetValue(rThisVar.Key(), aux_value);
+        itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
     
     /**
