@@ -454,7 +454,7 @@ private:
      * @param Weight The integration weight
      */
     template<class TVarType>
-    inline void InterpolateAddVariable(
+    inline void InterpolateAddVariableOnConstitutiveLaw(
         GeometryType& rThisGeometry,
         const Variable<TVarType>& rThisVar,
         const Vector& N,
@@ -469,6 +469,37 @@ private:
         for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
             #pragma omp critical
             rThisGeometry[i_node].GetValue(rThisVar) += N[i_node] * origin_value * Weight;
+        }
+    }
+
+    /**
+     * @brief This method interpolates and add values from the element using shape functions
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param itElemOrigin The origin element iterator to save on the auxiliar point
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param Weight The integration weight
+     * @param rCurrentProcessInfo The process info
+     */
+    template<class TVarType>
+    inline void InterpolateAddVariableOnElement(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        ElementsArrayType::iterator itElemOrigin,
+        const IndexType GaussPointId,
+        const double Weight,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        std::vector<TVarType> origin_values;
+        itElemOrigin->GetValueOnIntegrationPoints(rThisVar, origin_values, rCurrentProcessInfo);
+
+        // We sum all the contributions
+        for (unsigned int i_node = 0; i_node < rThisGeometry.size(); ++i_node) {
+            #pragma omp critical
+            rThisGeometry[i_node].GetValue(rThisVar) += N[i_node] * origin_values[GaussPointId] * Weight;
         }
     }
     
@@ -523,14 +554,44 @@ private:
      * @param rThisVar The variable to transfer
      * @param N The shape function used
      * @param pDestinationConstitutiveLaw The Cl on the destination mesh
-     * @param rCurrentProcessInfo The process info 
+     * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void SetInterpolatedValue(
+    inline void SetInterpolatedValueOnConstitutiveLaw(
         GeometryType& rThisGeometry,
         const Variable<TVarType>& rThisVar,
         const Vector& N,
         ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        // An auxiliar value
+        TVarType destination_value = rThisVar.Zero();
+
+        // Interpolate with shape function
+        const std::size_t number_nodes = rThisGeometry.size();
+        for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
+            destination_value += N[i_node] * rThisGeometry[i_node].GetValue(rThisVar);
+
+        pDestinationConstitutiveLaw->SetValue(rThisVar, destination_value, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
+     * @param rThisGeometry The geometry of the element
+     * @param rThisVar The variable to transfer
+     * @param N The shape function used
+     * @param itElemDestination The destination element iterato where to set the values
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param rCurrentProcessInfo The process info 
+     */
+    template<class TVarType>
+    inline void SetInterpolatedValueOnElement(
+        GeometryType& rThisGeometry,
+        const Variable<TVarType>& rThisVar,
+        const Vector& N,
+        ElementsArrayType::iterator itElemDestination,
+        const IndexType GaussPointId,
         const ProcessInfo& rCurrentProcessInfo 
         )
     {
@@ -542,7 +603,10 @@ private:
         for (std::size_t i_node = 0; i_node < number_nodes; ++i_node)
             destination_value += N[i_node] * rThisGeometry[i_node].GetValue(rThisVar);
 
-        pDestinationConstitutiveLaw->SetValue(rThisVar, destination_value, rCurrentProcessInfo);
+        std::vector<TVarType> values;
+        itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        values[GaussPointId] = destination_value;
+        itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
     
     /**

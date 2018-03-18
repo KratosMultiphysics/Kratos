@@ -444,16 +444,28 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
             // We interpolate and add the variable
             for (auto& this_var : mInternalDoubleVariableList) {
-                InterpolateAddVariable(r_this_geometry, this_var, N, p_origin_cl, weight);
+                if (p_origin_cl->Has(this_var))
+                    InterpolateAddVariableOnConstitutiveLaw(r_this_geometry, this_var, N, p_origin_cl, weight);
+                else
+                    InterpolateAddVariableOnElement(r_this_geometry, this_var, N, it_elem, i_gauss_point, weight, origin_process_info);
             }
             for (auto& this_var : mInternalArrayVariableList) {
-                InterpolateAddVariable(r_this_geometry, this_var, N, p_origin_cl, weight);
+                if (p_origin_cl->Has(this_var))
+                    InterpolateAddVariableOnConstitutiveLaw(r_this_geometry, this_var, N, p_origin_cl, weight);
+                else
+                    InterpolateAddVariableOnElement(r_this_geometry, this_var, N, it_elem, i_gauss_point, weight, origin_process_info);
             }
             for (auto& this_var : mInternalVectorVariableList) {
-                InterpolateAddVariable(r_this_geometry, this_var, N, p_origin_cl, weight);
+                if (p_origin_cl->Has(this_var))
+                    InterpolateAddVariableOnConstitutiveLaw(r_this_geometry, this_var, N, p_origin_cl, weight);
+                else
+                    InterpolateAddVariableOnElement(r_this_geometry, this_var, N, it_elem, i_gauss_point, weight, origin_process_info);
             }
             for (auto& this_var : mInternalMatrixVariableList) {
-                InterpolateAddVariable(r_this_geometry, this_var, N, p_origin_cl, weight);
+                if (p_origin_cl->Has(this_var))
+                    InterpolateAddVariableOnConstitutiveLaw(r_this_geometry, this_var, N, p_origin_cl, weight);
+                else
+                    InterpolateAddVariableOnElement(r_this_geometry, this_var, N, it_elem, i_gauss_point, weight, origin_process_info);
             }
         }
 
@@ -588,16 +600,28 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
             ConstitutiveLaw::Pointer p_destination_cl = constitutive_law_vector[i_gauss_point];
 
             for (auto& this_var : mInternalDoubleVariableList) {
-                SetInterpolatedValue(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
+                if (p_destination_cl->Has(this_var))
+                    SetInterpolatedValueOnConstitutiveLaw(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
+                else
+                    SetInterpolatedValueOnElement(r_this_geometry, this_var, N, it_elem, i_gauss_point, destination_process_info);
             }
             for (auto& this_var : mInternalArrayVariableList) {
-                SetInterpolatedValue(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
+                if (p_destination_cl->Has(this_var))
+                    SetInterpolatedValueOnConstitutiveLaw(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
+                else
+                    SetInterpolatedValueOnElement(r_this_geometry, this_var, N, it_elem, i_gauss_point, destination_process_info);
             }
             for (auto& this_var : mInternalVectorVariableList) {
-                SetInterpolatedValue(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
+                if (p_destination_cl->Has(this_var))
+                    SetInterpolatedValueOnConstitutiveLaw(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
+                else
+                    SetInterpolatedValueOnElement(r_this_geometry, this_var, N, it_elem, i_gauss_point, destination_process_info);
             }
             for (auto& this_var : mInternalMatrixVariableList) {
-                SetInterpolatedValue(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
+                if (p_destination_cl->Has(this_var))
+                    SetInterpolatedValueOnConstitutiveLaw(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
+                else
+                    SetInterpolatedValueOnElement(r_this_geometry, this_var, N, it_elem, i_gauss_point, destination_process_info);
             }
         }
     }
