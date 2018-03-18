@@ -91,12 +91,10 @@ public:
     GaussPointItem(
         const array_1d<double, 3>& Coordinates,
         ConstitutiveLaw::Pointer pConstitutiveLaw,
-        const double Weight,
-        const IndexType Id = 0
+        const double Weight
         ):Point(Coordinates),
           mpConstitutiveLaw(std::move(pConstitutiveLaw)),
-          mWeight(Weight),
-          mGaussPointId(Id)
+          mWeight(Weight)
     {
     }
 
@@ -173,27 +171,6 @@ public:
     {
         mWeight = Weight;
     }
-
-    /**
-     * @brief Returns the id associated to the point
-     * @return mGaussPointId: The "id" to identify the GP inside the element
-     */
-
-    double GetGaussPointId() const
-    {
-        return mGaussPointId;
-    }
-
-    /**
-     * @brief Sets the gauss point id associated to the point
-     * @param Id The "id" to identify the GP inside the element
-     */
-
-    void SetGaussPointId(const IndexType Id)
-    {
-        mGaussPointId = Id;
-    }
-
 
     /**
     * It checks if an ID exists in the map
@@ -422,8 +399,7 @@ private:
     ConstitutiveLaw::Pointer mpConstitutiveLaw; /// The constitutive law pointer
     double mWeight;                             /// The integration weight of the GP
 
-    /* For values not available on the constitutive law */
-    IndexType mGaussPointId;                                              /// This is the position on the list of GP inside the element
+    /* For values not available on the constitutive law */                                        /// This is the position on the list of GP inside the element
     std::unordered_map<IndexType,double> mMapDoubleVariables;             /// This maps stores auxiliar doubles to interpolate later
     std::unordered_map<IndexType,array_1d<double, 3>> mMapArrayVariables; /// This maps stores auxiliar arrays to interpolate later
     std::unordered_map<IndexType,Vector> mMapVectorVariables;             /// This maps stores auxiliar vectors to interpolate later

@@ -139,7 +139,28 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
                 global_coordinates = r_this_geometry.GlobalCoordinates( global_coordinates, local_coordinates );
 
                 // We create the respective GP
-                PointTypePointer p_point = PointTypePointer(new PointType(global_coordinates, constitutive_law_vector[i_gauss_point], weight));
+                ConstitutiveLaw::Pointer p_origin_cl = constitutive_law_vector[i_gauss_point];
+                PointTypePointer p_point = PointTypePointer(new PointType(global_coordinates, p_origin_cl, weight));
+
+                // We save the values not accesible from the CL (it consummes memory, so preferably use variable from the CL)
+                for (auto& this_var : mInternalDoubleVariableList) {
+                    if (p_origin_cl->Has(this_var) == false)
+                        SaveValuesOnGaussPoint(this_var, p_point, it_elem, i_gauss_point, current_process_info);
+                }
+                for (auto& this_var : mInternalArrayVariableList) {
+                    if (p_origin_cl->Has(this_var) == false)
+                        SaveValuesOnGaussPoint(this_var, p_point, it_elem, i_gauss_point, current_process_info);
+                }
+                for (auto& this_var : mInternalVectorVariableList) {
+                    if (p_origin_cl->Has(this_var) == false)
+                        SaveValuesOnGaussPoint(this_var, p_point, it_elem, i_gauss_point, current_process_info);
+                }
+                for (auto& this_var : mInternalMatrixVariableList) {
+                    if (p_origin_cl->Has(this_var) == false)
+                        SaveValuesOnGaussPoint(this_var, p_point, it_elem, i_gauss_point, current_process_info);
+                }
+
+                // Finally we push over the the buffer vector
                 (points_buffer[id]).push_back(p_point);
             }
         }
@@ -205,18 +226,25 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsClosestPointTr
 
                 PointTypePointer p_gp_origin = tree_points.SearchNearestPoint(global_coordinates);
 
+                ConstitutiveLaw::Pointer p_origin_cl = p_gp_origin->GetConstitutiveLaw();
+                ConstitutiveLaw::Pointer p_destination_cl = constitutive_law_vector[i_gauss_point];
+
                 // Get and set variable
                 for (auto& this_var : mInternalDoubleVariableList) {
-                    GetAndSetDirectVariable(this_var, p_gp_origin->GetConstitutiveLaw(), constitutive_law_vector[i_gauss_point], current_process_info);
+                    if (p_origin_cl->Has(this_var))
+                        GetAndSetDirectVariableOnConstitutiveLaw(this_var, p_origin_cl, p_destination_cl, current_process_info);
                 }
                 for (auto& this_var : mInternalArrayVariableList) {
-                    GetAndSetDirectVariable(this_var, p_gp_origin->GetConstitutiveLaw(), constitutive_law_vector[i_gauss_point], current_process_info);
+                    if (p_origin_cl->Has(this_var))
+                        GetAndSetDirectVariableOnConstitutiveLaw(this_var, p_origin_cl, p_destination_cl, current_process_info);
                 }
                 for (auto& this_var : mInternalVectorVariableList) {
-                    GetAndSetDirectVariable(this_var, p_gp_origin->GetConstitutiveLaw(), constitutive_law_vector[i_gauss_point], current_process_info);
+                    if (p_origin_cl->Has(this_var))
+                        GetAndSetDirectVariableOnConstitutiveLaw(this_var, p_origin_cl, p_destination_cl, current_process_info);
                 }
                 for (auto& this_var : mInternalMatrixVariableList) {
-                    GetAndSetDirectVariable(this_var, p_gp_origin->GetConstitutiveLaw(), constitutive_law_vector[i_gauss_point], current_process_info);
+                    if (p_origin_cl->Has(this_var))
+                        GetAndSetDirectVariableOnConstitutiveLaw(this_var, p_origin_cl, p_destination_cl, current_process_info);
                 }
             }
         }

@@ -288,6 +288,28 @@ private:
     std::size_t ComputeTotalNumberOfVariables();
     
     /**
+     * @brief This method saves the values on the gauss point object
+     * @param rThisVar The variable to transfer
+     * @param pPoint The pointer to the current GP
+     * @param itElem The origin element iterator to save on the auxilir point
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param rCurrentProcessInfo The process info
+     */
+    template<class TVarType>
+    inline void SaveValuesOnGaussPoint(
+        const Variable<TVarType>& rThisVar,
+        PointTypePointer pPoint,
+        ElementsArrayType::iterator itElem,
+        const IndexType GaussPointId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        std::vector<TVarType> values;
+        itElem->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        pPoint->SetValue(rThisVar.Key(), values[GaussPointId]);
+    }
+
+    /**
      * @brief Simply gets a origin value from a CL and it sets on the destination CL
      * @param rThisVar The variable to transfer
      * @param pOriginConstitutiveLaw The CL on the original mesh
@@ -295,7 +317,7 @@ private:
      * @param rCurrentProcessInfo The process info 
      */
     template<class TVarType>
-    inline void GetAndSetDirectVariable(
+    inline void GetAndSetDirectVariableOnConstitutiveLaw(
         const Variable<TVarType>& rThisVar,
         ConstitutiveLaw::Pointer pOriginConstitutiveLaw,
         ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
