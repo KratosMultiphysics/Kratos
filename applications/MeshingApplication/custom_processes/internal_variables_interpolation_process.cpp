@@ -47,7 +47,7 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
     if (ThisParameters["internal_variable_interpolation_list"].IsArray() == true) {
         auto variable_array_list = ThisParameters["internal_variable_interpolation_list"];
 
-        for (unsigned int i_var = 0; i_var < variable_array_list.size(); ++i_var) {
+        for (IndexType i_var = 0; i_var < variable_array_list.size(); ++i_var) {
             const std::string& variable_name = variable_array_list[i_var].GetString();
             if (KratosComponents<DoubleVarType>::Has(variable_name)) {
                 mInternalDoubleVariableList.push_back(KratosComponents<DoubleVarType>::Get(variable_name));
@@ -118,7 +118,7 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
             // Getting the integration points
             this_integration_method = it_elem->GetIntegrationMethod();
             const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
-            const unsigned int integration_points_number = integration_points.size();
+            const std::size_t integration_points_number = integration_points.size();
 
             // Computing the Jacobian
             Vector vector_det_j(integration_points_number);
@@ -128,7 +128,7 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
             it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
-            for (unsigned int i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
                 const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
 
                 // We compute the corresponding weight
@@ -212,13 +212,13 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsClosestPointTr
             // Getting the integration points
             this_integration_method = it_elem->GetIntegrationMethod();
             const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
-            const unsigned int integration_points_number = integration_points.size();
+            const std::size_t integration_points_number = integration_points.size();
 
             // Getting the CL
             std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
             it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,current_process_info);
 
-            for (unsigned int i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
+            for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
                 // We compute the global coordinates
                 const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
                 array_1d<double, 3> global_coordinates;
@@ -403,7 +403,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
         // Getting the integration points
         this_integration_method = it_elem->GetIntegrationMethod();
         const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
-        const unsigned int integration_points_number = integration_points.size();
+        const std::size_t integration_points_number = integration_points.size();
 
         // Computing the Jacobian
         Vector vector_det_j(integration_points_number);
@@ -416,7 +416,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
         // We initialize the total weigth
         double total_weight = 0.0;
 
-        for (unsigned int i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
+        for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
             const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
 
             // We compute the corresponding weight
@@ -431,18 +431,21 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
             array_1d<double, 3> global_coordinates;
             global_coordinates = r_this_geometry.GlobalCoordinates( global_coordinates, local_coordinates );
 
+            // The origin CL
+            ConstitutiveLaw::Pointer p_origin_cl = constitutive_law_vector[i_gauss_point];
+
             // We interpolate and add the variable
             for (auto& this_var : mInternalDoubleVariableList) {
-                InterpolateAddVariable(r_this_geometry, this_var, N,constitutive_law_vector[i_gauss_point], weight);
+                InterpolateAddVariable(r_this_geometry, this_var, N, p_origin_cl, weight);
             }
             for (auto& this_var : mInternalArrayVariableList) {
-                InterpolateAddVariable(r_this_geometry, this_var, N,constitutive_law_vector[i_gauss_point], weight);
+                InterpolateAddVariable(r_this_geometry, this_var, N, p_origin_cl, weight);
             }
             for (auto& this_var : mInternalVectorVariableList) {
-                InterpolateAddVariable(r_this_geometry, this_var, N,constitutive_law_vector[i_gauss_point], weight);
+                InterpolateAddVariable(r_this_geometry, this_var, N, p_origin_cl, weight);
             }
             for (auto& this_var : mInternalMatrixVariableList) {
-                InterpolateAddVariable(r_this_geometry, this_var, N,constitutive_law_vector[i_gauss_point], weight);
+                InterpolateAddVariable(r_this_geometry, this_var, N, p_origin_cl, weight);
             }
         }
 
@@ -554,13 +557,13 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
         // Getting the integration points
         this_integration_method = it_elem->GetIntegrationMethod();
         const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
-        const unsigned int integration_points_number = integration_points.size();
+        const std::size_t integration_points_number = integration_points.size();
 
         // Getting the CL
         std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(integration_points_number);
         it_elem->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_law_vector,destination_process_info);
 
-        for (unsigned int i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
+        for (IndexType i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
             const array_1d<double, 3>& local_coordinates = integration_points[i_gauss_point].Coordinates();
 
             // We compute the pondered characteristic length
@@ -573,17 +576,20 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
             Vector values(r_this_geometry.size() );
 
+            // The destination CL
+            ConstitutiveLaw::Pointer p_destination_cl = constitutive_law_vector[i_gauss_point];
+
             for (auto& this_var : mInternalDoubleVariableList) {
-                SetInterpolatedValue(r_this_geometry, this_var, N, constitutive_law_vector[i_gauss_point], destination_process_info);
+                SetInterpolatedValue(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
             }
             for (auto& this_var : mInternalArrayVariableList) {
-                SetInterpolatedValue(r_this_geometry, this_var, N, constitutive_law_vector[i_gauss_point], destination_process_info);
+                SetInterpolatedValue(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
             }
             for (auto& this_var : mInternalVectorVariableList) {
-                SetInterpolatedValue(r_this_geometry, this_var, N, constitutive_law_vector[i_gauss_point], destination_process_info);
+                SetInterpolatedValue(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
             }
             for (auto& this_var : mInternalMatrixVariableList) {
-                SetInterpolatedValue(r_this_geometry, this_var, N, constitutive_law_vector[i_gauss_point], destination_process_info);
+                SetInterpolatedValue(r_this_geometry, this_var, N, p_destination_cl, destination_process_info);
             }
         }
     }
