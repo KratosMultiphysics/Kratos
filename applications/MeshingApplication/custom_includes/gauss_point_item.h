@@ -173,25 +173,62 @@ public:
     }
 
     /**
-    * It checks if an ID exists in the map
-    * @param VariableKey The condition ID to remove
+    * @brief It checks if an ID exists in the map
+    * @param rVariable The  variable to be check
     * @return If the ID already exists or not
     */
-    bool Has(const IndexType VariableKey)
+    bool Has(const Variable<double>& rVariable)
     {
-        auto double_set = mMapDoubleVariables.find(VariableKey);
+        const IndexType variable_key = rVariable.Key();
+        auto double_set = mMapDoubleVariables.find(variable_key);
         if(double_set != mMapDoubleVariables.end()) {
             return true;
         }
-        auto array_set = mMapArrayVariables.find(VariableKey);
+
+        return false;
+    }
+
+    /**
+    * @brief It checks if an ID exists in the map
+    * @param rVariable The  variable to be check
+    * @return If the ID already exists or not
+    */
+    bool Has(const Variable<array_1d<double, 3>>& rVariable)
+    {
+        const IndexType variable_key = rVariable.Key();
+        auto array_set = mMapArrayVariables.find(variable_key);
         if(array_set != mMapArrayVariables.end()) {
             return true;
         }
-        auto vector_set = mMapVectorVariables.find(VariableKey);
+
+        return false;
+    }
+
+    /**
+    * @brief It checks if an ID exists in the map
+    * @param rVariable The  variable to be check
+    * @return If the ID already exists or not
+    */
+    bool Has(const Variable<Vector>& rVariable)
+    {
+        const IndexType variable_key = rVariable.Key();
+        auto vector_set = mMapVectorVariables.find(variable_key);
         if(vector_set != mMapVectorVariables.end()) {
             return true;
         }
-        auto matrix_set = mMapMatrixVariables.find(VariableKey);
+
+        return false;
+    }
+
+    /**
+    * @brief It checks if an ID exists in the map
+    * @param rVariable The  variable to be check
+    * @return If the ID already exists or not
+    */
+    bool Has(const Variable<Matrix>& rVariable)
+    {
+        const IndexType variable_key = rVariable.Key();
+        auto matrix_set = mMapMatrixVariables.find(variable_key);
         if(matrix_set != mMapMatrixVariables.end()) {
             return true;
         }
@@ -200,140 +237,143 @@ public:
     }
 
     /**
-    * It adds a new value to the map (double)
-    * @param VariableKey The variable ID to set
+    * @brief It adds a new value to the map (double)
+    * @param rVariable The variable being set
     * @param rValue The value to assign
     */
     void SetValue(
-        const IndexType VariableKey,
+        const Variable<double>& rVariable,
         const double rValue
         )
     {
-        auto double_set = mMapDoubleVariables.find(VariableKey);
+        const IndexType variable_key = rVariable.Key();
+        auto double_set = mMapDoubleVariables.find(variable_key);
         if(double_set != mMapDoubleVariables.end()) {
-            mMapDoubleVariables[VariableKey] = rValue;
+            mMapDoubleVariables[variable_key] = rValue;
             return void();
         }
-        mMapDoubleVariables.insert({VariableKey, rValue});
+        mMapDoubleVariables.insert({variable_key, rValue});
     }
 
     /**
-    * It adds a new value to the map (array_1d<double, 3>)
-    * @param VariableKey The variable ID to set
+    * @brief It adds a new value to the map (array_1d<double, 3>)
+    * @param rVariable The variable being set
     * @param rValue The value to assign
     */
     void SetValue(
-        const IndexType VariableKey,
+        const Variable<array_1d<double, 3>>& rVariable,
         const array_1d<double, 3>& rValue
         )
     {
-        auto array_set = mMapArrayVariables.find(VariableKey);
+        const IndexType variable_key = rVariable.Key();
+        auto array_set = mMapArrayVariables.find(variable_key);
         if(array_set != mMapArrayVariables.end()) {
-            mMapArrayVariables[VariableKey] = rValue;
+            mMapArrayVariables[variable_key] = rValue;
             return void();
         }
-        mMapArrayVariables.insert({VariableKey, rValue});
+        mMapArrayVariables.insert({variable_key, rValue});
     }
 
     /**
-    * It adds a new value to the map (Vector)
-    * @param VariableKey The variable ID to set
+    * @brief It adds a new value to the map (Vector)
+    * @param rVariable The variable being set
     * @param rValue The value to assign
     */
     void SetValue(
-        const IndexType VariableKey,
+        const Variable<Vector>& rVariable,
         const Vector& rValue
         )
     {
-        auto vector_set = mMapVectorVariables.find(VariableKey);
+        const IndexType variable_key = rVariable.Key();
+        auto vector_set = mMapVectorVariables.find(variable_key);
         if(vector_set != mMapVectorVariables.end()) {
-            mMapVectorVariables[VariableKey] = rValue;
+            mMapVectorVariables[variable_key] = rValue;
             return void();
         }
-        mMapVectorVariables.insert({VariableKey, rValue});
+        mMapVectorVariables.insert({variable_key, rValue});
     }
 
     /**
-    * It adds a new value to the map (Matrix)
-    * @param VariableKey The variable ID to set
+    * @brief It adds a new value to the map (Matrix)
+    * @param rVariable The variable being set
     * @param rValue The value to assign
     */
     void SetValue(
-        const IndexType VariableKey,
+        const Variable<Matrix>& rVariable,
         const Matrix& rValue
         )
     {
-        auto matrix_set = mMapMatrixVariables.find(VariableKey);
+        const IndexType variable_key = rVariable.Key();
+        auto matrix_set = mMapMatrixVariables.find(variable_key);
         if(matrix_set != mMapMatrixVariables.end()) {
-            mMapMatrixVariables[VariableKey] = rValue;
+            mMapMatrixVariables[variable_key] = rValue;
             return void();
         }
-        mMapMatrixVariables.insert({VariableKey, rValue});
+        mMapMatrixVariables.insert({variable_key, rValue});
     }
 
     /**
-    * It return a value from the map (double)
-    * @param VariableKey The variable ID to set
+    * @brief It return a value from the map (double)
+    * @param rVariable The variable being recovered
     * @param rValue The value to recover
     * @return rValue The value to recover
     */
     double GetValue(
-        const IndexType VariableKey,
+        const Variable<double>& rVariable,
         double& rValue
         )
     {
-
-        rValue = mMapDoubleVariables[VariableKey];
+        rValue = mMapDoubleVariables[rVariable.Key()];
         return rValue;
     }
 
     /**
-    * It return a value from the map (array_1d<double, 3>)
-    * @param VariableKey The variable ID to set
+    * @brief It return a value from the map (array_1d<double, 3>)
+    * @param rVariable The variable being recovered
     * @param rValue The value to recover
     * @return rValue The value to recover
     */
     array_1d<double, 3> GetValue(
-        const IndexType VariableKey,
+        const Variable<array_1d<double, 3>>& rVariable,
         array_1d<double, 3>& rValue
         )
     {
-        rValue = mMapArrayVariables[VariableKey];
+        rValue = mMapArrayVariables[rVariable.Key()];
         return rValue;
     }
 
     /**
-    * It return a value from the map (Vector)
-    * @param VariableKey The variable ID to set
+    * @brief It return a value from the map (Vector)
+    * @param rVariable The variable being recovered
     * @param rValue The value to recover
     * @return rValue The value to recover
     */
     Vector GetValue(
-        const IndexType VariableKey,
+        const Variable<Vector>& rVariable,
         Vector& rValue
         )
     {
-        rValue = mMapVectorVariables[VariableKey];
+        rValue = mMapVectorVariables[rVariable.Key()];
         return rValue;
     }
 
     /**
-    * It return a value from the map (Matrix)
-    * @param VariableKey The variable ID to set
+    * @brief It return a value from the map (Matrix)
+    * @param rVariable The variable being recovered
     * @param rValue The value to recover
     * @return rValue The value to recover
     */
     Matrix GetValue(
-        const IndexType VariableKey,
+        const Variable<Matrix>& rVariable,
         Matrix& rValue
         )
     {
-        rValue = mMapMatrixVariables[VariableKey];
+        rValue = mMapMatrixVariables[rVariable.Key()];
         return rValue;
     }
 
     /**
-    * It removes one particular pair from the map
+    * @brief It removes one particular pair from the map
     * @param VariableKey The variable ID to remove
     */
     void RemoveId(const IndexType VariableKey)

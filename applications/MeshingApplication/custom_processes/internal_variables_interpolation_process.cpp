@@ -338,19 +338,27 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTra
                 if (number_points_found > 0) {
                     for (auto& this_var : mInternalDoubleVariableList) {
                         if (p_destination_cl->Has(this_var))
-                            GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length, p_destination_cl, current_process_info);
+                            GetAndSetWeightedVariableOnConstitutiveLaw(this_var, number_points_found, points_found, point_distances, characteristic_length, p_destination_cl, current_process_info);
+                        else
+                            GetAndSetWeightedVariableOnElements(this_var, number_points_found, points_found, point_distances, characteristic_length, it_elem, i_gauss_point, current_process_info);
                     }
                     for (auto& this_var : mInternalArrayVariableList) {
                         if (p_destination_cl->Has(this_var))
-                            GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length, p_destination_cl, current_process_info);
+                            GetAndSetWeightedVariableOnConstitutiveLaw(this_var, number_points_found, points_found, point_distances, characteristic_length, p_destination_cl, current_process_info);
+                        else
+                            GetAndSetWeightedVariableOnElements(this_var, number_points_found, points_found, point_distances, characteristic_length, it_elem, i_gauss_point, current_process_info);
                     }
                     for (auto& this_var : mInternalVectorVariableList) {
                         if (p_destination_cl->Has(this_var))
-                            GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length, p_destination_cl, current_process_info);
+                            GetAndSetWeightedVariableOnConstitutiveLaw(this_var, number_points_found, points_found, point_distances, characteristic_length, p_destination_cl, current_process_info);
+                        else
+                            GetAndSetWeightedVariableOnElements(this_var, number_points_found, points_found, point_distances, characteristic_length, it_elem, i_gauss_point, current_process_info);
                     }
                     for (auto& this_var : mInternalMatrixVariableList) {
                         if (p_destination_cl->Has(this_var))
-                            GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length, p_destination_cl, current_process_info);
+                            GetAndSetWeightedVariableOnConstitutiveLaw(this_var, number_points_found, points_found, point_distances, characteristic_length, p_destination_cl, current_process_info);
+                        else
+                            GetAndSetWeightedVariableOnElements(this_var, number_points_found, points_found, point_distances, characteristic_length, it_elem, i_gauss_point, current_process_info);
                     }
                 } else
                     KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;

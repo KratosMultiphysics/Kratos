@@ -306,7 +306,7 @@ private:
     {
         std::vector<TVarType> values;
         itElemOrigin->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
-        pPointOrigin->SetValue(rThisVar.Key(), values[GaussPointId]);
+        pPointOrigin->SetValue(rThisVar, values[GaussPointId]);
     }
 
     /**
@@ -350,7 +350,7 @@ private:
         std::vector<TVarType> values;
         itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
         TVarType aux_value;
-        values[GaussPointId] = pPointOrigin->GetValue(rThisVar.Key(), aux_value);
+        values[GaussPointId] = pPointOrigin->GetValue(rThisVar, aux_value);
         itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
     
@@ -362,17 +362,17 @@ private:
      * @param PointDistances The distances of the points found
      * @param CharacteristicLenght The characteristic length of the problem
      * @param pDestinationConstitutiveLaw The Cl on the destination mesh
-     * @param rCurrentProcessInfo The process info 
+     * @param rCurrentProcessInfo The process info
      */
     template<class TVarType>
-    inline void GetAndSetWeightedVariable(
+    inline void GetAndSetWeightedVariableOnConstitutiveLaw(
         const Variable<TVarType>& rThisVar,
         const std::size_t NumberOfPointsFound,
         PointVector& PointsFound,
-        const std::vector<double>& PointDistances, 
+        const std::vector<double>& PointDistances,
         const double CharacteristicLenght,
         ConstitutiveLaw::Pointer pDestinationConstitutiveLaw,
-        const ProcessInfo& rCurrentProcessInfo 
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         TVarType weighting_function_numerator = rThisVar.Zero();
@@ -393,8 +393,56 @@ private:
         }
 
         const TVarType destination_value = weighting_function_numerator/weighting_function_denominator;
-        
+
         pDestinationConstitutiveLaw->SetValue(rThisVar, destination_value, rCurrentProcessInfo);
+    }
+
+    /**
+     * @brief Gets a origin value from near points and it sets on the destination CL using a weighted proportion
+     * @param rThisVar The variable to transfer
+     * @param NumberOfPointsFound The number of points found during the search
+     * @param PointsFound The list of points found
+     * @param PointDistances The distances of the points found
+     * @param CharacteristicLenght The characteristic length of the problem
+     * @param itElemDestination The destination element iterato where to set the values
+     * @param GaussPointId The index of te current GaussPoint computed
+     * @param rCurrentProcessInfo The process info
+     */
+    template<class TVarType>
+    inline void GetAndSetWeightedVariableOnElements(
+        const Variable<TVarType>& rThisVar,
+        const std::size_t NumberOfPointsFound,
+        PointVector& PointsFound,
+        const std::vector<double>& PointDistances,
+        const double CharacteristicLenght,
+        ElementsArrayType::iterator itElemDestination,
+        const IndexType GaussPointId,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        TVarType weighting_function_numerator = rThisVar.Zero();
+        double weighting_function_denominator = 0.0;
+        TVarType origin_value;
+
+        for (std::size_t i_point_found = 0; i_point_found < NumberOfPointsFound; ++i_point_found) {
+            PointTypePointer p_gp_origin = PointsFound[i_point_found];
+
+            const double distance = PointDistances[i_point_found];
+
+            origin_value = p_gp_origin->GetValue(rThisVar, origin_value);
+
+            const double ponderated_weight = p_gp_origin->GetWeight() * std::exp( -4.0 * distance * distance /std::pow(CharacteristicLenght, 2));
+
+            weighting_function_numerator   += ponderated_weight * origin_value;
+            weighting_function_denominator += ponderated_weight;
+        }
+
+        const TVarType destination_value = weighting_function_numerator/weighting_function_denominator;
+
+        std::vector<TVarType> values;
+        itElemDestination->GetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
+        values[GaussPointId] = destination_value;
+        itElemDestination->SetValueOnIntegrationPoints(rThisVar, values, rCurrentProcessInfo);
     }
     
     /**
