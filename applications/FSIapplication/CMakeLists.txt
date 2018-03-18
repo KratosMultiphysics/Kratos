@@ -19,7 +19,8 @@ set( KRATOS_FSI_APPLICATION_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_library(KratosFSIApplication SHARED ${KRATOS_FSI_APPLICATION_SOURCES})
+pybind11_add_module(KratosFSIApplication MODULE ${KRATOS_FSI_APPLICATION_SOURCES})
+
 target_link_libraries(KratosFSIApplication KratosCore )
 set_target_properties(KratosFSIApplication PROPERTIES PREFIX "")
 
