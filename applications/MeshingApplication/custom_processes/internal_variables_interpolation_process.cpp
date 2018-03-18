@@ -55,14 +55,17 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
                 mInternalArrayVariableList.push_back(KratosComponents<ArrayVarType>::Get(variable_name));
             } else if (KratosComponents<VectorVarType>::Has(variable_name)) {
                 mInternalVectorVariableList.push_back(KratosComponents<VectorVarType>::Get(variable_name));
+            } else if (KratosComponents<MatrixVarType>::Has(variable_name)) {
+                mInternalMatrixVariableList.push_back(KratosComponents<MatrixVarType>::Get(variable_name));
             } else 
-                KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: " << variable_name << " is not registered as any type of compatible variable: DOUBLE or ARRAY_1D or VECTOR" << std::endl;
+                KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: " << variable_name << " is not registered as any type of compatible variable: DOUBLE or ARRAY_1D or VECTOR or Matrix" << std::endl;
         }
     } else {
         KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: No variables to interpolate, look that internal_variable_interpolation_list is correctly defined in your parameters" << std::endl;
         mInternalDoubleVariableList.clear();
         mInternalArrayVariableList.clear();
         mInternalVectorVariableList.clear();
+        mInternalMatrixVariableList.clear();
     }
 }
 
@@ -212,6 +215,9 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsClosestPointTr
                 for (auto& this_var : mInternalVectorVariableList) {
                     GetAndSetDirectVariable(this_var, p_gp_origin->GetConstitutiveLaw(), constitutive_law_vector[i_gauss_point], current_process_info);
                 }
+                for (auto& this_var : mInternalMatrixVariableList) {
+                    GetAndSetDirectVariable(this_var, p_gp_origin->GetConstitutiveLaw(), constitutive_law_vector[i_gauss_point], current_process_info);
+                }
             }
         }
     //}
@@ -300,6 +306,9 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTra
                     for (auto& this_var : mInternalVectorVariableList) {
                         GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length, constitutive_law_vector[i_gauss_point], current_process_info);
                     }
+                    for (auto& this_var : mInternalMatrixVariableList) {
+                        GetAndSetWeightedVariable(this_var, number_points_found, points_found, point_distances, characteristic_length, constitutive_law_vector[i_gauss_point], current_process_info);
+                    }
                 } else
                     KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;
             }
@@ -329,6 +338,8 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
         for (auto& this_var : mInternalArrayVariableList)
             it_node->SetValue(this_var, this_var.Zero());
         for (auto& this_var : mInternalVectorVariableList)
+            it_node->SetValue(this_var, this_var.Zero());
+        for (auto& this_var : mInternalMatrixVariableList)
             it_node->SetValue(this_var, this_var.Zero());
     }
 
@@ -387,6 +398,9 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
             for (auto& this_var : mInternalVectorVariableList) {
                 InterpolateAddVariable(r_this_geometry, this_var, N,constitutive_law_vector[i_gauss_point], weight);
             }
+            for (auto& this_var : mInternalMatrixVariableList) {
+                InterpolateAddVariable(r_this_geometry, this_var, N,constitutive_law_vector[i_gauss_point], weight);
+            }
         }
 
         // We divide by the total weight
@@ -397,6 +411,9 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
             PonderateVariable(r_this_geometry, this_var, total_weight);
         }
         for (auto& this_var : mInternalVectorVariableList) {
+            PonderateVariable(r_this_geometry, this_var, total_weight);
+        }
+        for (auto& this_var : mInternalMatrixVariableList) {
             PonderateVariable(r_this_geometry, this_var, total_weight);
         }
     }
@@ -433,6 +450,9 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                 for (auto& this_var : mInternalVectorVariableList) {
                     InterpolateToNode(this_var, N, (*it_node.base()), p_element);
                 }
+                for (auto& this_var : mInternalMatrixVariableList) {
+                    InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                }
             }
         }
     } else {
@@ -465,6 +485,9 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
                     InterpolateToNode(this_var, N, (*it_node.base()), p_element);
                 }
                 for (auto& this_var : mInternalVectorVariableList) {
+                    InterpolateToNode(this_var, N, (*it_node.base()), p_element);
+                }
+                for (auto& this_var : mInternalMatrixVariableList) {
                     InterpolateToNode(this_var, N, (*it_node.base()), p_element);
                 }
             }
@@ -516,6 +539,9 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
             for (auto& this_var : mInternalVectorVariableList) {
                 SetInterpolatedValue(r_this_geometry, this_var, N, constitutive_law_vector[i_gauss_point], destination_process_info);
             }
+            for (auto& this_var : mInternalMatrixVariableList) {
+                SetInterpolatedValue(r_this_geometry, this_var, N, constitutive_law_vector[i_gauss_point], destination_process_info);
+            }
         }
     }
 }
@@ -530,6 +556,7 @@ std::size_t InternalVariablesInterpolationProcess::ComputeTotalNumberOfVariables
     total_number += mInternalDoubleVariableList.size();
     total_number += mInternalArrayVariableList.size();
     total_number += mInternalVectorVariableList.size();
+    total_number += mInternalMatrixVariableList.size();
     
     return total_number;
 }

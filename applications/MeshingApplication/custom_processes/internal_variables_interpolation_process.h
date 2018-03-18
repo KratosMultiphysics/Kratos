@@ -62,6 +62,7 @@ namespace Kratos
     typedef Variable<double>             DoubleVarType;
     typedef Variable<array_1d<double, 3>> ArrayVarType;
     typedef Variable<Vector>             VectorVarType;
+    typedef Variable<Matrix>             MatrixVarType;
     
 ///@}
 ///@name  Enum's
@@ -244,6 +245,7 @@ private:
     std::vector<DoubleVarType> mInternalDoubleVariableList; /// The list of double variables to interpolate
     std::vector<ArrayVarType> mInternalArrayVariableList;   /// The list of array variables to interpolate
     std::vector<VectorVarType> mInternalVectorVariableList; /// The list of vector variables to interpolate
+    std::vector<MatrixVarType> mInternalMatrixVariableList; /// The list of matrix variables to interpolate
     InterpolationTypes mThisInterpolationType;              /// The interpolation type considered
 
     ///@}
