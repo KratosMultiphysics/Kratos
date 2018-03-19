@@ -163,7 +163,7 @@ private:
         const array_1d<double,3> &rPlaneBasePointCoords,
         bounded_matrix<double,3,3> &rA) 
     {
-        bounded_matrix<double,3,3> A = ZeroMatrix(3);
+        noalias(rA) = ZeroMatrix(3);
         const unsigned int n_points = rPointsCoords.size();
 
         for (unsigned int i = 0; i < 3; ++i){
