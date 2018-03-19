@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "external_includes/tetgen_mesh_suite_optimized.h"
 #include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_refine.h"
+// #include "external_includes/tetgen_droplet_refine.h"
 
 
 namespace Kratos
@@ -160,6 +161,13 @@ void TriRegenerateulf_pressure(TriGenModeler& Mesher,ModelPart& model_part,doubl
 		KratosComponents<Condition>::Get("Condition2D"),alpha_shape	);
 }
 */
+
+// void TetRegenerateMeshDROPLET3D(TetGenDropletModeler& Mesher, ModelPart& model_part,double alpha_shape)
+// {
+//     KratosComponents<Element>::Get("SurfaceTension3D"),
+//                           KratosComponents<Condition>::Get("Condition3D"),alpha_shape	);
+// }
+
 void  AddMeshersToPython()
 {
 
@@ -192,8 +200,14 @@ void  AddMeshersToPython()
                              init< >())
     .def("RefineMesh",RefineCDT)
     ;
-
-}
+    
+//     class_<TetGenDropletModeler >("TetGenDropletModeler",
+//                                init< >())
+//     .def("ReGenerateMeshDROPLET3D",TetRegenerateMeshDROPLET3D)
+//     .def("ReGenerateMeshDROPLET3D",&TetGenDropletModeler::ReGenerateMesh)
+//     ;
+// 
+// }
 
 }  // namespace Python.
 

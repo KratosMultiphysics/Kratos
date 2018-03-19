@@ -547,15 +547,15 @@ namespace Kratos
 		double xi = im->X();
 		double yi = im->Y();
 		double zi = im->Z();
-		/////double xj = 0.0;
-		/////double yj = 0.0;
-		/////double zj = 0.0;
+		double xj = 0.0;
+		double yj = 0.0;
+		double zj = 0.0;
 		double alfa = 0.0;
 		double beta = 0.0;
 		double kappaN_ij = 0.0;
-// 		double M = 0.0;
-// 		double N = 0.0;
-// 		double L = 0.0;
+		double M = 0.0;
+		double N = 0.0;
+		double L = 0.0;
 		array_1d<double,6> terms_func = ZeroVector(6);
 		array_1d<double,10> terms_func_der = ZeroVector(10);
 		WeakPointerVector< Node<3> >& neighb = im->GetValue(NEIGHBOUR_NODES);
@@ -631,14 +631,14 @@ namespace Kratos
 		double c;
 		
 		//STEP 3: global system matrix is full. Now we solve the system
-// // // // // // // 		if(option == 1)
-// // // // // // // 		{
-// // // // // // // 		  //OPTION 1.1 - Meyer is right AND consider just first condition
-// // // // // // // 		  SolveSys2x2(b,c,LHSmat,RHSvec);
-// // // // // // // 		  a = 2.0*kappa_H - c;
-// // // // // // // 		}
-// // // // // // // 		else
-// // // // // // // 		{
+		if(option == 1)
+		{
+		  //OPTION 1.1 - Meyer is right AND consider just first condition
+		  SolveSys2x2(b,c,LHSmat,RHSvec);
+		  a = 2.0*kappa_H - c;
+		}
+		else
+		{
 		  //OPTION 2.1 - consider just first condition
 // 		  SolveSys3x3(a,b,c,LHSmat,RHSvec);
 // 		  SolveSys2x2(a,b,LHSmat,RHSvec);
@@ -648,7 +648,7 @@ namespace Kratos
                 NewtonMethod(terms_func,terms_func_der,a,kappa_H,kappa_G,kappaN_ij);
                 c = 2.0*kappa_H - a;
                 b = sqrt(a*(2.0*kappa_H - a) - kappa_G);
-		///////}
+		}
 		
 		//Regardless option choice, fill the curvature tensor
 		B(0,0) = a;
@@ -1085,8 +1085,8 @@ namespace Kratos
     {
       double x0 = 1.0;			//initial guess
       double x1 = 0.0;			//next guess or solution
-      /////double fx = 0.0;			//function
-      /////double dfx = 0.0;      		//function derivative
+      double fx = 0.0;			//function
+      double dfx = 0.0;      		//function derivative
       double tol = 1.0e-7;		//tolerance for the solution
       double epsi = 1.0e-10;		//minimum value of function derivative
       unsigned int MaxIter = 20;	//maximum number of iterations

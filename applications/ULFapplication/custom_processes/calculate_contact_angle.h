@@ -178,8 +178,8 @@ namespace Kratos
 	
 	double theta = 0.0;
 	double pi = 3.14159265359;
-	///////double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
-	///////double theta_rad = theta_eq*pi/180.0;
+	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
+	double theta_rad = theta_eq*pi/180.0;
 
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
 	{
@@ -198,8 +198,8 @@ namespace Kratos
 		double zi = im->Z();
 		double xj, yj, zj, xk, yk, zk;
 		xj = yj = zj = xk = yk = zk = 0.0;		
-		/////int idx_j = 6;
-		/////int idx_k = 7;
+		int idx_j = 6;
+		int idx_k = 7;
 		
 		array_1d<double,3> rij = ZeroVector(3);
 		array_1d<double,3> rik = ZeroVector(3);
@@ -207,15 +207,15 @@ namespace Kratos
 		array_1d<double,3> normal_geom = ZeroVector(3);
 		normal_geom = im->FastGetSolutionStepValue(NORMAL_GEOMETRIC);
                 array_1d<double,3> normal_tp = ZeroVector(3);
-		/////double dot_prod = 0.0;
+		double dot_prod = 0.0;
 		
 		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE) = ZeroVector(3);
 		array_1d<double,2> aux = ZeroVector(2);
 		array_1d<double,3> temp = ZeroVector(3);
 		
-		/////int neighnum_tp = 0;
-		/////int neighnum_caf = 0; //caf == contact angle face
-		/////int visited = 0;
+		int neighnum_tp = 0;
+		int neighnum_caf = 0; //caf == contact angle face
+		int visited = 0;
 		double num_faces = 0.0;
 		WeakPointerVector< Condition >& neighb_faces = im->GetValue(NEIGHBOUR_CONDITIONS);
 		//Loop over faces -> find faces that two IS_FREE_SURFACE nodes
@@ -247,19 +247,19 @@ namespace Kratos
 			{
 			  if (visited == 0)
 			  {
-                            ///////int idx_j = 6;
+                            int idx_j = 6;
 			    xj = neighb_faces[i].GetGeometry()[j].X();
 			    yj = neighb_faces[i].GetGeometry()[j].Y();
 			    zj = neighb_faces[i].GetGeometry()[j].Z();
-			    ///////idx_j = j;
+			    idx_j = j;
 			  }
 			  else
 			  {
-                            ///////int idx_k = 7;
+                            int idx_k = 7;
 			    xk = neighb_faces[i].GetGeometry()[j].X();
 			    yk = neighb_faces[i].GetGeometry()[j].Y();
 			    zk = neighb_faces[i].GetGeometry()[j].Z();	
-			    ///////idx_k = j;
+			    idx_k = j;
 			  }
 			  visited++;
 			}

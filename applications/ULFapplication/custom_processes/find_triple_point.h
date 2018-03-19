@@ -110,8 +110,8 @@ namespace Kratos
       KRATOS_TRY
       
       double mean_ystr = 0.0;
-      ///////double xmin = 0.0;
-      ///////double xmax = 0.0;
+      double xmin = 0.0;
+      double xmax = 0.0;
       int num_istruct = 0;
       //FIRST STEP: find IS_STRUCTURE nodes and their mean y coordinate, min and max x coordinate
       for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
@@ -160,7 +160,7 @@ namespace Kratos
 	      double is_free = 0.0;
 	      double is_struct = 0.0;
 	      double is_lagin = 0.0;
-	      ///////int neighnum = 0;
+	      int neighnum = 0;
 	      
 	      for (unsigned int i = 0; i < neighb.size(); i++)
 	      {
@@ -170,7 +170,7 @@ namespace Kratos
 		    is_struct += neighb[i].FastGetSolutionStepValue(IS_STRUCTURE);
 		    is_lagin += neighb[i].FastGetSolutionStepValue(IS_LAGRANGIAN_INLET);
 		  }
-		  ///////neighnum++;
+		  neighnum++;
 	      }
 	      
 	      if (is_free < 1.1 && is_struct < 1.1 && is_lagin == 0.0 && (im->FastGetSolutionStepValue(IS_FREE_SURFACE) < 0.5))
@@ -225,15 +225,15 @@ namespace Kratos
       KRATOS_TRY
       
       unsigned int num_tp = 0;
-      /////unsigned int num_fs = 0;
+      unsigned int num_fs = 0;
       array_1d<double,3> An = ZeroVector(3);
       
       for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
       {
 
-          ///////unsigned int num_fs = 0;
+          unsigned int num_fs = 0;
 
-	  ///////num_fs = num_tp = 0;
+	  num_fs = num_tp = 0;
 	  if ((im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0) && (im->FastGetSolutionStepValue(CONTACT_ANGLE) == 0.0) && (im->FastGetSolutionStepValue(VELOCITY_X) != 0.0))
 	      im->FastGetSolutionStepValue(TRIPLE_POINT) = 0.0;
 	  

@@ -116,7 +116,7 @@ namespace Kratos
 	double pi = 3.14159265359;
 	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
 	double theta_rad = theta_eq*pi/180.0;
-	///////double theta = 0.0;
+	double theta = 0.0;
 	
 	array_1d<double,3> normal_eq = ZeroVector(3);
 	array_1d<double,3> normal_xy = ZeroVector(3);
