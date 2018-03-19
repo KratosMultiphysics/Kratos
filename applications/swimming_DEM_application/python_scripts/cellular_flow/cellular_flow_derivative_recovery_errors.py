@@ -8,8 +8,19 @@ laplacian_recovery_types = [1, 3, 4, 6, 7]
 field_identifiers = ['sines', 'ethier']
 mesh_regularities = [False, True]
 mesh_tags = ['Altair']
+
+
 meshes = []
 recovery_cases = []
+fields = []
+
+class Field:
+    def __init__(self, identifier):
+        self.identifier = identifier
+        if identifier == 'ethier':
+            self.characteristic_length = 8
+        else:
+            self.characteristic_length = 4
 
 class Mesh:
     def __init__(self, is_regular, tag):
@@ -20,6 +31,9 @@ class RecoveryCase:
     def __init__(self, m_or_l, method):
         self.m_or_l = m_or_l
         self.method = method
+
+for identifier in field_identifiers:
+    fields.append(Field(identifier))
 
 for is_regular in mesh_regularities:
     if is_regular:
@@ -65,13 +79,13 @@ def GetCurveCharacteristics(mat_deriv_or_laplacian, method):
             type_name = 'Zhang and Naga 2005'
             color = 'm'
         elif method == 3:
-            type_name = 'L2-div. of gradient from L2-lumped'
+            type_name = 'L2-lumped' # L2-div. of gradient from L2-lumped
             color = 'b'
         elif method == 4:
-            type_name = 'L2-div. of gradient from L2'
+            type_name = 'L2' # L2-div. of gradient from L2
             color = 'g'
         elif method == 6:
-            type_name = 'L2-div. of gradient from Pouliot et al. 2012'
+            type_name = 'L2 + Pouliot et al. 2012' # L2-div. of gradient from L2
             color = 'brown'
         elif method == 7:
             type_name = 'Guo et al. 2016'
@@ -95,13 +109,13 @@ class Plotter:
         else:
             mesh_identifier = 'irregular mesh'
 
-        data_path = field_id + '/' + recovery_tag + '/' + mesh_identifier
+        data_path = curve.field_id + '/' + recovery_tag + '/' + mesh_identifier
 
         print('data_path', data_path)
         with h5py.File('errors_recorded/recovery_errors.hdf5', 'r') as f:
             for i, dset in enumerate(f[data_path].values()):
                 size = float(dset.attrs['mesh size'])
-                curve.sizes.append(size)
+                curve.sizes.append(size / curve.field_length_scale)
                 curve.average_errors.append(dset[0])
                 curve.max_errors.append(dset[1])
 
@@ -130,7 +144,9 @@ class Plotter:
                     color, derivative_type = GetCurveCharacteristics(curve.m_or_l, curve.method)
                     plt.plot(curve.sizes,
                             curve.max_errors,
-                            marker=curve.max_marker_type,
+                            marker=curve.average_marker_type,
+                            markeredgecolor=color,
+                            markerfacecolor='None',
                             ms=self.marker_size,
                             color=color,
                             label= '” ' + curve.max_slope_msg,
@@ -141,7 +157,9 @@ class Plotter:
             self.PlotSlope(figure)
             plt.xlabel('$h$', fontsize=20)
             plt.ylabel('$E_2$', fontsize=20)
-            plt.legend(loc='upper left', prop={'size': 11})
+            legend = plt.legend(loc='upper right', prop={'size': 11})
+            for handle in legend.legendHandles:
+                handle._legmarker.set_markersize(6)
             plt.savefig(figure.title, format='pdf', bbox_inches='tight')
 
     def PlotSlope(self, figure):
@@ -152,14 +170,13 @@ class Plotter:
             error_avg_min, error_avg_max = figure.GetMinMax('average_errors')
             error_max_min, error_max_max = figure.GetMinMax('max_errors')
             error_min, error_max = min(error_avg_min, error_max_min), max(error_avg_max, error_max_max)
-            plt.xlim([0.5 * x_min, 2 * x_max])
+            plt.xlim([x_min, 2 * x_max])
             plt.ylim([0.25 * error_min, 2 * error_max])
             sizes = [x_min * 2 ** i for i in range(3)]
             expected_order = figure.GetExpectedOrder()
             slope = [0.5 * error_min * (size / sizes[0]) ** expected_order for size in sizes]
 
-            ax = figure.fig.add_subplot(1,1,1)
-            ax.plot(sizes, slope, color='k', linestyle='dashed', label='slope = ' + str(expected_order))
+            plt.plot(sizes, slope, color='k', linestyle='dashed', label='slope = ' + str(expected_order))
 
     def ClassifyCurvesIntoDifferentFigures(self):
         figure_correspondences = dict()
@@ -239,20 +256,20 @@ class Figure:
                     curve.max_slope_msg = ''
 
 class Curve:
-    def __init__(self, field_id, mesh, case):
-        self.field_id = field_id
+    def __init__(self, field, mesh, case):
+        self.field_id = field.identifier
+        self.field_length_scale = field.characteristic_length
         self.mesh_tag = mesh.tag
         self.is_regular_mesh = mesh.is_regular
         self.m_or_l = case.m_or_l
         self.method = case.method
 
         if self.m_or_l == 'M':
+            self.average_marker_type = 'v'
             self.expected_order = 2
         else:
+            self.average_marker_type = '^'
             self.expected_order = 1
-
-        self.average_marker_type = 'v'
-        self.max_marker_type = 'x'
 
         self.sizes = []
         self.average_errors = []
@@ -268,10 +285,10 @@ class Curve:
 
 plotter = Plotter()
 
-for field_id in field_identifiers:
+for field in fields:
     for mesh in meshes:
         for case in recovery_cases:
-            curve = Curve(field_id, mesh, case)
+            curve = Curve(field, mesh, case)
             plotter.ReadCurveData(curve)
 
 plotter.MakePlots()
