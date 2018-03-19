@@ -15,7 +15,7 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 // Project includes
 #include "processes/process.h"
@@ -29,16 +29,16 @@ namespace Kratos
 namespace Python
 {
 
-void AddCustomProcessesToPython()
+void AddCustomProcessesToPython(pybind11::module& m)
 {
-    using namespace boost::python;
+    using namespace pybind11;
 
-    class_< OutputPrimalSolutionProcess, bases<Process> >
-    ("OutputPrimalSolutionProcess", init<ModelPart&, Parameters&>())
+    class_< OutputPrimalSolutionProcess >(m,"OutputPrimalSolutionProcess")
+    .def(init<ModelPart&, Parameters&>())
     ;
 
-    class_< InputPrimalSolutionProcess, bases<Process> >
-    ("InputPrimalSolutionProcess", init<ModelPart&, Parameters&>())
+    class_< InputPrimalSolutionProcess >(m,"InputPrimalSolutionProcess")
+    .def(init<ModelPart&, Parameters&>())
     ;
 }
 

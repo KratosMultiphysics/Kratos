@@ -20,8 +20,8 @@ include_directories( ${HDF5_INCLUDE_DIRS} )
 
 ###############################################################
 ## define library which defines the basic python interface
-add_library(KratosAdjointFluidApplication SHARED ${KRATOS_ADJOINT_FLUID_APPLICATION_SOURCES})
-target_link_libraries(KratosAdjointFluidApplication KratosCore KratosFluidDynamicsApplication ${HDF5_CXX_LIBRARIES})
+pybind11_add_module(KratosAdjointFluidApplication MODULE ${KRATOS_ADJOINT_FLUID_APPLICATION_SOURCES})
+target_link_libraries(KratosAdjointFluidApplication PRIVATE KratosCore ${HDF5_CXX_LIBRARIES})
 set_target_properties(KratosAdjointFluidApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd 
