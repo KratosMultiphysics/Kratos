@@ -16,46 +16,46 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# Import algorithm base classes
+# Additional imports
 from algorithm_base import OptimizationAlgorithm
+import mapper_factory
+import data_logger_factory
+from custom_timer import Timer
 
 # ==============================================================================
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
     # --------------------------------------------------------------------------
-    def __init__( self, OptimizationSettings, MdpaController, Analyzer, Communicator ):
+    def __init__( self, OptimizationSettings, ModelPartController, Analyzer, Communicator ):
         self.OptimizationSettings = OptimizationSettings
-        self.MdpaController = MdpaController
+        self.ModelPartController = ModelPartController
         self.Analyzer = Analyzer
         self.Communicator = Communicator
 
-        self.OptimizationModelPart = MdpaController.GetOptimizationModelPart()
-        self.DesignSurface = MdpaController.GetDesignSurface()
+        self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
+        self.DesignSurface = ModelPartController.GetDesignSurface()
 
         self.maxIterations = OptimizationSettings["optimization_algorithm"]["max_iterations"].GetInt() + 1
         self.projectionOnNormalsIsSpecified = OptimizationSettings["optimization_algorithm"]["project_gradients_on_surface_normals"].GetBool()
         self.onlyObjectiveId = OptimizationSettings["objectives"][0]["identifier"].GetString()
         self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
-        import mapper_factory
-        self.Mapper = mapper_factory.CreateMapper( MdpaController, OptimizationSettings )
-        import data_logger_factory
-        self.DataLogger = data_logger_factory.CreateDataLogger( MdpaController, Communicator, OptimizationSettings )
+        self.Mapper = mapper_factory.CreateMapper( ModelPartController, OptimizationSettings )
+        self.DataLogger = data_logger_factory.CreateDataLogger( ModelPartController, Communicator, OptimizationSettings )
 
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
         self.OptimizationUtilities = OptimizationUtilities( self.DesignSurface, OptimizationSettings )
         if self.dampingIsSpecified:
-            damping_regions = self.MdpaController.GetDampingRegions()
+            damping_regions = self.ModelPartController.GetDampingRegions()
             self.DampingUtilities = DampingUtilities( self.DesignSurface, damping_regions, self.OptimizationSettings )
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop( self ):
         self.Analyzer.InitializeBeforeOptimizationLoop()
-        self.MdpaController.InitializeMeshController()
+        self.ModelPartController.InitializeMeshController()
         self.DataLogger.InitializeDataLogging()
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
-        from custom_timer import Timer
         timer = Timer()
         timer.StartTimer()
 
@@ -98,8 +98,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __initializeNewShape( self ):
-        self.MdpaController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
-        self.MdpaController.SetReferenceMeshToMesh()
+        self.ModelPartController.UpdateMeshAccordingInputVariable( SHAPE_UPDATE )
+        self.ModelPartController.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def __analyzeShape( self ):
@@ -120,8 +120,8 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def __RevertPossibleShapeModificationsDuringAnalysis( self ):
-        self.MdpaController.SetMeshToReferenceMesh()
-        self.MdpaController.SetDeformationVariablesToZero()
+        self.ModelPartController.SetMeshToReferenceMesh()
+        self.ModelPartController.SetDeformationVariablesToZero()
 
     # --------------------------------------------------------------------------
     def __projectSensitivitiesOnSurfaceNormals( self ):

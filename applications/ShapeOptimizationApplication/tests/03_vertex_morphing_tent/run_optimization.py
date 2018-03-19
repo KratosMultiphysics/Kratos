@@ -21,36 +21,36 @@ from __future__ import print_function, absolute_import, division
 # Import Kratos core and apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-from math import pi, sin
+from math import sin
 
 # =======================================================================================================
 # Define external analyzer
 # =======================================================================================================
 
 from analyzer_base import AnalyzerBaseClass
-class CustomAnalyzer( AnalyzerBaseClass ):
+class CustomAnalyzer(AnalyzerBaseClass):
 
     # --------------------------------------------------------------------------------------------------
-    def AnalyzeDesignAndReportToCommunicator( self, currentDesign, OptimizationIteration, Communicator ):
-        if Communicator.isRequestingValueOf("targetDeviation"):
-            Communicator.reportValue("targetDeviation", self.__ObjectiveFunction(currentDesign))
+    def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
+        if communicator.isRequestingValueOf("targetDeviation"):
+            communicator.reportValue("targetDeviation", self.__ObjectiveFunction(current_design))
 
-        if Communicator.isRequestingGradientOf("targetDeviation"):
-            Communicator.reportGradient("targetDeviation", self.__ObjectiveGradient(currentDesign))
+        if communicator.isRequestingGradientOf("targetDeviation"):
+            communicator.reportGradient("targetDeviation", self.__ObjectiveGradient(current_design))
 
     # --------------------------------------------------------------------------------------------------
-    def __ObjectiveFunction( self, currentDesign ):
+    def __ObjectiveFunction(self, current_design):
         """ Returns the objective function to be minimized """
         objective = 0.0
-        for node in currentDesign.Nodes:
+        for node in current_design.Nodes:
             objective = objective + abs(self.__TentFunction(node.X) - node.Z)
         return objective
 
     # --------------------------------------------------------------------------------------------------
-    def __ObjectiveGradient( self, currentDesign ):
+    def __ObjectiveGradient(self, current_design):
         """ Returns the gradient of the objective function """
         sensitivity = dict()
-        for node in currentDesign.Nodes:
+        for node in current_design.Nodes:
             delta = node.Z - self.__TentFunction(node.X)
             if abs(delta) == 0.0:
                 sz = 0.0
@@ -60,7 +60,7 @@ class CustomAnalyzer( AnalyzerBaseClass ):
         return sensitivity
 
     # --------------------------------------------------------------------------------------------------
-    def __TentFunction( self, x ):
+    def __TentFunction(self, x):
         """ Defines the target curve z=__TentFunction(x) """
         if x <= 15.0:
             return 0.0

@@ -16,32 +16,34 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # additional imports
+from custom_timer import Timer
 from analyzer_empty import EmptyAnalyzer
+import model_part_controller_factory
+import analyzer_factory
+import communicator_factory
+import algorithm_factory
 
 # ==============================================================================
 def CreateOptimizer(parameters, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
     optimization_settings = parameters["optimization_settings"]
 
-    import model_part_controller_factory
-    mdpa_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
+    model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
 
-    import analyzer_factory
-    analyzer = analyzer_factory.CreateAnalyzer(parameters, mdpa_controller, external_analyzer)
+    analyzer = analyzer_factory.CreateAnalyzer(parameters, model_part_controller, external_analyzer)
 
-    import communicator_factory
     communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
     if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
-        return VertexMorphingMethod(optimization_settings, mdpa_controller, analyzer, communicator)
+        return VertexMorphingMethod(optimization_settings, model_part_controller, analyzer, communicator)
     else:
         raise NameError("The following type of design variables is not supported by the optimizer: " + variable_type)
 
 # ==============================================================================
 class VertexMorphingMethod:
     # --------------------------------------------------------------------------
-    def __init__(self, optimization_settings, mdpa_controller, analyzer, communicator):
+    def __init__(self, optimization_settings, model_part_controller, analyzer, communicator):
         self.optimization_settings = optimization_settings
-        self.mdpa_controller = mdpa_controller
+        self.model_part_controller = model_part_controller
         self.analyzer = analyzer
         self.communicator = communicator
 
@@ -49,7 +51,7 @@ class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
     def __AddNodalVariablesNeededForOptimization(self):
-        optimization_mdpa = self.mdpa_controller.GetOptimizationModelPart()
+        optimization_mdpa = self.model_part_controller.GetOptimizationModelPart()
         optimization_mdpa.AddNodalSolutionStepVariable(NORMAL)
         optimization_mdpa.AddNodalSolutionStepVariable(NORMALIZED_SURFACE_NORMAL)
         optimization_mdpa.AddNodalSolutionStepVariable(OBJECTIVE_SENSITIVITY)
@@ -67,21 +69,19 @@ class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
     def Optimize(self):
-        from custom_timer import Timer
         algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
 
         print("\n> ==============================================================================================================")
         print("> ", Timer().GetTimeStamp(),": Starting optimization using the following algorithm: ", algorithm_name)
         print("> ==============================================================================================================\n")
 
-        if self.mdpa_controller.IsOptimizationModelPartAlreadyImported():
+        if self.model_part_controller.IsOptimizationModelPartAlreadyImported():
             print("> Skipping import of optimization model part as already done by another application. ")
         else:
-            self.mdpa_controller.ImportOptimizationModelPart()
+            self.model_part_controller.ImportOptimizationModelPart()
 
-        import algorithm_factory
         algorithm = algorithm_factory.CreateAlgorithm(self.optimization_settings,
-                                                      self.mdpa_controller,
+                                                      self.model_part_controller,
                                                       self.analyzer,
                                                       self.communicator)
 
