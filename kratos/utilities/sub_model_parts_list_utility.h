@@ -39,12 +39,12 @@ namespace Kratos
     typedef ModelPart::NodesContainerType                        NodesArrayType;
     typedef ModelPart::ElementsContainerType                  ElementsArrayType;
     typedef ModelPart::ConditionsContainerType              ConditionsArrayType;
-    
+
     // Components definition
     typedef Node <3>                                                   NodeType;
     typedef Element                                                 ElementType;
     typedef Condition                                             ConditionType;
-    
+
     // Index definition
     typedef std::size_t                                               IndexType;
     typedef std::size_t                                                SizeType;
@@ -61,7 +61,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class SubModelPartsListUtility
  * @ingroup KratosCore
  * @brief Get the list of submodelparts each node, condition and element belongs to
@@ -90,11 +90,11 @@ class SubModelPartsListUtility
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     // Constructor
-    
+
     /**
-     * This is the default constructor, which is used to read the input files 
+     * This is the default constructor, which is used to read the input files
      * @param rModelPart The model part
      */
     SubModelPartsListUtility(ModelPart& rModelPart);
@@ -112,7 +112,7 @@ class SubModelPartsListUtility
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief This functions gets the "colors", parts of a model part to process
      * @param rNodeColors Map where the nodes id and keys are stored
@@ -125,6 +125,24 @@ class SubModelPartsListUtility
         IntIntMapType& rCondColors,
         IntIntMapType& rElemColors,
         IntStringMapType& rColors
+        );
+
+    /**
+     * @brief This method returns the list submodelpart to be computed (it searchs recursively to find the subsubmodelparts if necessary)
+     * @param ThisModelPart The main model part computed
+     * @return The vector containing the list of submodelparts and subsubmodelparts
+     */
+    static std::vector<std::string> GetRecursiveSubModelPartNames(ModelPart& ThisModelPart);
+
+    /**
+     * @brief This method returns the submodelpart to be computed (it searchs recursively to find the subsubmodelparts if necessary)
+     * @param ThisModelPart The main model part computed
+     * @param SubModelPartName The name of the submodelpart to look for
+     * @return The submodelpart relative to the name given
+     */
+    static ModelPart& GetRecursiveSubModelPart(
+        ModelPart& ThisModelPart,
+        const std::string& SubModelPartName
         );
 
     ///@}
@@ -224,7 +242,6 @@ class SubModelPartsListUtility
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -259,7 +276,6 @@ class SubModelPartsListUtility
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
