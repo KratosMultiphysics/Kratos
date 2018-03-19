@@ -206,14 +206,6 @@ set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
 
-# Select python3 by default unless its specified in the configure file
-# message("Using component: python${BOOST_PYTHON_SUFFIX}")
-# if(BOOST_PYTHON_SUFFIX)
-#   FIND_PACKAGE(Boost COMPONENTS "python${BOOST_PYTHON_SUFFIX}" REQUIRED)
-# else(BOOST_PYTHON_SUFFIX)
-#   FIND_PACKAGE(Boost COMPONENTS python REQUIRED)
-# endif(BOOST_PYTHON_SUFFIX)
-
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
 
@@ -222,11 +214,6 @@ message("Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 message("Boostlib used: ${Boost_LIBRARIES}")
 
 ##*****************************
-# Finding and including PYTHON
-# find_package(PythonLibs REQUIRED)
-# include_directories(${PYTHON_INCLUDE_DIRS})
-# list(REMOVE_ITEM PYTHON_LIBRARIES "debug" "optimized")
-# link_directories(${PYTHON_LIBRARIES})
 
 # Follow the symbolic links for the python lib only if needed
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )

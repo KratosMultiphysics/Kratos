@@ -147,8 +147,8 @@ CMAKE_BUILD=(
   -DCMAKE_INSTALL_RPATH="${KRATOS_ROOT}/libs"
   -DCMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE
 
-  # Custom python suffix for liboost-python
-  -DBOOST_PYTHON_SUFFIX="-py34"
+  # Python version to build pybind modules
+  -DPYBIND11_PYTHON_VERSION="3.4"
 )
 
 ########################################################################################################################
