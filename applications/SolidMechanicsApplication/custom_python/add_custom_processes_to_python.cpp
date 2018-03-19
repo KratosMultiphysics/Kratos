@@ -35,6 +35,7 @@
 #include "custom_processes/add_dofs_process.h"
 #include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.h"
 #include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.h"
+#include "custom_processes/build_string_skin_process.h"
 
 namespace Kratos
 {
@@ -232,8 +233,20 @@ namespace Kratos
         .def("Execute", &AssignTorqueFieldAboutAnAxisToConditionsProcess::Execute)
 
       	;
-      
-      
+
+
+      //**********BUILD STRING SKIN PROCESS*********//
+
+      class_<BuildStringSkinProcess, bases<ProcessBaseType>, boost::noncopyable >
+      	(
+      	 "BuildStringSkinProcess", init<ModelPart&, unsigned int, double>()
+      	)
+        .def("ExecuteInitialize", &BuildStringSkinProcess::ExecuteInitialize)
+	.def("ExecuteFinalizeSolutionStep", &BuildStringSkinProcess::ExecuteFinalizeSolutionStep)
+	.def("ExecuteBeforeOutputStep", &BuildStringSkinProcess::ExecuteBeforeOutputStep)	
+	.def("ExecuteAfterOutputStep", &BuildStringSkinProcess::ExecuteAfterOutputStep)
+      	;
+            
     }
  
   }  // namespace Python.

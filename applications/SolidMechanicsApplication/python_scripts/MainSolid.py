@@ -102,14 +102,6 @@ class Solution(object):
         # Initiliaze processes
         self.processes.ExecuteInitialize()
 
-        # Print model_part and properties
-        if(self.echo_level>0):
-            print("")
-            print(self.main_model_part)
-            for properties in self.main_model_part.Properties:
-                print(properties)
-
-
         # Start graphical output (GiD)
         output_model_part = self.model.GetOutputModelPart()
         self.output = self._get_graphical_output(output_model_part)
@@ -122,8 +114,15 @@ class Solution(object):
         if( self._is_not_restarted() ):
             self.output.ExecuteBeforeSolutionLoop()
 
-
         self.solver.ExecuteBeforeSolutionLoop()
+
+
+        # Print model_part and properties
+        if(self.echo_level>0):
+            print("")
+            print(self.main_model_part)
+            for properties in self.main_model_part.Properties:
+                print(properties)
 
         print(" ")
         print("::[KSM Simulation]:: Analysis -START- ")

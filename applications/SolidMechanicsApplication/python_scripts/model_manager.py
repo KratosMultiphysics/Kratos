@@ -460,5 +460,5 @@ class ModelManager(object):
             for f in filelist:
                 try:
                     os.remove(f)
-                except WindowsError:
+                except OSError:
                     pass
