@@ -205,7 +205,6 @@ void ConnectivityPreserveModeler::DuplicateCommunicatorData(
     rDestinationModelPart.SetCommunicator( pDestinationComm );
 }
 
-
 void ConnectivityPreserveModeler::DuplicateSubModelParts(
     ModelPart &rOriginModelPart,
     ModelPart &rDestinationModelPart)
@@ -216,9 +215,18 @@ void ConnectivityPreserveModeler::DuplicateSubModelParts(
 
         destination_part.AddNodes(i_part->NodesBegin(), i_part->NodesEnd());
 
-        destination_part.AddElements(i_part->ElementsBegin(), i_part->ElementsEnd());
+        std::vector<ModelPart::IndexType> ids;
+        ids.reserve(i_part->Elements().size());
+        
+        //adding by index
+        for(auto it=i_part->ElementsBegin(); it!=i_part->ElementsEnd(); ++it)
+            ids.push_back(it->Id());
+        destination_part.AddElements(ids, 0); //adding by index
 
-        destination_part.AddConditions(i_part->ConditionsBegin(), i_part->ConditionsEnd());
+        ids.clear();
+        for(auto it=i_part->ConditionsBegin(); it!=i_part->ConditionsEnd(); ++it)
+            ids.push_back(it->Id());
+        destination_part.AddConditions(ids, 0);
 
         // Duplicate the Communicator for this SubModelPart
         this->DuplicateCommunicatorData(*i_part, destination_part);
