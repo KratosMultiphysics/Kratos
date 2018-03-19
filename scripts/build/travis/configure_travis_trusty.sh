@@ -95,13 +95,12 @@ CMAKE_LIBS=(
   # -DBOOST_ROOT="${KRATOS_ROOT}/external_libraries/boost_1_61_0"
 
   # Python
-  #    Indicate your python lib and include dir in case you don't want to use the system default
+  #    Indicate your python binary dir in case you don't want to use the system default or you
+  #    have multiple versions and you want to select one in particular
   #    - Example (for ubuntu 14.04):
-  #        -DPYTHON_LIBRARY="/usr/lib/python2.7/config-x86_64-linux-gnu/libpython2.7.so"
-  #        -DPYTHON_INCLUDE_DIR="/usr/include/python2.7"
+  #        -DPYTHON_EXECUTABLE="/usr/bin/python
   # --------------------------------------------------------------------------------------------------------------
-  -DPYTHON_LIBRARY="/usr/lib/x86_64-linux-gnu/libpython3.4m.so.1.0"
-  -DPYTHON_INCLUDE_DIR="/usr/include/python3.4m"
+  -DPYTHON_EXECUTABLE="/usr/bin/python3.4"
 )
 
 ########################################################################################################################
