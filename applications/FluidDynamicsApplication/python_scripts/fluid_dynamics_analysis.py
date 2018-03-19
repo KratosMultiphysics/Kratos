@@ -148,48 +148,56 @@ class FluidDynamicsAnalysis(object):
             self.load_restart = False
             self.save_restart = False
 
-    def Solve(self):
+    def RunMainTemporalLoop(self):
         '''The main solution loop.'''
-
         while self.time <= self.end_time:
-            dt = self.solver.ComputeDeltaTime()
-            self.time = self.time + dt
-            self.step = self.step + 1
-            
-            self.main_model_part.CloneTimeStep(self.time)
-            self.main_model_part.ProcessInfo[STEP] = self.step
+            self.InitializeSolutionStep()
+            self.SolveSingleStep()
+            self.FinalizeSolutionStep()
 
-            if self.is_printing_rank:
-                Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
-                Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
-            
-            for process in self.simulation_processes:
-                process.ExecuteInitializeSolutionStep()
-
-            if self.have_output:
-                self.output.ExecuteInitializeSolutionStep()
+    def InitializeSolutionStep(self):
+        dt = self.solver.ComputeDeltaTime()
+        self.time = self.time + dt
+        self.step = self.step + 1
         
-            self.solver.Solve()
+        self.main_model_part.CloneTimeStep(self.time)
+        self.main_model_part.ProcessInfo[STEP] = self.step
+
+        if self.is_printing_rank:
+            Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
+            Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
         
-            # shouldn't this go at the end of the iteration???
+        for process in self.simulation_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        if self.have_output:
+            self.output.ExecuteInitializeSolutionStep()
+
+    def SolveSingleStep(self):
+        self.solver.Solve()
+
+    def FinalizeSolutionStep(self):
+        
+        # shouldn't this go at the end of the iteration???
+        for process in self.simulation_processes:
+            process.ExecuteFinalizeSolutionStep()
+
+        if self.have_output:
+            self.output.ExecuteFinalizeSolutionStep()
+
+        if self.have_output and self.output.IsOutputStep():
+
             for process in self.simulation_processes:
-                process.ExecuteFinalizeSolutionStep()
+                process.ExecuteBeforeOutputStep()
 
-            if self.have_output:
-                self.output.ExecuteFinalizeSolutionStep()
-
-            if self.have_output and self.output.IsOutputStep():
-
-                for process in self.simulation_processes:
-                    process.ExecuteBeforeOutputStep()
+            self.output.PrintOutput()
     
-                self.output.PrintOutput()
-        
-                for process in self.simulation_processes:
-                    process.ExecuteAfterOutputStep()
+            for process in self.simulation_processes:
+                process.ExecuteAfterOutputStep()
 
-            if self.save_restart:
-                self.restart_utility.SaveRestart()
+        if self.save_restart:
+            self.restart_utility.SaveRestart()
+
 
     def FinalizeAnalysis(self):
         '''Finalize the simulation and close open files.'''
@@ -209,7 +217,7 @@ class FluidDynamicsAnalysis(object):
     def Run(self):
         '''Wrapper function for the solution.'''
         self.InitializeAnalysis()
-        self.Solve()
+        self.RunMainTemporalLoop()
         self.FinalizeAnalysis()
 
 if __name__ == '__main__':
