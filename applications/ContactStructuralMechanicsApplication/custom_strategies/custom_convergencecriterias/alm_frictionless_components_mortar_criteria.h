@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ALM_FRICTIONAL_MORTAR_CRITERIA_H)
-#define  KRATOS_ALM_FRICTIONAL_MORTAR_CRITERIA_H
+#if !defined(KRATOS_ALM_FRICTIONLESS_COMPONENTS_MORTAR_CRITERIA_H)
+#define  KRATOS_ALM_FRICTIONLESS_COMPONENTS_MORTAR_CRITERIA_H
 
 /* System includes */
 
@@ -45,21 +45,21 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/**  
- * @class ALMFrictionalMortarConvergenceCriteria 
+/**
+ * @class ALMFrictionlessComponentsMortarConvergenceCriteria 
  * @ingroup ContactStructuralMechanicsApplication 
- * @brief Custom convergence criteria for the mortar condition for frictional case
+ * @brief Custom convergence criteria for the mortar condition for frictionless case with components
  * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace, class TDenseSpace>
-class ALMFrictionalMortarConvergenceCriteria 
+class ALMFrictionlessComponentsMortarConvergenceCriteria 
     : public  BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION( ALMFrictionalMortarConvergenceCriteria );
+    KRATOS_CLASS_POINTER_DEFINITION( ALMFrictionlessComponentsMortarConvergenceCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > ConvergenceCriteriaBaseType;
     
@@ -86,7 +86,7 @@ public:
     ///@{
     
     /// Default constructors
-    ALMFrictionalMortarConvergenceCriteria(        
+    ALMFrictionlessComponentsMortarConvergenceCriteria(        
         TablePrinterPointerType pTable = nullptr,
         const bool PrintingOutput = false,
         const bool GiDIODebug = false
@@ -98,7 +98,7 @@ public:
     }
 
     ///Copy constructor 
-    ALMFrictionalMortarConvergenceCriteria( ALMFrictionalMortarConvergenceCriteria const& rOther )
+    ALMFrictionlessComponentsMortarConvergenceCriteria( ALMFrictionlessComponentsMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
       ,mpTable(rOther.mpTable)
       ,mPrintingOutput(rOther.mPrintingOutput)
@@ -107,7 +107,7 @@ public:
     }
 
     /// Destructor
-    ~ALMFrictionalMortarConvergenceCriteria() override = default;
+    ~ALMFrictionlessComponentsMortarConvergenceCriteria() override = default;
 
     ///@}
     ///@name Operators
@@ -158,18 +158,14 @@ public:
         BaseType::PostCriteria(rModelPart, rDofSet, A, Dx, b);
         
         // Defining the convergence
-        unsigned int is_converged_active = 0;
-        unsigned int is_converged_slip = 0;
+        unsigned int is_converged = 0;
         
 //         const double epsilon = rModelPart.GetProcessInfo()[INITIAL_PENALTY]; 
         const double scale_factor = rModelPart.GetProcessInfo()[SCALE_FACTOR];
-        const double tangent_factor = rModelPart.GetProcessInfo()[TANGENT_FACTOR];
-        
-        const array_1d<double,3> zero_vector(3, 0.0);
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
-        #pragma omp parallel for reduction(+:is_converged_active, is_converged_slip)
+        #pragma omp parallel for reduction(+:is_converged)
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
             auto it_node = nodes_array.begin() + i;
             
@@ -186,60 +182,24 @@ public:
             if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
                 if (it_node->Is(ACTIVE) == false ) {
                     it_node->Set(ACTIVE, true);
-                    is_converged_active += 1;
+                    is_converged += 1;
                 }
-                
-                // Computing the augmented tangent pressure
-                const array_1d<double,3> tangent_lagrange_multiplier = lagrange_multiplier - normal_lagrange_multiplier * nodal_normal;
-                const double lambda_tangent = norm_2(tangent_lagrange_multiplier); 
-                
-                // The friction coefficient
-                const double mu = it_node->GetValue(WEIGHTED_FRICTION);
-                
-                // Finally we compute the augmented tangent pressure
-                const double gt = it_node->FastGetSolutionStepValue(WEIGHTED_SLIP);
-                const double augmented_tangent_pressure = std::abs(scale_factor * lambda_tangent + tangent_factor * epsilon * gt) + mu * augmented_normal_pressure;
-                
-                it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
-                
-                if (augmented_tangent_pressure <= 0.0) { // TODO: Check if it is minor equal or just minor
-                    if (it_node->Is(SLIP) == true ) {
-                        it_node->Set(SLIP, false);
-                        is_converged_slip += 1;
-                    }
-                } else {
-                    if (it_node->Is(SLIP) == false) {
-                        it_node->Set(SLIP, true);
-                        is_converged_slip += 1;
-                    }
-                }   
             } else {
                 if (it_node->Is(ACTIVE) == true ) {
                     it_node->Set(ACTIVE, false);
-                    is_converged_active += 1;
+                    is_converged += 1;
                 }
             }
         }
         
         // We save to the process info if the active set has converged
-        const bool active_set_converged = (is_converged_active + is_converged_slip) == 0 ? true : false;
+        const bool active_set_converged = (is_converged == 0 ? true : false);
         rModelPart.GetProcessInfo()[ACTIVE_SET_CONVERGED] = active_set_converged;
         
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
             if (mpTable != nullptr) {
                 auto& table = mpTable->GetTable();
-                if (is_converged_active == 0) {
-                    if (mPrintingOutput == false)
-                        table << BOLDFONT(FGRN("       Achieved"));
-                    else
-                        table << "Achieved";
-                } else {
-                    if (mPrintingOutput == false)
-                        table << BOLDFONT(FRED("   Not achieved"));
-                    else
-                        table << "Not achieved";
-                }
-                if (is_converged_slip == 0) {
+                if (active_set_converged) {
                     if (mPrintingOutput == false)
                         table << BOLDFONT(FGRN("       Achieved"));
                     else
@@ -251,7 +211,7 @@ public:
                         table << "Not achieved";
                 }
             } else {
-                if (is_converged_active == 0) {
+                if (active_set_converged) {
                     if (mPrintingOutput == false)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
                     else
@@ -261,18 +221,6 @@ public:
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     else
                         std::cout << "\tActive set convergence is not achieved" << std::endl;
-                }
-                
-                if (is_converged_slip == 0) {
-                    if (mPrintingOutput == false)
-                        std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                    else
-                        std::cout << "\tSlip/stick set convergence is achieved" << std::endl;
-                } else {
-                    if (mPrintingOutput == false)
-                        std::cout << BOLDFONT("\tSlip/stick set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
-                    else
-                        std::cout << "\tSlip/stick set  convergence is not achieved" << std::endl;
                 }
             }
         }
@@ -292,7 +240,6 @@ public:
         if (mpTable != nullptr && mTableIsInitialized == false) {
             auto& table = mpTable->GetTable();
             table.AddColumn("ACTIVE SET CONV", 15);
-            table.AddColumn("SLIP/STICK CONV", 15);
             mTableIsInitialized = true;
         }
     }
@@ -330,18 +277,6 @@ protected:
     ///@name Protected Operations
     ///@{
     
-    /**
-     * @brief This method resets the weighted gap in the nodes of the problem
-     * @param rModelPart Reference to the ModelPart containing the contact problem.
-     */
-    
-    void ResetWeightedGap(ModelPart& rModelPart) override
-    {       
-        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
-        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_SLIP, 0.0, nodes_array);
-    }
-    
     ///@}
     ///@name Protected  Access
     ///@{
@@ -364,7 +299,7 @@ private:
     ///@{
     
     TablePrinterPointerType mpTable; /// Pointer to the fancy table 
-    bool mPrintingOutput;            /// If the colors and bold are printed
+    bool mPrintingOutput;            //// If the colors and bold are printed
     bool mTableIsInitialized;        /// If the table is already initialized
     
     ///@}
@@ -391,12 +326,12 @@ private:
     ///@{
     ///@}
 
-}; // Class ALMFrictionalMortarConvergenceCriteria 
+}; // Class ALMFrictionlessComponentsMortarConvergenceCriteria 
 
 ///@name Explicit Specializations
 ///@{
 
 }  // namespace Kratos 
 
-#endif /* KRATOS_ALM_FRICTIONAL_MORTAR_CRITERIA_H  defined */
+#endif /* KRATOS_ALM_FRICTIONLESS_COMPONENTS_MORTAR_CRITERIA_H  defined */
 
