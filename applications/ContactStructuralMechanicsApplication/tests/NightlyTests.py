@@ -32,8 +32,14 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
             parameter_file = open(self.file_name + "_parameters.json", 'r')
             ProjectParameters = Parameters(parameter_file.read())
 
+            # Checking if frictionless_by_components is defined
+            try:
+                self.frictionless_by_components
+            except AttributeError:
+                self.frictionless_by_components = False
+
             # Creating the model part
-            self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
+            self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters, self.frictionless_by_components)
 
     def test_execution(self):
         # Within this location context:
@@ -42,18 +48,38 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
 
     def tearDown(self):
         pass
-    
+
 class ALMTaylorPatchTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/taylor_patch_test"
-    
+
 class ALMHertzSimpleSphereTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test"
-    
+
 class ALMHertzSimpleTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hertz_simple_test"
-    
+
 class ALMHertzSphereTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/hertz_sphere_plate_test"
-    
+
 class ALMHertzCompleteTestContact(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_2D/hertz_complete_test"
+    
+class ComponentsALMTaylorPatchTestContact(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_test"
+
+class ComponentsALMHertzSimpleSphereTestContact(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/simple_hertz_sphere_plate_test"
+
+class ComponentsALMHertzSimpleTestContact(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hertz_simple_test"
+
+class ComponentsALMHertzSphereTestContact(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/hertz_sphere_plate_test"
+
+class ComponentsALMHertzCompleteTestContact(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_2D/hertz_complete_test"

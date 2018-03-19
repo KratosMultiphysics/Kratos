@@ -54,9 +54,15 @@ void WriteDataValueContainer(File& rFile, std::string const& rPrefix, DataValueC
     KRATOS_TRY;
     rFile.AddPath(rPrefix + "/DataValues");
     for (auto it = rData.begin(); it != rData.end(); ++it)
-        RegisteredVariableLookup<Variable<int>, Variable<double>, Variable<Vector<double>>,
-                                 Variable<Matrix<double>>>(it->first->Name())
-            .Execute<WriteVariableFunctor>(rFile, rPrefix, rData);
+        try
+        {
+            RegisteredVariableLookup<Variable<int>, Variable<double>, Variable<Vector<double>>,
+                                     Variable<Matrix<double>>>(it->first->Name())
+                .Execute<WriteVariableFunctor>(rFile, rPrefix, rData);
+        }
+        catch (Exception& e)
+        {
+        }
     KRATOS_CATCH("Path: \"" + rPrefix + "/DataValues\".");
 }
 
