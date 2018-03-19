@@ -73,8 +73,12 @@ class FluidDynamicsAnalysis(object):
         for process in self.simulation_processes:
             process.ExecuteInitialize()
 
-    def SetUpSolution(self):
-        '''Initialize the Python solver and its auxiliary tools and processes.'''
+    def SetUpAnalysis(self):
+        '''
+        Initialize the Python solver and its auxiliary tools and processes.
+        This function should leave everything prepared so that the simulation
+        can start immediately after exiting it.
+        '''
 
         self.solver.Initialize()
 
@@ -82,16 +86,26 @@ class FluidDynamicsAnalysis(object):
         # initialize GiD  I/O
         self._SetUpGiDOutput()
 
-        for process in self.simulation_processes:
-            process.ExecuteBeforeSolutionLoop()
-
-        ## Stepping and time settings
-        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
-
         ## Writing the full ProjectParameters file before solving
         if self.is_printing_rank and self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
                 parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
+
+        ## Stepping and time settings
+        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+
+        if self.main_model_part.ProcessInfo[IS_RESTARTED]:
+            self.time = self.main_model_part.ProcessInfo[TIME]
+            self.step = self.main_model_part.ProcessInfo[STEP]
+        else:
+            self.time = 0.0
+            self.step = 0
+
+        for process in self.simulation_processes:
+            process.ExecuteBeforeSolutionLoop()
+            
+        if self.have_output:
+            self.output.ExecuteBeforeSolutionLoop()
 
 
     def _SetUpGiDOutput(self):
@@ -136,31 +150,18 @@ class FluidDynamicsAnalysis(object):
 
     def Solve(self):
         '''The main solution loop.'''
-        
-        if self.main_model_part.ProcessInfo[IS_RESTARTED]:
-            time = self.main_model_part.ProcessInfo[TIME]
-            step = self.main_model_part.ProcessInfo[STEP]
-        else:
-            time = 0.0
-            step = 0
 
-        for process in self.simulation_processes:
-            process.ExecuteInitializeSolutionStep()
-            
-        if self.have_output:
-            self.output.ExecuteBeforeSolutionLoop()
-
-        while time <= self.end_time:
+        while self.time <= self.end_time:
             dt = self.solver.ComputeDeltaTime()
-            time = time + dt
-            step = step + 1
+            self.time = self.time + dt
+            self.step = self.step + 1
             
-            self.main_model_part.CloneTimeStep(time)
-            self.main_model_part.ProcessInfo[STEP] = step
+            self.main_model_part.CloneTimeStep(self.time)
+            self.main_model_part.ProcessInfo[STEP] = self.step
 
             if self.is_printing_rank:
-                Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", step)
-                Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", time)
+                Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
+                Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
             
             for process in self.simulation_processes:
                 process.ExecuteInitializeSolutionStep()
@@ -190,8 +191,8 @@ class FluidDynamicsAnalysis(object):
             if self.save_restart:
                 self.restart_utility.SaveRestart()
 
-    def FinalizeSolution(self):
-        '''Finalize and close open files.'''
+    def FinalizeAnalysis(self):
+        '''Finalize the simulation and close open files.'''
 
         for process in self.simulation_processes:
             process.ExecuteFinalize()
@@ -199,13 +200,17 @@ class FluidDynamicsAnalysis(object):
         if self.have_output:
             self.output.ExecuteFinalize()
 
-    def Run(self):
-        '''Wrapper function for the solution.'''
+    def InitializeAnalysis(self):
+        '''Wrapper function comprising the definition of the model and the initialization of the problem.'''
         self.SetUpModel()
         self.SetUpConditions()
-        self.SetUpSolution()
+        self.SetUpAnalysis()
+
+    def Run(self):
+        '''Wrapper function for the solution.'''
+        self.InitializeAnalysis()
         self.Solve()
-        self.FinalizeSolution()
+        self.FinalizeAnalysis()
 
 if __name__ == '__main__':
     simulation = FluidDynamicsAnalysis()
