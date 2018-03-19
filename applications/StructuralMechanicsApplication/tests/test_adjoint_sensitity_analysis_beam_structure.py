@@ -27,14 +27,22 @@ class TestCase(KratosUnittest.TestCase):
     def test_local_stress_response(self):
         # Solve primal problem (only in one test case necessary)
         self._solve_primal_problem()
-
         # Create the adjoint solver
         with open("./adjoint_sensitivity_test_martin/adjoint_beam_structure/beam_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
 
-        #out1 = self.adjoint_analysis.GetModelPart().Elements[1].CalculateOnIntegrationPoints(StructuralMechanicsApplication.I22_SENSITIVITY,self.adjoint_analysis.GetModelPart().ProcessInfo)
+        # Check sensitivities for the paramter I22
+        reference_values = [-87622.77104412294, 38125.18068136205, 625.0023331716436]
+        sensitivities_to_check = []
+        element_list = [1,6,10]
+        for element_id in element_list:
+            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.I22_SENSITIVITY))
+    
+        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
+        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
+        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
 
     def test_nodal_displacement_response(self):
         # Create the adjoint solver
@@ -44,7 +52,18 @@ class TestCase(KratosUnittest.TestCase):
 
         adjoint_analysis.Run()
 
-    def test_train_energy_response(self):
+        # Check sensitivities for the paramter I22
+        reference_values = [-454.1027959305903, -378.2187594016309, -6.200311358415619]
+        sensitivities_to_check = []
+        element_list = [1,6,10]
+        for element_id in element_list:
+            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.I22_SENSITIVITY))
+    
+        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
+        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
+        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
+
+    def test_strain_energy_response(self):
         # Create the adjoint solver
         with open("./adjoint_sensitivity_test_martin/adjoint_beam_structure/beam_test_strain_energy_adjoint_parameters.json",'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read())
@@ -52,13 +71,26 @@ class TestCase(KratosUnittest.TestCase):
 
         adjoint_analysis.Run()
 
+        # Check sensitivities for the paramter I22
+        reference_values = [-9082.055918611857, -7564.375188032661, -124.0062271683192]
+        sensitivities_to_check = []
+        element_list = [1,6,10]
+        for element_id in element_list:
+            sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.I22_SENSITIVITY))
+    
+        self.assertAlmostEqual(sensitivities_to_check[0], reference_values[0], 5)
+        self.assertAlmostEqual(sensitivities_to_check[1], reference_values[1], 5)
+        self.assertAlmostEqual(sensitivities_to_check[2], reference_values[2], 5)
+
+
         # Delete *.h5 only after last test case because primal solution is used in each test case
         self._remove_file("./adjoint_sensitivity_test_martin/adjoint_beam_structure/beam_test_0.h5")
         self._remove_file("./adjoint_sensitivity_test_martin/adjoint_beam_structure/Beam_structure.time")
 
     def tearDown(self):
         pass
-      
+    #TODO: add this test in test_StructualMechanicsApllication.py
+    #TODO: test also for I22_Sensitivity
 
 if __name__ == '__main__':
     KratosUnittest.main()
