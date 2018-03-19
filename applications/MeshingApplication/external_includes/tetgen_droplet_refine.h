@@ -492,13 +492,13 @@ namespace Kratos
 			    }
 			}
 			
-			//20161129 ajarauta -> Find those interior nodes close to the contact line and IS_STRUCTURE nodes to avoid deletion of interface elements
-			for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
-			{
-			    if ((im->FastGetSolutionStepValue(IS_BOUNDARY) == 0.0) && (im->Z() < 0.00004) && (im->Z() > 0.00002))
-			        im->Set(TO_ERASE,true);
-			}
-			
+// 			//20161129 ajarauta -> Find those interior nodes close to the contact line and IS_STRUCTURE nodes to avoid deletion of interface elements
+// 			for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+// 			{
+// 			    if ((im->FastGetSolutionStepValue(IS_BOUNDARY) == 0.0) && (im->Z() < 0.00004) && (im->Z() > 0.00002))
+// 			        im->Set(TO_ERASE,true);
+// 			}
+// 			
 // 			ThisModelPart.Conditions().clear();
 
 			
