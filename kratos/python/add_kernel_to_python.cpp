@@ -27,6 +27,20 @@ namespace Kratos {
 namespace Python {
 using namespace boost::python;
 
+bool HasFlag(Kernel& rKernel, const std::string& flag_name) {
+    return KratosComponents<Flags>::Has(flag_name);
+}
+
+Flags GetFlag(
+    Kernel& rKernel, const std::string& flag_name) {
+    if (KratosComponents<Flags>::Has(flag_name)) {
+        return KratosComponents<Flags>::Get(flag_name);
+    } else {
+        KRATOS_ERROR << "ERROR:: Flag " << flag_name << " not defined" << std::endl;
+    }
+    return KratosComponents<Flags>::Get("ACTIVE");
+}
+
 template <class TVariableType>
 bool HasVariable(Kernel& rKernel, const std::string& variable_name) {
     return KratosComponents<TVariableType>::Has(variable_name);
@@ -91,6 +105,8 @@ void AddKernelToPython() {
         .def("InitializeApplication", &Kernel::InitializeApplication)
         //.def(""A,&Kernel::Initialize)
         .def("IsImported", &Kernel::IsImported)
+        .def("HasFlag", HasFlag)
+        .def("GetFlag", GetFlag)
         .def("HasBoolVariable", HasVariable<Variable<bool> >)
         .def("GetBoolVariable", GetVariable<Variable<bool> >,
             return_internal_reference<>())
