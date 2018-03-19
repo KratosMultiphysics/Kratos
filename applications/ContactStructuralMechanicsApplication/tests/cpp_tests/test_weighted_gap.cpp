@@ -202,7 +202,7 @@ namespace Kratos
         * Test 1
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestWeightedGap1, ContactStructuralApplicationFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(WeightedGap1, ContactStructuralApplicationFastSuite)
         {
             ModelPart this_model_part("Contact");
             this_model_part.CreateSubModelPart("ComputingContact");

@@ -1,9 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
-import sys
-
 # This test example is from M. Hojjat, E. Stavropoulou,
 # K.-U. Bletzinger, The Vertex Morphing method for node-based
 # shape optimization, Comput. Methods Appl. Mech. Engrg. 268
@@ -21,44 +15,43 @@ import sys
 #
 #
 
-# ======================================================================================================================================
-# Model part and solver
-# ======================================================================================================================================
+# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division
 
-ParameterFile = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( ParameterFile.read())
-OptimizationModelPart = ModelPart( ProjectParameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString() )
+# Import Kratos core and apps
+from KratosMultiphysics import *
+from KratosMultiphysics.ShapeOptimizationApplication import *
+from math import sin
 
-OptimizerFactory = __import__("optimizer_factory")
-Optimizer = OptimizerFactory.CreateOptimizer( OptimizationModelPart, ProjectParameters["optimization_settings"] )
+# =======================================================================================================
+# Define external analyzer
+# =======================================================================================================
 
-# ======================================================================================================================================
-# Solver preparation
-# ======================================================================================================================================
+from analyzer_base import AnalyzerBaseClass
+class CustomAnalyzer(AnalyzerBaseClass):
 
-class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
+    # --------------------------------------------------------------------------------------------------
+    def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
+        if communicator.isRequestingValueOf("targetDeviation"):
+            communicator.reportValue("targetDeviation", self.__ObjectiveFunction(current_design))
 
-    # --------------------------------------------------------------------------
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, OptimizationIteration, Communicator ):
-        if Communicator.isRequestingValueOf("targetDeviation"):
-            Communicator.reportValue("targetDeviation", self.ObjectiveFunction(currentDesign))
-        if Communicator.isRequestingGradientOf("targetDeviation"):
-            Communicator.reportGradient("targetDeviation", self.ObjectiveGradient(currentDesign))
+        if communicator.isRequestingGradientOf("targetDeviation"):
+            communicator.reportGradient("targetDeviation", self.__ObjectiveGradient(current_design))
 
-    # --------------------------------------------------------------------------
-    def ObjectiveFunction( self, currentDesign ):
+    # --------------------------------------------------------------------------------------------------
+    def __ObjectiveFunction(self, current_design):
         """ Returns the objective function to be minimized """
         objective = 0.0
-        for node in currentDesign.Nodes:
-            objective = objective + abs(self.TentFunction(node.X) - node.Z)
+        for node in current_design.Nodes:
+            objective = objective + abs(self.__TentFunction(node.X) - node.Z)
         return objective
 
-    # --------------------------------------------------------------------------
-    def ObjectiveGradient( self, currentDesign ):
+    # --------------------------------------------------------------------------------------------------
+    def __ObjectiveGradient(self, current_design):
         """ Returns the gradient of the objective function """
         sensitivity = dict()
-        for node in currentDesign.Nodes:
-            delta = node.Z - self.TentFunction(node.X)
+        for node in current_design.Nodes:
+            delta = node.Z - self.__TentFunction(node.X)
             if abs(delta) == 0.0:
                 sz = 0.0
             else:
@@ -66,9 +59,9 @@ class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             sensitivity[node.Id] = [0.0, 0.0, sz]
         return sensitivity
 
-    # --------------------------------------------------------------------------
-    def TentFunction( self, x ):
-        """ Defines the target curve z=TentFunction(x) """
+    # --------------------------------------------------------------------------------------------------
+    def __TentFunction(self, x):
+        """ Defines the target curve z=__TentFunction(x) """
         if x <= 15.0:
             return 0.0
         elif x<= 20.0:
@@ -78,15 +71,18 @@ class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         else:
             return 0.0
 
-    # --------------------------------------------------------------------------
+# =======================================================================================================
+# Perform optimization
+# =======================================================================================================
 
-newAnalyzer = externalAnalyzer()
+with open("ProjectParameters.json",'r') as parameter_file:
+    parameters = Parameters(parameter_file.read())
 
-# ======================================================================================================================================
-# Optimization
-# ======================================================================================================================================
+optimization_model_part = ModelPart(parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString())
+optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
 
-Optimizer.importAnalyzer( newAnalyzer )
-Optimizer.optimize()
+import optimizer_factory
+optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part, CustomAnalyzer())
+optimizer.Optimize()
 
-# ======================================================================================================================================
+# =======================================================================================================
