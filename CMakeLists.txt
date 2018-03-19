@@ -201,17 +201,17 @@ else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 ##*****************************
-# Finding and including BOOST library
+# Finding and including BOOST library (version should not matter anymore)
+find_package(Boost)
+
 set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-link_directories(${Boost_LIBRARY_DIRS})
 
 message("Boost Include: ${Boost_INCLUDE_DIRS}")
 message("Boost Linkdir: ${Boost_LIBRARY_DIRS}")
-message("Boostlib used: ${Boost_LIBRARIES}")
 
 ##*****************************
 
