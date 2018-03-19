@@ -56,26 +56,6 @@ class FluidDynamicsAnalysis(object):
         self.model = Model()
         self.model.AddModelPart(self.main_model_part)
 
-        # Add the skin SubModelParts to the model
-        for i in range(self.project_parameters["solver_settings"]["skin_parts"].size()):
-            skin_part_name = self.project_parameters["solver_settings"]["skin_parts"][i].GetString()
-            self.model.AddModelPart(self.main_model_part.GetSubModelPart(skin_part_name))
-
-        # Add the no-skin SubModelParts parts to the model (results processes and no-skin conditions)
-        for i in range(self.project_parameters["solver_settings"]["no_skin_parts"].size()):
-            no_skin_part_name = self.project_parameters["solver_settings"]["no_skin_parts"][i].GetString()
-            self.model.AddModelPart(self.model_part.GetSubModelPart(no_skin_part_name))
-            
-        # Add the initial conditions SubModelParts to the model
-        for i in range(self.project_parameters["initial_conditions_process_list"].size()):
-            initial_cond_part_name = self.project_parameters["initial_conditions_process_list"][i]["Parameters"]["model_part_name"].GetString()
-            self.model.AddModelPart(self.main_model_part.GetSubModelPart(initial_cond_part_name))
-
-        # Add the gravity SubModelParts to the model
-        for i in range(self.project_parameters["gravity"].size()):
-            gravity_part_name = self.project_parameters["gravity"][i]["Parameters"]["model_part_name"].GetString()
-            self.model.AddModelPart(self.main_model_part.GetSubModelPart(gravity_part_name))
-
     def SetUpConditions(self):
         '''Read the boundary and initial conditions for the problem and initialize the processes that will manage them.'''
 
