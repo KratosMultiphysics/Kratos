@@ -16,8 +16,11 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
-# Import algorithm base classes
+# Additional imports
 from algorithm_base import OptimizationAlgorithm
+import mapper_factory
+import data_logger_factory
+from custom_timer import Timer
 
 # ==============================================================================
 class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
@@ -36,9 +39,7 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
         self.onlyObjectiveId = OptimizationSettings["objectives"][0]["identifier"].GetString()
         self.dampingIsSpecified = OptimizationSettings["design_variables"]["damping"]["perform_damping"].GetBool()
 
-        import mapper_factory
         self.Mapper = mapper_factory.CreateMapper( ModelPartController, OptimizationSettings )
-        import data_logger_factory
         self.DataLogger = data_logger_factory.CreateDataLogger( ModelPartController, Communicator, OptimizationSettings )
 
         self.GeometryUtilities = GeometryUtilities( self.DesignSurface )
@@ -55,7 +56,6 @@ class AlgorithmSteepestDescent( OptimizationAlgorithm ) :
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop( self ):
-        from custom_timer import Timer
         timer = Timer()
         timer.StartTimer()
 
