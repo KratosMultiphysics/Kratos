@@ -12,17 +12,10 @@
 from __future__ import print_function, absolute_import, division
 
 # ==============================================================================
-class AnalyzerBaseClass:
-    # --------------------------------------------------------------------------
-    def InitializeBeforeOptimizationLoop(self):
-        pass
 
+class EmptyAnalyzer( (__import__("analyzer_base")).AnalyzerBaseClass ):
     # --------------------------------------------------------------------------
-    def AnalyzeDesignAndReportToCommunicator(self, current_design, unique_iterator, communicator):
-        raise RuntimeError("Analyzer base class is called. Please check your implementation of the function >> AnalyzeDesignAndReportToCommunicator << .")
-
-    # --------------------------------------------------------------------------
-    def FinalizeAfterOptimizationLoop(self):
+    def AnalyzeDesignAndReportToCommunicator( self, currentDesign, optimizationIteration, communicator ):
         pass
 
 # ==============================================================================

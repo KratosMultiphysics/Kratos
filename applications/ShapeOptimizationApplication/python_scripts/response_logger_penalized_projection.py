@@ -12,27 +12,24 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 # Import logger base classes
 from response_logger_base import ResponseLogger
 
 # Import additional libraries
 import csv
+from custom_timer import Timer
 
 # ==============================================================================
 class ResponseLoggerPenalizedProjection( ResponseLogger ):
 
     # --------------------------------------------------------------------------
-    def __init__( self, communicator, optimizationSettings, timer ):
+    def __init__( self, communicator, optimizationSettings ):
         self.communicator = communicator
         self.optimizationSettings = optimizationSettings
-        self.timer = timer
 
         self.onlyObjective = self.optimizationSettings["objectives"][0]["identifier"].GetString()
         self.onlyConstraint = self.optimizationSettings["constraints"][0]["identifier"].GetString()
@@ -64,8 +61,6 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             row.append("{:>20s}".format("c["+self.onlyConstraint+"]_ref"))
             row.append("{:>13s}".format("c_scaling[-]"))
             row.append("{:>13s}".format("step_size[-]"))
-            row.append("{:>12s}".format("t_itr[s]"))
-            row.append("{:>16s}".format("t_total[s]"))
             row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
 
@@ -173,9 +168,7 @@ class ResponseLoggerPenalizedProjection( ResponseLogger ):
             row.append(str("{:>20f}".format(self.constraintOutputReference)))
             row.append(str("{:>13f}".format(self.optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble())))
             row.append(str("{:>13f}".format(self.optimizationSettings["line_search"]["step_size"].GetDouble())))
-            row.append(str("{:>12f}".format(self.timer.GetLapTime())))
-            row.append(str("{:>16f}".format(self.timer.GetTotalTime())))
-            row.append("{:>25}".format(self.timer.GetTimeStamp()))
+            row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 
 # ==============================================================================
