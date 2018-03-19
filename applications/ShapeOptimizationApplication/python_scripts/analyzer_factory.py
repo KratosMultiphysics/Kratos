@@ -12,14 +12,14 @@
 from __future__ import print_function, absolute_import, division
 
 # ==============================================================================
-def CreateAnalyzer( project_parameters, model_part_controller, external_anlyzer ):
-    return Analyzer(project_parameters, model_part_controller, external_anlyzer)
+def CreateAnalyzer( project_parameters, model_part_controller, external_analyzer ):
+    return Analyzer(project_parameters, model_part_controller, external_analyzer)
 
 # ==============================================================================
 class Analyzer:
     # --------------------------------------------------------------------------
-    def __init__( self, project_parameters, model_part_controller, external_anlyzer ):
-        self.external_anlyzer = external_anlyzer
+    def __init__( self, project_parameters, model_part_controller, external_analyzer ):
+        self.external_analyzer = external_analyzer
 
         if self.__IsInternalAnalyzerRequired( project_parameters["optimization_settings"] ):
             from analyzer_internal import KratosInternalAnalyzer
@@ -27,22 +27,22 @@ class Analyzer:
         else:
             from analyzer_empty import EmptyAnalyzer
             self.internal_analyzer = EmptyAnalyzer()
-            if isinstance(external_anlyzer, EmptyAnalyzer):
+            if isinstance(external_analyzer, EmptyAnalyzer):
                 raise RuntimeError("Neither an internal nor an external analyzer is defined!")
 
     # --------------------------------------------------------------------------
     def InitializeBeforeOptimizationLoop( self ):
-        self.external_anlyzer.InitializeBeforeOptimizationLoop()
+        self.external_analyzer.InitializeBeforeOptimizationLoop()
         self.internal_analyzer.InitializeBeforeOptimizationLoop()
 
     # --------------------------------------------------------------------------
     def AnalyzeDesignAndReportToCommunicator( self, current_design, unique_iterator, communicator ):
-        self.external_anlyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
+        self.external_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
         self.internal_analyzer.AnalyzeDesignAndReportToCommunicator(current_design, unique_iterator, communicator)
 
     # --------------------------------------------------------------------------
     def FinalizeAfterOptimizationLoop( self ):
-        self.external_anlyzer.FinalizeAfterOptimizationLoop()
+        self.external_analyzer.FinalizeAfterOptimizationLoop()
         self.internal_analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
