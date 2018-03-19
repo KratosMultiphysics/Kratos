@@ -41,10 +41,7 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
 
-    def ImportModelPart(self):
-
-        super(AdjointStructuralSolver, self).ImportModelPart()
-
+    def PrepareModelPartForSolver(self):
         # here we replace the dummy elements we read with proper elements
         self.settings.AddEmptyValue("element_replace_settings")
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
@@ -60,9 +57,10 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
             raise Exception("there is currently no 2D adjoint element")
         else:
             raise Exception("domain size is not 2 or 3")
-
+            
         StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Finished importing model part.")
+        super(AdjointStructuralSolver, self).PrepareModelPartForSolver()
+        self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 
     def AddDofs(self):
         for node in self.main_model_part.Nodes:
