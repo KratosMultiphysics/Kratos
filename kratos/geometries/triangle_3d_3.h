@@ -860,9 +860,9 @@ public:
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
      */
-    CoordinatesArrayType& PointLocalCoordinates( 
+    CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
-        const CoordinatesArrayType& rPoint 
+        const CoordinatesArrayType& rPoint
         ) override
     {
         return PointLocalCoordinatesImplementation(rResult, rPoint);
@@ -1646,9 +1646,9 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
-     * Returns the local coordinates of a given arbitrary point 
+     * Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
@@ -1660,8 +1660,8 @@ private:
         const bool IsInside = false
         )
     {
-        bounded_matrix<double,3,3> X;
-        bounded_matrix<double,3,2> DN;
+        bounded_matrix<double, 3, 3> X;
+        bounded_matrix<double, 3, 2> DN;
         for(unsigned int i=0; i<this->size();i++)
         {
             X(0,i ) = this->GetPoint( i ).X();
@@ -1669,26 +1669,24 @@ private:
             X(2,i ) = this->GetPoint( i ).Z();
         }
 
-        double tol = 1.0e-8;
-        int maxiter = 1000;
+        const double tol = 1.0e-8;
+        const int maxiter = 1000;
 
-        Matrix J = ZeroMatrix( 2, 2 );
-        Matrix invJ = ZeroMatrix( 2, 2 );
+        bounded_matrix<double, 2, 2> J = ZeroMatrix( 2, 2 );
+        bounded_matrix<double, 2, 2> invJ = ZeroMatrix( 2, 2 );
 
         //starting with xi = 0
-        rResult = ZeroVector( 3 );
-        Vector DeltaXi = ZeroVector( 2 );
-        array_1d<double,3> CurrentGlobalCoords;
-
+        noalias(rResult) = ZeroVector( 3 );
+        Vector delta_xi = ZeroVector( 2 );
+        array_1d<double,3> current_global_coords;
 
         //Newton iteration:
         for ( int k = 0; k < maxiter; k++ )
         {
-            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
-            this->GlobalCoordinates( CurrentGlobalCoords, rResult );
+            noalias(current_global_coords) = ZeroVector( 3 );
+            this->GlobalCoordinates( current_global_coords, rResult );
 
-            noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
-
+            noalias( current_global_coords ) = rPoint - current_global_coords;
 
             //derivatives of shape functions
             Matrix shape_functions_gradients;
@@ -1696,7 +1694,7 @@ private:
             noalias(DN) = prod(X,shape_functions_gradients);
 
             noalias(J) = prod(trans(DN),DN);
-            Vector res = prod(trans(DN),CurrentGlobalCoords);
+            Vector res = prod(trans(DN),current_global_coords);
 
             //deteminant of Jacobian
             const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
@@ -1707,28 +1705,26 @@ private:
             invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
             invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
 
+            delta_xi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
+            delta_xi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
 
-            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
-            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
-
-            rResult[0] += DeltaXi[0];
-            rResult[1] += DeltaXi[1];
+            rResult[0] += delta_xi[0];
+            rResult[1] += delta_xi[1];
             rResult[2] = 0.0;
 
-            if ( k>0 && norm_2( DeltaXi ) > 30 ) {
-                KRATOS_WARNING_IF("Triangle3D3", IsInside == false) << "detJ =\t" << det_j << " DeltaX =\t" << DeltaXi << " stopping calculation. Iteration:\t" << k << std::endl;
+            if ( k>0 && norm_2( delta_xi ) > 30 ) {
+                KRATOS_WARNING_IF("Triangle3D3", IsInside == false) << "detJ =\t" << det_j << " DeltaX =\t" << delta_xi << " stopping calculation. Iteration:\t" << k << std::endl;
                 break;
             }
 
-            if ( norm_2( DeltaXi ) < tol )
-            {
+            if ( norm_2( delta_xi ) < tol ) {
                 break;
             }
         }
 
         return( rResult );
     }
-    
+
     /**
      * TODO: implemented but not yet tested
      */
@@ -2260,7 +2256,7 @@ private:
 
     /** AxisTestX
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeY, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeY, rAbsEdgeZ: i-edge abs coordinates
      * @param rVertA: i   vertex
@@ -2287,7 +2283,7 @@ private:
 
     /** AxisTestY
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeX, rEdgeZ: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeZ: i-edge fabs coordinates
      * @param rVertA: i   vertex
@@ -2314,7 +2310,7 @@ private:
 
     /** AxisTestZ
      * This method returns true if there is a separating axis
-     * 
+     *
      * @param rEdgeX, rEdgeY: i-edge corrdinates
      * @param rAbsEdgeX, rAbsEdgeY: i-edge fabs coordinates
      * @param rVertA: i   vertex
