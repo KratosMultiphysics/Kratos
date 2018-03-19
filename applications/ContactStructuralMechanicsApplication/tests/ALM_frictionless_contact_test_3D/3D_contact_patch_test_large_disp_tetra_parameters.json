@@ -15,8 +15,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra",
-            "input_file_label" : 0
+            "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra"
         },
         "material_import_settings"           : {
             "materials_filename" : "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_materials.json"
@@ -74,14 +73,7 @@
             "model_part_name"             : "Structure",
             "contact_model_part"          : "Contact_Part",
             "assume_master_slave"         : "Parts_Parts_Auto1",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 1.0,
-            "max_number_results"          : 1000,
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e3,
-            "scale_factor"                : 1.0e3,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 3
+            "contact_type"                : "Frictionless"
         }
     }
     ],
