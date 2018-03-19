@@ -10,11 +10,10 @@ except ImportError:
 class FluidDynamicsAnalysis(object):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
-    def __init__(self,parameter_file_name='ProjectParameters.json'):
+    def __init__(self,parameters):
         super(FluidDynamicsAnalysis,self).__init__()
 
-        with open(parameter_file_name,'r') as parameter_file:
-            self.project_parameters = Parameters( parameter_file.read() )
+        self.project_parameters = parameters
 
         self.echo_level = self.project_parameters["problem_data"]["echo_level"].GetInt()
         self.parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
@@ -221,5 +220,24 @@ class FluidDynamicsAnalysis(object):
         self.FinalizeAnalysis()
 
 if __name__ == '__main__':
-    simulation = FluidDynamicsAnalysis()
+    from sys import argv
+
+    if len(argv) > 2:
+        err_msg =  'Too many input arguments!\n'
+        err_msg += 'Use this script in the following way:\n'
+        err_msg += '- With default parameter file (assumed to be called "ProjectParameters.json"):\n'
+        err_msg += '    "python fluid_dynamics_analysis.py"\n'
+        err_msg += '- With custom parameter file:\n'
+        err_msg += '    "python fluid_dynamics_analysis.py <my-parameter-file>.json"\n'
+        raise Exception(err_msg)
+
+    if len(argv) == 2: # ProjectParameters is being passed from outside
+        parameter_file_name = argv[1]
+    else: # using default name
+        parameter_file_name = "ProjectParameters.json"
+
+    with open(parameter_file_name,'r') as parameter_file:
+        parameters = Parameters(parameter_file.read())
+
+    simulation = FluidDynamicsAnalysis(parameters)
     simulation.Run()
