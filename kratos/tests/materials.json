@@ -31,7 +31,7 @@
 		"Material": {
 			"name": "steel",
 			"constitutive_law": {
-				"name": "KratosMultiphysics.ConstitutiveLaw"
+				"name": "KratosMultiphysics.FluidDynamicsApplication.Newtonian2DLaw"
 			},
 			"Variables": {
 				"YOUNG_MODULUS": 100.0,
