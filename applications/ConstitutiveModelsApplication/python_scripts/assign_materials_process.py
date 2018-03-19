@@ -49,9 +49,11 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
             except:
                 my_key = "KratosMultiphysics.SolidMechanicsApplication."+key
                 variable = self._GetItemFromModule(my_key)
- 
+
             if( value.IsDouble() ):
                 self.properties.SetValue(variable, value.GetDouble())
+            elif( value.IsInt() ):
+                self.properties.SetValue(variable, value.GetInt())
             elif( value.IsArray() ):
                 vector_value = KratosMultiphysics.Vector(value.size())
                 for i in range(0, value.size() ):
@@ -71,13 +73,14 @@ class AssignMaterialsProcess(KratosMultiphysics.Process):
                 new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
                 
             self.properties.SetTable(input_variable,output_variable,new_table)
-
         
         #create constitutive law
         self.material_law = self._GetLawFromModule(self.settings["constitutive_law"]["name"].GetString())
-        
+
         self.properties.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, self.material_law.Clone())
 
+        self.model_part.Properties[self.settings["properties_id"].GetInt()] = self.properties
+        
         splitted_law_name = (self.settings["constitutive_law"]["name"].GetString()).split(".")
         
         print("::[Material]:: -"+self.material_name+"- [Model: "+splitted_law_name[len(splitted_law_name)-1]+"]")
