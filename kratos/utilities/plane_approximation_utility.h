@@ -96,8 +96,8 @@ public:
         array_1d<double,3> &rPlaneBasePointCoords,
         array_1d<double,3> &rPlaneNormal)
     {
-        rPlaneBasePointCoords = GetPlaneBasePoint(rPointsCoords);
-        rPlaneNormal = GetPlaneNormal(rPointsCoords, rPlaneBasePointCoords);
+        GetPlaneBasePoint(rPointsCoords,rPlaneBasePointCoords);
+        GetPlaneNormal(rPointsCoords, rPlaneBasePointCoords, rPlaneNormal);
     }
 
     ///@}
@@ -136,31 +136,32 @@ private:
     /**
      * @brief This function computes the plane base point
      * @param rPointsCoords Vector containing the set of point coordinates
-     * @return base_point Plane base point
+     * @return rBasePointCoords Plane base point coordinates
      */
-    static array_1d<double, 3> GetPlaneBasePoint(
-        const std::vector< array_1d<double,3> > &rPointsCoords) 
+    static void GetPlaneBasePoint(
+        const std::vector< array_1d<double,3> > &rPointsCoords,
+        array_1d<double,3> &rBasePointCoords) 
     {
         const unsigned int n_points = rPointsCoords.size();
         KRATOS_ERROR_IF(n_points == 0) << "No base point can be computed. Points container is empty." << std::endl;
 
-        array_1d<double, 3> base_point = ZeroVector(3);
+        rBasePointCoords = ZeroVector(3);
         for (unsigned int j = 0; j < n_points; ++j){
-            base_point += rPointsCoords[j];
+            rBasePointCoords += rPointsCoords[j];
         }
-        base_point /= n_points;
-
-        return base_point;
+        rBasePointCoords /= n_points;
     }
 
     /**
      * @brief This function sets the matrix A as trans(P)*P
      * @param rPointsCoords Vector containing the set of point coordinates
+     * @param rBasePointCoords Plane base point coordinates
      * @return rA A matrix
      */
-    static bounded_matrix<double,3,3> SetMatrixA(
+    static void SetMatrixA(
         const std::vector< array_1d< double,3 > > &rPointsCoords,
-        const array_1d<double,3> &rPlaneBasePointCoords) 
+        const array_1d<double,3> &rPlaneBasePointCoords,
+        bounded_matrix<double,3,3> &rA) 
     {
         bounded_matrix<double,3,3> A = ZeroMatrix(3);
         const unsigned int n_points = rPointsCoords.size();
@@ -172,26 +173,27 @@ private:
                 for (unsigned int m = 0; m < n_points; ++m){
                     const double pt_m_i = rPointsCoords[m](i);
                     const double pt_m_j = rPointsCoords[m](j);
-                    A(i,j) += (base_i - pt_m_i)*(base_j - pt_m_j);
+                    rA(i,j) += (base_i - pt_m_i)*(base_j - pt_m_j);
                 }
             }
         }
-
-        return A;
     }
 
     /**
      * @brief This function computes using the inverse power method the minimal eigenvalue
-     * @param InputMatrix The matrix to compute the eigenvalue
-     * @return condition_number The condition number
+     * @param rPointsCoords Vector containing the set of point coordinates
+     * @param rBasePointCoords Plane base point coordinates
+     * @return rPlaneNormal The plane unit normal
      */
-    static array_1d<double, 3> GetPlaneNormal(
+    static void GetPlaneNormal(
         const std::vector< array_1d<double,3> > &rPointsCoords,
-        const array_1d<double,3> &rPlaneBasePointCoords) 
+        const array_1d<double,3> &rPlaneBasePointCoords,
+        array_1d<double,3> &rPlaneNormal) 
     {
         // Solve the A matrix eigenvalue problem 
-        bounded_matrix<double, 3, 3> eigenval_mat, eigenvector_mat;
-        bool converged = MathUtils<double>::EigenSystem<3>(SetMatrixA(rPointsCoords, rPlaneBasePointCoords), eigenvector_mat, eigenval_mat);
+        bounded_matrix<double, 3, 3> a_mat, eigenval_mat, eigenvector_mat;
+        SetMatrixA(rPointsCoords, rPlaneBasePointCoords, a_mat);
+        bool converged = MathUtils<double>::EigenSystem<3>(a_mat, eigenvector_mat, eigenval_mat);
         KRATOS_ERROR_IF(!converged) << "Plane normal can't be computed. Eigenvalue problem did not converge." << std::endl;
 
         // Find the minimum eigenvalue
@@ -205,12 +207,9 @@ private:
         }
 
         // Set as plane normal the eigenvector associated to the minimum eigenvalue
-        array_1d<double,3> plane_normal;
         for (unsigned int i = 0; i < 3; ++i){
-            plane_normal(i) = eigenvector_mat(min_eigval_id,i);
+            rPlaneNormal(i) = eigenvector_mat(min_eigval_id,i);
         }
-
-        return plane_normal;
     }
 
     ///@}
