@@ -144,7 +144,7 @@ private:
         const unsigned int n_points = rPointsCoords.size();
         KRATOS_ERROR_IF(n_points == 0) << "No base point can be computed. Points container is empty." << std::endl;
 
-        array_1d<double, 3> base_point(0.0);
+        array_1d<double, 3> base_point = ZeroVector(3);
         for (unsigned int j = 0; j < n_points; ++j){
             base_point += rPointsCoords[j];
         }
