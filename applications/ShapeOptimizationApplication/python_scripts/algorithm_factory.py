@@ -16,17 +16,17 @@ from algorithm_steepest_descent import AlgorithmSteepestDescent
 from algorithm_penalized_projection import AlgorithmPenalizedProjection
 
 # ==============================================================================
-def CreateAlgorithm( optimization_settings, mdpa_controller, analyzer, communicator ):
+def CreateAlgorithm( optimization_settings, model_part_controller, analyzer, communicator ):
     algorithm_name = optimization_settings["optimization_algorithm"]["name"].GetString()
 
     if algorithm_name == "steepest_descent":
         return AlgorithmSteepestDescent( optimization_settings,
-                                         mdpa_controller,
+                                         model_part_controller,
                                          analyzer,
                                          communicator )
     elif algorithm_name == "penalized_projection":
         return AlgorithmPenalizedProjection( optimization_settings,
-                                             mdpa_controller,
+                                             model_part_controller,
                                              analyzer,
                                              communicator )
     else:
