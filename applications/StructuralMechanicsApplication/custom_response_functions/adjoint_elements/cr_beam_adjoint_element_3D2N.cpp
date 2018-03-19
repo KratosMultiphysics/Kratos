@@ -445,35 +445,93 @@ namespace Kratos
     	Vector stress_vector_undist;
     	Vector stress_vector_dist;
 		ProcessInfo copy_process_info = rCurrentProcessInfo;
+		double initial_value_of_state_variable = 0.0;
 
 		// Get disturbance measure
         double dist_measure = this->GetValue(DISTURBANCE_MEASURE);
-		//TODO: is here a correction of delta necessary???
 
-    	this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+		// Built vector of variables containing the DOF-variables of the primal problem 
+		std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_varibale_list;
 
-		DofsVectorType element_dof_list;
-    	CrBeamElementLinear3D2N::GetDofList(element_dof_list, copy_process_info);
+		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("DISPLACEMENT_X"))  
+        {
+			const VariableComponentType& variable=
+            	KratosComponents<VariableComponentType>::Get("DISPLACEMENT_X");
+            primal_solution_varibale_list.push_back(variable);       
+		}
+		else
+			KRATOS_ERROR << "Variable 'DISPLACEMENT_X' of primal DOF not found" << std::endl;	
+		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("DISPLACEMENT_Y"))  
+        {
+			const VariableComponentType& variable=
+            	KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Y");
+            primal_solution_varibale_list.push_back(variable);       
+		}
+		else
+			KRATOS_ERROR << "Variable 'DISPLACEMENT_Y' of primal DOF not found" << std::endl;	
+		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("DISPLACEMENT_Z"))  
+        {
+			const VariableComponentType& variable=
+            	KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Z");
+            primal_solution_varibale_list.push_back(variable);       
+		}
+		else
+			KRATOS_ERROR << "Variable 'DISPLACEMENT_Z' of primal DOF not found" << std::endl;	
+		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("ROTATION_X"))  
+        {
+			const VariableComponentType& variable=
+            	KratosComponents<VariableComponentType>::Get("ROTATION_X");
+            primal_solution_varibale_list.push_back(variable);       
+		}
+		else
+			KRATOS_ERROR << "Variable 'ROTATION_X' of primal DOF not found" << std::endl;	
+		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("ROTATION_Y"))  
+        {
+			const VariableComponentType& variable=
+            	KratosComponents<VariableComponentType>::Get("ROTATION_Y");
+            primal_solution_varibale_list.push_back(variable);       
+		}
+		else
+			KRATOS_ERROR << "Variable 'ROTATION_Y' of primal DOF not found" << std::endl;		
+		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("ROTATION_Z"))  
+        {
+			const VariableComponentType& variable=
+            	KratosComponents<VariableComponentType>::Get("ROTATION_Z");
+            primal_solution_varibale_list.push_back(variable);       
+		}
+		else
+			KRATOS_ERROR << "Variable 'ROTATION_Z' of primal DOF not found" << std::endl;	
 
-		unsigned int size_stress_vec = stress_vector_undist.size();
+		this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
+		unsigned int size_stress_vec = stress_vector_undist.size();	
+			
     	rOutput.resize(num_dofs, size_stress_vec);
-    	for(int i = 0; i < num_dofs; i++)
-    	{
-        	element_dof_list[i]->GetSolutionStepValue() += dist_measure;
+    	rOutput.clear();
+		int index = 0;
+    	for (int i = 0; i < num_nodes; i++) 
+		{	
+			for(unsigned int j = 0; j < primal_solution_varibale_list.size(); j++)
+			{
+        		initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]);
+				
+				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]) = initial_value_of_state_variable + dist_measure;
+				
+				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+			
+        		for(unsigned int k = 0; k < size_stress_vec; k++)
+        		{
+            		stress_vector_dist[k] -= stress_vector_undist[k];
+            		stress_vector_dist[k] /= dist_measure;
+            		rOutput(index,k) = stress_vector_dist[k];
+        		}
 
-    		this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]) = initial_value_of_state_variable;
 
-        	for(unsigned int j = 0; j < size_stress_vec; j++)
-        	{
-            	stress_vector_dist[j] -= stress_vector_undist[j];
-            	stress_vector_dist[j] /= dist_measure;
-            	rOutput(i,j) = stress_vector_dist[j];
-        	}
-
-        	element_dof_list[i]->GetSolutionStepValue() -= dist_measure;
-        	stress_vector_dist.clear();
+				stress_vector_dist.clear();
+				index++;
+			}
     	}
-
+		
 		KRATOS_CATCH("")
 	}
 

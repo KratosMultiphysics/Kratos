@@ -40,6 +40,7 @@ namespace Kratos
 		typedef BaseType::VectorType VectorType;
 		typedef BaseType::EquationIdVectorType EquationIdVectorType;
 		typedef BaseType::DofsVectorType DofsVectorType;
+		typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
 
 
 		CrBeamAdjointElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry);
