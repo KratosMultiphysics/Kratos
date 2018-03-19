@@ -13,11 +13,11 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+#include "pybind11/pybind11.h"
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
@@ -33,15 +33,13 @@ namespace Python
 {
 
 
-  void  AddCustomUtilitiesToPython()
+  void  AddCustomUtilitiesToPython(pybind11::module& m)
   {
-	using namespace boost::python;
-
-
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
+    using namespace pybind11;
+	
+    //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
   }
 
