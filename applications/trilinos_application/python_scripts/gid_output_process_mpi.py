@@ -120,14 +120,6 @@ class GiDOutputProcessMPI(gid_output_process.GiDOutputProcess):
         name_base = model_name
         name_ext = ".post.lst"
 
-        ## Remove 1 from extra frequencies (and remove duplicates)
-        #used_frequencies = [1,]
-        #extra_frequencies = []
-        #for f in additional_frequencies:
-        #    if f not in used_frequencies:
-        #        used_frequencies.append(f)
-        #        extra_frequencies.append(f)
-
         if self.post_mode == GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
         elif self.post_mode == GiDPostMode.GiD_PostAscii:
