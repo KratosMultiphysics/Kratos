@@ -95,13 +95,6 @@ class Algorithm(BaseAlgorithm):
         self.recovery_time = t1 - t0
 
     def FluidSolve(self, time = 'None', solve_system = True):
-
-        for node in self.fluid_model_part.Nodes:
-            vel= Vector(3)
-            coor = Vector([node.X, node.Y, node.Z])
-            self.flow_field.Evaluate(time, coor, vel, 0)
-            node.SetSolutionStepValue(VELOCITY, vel)
-
         self.CalculateRecoveryErrors(time)
 
     def CalculateRecoveryErrors(self, time):
@@ -123,8 +116,8 @@ class Algorithm(BaseAlgorithm):
             total_volume += nodal_volume
             coor = Vector([node.X, node.Y, node.Z])
 
-            self.flow_field.CalculateMaterialAcceleration(time, coor, mat_deriv, 0)
-            self.flow_field.CalculateLaplacian(time, coor, laplacian, 0)
+            self.flow_field.CalculateConvectiveDerivative(0., coor, mat_deriv, 0)
+            self.flow_field.CalculateLaplacian(0., coor, laplacian, 0)
             calc_mat_deriv = node.GetSolutionStepValue(MATERIAL_ACCELERATION)
             calc_laplacian = node.GetSolutionStepValue(VELOCITY_LAPLACIAN)
 
@@ -143,7 +136,6 @@ class Algorithm(BaseAlgorithm):
             max_mat_deriv_error = max(max_mat_deriv_error, module_mat_deriv_error_squared)
             max_laplacian_error = max(max_laplacian_error, module_laplacian_error_squared)
 
-        print('total', total_volume)
         L2_norm_mat_deriv **= 0.5
         L2_norm_mat_deriv /= total_volume ** 0.5
         L2_norm_mat_deriv_error **= 0.5

@@ -25,13 +25,13 @@ class MeshType:
 
 combinations_that_failed = []
 errors = []
-irregular_mesh_sizes = [0.4, 0.2]
-regular_mesh_n_points = [10, 20]
-derivatives_types = [1, 3, 4, 6, 7]
-field_identifiers = ['sines']
+irregular_mesh_sizes = [0.4, 0.2, 0.1]
+regular_mesh_n_points = [40]
+derivatives_types = [1, 3, 5, 6, 7]
+field_identifiers = ['ethier']
 mesh_tags = ['Altair']
-mesh_types = []
 
+mesh_types = []
 if irregular_mesh_sizes:
     mesh_type = MeshType(False, '')
     mesh_type.AddSizes(irregular_mesh_sizes)

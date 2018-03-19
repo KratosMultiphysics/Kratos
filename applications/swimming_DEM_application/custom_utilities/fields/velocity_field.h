@@ -87,6 +87,11 @@ virtual void CalculateMaterialAcceleration(const double time,
                                            array_1d<double, 3>& accel,
                                            const int i_thread = 0);
 
+virtual void CalculateConvectiveDerivative(const double time,
+                                           const array_1d<double, 3>& coor,
+                                           array_1d<double, 3>& accel,
+                                           const int i_thread = 0);
+
 virtual void CalculateAccelerationFollowingTheParticle(const double time,
                                                        const array_1d<double, 3>& coor,
                                                        array_1d<double, 3>& accel,
@@ -124,6 +129,11 @@ void CalculateLaplacian(const double time,
                         const int i_thread = 0) override;
 
 virtual void CalculateMaterialAcceleration(const double time,
+                                           const vector<double>& coor,
+                                           vector<double>& result,
+                                           const int i_thread = 0);
+
+virtual void CalculateConvectiveDerivative(const double time,
                                            const vector<double>& coor,
                                            vector<double>& result,
                                            const int i_thread = 0);

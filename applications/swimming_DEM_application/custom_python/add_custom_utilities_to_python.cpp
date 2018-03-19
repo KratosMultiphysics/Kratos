@@ -194,6 +194,9 @@ using namespace boost::python;
     typedef void (VelocityField::*CalculateMaterialAcceleration)(const double, const vector<double>&, vector<double>&, const int);
     CalculateMaterialAcceleration CalculateMaterialAccelerationVector = &VelocityField::CalculateMaterialAcceleration;
 
+    typedef void (VelocityField::*CalculateConvectiveDerivative)(const double, const vector<double>&, vector<double>&, const int);
+    CalculateConvectiveDerivative CalculateConvectiveDerivativeVector = &VelocityField::CalculateConvectiveDerivative;
+
     class_<VelocityField, bases<VectorField<3> > > ("VelocityField", boost::python::no_init)
         .def("Evaluate", EvaluateVector)
         .def("CalculateTimeDerivative", CalculateTimeDerivativeVector)
@@ -202,6 +205,7 @@ using namespace boost::python;
         .def("CalculateRotational", CalculateRotationalVector)
         .def("CalculateLaplacian", CalculateLaplacianVector)
         .def("CalculateMaterialAcceleration", CalculateMaterialAccelerationVector)
+        .def("CalculateConvectiveDerivative", CalculateConvectiveDerivativeVector)
         ;
 
     class_<ConstantVelocityField, bases<VelocityField> > ("ConstantVelocityField", init<const double, const double, const double>())

@@ -179,6 +179,40 @@ void VelocityField::CalculateMaterialAcceleration(const double time,
     accel[2] = vel_rate[2] + u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
 }
 
+void VelocityField::CalculateConvectiveDerivative(const double time,
+                                                  const array_1d<double, 3>& coor,
+                                                  array_1d<double, 3>& accel,
+                                                  const int i_thread)
+{
+    UpdateCoordinates(time, coor, i_thread);
+    double u0 = U0(i_thread);
+    double u1 = U1(i_thread);
+    double u2 = U2(i_thread);
+    array_1d< array_1d<double, 3>, 3> grad;
+    CalculateGradient(time, coor, grad, i_thread);
+
+    accel[0] = u0 * grad[0][0] + u1 * grad[0][1] + u2 * grad[0][2];
+    accel[1] = u0 * grad[1][0] + u1 * grad[1][1] + u2 * grad[1][2];
+    accel[2] = u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
+}
+
+void VelocityField::CalculateConvectiveDerivative(const double time,
+                                                  const vector<double>& coor,
+                                                  vector<double>& accel,
+                                                  const int i_thread)
+{
+    UpdateCoordinates(time, coor, i_thread);
+    double u0 = U0(i_thread);
+    double u1 = U1(i_thread);
+    double u2 = U2(i_thread);
+    array_1d< array_1d<double, 3>, 3> grad;
+    CalculateGradient(time, coor, grad, i_thread);
+
+    accel[0] = u0 * grad[0][0] + u1 * grad[0][1] + u2 * grad[0][2];
+    accel[1] = u0 * grad[1][0] + u1 * grad[1][1] + u2 * grad[1][2];
+    accel[2] = u0 * grad[2][0] + u1 * grad[2][1] + u2 * grad[2][2];
+}
+
 void VelocityField::CalculateAccelerationFollowingTheParticle(const double time,
                                                               const array_1d<double, 3>& coor,
                                                               array_1d<double, 3>& accel,
