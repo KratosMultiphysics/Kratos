@@ -23,7 +23,7 @@ def convert_chain_int_int(list_slip_stick):
 ## Debug
 #dim_combinations = [2]
 #nnodes_combinations = [2]
-#normal_combs = 2
+#normal_combs = 1
 
 dim_combinations = [2,3,3]
 nnodes_combinations = [2,3,4]
@@ -322,7 +322,7 @@ for normalvar in range(2):
         lhs_string = lhs_string.replace("sqrt(", "std::sqrt(")
         rhs_string = rhs_string.replace("pow(", "std::pow(")
         rhs_string = rhs_string.replace("sqrt(", "std::sqrt(")
-        rhs_string = rhs_string.replace("lhs(", "rLocalLHS(")
+        lhs_string = lhs_string.replace("lhs(", "rLocalLHS(")
         rhs_string = rhs_string.replace("rhs[", "rLocalRHS[")
 
         for dof in reversed(range(len(u1_var))):
