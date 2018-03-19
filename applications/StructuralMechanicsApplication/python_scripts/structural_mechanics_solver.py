@@ -52,18 +52,11 @@ class MechanicalSolver(object):
             "analysis_type": "non_linear",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "perform_partitioning": true
+                "input_filename": "unknown_name"
             },
             "restart_settings" : {
-                "load_restart"                   : false,
-                "restart_load_file_label"        : "",
-                "load_restart_files_from_folder" : true,
-                "save_restart"                   : false,
-                "restart_save_frequency"         : 1.0,
-                "restart_control_type"           : "time",
-                "save_restart_files_in_folder"   : true,
-                "serializer_trace"               : "no_trace"
+                "load_restart"  : false,
+                "save_restart"  : false
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
@@ -115,11 +108,6 @@ class MechanicalSolver(object):
             warning += 'which is only needed if you use the "python_solvers_wrapper_structural". \nPlease remove it '
             warning += 'from the "solver settings" if you dont use this wrapper, this check will be removed soon!\n'
             self.print_warning_on_rank_zero("Time integration method", warning)
-        if custom_settings["model_import_settings"].Has("input_file_label"):
-            custom_settings["model_import_settings"].RemoveValue("input_file_label")
-            warning = '\n::[MechanicalSolver]:: W-A-R-N-I-N-G: You have specified "model_import_settings/input_file_label", '
-            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
-            self.print_warning_on_rank_zero("Input file label", warning)
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
@@ -137,50 +125,51 @@ class MechanicalSolver(object):
             self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def AddVariables(self):
-        if not self.is_restarted():
-            # Add displacements.
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
-            # Add specific variables for the problem conditions.
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
-            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
-            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-            if self.settings["rotation_dofs"].GetBool():
-                # Add specific variables for the problem (rotation dofs).
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
-            if self.settings["pressure_dofs"].GetBool(): # TODO: The creation of UP and USigma elements is pending
-                # Add specific variables for the problem (pressure dofs).
-                self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-                self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESSURE_REACTION)
-            # Add variables that the user defined in the ProjectParameters
-            for i in range(self.settings["auxiliary_variables_list"].size()):
-                variable_name = self.settings["auxiliary_variables_list"][i].GetString()
-                variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
-                self.main_model_part.AddNodalSolutionStepVariable(variable)
-            self.print_on_rank_zero("::[MechanicalSolver]:: ", "Variables ADDED")
+        # this can safely be called also for restarts, it is internally checked if the variables exist already
+        # Add displacements.
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+        # Add specific variables for the problem conditions.
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.LINE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SURFACE_LOAD)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
+        if self.settings["rotation_dofs"].GetBool():
+            # Add specific variables for the problem (rotation dofs).
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TORQUE)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_MOMENT)
+        if self.settings["pressure_dofs"].GetBool(): # TODO: The creation of UP and USigma elements is pending
+            # Add specific variables for the problem (pressure dofs).
+            self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.PRESSURE_REACTION)
+        # Add variables that the user defined in the ProjectParameters
+        for i in range(self.settings["auxiliary_variables_list"].size()):
+            variable_name = self.settings["auxiliary_variables_list"][i].GetString()
+            variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+            self.main_model_part.AddNodalSolutionStepVariable(variable)
+        self.print_on_rank_zero("::[MechanicalSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
         return 2
 
     def AddDofs(self):
-        if not self.is_restarted():
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
-            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
-            if self.settings["rotation_dofs"].GetBool():
-                KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,self.main_model_part)
-                KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,self.main_model_part)
-                KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,self.main_model_part)
-            if self.settings["pressure_dofs"].GetBool():
-                KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
-            self.print_on_rank_zero("::[MechanicalSolver]:: ", "DOF's ADDED")
+        # this can safely be called also for restarts, it is internally checked if the dofs exist already
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
+        if self.settings["rotation_dofs"].GetBool():
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_X, KratosMultiphysics.TORQUE_X,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Y, KratosMultiphysics.TORQUE_Y,self.main_model_part)
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ROTATION_Z, KratosMultiphysics.TORQUE_Z,self.main_model_part)
+        if self.settings["pressure_dofs"].GetBool():
+            KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.PRESSURE, KratosMultiphysics.PRESSURE_REACTION,self.main_model_part)
+        self.print_on_rank_zero("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
+        """ Legacy function, use ReadModelPart and PrepareModelPartForSolver instead """
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
@@ -197,11 +186,28 @@ class MechanicalSolver(object):
         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished importing model part.")
 
+    def ReadModelPart(self):
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part.")
+        problem_path = os.getcwd()
+        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
+        if self.is_restarted():
+            self.get_restart_utility().LoadRestart()
+        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+            # Import model part from mdpa file.
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
+        else:
+            raise Exception("Other model part input options are not yet implemented.")
+        KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished reading model part.")
+
     def PrepareModelPartForSolver(self):
         if not self.is_restarted():
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
             self._set_and_fill_buffer()
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -576,6 +582,3 @@ class MechanicalSolver(object):
         rest_utility = restart_utility.RestartUtility(self.main_model_part,
                                                       self._get_restart_settings())
         return rest_utility
-
-
-
