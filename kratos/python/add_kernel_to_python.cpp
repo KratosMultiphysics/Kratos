@@ -46,10 +46,10 @@ bool HasConstitutiveLaw(Kernel& rKernel, const std::string& constitutive_law_nam
     return KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name);
 }
 
-const ConstitutiveLaw& GetConstitutiveLaw(
+ConstitutiveLaw::Pointer GetConstitutiveLaw(
     Kernel& rKernel, const std::string& constitutive_law_name) {
     if (KratosComponents<ConstitutiveLaw>::Has(constitutive_law_name)) {
-        return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name);
+        return KratosComponents<ConstitutiveLaw>::Get(constitutive_law_name).Clone();
     }
     else
     {
@@ -155,8 +155,7 @@ void AddKernelToPython() {
             GetVariableNames<VariableComponent<
                 VectorComponentAdaptor<array_1d<double, 3> > > >)
         .def("HasConstitutiveLaw", HasConstitutiveLaw)
-        .def("GetConstitutiveLaw", GetConstitutiveLaw,
-            return_internal_reference<>())
+        .def("GetConstitutiveLaw", GetConstitutiveLaw)
         .def(self_ns::str(self));
 }
 
