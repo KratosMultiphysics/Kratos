@@ -16,19 +16,21 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
 # additional imports
+from custom_timer import Timer
 from analyzer_empty import EmptyAnalyzer
+import model_part_controller_factory
+import analyzer_factory
+import communicator_factory
+import algorithm_factory
 
 # ==============================================================================
 def CreateOptimizer(parameters, optimization_mdpa, external_analyzer=EmptyAnalyzer()):
     optimization_settings = parameters["optimization_settings"]
 
-    import model_part_controller_factory
     model_part_controller = model_part_controller_factory.CreateController(optimization_settings, optimization_mdpa)
 
-    import analyzer_factory
     analyzer = analyzer_factory.CreateAnalyzer(parameters, model_part_controller, external_analyzer)
 
-    import communicator_factory
     communicator = communicator_factory.CreateCommunicator(optimization_settings)
 
     if optimization_settings["design_variables"]["type"].GetString() == "vertex_morphing":
@@ -67,7 +69,6 @@ class VertexMorphingMethod:
 
     # --------------------------------------------------------------------------
     def Optimize(self):
-        from custom_timer import Timer
         algorithm_name = self.optimization_settings["optimization_algorithm"]["name"].GetString()
 
         print("\n> ==============================================================================================================")
@@ -79,7 +80,6 @@ class VertexMorphingMethod:
         else:
             self.model_part_controller.ImportOptimizationModelPart()
 
-        import algorithm_factory
         algorithm = algorithm_factory.CreateAlgorithm(self.optimization_settings,
                                                       self.model_part_controller,
                                                       self.analyzer,
