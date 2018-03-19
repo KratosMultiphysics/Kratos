@@ -112,15 +112,13 @@ class FluidDynamicsAnalysis(object):
         self.have_output = self.project_parameters.Has("output_configuration")
         if self.have_output:
             if self.parallel_type == "OpenMP":
-                from gid_output_process import GiDOutputProcess
-                self.output = GiDOutputProcess(self.model_part,
-                                               self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                               self.project_parameters["output_configuration"])
+                from gid_output_process import GiDOutputProcess as OutputProcess
             elif self.parallel_type == "MPI":
-                from gid_output_process_mpi import GiDOutputProcessMPI
-                self.output = GiDOutputProcessMPI(self.model_part,
-                                                  self.project_parameters["problem_data"]["problem_name"].GetString() ,
-                                                  self.project_parameters["output_configuration"])
+                from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
+
+            self.output = OutputProcess(self.model_part,
+                                        self.project_parameters["problem_data"]["problem_name"].GetString() ,
+                                        self.project_parameters["output_configuration"])
 
             self.output.ExecuteInitialize()
 
@@ -136,13 +134,12 @@ class FluidDynamicsAnalysis(object):
             restart_settings.AddValue("echo_level", self.project_parameters["problem_data"]["echo_level"])
 
             if self.parallel_type == "OpenMP":
-                import restart_utility as ru
-                self.restart_utility = ru.RestartUtility(self.main_model_part,
-                                                         self.project_parameters["restart_settings"])
+                from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
-                import trilinos_restart_utility as ru
-                self.restart_utility = ru.TrilinosRestartUtility(self.main_model_part,
-                                                                 self.project_parameters["restart_settings"])
+                from trilinos_restart_utility import TrilinosRestartUtility as Restart
+
+            self.restart_utility = Restart(self.main_model_part,
+                                           self.project_parameters["restart_settings"])
         else:
             self.load_restart = False
             self.save_restart = False
