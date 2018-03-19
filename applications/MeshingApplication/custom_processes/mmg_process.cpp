@@ -330,7 +330,7 @@ void MmgProcess<TDim>::InitializeMeshData()
             bool cond_added = false, elem_added = false;
             
             for (auto sub_model_part_name : color_list.second) {      
-                ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name); 
+                ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
                 
                 if (to_check_cond == true) {
                     ConditionsArrayType& conditions_array_sub_model_part = r_sub_model_part.Conditions();
@@ -589,7 +589,7 @@ void MmgProcess<TDim>::ExecuteRemeshing()
         
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
             for (auto sub_model_part_name : color_list.second) {      
-                ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
+                ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
                 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
                 if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
@@ -602,10 +602,10 @@ void MmgProcess<TDim>::ExecuteRemeshing()
     
     // TODO: Add OMP
     // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
-    const std::vector<std::string> sub_model_part_names = mrThisModelPart.GetSubModelPartNames();
+    const std::vector<std::string> sub_model_part_names = SubModelPartsListUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
 
     for (auto sub_model_part_name : sub_model_part_names) {
-        ModelPart& r_sub_model_part = mrThisModelPart.GetSubModelPart(sub_model_part_name);
+        ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
         
         std::unordered_set<IndexType> node_ids;
         
