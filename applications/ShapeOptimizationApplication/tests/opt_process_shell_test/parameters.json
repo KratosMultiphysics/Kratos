@@ -11,7 +11,7 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -74,7 +74,7 @@
             "interval"        : [0.0,"End"]
         }
     }],
-    "output_configuration"     : {
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -94,6 +94,33 @@
         },
         "point_data_configuration"  : []
     },
+    "list_other_processes": [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
+                "input_file_name" : "shape_change_results.json",
+                "model_part_name"  : "structure",
+                "time_frequency"   : 0.0
+            }
+        }
+    ],
+    "_json_output_process" : [
+        {
+            "python_module"   : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "JsonOutputProcess",
+            "Parameters"            : {
+                "output_variables" : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
+                "output_file_name" : "shape_change_results.json",
+                "model_part_name"  : "structure",
+                "time_frequency"   : 0.0
+            }
+    }],
     "restart_options"          : {
         "SaveRestart"      : false,
         "RestartFrequency" : 0,
@@ -123,7 +150,7 @@
             "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
-                "filter_radius"              : 0.3,
+                "filter_radius"              : 0.5,
                 "max_nodes_in_filter_radius" : 10000,
                 "matrix_free_filtering"      : false
             },
@@ -133,9 +160,9 @@
                         "sub_model_part_name"   : "support",
                         "damp_X"                : true,
                         "damp_Y"                : true,
-                        "damp_Z"                : false,
+                        "damp_Z"                : true,
                         "damping_function_type" : "linear",
-                        "damping_radius"        : 0.3
+                        "damping_radius"        : 0.5
                     }]
             },
             "mesh_motion" : {
@@ -144,7 +171,7 @@
         },
         "optimization_algorithm" : {
             "name"                                 : "steepest_descent",
-            "max_iterations"                       : 100,
+            "max_iterations"                       : 10,
             "relative_tolerance"                   : 1e0,
             "project_gradients_on_surface_normals" : true
         },
@@ -158,13 +185,7 @@
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteDesignSurface",
-            "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
-                                          "OBJECTIVE_SENSITIVITY",
-                                          "MAPPED_OBJECTIVE_SENSITIVITY",
-                                          "CONTROL_POINT_UPDATE",
-                                          "CONTROL_POINT_CHANGE",
-                                          "SHAPE_UPDATE",
-                                          "SHAPE_CHANGE" ],
+            "nodal_results"           : [ "SHAPE_CHANGE" ],
             "output_format" : {
                 "name"              : "gid",
                 "gid_configuration" : {

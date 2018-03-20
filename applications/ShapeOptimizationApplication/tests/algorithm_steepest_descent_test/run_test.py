@@ -75,7 +75,7 @@ class CustomAnalyzer(AnalyzerBaseClass):
 # Perform optimization
 # =======================================================================================================
 
-with open("ProjectParameters.json",'r') as parameter_file:
+with open("parameters.json",'r') as parameter_file:
     parameters = Parameters(parameter_file.read())
 
 optimization_model_part = ModelPart(parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString())
@@ -84,5 +84,41 @@ optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimizati
 import optimizer_factory
 optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part, CustomAnalyzer())
 optimizer.Optimize()
+
+# =======================================================================================================
+# Test results and clean directory
+# =======================================================================================================
+from KratosMultiphysics.KratosUnittest import TestCase
+import csv
+import os
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+
+output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
+response_log_filename = parameters["optimization_settings"]["output"]["response_log_filename"].GetString() + ".csv"
+optimization_model_part_name = parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString()
+
+original_directory = os.getcwd()
+os.chdir(output_directory)
+
+# Testing
+with open(response_log_filename, 'r') as csvfile:
+    reader = csv.reader(csvfile, delimiter=',')
+    for line in reader:
+        pass
+
+    last_line = line
+    resulting_optimization_iterations = int(last_line[0].strip())
+    resulting_improvement = float(last_line[2].strip())
+
+    # Check against specifications
+    test_result = TestCase().assertEqual(resulting_optimization_iterations, 124)
+    test_results = TestCase().assertAlmostEqual(resulting_improvement, -90.228425, 5)
+
+# Cleaning
+os.chdir(original_directory)
+kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
+kratos_utilities.DeleteDirectoryIfExisting(output_directory)
+kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
+kratos_utilities.DeleteFileIfExisting(optimization_model_part_name+".time")
 
 # =======================================================================================================
