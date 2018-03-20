@@ -52,6 +52,19 @@ def SupressConsoleError():
         finally:
             sys.stderr = old_stderr
 
+@contextmanager
+def SupressAllConsole():
+    with open(os.devnull, "w") as devnull:
+        old_stderr = sys.stderr
+        old_stdout = sys.stdout
+        sys.stderr = devnull
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stderr = old_stderr
+            sys.stdout = old_stdout
+
 def Usage():
     ''' Prints the usage of the script '''
 
