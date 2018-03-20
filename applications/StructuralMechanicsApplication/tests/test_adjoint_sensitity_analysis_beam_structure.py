@@ -90,7 +90,6 @@ class TestCase(KratosUnittest.TestCase):
     def tearDown(self):
         pass
     #TODO: add this test in test_StructualMechanicsApllication.py
-    #TODO: test also for I22_Sensitivity
 
 if __name__ == '__main__':
     KratosUnittest.main()
