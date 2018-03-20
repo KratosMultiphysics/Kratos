@@ -38,8 +38,8 @@ int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInf
 {
     KRATOS_TRY
     
-    const PropertiesType& Prop = this->GetProperties();
-    const GeometryType& Geom = this->GetGeometry();
+    // const PropertiesType& Prop = this->GetProperties();
+    // const GeometryType& Geom = this->GetGeometry();
 
     // Base class checks for positive area and Id > 0
     int ierr = Element::Check(rCurrentProcessInfo);
@@ -92,7 +92,7 @@ int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInf
     // else
     //     KRATOS_THROW_ERROR( std::logic_error, "A constitutive law needs to be specified for the element ", this->Id() )
         
-    // return ierr;
+    return ierr;
 
     KRATOS_CATCH( "" );
 }
@@ -177,26 +177,26 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateLeftHandSide(
 
 //----------------------------------------------------------------------------------------
 
-template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-    KRATOS_TRY
+// template< unsigned int TDim, unsigned int TNumNodes >
+// void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+// {
+//     KRATOS_TRY
     
-    const unsigned int element_size = TNumNodes * (TDim + 1);
+//     const unsigned int element_size = TNumNodes * (TDim + 1);
         
-    //Resetting the RHS
-    if ( rRightHandSideVector.size() != element_size )
-        rRightHandSideVector.resize( element_size, false );
-    noalias( rRightHandSideVector ) = ZeroVector( element_size );
+//     //Resetting the RHS
+//     if ( rRightHandSideVector.size() != element_size )
+//         rRightHandSideVector.resize( element_size, false );
+//     noalias( rRightHandSideVector ) = ZeroVector( element_size );
     
-    this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
+//     this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
     
-    KRATOS_CATCH( "" )
-}
+//     KRATOS_CATCH( "" )
+// }
 
 //----------------------------------------------------------------------------------------
 
-template< >
+template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -221,9 +221,9 @@ void SteadyConvectionDiffusionFICElement<TDim, TNumNodes>::EquationIdVector(Equa
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetValuesVector( Vector& rValues, int Step )
 {
-    const GeometryType& Geom = this->GetGeometry();
+    //const GeometryType& Geom = this->GetGeometry();
     const unsigned int element_size = TNumNodes * (TDim + 1);
-    unsigned int index = 0;
+    //unsigned int index = 0;
 
     if ( rValues.size() != element_size )
         rValues.resize( element_size, false );
@@ -261,7 +261,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
     
     //Element variables
     ElementVariables Variables; 
-    this->InitializeElementVariables(Variables,ConstitutiveParameters,Geom,Prop,CurrentProcessInfo);
+    this->InitializeElementVariables(Variables,Geom,Prop,CurrentProcessInfo);
 
     noalias(Variables.VelInter) = ZeroVector(TDim);
 
@@ -274,7 +274,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
         
         //Compute N and Interpolated velocity
         noalias(Variables.N) = row(NContainer,GPoint);
-        InterpolateVariableWithComponents(Variables.VelInter,NContainer,rVariables.NodalVel,GPoint);
+        InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
 
 
 
@@ -282,7 +282,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
         Variables.QSource = 0.0;
         for(unsigned int i=0; i<TNumNodes; i++)
         {
-            Variables.QSource += Variables.N[i]*NodalQSource[i];
+            Variables.QSource += Variables.N[i]*Variables.NodalQSource[i];
         }
 
         //Compute weighting coefficient for integration
@@ -299,12 +299,12 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
 }
 
 template< unsigned int TDim, unsigned int TNumNodes >
-void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
+void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVariables(ElementVariables& rVariables,
                                                                                   const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo)
 {   
     KRATOS_TRY
     
-    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+    ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
     //Properties variables    
     const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
@@ -316,14 +316,17 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::InitializeElementVaria
     const Variable<double>& rSpecificHeatVar = my_settings->GetSpecificHeatVariable();
 	double specific_heat = Prop[rSpecificHeatVar];
 
+    const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+
+
     // Compute alpha
-    alpha = conductivity / (FluidDensity*specific_heat);
+    rVariables.alpha = conductivity / (FluidDensity*specific_heat);
 
     // Compute AlphaMatrix
-    noalias(rVariables.AlphaMatrix) = = ZeroMatrix( TDim, TDim );
+    noalias(rVariables.AlphaMatrix) = ZeroMatrix( TDim, TDim );
     for (unsigned int i = 0; i < TDim; i++)
     {
-        rVariables.AlphaMatrix [i][i] = alpha;
+        rVariables.AlphaMatrix(i,i) = rVariables.alpha;
     }
 
     //Nodal Variables
@@ -390,15 +393,14 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateHVector(Eleme
 //----------------------------------------------------------------------------------------
 
 // Triangle2D3 version.
-template<>
+template< unsigned int TDim, unsigned int TNumNodes >
 double SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::ProjectedElementSize(const Geometry<Node<3> >& rGeometry,
-                                                        const array_1d<double,3>& rVelocity) 
-                                                        
+                                                        const array_1d<double,3>& rVelocity)                                                    
 {
 
     double Hu = 0.0;
 
-    const unsigned int TNumNodes = 3;
+    //const unsigned int TNumNodes = 3;
 
     // Loop over edges looking for maximum 'projected' length
     array_1d<double,3> Edge(3,0.0);
@@ -426,7 +428,7 @@ double SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::ProjectedElementSize
 //----------------------------------------------------------------------------------------
 
 // Triangle2D3 version.
-template<>
+template< unsigned int TDim, unsigned int TNumNodes >
 double SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::AverageElementSize(const Geometry<Node<3> >& rGeometry) 
 {
 
@@ -479,7 +481,10 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddLHS(Mat
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    noalias(rLeftHandSideMatrix) += prod(outer_prod(rVariables.N,-1.0*rVariables.VelInter),trans(rVariables.GradNT)*rVariables.IntegrationCoefficient;
+
+    noalias(rVariables.AdvMatrixAux) = outer_prod(rVariables.N,-1.0*rVariables.VelInter);
+
+    noalias(rLeftHandSideMatrix) += prod(rVariables.AdvMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
     
 }
 
@@ -488,7 +493,10 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddAdvecti
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddDiffusiveMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    noalias(rLeftHandSideMatrix) += prod(prod(rVariables.GradNT,rVariables.AlphaMatrix),trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
+
+    noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.AlphaMatrix);
+
+    noalias(rLeftHandSideMatrix) += prod(rVariables.DifMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
     
 }
 
@@ -497,7 +505,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddDiffusi
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddFICMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
-    noalias(rLeftHandSideMatrix) += 1/2.0*prod(rVariables.GradNT,prod(outer_prod(rVariables.HVector,-1.0*rVariables.VelInter),trans(rVariables.GradNT)))*rVariables.IntegrationCoefficient;
+
+    noalias(rVariables.FICMatrixAuxOne) = outer_prod(rVariables.HVector,-1.0*rVariables.VelInter);
+    noalias(rVariables.FICMatrixAuxTwo) = prod(rVariables.FICMatrixAuxOne,trans(rVariables.GradNT));
+
+    noalias(rLeftHandSideMatrix) += 1/2.0*prod(rVariables.GradNT,rVariables.FICMatrixAuxTwo)*rVariables.IntegrationCoefficient;
 
 }
 
@@ -527,7 +539,10 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHS(Vec
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rRightHandSideVector) -= prod(prod(outer_prod(rVariables.N,-1.0*rVariables.VelInter),trans(rVariables.GradNT)*rVariables.IntegrationCoefficient, rVariables.NodalPhi);
+    noalias(rVariables.AdvMatrixAux) = outer_prod(rVariables.N,-1.0*rVariables.VelInter);
+    noalias(rVariables.AdvMatrixAuxTwo) = prod(rVariables.AdvMatrixAux,trans(rVariables.GradNT));
+
+    noalias(rRightHandSideVector) -= prod(rVariables.AdvMatrixAuxTwo*rVariables.IntegrationCoefficient, rVariables.NodalPhi);
 
 }
 //----------------------------------------------------------------------------------------
@@ -535,7 +550,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAdve
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rRightHandSideVector) -= prod(prod(prod(rVariables.GradNT,rVariables.AlphaMatrix),trans(rVariables.GradNT))*rVariables.IntegrationCoefficient, rVariables.NodalPhi);
+
+    noalias(rVariables.DifMatrixAux) = prod(rVariables.GradNT,rVariables.AlphaMatrix);
+    noalias(rVariables.DifMatrixAuxTwo) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT));
+
+    noalias(rRightHandSideVector) -= prod(rVariables.DifMatrixAuxTwo*rVariables.IntegrationCoefficient, rVariables.NodalPhi);
 
 }
 
@@ -544,7 +563,12 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSDiff
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables)
 {
-    noalias(rRightHandSideVector) -= prod(1/2.0*prod(rVariables.GradNT,prod(outer_prod(rVariables.HVector,-1.0*rVariables.VelInter),trans(rVariables.GradNT)))*rVariables.IntegrationCoefficient, rVariables.NodalPhi);
+
+    noalias(rVariables.FICMatrixAuxOne) = outer_prod(rVariables.HVector,-1.0*rVariables.VelInter);
+    noalias(rVariables.FICMatrixAuxTwo) = prod(rVariables.FICMatrixAuxOne,trans(rVariables.GradNT));
+    noalias(rVariables.FICMatrixAuxThree) = prod(rVariables.GradNT,rVariables.FICMatrixAuxTwo);
+
+    noalias(rRightHandSideVector) -= prod(1/2.0*rVariables.FICMatrixAuxThree*rVariables.IntegrationCoefficient, rVariables.NodalPhi);
 
 }
 //----------------------------------------------------------------------------------------

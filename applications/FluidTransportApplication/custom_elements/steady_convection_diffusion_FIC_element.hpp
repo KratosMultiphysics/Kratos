@@ -21,6 +21,7 @@
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
+#include "includes/convection_diffusion_settings.h"
 
 // Application includes
 //#include "custom_elements/U_Pw_element.hpp"  <-- Modificar per fer un element basic
@@ -87,7 +88,7 @@ public:
     
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo ) override;
     
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
+    //void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
     
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
             
@@ -131,9 +132,17 @@ protected:
         double IntegrationCoefficient;
         double QSource;
         array_1d<double,TNumNodes> N;
-        array_1d<double,TDim> = VelInter;
+        array_1d<double,TDim> VelInter;
         boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> GradNT;
 
+        //Auxiliary
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> AdvMatrixAux;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TDim> DifMatrixAux;
+        boost::numeric::ublas::bounded_matrix<double,TDim,TDim> FICMatrixAuxOne;
+        boost::numeric::ublas::bounded_matrix<double,TDim,TNumNodes> FICMatrixAuxTwo;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> AdvMatrixAuxTwo;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> DifMatrixAuxTwo;
+        boost::numeric::ublas::bounded_matrix<double,TNumNodes,TNumNodes> FICMatrixAuxThree;
 
         ///Constitutive Law parameters
         //Vector StrainVector;
@@ -152,44 +161,42 @@ protected:
     
     void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
+    void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
-    void InitializeElementVariables(ElementVariables& rVariables,ConstitutiveLaw::Parameters& rConstitutiveParameters,
-                                    const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
+    void CalculateHVector(ElementVariables& rVariables);
 
-    void CalculateHVector(ElementVariables& rVariables)
+    double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,3>& rVelocity);
 
-    double ProjectedElementSize(const Geometry<Node<3> >& rGeometry, const array_1d<double,3>& rVelocity)
-
-    double AverageElementSize(const Geometry<Node<3> >& rGeometry)
+    double AverageElementSize(const Geometry<Node<3> >& rGeometry);
 
     void InterpolateVariableWithComponents(array_1d<double,TDim>& rVector,const Matrix& Ncontainer, 
-                                        const array_1d<array_1d<double,TDim>, TNumNodes>& VariableWithComponents,const unsigned int& GPoint)
+                                        const array_1d<array_1d<double,TDim>, TNumNodes>& VariableWithComponents,const unsigned int& GPoint);
 
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
     
-    void CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+    void CalculateAndAddAdvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddDiffusiveMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+    void CalculateAndAddDiffusiveMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
-    void CalculateAndAddFICMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
+    void CalculateAndAddFICMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
 
 
     
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
     
-    void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    void CalculateAndAddRHSDiffusive(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    void CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
     
-    void CalculateAndAddFICForce(VectorType& rRightHandSideVector, ElementVariables& rVariables)
+    void CalculateAndAddFICForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
     
 
-    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight)
+    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight);
 
     
     //void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );

@@ -26,7 +26,7 @@
 // Application includes
 #include "fluid_transport_application_variables.h"
 
-#include "custom_elements/steady_convection_diffusion_FIC_element.h"
+#include "custom_elements/steady_convection_diffusion_FIC_element.hpp"
 
 
 namespace Kratos 
