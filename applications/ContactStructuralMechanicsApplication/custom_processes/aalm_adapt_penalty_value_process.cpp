@@ -41,7 +41,7 @@ void AALMAdaptPenaltyValueProcess::Execute()
         const double penalty_parameter = initialize ? initial_penalty_parameter : it_node->GetValue(INITIAL_PENALTY);
         
         // Weighted values
-        const double nodal_area = it_node->GetValue(NODAL_AREA);
+        const double nodal_area = it_node->Has(NODAL_AREA) ? it_node->GetValue(NODAL_AREA) : 0.0;
         if (nodal_area > std::numeric_limits<double>::epsilon()) {
             const double current_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area;
             const double previous_gap = it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1)/nodal_area;

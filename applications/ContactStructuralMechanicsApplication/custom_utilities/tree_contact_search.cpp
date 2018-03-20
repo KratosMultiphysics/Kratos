@@ -868,8 +868,10 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeActiveInactiveNodes()
 
         const double auxiliar_length = distance_threshold * active_check_factor;
         auxiliar_check = false;
-        if (it_node->SolutionStepsDataHas(WEIGHTED_GAP))
-            auxiliar_check = (it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/it_node->GetValue(NODAL_AREA) < auxiliar_length) ? true : false;
+        if (it_node->SolutionStepsDataHas(WEIGHTED_GAP)) {
+            const double nodal_area = it_node->Has(NODAL_AREA) ? it_node->GetValue(NODAL_AREA) : 1.0;
+            auxiliar_check = (it_node->FastGetSolutionStepValue(WEIGHTED_GAP)/nodal_area < auxiliar_length) ? true : false;
+        }
         if ((it_node->GetValue(NORMAL_GAP) < auxiliar_length) || auxiliar_check)
             SetActiveNode(it_node, a, b);
         else
