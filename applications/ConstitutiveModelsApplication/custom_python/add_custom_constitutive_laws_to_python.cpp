@@ -39,6 +39,9 @@
 #include "custom_laws/large_strain_laws/large_strain_plane_strain_2D_law.hpp"
 #include "custom_laws/large_strain_laws/large_strain_axisymmetric_2D_law.hpp"
 
+//strain rate laws
+#include "custom_laws/strain_rate_laws/newtonian_plane_strain_2D_law.hpp"
+
 //general constitutive models
 
 //elasticity models
@@ -153,6 +156,18 @@ namespace Kratos
       	  init<ConstitutiveModelPointer>() )
       	;
 
+
+      //strain rate laws
+      class_< Newtonian3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+       	( "Newtonian3DLaw",
+       	  init<>() )
+       	;
+      
+      class_< NewtonianPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+       	( "NewtonianPlaneStrain2DLaw",
+       	  init<>() )
+       	;
+      
       //general constitutive models
       class_< ConstitutiveModelBaseType, ConstitutiveModelPointer, boost::noncopyable >
        	( "ConstitutiveModelModel",
