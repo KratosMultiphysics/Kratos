@@ -177,7 +177,7 @@ public:
         const TReactionType& rThisReaction)
         : IndexedObject(NodeId),
           mIsFixed(false),
-          mHasReaction(false),
+          mHasReaction(true),
           mEquationId(IndexType()),
           mpSolutionStepsData(pThisSolutionStepsData),
           mpVariable(&rThisVariable),
