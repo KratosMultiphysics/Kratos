@@ -309,8 +309,6 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CleanMemory() override;
-
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;

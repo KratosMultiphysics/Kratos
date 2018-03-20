@@ -356,10 +356,6 @@ namespace Kratos
         KRATOS_CATCH("")
 	}
 
-	void ShellThinElement3D4N::CleanMemory()
-	{
-	}
-
 	void ShellThinElement3D4N::InitializeNonLinearIteration
 	(ProcessInfo& CurrentProcessInfo)
 	{

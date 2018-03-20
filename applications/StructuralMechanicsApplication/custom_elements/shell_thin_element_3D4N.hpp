@@ -186,8 +186,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-		void CleanMemory() override;
-
 		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 		//needed for corotational
 

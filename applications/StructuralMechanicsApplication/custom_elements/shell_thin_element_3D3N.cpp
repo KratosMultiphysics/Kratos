@@ -260,10 +260,6 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
-void ShellThinElement3D3N::CleanMemory()
-{
-}
-
 void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 {
     mpCoordinateTransformation->InitializeNonLinearIteration(CurrentProcessInfo);
