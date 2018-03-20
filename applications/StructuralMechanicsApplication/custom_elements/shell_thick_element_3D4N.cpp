@@ -510,49 +510,6 @@ void ShellThickElement3D4N::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-void ShellThickElement3D4N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
-{
-    if(rResult.size() != 24)
-        rResult.resize(24, false);
-
-    GeometryType & geom = this->GetGeometry();
-
-    for(int i = 0; i < 4; i++)
-    {
-        int index = i * 6;
-        NodeType & iNode = geom[i];
-
-        rResult[index]     = iNode.GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index + 2] = iNode.GetDof(DISPLACEMENT_Z).EquationId();
-
-        rResult[index + 3] = iNode.GetDof(ROTATION_X).EquationId();
-        rResult[index + 4] = iNode.GetDof(ROTATION_Y).EquationId();
-        rResult[index + 5] = iNode.GetDof(ROTATION_Z).EquationId();
-    }
-}
-
-void ShellThickElement3D4N::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
-{
-    ElementalDofList.resize(0);
-    ElementalDofList.reserve(24);
-
-    GeometryType & geom = this->GetGeometry();
-
-    for (int i = 0; i < 4; i++)
-    {
-        NodeType & iNode = geom[i];
-
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_X));
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Y));
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Z));
-
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_X));
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_Y));
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_Z));
-    }
-}
-
 int ShellThickElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -571,74 +528,6 @@ int ShellThickElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
 
 void ShellThickElement3D4N::CleanMemory()
 {
-}
-
-void ShellThickElement3D4N::GetValuesVector(Vector& values, int Step)
-{
-    if(values.size() != 24)
-        values.resize(24, false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (int i = 0; i < 4; i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
-        const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ROTATION, Step);
-
-        int index = i*6;
-        values[index]     = disp[0];
-        values[index + 1] = disp[1];
-        values[index + 2] = disp[2];
-
-        values[index + 3] = rot[0];
-        values[index + 4] = rot[1];
-        values[index + 5] = rot[2];
-    }
-}
-
-void ShellThickElement3D4N::GetFirstDerivativesVector(Vector& values, int Step)
-{
-    if(values.size() != 24)
-        values.resize(24,false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (int i = 0; i < 4; i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, Step);
-
-        int index = i * 6;
-        values[index]        = vel[0];
-        values[index + 1]    = vel[1];
-        values[index + 2]    = vel[2];
-        values[index + 3]    = 0.0;
-        values[index + 4]    = 0.0;
-        values[index + 5]    = 0.0;
-    }
-}
-
-void ShellThickElement3D4N::GetSecondDerivativesVector(Vector& values, int Step)
-{
-    if(values.size() != 24)
-        values.resize(24,false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (int i = 0; i < 4; i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& acc = iNode.FastGetSolutionStepValue(ACCELERATION, Step);
-
-        int index = i * 6;
-        values[index]        = acc[0];
-        values[index + 1]    = acc[1];
-        values[index + 2]    = acc[2];
-        values[index + 3]    = 0.0;
-        values[index + 4]    = 0.0;
-        values[index + 5]    = 0.0;
-    }
 }
 
 void ShellThickElement3D4N::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
@@ -2377,7 +2266,6 @@ void ShellThickElement3D4N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.save("CTr", mpCoordinateTransformation);
-    rSerializer.save("Sec", mSections);
     rSerializer.save("EAS", mEASStorage);
 }
 
@@ -2385,7 +2273,6 @@ void ShellThickElement3D4N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.load("CTr", mpCoordinateTransformation);
-    rSerializer.load("Sec", mSections);
     rSerializer.load("EAS", mEASStorage);
 }
 

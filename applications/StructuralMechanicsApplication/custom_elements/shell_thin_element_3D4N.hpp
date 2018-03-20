@@ -94,8 +94,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 		///@{
 		KRATOS_CLASS_POINTER_DEFINITION(ShellThinElement3D4N);
 
-		typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
-
 		typedef ShellQ4_CoordinateTransformation CoordinateTransformationBaseType;
 
 		typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
@@ -186,22 +184,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 
 		//void ResetConstitutiveLaw();
 
-		void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-		void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 		void CleanMemory() override;
-
-		void GetValuesVector(Vector& values, int Step = 0) override;
-		// needed for dyn
-
-		void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
-		//needed for dyn
-
-		void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
-		//needed for dyn
 
 		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 		//needed for corotational
@@ -472,8 +457,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 		///@name Member Variables
 		///@{
 		CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
-
-		CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
         ///@}
 

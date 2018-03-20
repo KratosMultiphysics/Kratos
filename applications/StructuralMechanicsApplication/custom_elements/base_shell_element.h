@@ -21,8 +21,8 @@
 
 // Project includes
 #include "includes/element.h"
-#include "custom_utilities/shell_cross_section.hpp"
 #include "utilities/quaternion.h"
+#include "custom_utilities/shell_cross_section.hpp"
 #include "structural_mechanics_application_variables.h"
 
 
@@ -64,6 +64,8 @@ public:
   ///@name Pointer Definitions
   /// Pointer definition of BaseShellElement
   KRATOS_CLASS_POINTER_DEFINITION(BaseShellElement);
+
+  typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
 
   ///@}
   ///@name Life Cycle
@@ -294,6 +296,8 @@ protected:
   SizeType mNumDofs;
   SizeType mNumGPs;
   IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
+
+  CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
   ///@}
   ///@name Protected Operators

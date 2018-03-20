@@ -454,6 +454,7 @@ void BaseShellElement::SetBaseMembers()
 
 void BaseShellElement::save(Serializer& rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+  rSerializer.save("Sections", mSections);
   rSerializer.save("NumDofs", mNumDofs);
   rSerializer.save("NumGPs", mNumGPs);
   rSerializer.save("IntM", (int)mIntegrationMethod);
@@ -461,6 +462,7 @@ void BaseShellElement::save(Serializer& rSerializer) const {
 
 void BaseShellElement::load(Serializer& rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+  rSerializer.load("Sections", mSections);
   rSerializer.load("NumDofs", mNumDofs);
   rSerializer.load("NumGPs", mNumGPs);
   int temp;

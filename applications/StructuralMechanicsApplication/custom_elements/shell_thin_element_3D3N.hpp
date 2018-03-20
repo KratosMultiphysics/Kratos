@@ -66,8 +66,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ShellThinElement3D3N);
 
-    typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
-
     typedef ShellT3_CoordinateTransformation CoordinateTransformationBaseType;
 
     typedef Kratos::shared_ptr<CoordinateTransformationBaseType> CoordinateTransformationBasePointerType;
@@ -119,19 +117,9 @@ public:
 
     void ResetConstitutiveLaw() override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CleanMemory() override;
-
-    void GetValuesVector(Vector& values, int Step = 0) override;
-
-    void GetFirstDerivativesVector(Vector& values, int Step = 0) override;
-
-    void GetSecondDerivativesVector(Vector& values, int Step = 0) override;
 
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
@@ -366,8 +354,6 @@ private:
     ///@{
 
     CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
-
-    CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
     ///@}
 

@@ -255,49 +255,6 @@ void ShellThinElement3D3N::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-void ShellThinElement3D3N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
-{
-    if(rResult.size() != OPT_NUM_DOFS)
-        rResult.resize(OPT_NUM_DOFS, false);
-
-    GeometryType & geom = this->GetGeometry();
-
-    for(SizeType i = 0; i < geom.size(); i++)
-    {
-        const int index = i * 6;
-        NodeType & iNode = geom[i];
-
-        rResult[index]     = iNode.GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = iNode.GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index + 2] = iNode.GetDof(DISPLACEMENT_Z).EquationId();
-
-        rResult[index + 3] = iNode.GetDof(ROTATION_X).EquationId();
-        rResult[index + 4] = iNode.GetDof(ROTATION_Y).EquationId();
-        rResult[index + 5] = iNode.GetDof(ROTATION_Z).EquationId();
-    }
-}
-
-void ShellThinElement3D3N::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
-{
-    ElementalDofList.resize(0);
-    ElementalDofList.reserve(OPT_NUM_DOFS);
-
-    GeometryType & geom = this->GetGeometry();
-
-    for (SizeType i = 0; i < geom.size(); i++)
-    {
-        NodeType & iNode = geom[i];
-
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_X));
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Y));
-        ElementalDofList.push_back(iNode.pGetDof(DISPLACEMENT_Z));
-
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_X));
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_Y));
-        ElementalDofList.push_back(iNode.pGetDof(ROTATION_Z));
-    }
-}
-
 int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -315,74 +272,6 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 
 void ShellThinElement3D3N::CleanMemory()
 {
-}
-
-void ShellThinElement3D3N::GetValuesVector(Vector& values, int Step)
-{
-    if(values.size() != OPT_NUM_DOFS)
-        values.resize(OPT_NUM_DOFS, false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (SizeType i = 0; i < geom.size(); i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& disp = iNode.FastGetSolutionStepValue(DISPLACEMENT, Step);
-        const array_1d<double,3>& rot = iNode.FastGetSolutionStepValue(ROTATION, Step);
-
-        int index = i*6;
-        values[index]     = disp[0];
-        values[index + 1] = disp[1];
-        values[index + 2] = disp[2];
-
-        values[index + 3] = rot[0];
-        values[index + 4] = rot[1];
-        values[index + 5] = rot[2];
-    }
-}
-
-void ShellThinElement3D3N::GetFirstDerivativesVector(Vector& values, int Step)
-{
-    if(values.size() != OPT_NUM_DOFS)
-        values.resize(OPT_NUM_DOFS,false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (SizeType i = 0; i < geom.size(); i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, Step);
-
-        int index = i * 6;
-        values[index]        = vel[0];
-        values[index + 1]    = vel[1];
-        values[index + 2]    = vel[2];
-        values[index + 3]    = 0.0;
-        values[index + 4]    = 0.0;
-        values[index + 5]    = 0.0;
-    }
-}
-
-void ShellThinElement3D3N::GetSecondDerivativesVector(Vector& values, int Step)
-{
-    if(values.size() != OPT_NUM_DOFS)
-        values.resize(OPT_NUM_DOFS,false);
-
-    const GeometryType & geom = GetGeometry();
-
-    for (SizeType i = 0; i < geom.size(); i++)
-    {
-        const NodeType & iNode = geom[i];
-        const array_1d<double,3>& acc = iNode.FastGetSolutionStepValue(ACCELERATION, Step);
-
-        int index = i * 6;
-        values[index]        = acc[0];
-        values[index + 1]    = acc[1];
-        values[index + 2]    = acc[2];
-        values[index + 3]    = 0.0;
-        values[index + 4]    = 0.0;
-        values[index + 5]    = 0.0;
-    }
 }
 
 void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
@@ -2125,14 +2014,12 @@ void ShellThinElement3D3N::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.save("CTr", mpCoordinateTransformation);
-    rSerializer.save("Sec", mSections);
 }
 
 void ShellThinElement3D3N::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.load("CTr", mpCoordinateTransformation);
-    rSerializer.load("Sec", mSections);
 }
 
 }
