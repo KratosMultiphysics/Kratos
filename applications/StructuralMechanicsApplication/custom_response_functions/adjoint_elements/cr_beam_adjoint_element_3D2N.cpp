@@ -452,56 +452,13 @@ namespace Kratos
 
 		// Built vector of variables containing the DOF-variables of the primal problem 
 		std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_varibale_list;
-
-		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("DISPLACEMENT_X"))  
-        {
-			const VariableComponentType& variable=
-            	KratosComponents<VariableComponentType>::Get("DISPLACEMENT_X");
-            primal_solution_varibale_list.push_back(variable);       
-		}
-		else
-			KRATOS_ERROR << "Variable 'DISPLACEMENT_X' of primal DOF not found" << std::endl;	
-		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("DISPLACEMENT_Y"))  
-        {
-			const VariableComponentType& variable=
-            	KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Y");
-            primal_solution_varibale_list.push_back(variable);       
-		}
-		else
-			KRATOS_ERROR << "Variable 'DISPLACEMENT_Y' of primal DOF not found" << std::endl;	
-		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("DISPLACEMENT_Z"))  
-        {
-			const VariableComponentType& variable=
-            	KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Z");
-            primal_solution_varibale_list.push_back(variable);       
-		}
-		else
-			KRATOS_ERROR << "Variable 'DISPLACEMENT_Z' of primal DOF not found" << std::endl;	
-		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("ROTATION_X"))  
-        {
-			const VariableComponentType& variable=
-            	KratosComponents<VariableComponentType>::Get("ROTATION_X");
-            primal_solution_varibale_list.push_back(variable);       
-		}
-		else
-			KRATOS_ERROR << "Variable 'ROTATION_X' of primal DOF not found" << std::endl;	
-		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("ROTATION_Y"))  
-        {
-			const VariableComponentType& variable=
-            	KratosComponents<VariableComponentType>::Get("ROTATION_Y");
-            primal_solution_varibale_list.push_back(variable);       
-		}
-		else
-			KRATOS_ERROR << "Variable 'ROTATION_Y' of primal DOF not found" << std::endl;		
-		if (KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has("ROTATION_Z"))  
-        {
-			const VariableComponentType& variable=
-            	KratosComponents<VariableComponentType>::Get("ROTATION_Z");
-            primal_solution_varibale_list.push_back(variable);       
-		}
-		else
-			KRATOS_ERROR << "Variable 'ROTATION_Z' of primal DOF not found" << std::endl;	
-
+        primal_solution_varibale_list.push_back(DISPLACEMENT_X);       
+	 	primal_solution_varibale_list.push_back(DISPLACEMENT_Y);       
+	  	primal_solution_varibale_list.push_back(DISPLACEMENT_Z);       
+	 	primal_solution_varibale_list.push_back(ROTATION_X);       
+		primal_solution_varibale_list.push_back(ROTATION_Y);       
+	 	primal_solution_varibale_list.push_back(ROTATION_Z);       
+		
 		this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 		unsigned int size_stress_vec = stress_vector_undist.size();	
 			

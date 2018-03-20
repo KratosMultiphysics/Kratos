@@ -617,52 +617,50 @@ namespace Kratos
     	Vector stress_vector_undist;
     	Vector stress_vector_dist;
     	ProcessInfo copy_process_info = rCurrentProcessInfo;
-    	DofsVectorType element_dof_list;
-    	double dist_measure  = 0.0;
-    	double original_value = 0.0;
-
+		double initial_value_of_state_variable = 0.0;
+		const int num_nodes = this->GetGeometry().PointsNumber();
 		// Get disturbance measure
-    	double eta = this->GetValue(DISTURBANCE_MEASURE); 	
-
-    	ShellThinElement3D4N::GetDofList(element_dof_list, copy_process_info);
+    	double dist_measure = this->GetValue(DISTURBANCE_MEASURE); 	
 
     	this->Calculate(rStressVariable, stress_vector_undist, rCurrentProcessInfo);
 
     	rOutput.resize(OPT_NUM_DOFS, OPT_NUM_GP);
 		rOutput.clear();
-		MatrixType output_matrix;
-		output_matrix.resize(OPT_NUM_DOFS, OPT_NUM_GP);
-		output_matrix.clear();
     	
-    	for(size_t i = 0; i < OPT_NUM_DOFS; i++)
-    	{
-        	dist_measure =  eta * element_dof_list[i]->GetSolutionStepValue();
-        	//std::cout << "disp = " << element_dof_list[i]->GetSolutionStepValue() << std::endl;
-        	dist_measure =  eta;
+ 		// Built vector of variables containing the DOF-variables of the primal problem 
+		std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_varibale_list; 
+        primal_solution_varibale_list.push_back(DISPLACEMENT_X);       
+	 	primal_solution_varibale_list.push_back(DISPLACEMENT_Y);       
+	  	primal_solution_varibale_list.push_back(DISPLACEMENT_Z);       
+	 	primal_solution_varibale_list.push_back(ROTATION_X);       
+		primal_solution_varibale_list.push_back(ROTATION_Y);       
+	 	primal_solution_varibale_list.push_back(ROTATION_Z);  
 
-        	if(fabs(dist_measure) < 1e-20 )
-            	continue;
+		int index = 0;
+    	for (int i = 0; i < num_nodes; i++) 
+		{	
+			for(unsigned int j = 0; j < primal_solution_varibale_list.size(); j++)
+			{
+        		initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]);
+				
+				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]) = initial_value_of_state_variable + dist_measure;
+				
+				this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
+			
+        		for(unsigned int k = 0; k < OPT_NUM_GP; k++)
+        		{
+            		stress_vector_dist[k] -= stress_vector_undist[k];
+            		stress_vector_dist[k] /= dist_measure;
+            		rOutput(index,k) = stress_vector_dist[k];
+        		}
 
-        	original_value = element_dof_list[i]->GetSolutionStepValue();  
-       		element_dof_list[i]->GetSolutionStepValue() += dist_measure;
+				this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]) = initial_value_of_state_variable;
 
-        	//std::cout << "disp after dist = " << element_dof_list[i]->GetSolutionStepValue() << std::endl;
-
-        	this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
-
-        	for(size_t j = 0; j < OPT_NUM_GP; j++)
-        	{
-            	stress_vector_dist[j] -= stress_vector_undist[j];
-            	stress_vector_dist[j] /= dist_measure;
-            	rOutput(i,j) = stress_vector_dist[j];
-        	}   
-
-        	element_dof_list[i]->GetSolutionStepValue()  = original_value; //-= dist_measure;
-        	original_value = 0.0;
-        	//std::cout << "disp after undist = " << element_dof_list[i]->GetSolutionStepValue() << std::endl;
-
-        	stress_vector_dist.clear();
+				stress_vector_dist.clear();
+				index++;
+			}
     	}
+		
     	KRATOS_CATCH("")
 	}   
 
