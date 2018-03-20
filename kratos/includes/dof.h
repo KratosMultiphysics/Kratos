@@ -639,6 +639,7 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.save("Is Fixed", mIsFixed);
+        rSerializer.save("Has Reaction", mHasReaction);
         rSerializer.save("Equation Id", mEquationId);
         rSerializer.save("Solution Steps Data", mpSolutionStepsData);
         rSerializer.save("Variable", mpVariable->Name());
@@ -652,6 +653,7 @@ private:
         std::string name;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         rSerializer.load("Is Fixed", mIsFixed);
+        rSerializer.load("Has Reaction", mHasReaction);
         rSerializer.load("Equation Id", mEquationId);
         rSerializer.load("Solution Steps Data", mpSolutionStepsData);
         rSerializer.load("Variable", name);
