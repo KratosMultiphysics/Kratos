@@ -236,7 +236,6 @@ namespace Kratos
 			new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
 			new ShellQ4_CoordinateTransformation(pGeometry))
 	{
-		mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 	}
 
 	ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
@@ -248,7 +247,6 @@ namespace Kratos
 			new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
 			new ShellQ4_CoordinateTransformation(pGeometry))
 	{
-		mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 	}
 
 	ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
@@ -258,7 +256,6 @@ namespace Kratos
 		: BaseShellElement(NewId, pGeometry, pProperties)
 		, mpCoordinateTransformation(pCoordinateTransformation)
 	{
-		mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 	}
 
 	ShellThinElement3D4N::~ShellThinElement3D4N()
@@ -279,7 +276,7 @@ namespace Kratos
 	ShellThinElement3D4N::IntegrationMethod
 		ShellThinElement3D4N::GetIntegrationMethod() const
 	{
-		return mThisIntegrationMethod;
+		return mIntegrationMethod;
 	}
 
 	void ShellThinElement3D4N::Initialize()
@@ -572,7 +569,7 @@ namespace Kratos
 
 			// Get integration points
 			const GeometryType::IntegrationPointsArrayType& integration_points =
-				GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+				GetGeometry().IntegrationPoints(mIntegrationMethod);
 
 			// Setup matrix of shape functions
 			Matrix N = Matrix(6, 24, 0.0);
@@ -1616,7 +1613,7 @@ namespace Kratos
 		//Precalculate dA to be multiplied with material matrix
 		const GeometryType & geom = GetGeometry();
 		const GeometryType::IntegrationPointsArrayType& integration_points =
-			geom.IntegrationPoints(mThisIntegrationMethod);
+			geom.IntegrationPoints(mIntegrationMethod);
 		data.dA.clear();
 		for (int gp = 0; gp < 4; gp++)
 		{
@@ -3037,7 +3034,6 @@ namespace Kratos
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
 		rSerializer.save("CTr", mpCoordinateTransformation);
 		rSerializer.save("Sec", mSections);
-        rSerializer.save("IntM", (int)mThisIntegrationMethod);
 	}
 
 	void ShellThinElement3D4N::load(Serializer& rSerializer)
@@ -3045,8 +3041,5 @@ namespace Kratos
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
 		rSerializer.load("CTr", mpCoordinateTransformation);
 		rSerializer.load("Sec", mSections);
-		int temp;
-		rSerializer.load("IntM", temp);
-        mThisIntegrationMethod = (IntegrationMethod)temp;
 	}
 }

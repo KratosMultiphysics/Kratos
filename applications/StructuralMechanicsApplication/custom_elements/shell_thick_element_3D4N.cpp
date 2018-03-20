@@ -428,6 +428,8 @@ ShellThickElement3D4N::~ShellThickElement3D4N()
 {
 }
 
+// TODO are the GetIntegrationMethod methods needed (implemented in the other 3 shells)
+
 Element::Pointer ShellThickElement3D4N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );

@@ -475,8 +475,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 
 		CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
-		IntegrationMethod mThisIntegrationMethod; /*!< Currently selected integration method */
-
         ///@}
 
         ///@name Serialization

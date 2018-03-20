@@ -28,10 +28,8 @@
 //#define OPT_1_POINT_INTEGRATION
 
 #ifdef OPT_1_POINT_INTEGRATION
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_1
 #define OPT_NUM_GP 1
 #else
-#define OPT_INTEGRATION_METHOD Kratos::GeometryData::GI_GAUSS_2
 #define OPT_NUM_GP 3
 #endif // OPT_1_POINT_INTEGRATION
 
@@ -149,7 +147,6 @@ ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
                                   new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellT3_CoordinateTransformation(pGeometry))
 {
-    mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
 }
 
 ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
@@ -161,7 +158,6 @@ ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
                                   new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellT3_CoordinateTransformation(pGeometry))
 {
-    mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
 }
 
 ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
@@ -171,7 +167,6 @@ ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
     : BaseShellElement(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation(pCoordinateTransformation)
 {
-    mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
 }
 
 ShellThinElement3D3N::~ShellThinElement3D3N()
@@ -186,7 +181,7 @@ Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType co
 
 ShellThinElement3D3N::IntegrationMethod ShellThinElement3D3N::GetIntegrationMethod() const
 {
-    return mThisIntegrationMethod;
+    return mIntegrationMethod;
 }
 
 void ShellThinElement3D3N::Initialize()
@@ -1644,7 +1639,7 @@ void ShellThinElement3D3N::CalculateBeta0(CalculationData& data)
 void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
 {
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
-    const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+    const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues(mIntegrationMethod);
     for(int nodeid = 0; nodeid < OPT_NUM_NODES; nodeid++)
         data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid);
 #else
@@ -1747,7 +1742,7 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
 
     // Get shape functions
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
-    const Matrix & N = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+    const Matrix & N = GetGeometry().ShapeFunctionsValues(mIntegrationMethod);
 #else
     Matrix N(3,3);
     for(unsigned int igauss = 0; igauss < OPT_NUM_GP; igauss++)
@@ -2131,7 +2126,6 @@ void ShellThinElement3D3N::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.save("CTr", mpCoordinateTransformation);
     rSerializer.save("Sec", mSections);
-    rSerializer.save("IntM", (int)mThisIntegrationMethod);
 }
 
 void ShellThinElement3D3N::load(Serializer& rSerializer)
@@ -2139,9 +2133,6 @@ void ShellThinElement3D3N::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.load("CTr", mpCoordinateTransformation);
     rSerializer.load("Sec", mSections);
-    int temp;
-    rSerializer.load("IntM", temp);
-    mThisIntegrationMethod = (IntegrationMethod)temp;
 }
 
 }

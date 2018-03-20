@@ -369,8 +369,6 @@ private:
 
     CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
-    IntegrationMethod mThisIntegrationMethod; /*!< Currently selected integration method */
-
     ///@}
 
     ///@name Serialization
