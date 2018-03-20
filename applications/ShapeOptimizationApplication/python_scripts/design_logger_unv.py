@@ -12,12 +12,9 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
-# importing the Kratos Library
+# Kratos Core and Apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
-
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 # Import logger base classes
 from design_logger_base import DesignLogger
@@ -30,14 +27,14 @@ class DesignLoggerUNV( DesignLogger ):
         self.OptimizationModelPart = ModelPartController.GetOptimizationModelPart()
         self.DesignSurface = ModelPartController.GetDesignSurface()
         self.OutputSettings = OptimizationSettings["output"]
-        
+
         self.__DetermineOutputMode()
         self.__CreateUNVIO()
 
     # --------------------------------------------------------------------------
     def __DetermineOutputMode( self ):
         OutputMode = self.OutputSettings["design_output_mode"].GetString()
-        
+
         self.WriteDesignSurface = False
         self.WriteOptimizationModelPart = False
 
@@ -45,10 +42,10 @@ class DesignLoggerUNV( DesignLogger ):
             self.WriteDesignSurface = True
         elif OutputMode == "WriteOptimizationModelPart":
             if self.OptimizationModelPart.NumberOfElements() == 0:
-                raise NameError("Output of optimization model part in UNV-format requires definition of elements. No elements are given in current mdpa! You may change the design output mode.")              
+                raise NameError("Output of optimization model part in UNV-format requires definition of elements. No elements are given in current mdpa! You may change the design output mode.")
             self.WriteOptimizationModelPart = True
         else:
-            raise NameError("The following design output mode is not defined within a UNV output (name may be misspelled): " + OutputMode)              
+            raise NameError("The following design output mode is not defined within a UNV output (name may be misspelled): " + OutputMode)
 
     # --------------------------------------------------------------------------
     def __CreateUNVIO( self ):
@@ -57,11 +54,11 @@ class DesignLoggerUNV( DesignLogger ):
         DesignHistoryFilenameWithPath =  ResultsDirectory+"/"+DesignHistoryFilename
 
         NodalResults = self.OutputSettings["nodal_results"]
-       
+
         if self.WriteDesignSurface:
-            self.UNVIO = UniversalFileIO( self.DesignSurface, DesignHistoryFilenameWithPath, "WriteConditionsOnly", NodalResults )  
+            self.UNVIO = UniversalFileIO( self.DesignSurface, DesignHistoryFilenameWithPath, "WriteConditionsOnly", NodalResults )
         elif self.WriteOptimizationModelPart:
-            self.UNVIO = UniversalFileIO( self.OptimizationModelPart, DesignHistoryFilenameWithPath, "WriteElementsOnly", NodalResults )                
+            self.UNVIO = UniversalFileIO( self.OptimizationModelPart, DesignHistoryFilenameWithPath, "WriteElementsOnly", NodalResults )
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
@@ -72,7 +69,7 @@ class DesignLoggerUNV( DesignLogger ):
         self.UNVIO.LogNodalResults( OptimizationIteration )
 
     # --------------------------------------------------------------------------
-    def FinalizeLogging( self ):      
-        pass       
+    def FinalizeLogging( self ):
+        pass
 
 # ==============================================================================

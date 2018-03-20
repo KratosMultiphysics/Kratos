@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate",
-        "model_part_name" : "Structure",
+        "model_part_name" : "rectangular_plate",
         "domain_size"     : 3,
         "time_step"       : 1.0,
         "start_time"      : 0.0,
@@ -30,7 +30,7 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_variables_type"              : "vertex_morphing",
+            "type"              : "vertex_morphing",
             "optimization_model_part_name"       : "rectangular_plate",
             "design_surface_sub_model_part_name" : "design_surface",
             "filter" : {

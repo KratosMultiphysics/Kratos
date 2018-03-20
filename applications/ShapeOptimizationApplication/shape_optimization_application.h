@@ -29,8 +29,6 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 
-// elements
-
 //conditions
 #include "custom_conditions/shape_optimization_condition.h"
 

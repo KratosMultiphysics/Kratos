@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
-        "model_part_name" : "Structure",
+        "model_part_name" : "rectangular_plate",
         "domain_size"     : 3,
         "time_step"       : 1.0,
         "start_time"      : 0.0,
@@ -49,7 +49,7 @@
         "help"             : "",
         "process_name"     : "InputPrimalSolutionProcess",
         "Parameters"          : {
-            "model_part_name" : "Structure",
+            "model_part_name" : "rectangular_plate",
             "file_name"       : "rectangular_plate_structure",
             "variable_list"   : ["DISPLACEMENT","ROTATION","POINT_LOAD"]
         }
