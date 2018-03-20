@@ -15,8 +15,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "mesh_tying_test/3D_contact_patch_test_large_disp_hexa",
-            "input_file_label" : 0
+            "input_filename"   : "mesh_tying_test/3D_contact_patch_test_large_disp_hexa"
         },
         "material_import_settings"           : {
             "materials_filename" : "mesh_tying_test/3D_contact_patch_test_large_disp_materials.json"

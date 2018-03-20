@@ -1,9 +1,3 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-
-from KratosMultiphysics import *
-from KratosMultiphysics.ShapeOptimizationApplication import *
-from math import pi, sin
-
 # This test example is from M. Hojjat, E. Stavropoulou,
 # K.-U. Bletzinger, The Vertex Morphing method for node-based
 # shape optimization, Comput. Methods Appl. Mech. Engrg. 268
@@ -19,51 +13,49 @@ from math import pi, sin
 #  __________*________*________*__________
 #  |-- 10 ---|-- 10 --|-- 10 --|--- 10 --|
 #
-#
 
-# ======================================================================================================================================
-# Model part and solver
-# ======================================================================================================================================
+# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division
 
-ParameterFile = open("ProjectParameters.json",'r')
-ProjectParameters = Parameters( ParameterFile.read())
-OptimizationModelPart = ModelPart( ProjectParameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString() )
+# Import Kratos core and apps
+from KratosMultiphysics import *
+from KratosMultiphysics.ShapeOptimizationApplication import *
+from math import pi, sin
 
-OptimizerFactory = __import__("optimizer_factory")
-Optimizer = OptimizerFactory.CreateOptimizer( OptimizationModelPart, ProjectParameters["optimization_settings"] )
+# =======================================================================================================
+# Define external analyzer
+# =======================================================================================================
 
-# ======================================================================================================================================
-# Analyzer
-# ======================================================================================================================================
+from analyzer_base import AnalyzerBaseClass
+class CustomAnalyzer(AnalyzerBaseClass):
 
-class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
+    # --------------------------------------------------------------------------------------------------
+    def AnalyzeDesignAndReportToCommunicator(self, current_design, optimization_iteration, communicator):
+        if communicator.isRequestingValueOf("targetDeviation"):
+            communicator.reportValue("targetDeviation", self.__ObjectiveFunction(current_design))
 
-    # --------------------------------------------------------------------------
-    def analyzeDesignAndReportToCommunicator( self, currentDesign, OptimizationIteration, Communicator ):
-        if Communicator.isRequestingValueOf("targetDeviation"):
-            Communicator.reportValue("targetDeviation", self.ObjectiveFunction(currentDesign))
-        if Communicator.isRequestingGradientOf("targetDeviation"):
-            Communicator.reportGradient("targetDeviation", self.ObjectiveGradient(currentDesign))
+        if communicator.isRequestingGradientOf("targetDeviation"):
+            communicator.reportGradient("targetDeviation", self.__ObjectiveGradient(current_design))
 
-    # --------------------------------------------------------------------------
-    def ObjectiveFunction( self, currentDesign ):
+    # --------------------------------------------------------------------------------------------------
+    def __ObjectiveFunction(self, current_design):
         """ Returns the objective function to be minimized """
         objective = 0.0
-        for node in currentDesign.Nodes:
+        for node in current_design.Nodes:
             x = node.X
             z = node.Z
-            objective = objective + abs(self.TargetCurveOne(x) - z) * abs(self.TargetCurveTwo(x) - z)
+            objective = objective + abs(self.__TargetCurveOne(x) - z) * abs(self.__TargetCurveTwo(x) - z)
         return objective
 
-    # --------------------------------------------------------------------------
-    def ObjectiveGradient( self, currentDesign ):
+    # --------------------------------------------------------------------------------------------------
+    def __ObjectiveGradient(self, current_design):
         """ Returns the gradient of the objective function """
         sensitivity = {}
-        for node in currentDesign.Nodes:
+        for node in current_design.Nodes:
             x = node.X
             z = node.Z
-            delta_one = z - self.TargetCurveOne(x)
-            delta_two = z - self.TargetCurveTwo(x)
+            delta_one = z - self.__TargetCurveOne(x)
+            delta_two = z - self.__TargetCurveTwo(x)
             if abs(delta_one) == 0.0 or abs(delta_two) == 0.0:
                 sz = 0.0
             else:
@@ -71,9 +63,9 @@ class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
             sensitivity[node.Id] = [0.0, 0.0, sz]
         return sensitivity
 
-    # --------------------------------------------------------------------------
-    def TargetCurveOne( self, x ):
-        """ Defines target curve 1 as z=TargetCurveOne(x) """
+    # --------------------------------------------------------------------------------------------------
+    def __TargetCurveOne(self, x):
+        """ Defines target curve 1 as z=__TargetCurveOne(x) """
         if x <= 10.0:
             return 0.0
         elif x<= 30.0:
@@ -81,9 +73,9 @@ class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         else:
             return 0.0
 
-    # --------------------------------------------------------------------------
-    def TargetCurveTwo( self, x ):
-        """ Defines target curve 2 as z=TargetCurveTwo(x) """
+    # --------------------------------------------------------------------------------------------------
+    def __TargetCurveTwo(self, x):
+        # Defines target curve 2 as z=TargetCurveTwo(x)
         if x <= 10.0:
             return 0.0
         elif x<= 30.0:
@@ -91,15 +83,18 @@ class externalAnalyzer( (__import__("analyzer_base")).analyzerBaseClass ):
         else:
             return 0.0
 
-    # --------------------------------------------------------------------------
+# =======================================================================================================
+# Perform optimization
+# =======================================================================================================
 
-newAnalyzer = externalAnalyzer()
+with open("ProjectParameters.json",'r') as parameter_file:
+    parameters = Parameters(parameter_file.read())
 
-# ======================================================================================================================================
-# Optimization
-# ======================================================================================================================================
+optimization_model_part = ModelPart(parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString())
+optimization_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, parameters["optimization_settings"]["design_variables"]["domain_size"].GetInt())
 
-Optimizer.importAnalyzer( newAnalyzer )
-Optimizer.optimize()
+import optimizer_factory
+optimizer = optimizer_factory.CreateOptimizer(parameters, optimization_model_part, CustomAnalyzer())
+optimizer.Optimize()
 
-# ======================================================================================================================================
+# =======================================================================================================

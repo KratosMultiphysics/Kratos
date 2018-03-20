@@ -95,6 +95,7 @@ class TestDynamicSearch(KratosUnittest.TestCase):
 
         search_parameters = KratosMultiphysics.Parameters("""
         {
+            "dynamic_search"              : true,
             "search_factor"               : 3.5,
             "allocation_size"             : 1000,
             "check_gap"                   : "MappingCheck",

@@ -11,9 +11,9 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         
-        "analysis_type"                      : "linear",
+        "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test"
@@ -111,16 +111,9 @@
         "process_name"          : "ALMContactProcess",
         "Parameters"            : {
             "model_part_name"             : "Structure",
-            "assume_master_slave"         : "Parts_Parts_Auto2",
+            "assume_master_slave"         : "Parts_Parts_Auto3",
             "contact_model_part"          : "Contact_Part",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 2.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "manual_ALM"                  : true,
-            "penalty"                     : 0.0e0,
-            "scale_factor"                : 1.0e0
+            "contact_type"                : "Frictionless"
         }
     }
     ],
@@ -131,9 +124,22 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y","NORMAL_CONTACT_STRESS"],
+            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results.json",
             "model_part_name"      : "Contact_Part",
+            "time_frequency"       : 1.00
+        }
+    },{
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "input_file_name"      : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results_LM.json",
+            "model_part_name"      : "Contact_Part",
+            "historical_value"     : false,
+            "relative_tolerance"   : 1e-3,
             "time_frequency"       : 1.00
         }
     }
@@ -145,9 +151,21 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y","NORMAL_CONTACT_STRESS"],
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results.json",
             "model_part_name"      : "Contact_Part",
+            "time_frequency"       : 1.00
+        }
+    },{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "output_file_name"     : "ALM_frictionless_contact_test_2D/hyper_simple_slope_patch_test_results_LM.json",
+            "model_part_name"      : "Contact_Part",
+            "historical_value"     : false,
             "time_frequency"       : 1.00
         }
     }

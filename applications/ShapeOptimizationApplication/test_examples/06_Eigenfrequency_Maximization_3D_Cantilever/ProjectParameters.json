@@ -1,16 +1,16 @@
 {
     "problem_data"             : {
         "problem_name"    : "solid_cantilever",
-        "model_part_name" : "Structure",
+        "model_part_name" : "structure",
         "domain_size"     : 3,
-        "time_step"       : 1.1,
+        "time_step"       : 1.0,
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_eigensolver",
+        "solver_type"                        : "eigen_value",
         "scheme_type"                        : "dynamic",
         "echo_level"                         : 0,
         "model_import_settings"              : {
@@ -53,7 +53,7 @@
             "process_name"          : "PostProcessEigenvaluesProcess",
             "Parameters"            : {
                 "result_file_name" : "solid_cantilever_freq",
-                "computing_model_part_name"   : "Structure",
+                "computing_model_part_name"   : "structure",
                 "animation_steps"   :  6,
                 "result_file_format_use_ascii" : false
             }
@@ -116,10 +116,10 @@
             }
         }],
         "design_variables" : {
-            "design_variables_type"     : "vertex_morphing",
-            "optimization_model_part_name"     : "structure",
+            "type"                               : "vertex_morphing",
+            "optimization_model_part_name"       : "solid_cantilever",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"               : 3,
+            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.2,
@@ -128,7 +128,7 @@
             },
             "mesh_motion" : {
                 "apply_ale_mesh_solver" : true,
-                "mesh_solver_settings" : {
+                "solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
                     "ale_linear_solver_settings"  : {
                         "solver_type" : "Super_LU",
