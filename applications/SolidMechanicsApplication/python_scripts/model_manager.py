@@ -220,7 +220,11 @@ class ModelManager(object):
         # they must be added by the process
         # self.nodal_variables = self.nodal_variables + ['POSITIVE_FACE_PRESSURE','NEGATIVE_FACE_PRESSURE','POINT_LOAD','LINE_LOAD','SURFACE_LOAD','POINT_STIFFNESS','LINE_STIFFNESS','SURFACE_STIFFNESS','BALLAST_COEFFICIENT']
 
-
+        if self._check_input_dof("VELOCITY"):
+            # Add specific variables for the problem (velocity dofs)
+            self.dof_variables = self.dof_variables + ['VELOCITY']
+            self.dof_reactions = self.dof_reactions + ['NOT_DEFINED']
+            
         # Add rotational variables
         if self._check_input_dof("ROTATION"):
             # Add specific variables for the problem (rotation dofs)
@@ -417,6 +421,8 @@ class ModelManager(object):
                     part_name = body_parts_name_list[j].GetString()
                     if( self.main_model_part.HasSubModelPart(part_name) ):
                         self.model.update({part_name: self.main_model_part.GetSubModelPart(part_name)})
+                body_name = bodies_list[i]["body_name"].GetString()
+                self.model.update({body_name: self.main_model_part.GetSubModelPart(body_name)})
         else:
             # Get the list of the model_part's in the object Model
             for i in range(self.settings["domain_parts_list"].size()):
