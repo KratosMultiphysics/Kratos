@@ -53,81 +53,79 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) BaseShellElement
     : public Element
 {
 public:
+    ///@name Type Definitions
+    ///@{
+
+    typedef Element BaseType;
+
+    ///@}
+    ///@name Pointer Definitions
+    /// Pointer definition of BaseShellElement
+    KRATOS_CLASS_POINTER_DEFINITION(BaseShellElement);
+
+    typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /**
+    * Constructor using Geometry
+    */
+    BaseShellElement(IndexType NewId, GeometryType::Pointer pGeometry);
+
+    /**
+    * Constructor using Properties
+    */
+    BaseShellElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    /**
+    * Destructor
+    */
+    ~BaseShellElement() override;
+
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-  ///@name Type Definitions
-  ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-  typedef Element BaseType;
+    /**
+    * ELEMENTS inherited from this class have to implement next
+    * Create and Clone methods: MANDATORY
+    */
 
-  ///@}
-  ///@name Pointer Definitions
-  /// Pointer definition of BaseShellElement
-  KRATOS_CLASS_POINTER_DEFINITION(BaseShellElement);
+    /**
+    * this determines the elemental equation ID vector for all elemental
+    * DOFs
+    * @param rResult: the elemental equation ID vector
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
 
-  typedef std::vector< ShellCrossSection::Pointer > CrossSectionContainerType;
-
-  ///@}
-  ///@name Life Cycle
-  ///@{
-
-  /**
-   * Constructor using Geometry
-   */
-  BaseShellElement(IndexType NewId, GeometryType::Pointer pGeometry);
-
-  /**
-   * Constructor using Properties
-   */
-  BaseShellElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-  /**
-   * Destructor
-   */
-  ~BaseShellElement() override;
-
-  ///@}
-  ///@name Operators
-  ///@{
+    /**
+    * determines the elemental list of DOFs
+    * @param ElementalDofList: the list of DOFs
+    * @param rCurrentProcessInfo: the current process info instance
+    */
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
 
-  ///@}
-  ///@name Operations
-  ///@{
+    void GetValuesVector(Vector& rValues, int Step = 0) override;
 
-  /**
-   * ELEMENTS inherited from this class have to implement next
-   * Create and Clone methods: MANDATORY
-   */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
 
-  /**
-   * this determines the elemental equation ID vector for all elemental
-   * DOFs
-   * @param rResult: the elemental equation ID vector
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
-  /**
-   * determines the elemental list of DOFs
-   * @param ElementalDofList: the list of DOFs
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
-
-
-  void GetValuesVector(Vector& rValues, int Step = 0) override;
-
-  void GetFirstDerivativesVector(Vector& rValues, int Step = 0) override;
-
-  void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
-
-  /**
-   * ELEMENTS inherited from this class have to implement next
-   * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
-   * they can be managed internally with a private method to do the same calculations
-   * only once: MANDATORY
-   */
+    /**
+    * ELEMENTS inherited from this class have to implement next
+    * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
+    * they can be managed internally with a private method to do the same calculations
+    * only once: MANDATORY
+    */
 
 //   /**
 //    * this is called during the assembling process in order
@@ -255,57 +253,67 @@ public:
 //    */
 //   virtual int Check(const ProcessInfo& rCurrentProcessInfo);
 
-  ///@}
-  ///@name Access
-  ///@{
+    /**
+    * returns the used integration method. In the general case this is the
+    * default integration method of the used geometry. I an other integration
+    * method is used the method has to be overwritten within the element
+    * @return default integration method of the used Geometry
+    */
+    IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mIntegrationMethod;
+    }
+    ///@}
+    ///@name Access
+    ///@{
 
 
-  ///@}
-  ///@name Inquiry
-  ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-  ///@}
-  ///@name Input and output
-  ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-  /// Turn back information as a string.
-  virtual std::string Info() const;
+    /// Turn back information as a string.
+    virtual std::string Info() const;
 
-  /// Print information about this object.
-  virtual void PrintInfo(std::ostream& rOStream) const;
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
-  /// Print object's data.
-  virtual void PrintData(std::ostream& rOStream) const;
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const;
 
-  ///@}
-  ///@name Friends
-  ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
-  ///@}
+    ///@}
 
 protected:
 
-  ///@name Protected static Member Variables
-  ///@{
+    ///@name Protected static Member Variables
+    ///@{
 
-  ///@}
-  ///@name Protected member Variables
-  ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-  SizeType mNumDofs;
-  SizeType mNumGPs;
-  IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
+    SizeType mNumDofs;
+    SizeType mNumGPs;
+    IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
 
-  CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
+    CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
-  ///@}
-  ///@name Protected Operators
-  ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-  ///@}
-  ///@name Protected Operations
-  ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
     /**
     * Protected empty constructor
     */
@@ -331,62 +339,62 @@ protected:
         const bool CalculateResidualVectorFlag
     );
 
-  ///@}
-  ///@name Protected  Access
-  ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-  ///@}
-  ///@name Protected Inquiry
-  ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-  ///@}
-  ///@name Protected LifeCycle
-  ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-  ///@}
+    ///@}
 
 private:
 
-  ///@name Static Member Variables
-  ///@{
+    ///@name Static Member Variables
+    ///@{
 
 
-  ///@}
-  ///@name Member Variables
-  ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
 
-  ///@}
-  ///@name Private Operators
-  ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-  ///@}
-  ///@name Private Operations
-  ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-  ///@}
-  ///@name Serialization
-  ///@{
+    ///@}
+    ///@name Serialization
+    ///@{
 
-  friend class Serializer;
+    friend class Serializer;
 
-  void save(Serializer& rSerializer) const override;
-  void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-  ///@}
-  ///@name Private  Access
-  ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-  ///@}
-  ///@name Private Inquiry
-  ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-  ///@}
-  ///@name Un accessible methods
-  ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-  ///@}
+    ///@}
 
 }; // Class BaseShellElement
 
