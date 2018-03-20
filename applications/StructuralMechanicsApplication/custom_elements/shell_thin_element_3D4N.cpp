@@ -318,7 +318,7 @@ namespace Kratos
 			}
 
 			mSections.clear();
-			for (int i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < mNumGPs; i++)
 			{
 				ShellCrossSection::Pointer sectionClone = theSection->Clone();
 				sectionClone->SetSectionBehavior(ShellCrossSection::Thin);

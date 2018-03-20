@@ -250,7 +250,7 @@ namespace Kratos
 			}
 
 			mSections.clear();
-			for (int i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < mNumGPs; i++)
 			{
 				ShellCrossSection::Pointer sectionClone = theSection->Clone();
 				sectionClone->SetSectionBehavior(ShellCrossSection::Thick);
@@ -609,7 +609,7 @@ namespace Kratos
 		} // Tsai wu
 		else
 		{
-			for (int i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < mNumGPs; i++)
 				mSections[i]->GetValue(rVariable, rValues[i]);
 		}
 
@@ -630,7 +630,7 @@ namespace Kratos
 			if (rValues.size() != mNumGPs)
 				rValues.resize(mNumGPs);
 
-			for (int i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
+			for (SizeType i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
 			// Initialize common calculation variables
 			ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
@@ -649,7 +649,7 @@ namespace Kratos
 			if (rValues.size() != mNumGPs)
 				rValues.resize(mNumGPs);
 
-			for (int i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
+			for (SizeType i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
 
 			// Initialize common calculation variables
 			// Compute the local coordinate system.
@@ -2112,7 +2112,7 @@ namespace Kratos
 		if (ijob == 1)
 		{
 			Vector3Type eX = localCoordinateSystem.Vx();
-			for (int i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < mNumGPs; i++)
 			{
 				QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mSections[i]->GetOrientationAngle());
 				q.RotateVector3(eX, rValues[i]);
@@ -2121,7 +2121,7 @@ namespace Kratos
 		else if (ijob == 2)
 		{
 			Vector3Type eY = localCoordinateSystem.Vy();
-			for (int i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < mNumGPs; i++)
 			{
 				QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mSections[i]->GetOrientationAngle());
 				q.RotateVector3(eY, rValues[i]);
@@ -2129,7 +2129,7 @@ namespace Kratos
 		}
 		else if (ijob == 3)
 		{
-			for (int i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < mNumGPs; i++)
 			{
 				noalias(rValues[i]) = eZ;
 			}

@@ -210,7 +210,7 @@ void ShellThinElement3D3N::Initialize()
         }
 
         mSections.clear();
-        for(int i = 0; i < mNumGPs; i++)
+        for(SizeType i = 0; i < mNumGPs; i++)
         {
             ShellCrossSection::Pointer sectionClone = theSection->Clone();
             sectionClone->SetSectionBehavior(ShellCrossSection::Thin);
@@ -489,7 +489,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 	}
 	else
 	{
-		for (int i = 0; i < mNumGPs; i++)
+		for (SizeType i = 0; i < mNumGPs; i++)
 			mSections[i]->GetValue(rVariable, rValues[i]);
 	}
 
@@ -508,7 +508,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 
         if (rValues.size() != mNumGPs) rValues.resize(mNumGPs);
 
-		for (int i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
+		for (SizeType i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
 		// Initialize common calculation variables
 		ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
@@ -525,7 +525,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 
 		// Resize output
 		if (rValues.size() != mNumGPs) rValues.resize(mNumGPs);
-		for (int i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
+		for (SizeType i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
 
 		// Initialize common calculation variables
 		// Compute the local coordinate system.
@@ -1716,7 +1716,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
     if(ijob == 1)
     {
         Vector3Type eX = localCoordinateSystem.Vx();
-        for(int i = 0; i < mNumGPs; i++)
+        for(SizeType i = 0; i < mNumGPs; i++)
         {
             QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mSections[i]->GetOrientationAngle());
             q.RotateVector3(eX, rValues[i]);
@@ -1725,7 +1725,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
     else if(ijob == 2)
     {
         Vector3Type eY = localCoordinateSystem.Vy();
-        for(int i = 0; i < mNumGPs; i++)
+        for(SizeType i = 0; i < mNumGPs; i++)
         {
             QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mSections[i]->GetOrientationAngle());
             q.RotateVector3(eY, rValues[i]);
@@ -1733,7 +1733,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
     }
     else if(ijob == 3)
     {
-        for(int i = 0; i < mNumGPs; i++)
+        for(SizeType i = 0; i < mNumGPs; i++)
         {
             noalias( rValues[i] ) = eZ;
         }
