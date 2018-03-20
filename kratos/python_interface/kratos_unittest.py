@@ -31,49 +31,23 @@ class TestCase(TestCase):
 
     assertEqualTolerance = failUnlessEqualWithTolerance
 
+def SupressConsoleOutput():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
 
-def CaptureStdout(newBuffer=None):
-    ''' Captures stdout and redirects it to newBuffer. If no newBuffer
-    is provided stdout is redirected to os.devnull by default '''
-
-    sys.stdout.flush()
-    newstdout = os.dup(1)
-
-    if newBuffer is None:
-        devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(devnull, 1)
-        os.close(devnull)
-    else:
-        os.dup2(newBuffer, 1)
-
-    return newstdout
-
-def ReleaseStdout(newBuffer):
-    ''' Releases the stdout '''
-
-    os.dup2(newBuffer, 1)
-
-def CaptureStderr(newBuffer=None):
-    ''' Captures stderr and redirects it to newBuffer. If no newBuffer
-    is provided stderr is redirected to os.devnull by default '''
-
-    sys.stderr.flush()
-    newsterr = os.dup(1)
-
-    if newBuffer is None:
-        devnull = os.open(os.devnull, os.O_WRONLY)
-        os.dup2(devnull, 2)
-        os.close(devnull)
-    else:
-        os.dup2(newBuffer, 2)
-
-    return newsterr
-
-
-def ReleaseStderr(newBuffer):
-    ''' Releases the stderr '''
-
-    os.dup2(newBuffer, 2)
+def SupressConsoleError():
+    with open(os.devnull, "w") as devnull:
+        old_stderr = sys.stderr
+        sys.stderr = devnull
+        try:  
+            yield
+        finally:
+            sys.stderr = old_stderr
 
 def Usage():
     ''' Prints the usage of the script '''

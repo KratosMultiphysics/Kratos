@@ -181,6 +181,20 @@ class Commander(object):
                         file=sys.stderr)
                     sys.stderr.flush()
 
+    def RunCppTests(self):
+        ''' Calls the cpp tests directly
+        '''
+
+        self.exitCode = 0
+
+        try:
+            Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
+            exit_code_cpp = Tester.RunAllTestCases()
+            exit_code = max(exit_code, exit_code_cpp)
+        except Exception as e:
+            print('[Warning]:', e, file=sys.stderr)
+            self.exitCode = 1
+
 
 def main():
 
@@ -261,9 +275,6 @@ def main():
         else:
             assert False, 'unhandled option'
 
-    # Capture stdout from KratosUnittest
-    sysstdout = CaptureStdout()
-
     # Set timeout of the different levels
     signalTime = int(-1)
     if level == 'small':
@@ -277,47 +288,43 @@ def main():
     # KratosCore must always be runned
     print('Running tests for KratosCore', file=sys.stderr)
 
-    commander.RunTestSuitInTime(
-        'KratosCore',
-        'kratos',
-        os.path.dirname(GetModulePath('KratosMultiphysics')),
-        level,
-        verbosity,
-        cmd,
-        signalTime
-    )
-
-    sys.stderr.flush()
-
-    # Run the tests for the rest of the Applications
-    for application in applications:
-        print('Running tests for {}'.format(application), file=sys.stderr)
-        sys.stderr.flush()
-
+    with SupressConsoleOutput():
         commander.RunTestSuitInTime(
-            application,
-            application,
-            KratosLoader.kratos_applications+'/',
+            'KratosCore',
+            'kratos',
+            os.path.dirname(GetModulePath('KratosMultiphysics')),
             level,
             verbosity,
             cmd,
             signalTime
         )
 
-    sys.stderr.flush()
+    exit_code = max(exit_code, commander.exitCode)
 
-    # Releases stdout
-    ReleaseStdout(sysstdout)
+    # Run the tests for the rest of the Applications
+    for application in applications:
+        print('Running tests for {}'.format(application), file=sys.stderr)
+        sys.stderr.flush()
+
+        with SupressConsoleOutput():
+            commander.RunTestSuitInTime(
+                application,
+                application,
+                KratosLoader.kratos_applications+'/',
+                level,
+                verbosity,
+                cmd,
+                signalTime
+            )
+
+        exit_code = max(exit_code, commander.exitCode)
 
     # Run the cpp tests (does the same as run_cpp_tests.py)
     print('Running cpp tests', file=sys.stderr)
-    try:
-        Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
-        exit_code_cpp = Tester.RunAllTestCases()
-        exit_code = max(exit_code, exit_code_cpp)
-    except Exception as e:
-        print('[Warning]:', e, file=sys.stderr)
-        exit_code = 1
+    with SupressConsoleOutput():
+        commander.RunCppTests()
+
+    exit_code = max(exit_code, commander.exitCode)
 
     sys.exit(exit_code)
 
