@@ -33,11 +33,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
 {
     using namespace pybind11;
 
-    class_< OutputPrimalSolutionProcess >(m,"OutputPrimalSolutionProcess")
+    class_< OutputPrimalSolutionProcess, Process >(m,"OutputPrimalSolutionProcess")
     .def(init<ModelPart&, Parameters&>())
     ;
 
-    class_< InputPrimalSolutionProcess >(m,"InputPrimalSolutionProcess")
+    class_< InputPrimalSolutionProcess, Process >(m,"InputPrimalSolutionProcess")
     .def(init<ModelPart&, Parameters&>())
     ;
 }

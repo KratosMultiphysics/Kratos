@@ -59,11 +59,11 @@ void AddCustomIOToPython(pybind11::module& m)
     .def("GetFileName",&HDF5::File::GetFileName)
     ;
 
-    class_<HDF5::FileSerial, HDF5::FileSerial::Pointer>(m,"HDF5FileSerial")
+    class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, HDF5::File>(m,"HDF5FileSerial")
     .def(init<Parameters&>())
     ;
     
-    class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer>(m,"HDF5ModelPartIO")
+    class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
     .def(init<HDF5::File::Pointer, std::string const&>())
     ;
 
@@ -77,11 +77,11 @@ void AddCustomIOToPython(pybind11::module& m)
     ;
 
 #ifdef KRATOS_USING_MPI
-    class_<HDF5::FileParallel, HDF5::FileParallel::Pointer>(m,"HDF5FileParallel")
+    class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, HDF5::File>(m,"HDF5FileParallel")
     .def(init<Parameters&>())
     ;
 
-    class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer>
+    class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
         (m,"HDF5PartitionedModelPartIO")
         .def(init<HDF5::File::Pointer, std::string const&>())
     ;
