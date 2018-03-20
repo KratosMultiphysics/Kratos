@@ -809,6 +809,29 @@ public:
 // 			  for(ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
 // 			    i_dof->FixDof();
 
+        // If reactions are to be calculated, we check if all the dofs have reactions defined
+        // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG        
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        std::size_t num_dofs = BaseType::mDofSet.size();
+        bool all_dofs_have_reactions = true;
+     
+        for(std::size_t i = 0; i<num_dofs; i++)
+        { 
+            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
+            all_dofs_have_reactions = dof_iterator->HasReaction();
+        }
+
+        if ((!all_dofs_have_reactions))
+        {
+            KRATOS_THROW_ERROR(std::logic_error, "All the DOFs do not have reaction variables set. Not possible to calculate reactions.", "");
+        }        
+    }
+    #endif
+
         BaseType::mDofSetIsInitialized = true;
 
         KRATOS_CATCH("")
