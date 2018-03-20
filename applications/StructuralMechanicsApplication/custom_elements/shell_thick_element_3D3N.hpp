@@ -8,7 +8,7 @@
 //
 //  Main authors:    Peter Wilson
 //       contact:    A.Winterstein[at]tum.de
-//					 
+//
 
 #if !defined(SHELL_THICK_ELEMENT_3D3N_H_INCLUDED )
 #define  SHELL_THICK_ELEMENT_3D3N_H_INCLUDED
@@ -19,10 +19,8 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "custom_utilities/shell_cross_section.hpp"
+#include "custom_elements/base_shell_element.h"
 #include "custom_utilities/shellt3_local_coordinate_system.hpp"
-#include "utilities/quaternion.h"
 
 namespace Kratos
 {
@@ -62,12 +60,12 @@ namespace Kratos
 
 	/*
 	Shell formulation reference:
-	1.	Bletzinger, K.U., Bischoff, M. and Ramm, E., 2000. A unified approach for 
-		shear-locking-free triangular and rectangular shell finite elements. 
+	1.	Bletzinger, K.U., Bischoff, M. and Ramm, E., 2000. A unified approach for
+		shear-locking-free triangular and rectangular shell finite elements.
 		Computers & Structures, 75(3), pp.321-334.
-	2.	Rama, G.,  Marinkovic, D.,  Zehn, M., 2016. Efficient co-rotational 
+	2.	Rama, G.,  Marinkovic, D.,  Zehn, M., 2016. Efficient co-rotational
 		3-node shell element.
-		American Journal of Engineering and Applied Sciences, Volume 9, Issue 2, 
+		American Journal of Engineering and Applied Sciences, Volume 9, Issue 2,
 		Pages 420-431.
 	*/
 
@@ -135,7 +133,7 @@ namespace Kratos
 		void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo) override;
-		
+
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValuesVector(Vector& values, int Step = 0) override;
@@ -155,21 +153,21 @@ namespace Kratos
 		void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 		void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
-		
+
 
 		void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
 			ProcessInfo& rCurrentProcessInfo) override;
 
-		
+
 		void CalculateRightHandSide(VectorType& rRightHandSideVector,
 			ProcessInfo& rCurrentProcessInfo) override;
 
 		// Results calculation on integration points
 
-		
+
 		void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-		
+
 		void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
@@ -205,9 +203,9 @@ namespace Kratos
 
 		///@name Public specialized Access - Temporary
 		///@{
-		
+
 		void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
-		
+
 		///@}
 
 	protected:
@@ -263,19 +261,19 @@ namespace Kratos
 			// ---------------------------------------
 			// Testing flags
 			// ---------------------------------------
-			// These should all be FALSE unless you are testing, or 
+			// These should all be FALSE unless you are testing, or
 			// investigating the effects of element enhancements!
 
-			const bool basicTriCST = false;	// bool to use basic CST 
-			// displacement-based shear formulation. This should be FALSE unless 
+			const bool basicTriCST = false;	// bool to use basic CST
+			// displacement-based shear formulation. This should be FALSE unless
 			// you are testing
 
-			const bool ignore_shear_stabilization = false; // bool to 
-			// ignore stabilizing the transverse shear part of the material 
+			const bool ignore_shear_stabilization = false; // bool to
+			// ignore stabilizing the transverse shear part of the material
 			// matrix. This should be false unless you are testing
 
-			const bool smoothedDSG = false; // bool to use smoothed DSG 
-			// formulation according to [Nguyen-Thoi et al., 2013]. 
+			const bool smoothedDSG = false; // bool to use smoothed DSG
+			// formulation according to [Nguyen-Thoi et al., 2013].
 			// This should be false unless you are testing
 
 			const bool specialDSGc3 = false; // bool to use experimental
@@ -333,7 +331,7 @@ namespace Kratos
 		///@name Private Operations
 		///@{
 		void CalculateStressesFromForceResultants
-			(VectorType& rstresses, 
+			(VectorType& rstresses,
 				const double& rthickness);
 
 		void CalculateLaminaStrains(CalculationData& data);

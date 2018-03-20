@@ -12,7 +12,6 @@
 
 #include "shell_thick_element_3D3N.hpp"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
-#include "structural_mechanics_application_variables.h"
 
 #include "custom_utilities/shell_utilities.h"
 #include "geometries/triangle_3d_3.h"
@@ -36,7 +35,7 @@ Shell formulation references:---------------------------------------------------
 	shear-locking-free triangular and rectangular shell finite elements.
 	Computers & Structures, 75(3), pp.321-334.
 2.	Rama, G.,  Marinkovic, D.,  Zehn, M., 2016. Efficient co-rotational
-	3-node shell element. American Journal of Engineering and Applied Sciences, 
+	3-node shell element. American Journal of Engineering and Applied Sciences,
 	Volume 9, Issue 2, Pages 420-431.
 */
 
@@ -60,13 +59,13 @@ namespace Kratos
 // 			v3 = (2.0*vg2) / 3.0 - vg1 / 3.0 + (2.0*vg3) / 3.0;
 // #endif // OPT_AVERAGE_RESULTS
 // 		}
-// 
+//
 // 		inline void InterpToStandardGaussPoints(std::vector< double >& v)
 // 		{
 // 			if (v.size() != 3) return;
 // 			InterpToStandardGaussPoints(v[0], v[1], v[2]);
 // 		}
-// 
+//
 // 		inline void InterpToStandardGaussPoints(std::vector< array_1d<double,
 // 			3> >& v)
 // 		{
@@ -74,7 +73,7 @@ namespace Kratos
 // 			for (size_t i = 0; i < 3; i++)
 // 				InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
 // 		}
-// 
+//
 // 		inline void InterpToStandardGaussPoints(std::vector< array_1d<double,
 // 			6> >& v)
 // 		{
@@ -82,7 +81,7 @@ namespace Kratos
 // 			for (size_t i = 0; i < 6; i++)
 // 				InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
 // 		}
-// 
+//
 // 		inline void InterpToStandardGaussPoints(std::vector< Vector >& v)
 // 		{
 // 			if (v.size() != 3) return;
@@ -93,7 +92,7 @@ namespace Kratos
 // 			for (size_t i = 0; i < ncomp; i++)
 // 				InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
 // 		}
-// 
+//
 // 		inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
 // 		{
 // 			if (v.size() != 3) return;
@@ -511,7 +510,7 @@ namespace Kratos
 		{
 			// General matrix form as per Felippa plane stress CST eqn 31.27:
 			// http://kis.tu.kielce.pl/mo/COLORADO_FEM/colorado/IFEM.Ch31.pdf
-			// 
+			//
 			// Density and thickness are averaged over element.
 
 			// Average thickness over the whole element
@@ -536,7 +535,7 @@ namespace Kratos
 					// rotational entry
 					for (std::size_t col = 0; col < 3; col++)
 					{
-						rMassMatrix(row, 6 * col + row % 6) = 
+						rMassMatrix(row, 6 * col + row % 6) =
 							thickness*thickness / 12.0;
 					}
 				}
@@ -545,7 +544,7 @@ namespace Kratos
 				rMassMatrix(row, row) *= 2.0;
 			}
 
-			rMassMatrix *= 
+			rMassMatrix *=
 				av_mass_per_unit_area*referenceCoordinateSystem.Area() / 12.0;
 		}// Consistent mass matrix
 		else
@@ -639,14 +638,14 @@ namespace Kratos
 			data.CalculateRHS = true;
 			InitializeCalculationData(data);
 
-			// Get the current displacements in global coordinate system and 
+			// Get the current displacements in global coordinate system and
 			// transform to reference local system
 			ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
 				mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 			MatrixType Rdisp(18, 18);
 			referenceCoordinateSystem.ComputeTotalRotationMatrix(Rdisp);
 			data.localDisplacements = prod(Rdisp, data.globalDisplacements);
-			
+
 			// Get strains
 			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
@@ -709,7 +708,7 @@ namespace Kratos
 			InitializeCalculationData(data);
 			data.gpIndex = 0;
 
-			// Get the current displacements in global coordinate system and 
+			// Get the current displacements in global coordinate system and
 			// transform to reference local system
 			ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
 				mpCoordinateTransformation->CreateReferenceCoordinateSystem());
@@ -769,7 +768,7 @@ namespace Kratos
 				{
 					min_tsai_wu = temp_tsai_wu;
 				}
-			}		
+			}
 
 			// Gauss Loop
 			for (unsigned int gauss_point = 0; gauss_point < OPT_NUM_GP; ++gauss_point)
@@ -779,7 +778,7 @@ namespace Kratos
 
 			}// Gauss loop
 
-		} // Tsai wu 
+		} // Tsai wu
 		else
 		{
 			for (int i = 0; i < OPT_NUM_GP; i++)
@@ -814,8 +813,8 @@ namespace Kratos
 		}
 		else if (rVariable == LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
 		{
-			// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
-			// section orientation, which rotates the entrire element section 
+			// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of
+			// section orientation, which rotates the entrire element section
 			// in-plane and is used in the element stiffness calculation.
 
 			// resize output
@@ -1022,7 +1021,7 @@ namespace Kratos
 				data.rlaminateStrains[2 * plyNumber][6] = data.generalizedStrains[6];
 				data.rlaminateStrains[2 * plyNumber][7] = data.generalizedStrains[7];
 			}
-			
+
 
 			// Move to bottom surface of current layer
 			z_current += ply_thicknesses[plyNumber];
@@ -1192,7 +1191,7 @@ namespace Kratos
 		von_mises_bottom = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
 
 
-		
+
 			// Output requested quantity
 			if (rVariable == VON_MISES_STRESS_TOP_SURFACE)
 			{
@@ -1213,7 +1212,7 @@ namespace Kratos
                 std::sqrt(std::max(von_mises_top,
 						std::max(von_mises_mid, von_mises_bottom)));
 			}
-		
+
 	}
 
 	void ShellThickElement3D3N::CalculateShellElementEnergy(const CalculationData & data, const Variable<double>& rVariable, double & rEnergy_Result)
@@ -1376,13 +1375,13 @@ namespace Kratos
 
 	void ShellThickElement3D3N::SetupOrientationAngles()
 	{
-        if (this->Has(MATERIAL_ORIENTATION_ANGLE)) 
-        { 
-            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
-            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE)); 
-        } 
-        else 
-        { 
+        if (this->Has(MATERIAL_ORIENTATION_ANGLE))
+        {
+            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
+        }
+        else
+        {
             ShellT3_LocalCoordinateSystem lcs(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
             Vector3Type normal;
@@ -1431,7 +1430,7 @@ namespace Kratos
 
             for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
                 (*it)->SetOrientationAngle(angle);
-        }		
+        }
 	}
 
 	void ShellThickElement3D3N::CalculateSectionResponse(CalculationData& data)
@@ -1443,7 +1442,7 @@ namespace Kratos
 
 		ShellCrossSection::Pointer& section = mSections[0];
 		data.SectionParameters.SetShapeFunctionsValues(data.N);
-		
+
 		if (data.ignore_shear_stabilization || data.basicTriCST)
 		{
 			//remove already added shear stabilization
@@ -1610,7 +1609,7 @@ namespace Kratos
 
 			data.B(7, 2) = d - a;
 			data.B(7, 3) = -1.0*A;
-			
+
 
 			//node 2
 			data.B(6, 8) = c;
@@ -1636,7 +1635,7 @@ namespace Kratos
 			// strain displacement matrix.
 			// Only for testing!
 			std::cout << "Using basic CST shear formulation!" << std::endl;
-			const Matrix & shapeFunctions = 
+			const Matrix & shapeFunctions =
 				GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 
 			//node 1
@@ -1695,7 +1694,7 @@ namespace Kratos
 		options.Set(ConstitutiveLaw::COMPUTE_STRESS, data.CalculateRHS);
 		options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR,
 			data.CalculateLHS);
-		
+
 		//--------------------------------------
 		// calculate the displacement vector
 		// in global and local coordinate systems
@@ -1780,7 +1779,7 @@ namespace Kratos
 		quarticGPLocations[6][0] = 0.3;
 		quarticGPLocations[6][1] = 0.3;
 		quarticGPweights[6] = 9.0 / 40.0;
-		
+
 
 		//  Integration loop
 		double loc1, loc2;
@@ -1796,7 +1795,7 @@ namespace Kratos
 				loc1 = data.gpLocations[gauss_point][0];
 				loc2 = data.gpLocations[gauss_point][1];
 			}
-			
+
 			BSuper.clear();
 
 			if (use_pure_bubble_mode)
@@ -1855,7 +1854,7 @@ namespace Kratos
 			else if (use_reconstructed_shear_gaps)
 			{
 				std::cout << "use_reconstructed_shear_gaps" << std::endl;
-				// The reconstructed shear gap field is the same for 
+				// The reconstructed shear gap field is the same for
 				// bubble and no bubble modes
 
 				BSuper(0, 0) = b - c;
@@ -1991,7 +1990,7 @@ namespace Kratos
 		subTriangleYCoords[2][2] = data.LCS0.Y1();
 
 
-		// The mapping controls how the nodally grouped entries of the virgin 
+		// The mapping controls how the nodally grouped entries of the virgin
 		// sub-triangle B matrices are added to the meta-triangle shear B matrix
 		std::vector<Vector3> matrixMapping = std::vector<Vector3>(3);
 		matrixMapping[0][0] = 2; // node number, not index (number = index + 1)
@@ -2049,7 +2048,7 @@ namespace Kratos
 
 				if (matrixMapping[subTriangle][metaNode] == 9)
 				{
-					// centre point entry. do nothing, entries already covered 
+					// centre point entry. do nothing, entries already covered
 					// by operation above
 				}
 				else
@@ -2069,7 +2068,7 @@ namespace Kratos
 			smoothedShearMatrix += (convertedSubTriangleShearMatrix * subTriangleArea);
 		}
 
-		
+
 		// Smooth by averaging over area
 		smoothedShearMatrix /= data.TotalArea;
 		smoothedShearMatrix *= (2.0*data.TotalArea); // to nullify data.B/=2A in main pipeline
@@ -2344,7 +2343,7 @@ namespace Kratos
 		data.CalculateRHS = true;
 		InitializeCalculationData(data);
 
-		// Get the current displacements in global coordinate system and 
+		// Get the current displacements in global coordinate system and
 		// transform to reference local system
 		ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
 			mpCoordinateTransformation->CreateReferenceCoordinateSystem());
@@ -2492,7 +2491,7 @@ namespace Kratos
 				iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] -
 					data.generalizedStresses[5];
 				iValue(0, 2) = iValue(2, 0) = 0.0;
-				iValue(1, 2) = iValue(2, 1) = 0.0;				
+				iValue(1, 2) = iValue(2, 1) = 0.0;
 			}
 			else if (ijob == 8) // SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE
 			{
@@ -2559,7 +2558,7 @@ namespace Kratos
 					CalculateLaminaStrains(data);
 					CalculateLaminaStresses(data);
 
-					// Rotate lamina stress from section CS 
+					// Rotate lamina stress from section CS
 					// to lamina angle to lamina material principal directions
 					for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
 					{

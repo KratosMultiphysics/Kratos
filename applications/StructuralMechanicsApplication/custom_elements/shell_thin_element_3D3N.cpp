@@ -11,7 +11,6 @@
 
 #include "shell_thin_element_3D3N.hpp"
 #include "custom_utilities/shellt3_corotational_coordinate_transformation.hpp"
-#include "structural_mechanics_application_variables.h"
 #include "custom_utilities/shell_utilities.h"
 #include "geometries/triangle_3d_3.h"
 
@@ -74,27 +73,27 @@ namespace Kratos
 //     v3 = (2.0*vg2)/3.0 - vg1/3.0       + (2.0*vg3)/3.0;
 // #endif // OPT_AVARAGE_RESULTS
 // }
-// 
+//
 // inline void InterpToStandardGaussPoints(std::vector< double >& v)
 // {
 //     if(v.size() != 3) return;
 //     InterpToStandardGaussPoints(v[0], v[1], v[2]);
 // }
-// 
+//
 // inline void InterpToStandardGaussPoints(std::vector< array_1d<double,3> >& v)
 // {
 //     if(v.size() != 3) return;
 //     for(size_t i = 0; i < 3; i++)
 //         InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
 // }
-// 
+//
 // inline void InterpToStandardGaussPoints(std::vector< array_1d<double,6> >& v)
 // {
 //     if(v.size() != 3) return;
 //     for(size_t i = 0; i < 6; i++)
 //         InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
 // }
-// 
+//
 // inline void InterpToStandardGaussPoints(std::vector< Vector >& v)
 // {
 //     if(v.size() != 3) return;
@@ -105,7 +104,7 @@ namespace Kratos
 //     for(size_t i = 0; i < ncomp; i++)
 //         InterpToStandardGaussPoints(v[0][i], v[1][i], v[2][i]);
 // }
-// 
+//
 // inline void InterpToStandardGaussPoints(std::vector< Matrix >& v)
 // {
 //     if(v.size() != 3) return;
@@ -118,7 +117,7 @@ namespace Kratos
 //         for(size_t j = 0; j < ncols; j++)
 //             InterpToStandardGaussPoints(v[0](i,j), v[1](i,j), v[2](i,j));
 // }
-// 
+//
 // }
 
 // =====================================================================================
@@ -504,13 +503,13 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != OPT_NUM_GP) 
+    if (rValues.size() != OPT_NUM_GP)
         rValues.resize(OPT_NUM_GP);
 
-    // The membrane formulation needs to iterate to find the correct 
+    // The membrane formulation needs to iterate to find the correct
     // mid-surface strain values.
     //
-    // Check if we are doing a non-linear analysis type. If not, print warning 
+    // Check if we are doing a non-linear analysis type. If not, print warning
     // for just the first element.
 
     if (this->Id() == 1)
@@ -683,8 +682,8 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 	}
 	else if (rVariable == LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
 	{
-		// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
-		// section orientation, which rotates the entrire element section 
+		// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of
+		// section orientation, which rotates the entrire element section
 		// in-plane and is used in the element stiffness calculation.
 
 		// Resize output
@@ -728,10 +727,10 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Matrix>& r
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-	// The membrane formulation needs to iterate to find the correct 
+	// The membrane formulation needs to iterate to find the correct
 	// mid-surface strain values.
 	//
-	// Check if we are doing a non-linear analysis type. If not, print warning 
+	// Check if we are doing a non-linear analysis type. If not, print warning
 	// for just the first element.
 
 	if (this->Id() == 1)
@@ -1145,13 +1144,13 @@ void ShellThinElement3D3N::DecimalCorrection(Vector& a)
 
 void ShellThinElement3D3N::SetupOrientationAngles()
 {
-    if (this->Has(MATERIAL_ORIENTATION_ANGLE)) 
-    { 
-        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
-        (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE)); 
-    } 
-    else 
-    { 
+    if (this->Has(MATERIAL_ORIENTATION_ANGLE))
+    {
+        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+        (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
+    }
+    else
+    {
         ShellT3_LocalCoordinateSystem lcs( mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
 
         Vector3Type normal;
@@ -2059,7 +2058,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
 			iValue(1, 1) = data.generalizedStresses(1) +
 				data.generalizedStresses(4);
 			iValue(2, 2) = 0.0;
-			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] + 
+			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] +
 				data.generalizedStresses[5];
 			iValue(0, 2) = iValue(2, 0) = 0.0;
 			iValue(1, 2) = iValue(2, 1) = 0.0;
@@ -2080,7 +2079,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
 			iValue(1, 1) = data.generalizedStresses(1) -
 				data.generalizedStresses(4);
 			iValue(2, 2) = 0.0;
-			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] - 
+			iValue(0, 1) = iValue(1, 0) = data.generalizedStresses[2] -
 				data.generalizedStresses[5];
 			iValue(0, 2) = iValue(2, 0) = 0.0;
 			iValue(1, 2) = iValue(2, 1) = 0.0;

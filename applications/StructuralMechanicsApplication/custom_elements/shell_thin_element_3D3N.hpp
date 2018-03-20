@@ -18,10 +18,8 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "custom_utilities/shell_cross_section.hpp"
+#include "custom_elements/base_shell_element.h"
 #include "custom_utilities/shellt3_local_coordinate_system.hpp"
-#include "utilities/quaternion.h"
 
 namespace Kratos
 {
@@ -183,7 +181,7 @@ public:
 	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
 		6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
-        
+
     // Calculate functions
     void Calculate(const Variable<Matrix >& rVariable,
         Matrix& Output,

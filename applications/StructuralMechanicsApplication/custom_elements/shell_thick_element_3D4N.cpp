@@ -11,7 +11,6 @@
 
 #include "shell_thick_element_3D4N.hpp"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
-#include "structural_mechanics_application_variables.h"
 #include "custom_utilities/shell_utilities.h"
 #include "geometries/quadrilateral_3d_4.h"
 
@@ -29,7 +28,7 @@ namespace Kratos
 
 // namespace Utilities
 // {
-// 
+//
 // template<class TVec>
 // inline void ShapeFunc(double xi, double eta, TVec & N)
 // {
@@ -38,7 +37,7 @@ namespace Kratos
 //     N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); // node 3
 //     N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); // node 4
 // }
-// 
+//
 // template<class TVec>
 // inline void ShapeFuncSerendipity(double xi, double eta, TVec & N)
 // {
@@ -47,7 +46,7 @@ namespace Kratos
 //     N(2) = 0.5 * (1.0 - xi * xi) * (1.0 + eta);  // node 7
 //     N(3) = 0.5 * (1.0 - xi) * (1.0 - eta * eta); // node 8
 // }
-// 
+//
 // template<class TMat>
 // inline void ShapeFunc_NaturalDerivatives(double xi, double eta, TMat & dN)
 // {
@@ -55,13 +54,13 @@ namespace Kratos
 //     dN(1, 0) =  (1.0 - eta) * 0.25;
 //     dN(2, 0) =  (1.0 + eta) * 0.25;
 //     dN(3, 0) = -(1.0 + eta) * 0.25;
-// 
+//
 //     dN(0, 1) = -(1.0 - xi)  * 0.25;
 //     dN(1, 1) = -(1.0 + xi)  * 0.25;
 //     dN(2, 1) =  (1.0 + xi)  * 0.25;
 //     dN(3, 1) =  (1.0 - xi)  * 0.25;
 // }
-// 
+//
 // template<class TMat>
 // inline void ShapeFuncSerendipity_NaturalDerivatives(double xi, double eta, TMat & dN)
 // {
@@ -69,13 +68,13 @@ namespace Kratos
 //     dN(1, 0) =  0.5 * (1.0 - eta * eta);
 //     dN(2, 0) = -xi * (1.0 - eta);
 //     dN(3, 0) = -0.5 * (1.0 - eta * eta);
-// 
+//
 //     dN(0, 1) = -0.5 * (1.0 - xi * xi);
 //     dN(1, 1) = -eta * (1.0 + xi);
 //     dN(2, 1) =  0.5 * (1.0 - xi * xi);
 //     dN(3, 1) = -eta * (1.0 + xi);
 // }
-// 
+//
 // }
 
 // =====================================================================================
@@ -432,7 +431,7 @@ ShellThickElement3D4N::~ShellThickElement3D4N()
 Element::Pointer ShellThickElement3D4N::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
-    
+
     return Kratos::make_shared< ShellThickElement3D4N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
 }
 
@@ -766,13 +765,13 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<double>& 
         const ProcessInfo& rCurrentProcessInfo)
 {
     SizeType size = GetGeometry().size();
-    if (rValues.size() != size) 
+    if (rValues.size() != size)
         rValues.resize(size);
 
-	// The membrane formulation needs to iterate to find the correct 
+	// The membrane formulation needs to iterate to find the correct
 	// mid-surface strain values.
 	//
-	// Check if we are doing a non-linear analysis type. If not, print warning 
+	// Check if we are doing a non-linear analysis type. If not, print warning
 	// for just the first element.
 
     if (this->Id() == 1)
@@ -1073,9 +1072,9 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 
         // Resize output
 		if (rValues.size() != 4) rValues.resize(4);
-        
+
         for (int i = 0; i < 4; ++i) rValues[i] = ZeroVector(3);
-        
+
 		// Initialize common calculation variables
 		// Compute the local coordinate system.
 		ShellQ4_LocalCoordinateSystem localCoordinateSystem(
@@ -1088,8 +1087,8 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 	}
 	else if (rVariable == LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
 	{
-		// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
-		// section orientation, which rotates the entrire element section 
+		// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of
+		// section orientation, which rotates the entrire element section
 		// in-plane and is used in element stiffness calculation.
 
 		// Resize output
@@ -1118,7 +1117,7 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Vector>& 
 		localToFiberRotation(2, 2) = 1.0;
 
         Vector3 temp = prod(localToFiberRotation, localAxis1);
-        
+
         // Transform result back to global cartesian coords
 		// Includes warpage correction
 		/*
@@ -1151,21 +1150,21 @@ void ShellThickElement3D4N::GetValueOnIntegrationPoints(const Variable<Matrix>& 
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-	// The membrane formulation needs to iterate to find the correct 
+	// The membrane formulation needs to iterate to find the correct
 	// mid-surface strain values.
 	//
-	// Check if we are doing a non-linear analysis type. If not, print warning 
+	// Check if we are doing a non-linear analysis type. If not, print warning
 	// for just the first element.
 
 	if (this->Id() == 1)
 	{
 		if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER))
 		{
-			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis." 
-				<< "\nThe membrane formulation used in the specified shell element" 
+			std::cout << "\nWARNING:\nGauss point results have been requested for a linear analysis."
+				<< "\nThe membrane formulation used in the specified shell element"
 				<< "(ShellThickElement3D4N) requires iteration to accurately determine "
-				<< "recovered quantities (strain, stress, etc...).\n" 
-				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities." 
+				<< "recovered quantities (strain, stress, etc...).\n"
+				<< "Please switch to 'analysis_type = Non-Linear' in your json file for accurate recovered quantities."
 				<< std::endl;
 		}
 	}
@@ -1616,13 +1615,13 @@ void ShellThickElement3D4N::DecimalCorrection(Vector& a)
 
 void ShellThickElement3D4N::SetupOrientationAngles()
 {
-    if (this->Has(MATERIAL_ORIENTATION_ANGLE)) 
-    { 
-        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
-        (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE)); 
-    } 
-    else 
-    { 
+    if (this->Has(MATERIAL_ORIENTATION_ANGLE))
+    {
+        for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+        (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
+    }
+    else
+    {
         ShellQ4_LocalCoordinateSystem lcs( mpCoordinateTransformation->CreateReferenceCoordinateSystem() );
 
         Vector3Type normal;

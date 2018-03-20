@@ -19,9 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "custom_utilities/shell_cross_section.hpp"
-#include "utilities/quaternion.h"
+#include "custom_elements/base_shell_element.h"
 
 namespace Kratos
 {
@@ -372,12 +370,12 @@ public:
 	void CalculateOnIntegrationPoints(const Variable<array_1d<double,
 		6> >& rVariable, std::vector<array_1d<double, 6> >& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
-        
+
     // Calculate functions
     void Calculate(const Variable<Matrix >& rVariable,
         Matrix& Output,
         const ProcessInfo& rCurrentProcessInfo) override;
-    
+
 
     ///@}
 
@@ -416,10 +414,10 @@ private:
 
 	double CalculateTsaiWuPlaneStress(const std::vector<VectorType> & rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
 
-	void CalculateVonMisesStress(const Vector& generalizedStresses, 
+	void CalculateVonMisesStress(const Vector& generalizedStresses,
 		const Variable<double>& rVariable, double& rVon_Mises_Result);
 
-	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, 
+	void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable,
 		int& iJob, bool& bGlobal);
 
 	double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);

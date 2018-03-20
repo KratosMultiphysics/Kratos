@@ -12,7 +12,6 @@
 
 #include "shell_thin_element_3D4N.hpp"
 #include "custom_utilities/shellq4_corotational_coordinate_transformation.hpp"
-#include "structural_mechanics_application_variables.h"
 
 #include "custom_utilities/shell_utilities.h"
 #include "geometries/quadrilateral_3d_4.h"
@@ -68,7 +67,7 @@ namespace Kratos
 // 			N(2) = 0.25 * (1.0 + xi) * (1.0 + eta); // node 3
 // 			N(3) = 0.25 * (1.0 - xi) * (1.0 + eta); // node 4
 // 		}
-// 
+//
 // 		template<class TMat>
 // 		inline void ShapeFunc_NaturalDerivatives(double xi, double eta,
 // 			TMat & dN)
@@ -77,18 +76,18 @@ namespace Kratos
 // 			dN(1, 0) = (1.0 - eta) * 0.25;
 // 			dN(2, 0) = (1.0 + eta) * 0.25;
 // 			dN(3, 0) = -(1.0 + eta) * 0.25;
-// 
+//
 // 			dN(0, 1) = -(1.0 - xi)  * 0.25;
 // 			dN(1, 1) = -(1.0 + xi)  * 0.25;
 // 			dN(2, 1) = (1.0 + xi)  * 0.25;
 // 			dN(3, 1) = (1.0 - xi)  * 0.25;
 // 		}
-// 
+//
 // 		inline double dN_seren_dxi(const int actualNodeNumber,const double xi,
 // 			const double eta)
 // 		{
 // 			// Natural derivatives of 8-node serendipity shape functions
-// 
+//
 // 			double returnValue;
 // 			switch (actualNodeNumber)
 // 			{
@@ -125,15 +124,15 @@ namespace Kratos
 // 					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
 // 					<< std::endl;
 // 			}
-// 
+//
 // 			return returnValue;
 // 		}
-// 
+//
 // 		inline double dN_seren_deta(const int actualNodeNumber,const double xi,
 // 			const double eta)
 // 		{
 // 			// Natural derivatives of 8-node serendipity shape functions
-// 
+//
 // 			double returnValue;
 // 			switch (actualNodeNumber)
 // 			{
@@ -170,7 +169,7 @@ namespace Kratos
 // 					"Error: ELEMENT ShellThinElement3D4N, METHOD dN_seren_dxi"
 // 					<< std::endl;
 // 			}
-// 
+//
 // 			return returnValue;
 // 		}
 // 	}
@@ -398,15 +397,15 @@ namespace Kratos
 	int ShellThinElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
 	{
         KRATOS_TRY
-    
+
         GeometryType& r_geom = GetGeometry();
-    
+
         ShellUtilities::CheckVariables();
         ShellUtilities::CheckDofs(r_geom);
         ShellUtilities::CheckProperties(this, rCurrentProcessInfo);
-    
+
         return 0;
-    
+
         KRATOS_CATCH("")
 	}
 
@@ -581,7 +580,7 @@ namespace Kratos
 			// Other variables
 			double dA = 0.0;
 			double thickness = 0.0;
-			double drilling_factor = 1.0;	// sqrt of the actual factor applied, 
+			double drilling_factor = 1.0;	// sqrt of the actual factor applied,
 											// 1.0 is no reduction.
 
 			// Gauss loop
@@ -788,7 +787,7 @@ namespace Kratos
 			data.CalculateRHS = true;
 			InitializeCalculationData(data);
 
-			// Get the current displacements in global coordinate system and 
+			// Get the current displacements in global coordinate system and
 			// transform to reference local system
 			MatrixType Rdisp(24, 24);
 			referenceCoordinateSystem.ComputeTotalRotationMatrix(Rdisp);
@@ -799,7 +798,7 @@ namespace Kratos
 			}
 			data.localDisplacements = prod(Rdisp, data.globalDisplacements);
 
-			
+
 			// loop over gauss points
 			for (unsigned int gauss_point = 0; gauss_point < size; ++gauss_point)
 			{
@@ -873,7 +872,7 @@ namespace Kratos
 			data.CalculateRHS = true;
 			InitializeCalculationData(data);
 
-			// Get the current displacements in global coordinate system and 
+			// Get the current displacements in global coordinate system and
 			// transform to reference local system
 			MatrixType Rdisp(24, 24);
 			referenceCoordinateSystem.ComputeTotalRotationMatrix(Rdisp);
@@ -888,7 +887,7 @@ namespace Kratos
 			// Get all laminae strengths
 			const PropertiesType & props = GetProperties();
 			ShellCrossSection::Pointer & section = mSections[0];
-			std::vector<Matrix> Laminae_Strengths = 
+			std::vector<Matrix> Laminae_Strengths =
 								std::vector<Matrix>(section->NumberOfPlies());
 			for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
 			{
@@ -915,11 +914,11 @@ namespace Kratos
 				section = mSections[gauss_point];
 				Vector ply_orientation(section->NumberOfPlies());
 				section->GetLaminaeOrientation(ply_orientation);
-				
+
 				//Calculate lamina stresses
 				CalculateLaminaStrains(data);
 				CalculateLaminaStresses(data);
-				
+
 				// Rotate lamina stress from element CS to section CS, and then
 				// to lamina angle to lamina material principal directions
 				for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
@@ -927,9 +926,9 @@ namespace Kratos
 					total_rotation = -ply_orientation[ply] - (section->GetOrientationAngle());
 					section->GetRotationMatrixForGeneralizedStresses(total_rotation, R);
 					//top surface of current ply
-					data.rlaminateStresses[2*ply] = prod(R, data.rlaminateStresses[2*ply]);	
+					data.rlaminateStresses[2*ply] = prod(R, data.rlaminateStresses[2*ply]);
 					//bottom surface of current ply
-					data.rlaminateStresses[2 * ply +1] = prod(R, data.rlaminateStresses[2 * ply +1]);	
+					data.rlaminateStresses[2 * ply +1] = prod(R, data.rlaminateStresses[2 * ply +1]);
 				}
 
 				// Calculate Tsai-Wu criterion for each ply, take min of all plies
@@ -1001,7 +1000,7 @@ namespace Kratos
 			// Compute the local coordinate system.
 			ShellQ4_LocalCoordinateSystem localCoordinateSystem(
 				mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-			
+
 			for (std::size_t GP = 0; GP < 4; GP++)
 			{
 				rValues[GP] = localCoordinateSystem.Vx();
@@ -1009,8 +1008,8 @@ namespace Kratos
 		}
 		else if (rVariable == LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
 		{
-			// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of 
-			// section orientation, which rotates the entrire element section 
+			// LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of
+			// section orientation, which rotates the entrire element section
 			// in-plane and is used in element stiffness calculation.
 
 			// Resize output
@@ -1250,7 +1249,7 @@ namespace Kratos
 		//
 
 		// Should be FALSE unless testing against other programs that ignore it.
-		bool disable_in_plane_interaction = false;	
+		bool disable_in_plane_interaction = false;
 
 		// First, F_i
 		Vector F_i = Vector(3, 0.0);
@@ -1265,12 +1264,12 @@ namespace Kratos
 		F_ij(1,1) = 1.0 / rLamina_Strengths(0, 2) / rLamina_Strengths(1, 0);	// 22
 		F_ij(2, 2) = 1.0 / rLamina_Strengths(1, 1) / rLamina_Strengths(1, 1);	// 12
 		F_ij(0, 1) = F_ij(1, 0) = -0.5 / std::sqrt(rLamina_Strengths(0, 0)*rLamina_Strengths(0, 1)*rLamina_Strengths(0, 2)*rLamina_Strengths(1, 0));
-		
+
 		if (disable_in_plane_interaction)
 		{
 			F_ij(0, 1) = F_ij(1, 0) = 0.0;
 		}
-		
+
 
 		// Evaluate Tsai-Wu @ top surface of current layer
 		double var_a = 0.0;
@@ -1505,12 +1504,12 @@ namespace Kratos
 
 	void ShellThinElement3D4N::SetupOrientationAngles()
 	{
-        if (this->Has(MATERIAL_ORIENTATION_ANGLE)) 
-        { 
-            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it) 
-            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE)); 
-        } 
-        else 
+        if (this->Has(MATERIAL_ORIENTATION_ANGLE))
+        {
+            for (CrossSectionContainerType::iterator it = mSections.begin(); it != mSections.end(); ++it)
+            (*it)->SetOrientationAngle(this->GetValue(MATERIAL_ORIENTATION_ANGLE));
+        }
+        else
         {
             ShellQ4_LocalCoordinateSystem lcs(mpCoordinateTransformation->
                 CreateReferenceCoordinateSystem());
@@ -1834,7 +1833,7 @@ namespace Kratos
 			r_eta /= 2.0;
 			double l_xi = std::sqrt(inner_prod(r_xi, r_xi));
 			double l_eta = std::sqrt(inner_prod(r_eta, r_eta));
-                        
+
 			for (int i = 0; i < 4; i++)
 			{
 				//eqn 5.2.29
@@ -1854,7 +1853,7 @@ namespace Kratos
 
 			Vector e_24 = Vector(r_24 / l_24);
             const Vector vec1 = Vector(MathUtils<double>::CrossProduct(r_13, e_24));
-            
+
 			const double d_24 = std::sqrt(inner_prod(vec1, vec1));
 			const double d_13 = d_24;
 			const double chi_24 = d_24 / 2.0 / l_24;
@@ -2054,7 +2053,7 @@ namespace Kratos
 			}
 		}
 
-		
+
 
 		// ---------------------------------------------------------------------
 		//
@@ -2216,7 +2215,7 @@ namespace Kratos
 		Matrix B_mem = Matrix(3, 12, 0.0);
 
 		// --------------------------------------------
-		//	 ANDES MEMBRANE FORMULATION 
+		//	 ANDES MEMBRANE FORMULATION
 		//---------------------------------------------
 
 		if (data.basicQuad == true)
@@ -2275,17 +2274,17 @@ namespace Kratos
 			//---------------------------------------------
 			// combine membrane entries by transforming
 			// B_h
-			
+
 			Matrix B_hH_mem = Matrix(prod(B_h, data.H_mem_mod));
 			B_mem += data.L_mem + B_hH_mem;
 		}
 
-		
 
-		
+
+
 
 		// --------------------------------------------
-		//	 DKQ BENDING FORMULATION 
+		//	 DKQ BENDING FORMULATION
 		//---------------------------------------------
 		Matrix B_bend_total = Matrix(3, 12, 0.0);
 
@@ -2673,7 +2672,7 @@ namespace Kratos
 		data.CalculateRHS = true;
 		InitializeCalculationData(data);
 
-		// Get the current displacements in global coordinate system and 
+		// Get the current displacements in global coordinate system and
 		// transform to reference local system
 		MatrixType Rdisp(24, 24);
 		referenceCoordinateSystem.ComputeTotalRotationMatrix(Rdisp);
@@ -2692,7 +2691,7 @@ namespace Kratos
 			CalculateBMatrix(data);
 
 			// Calculate strain vectors in local coordinate system
-			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements); 
+			noalias(data.generalizedStrains) = prod(data.B, data.localDisplacements);
 
 			// Calculate the response of the Cross Section
 			ShellCrossSection::Pointer & section = mSections[i];
@@ -2707,7 +2706,7 @@ namespace Kratos
 				else
 				{
 					// calculate force resultants
-					CalculateSectionResponse(data);	
+					CalculateSectionResponse(data);
 
 					if (ijob > 4)
 					{
@@ -2851,7 +2850,7 @@ namespace Kratos
 			{
 				// Testing variable to get lamina stress/strain values
 				// on the 8 surfaces of a 4 ply laminate
-							
+
 				int surface = 0; // start from top ply top surface
 				// Output global results sequentially
 				for (std::size_t row = 0; row < 3; row++)
@@ -2886,7 +2885,7 @@ namespace Kratos
 					Vector ply_orientation(section->NumberOfPlies());
 					section->GetLaminaeOrientation(ply_orientation);
 
-					// Rotate lamina stress from section CS 
+					// Rotate lamina stress from section CS
 					// to lamina angle to lamina material principal directions
 					for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++)
 					{

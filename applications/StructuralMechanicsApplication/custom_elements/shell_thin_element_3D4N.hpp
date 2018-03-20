@@ -18,9 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/element.h"
-#include "custom_utilities/shell_cross_section.hpp"
-#include "utilities/quaternion.h"
+#include "custom_elements/base_shell_element.h"
 #include "custom_utilities/shellq4_local_coordinate_system.hpp"
 
 namespace Kratos
@@ -51,7 +49,7 @@ namespace Kratos
 	*
 	* This element represents a 4-node Shell element.
 	* The membrane part is Felippa's assumed Natural DEviatoric Strain (ANDES)
-	* formulation, while the bending part is the Discrete Kirchhoff 
+	* formulation, while the bending part is the Discrete Kirchhoff
 	* Quadrilateral.
 	* This element is formulated for small strains,
 	* but can be used in Geometrically nonlinear problems
@@ -317,7 +315,7 @@ Southern California, 2012.
 			// Unit vectors (in cartesian coords)
 			Vector s_xi = ZeroVector(3);	/*!< xi unit vector in cartesian coords */
 			Vector s_eta = ZeroVector(3);	/*!< xi unit vector in cartesian coords */
-			
+
 			// Geometry data
 			array_1d<Vector, 4> r_cartesian;	/*!< array of cartesian point positions */
 			array_1d<double, 4> dA;	/*!< array of integration areas (incl. weight) */
@@ -333,10 +331,10 @@ Southern California, 2012.
 			// ---------------------------------------
 			// Testing flags
 			// ---------------------------------------
-			// These should both be FALSE unless you are testing, or 
+			// These should both be FALSE unless you are testing, or
 			// investigating the effects of element enhancements!
 
-			const bool basicQuad = false;	/*!< flag for using basic membrane 
+			const bool basicQuad = false;	/*!< flag for using basic membrane
 											formulation - should be FALSE unless
 											you are testing */
 
@@ -369,7 +367,7 @@ Southern California, 2012.
 			MatrixType B_h_bar = ZeroMatrix(3, 7);	/*!< higher order membrane B_bar matrix */
 			MatrixType T_13 = ZeroMatrix(3, 3);
 			MatrixType T_24 = ZeroMatrix(3, 3);
-			
+
 			// DKQ bending data
 			array_1d<double, 4> DKQ_a;
 			array_1d<double, 4> DKQ_b;
@@ -436,10 +434,10 @@ Southern California, 2012.
 
 		void CalculateSectionResponse(CalculationData& data);
 
-		void CalculateGaussPointContribution(CalculationData& data, 
+		void CalculateGaussPointContribution(CalculationData& data,
 			MatrixType& LHS, VectorType& RHS);
 
-		void AddBodyForces(CalculationData& data, 
+		void AddBodyForces(CalculationData& data,
 			VectorType& rRightHandSideVector); //not required for dyn
 
 		void CalculateAll(MatrixType& rLeftHandSideMatrix,

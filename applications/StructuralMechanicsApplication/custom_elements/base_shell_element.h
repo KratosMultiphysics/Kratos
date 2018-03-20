@@ -21,6 +21,10 @@
 
 // Project includes
 #include "includes/element.h"
+#include "custom_utilities/shell_cross_section.hpp"
+#include "utilities/quaternion.h"
+#include "structural_mechanics_application_variables.h"
+
 
 
 namespace Kratos
