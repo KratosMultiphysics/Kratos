@@ -36,10 +36,15 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    #if !defined(ENTITY_TRANSFERED)
-    #define ENTITY_TRANSFERED
-        enum EntityString {Nodes = 0, Elements = 1, NodesAndElements = 2, Conditions = 3, All = 4};
-    #endif
+    /**
+     * @brief This enum helps us to identify the elements to transfer between the modelparts
+     */
+    enum class EntityTransfered {
+        NODES = 0,
+        ELEMENTS = 1,
+        NODESANDELEMENTS = 2,
+        CONDITIONS = 3,
+        ALL = 4};
 
 ///@}
 ///@name  Functions
@@ -48,14 +53,22 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
-/** This function assigns a value to a variable belonging to all of the nodes in a given mesh
+/**
+ * @class FastTransferBetweenModelPartsProcess
+ * @ingroup KratosCore
+ * @brief The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
+ * @details This function assigns a value to a variable belonging to all of the nodes in a given mesh
+ * @author Vicente Mataix Ferrandiz
 */
-class FastTransferBetweenModelPartsProcess : public Process
+class FastTransferBetweenModelPartsProcess
+    : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The type used to identify the size
+    typedef std::size_t SizeType;
 
     /// Pointer definition of FastTransferBetweenModelPartsProcess
     KRATOS_CLASS_POINTER_DEFINITION(FastTransferBetweenModelPartsProcess);
@@ -102,19 +115,19 @@ public:
     {
         KRATOS_TRY;
         
-        const int num_nodes = mrOriginModelPart.Nodes().size();
+        const SizeType num_nodes = mrOriginModelPart.Nodes().size();
 
-        if (num_nodes != 0 && (mEntity == All || mEntity == Nodes || mEntity == NodesAndElements))
+        if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS))
             mrDestinationModelPart.AddNodes(mrOriginModelPart.NodesBegin(),mrOriginModelPart.NodesEnd());
 
-        const int num_elements = mrOriginModelPart.Elements().size();
+        const SizeType num_elements = mrOriginModelPart.Elements().size();
 
-        if (num_elements != 0 && (mEntity == All || mEntity == Elements || mEntity == NodesAndElements))
+        if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
             mrDestinationModelPart.AddElements(mrOriginModelPart.ElementsBegin(),mrOriginModelPart.ElementsEnd());
 
-        const int num_conditions = mrOriginModelPart.Conditions().size();
+        const SizeType num_conditions = mrOriginModelPart.Conditions().size();
 
-        if (num_conditions != 0 && (mEntity == All || mEntity == Conditions))
+        if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS))
              mrDestinationModelPart.AddConditions(mrOriginModelPart.ConditionsBegin(),mrOriginModelPart.ConditionsEnd());
 
         KRATOS_CATCH("");
@@ -192,11 +205,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrDestinationModelPart; // The destination model part
+    ModelPart& mrDestinationModelPart; /// The destination model part
     
-    ModelPart& mrOriginModelPart;      // The origin model part
+    ModelPart& mrOriginModelPart;      /// The origin model part
     
-    const EntityString mEntity;        // The entity to transfer
+    const EntityTransfered mEntity;    /// The entity to transfer
     
     ///@}
     ///@name Private Operators
@@ -212,20 +225,20 @@ private:
      * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */
 
-    EntityString ConvertEntity(const std::string& str)
+    EntityTransfered ConvertEntity(const std::string& str)
     {
         if(str == "Nodes")
-            return Nodes;
+            return EntityTransfered::NODES;
         else if(str == "Elements")
-            return Elements;
+            return EntityTransfered::ELEMENTS;
         else if(str == "NodesAndElements")
-            return NodesAndElements;
+            return EntityTransfered::NODESANDELEMENTS;
         else if(str == "Conditions")
-            return Conditions;
+            return EntityTransfered::CONDITIONS;
         else if(str == "All")
-            return All;
+            return EntityTransfered::ALL;
         else
-            return All;
+            return EntityTransfered::ALL;
     }
     
     ///@}
