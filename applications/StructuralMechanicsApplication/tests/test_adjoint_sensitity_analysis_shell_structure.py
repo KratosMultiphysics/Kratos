@@ -35,7 +35,7 @@ class TestCase(KratosUnittest.TestCase):
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
 
-        # Check sensitivities for the paramter I22
+        # Check sensitivities for the parameter I22
         reference_values = [0.41386635771251334, -2.601255910505967, 0.6628211584248311]
         sensitivities_to_check = []
         element_list = [1,5,8]
@@ -53,7 +53,7 @@ class TestCase(KratosUnittest.TestCase):
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
 
-        # Check sensitivities for the paramter I22
+        # Check sensitivities for the parameter I22
         reference_values = [-0.002801100145774953, -0.0027781711818140294, -0.00046158741678306966]
         sensitivities_to_check = []
         element_list = [1,5,8]
@@ -71,7 +71,7 @@ class TestCase(KratosUnittest.TestCase):
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
 
-        # Check sensitivities for the paramter I22
+        # Check sensitivities for the parameter I22
         reference_values = [-0.003271375240263905, -0.005556342364194191, -0.001972358301203816]
         sensitivities_to_check = []
         element_list = [1,5,8]
