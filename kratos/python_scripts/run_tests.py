@@ -10,7 +10,7 @@ import threading
 
 from KratosMultiphysics import Tester
 from KratosMultiphysics import KratosLoader
-from KratosMultiphysics.KratosUnittest import SupressConsoleOutput, SupressConsoleError
+from KratosMultiphysics.KratosUnittest import SupressConsoleOutput, SupressConsoleError, SupressAllConsole
 
 
 def Usage():
@@ -158,11 +158,15 @@ class Commander(object):
                     script,
                     '-l'+level,
                     '-v'+str(verbose)
-                ])
+                ], stdout=subprocess.PIPE)
 
                 # Used instead of wait to "soft-block" the process and prevent deadlocks
                 # and capture the first exit code different from OK
-                self.process.communicate()
+                process_stdout, process_stderr = self.process.communicate()
+                if process_stdout:
+                    print(process_stdout.decode('ascii'), file=sys.stdout)
+                if process_stderr:
+                    print(process_stderr.decode('ascii'), file=sys.stderr)
 
                 # Running out of time in the tests will send the error code -15. We may want to skip
                 # that one in a future. Right now will throw everything different from 0.
@@ -189,8 +193,7 @@ class Commander(object):
 
         try:
             Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
-            exit_code_cpp = Tester.RunAllTestCases()
-            exit_code = max(exit_code, exit_code_cpp)
+            self.exitCode = Tester.RunAllTestCases()
         except Exception as e:
             print('[Warning]:', e, file=sys.stderr)
             self.exitCode = 1
