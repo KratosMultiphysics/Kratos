@@ -301,7 +301,7 @@ class Solution(object):
                 import KratosMultiphysics.ConstitutiveModelsApplication as KratosMaterials
 
                 domain_model = self.model.GetModel()
-
+                
                 assign_materials_processes = process_factory.KratosProcessFactory(domain_model).ConstructListOfProcesses( MaterialParameters["material_models_list"] )
 
                 for process in assign_materials_processes:
