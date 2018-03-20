@@ -10,7 +10,7 @@ import threading
 
 from KratosMultiphysics import Tester
 from KratosMultiphysics import KratosLoader
-from KratosMultiphysics.KratosUnittest import CaptureStdout, ReleaseStdout
+from KratosMultiphysics.KratosUnittest import SupressConsoleOutput, SupressConsoleError
 
 
 def Usage():

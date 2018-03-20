@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import, division
 from unittest import *
+from contextlib import contextmanager
 
 import getopt
 import sys
@@ -31,6 +32,7 @@ class TestCase(TestCase):
 
     assertEqualTolerance = failUnlessEqualWithTolerance
 
+@contextmanager
 def SupressConsoleOutput():
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
@@ -40,6 +42,7 @@ def SupressConsoleOutput():
         finally:
             sys.stdout = old_stdout
 
+@contextmanager
 def SupressConsoleError():
     with open(os.devnull, "w") as devnull:
         old_stderr = sys.stderr
