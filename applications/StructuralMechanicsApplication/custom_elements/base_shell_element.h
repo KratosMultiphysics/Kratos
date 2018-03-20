@@ -120,7 +120,7 @@ public:
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
-    void BaseShellElement::ResetConstitutiveLaw() override;
+    void ResetConstitutiveLaw() override;
 
     /**
     * ELEMENTS inherited from this class have to implement next
@@ -340,6 +340,10 @@ protected:
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     );
+
+    void BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+
+    void BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access

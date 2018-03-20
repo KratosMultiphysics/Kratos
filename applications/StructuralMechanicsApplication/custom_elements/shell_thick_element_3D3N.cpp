@@ -284,27 +284,18 @@ namespace Kratos
 	}
 
 	void ShellThickElement3D3N::InitializeNonLinearIteration
-	(ProcessInfo& CurrentProcessInfo)
+	(ProcessInfo& rCurrentProcessInfo)
 	{
-		mpCoordinateTransformation->
-			InitializeNonLinearIteration(CurrentProcessInfo);
+		mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
 
-		const GeometryType & geom = this->GetGeometry();
-		const Matrix & shapeFunctionsValues =
-			geom.ShapeFunctionsValues(GetIntegrationMethod());
-		for (SizeType i = 0; i < mSections.size(); i++)
-			mSections[i]->InitializeNonLinearIteration(GetProperties(), geom,
-				row(shapeFunctionsValues, i), CurrentProcessInfo);
+		BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 	}
 
-	void ShellThickElement3D3N::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+	void ShellThickElement3D3N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 	{
-		mpCoordinateTransformation->FinalizeNonLinearIteration(CurrentProcessInfo);
+		mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
 
-		const GeometryType & geom = this->GetGeometry();
-		const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-		for (SizeType i = 0; i < mSections.size(); i++)
-			mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+		BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 	}
 
 	void ShellThickElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)

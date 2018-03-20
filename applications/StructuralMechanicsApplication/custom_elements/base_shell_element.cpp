@@ -217,6 +217,23 @@ void BaseShellElement::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
+
+void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType & geom = this->GetGeometry();
+    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    for(SizeType i = 0; i < mSections.size(); i++)
+        mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
+}
+
+void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+    const GeometryType & geom = this->GetGeometry();
+    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    for (SizeType i = 0; i < mSections.size(); i++)
+        mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
+}
+
 // /**
 //  * ELEMENTS inherited from this class have to implement next
 //  * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods

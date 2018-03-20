@@ -241,24 +241,18 @@ int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
-void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->InitializeNonLinearIteration(CurrentProcessInfo);
+    mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
 
-    const GeometryType & geom = this->GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for(SizeType i = 0; i < mSections.size(); i++)
-        mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+    BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThinElement3D3N::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void ShellThinElement3D3N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->FinalizeNonLinearIteration(CurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
 
-    const GeometryType & geom = this->GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for(SizeType i = 0; i < mSections.size(); i++)
-        mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+    BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
 void ShellThinElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)

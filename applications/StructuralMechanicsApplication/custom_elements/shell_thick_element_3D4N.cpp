@@ -512,31 +512,25 @@ int ShellThickElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("")
 }
 
-void ShellThickElement3D4N::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->InitializeNonLinearIteration(CurrentProcessInfo);
+    mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
 
-    const GeometryType & geom = this->GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for(int i = 0; i < 4; i++)
-        mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+    BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D4N::FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->FinalizeNonLinearIteration(CurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
 
     ShellQ4_LocalCoordinateSystem LCS( mpCoordinateTransformation->CreateLocalCoordinateSystem() );
     Vector globalDisplacementVector(24);
     GetValuesVector(globalDisplacementVector);
     Vector localDisplacementVector( mpCoordinateTransformation->CalculateLocalDisplacements( LCS, globalDisplacementVector ) );
 
-    mEASStorage.FinalizeNonLinearIteration(localDisplacementVector, CurrentProcessInfo);
+    mEASStorage.FinalizeNonLinearIteration(localDisplacementVector, rCurrentProcessInfo);
 
-    const GeometryType & geom = this->GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for(int i = 0; i < 4; i++)
-        mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+    BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
 void ShellThickElement3D4N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
