@@ -576,17 +576,16 @@ public:
     {
         int num_dofs =  static_cast<int> (BaseType::mDofSet.size());
         bool all_dofs_have_reactions = true;
-      
+  
         for(int i = 0; i<num_dofs; i++)
         { 
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
-            all_dofs_have_reactions = dof_iterator->HasReaction();
+            all_dofs_have_reactions = dof_iterator->HasReaction() && all_dofs_have_reactions;
         }
 
         KRATOS_ERROR_IF_NOT(all_dofs_have_reactions) << "All the DOFs do not have reaction variables set. Not possible to calculate reactions." <<std::endl;
     }
     #endif
-
         BaseType::mDofSetIsInitialized = true;
 
         KRATOS_CATCH("")
