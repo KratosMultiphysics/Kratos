@@ -105,7 +105,6 @@ Begin SubModelPart  test_model_part
          11
     End SubModelPartNodes
     Begin SubModelPartElements
-        1
     End SubModelPartElements
     Begin SubModelPartConditions
     End SubModelPartConditions

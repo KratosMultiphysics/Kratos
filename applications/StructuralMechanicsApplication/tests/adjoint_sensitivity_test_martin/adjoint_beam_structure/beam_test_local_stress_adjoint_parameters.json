@@ -98,6 +98,7 @@
             "input_file_name"  : "adjoint_sensitivity_test_martin/adjoint_beam_structure/beam_test_local_stress_results.json",
             "model_part_name"  : "Structure",
             "sub_model_part_name"  : "test_model_part",
+            "tolerance"            : 1e-5,
             "time_frequency"   : -2.0
         }
     }
