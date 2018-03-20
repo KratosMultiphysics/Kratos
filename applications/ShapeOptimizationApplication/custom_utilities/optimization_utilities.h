@@ -107,7 +107,7 @@ public:
 
     ///@}
     ///@name Operations
-    ///@{     
+    ///@{
 
     // ==============================================================================
     // General optimization operations
@@ -129,7 +129,7 @@ public:
             {
                 array_3d& search_dir = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
                 double squared_length = inner_prod(search_dir,search_dir);
-                
+
                 if(squared_length>max_norm_search_dir)
                     max_norm_search_dir = squared_length;
             }
@@ -198,7 +198,11 @@ public:
         	array_3d& dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
             norm_2_dCds_i += inner_prod(dCds_i,dCds_i);
         }
-       norm_2_dCds_i = sqrt(norm_2_dCds_i);
+        norm_2_dCds_i = sqrt(norm_2_dCds_i);
+
+        // Avoid division by zero
+        if(std::abs(norm_2_dCds_i)<1e12)
+            norm_2_dCds_i = 1.0;
 
         // Compute dot product of objective gradient and normalized constraint gradient
         double dot_dFds_dCds = 0.0;
@@ -267,7 +271,7 @@ public:
     // --------------------------------------------------------------------------
     double GetCorrectionScaling()
     {
-        double correction_scaling = mOptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble(); 
+        double correction_scaling = mOptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble();
         if(mOptimizationSettings["optimization_algorithm"]["use_adaptive_correction"].GetBool())
         {
             correction_scaling = AdaptCorrectionScaling( correction_scaling );
