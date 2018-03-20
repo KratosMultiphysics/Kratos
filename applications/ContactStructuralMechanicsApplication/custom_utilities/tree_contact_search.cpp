@@ -806,9 +806,6 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeMappedGap(const bool Sear
     if (!SearchOrientation)
         SwitchFlagNodes(nodes_array);
 
-    // Updating the distance distance threshold
-    mrMainModelPart.GetProcessInfo()[DISTANCE_THRESHOLD] = distance_threshold;
-
     // We set the mapper parameters
     Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );
     mapping_parameters["inverted_master_slave_pairing"].SetBool(!SearchOrientation);

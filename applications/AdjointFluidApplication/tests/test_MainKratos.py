@@ -83,6 +83,7 @@ class MainKratos:
             process.ExecuteBeforeSolutionLoop()
 
         self.main_model_part.CloneTimeStep(time)
+        self.main_model_part.ProcessInfo[STEP] = 1
         for step in range(1,nsteps+1):
 
             time = time + Dt
