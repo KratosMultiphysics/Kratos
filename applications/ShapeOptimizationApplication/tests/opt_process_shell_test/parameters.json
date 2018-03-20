@@ -96,13 +96,13 @@
     },
     "list_other_processes": [
         {
-            "python_module"   : "from_json_check_result_process",
+            "python_module" : "from_json_check_result_process",
             "kratos_module" : "KratosMultiphysics",
-            "help"                  : "",
-            "process_name"          : "FromJsonCheckResultProcess",
-            "Parameters"            : {
+            "help"          : "",
+            "process_name"  : "FromJsonCheckResultProcess",
+            "Parameters"    : {
                 "check_variables"  : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
-                "input_file_name" : "shape_change_results.json",
+                "input_file_name"  : "shape_change_results.json",
                 "model_part_name"  : "structure",
                 "time_frequency"   : 0.0
             }
@@ -110,11 +110,11 @@
     ],
     "_json_output_process" : [
         {
-            "python_module"   : "json_output_process",
+            "python_module" : "json_output_process",
             "kratos_module" : "KratosMultiphysics",
-            "help"                  : "",
-            "process_name"          : "JsonOutputProcess",
-            "Parameters"            : {
+            "help"          : "",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
                 "output_variables" : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
                 "output_file_name" : "shape_change_results.json",
                 "model_part_name"  : "structure",

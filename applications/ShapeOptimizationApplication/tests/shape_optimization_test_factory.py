@@ -32,12 +32,24 @@ class ShapeOptimizationTestFactory(KratosUnittest.TestCase):
         kratos_utils.DeleteDirectoryIfExisting("__pycache__")
 
 # ==============================================================================
-class algorithm_steepest_descent_test(ShapeOptimizationTestFactory):
-    execution_directory = "algorithm_steepest_descent_test"
+class opt_process_vertex_morphing_test(ShapeOptimizationTestFactory):
+    execution_directory = "opt_process_vertex_morphing_test"
     execution_file = "run_test"
 
 class opt_process_shell_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_shell_test"
+    execution_file = "run_test"
+
+class opt_process_eigenfrequency_test(ShapeOptimizationTestFactory):
+    execution_directory = "opt_process_eigenfrequency_test"
+    execution_file = "run_test"
+
+class algorithm_steepest_descent_test(ShapeOptimizationTestFactory):
+    execution_directory = "algorithm_steepest_descent_test"
+    execution_file = "run_test"
+
+class algorithm_penalized_projection_test(ShapeOptimizationTestFactory):
+    execution_directory = "algorithm_penalized_projection_test"
     execution_file = "run_test"
 
 # ==============================================================================

@@ -31,8 +31,11 @@ except ImportError as e:
 # ==============================================================================
 
 # Small tests
-from shape_optimization_test_factory import algorithm_steepest_descent_test as algorithm_steepest_descent_test
 from shape_optimization_test_factory import opt_process_shell_test as opt_process_shell_test
+from shape_optimization_test_factory import opt_process_vertex_morphing_test as opt_process_vertex_morphing_test
+from shape_optimization_test_factory import opt_process_eigenfrequency_test as opt_process_eigenfrequency_test
+from shape_optimization_test_factory import algorithm_steepest_descent_test as algorithm_steepest_descent_test
+from shape_optimization_test_factory import algorithm_penalized_projection_test as algorithm_penalized_projection_test
 
 # Niglty tests
 
@@ -57,8 +60,11 @@ def AssambleTestSuites():
 
     # Adding small tests (tests that take < 1s)
     smallSuite = suites['small']
-    smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
+    smallSuite.addTest(opt_process_vertex_morphing_test('test_execution'))
     smallSuite.addTest(opt_process_shell_test('test_execution'))
+    smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
+    smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
+    smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)
     nightSuite = suites['nightly']
