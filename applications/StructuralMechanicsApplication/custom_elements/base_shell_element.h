@@ -120,6 +120,8 @@ public:
 
     void GetSecondDerivativesVector(Vector& rValues, int Step = 0) override;
 
+    void BaseShellElement::ResetConstitutiveLaw() override;
+
     /**
     * ELEMENTS inherited from this class have to implement next
     * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods

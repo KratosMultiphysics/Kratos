@@ -113,8 +113,6 @@ public:
 
     void Initialize() override;
 
-    void ResetConstitutiveLaw() override;
-
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;

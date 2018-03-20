@@ -203,6 +203,20 @@ void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
     }
 }
 
+void BaseShellElement::ResetConstitutiveLaw()
+{
+    KRATOS_TRY
+
+    const GeometryType & geom = GetGeometry();
+    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+
+    const Properties& props = GetProperties();
+    for(SizeType i = 0; i < mSections.size(); i++)
+        mSections[i]->ResetCrossSection(props, geom, row(shapeFunctionsValues, i));
+
+    KRATOS_CATCH("")
+}
+
 // /**
 //  * ELEMENTS inherited from this class have to implement next
 //  * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods

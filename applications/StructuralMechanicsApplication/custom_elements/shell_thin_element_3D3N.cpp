@@ -226,20 +226,6 @@ void ShellThinElement3D3N::Initialize()
     KRATOS_CATCH("")
 }
 
-void ShellThinElement3D3N::ResetConstitutiveLaw()
-{
-    KRATOS_TRY
-
-    const GeometryType & geom = GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-    const Properties& props = GetProperties();
-    for(SizeType i = 0; i < mSections.size(); i++)
-        mSections[i]->ResetCrossSection(props, geom, row(shapeFunctionsValues, i));
-
-    KRATOS_CATCH("")
-}
-
 int ShellThinElement3D3N::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY

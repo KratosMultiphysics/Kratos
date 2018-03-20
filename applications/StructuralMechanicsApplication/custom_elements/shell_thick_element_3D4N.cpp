@@ -496,20 +496,6 @@ void ShellThickElement3D4N::Initialize()
     KRATOS_CATCH("")
 }
 
-void ShellThickElement3D4N::ResetConstitutiveLaw()
-{
-    KRATOS_TRY
-
-    const GeometryType & geom = GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-    const Properties& props = GetProperties();
-    for(std::size_t i = 0; i < mSections.size(); i++)
-        mSections[i]->ResetCrossSection(props, geom, row(shapeFunctionsValues, i));
-
-    KRATOS_CATCH("")
-}
-
 int ShellThickElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
