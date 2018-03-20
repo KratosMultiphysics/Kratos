@@ -17,19 +17,11 @@
 #include <string>
 #include <iomanip>
 
-#define OPT_NUM_DOFS 18
-
 //----------------------------------------
 // preprocessors for the integration
 // method used by this element.
 
 //#define OPT_1_POINT_INTEGRATION
-
-#ifdef OPT_1_POINT_INTEGRATION
-#define OPT_NUM_GP 1
-#else
-#define OPT_NUM_GP 3
-#endif // OPT_1_POINT_INTEGRATION
 
 //----------------------------------------
 // preprocessors to handle the output
@@ -193,10 +185,10 @@ void ShellThinElement3D3N::Initialize()
         KRATOS_THROW_ERROR(std::logic_error, "ShellThinElement3D3N Element - Wrong number of nodes", geom.PointsNumber());
 
     const GeometryType::IntegrationPointsArrayType & integrationPoints = geom.IntegrationPoints(GetIntegrationMethod());
-    if(integrationPoints.size() != OPT_NUM_GP)
+    if(integrationPoints.size() != mNumGPs)
         KRATOS_THROW_ERROR(std::logic_error, "ShellThinElement3D3N Element - Wrong integration scheme", integrationPoints.size());
 
-    if(mSections.size() != OPT_NUM_GP)
+    if(mSections.size() != mNumGPs)
     {
         const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
@@ -223,7 +215,7 @@ void ShellThinElement3D3N::Initialize()
         }
 
         mSections.clear();
-        for(int i = 0; i < OPT_NUM_GP; i++)
+        for(int i = 0; i < mNumGPs; i++)
         {
             ShellCrossSection::Pointer sectionClone = theSection->Clone();
             sectionClone->SetSectionBehavior(ShellCrossSection::Thin);
@@ -318,9 +310,9 @@ void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 
 void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
-    if((rMassMatrix.size1() != OPT_NUM_DOFS) || (rMassMatrix.size2() != OPT_NUM_DOFS))
-        rMassMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
-    noalias(rMassMatrix) = ZeroMatrix(OPT_NUM_DOFS, OPT_NUM_DOFS);
+    if((rMassMatrix.size1() != mNumDofs) || (rMassMatrix.size2() != mNumDofs))
+        rMassMatrix.resize(mNumDofs, mNumDofs, false);
+    noalias(rMassMatrix) = ZeroMatrix(mNumDofs, mNumDofs);
 
     // Compute the local coordinate system.
 
@@ -333,9 +325,9 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
 
     // Calculate avarage mass per unit area
     double av_mass_per_unit_area = 0.0;
-    for(std::size_t i = 0; i < OPT_NUM_GP; i++)
+    for(std::size_t i = 0; i < mNumGPs; i++)
         av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
-    av_mass_per_unit_area /= double(OPT_NUM_GP);
+    av_mass_per_unit_area /= double(mNumGPs);
 
     // loop on nodes
     for(std::size_t i = 0; i < 3; i++)
@@ -355,10 +347,10 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
 
 void ShellThinElement3D3N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
 {
-    if((rDampingMatrix.size1() != OPT_NUM_DOFS) || (rDampingMatrix.size2() != OPT_NUM_DOFS))
-        rDampingMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
+    if((rDampingMatrix.size1() != mNumDofs) || (rDampingMatrix.size2() != mNumDofs))
+        rDampingMatrix.resize(mNumDofs, mNumDofs, false);
 
-    noalias( rDampingMatrix ) = ZeroMatrix(OPT_NUM_DOFS, OPT_NUM_DOFS);
+    noalias( rDampingMatrix ) = ZeroMatrix(mNumDofs, mNumDofs);
 }
 
 void ShellThinElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -385,8 +377,8 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-    if (rValues.size() != OPT_NUM_GP)
-        rValues.resize(OPT_NUM_GP);
+    if (rValues.size() != mNumGPs)
+        rValues.resize(mNumGPs);
 
     // The membrane formulation needs to iterate to find the correct
     // mid-surface strain values.
@@ -421,7 +413,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 		InitializeCalculationData(data);
 
 		// Gauss Loop.
-		for (std::size_t i = 0; i < OPT_NUM_GP; i++)
+		for (std::size_t i = 0; i < mNumGPs; i++)
 		{
 			// set the current integration point index
 			data.gpIndex = i;
@@ -451,8 +443,8 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 	else if (rVariable == TSAI_WU_RESERVE_FACTOR)
 	{
 		// resize output
-		if (rValues.size() != OPT_NUM_GP)
-			rValues.resize(OPT_NUM_GP);
+		if (rValues.size() != mNumGPs)
+			rValues.resize(mNumGPs);
 
 		// Just to store the rotation matrix for visualization purposes
 		Matrix R(mStrainSize, mStrainSize);
@@ -481,7 +473,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 		double total_rotation = 0.0;
 
 		// Gauss Loop.
-		for (std::size_t i = 0; i < OPT_NUM_GP; i++)
+		for (std::size_t i = 0; i < mNumGPs; i++)
 		{
 			// set the current integration point index
 			data.gpIndex = i;
@@ -534,7 +526,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 	}
 	else
 	{
-		for (int i = 0; i < OPT_NUM_GP; i++)
+		for (int i = 0; i < mNumGPs; i++)
 			mSections[i]->GetValue(rVariable, rValues[i]);
 	}
 
@@ -551,9 +543,9 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 		// orientation, which rotates the entrire element section in-plane
 		// and is used in element stiffness calculation.
 
-        if (rValues.size() != OPT_NUM_GP) rValues.resize(OPT_NUM_GP);
+        if (rValues.size() != mNumGPs) rValues.resize(mNumGPs);
 
-		for (int i = 0; i < OPT_NUM_GP; ++i) rValues[i] = ZeroVector(3);
+		for (int i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
 		// Initialize common calculation variables
 		ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
@@ -569,8 +561,8 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<Vector>& r
 		// in-plane and is used in the element stiffness calculation.
 
 		// Resize output
-		if (rValues.size() != OPT_NUM_GP) rValues.resize(OPT_NUM_GP);
-		for (int i = 0; i < OPT_NUM_GP; ++i) rValues[i] = ZeroVector(3);
+		if (rValues.size() != mNumGPs) rValues.resize(mNumGPs);
+		for (int i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
 
 		// Initialize common calculation variables
 		// Compute the local coordinate system.
@@ -692,7 +684,7 @@ void ShellThinElement3D3N::Calculate(const Variable<Matrix>& rVariable, Matrix &
 void ShellThinElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
 {
     KRATOS_TRY
-    if(crossSections.size() != OPT_NUM_GP)
+    if(crossSections.size() != mNumGPs)
         KRATOS_THROW_ERROR(std::logic_error, "The number of cross section is wrong", crossSections.size());
     mSections.clear();
     for(SizeType i = 0; i <crossSections.size(); i++)
@@ -1142,11 +1134,11 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // that already take into accout the
     // thickness
 
-    data.dA = A / (double)OPT_NUM_GP;
+    data.dA = A / (double)mNumGPs;
 
     // crete the integration point locations
     if(data.gpLocations.size() != 0) data.gpLocations.clear();
-    data.gpLocations.resize( OPT_NUM_GP );
+    data.gpLocations.resize( mNumGPs );
 #ifdef OPT_1_POINT_INTEGRATION
     array_1d<double,3>& gp0 = data.gpLocations[0];
     gp0[0] = 1.0/3.0;
@@ -1323,7 +1315,7 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // calculate the displacement vector
     // in global and local coordinate systems
 
-    data.globalDisplacements.resize(OPT_NUM_DOFS, false);
+    data.globalDisplacements.resize(mNumDofs, false);
     GetValuesVector( data.globalDisplacements );
 
     data.localDisplacements =
@@ -1336,9 +1328,9 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // during the element integration.
     // Just to avoid re-allocations
 
-    data.B.resize(mStrainSize, OPT_NUM_DOFS, false);
+    data.B.resize(mStrainSize, mNumDofs, false);
     data.D.resize(mStrainSize, mStrainSize, false);
-    data.BTD.resize(OPT_NUM_DOFS, mStrainSize, false);
+    data.BTD.resize(mNumDofs, mStrainSize, false);
 
     data.generalizedStrains.resize(mStrainSize, false);
     data.generalizedStresses.resize(mStrainSize, false);
@@ -1632,7 +1624,7 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
     const Matrix & N = GetGeometry().ShapeFunctionsValues(mIntegrationMethod);
 #else
     Matrix N(3,3);
-    for(unsigned int igauss = 0; igauss < OPT_NUM_GP; igauss++)
+    for(unsigned int igauss = 0; igauss < mNumGPs; igauss++)
     {
         const array_1d<double,3>& loc = data.gpLocations[igauss];
         N(igauss,0) = 1.0 - loc[1] - loc[2];
@@ -1645,7 +1637,7 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
     array_1d<double, 3> bf;
 
     // gauss loop to integrate the external force vector
-    for(unsigned int igauss = 0; igauss < OPT_NUM_GP; igauss++)
+    for(unsigned int igauss = 0; igauss < mNumGPs; igauss++)
     {
         // get mass per unit area
         double mass_per_unit_area = mSections[igauss]->CalculateMassPerUnitArea();
@@ -1681,16 +1673,16 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     // Resize the Left Hand Side if necessary,
     // and initialize it to Zero
 
-    if((rLeftHandSideMatrix.size1() != OPT_NUM_DOFS) || (rLeftHandSideMatrix.size2() != OPT_NUM_DOFS))
-        rLeftHandSideMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(OPT_NUM_DOFS, OPT_NUM_DOFS);
+    if((rLeftHandSideMatrix.size1() != mNumDofs) || (rLeftHandSideMatrix.size2() != mNumDofs))
+        rLeftHandSideMatrix.resize(mNumDofs, mNumDofs, false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mNumDofs, mNumDofs);
 
     // Resize the Right Hand Side if necessary,
     // and initialize it to Zero
 
-    if(rRightHandSideVector.size() != OPT_NUM_DOFS)
-        rRightHandSideVector.resize(OPT_NUM_DOFS, false);
-    noalias(rRightHandSideVector) = ZeroVector(OPT_NUM_DOFS);
+    if(rRightHandSideVector.size() != mNumDofs)
+        rRightHandSideVector.resize(mNumDofs, false);
+    noalias(rRightHandSideVector) = ZeroVector(mNumDofs);
 
     // Initialize common calculation variables
 
@@ -1701,7 +1693,7 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
 
     // Gauss Loop.
 
-    for(std::size_t i = 0; i < OPT_NUM_GP; i++)
+    for(std::size_t i = 0; i < mNumGPs; i++)
     {
         data.gpIndex = i;
         CalculateGaussPointContribution(data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -1746,8 +1738,8 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
 
     // resize output
 
-    if(rValues.size() != OPT_NUM_GP)
-        rValues.resize(OPT_NUM_GP);
+    if(rValues.size() != mNumGPs)
+        rValues.resize(mNumGPs);
 
     // Compute the local coordinate system.
 
@@ -1761,7 +1753,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
     if(ijob == 1)
     {
         Vector3Type eX = localCoordinateSystem.Vx();
-        for(int i = 0; i < OPT_NUM_GP; i++)
+        for(int i = 0; i < mNumGPs; i++)
         {
             QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mSections[i]->GetOrientationAngle());
             q.RotateVector3(eX, rValues[i]);
@@ -1770,7 +1762,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
     else if(ijob == 2)
     {
         Vector3Type eY = localCoordinateSystem.Vy();
-        for(int i = 0; i < OPT_NUM_GP; i++)
+        for(int i = 0; i < mNumGPs; i++)
         {
             QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mSections[i]->GetOrientationAngle());
             q.RotateVector3(eY, rValues[i]);
@@ -1778,7 +1770,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_MaterialOrientation(co
     }
     else if(ijob == 3)
     {
-        for(int i = 0; i < OPT_NUM_GP; i++)
+        for(int i = 0; i < mNumGPs; i++)
         {
             noalias( rValues[i] ) = eZ;
         }
@@ -1803,8 +1795,8 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
 
     // resize output
 
-    if(rValues.size() != OPT_NUM_GP)
-        rValues.resize(OPT_NUM_GP);
+    if(rValues.size() != mNumGPs)
+        rValues.resize(mNumGPs);
 
     // Just to store the rotation matrix for visualization purposes
 
@@ -1820,7 +1812,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
 
     // Gauss Loop.
 
-    for(std::size_t i = 0; i < OPT_NUM_GP; i++)
+    for(std::size_t i = 0; i < mNumGPs; i++)
     {
         // set the current integration point index
         data.gpIndex = i;

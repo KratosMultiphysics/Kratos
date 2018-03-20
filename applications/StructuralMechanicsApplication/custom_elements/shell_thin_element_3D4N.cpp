@@ -180,9 +180,6 @@ namespace Kratos
 	//
 	// =========================================================================
 
-	#define OPT_NUM_DOFS 24
-	#define OPT_NUM_GP 4
-
 	// =========================================================================
 	//
 	// Class JacobianOperator
@@ -291,12 +288,12 @@ namespace Kratos
 
 		const GeometryType::IntegrationPointsArrayType & integrationPoints =
 			geom.IntegrationPoints(GetIntegrationMethod());
-		if (integrationPoints.size() != OPT_NUM_GP)
+		if (integrationPoints.size() != mNumGPs)
 			KRATOS_THROW_ERROR(std::logic_error,
 				"ShellThinElement3D4N Element - Wrong integration scheme",
 				integrationPoints.size());
 
-		if (mSections.size() != OPT_NUM_GP)
+		if (mSections.size() != mNumGPs)
 		{
 			const Matrix & shapeFunctionsValues =
 				geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -327,7 +324,7 @@ namespace Kratos
 			}
 
 			mSections.clear();
-			for (int i = 0; i < OPT_NUM_GP; i++)
+			for (int i = 0; i < mNumGPs; i++)
 			{
 				ShellCrossSection::Pointer sectionClone = theSection->Clone();
 				sectionClone->SetSectionBehavior(ShellCrossSection::Thin);
@@ -2363,17 +2360,17 @@ namespace Kratos
 		// Resize the Left Hand Side if necessary,
 		// and initialize it to Zero
 
-		if ((rLeftHandSideMatrix.size1() != OPT_NUM_DOFS) ||
-			(rLeftHandSideMatrix.size2() != OPT_NUM_DOFS))
-			rLeftHandSideMatrix.resize(OPT_NUM_DOFS, OPT_NUM_DOFS, false);
-		noalias(rLeftHandSideMatrix) = ZeroMatrix(OPT_NUM_DOFS, OPT_NUM_DOFS);
+		if ((rLeftHandSideMatrix.size1() != mNumDofs) ||
+			(rLeftHandSideMatrix.size2() != mNumDofs))
+			rLeftHandSideMatrix.resize(mNumDofs, mNumDofs, false);
+		noalias(rLeftHandSideMatrix) = ZeroMatrix(mNumDofs, mNumDofs);
 
 		// Resize the Right Hand Side if necessary,
 		// and initialize it to Zero
 
-		if (rRightHandSideVector.size() != OPT_NUM_DOFS)
-			rRightHandSideVector.resize(OPT_NUM_DOFS, false);
-		noalias(rRightHandSideVector) = ZeroVector(OPT_NUM_DOFS);
+		if (rRightHandSideVector.size() != mNumDofs)
+			rRightHandSideVector.resize(mNumDofs, false);
+		noalias(rRightHandSideVector) = ZeroVector(mNumDofs);
 
 		// Compute the local coordinate system.
 		ShellQ4_LocalCoordinateSystem localCoordinateSystem(
@@ -2390,7 +2387,7 @@ namespace Kratos
 		InitializeCalculationData(data);
 
 		// Gauss Loop.
-		for (std::size_t i = 0; i < OPT_NUM_GP; i++)
+		for (std::size_t i = 0; i < mNumGPs; i++)
 		{
 			data.gpIndex = i;
 			CalculateGaussPointContribution(data, rLeftHandSideMatrix,
