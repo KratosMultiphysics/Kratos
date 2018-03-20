@@ -202,12 +202,6 @@ namespace Kratos
 			pProperties, mpCoordinateTransformation->Create(newGeom));
 	}
 
-	ShellThickElement3D3N::IntegrationMethod
-		ShellThickElement3D3N::GetIntegrationMethod() const
-	{
-		return mIntegrationMethod;
-	}
-
 	void ShellThickElement3D3N::Initialize()
 	{
 		KRATOS_TRY

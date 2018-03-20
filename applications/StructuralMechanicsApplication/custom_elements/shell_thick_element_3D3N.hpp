@@ -122,8 +122,6 @@ namespace Kratos
 
 		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-		IntegrationMethod GetIntegrationMethod() const override;
-
 		void Initialize() override;
 
 		void ResetConstitutiveLaw() override;

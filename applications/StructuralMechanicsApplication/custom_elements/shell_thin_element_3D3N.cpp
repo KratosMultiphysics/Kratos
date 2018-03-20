@@ -169,11 +169,6 @@ Element::Pointer ShellThinElement3D3N::Create(IndexType NewId, NodesArrayType co
     return Kratos::make_shared< ShellThinElement3D3N >(NewId, newGeom, pProperties, mpCoordinateTransformation->Create(newGeom) );
 }
 
-ShellThinElement3D3N::IntegrationMethod ShellThinElement3D3N::GetIntegrationMethod() const
-{
-    return mIntegrationMethod;
-}
-
 void ShellThinElement3D3N::Initialize()
 {
     KRATOS_TRY

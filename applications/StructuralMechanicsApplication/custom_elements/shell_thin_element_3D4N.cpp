@@ -268,12 +268,6 @@ namespace Kratos
 			pProperties, mpCoordinateTransformation->Create(newGeom));
 	}
 
-	ShellThinElement3D4N::IntegrationMethod
-		ShellThinElement3D4N::GetIntegrationMethod() const
-	{
-		return mIntegrationMethod;
-	}
-
 	void ShellThinElement3D4N::Initialize()
 	{
 		KRATOS_TRY
