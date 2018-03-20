@@ -57,6 +57,9 @@ namespace Kratos {
     Serializer::Register( "LargeStrain3DLaw", mLargeStrain3DLaw );
     Serializer::Register( "LargeStrainPlaneStrain2DLaw", mLargeStrainPlaneStrain2DLaw );
     Serializer::Register( "LargeStrainAxisymmetric2DLaw", mLargeStrainAxisymmetric2DLaw );
+
+    //large strain laws
+    Serializer::Register( "Newtonian3DLaw", mNewtonian3DLaw );
     
     //general constitutive models
     

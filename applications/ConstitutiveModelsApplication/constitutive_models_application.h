@@ -57,6 +57,9 @@
 #include "custom_laws/large_strain_laws/large_strain_plane_strain_2D_law.hpp"
 #include "custom_laws/large_strain_laws/large_strain_axisymmetric_2D_law.hpp"
 
+//strain rate laws
+#include "custom_laws/strain_rate_laws/newtonian_3D_law.hpp"
+
 //specialized large strain laws
 
 //elasticity models
@@ -265,6 +268,8 @@ namespace Kratos {
     const LargeStrainPlaneStrain2DLaw              mLargeStrainPlaneStrain2DLaw;
     const LargeStrainAxisymmetric2DLaw             mLargeStrainAxisymmetric2DLaw;
 
+    //strain rate laws
+    const Newtonian3DLaw                           mNewtonian3DLaw;
 
     //general constitutive models
 
