@@ -41,7 +41,7 @@
         "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto2","Parts_Parts_Auto3","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","IMPOSE_DISP_Auto1"]
     },
     "constraints_process_list" : [{
-        "python_module"   : "assign_vector_by_direction_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "AssignVectorByDirectionProcess",
@@ -53,7 +53,7 @@
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "assign_vector_by_direction_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "AssignVectorByDirectionProcess",
@@ -65,7 +65,7 @@
             "value"           : [0.0,0.0,0.0]
         }
     },{
-        "python_module"   : "assign_vector_by_direction_process",
+        "python_module"   : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
         "help"                  : "This process fixes the selected components of a given vector variable",
         "process_name"          : "AssignVectorByDirectionProcess",
@@ -89,11 +89,7 @@
             "model_part_name"             : "Structure",
             "contact_model_part"          : "Contact_Part",
             "contact_type"                : "Frictionless",
-            "assume_master_slave"         : "Parts_Parts_Auto3",
-            "search_factor"               : 2.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "assume_master_slave"         : "Parts_Parts_Auto3"
         }
     }
     ],

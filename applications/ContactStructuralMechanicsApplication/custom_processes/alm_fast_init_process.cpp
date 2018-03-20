@@ -46,6 +46,7 @@ void ALMFastInit::Execute()
         it_node->SetValue(INITIAL_PENALTY, epsilon);
         
         // Auxiliar values
+        it_node->SetValue(DYNAMIC_FACTOR, 1.0);
         it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
         if (is_frictional == true)
             it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, 0.0);

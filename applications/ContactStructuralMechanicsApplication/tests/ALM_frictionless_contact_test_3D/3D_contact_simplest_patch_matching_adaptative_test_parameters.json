@@ -4,7 +4,7 @@
         "model_part_name" : "Structure",
         "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
+        "time_step"       : 1.3,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -15,8 +15,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test",
-            "input_file_label" : 0
+            "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test"
         },
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test_materials.json"
@@ -76,7 +75,7 @@
             "mesh_id"         : 0,
             "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
             "variable_name"   : "DISPLACEMENT_Z",
-            "value"          : "-0.25*t"
+            "value"          : "-1.0*t"
         }
     }],
     "loads_process_list"       : [],
@@ -89,11 +88,7 @@
         "Parameters"            : {
             "model_part_name"             : "Structure",
             "contact_model_part"          : "Contact_Part",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 2.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2
+            "contact_type"                : "Frictionless"
         }
     }
     ],
@@ -118,7 +113,7 @@
         },
         "point_data_configuration"  : []
     },
-    "_json_check_process" : [
+    "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
         "kratos_module" : "KratosMultiphysics",
