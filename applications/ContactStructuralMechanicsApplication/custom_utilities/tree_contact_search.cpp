@@ -738,7 +738,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
 //     const double distance_threshold = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR] * GetMaxNodalH();
 
     // Updating the distance distance threshold
-    mrMainModelPart.GetProcessInfo()[DISTANCE_THRESHOLD] = distance_threshold;
+    mrMainModelPart.GetProcessInfo().SetValue(DISTANCE_THRESHOLD, distance_threshold);
 
     // We get the contact model part
     ModelPart& rcontact_model_part = mrMainModelPart.GetSubModelPart("Contact");
