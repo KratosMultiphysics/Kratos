@@ -816,19 +816,16 @@ public:
 
     if(BaseType::GetCalculateReactionsFlag())
     {
-        std::size_t num_dofs = BaseType::mDofSet.size();
+        int num_dofs =  static_cast<int> BaseType::mDofSet.size();
         bool all_dofs_have_reactions = true;
-     
-        for(std::size_t i = 0; i<num_dofs; i++)
+   
+        for(int i = 0; i<num_dofs; i++)
         { 
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
             all_dofs_have_reactions = dof_iterator->HasReaction();
         }
 
-        if ((!all_dofs_have_reactions))
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "All the DOFs do not have reaction variables set. Not possible to calculate reactions.", "");
-        }        
+        KRATOS_ERROR_IF_NOT(all_dofs_have_reactions) << "All the DOFs do not have reaction variables set. Not possible to calculate reactions." <<std::endl;
     }
     #endif
 
