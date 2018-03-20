@@ -75,10 +75,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <amgcl/util.hpp>
 
 // std::real is not overloaded for scalar arguments pre c++11:
+// BOOST_HAS_TR1_COMPLEX_OVERLOADS Checks agains the define in "libstdcpp3.hpp" but is not present in other headers of "config/stdlib"
+// __cplusplus <= 199711L Checks if the compiler implements C++11 in general.
+#if !defined(BOOST_HAS_TR1_COMPLEX_OVERLOADS) || __cplusplus <= 199711L
 namespace std {
 inline float real(float x) { return x; }
 inline double real(double x) { return x; }
 }
+#endif
 
 namespace amgcl {
 namespace solver {

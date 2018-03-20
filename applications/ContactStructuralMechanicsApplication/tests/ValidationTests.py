@@ -32,8 +32,14 @@ class StructuralMechanichsTestFactory(KratosUnittest.TestCase):
             parameter_file = open(self.file_name + "_parameters.json", 'r')
             ProjectParameters = Parameters(parameter_file.read())
 
+            # Checking if frictionless_by_components is defined
+            try:
+                self.frictionless_by_components
+            except AttributeError:
+                self.frictionless_by_components = False
+
             # Creating the model part
-            self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters)
+            self.test = Execute_Test.Kratos_Execute_Test(ProjectParameters, self.frictionless_by_components)
 
     def test_execution(self):
         # Within this location context:
@@ -48,13 +54,13 @@ class ALMTaylorPatchDynamicTestContact(StructuralMechanichsTestFactory):
 
 class ALMMeshMovingMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/mesh_moving_matching_test"
-    
+
 class ALMMeshMovingNotMatchingTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test"
 
 class ALMIroningTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/ironing_test"
-    
+
 class ALMIroningDieTestContact(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_2D/ironing_die_test"
 
@@ -63,6 +69,26 @@ class LargeDisplacementPatchTestHexa(StructuralMechanichsTestFactory):
 
 class ALMLargeDisplacementPatchTestTetra(StructuralMechanichsTestFactory):
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra"
-    
+
 class ALMLargeDisplacementPatchTestHexa(StructuralMechanichsTestFactory):
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_hexa"
+    
+class ComponentsALMTaylorPatchDynamicTestContact(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/taylor_patch_dynamic_test"
+
+class ComponentsALMMeshMovingMatchingTestContact(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_matching_test"
+
+class ComponentsALMMeshMovingNotMatchingTestContact(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_2D/mesh_moving_notmatching_test"
+
+class ComponentsALMLargeDisplacementPatchTestTetra(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
+    file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_tetra"
+
+class ComponentsALMLargeDisplacementPatchTestHexa(StructuralMechanichsTestFactory):
+    frictionless_by_components = True
     file_name = "ALM_frictionless_contact_test_3D/3D_contact_patch_test_large_disp_hexa"

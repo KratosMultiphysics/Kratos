@@ -23,6 +23,20 @@ class KratosGlobals:
         print("Kratos Applications base folder:", self.ApplicationsRoot)
         return
 
+    def GetFlag(self, FlagName):
+        """ This method returns the flag with the given name
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        FlagName -- The name of the flag to return
+        """
+        kernel = self.Kernel
+
+        if kernel.HasFlag(FlagName):
+            return kernel.GetFlag(FlagName)
+        else:
+            raise ValueError("\nKernel.GetFlag() ERROR: Flag {0} is unknown. Check that is properly spelled\n".format(FlagName))
+
     def GetVariable(self, VarName):
         """ This method returns the variable with the given name
 

@@ -100,6 +100,16 @@ ConstitutiveLaw::SizeType ConstitutiveLaw::GetStrainSize()
  * @param rThisVariable the variable to be checked for
  * @return true if the variable is defined in the constitutive law
  */
+bool ConstitutiveLaw::Has(const Variable<bool>& rThisVariable)
+{
+    return false;
+}
+
+/**
+ * returns whether this constitutive Law has specified variable
+ * @param rThisVariable the variable to be checked for
+ * @return true if the variable is defined in the constitutive law
+ */
 bool ConstitutiveLaw::Has(const Variable<int>& rThisVariable)
 {
     return false;
@@ -217,7 +227,7 @@ Matrix& ConstitutiveLaw::GetValue(const Variable<Matrix>& rThisVariable, Matrix&
  * @param rValue a reference to the returned value
  * @return the value of the specified variable
  */
-array_1d<double, 3 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double, 3 > >& rVariable,
+array_1d<double, 3 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double, 3 > >& rThisVariable,
         array_1d<double, 3 > & rValue)
 {
     return rValue;
@@ -229,7 +239,7 @@ array_1d<double, 3 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double,
  * @param rValue a reference to the returned value
  * @return the value of the specified variable
  */
-array_1d<double, 6 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double, 6 > >& rVariable,
+array_1d<double, 6 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double, 6 > >& rThisVariable,
         array_1d<double, 6 > & rValue)
 {
     return rValue;
@@ -237,11 +247,24 @@ array_1d<double, 6 > & ConstitutiveLaw::GetValue(const Variable<array_1d<double,
 
 /**
  * sets the value of a specified variable
- * @param rVariable the variable to be returned
+ * @param rThisVariable the variable to be returned
  * @param Value new value of the specified variable
  * @param rCurrentProcessInfo the process info
  */
-void ConstitutiveLaw::SetValue(const Variable<int>& rVariable,
+void ConstitutiveLaw::SetValue(const Variable<bool>& rThisVariable,
+                               const bool& Value,
+                               const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR <<  "Called the virtual function for SetValue"<< std::endl;;
+}
+
+/**
+ * sets the value of a specified variable
+ * @param rThisVariable the variable to be returned
+ * @param Value new value of the specified variable
+ * @param rCurrentProcessInfo the process info
+ */
+void ConstitutiveLaw::SetValue(const Variable<int>& rThisVariable,
                                const int& Value,
                                const ProcessInfo& rCurrentProcessInfo)
 {
