@@ -161,11 +161,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictionless components case)
-    class_< ALMFrictionlessComponentsMortarConvergenceCriteriaType,
-            bases< ConvergenceCriteriaType >, boost::noncopyable >
-            (
-            "ALMFrictionlessComponentsMortarConvergenceCriteria", 
-            init< >())
+    class_< ALMFrictionlessComponentsMortarConvergenceCriteriaType, ALMFrictionlessComponentsMortarConvergenceCriteriaType::Pointer,
+            ConvergenceCriteriaType >
+            (m, "ALMFrictionlessMortarConvergenceCriteria")
+            .def(init< >())
             .def(init<TablePrinterPointerType>())
             .def(init<TablePrinterPointerType, bool>())
             .def(init<TablePrinterPointerType, bool, bool>())
