@@ -17,8 +17,6 @@
 #include <string>
 #include <iomanip>
 
-#define OPT_NUM_NODES 3
-#define OPT_STRAIN_SIZE 6
 #define OPT_NUM_DOFS 18
 
 //----------------------------------------
@@ -191,7 +189,7 @@ void ShellThinElement3D3N::Initialize()
     const GeometryType & geom = GetGeometry();
     const PropertiesType & props = GetProperties();
 
-    if(geom.PointsNumber() != OPT_NUM_NODES)
+    if(geom.PointsNumber() != 3)
         KRATOS_THROW_ERROR(std::logic_error, "ShellThinElement3D3N Element - Wrong number of nodes", geom.PointsNumber());
 
     const GeometryType::IntegrationPointsArrayType & integrationPoints = geom.IntegrationPoints(GetIntegrationMethod());
@@ -457,7 +455,7 @@ void ShellThinElement3D3N::GetValueOnIntegrationPoints(const Variable<double>& r
 			rValues.resize(OPT_NUM_GP);
 
 		// Just to store the rotation matrix for visualization purposes
-		Matrix R(OPT_STRAIN_SIZE, OPT_STRAIN_SIZE);
+		Matrix R(mStrainSize, mStrainSize);
 
 		// Initialize common calculation variables
 		CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
@@ -1338,12 +1336,12 @@ void ShellThinElement3D3N::InitializeCalculationData(CalculationData& data)
     // during the element integration.
     // Just to avoid re-allocations
 
-    data.B.resize(OPT_STRAIN_SIZE, OPT_NUM_DOFS, false);
-    data.D.resize(OPT_STRAIN_SIZE, OPT_STRAIN_SIZE, false);
-    data.BTD.resize(OPT_NUM_DOFS, OPT_STRAIN_SIZE, false);
+    data.B.resize(mStrainSize, OPT_NUM_DOFS, false);
+    data.D.resize(mStrainSize, mStrainSize, false);
+    data.BTD.resize(OPT_NUM_DOFS, mStrainSize, false);
 
-    data.generalizedStrains.resize(OPT_STRAIN_SIZE, false);
-    data.generalizedStresses.resize(OPT_STRAIN_SIZE, false);
+    data.generalizedStrains.resize(mStrainSize, false);
+    data.generalizedStresses.resize(mStrainSize, false);
 
     data.N.resize(3, false);
 
@@ -1529,7 +1527,7 @@ void ShellThinElement3D3N::CalculateSectionResponse(CalculationData& data)
 {
 #ifdef OPT_USES_INTERIOR_GAUSS_POINTS
     const Matrix & shapeFunctions = GetGeometry().ShapeFunctionsValues(mIntegrationMethod);
-    for(int nodeid = 0; nodeid < OPT_NUM_NODES; nodeid++)
+    for(int nodeid = 0; nodeid < GetGeometry().PointsNumber(); nodeid++)
         data.N(nodeid) = shapeFunctions(data.gpIndex, nodeid);
 #else
     const array_1d<double,3>& loc = data.gpLocations[data.gpIndex];
@@ -1810,7 +1808,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
 
     // Just to store the rotation matrix for visualization purposes
 
-    Matrix R(OPT_STRAIN_SIZE, OPT_STRAIN_SIZE);
+    Matrix R(mStrainSize, mStrainSize);
     Matrix aux33(3, 3);
 
     // Initialize common calculation variables

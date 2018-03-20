@@ -180,8 +180,6 @@ namespace Kratos
 	//
 	// =========================================================================
 
-	#define OPT_NUM_NODES 4
-	#define OPT_STRAIN_SIZE 6
 	#define OPT_NUM_DOFS 24
 	#define OPT_NUM_GP 4
 
@@ -286,7 +284,7 @@ namespace Kratos
 		const GeometryType & geom = GetGeometry();
 		const PropertiesType & props = GetProperties();
 
-		if (geom.PointsNumber() != OPT_NUM_NODES)
+		if (geom.PointsNumber() != 4)
 			KRATOS_THROW_ERROR(std::logic_error,
 				"ShellThinElement3D4N Element - Wrong number of nodes",
 				geom.PointsNumber());

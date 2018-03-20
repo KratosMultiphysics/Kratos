@@ -355,6 +355,8 @@ private:
 
     CoordinateTransformationBasePointerType mpCoordinateTransformation; /*!< The Coordinate Transformation */
 
+    SizeType mStrainSize = 6;
+
     ///@}
 
     ///@name Serialization
