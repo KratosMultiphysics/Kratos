@@ -428,8 +428,8 @@ private:
     ///@name Member Variables
     ///@{
     
-    ModelPart& mrOriginModelPart;                 /// The origin model part to compute
-    ModelPart& mrDestinationModelPart;            /// The destination model part to compute
+    ModelPart mOriginModelPart;                   /// The origin model part to compute
+    ModelPart mDestinationModelPart;              /// The destination model part to compute
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
     
