@@ -349,7 +349,7 @@ public:
 
     if(BaseType::GetCalculateReactionsFlag())
     {
-        int num_dofs =  static_cast<int> BaseType::mDofSet.size();
+        int num_dofs =  static_cast<int> (BaseType::mDofSet.size());
         bool all_dofs_have_reactions = true;
 
 #pragma omp parallel for firstprivate(num_dofs) reduction(&&: all_dofs_have_reactions)        
@@ -362,6 +362,7 @@ public:
         KRATOS_ERROR_IF_NOT(all_dofs_have_reactions) << "All the DOFs do not have reaction variables set. Not possible to calculate reactions." <<std::endl;
     }
     #endif
+
 
         KRATOS_CATCH("")
     }

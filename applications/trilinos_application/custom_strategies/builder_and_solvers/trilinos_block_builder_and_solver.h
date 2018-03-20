@@ -567,7 +567,6 @@ public:
         if (BaseType::mDofSet.size()==0)
             KRATOS_ERROR << "No degrees of freedom!";
 
-
         // If reactions are to be calculated, we check if all the dofs have reactions defined
         // This is tobe done only in debug mode
 
@@ -575,9 +574,9 @@ public:
 
     if(BaseType::GetCalculateReactionsFlag())
     {
-        int num_dofs =  static_cast<int> BaseType::mDofSet.size();
+        int num_dofs =  static_cast<int> (BaseType::mDofSet.size());
         bool all_dofs_have_reactions = true;
-   
+      
         for(int i = 0; i<num_dofs; i++)
         { 
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
@@ -587,7 +586,6 @@ public:
         KRATOS_ERROR_IF_NOT(all_dofs_have_reactions) << "All the DOFs do not have reaction variables set. Not possible to calculate reactions." <<std::endl;
     }
     #endif
-
 
         BaseType::mDofSetIsInitialized = true;
 

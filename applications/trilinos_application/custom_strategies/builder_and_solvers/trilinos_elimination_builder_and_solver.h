@@ -816,9 +816,8 @@ public:
 
     if(BaseType::GetCalculateReactionsFlag())
     {
-        int num_dofs =  static_cast<int> BaseType::mDofSet.size();
-        bool all_dofs_have_reactions = true;
-   
+        int num_dofs =  static_cast<int> (BaseType::mDofSet.size());
+        bool all_dofs_have_reactions = true;      
         for(int i = 0; i<num_dofs; i++)
         { 
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;

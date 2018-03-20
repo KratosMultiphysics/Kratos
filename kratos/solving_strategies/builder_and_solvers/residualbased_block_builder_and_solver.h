@@ -700,7 +700,7 @@ public:
 
     if(BaseType::GetCalculateReactionsFlag())
     {
-        int num_dofs =  static_cast<int> BaseType::mDofSet.size();
+        int num_dofs =  static_cast<int> (BaseType::mDofSet.size());
         bool all_dofs_have_reactions = true;
 
 #pragma omp parallel for firstprivate(num_dofs) reduction(&&: all_dofs_have_reactions)        
