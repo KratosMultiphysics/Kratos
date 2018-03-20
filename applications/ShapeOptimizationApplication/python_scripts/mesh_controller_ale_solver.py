@@ -80,9 +80,13 @@ class MeshControllerUsingALESolver(MeshController) :
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Z, True, surface_nodes)
         VariableUtils().CopyVectorVar(SHAPE_UPDATE, MESH_DISPLACEMENT, surface_nodes)
 
+        time_before_mesh_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
+
         self.mesh_solver.InitializeTimeStep()
         self.mesh_solver.SolveTimeStep()
         self.mesh_solver.FinalizeTimeStep()
+
+        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_mesh_update)
 
         MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(MESH_DISPLACEMENT)
 
