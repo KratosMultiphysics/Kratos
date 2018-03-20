@@ -201,7 +201,7 @@ public:
         norm_2_dCds_i = sqrt(norm_2_dCds_i);
 
         // Avoid division by zero
-        if(std::abs(norm_2_dCds_i)<1e12)
+        if(std::abs(norm_2_dCds_i)<1e-12)
             norm_2_dCds_i = 1.0;
 
         // Compute dot product of objective gradient and normalized constraint gradient
