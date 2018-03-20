@@ -23,7 +23,7 @@ def CreateResponseFunction(response_id, response_settings, model_part):
             response_function_utility = StructuralMechanicsApplication.EigenfrequencyResponseFunctionLinScal( model_part, response_settings )
         else:
             raise NameError("The following weighting_method is not valid for eigenfrequency response: " + response_settings["weighting_method"].GetString())
-        return structural_response.SimpleResponseFunction(response_id, response_settings, response_function_utility, model_part)
+        return structural_response.SimpleResponseFunctionWrapper(response_id, response_settings, response_function_utility, model_part)
 
     elif response_type == "adjoint_nodal_displacement":
         return structural_response.AdjointResponseFunction(response_id, response_settings, model_part)
