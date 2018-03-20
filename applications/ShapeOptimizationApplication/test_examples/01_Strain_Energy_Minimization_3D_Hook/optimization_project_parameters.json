@@ -35,7 +35,7 @@
             }
         }],
         "design_variables" : {
-            "design_variables_type"              : "vertex_morphing",
+            "type"              : "vertex_morphing",
             "optimization_model_part_name"       : "3D_Hook",
             "design_surface_sub_model_part_name" : "design_surface",
             "domain_size"                        : 3,
@@ -47,7 +47,7 @@
             },
             "mesh_motion" : {
                 "apply_ale_mesh_solver" : true,
-                "mesh_solver_settings" : {
+                "solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
                     "ale_linear_solver_settings"  : {
                         "solver_type"         : "AMGCL",
