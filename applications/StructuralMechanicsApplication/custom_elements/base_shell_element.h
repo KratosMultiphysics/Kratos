@@ -236,13 +236,13 @@ public:
 //    */
 //   virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate the elemental damping matrix
-//    * @param rDampingMatrix: the elemental damping matrix
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo);
+  /**
+   * this is called during the assembling process in order
+   * to calculate the elemental damping matrix
+   * @param rDampingMatrix: the elemental damping matrix
+   * @param rCurrentProcessInfo: the current process info instance
+   */
+  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 //   /**
 //    * This method provides the place to perform checks on the completeness of the input
@@ -314,6 +314,22 @@ protected:
     }
 
     void SetBaseMembers();
+
+    /**
+     * @brief This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix The LHS
+     * @param rRightHandSideVector The RHS
+     * @param rCurrentProcessInfo The current process info instance
+     * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
+     */
+    virtual void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+    );
 
   ///@}
   ///@name Protected  Access

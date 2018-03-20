@@ -202,10 +202,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 			ProcessInfo& rCurrentProcessInfo) override;
 		// needed for dyn
 
-		void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-			ProcessInfo& rCurrentProcessInfo) override;
-		// needed for dyn
-
 		void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
 			ProcessInfo& rCurrentProcessInfo) override;
@@ -425,10 +421,10 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 			VectorType& rRightHandSideVector); //not required for dyn
 
 		void CalculateAll(MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo,
-			const bool LHSrequired,
-			const bool RHSrequired);
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo,
+            const bool CalculateStiffnessMatrixFlag,
+            const bool CalculateResidualVectorFlag) override;
 
 		bool TryGetValueOnIntegrationPoints_MaterialOrientation(const Variable<array_1d<double, 3> >& rVariable,
 			std::vector<array_1d<double, 3> >& rValues,

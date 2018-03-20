@@ -525,15 +525,6 @@ namespace Kratos
 		}// Lumped mass matrix
 	}
 
-	void ShellThinElement3D4N::CalculateDampingMatrix
-	(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-	{
-		if ((rDampingMatrix.size1() != 24) || (rDampingMatrix.size2() != 24))
-			rDampingMatrix.resize(24, 24, false);
-
-		noalias(rDampingMatrix) = ZeroMatrix(24, 24);
-	}
-
 	void ShellThinElement3D4N::AddBodyForces(CalculationData& data,
 		VectorType& rRightHandSideVector)
 	{
@@ -2348,10 +2339,10 @@ namespace Kratos
 	}
 
 	void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
-		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo,
-		const bool LHSrequired,
-		const bool RHSrequired)
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag)
 	{
 		// Resize the Left Hand Side if necessary,
 		// and initialize it to Zero
@@ -2378,8 +2369,8 @@ namespace Kratos
 		// Initialize common calculation variables
 		CalculationData data(localCoordinateSystem, referenceCoordinateSystem,
 			rCurrentProcessInfo);
-		data.CalculateLHS = LHSrequired;
-		data.CalculateRHS = RHSrequired;
+		data.CalculateLHS = CalculateStiffnessMatrixFlag;
+		data.CalculateRHS = CalculateResidualVectorFlag;
 		InitializeCalculationData(data);
 
 		// Gauss Loop.
@@ -2425,8 +2416,8 @@ namespace Kratos
 			data.localDisplacements,
 			rLeftHandSideMatrix,
 			rRightHandSideVector,
-			RHSrequired,
-			LHSrequired);
+			CalculateResidualVectorFlag,
+			CalculateStiffnessMatrixFlag);
 
 		// Add body forces contributions. This doesn't depend on the coordinate
 		// system

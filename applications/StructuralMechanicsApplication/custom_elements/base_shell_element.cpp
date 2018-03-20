@@ -316,16 +316,52 @@ void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 //     rMassMatrix.resize(0, 0, false);
 // }
 
-// /**
-//  * this is called during the assembling process in order
-//  * to calculate the elemental damping matrix
-//  * @param rDampingMatrix: the elemental damping matrix
-//  * @param rCurrentProcessInfo: the current process info instance
-//  */
-// void BaseShellElement::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) {
-//   if (rDampingMatrix.size1() != 0)
-//     rDampingMatrix.resize(0, 0, false);
-// }
+void BaseShellElement::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    if ( rDampingMatrix.size1() != mNumDofs )
+        rDampingMatrix.resize( mNumDofs, mNumDofs, false );
+
+    noalias( rDampingMatrix ) = ZeroMatrix( mNumDofs, mNumDofs );
+
+    // 1.-Calculate StiffnessMatrix:
+
+    MatrixType StiffnessMatrix  = Matrix();
+    VectorType ResidualVector  = Vector();
+
+    CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+
+    // 2.-Calculate MassMatrix:
+
+    MatrixType MassMatrix  = Matrix();
+
+    CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+
+    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    double alpha = 0.0;
+    if( GetProperties().Has(RAYLEIGH_ALPHA) )
+        alpha = GetProperties()[RAYLEIGH_ALPHA];
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
+        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+
+    double beta  = 0.0;
+    if( GetProperties().Has(RAYLEIGH_BETA) )
+        beta = GetProperties()[RAYLEIGH_BETA];
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
+        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+
+    // 4.-Compose the Damping Matrix:
+
+    // Rayleigh Damping Matrix: alpha*M + beta*K
+    noalias( rDampingMatrix ) += alpha * MassMatrix;
+    noalias( rDampingMatrix ) += beta  * StiffnessMatrix;
+
+    KRATOS_CATCH( "" )
+}
 
 // /**
 //  * This method provides the place to perform checks on the completeness of the input
@@ -417,6 +453,17 @@ void BaseShellElement::SetBaseMembers()
     GetGeometry().IntegrationPoints(mIntegrationMethod);
 
     mNumGPs = integrationPoints.size();
+}
+
+void BaseShellElement::CalculateAll(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
+    )
+{
+    KRATOS_ERROR << "You have called to the CalculateAll from the base class for shell elements" << std::endl;
 }
 
 ///@}

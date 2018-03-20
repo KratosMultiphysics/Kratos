@@ -341,14 +341,6 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
     }
 }
 
-void ShellThinElement3D3N::CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
-{
-    if((rDampingMatrix.size1() != mNumDofs) || (rDampingMatrix.size2() != mNumDofs))
-        rDampingMatrix.resize(mNumDofs, mNumDofs, false);
-
-    noalias( rDampingMatrix ) = ZeroMatrix(mNumDofs, mNumDofs);
-}
-
 void ShellThinElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo)
@@ -1661,10 +1653,10 @@ void ShellThinElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRig
 }
 
 void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
-                                        VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo,
-                                        const bool LHSrequired,
-                                        const bool RHSrequired)
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo,
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag)
 {
     // Resize the Left Hand Side if necessary,
     // and initialize it to Zero
@@ -1683,8 +1675,8 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     // Initialize common calculation variables
 
     CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
-    data.CalculateLHS = LHSrequired;
-    data.CalculateRHS = RHSrequired;
+    data.CalculateLHS = CalculateStiffnessMatrixFlag;
+    data.CalculateRHS = CalculateResidualVectorFlag;
     InitializeCalculationData(data);
 
     // Gauss Loop.
@@ -1706,8 +1698,8 @@ void ShellThinElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
             data.localDisplacements,
             rLeftHandSideMatrix,
             rRightHandSideVector,
-            RHSrequired,
-            LHSrequired);
+            CalculateResidualVectorFlag,
+            CalculateStiffnessMatrixFlag);
 
     // Add body forces contributions. This doesn't depend on the coordinate system
 
