@@ -53,7 +53,8 @@
         "linear_solver_settings"       : {
             "solver_type"         : "AMGCL",
             "verbosity"           : 0,
-            "coarse_enough"       : 500
+            "coarse_enough"       : 500,
+            "tolerance"           : 1e-8
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
