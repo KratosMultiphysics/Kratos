@@ -85,8 +85,9 @@ Southern California, 2012.
 
 
 
-	class ShellThinElement3D4N : public Element
-	{
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
+    : public BaseShellElement
+{
 	public:
 
 		///@name Type Definitions
@@ -289,7 +290,7 @@ Southern California, 2012.
 		/**
 		* Protected empty constructor
 		*/
-		ShellThinElement3D4N() : Element()
+		ShellThinElement3D4N() : BaseShellElement()
 		{
 		}
 

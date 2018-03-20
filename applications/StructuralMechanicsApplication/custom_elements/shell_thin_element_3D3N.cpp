@@ -144,7 +144,7 @@ ShellThinElement3D3N::CalculationData::CalculationData(const CoordinateTransform
 ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         bool NLGeom)
-    : Element(NewId, pGeometry)
+    : BaseShellElement(NewId, pGeometry)
     , mpCoordinateTransformation( NLGeom ?
                                   new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellT3_CoordinateTransformation(pGeometry))
@@ -156,7 +156,7 @@ ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         bool NLGeom)
-    : Element(NewId, pGeometry, pProperties)
+    : BaseShellElement(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation( NLGeom ?
                                   new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellT3_CoordinateTransformation(pGeometry))
@@ -168,7 +168,7 @@ ShellThinElement3D3N::ShellThinElement3D3N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
         CoordinateTransformationBasePointerType pCoordinateTransformation)
-    : Element(NewId, pGeometry, pProperties)
+    : BaseShellElement(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation(pCoordinateTransformation)
 {
     mThisIntegrationMethod = OPT_INTEGRATION_METHOD;
@@ -2128,7 +2128,7 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
 
 void ShellThinElement3D3N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.save("CTr", mpCoordinateTransformation);
     rSerializer.save("Sec", mSections);
     rSerializer.save("IntM", (int)mThisIntegrationMethod);
@@ -2136,7 +2136,7 @@ void ShellThinElement3D3N::save(Serializer& rSerializer) const
 
 void ShellThinElement3D3N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  BaseShellElement );
     rSerializer.load("CTr", mpCoordinateTransformation);
     rSerializer.load("Sec", mSections);
     int temp;

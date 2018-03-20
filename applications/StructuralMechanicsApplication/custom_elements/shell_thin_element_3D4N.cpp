@@ -231,7 +231,7 @@ namespace Kratos
 	ShellThinElement3D4N::ShellThinElement3D4N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
 		bool NLGeom)
-		: Element(NewId, pGeometry)
+		: BaseShellElement(NewId, pGeometry)
 		, mpCoordinateTransformation(NLGeom ?
 			new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
 			new ShellQ4_CoordinateTransformation(pGeometry))
@@ -243,7 +243,7 @@ namespace Kratos
 		GeometryType::Pointer pGeometry,
 		PropertiesType::Pointer pProperties,
 		bool NLGeom)
-		: Element(NewId, pGeometry, pProperties)
+		: BaseShellElement(NewId, pGeometry, pProperties)
 		, mpCoordinateTransformation(NLGeom ?
 			new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
 			new ShellQ4_CoordinateTransformation(pGeometry))
@@ -255,7 +255,7 @@ namespace Kratos
 		GeometryType::Pointer pGeometry,
 		PropertiesType::Pointer pProperties,
 		CoordinateTransformationBasePointerType pCoordinateTransformation)
-		: Element(NewId, pGeometry, pProperties)
+		: BaseShellElement(NewId, pGeometry, pProperties)
 		, mpCoordinateTransformation(pCoordinateTransformation)
 	{
 		mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
@@ -3034,7 +3034,7 @@ namespace Kratos
 
 	void ShellThinElement3D4N::save(Serializer& rSerializer) const
 	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
 		rSerializer.save("CTr", mpCoordinateTransformation);
 		rSerializer.save("Sec", mSections);
         rSerializer.save("IntM", (int)mThisIntegrationMethod);
@@ -3042,7 +3042,7 @@ namespace Kratos
 
 	void ShellThinElement3D4N::load(Serializer& rSerializer)
 	{
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseShellElement);
 		rSerializer.load("CTr", mpCoordinateTransformation);
 		rSerializer.load("Sec", mSections);
 		int temp;

@@ -69,9 +69,9 @@ namespace Kratos
 		Pages 420-431.
 	*/
 
-
-	class ShellThickElement3D3N : public Element
-	{
+    class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThickElement3D3N
+        : public BaseShellElement
+    {
 	public:
 
 		///@name Type Definitions
@@ -216,7 +216,7 @@ namespace Kratos
 		/**
 		* Protected empty constructor
 		*/
-		ShellThickElement3D3N() : Element()
+		ShellThickElement3D3N() : BaseShellElement()
 		{
 		}
 
