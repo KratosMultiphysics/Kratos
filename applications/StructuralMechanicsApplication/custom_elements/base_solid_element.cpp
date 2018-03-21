@@ -87,7 +87,7 @@ void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -139,6 +139,14 @@ void BaseSolidElement::InitializeMaterial()
 ConstitutiveLaw::StressMeasure BaseSolidElement::GetStressMeasure() const
 {
     return ConstitutiveLaw::StressMeasure_PK2;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool BaseSolidElement::UseElementProvidedStrain()
+{
+    return false;
 }
 
 /***********************************************************************************/
@@ -438,7 +446,28 @@ void BaseSolidElement::CalculateDampingMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateOnIntegrationPoints( 
+void BaseSolidElement::CalculateOnIntegrationPoints(
+    const Variable<bool>& rVariable,
+    std::vector<bool>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints();
+
+    if (rOutput.size() != GetGeometry().IntegrationPoints(  ).size())
+        rOutput.resize(GetGeometry().IntegrationPoints(  ).size());
+
+    for (unsigned int point_number = 0; point_number < integration_points.size(); ++point_number){
+        bool flag = false;
+        mConstitutiveLawVector[point_number]->GetValue(rVariable, flag );
+        rOutput[point_number] = flag;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable, 
     std::vector<double>& rOutput, 
     const ProcessInfo& rCurrentProcessInfo 
@@ -515,7 +544,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -625,7 +654,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
@@ -667,7 +696,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
         
         // Set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
         
@@ -755,7 +784,7 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
         // Set constitutive law flags:
         Flags& ConstitutiveLawOptions=Values.GetOptions();
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
@@ -850,6 +879,24 @@ void BaseSolidElement::SetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void BaseSolidElement::SetValueOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const std::size_t integration_points_number = GetGeometry().IntegrationPoints(  ).size();
+        for ( std::size_t i_gp = 0; i_gp < integration_points_number; ++i_gp ) {
+            mConstitutiveLawVector[i_gp] = rValues[i_gp];
+        }
+    }
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::SetValueOnIntegrationPoints( 
     const Variable<Matrix>& rVariable, 
     std::vector<Matrix>& rValues, 
@@ -923,13 +970,31 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::GetValueOnIntegrationPoints( 
+void BaseSolidElement::GetValueOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
-    std::vector<Matrix>& rValues, 
-    const ProcessInfo& rCurrentProcessInfo 
+    std::vector<Matrix>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::GetValueOnIntegrationPoints(
+        const Variable<ConstitutiveLaw::Pointer>& rVariable,
+        std::vector<ConstitutiveLaw::Pointer>& rValues,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const std::size_t integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != mConstitutiveLawVector.size())
+            rValues.resize(integration_points_number);
+        for (std::size_t i_gp = 0; i_gp < integration_points_number; ++i_gp)
+            rValues[i_gp] = mConstitutiveLawVector[i_gp];
+    }
 }
 
 /***********************************************************************************/
@@ -1033,7 +1098,16 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
     )
 {
-    KRATOS_ERROR << "You have called to the CalculateConstitutiveVariables from the base class for solid elements" << std::endl;
+    // Here we essentially set the input parameters
+    rValues.SetDeterminantF(rThisKinematicVariables.detF); // Assuming the determinant is computed somewhere else
+    rValues.SetDeformationGradientF(rThisKinematicVariables.F); //F computed somewhere else
+    
+    // Here we set the space on which the results shall be written
+    rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); // Assuming the determinant is computed somewhere else
+    rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
+    
+    // Actually do the computations in the ConstitutiveLaw    
+    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done 
 }
 
 /***********************************************************************************/

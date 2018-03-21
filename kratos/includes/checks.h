@@ -21,25 +21,25 @@
 ///@{
 ///@name macros
 ///@{
-#define KRATOS_CHECK(IsTrue) if(!(IsTrue)) KRATOS_ERROR << "Check failed becuase " << #IsTrue << " is not true"
-#define KRATOS_CHECK_IS_FALSE(IsFalse) if(IsFalse) KRATOS_ERROR  << "Check failed becuase " << #IsFalse << " is not false"
+#define KRATOS_CHECK(IsTrue) if(!(IsTrue)) KRATOS_ERROR << "Check failed because " << #IsTrue << " is not true"
+#define KRATOS_CHECK_IS_FALSE(IsFalse) if(IsFalse) KRATOS_ERROR  << "Check failed because " << #IsFalse << " is not false"
 
-#define KRATOS_CHECK_EQUAL(a,b) if(!(a == b)) KRATOS_ERROR << "Check failed becuase " << #a << " is not equal to " << #b
-#define KRATOS_CHECK_NOT_EQUAL(a,b) if(a == b) KRATOS_ERROR << "Check failed becuase " << #a << " is equal to " << #b
+#define KRATOS_CHECK_EQUAL(a,b) if(!(a == b)) KRATOS_ERROR << "Check failed because " << #a << " is not equal to " << #b
+#define KRATOS_CHECK_NOT_EQUAL(a,b) if(a == b) KRATOS_ERROR << "Check failed because " << #a << " is equal to " << #b
 
-#define KRATOS_CHECK_C_STRING_EQUAL(a,b) if((strcmp(a,b) != 0)) KRATOS_ERROR << "Check failed becuase \"" << a << "\" is not equal to \"" << b << "\""
-#define KRATOS_CHECK_C_STRING_NOT_EQUAL(a,b) if((strcmp(a,b) == 0)) KRATOS_ERROR << "Check failed becuase \"" << a << "\" is equal to \"" << b << "\""
+#define KRATOS_CHECK_C_STRING_EQUAL(a,b) if((strcmp(a,b) != 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\""
+#define KRATOS_CHECK_C_STRING_NOT_EQUAL(a,b) if((strcmp(a,b) == 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\""
 
-#define KRATOS_CHECK_LESS(a,b) if(!(a < b)) KRATOS_ERROR << "Check failed becuase " << #a << " is greater than or equal to " << #b
-#define KRATOS_CHECK_LESS_EQUAL(a,b) if(a > b) KRATOS_ERROR << "Check failed becuase " << #a << " is greater than " << #b
+#define KRATOS_CHECK_LESS(a,b) if(!(a < b)) KRATOS_ERROR << "Check failed because " << #a << " is greater than or equal to " << #b
+#define KRATOS_CHECK_LESS_EQUAL(a,b) if(a > b) KRATOS_ERROR << "Check failed because " << #a << " is greater than " << #b
 
-#define KRATOS_CHECK_GREATER(a,b) if(!(a > b)) KRATOS_ERROR << "Check failed becuase " << #a << " is less than or equal to " << #b
-#define KRATOS_CHECK_GREATER_EQUAL(a,b) if(a < b) KRATOS_ERROR  << "Check failed becuase " << #a << " is less than " << #b
+#define KRATOS_CHECK_GREATER(a,b) if(!(a > b)) KRATOS_ERROR << "Check failed because " << #a << " is less than or equal to " << #b
+#define KRATOS_CHECK_GREATER_EQUAL(a,b) if(a < b) KRATOS_ERROR  << "Check failed because " << #a << " is less than " << #b
 
 #define KRATOS_CHECK_STRING_CONTAIN_SUB_STRING(TheString, SubString) if (TheString.find(SubString) == std::string::npos ) \
 KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given string"
 
-#define KRATOS_CHECK_NEAR(a,b, tolerance) if(std::abs(a - b) > tolerance) KRATOS_ERROR << "Check failed becuase " << #a << " = " << a << \
+#define KRATOS_CHECK_NEAR(a,b, tolerance) if(std::abs(a - b) > tolerance) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
 " is not near to " << #b << " = " << b << " within the tolerance " << tolerance
 #define KRATOS_CHECK_DOUBLE_EQUAL(a,b) KRATOS_CHECK_NEAR(a,b,std::numeric_limits<double>::epsilon())
 

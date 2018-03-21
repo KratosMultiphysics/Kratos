@@ -197,7 +197,7 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    virtual void CalculateAll(
+    void CalculateAll(
         MatrixType& rLeftHandSideMatrix, 
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,

@@ -16,8 +16,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test",
-            "input_file_label" : 0
+            "input_filename"   : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test"
         },
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_slope_test_materials.json"
@@ -93,19 +92,7 @@
             "model_part_name"             : "Structure",
             "assume_master_slave"         : "Parts_Parts_Auto2",
             "contact_model_part"          : "CONTACT_Contact_Auto1",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 2.5,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "active_check_factor"         : 1.0e-0,
-            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
-            "stiffness_factor"            : 10.0,
-            "penalty_scale_factor"        : 1.0,
-            "manual_ALM"                  : false,
-            "penalty"                     : 1.0e12,
-            "scale_factor"                : 1.0e0,
-            "debug_mode"                  : false
+            "contact_type"                : "Frictionless"
         }
     }],
     "json_check_process" : [

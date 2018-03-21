@@ -199,3 +199,4 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         if (KratosMPI.mpi.rank == 0):
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             print ("Initialization TrilinosNavierStokesSolverFractionalStep finished")
+

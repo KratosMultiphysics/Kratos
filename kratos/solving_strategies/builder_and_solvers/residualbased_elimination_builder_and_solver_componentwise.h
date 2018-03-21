@@ -180,11 +180,12 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
-//create a partition of the element array
+        //create a partition of the element array
         int number_of_threads = OpenMPUtils::GetNumThreads();
-        int A_size = A.size1();
 
 #ifdef _OPENMP
+        int A_size = A.size1();
+
         //creating an array of lock variables of the size of the system matrix
         std::vector< omp_lock_t > lock_array(A.size1());
 
@@ -419,7 +420,7 @@ public:
         //if needed resize the vector for the calculation of reactions
         if(BaseType::mCalculateReactionsFlag == true)
         {
-            unsigned int ReactionsVectorSize = BaseType::mDofSet.size()-BaseType::mEquationSystemSize;
+            unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
             if(BaseType::mpReactionsVector->size() != ReactionsVectorSize)
                 BaseType::mpReactionsVector->resize(ReactionsVectorSize,false);
         }

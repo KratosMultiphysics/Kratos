@@ -138,8 +138,6 @@ public:
 		}
 
 		// Initialize member variables to NULL
-		m_initial_value = 0.0;
-		m_initial_value_defined = false;
 		m_resp_function_value = 0.0;
 	}
 
@@ -172,13 +170,6 @@ public:
 		// Compute response function by weighting with linear scalarization
 		for(int i = 0; i < m_num_eigenvalues; i++)
 			m_resp_function_value += m_vector_weight_fac[i] * get_single_eigenvalue(m_vector_ev[i]);
-
-		// Set initial value if not done yet
-		if(!m_initial_value_defined)
-		{
-			m_initial_value = m_resp_function_value;
-			m_initial_value_defined = true;
-		}
 
 		KRATOS_CATCH("");
 	}
@@ -221,7 +212,7 @@ public:
 
 			for (int i = 0; i < NumNodeDofs; i++)
 				eigenvector_of_element(i+NumNodeDofs*k) = rNodeEigenvectors((id_eigenvalue-1),i);
-				
+
 			k++;
 		}
 
@@ -253,18 +244,6 @@ public:
 		}
 
 		}// End switch mGradientMode
-
-		KRATOS_CATCH("");
-	}
-	// --------------------------------------------------------------------------
-	double GetInitialValue()
-	{
-		KRATOS_TRY;
-
-		if(!m_initial_value_defined)
-			KRATOS_THROW_ERROR(std::logi:error, "Initial value not yet defined! First compute it by calling \"CalculateValue()\"", m_initial_value_defined);
-
-		return m_initial_value;
 
 		KRATOS_CATCH("");
 	}
@@ -514,8 +493,6 @@ private:
 	unsigned int mGradientMode;
 	double m_resp_function_value;
 	double mDelta;
-	double m_initial_value;
-	bool m_initial_value_defined;
 	int m_num_eigenvalues;
 	std::vector<int> m_vector_ev;
 	int m_num_weight_fac;

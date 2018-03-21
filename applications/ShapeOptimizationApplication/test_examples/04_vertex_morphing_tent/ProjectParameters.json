@@ -1,15 +1,16 @@
 {
     "optimization_settings" : {
         "objectives" : [{
-                "identifier"    : "targetDeviation",
-                "use_kratos"    : false
+                "identifier" : "targetDeviation",
+                "type"       : "minimization",
+                "use_kratos" : false
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_variables_type"              : "vertex_morphing",
+            "type"                               : "vertex_morphing",
             "optimization_model_part_name"       : "vertex_morphing_tent",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"               : 3,
+            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "gaussian",
                 "filter_radius"              : 5.0,

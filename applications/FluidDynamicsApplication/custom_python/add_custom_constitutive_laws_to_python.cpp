@@ -29,7 +29,7 @@
 #include "custom_constitutive/euler_3d_law.h"
 #include "custom_constitutive/bingham_3d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
-#include "custom_constitutive/herschel_bulkey_3d_law.h"
+#include "custom_constitutive/herschel_bulkley_3d_law.h"
 
 // 2D constitutive laws
 #include "custom_constitutive/euler_2d_law.h"
@@ -57,7 +57,7 @@ void  AddCustomConstitutiveLawsToPython()
      
     class_< Newtonian3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "Newtonian3DLaw",  init<>() );
   
-    class_< HerschelBulkey3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "HerschelBulkey3DLaw",  init<>() );
+    class_< HerschelBulkley3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "HerschelBulkley3DLaw",  init<>() );
     
 }
 

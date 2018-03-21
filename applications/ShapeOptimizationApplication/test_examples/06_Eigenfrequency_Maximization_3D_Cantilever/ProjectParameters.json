@@ -1,16 +1,16 @@
 {
     "problem_data"             : {
         "problem_name"    : "solid_cantilever",
-        "model_part_name" : "Structure",
+        "model_part_name" : "structure",
         "domain_size"     : 3,
-        "time_step"       : 1.1,
+        "time_step"       : 1.0,
         "parallel_type"   : "OpenMP",
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_eigensolver",
+        "solver_type"                        : "eigen_value",
         "scheme_type"                        : "dynamic",
         "echo_level"                         : 0,
         "model_import_settings"              : {
@@ -53,7 +53,7 @@
             "process_name"          : "PostProcessEigenvaluesProcess",
             "Parameters"            : {
                 "result_file_name" : "solid_cantilever_freq",
-                "computing_model_part_name"   : "Structure",
+                "computing_model_part_name"   : "structure",
                 "animation_steps"   :  6,
                 "result_file_format_use_ascii" : false
             }
@@ -91,29 +91,35 @@
     },
     "optimization_settings" : {
         "objectives" : [{
-                "identifier"    : "eigenfrequency",
-                "use_kratos"    : true,
-                "gradient_mode" : "semi_analytic",
-                "step_size"     : 1e-8,
-                "traced_eigenfrequency": [1,2],
-                "weighting_method": "linear_scaling",
-                "KS_parameter": 1,
-                "weighting_factors": [1.0, 1.0]
-
+            "identifier" : "eigenfrequency",
+            "type"       : "maximization",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "gradient_mode"          : "semi_analytic",
+                "step_size"              : 1e-8,
+                "traced_eigenfrequency"  : [1,2],
+                "weighting_method"       : "linear_scaling",
+                "KS_parameter"           : 1,
+                "weighting_factors"      : [1.0, 1.0],
+                "consider_discretization": false
+            }
         }],
         "constraints" : [{
-                "identifier"    : "mass",
-                "type"          : "equality",
-                "use_kratos"    : true,
-                "gradient_mode" : "finite_differencing",
-                "step_size"     : 1e-8,
-                "discretization_weighting": false
+            "identifier" : "mass",
+            "type"       : "=",
+            "reference"  : "initial_value",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "gradient_mode"          : "finite_differencing",
+                "step_size"              : 1e-8,
+                "consider_discretization": false
+            }
         }],
         "design_variables" : {
-            "design_variables_type"     : "vertex_morphing",
-            "optimization_model_part_name"     : "structure",
+            "type"                               : "vertex_morphing",
+            "optimization_model_part_name"       : "solid_cantilever",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"               : 3,
+            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 0.2,
@@ -122,7 +128,7 @@
             },
             "mesh_motion" : {
                 "apply_ale_mesh_solver" : true,
-                "mesh_solver_settings" : {
+                "solver_settings" : {
                     "solver_type": "mesh_solver_structural_similarity",
                     "ale_linear_solver_settings"  : {
                         "solver_type" : "Super_LU",

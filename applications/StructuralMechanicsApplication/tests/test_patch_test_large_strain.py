@@ -78,7 +78,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             A = KratosMultiphysics.Matrix(3,3)
             A[0,0] =   0.10;  A[0,1] = 0.12; A[0,2] = 0.0
             A[1,0] = - 0.05;  A[1,1] = 0.07; A[1,2] = 0.0
-            A[2,1] =   0.00;  A[2,1] = 0.0;  A[2,2] = 0.0
+            A[2,0] =   0.00;  A[2,1] = 0.0;  A[2,2] = 0.0
                     
             b = KratosMultiphysics.Vector(3)
             b[0] =  0.05
@@ -91,7 +91,7 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
             A = KratosMultiphysics.Matrix(3,3)
             A[0,0] =   0.10; A[0,1] = 0.12; A[0,2] = 0.0
             A[1,0] = - 0.05; A[1,1] = 0.07; A[1,2] = 0.1
-            A[2,1] = - 0.02; A[2,1] = 0.0;  A[2,2] = -0.3
+            A[2,0] = - 0.02; A[2,1] = 0.0;  A[2,2] = -0.3
                     
             b = KratosMultiphysics.Vector(3)
             b[0] =  0.05
@@ -166,12 +166,11 @@ class TestPatchTestLargeStrain(KratosUnittest.TestCase):
         
         ##check that the results are exact on the nodes
         for node in mp.Nodes:
-            xvec = KratosMultiphysics.Vector(len(b))
+            xvec = KratosMultiphysics.Vector(3)
             xvec[0] = node.X0
             xvec[1] = node.Y0
             xvec[2] = node.Z0
             
-            u = KratosMultiphysics.Vector(2)
             u = A*xvec
             u += b            
             

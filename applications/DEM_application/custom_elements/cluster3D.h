@@ -36,16 +36,13 @@ namespace Kratos
         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry);
         Cluster3D(IndexType NewId, NodesArrayType const& ThisNodes);
         Cluster3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
-        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;      
 
         /// Destructor
         virtual ~Cluster3D();
       
         using Element::Initialize;
-        virtual void Initialize(ProcessInfo& r_process_info);
-        virtual void InitializeSolutionStep(ProcessInfo& r_process_info) override {};
-        virtual void FinalizeSolutionStep(ProcessInfo& r_process_info) override {};
-        virtual void CustomInitialize(ProcessInfo& r_process_info);
+        virtual void Initialize(ProcessInfo& r_process_info) override;
         virtual void CreateParticles(ParticleCreatorDestructor* p_creator_destructor, ModelPart& dem_model_part, PropertiesProxy* p_fast_properties, const bool continuum_strategy);
         virtual void GetClustersForce(const array_1d<double,3>& gravity);
         virtual void CollectForcesAndTorquesFromSpheres();
@@ -87,8 +84,8 @@ namespace Kratos
     private:
        
         friend class Serializer;
-        virtual void save(Serializer& rSerializer) const { KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RigidBodyElement3D); }
-        virtual void load(Serializer& rSerializer) { KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RigidBodyElement3D); }
+        virtual void save(Serializer& rSerializer) const override { KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, RigidBodyElement3D); }
+        virtual void load(Serializer& rSerializer) override { KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, RigidBodyElement3D); }
 
     }; // Class Cluster3D
    
