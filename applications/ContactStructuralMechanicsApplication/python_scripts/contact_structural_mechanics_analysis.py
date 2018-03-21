@@ -93,10 +93,10 @@ class ContactStructuralMechanicsAnalysis(BaseClass):
         if (self.ProjectParameters.Has("contact_process_list") is True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["contact_process_list"])
 
-        #if self.is_printing_rank and self.echo_level > 1: # FIXME
-            #KM.Logger.PrintInfo("Process " + str(len(self.list_of_processes)), self.list_of_processes[-1])
+            #if self.is_printing_rank and self.echo_level > 1: # FIXME
+                #KM.Logger.PrintInfo("Process " + str(len(self.list_of_processes)), self.list_of_processes[-1])
 
-        self.list_of_processes[-1].ExecuteInitialize()
+            self.list_of_processes[-1].ExecuteInitialize()
 
         ## Add the processes to the solver
         self.solver.AddProcessesList(self.list_of_processes)
