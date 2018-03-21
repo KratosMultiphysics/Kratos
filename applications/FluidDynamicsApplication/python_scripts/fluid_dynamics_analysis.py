@@ -28,13 +28,13 @@ class FluidDynamicsAnalysis(object):
             self.is_printing_rank = True
 
     def SetUpModel(self):
-        '''Initialize the model part for the problem (stored as self.model_part) and other general model data.'''
+        '''Initialize the model part for the problem and other general model data.'''
 
         model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
         self.main_model_part = ModelPart(model_part_name)
 
-        self.domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, self.domain_size)
+        domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
+        self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
 
         ## Solver construction
         import python_solvers_wrapper_fluid
@@ -49,16 +49,15 @@ class FluidDynamicsAnalysis(object):
             self.solver.ImportModelPart()
             self.solver.AddDofs()
 
-        self.model_part = self.solver.GetComputingModelPart()
-
         # Fill a Model instance using input
         self.model = Model()
         self.model.AddModelPart(self.main_model_part)
 
-    def SetUpConditions(self):
-        '''Read the boundary and initial conditions for the problem and initialize the processes that will manage them.'''
-
-        ## Processes construction
+    def SetUpAuxiliaryProcesses(self):
+        '''
+        Read the definition of initial and boundary conditions for the problem and initialize the processes that will manage them.
+        Also initialize any additional processes present in the problem (such as those used to calculate additional results).
+        '''
         from process_factory import KratosProcessFactory
         factory = KratosProcessFactory(self.model)
         # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
@@ -69,15 +68,15 @@ class FluidDynamicsAnalysis(object):
         self.simulation_processes += factory.ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
         self.simulation_processes += factory.ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
 
-        for process in self.simulation_processes:
-            process.ExecuteInitialize()
-
     def SetUpAnalysis(self):
         '''
         Initialize the Python solver and its auxiliary tools and processes.
-        This function should leave everything prepared so that the simulation
+        This function should prepare everything so that the simulation
         can start immediately after exiting it.
         '''
+
+        for process in self.simulation_processes:
+            process.ExecuteInitialize()
 
         self.solver.Initialize()
 
@@ -102,7 +101,7 @@ class FluidDynamicsAnalysis(object):
 
         for process in self.simulation_processes:
             process.ExecuteBeforeSolutionLoop()
-            
+
         if self.have_output:
             self.output.ExecuteBeforeSolutionLoop()
 
@@ -116,7 +115,7 @@ class FluidDynamicsAnalysis(object):
             elif self.parallel_type == "MPI":
                 from gid_output_process_mpi import GiDOutputProcessMPI as OutputProcess
 
-            self.output = OutputProcess(self.model_part,
+            self.output = OutputProcess(self.solver.GetComputingModelPart(),
                                         self.project_parameters["problem_data"]["problem_name"].GetString() ,
                                         self.project_parameters["output_configuration"])
 
@@ -168,11 +167,15 @@ class FluidDynamicsAnalysis(object):
 
         if self.have_output:
             self.output.ExecuteInitializeSolutionStep()
+        
+        self.solver.InitializeSolutionStep()
 
     def SolveSingleStep(self):
         self.solver.Solve()
 
     def FinalizeSolutionStep(self):
+
+        self.solver.FinalizeSolutionStep()
         
         # shouldn't this go at the end of the iteration???
         for process in self.simulation_processes:
@@ -207,7 +210,7 @@ class FluidDynamicsAnalysis(object):
     def InitializeAnalysis(self):
         '''Wrapper function comprising the definition of the model and the initialization of the problem.'''
         self.SetUpModel()
-        self.SetUpConditions()
+        self.SetUpAuxiliaryProcesses()
         self.SetUpAnalysis()
 
     def Run(self):
