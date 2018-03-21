@@ -250,6 +250,9 @@ void ShellThickElement3D4N::EASOperatorStorage::save(Serializer& rSerializer) co
     rSerializer.save("A1", alpha_converged);
     rSerializer.save("U0", displ);
     rSerializer.save("U1", displ_converged);
+    rSerializer.save("res", residual);
+    rSerializer.save("Hinv", Hinv);
+    rSerializer.save("mL", L);
     rSerializer.save("init", mInitialized);
 }
 
@@ -259,6 +262,9 @@ void ShellThickElement3D4N::EASOperatorStorage::load(Serializer& rSerializer)
     rSerializer.load("A1", alpha_converged);
     rSerializer.load("U0", displ);
     rSerializer.load("U1", displ_converged);
+    rSerializer.load("res", residual);
+    rSerializer.load("Hinv", Hinv);
+    rSerializer.load("mL", L);
     rSerializer.load("init", mInitialized);
 }
 
