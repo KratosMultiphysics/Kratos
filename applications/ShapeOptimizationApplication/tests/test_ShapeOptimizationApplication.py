@@ -10,13 +10,11 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import necessary external applications
 try:
-    import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-    import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
     import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
-    missing_external_dependencies = False
+    is_eigen_app_missing = False
     missing_application = ''
 except ImportError as e:
-    missing_external_dependencies = True
+    is_eigen_app_missing = True
     # extract name of the missing application from the error message
     import re
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
@@ -60,7 +58,8 @@ def AssambleTestSuites():
     smallSuite.addTest(opt_process_vertex_morphing_test('test_execution'))
     smallSuite.addTest(opt_process_shell_test('test_execution'))
     smallSuite.addTest(opt_process_solid_test('test_execution'))
-    smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
+    if is_eigen_app_missing == False:
+        smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
     smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
     smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))
 
