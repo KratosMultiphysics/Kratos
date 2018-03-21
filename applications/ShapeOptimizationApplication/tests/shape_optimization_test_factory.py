@@ -26,7 +26,8 @@ class ShapeOptimizationTestFactory(KratosUnittest.TestCase):
 
     # --------------------------------------------------------------------------
     def test_execution(self):
-        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))+"/"+self.execution_directory):
+        test_scope = os.path.join(os.path.dirname(os.path.realpath(__file__)), self.execution_directory)
+        with controlledExecutionScope(test_scope):
             test_status = os.system("runkratos "+self.execution_file+" >>run_test.log")
             if test_status == 0:
                 kratos_utils.DeleteFileIfExisting("run_test.log")
