@@ -33,12 +33,17 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                 else:
                     M[i, j] = 0.0
 
+        # result containers
+        eigenvalues = KratosMultiphysics.Vector(n)
+        eigenvectors = KratosMultiphysics.Matrix(n, 1)
+
         # Construct the solver
         import eigen_solver_factory
         eigen_solver = eigen_solver_factory.ConstructSolver(settings)
 
         # Solve
-        eigenvalue = eigen_solver.GetEigenValue(K, M)
+        eigen_solver.Solve(K, M, eigenvalues, eigenvectors)
+        eigenvalue = eigenvalues[0]
 
         if (eigen_value_estimated == "lowest"):
             self.assertLessEqual(abs(eigenvalue - 0.061463)/0.061463, 5.0e-3)
