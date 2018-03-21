@@ -367,22 +367,15 @@ namespace Kratos
 	}
 
 	void ShellThinElement3D4N::InitializeSolutionStep
-	(ProcessInfo& CurrentProcessInfo)
+	(ProcessInfo& rCurrentProcessInfo)
 	{
-		const PropertiesType& props = GetProperties();
-		const GeometryType & geom = GetGeometry();
-		const Matrix & shapeFunctionsValues =
-			geom.ShapeFunctionsValues(GetIntegrationMethod());
+		BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-		for (int i = 0; i < 4; i++)
-			mSections[i]->InitializeSolutionStep(props, geom,
-				row(shapeFunctionsValues, i), CurrentProcessInfo);
-
-		mpCoordinateTransformation->InitializeSolutionStep(CurrentProcessInfo);
+		mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
 	}
 
 	void ShellThinElement3D4N::FinalizeSolutionStep
-	(ProcessInfo& CurrentProcessInfo)
+	(ProcessInfo& rCurrentProcessInfo)
 	{
 		const PropertiesType& props = GetProperties();
 		const GeometryType& geom = GetGeometry();
@@ -391,9 +384,9 @@ namespace Kratos
 
 		for (int i = 0; i < 4; i++)
 			mSections[i]->FinalizeSolutionStep(props, geom,
-				row(shapeFunctionsValues, i), CurrentProcessInfo);
+				row(shapeFunctionsValues, i), rCurrentProcessInfo);
 
-		mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
+		mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
 	}
 
 	void ShellThinElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix,

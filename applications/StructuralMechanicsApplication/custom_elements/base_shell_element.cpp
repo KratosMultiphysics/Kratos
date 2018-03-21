@@ -222,7 +222,7 @@ void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentPro
 {
     const GeometryType & geom = this->GetGeometry();
     const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for(SizeType i = 0; i < mSections.size(); i++)
+    for (SizeType i = 0; i < mSections.size(); ++i)
         mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
@@ -230,8 +230,18 @@ void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProce
 {
     const GeometryType & geom = this->GetGeometry();
     const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-    for (SizeType i = 0; i < mSections.size(); i++)
+    for (SizeType i = 0; i < mSections.size(); ++i)
         mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
+}
+
+void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+{
+	const PropertiesType& props = GetProperties();
+	const GeometryType & geom = GetGeometry();
+	const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+
+	for (SizeType i = 0; i < mSections.size(); ++i)
+		mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
 // /**

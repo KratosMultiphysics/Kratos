@@ -533,32 +533,27 @@ void ShellThickElement3D4N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProc
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D4N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
-    const PropertiesType& props = GetProperties();
-    const GeometryType & geom = GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-    for(int i = 0; i < 4; i++)
-        mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+    mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->InitializeSolutionStep(CurrentProcessInfo);
-
-    mEASStorage.InitializeSolutionStep(CurrentProcessInfo);
+    mEASStorage.InitializeSolutionStep(rCurrentProcessInfo);
 }
 
-void ShellThickElement3D4N::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     const PropertiesType& props = GetProperties();
     const GeometryType& geom = GetGeometry();
     const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
     for(int i = 0; i < 4; i++)
-        mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+        mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 
-    mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
 
-    mEASStorage.FinalizeSolutionStep(CurrentProcessInfo);
+    mEASStorage.FinalizeSolutionStep(rCurrentProcessInfo);
 }
 
 void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)

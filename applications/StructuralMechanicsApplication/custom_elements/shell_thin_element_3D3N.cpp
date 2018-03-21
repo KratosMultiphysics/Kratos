@@ -255,28 +255,23 @@ void ShellThinElement3D3N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProce
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
 
-void ShellThinElement3D3N::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThinElement3D3N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
-    const PropertiesType& props = GetProperties();
-    const GeometryType & geom = GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-    for(SizeType i = 0; i < mSections.size(); i++)
-        mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
-
-    mpCoordinateTransformation->InitializeSolutionStep(CurrentProcessInfo);
+    mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
 }
 
-void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     const PropertiesType& props = GetProperties();
     const GeometryType& geom = GetGeometry();
     const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
     for(SizeType i = 0; i < mSections.size(); i++)
-        mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), CurrentProcessInfo);
+        mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 
-    mpCoordinateTransformation->FinalizeSolutionStep(CurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
 }
 
 void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)

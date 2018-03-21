@@ -26,7 +26,6 @@
 #include "structural_mechanics_application_variables.h"
 
 
-
 namespace Kratos
 {
 
@@ -344,6 +343,8 @@ protected:
     void BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     void BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+
+    void BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access
