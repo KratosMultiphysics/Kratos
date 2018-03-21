@@ -33,22 +33,11 @@ class ALMContactProcess(python_process.PythonProcess):
     __normal_computation = {
         # JSON input
         "NO_DERIVATIVES_COMPUTATION": CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION,
+        "no_derivatives_computation": CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION,
         "ELEMENTAL_DERIVATIVES":  CSMA.NormalDerivativesComputation.ELEMENTAL_DERIVATIVES,
-        "NODAL_ELEMENTAL_DERIVATIVES": CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES
-        }
-
-    __type_search = {
-        # JSON input
-        "KdtreeInRadius": CSMA.SearchTreeType.KdtreeInRadius,
-        "KdtreeInBox":  CSMA.SearchTreeType.KdtreeInBox,
-        "Kdop": CSMA.SearchTreeType.Kdop
-        }
-
-    __check_gap = {
-        # JSON input
-        "NoCheck": CSMA.CheckGap.NoCheck,
-        "DirectCheck":  CSMA.CheckGap.DirectCheck,
-        "MappingCheck": CSMA.CheckGap.MappingCheck
+        "elemental_derivatives":  CSMA.NormalDerivativesComputation.ELEMENTAL_DERIVATIVES,
+        "NODAL_ELEMENTAL_DERIVATIVES": CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES,
+        "nodal_elemental_derivatives": CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES
         }
 
     def __init__(self, model_part, settings):
@@ -70,13 +59,13 @@ class ALMContactProcess(python_process.PythonProcess):
             "assume_master_slave"         : "Parts_Parts_Auto1",
             "contact_type"                : "Frictionless",
             "interval"                    : [0.0,"End"],
-            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
+            "normal_variation"            : "no_derivatives_computation",
             "frictional_law"              : "Coulomb",
             "tangent_factor"              : 0.1,
             "integration_order"           : 2,
             "remeshing_with_contact_bc"   : false,
             "search_parameters" : {
-                "type_search"                 : "InRadius",
+                "type_search"                 : "in_radius",
                 "search_factor"               : 3.5,
                 "active_check_factor"         : 0.01,
                 "max_number_results"          : 1000,
@@ -84,7 +73,7 @@ class ALMContactProcess(python_process.PythonProcess):
                 "dynamic_search"              : false,
                 "database_step_update"        : 1,
                 "debug_mode"                  : false,
-                "check_gap"                   : "CheckMapping"
+                "check_gap"                   : "check_mapping"
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
