@@ -33,7 +33,6 @@
 #include "reorderer.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
-#include "includes/exception.h"
 
 
 namespace Kratos
@@ -159,7 +158,7 @@ public:
     */
     virtual void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-         throw Exception("PerformSolutionStep is not implemented. Try using the Solve function.");
+        KRATOS_ERROR << "PerformSolutionStep is not implemented. Try using the Solve function." << std::endl;
     }
 
     /** This function is designed to be called at the end of the solve step.
@@ -191,7 +190,7 @@ public:
     */
     virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        throw Exception("'Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)' is not implemented.");
+        KRATOS_ERROR << "'Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)' is not implemented." << std::endl;
         return false;
     }
 
@@ -205,7 +204,7 @@ public:
     */
     virtual bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
-        throw Exception("'Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)' is not implemented.");
+        KRATOS_ERROR << "'Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)' is not implemented." << std::endl;
         return false;
     }
 
@@ -220,7 +219,7 @@ public:
                         DenseVectorType& Eigenvalues,
                         DenseMatrixType& Eigenvectors)
     {
-        throw Exception("'Solve(SparseMatrixType&, SparseMatrixType&, DenseVectorType&, DenseMatrixType&)' is not implemented.");
+        KRATOS_ERROR << "'Solve(SparseMatrixType&, SparseMatrixType&, DenseVectorType&, DenseMatrixType&)' is not implemented." << std::endl;
     }
 
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example

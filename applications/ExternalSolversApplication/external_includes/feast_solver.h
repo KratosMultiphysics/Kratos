@@ -35,7 +35,6 @@ extern "C" {
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
-#include "includes/exception.h"
 
 #if !defined(KRATOS_FEAST_SOLVER)
 #define  KRATOS_FEAST_SOLVER
