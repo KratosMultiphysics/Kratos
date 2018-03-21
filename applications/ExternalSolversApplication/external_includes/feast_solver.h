@@ -35,6 +35,7 @@ extern "C" {
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
 #include "spaces/ublas_space.h"
+#include "includes/exception.h"
 
 #if !defined(KRATOS_FEAST_SOLVER)
 #define  KRATOS_FEAST_SOLVER
@@ -342,7 +343,13 @@ private:
                     {
                         for (int i=0; i < SystemSize; i++)
                             b[i] = zwork(i,j);
-                        mpLinearSolver->PerformSolutionStep(Az,x,b);
+                        try {
+                            mpLinearSolver->PerformSolutionStep(Az,x,b);
+                        } catch (Exception& e) {
+                            KRATOS_WARNING("FEAST WARNING") << "The used linear solver does not implement the 'PerformSolutionStep' function, 'Solve' is used as a fallback. "  << std::endl;
+                            mpLinearSolver->Solve(Az,x,b);
+                        }
+
                         for (int i=0; i < SystemSize; i++)
                             zwork(i,j) = x[i];
                     }
