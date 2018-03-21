@@ -125,13 +125,13 @@ public:
     ///@{
 
     /// @return A short string identifying this constitutive law instance.
-    virtual std::string Info() const;
+    std::string Info() const override;
 
     /// Print basic information about this constitutive law instance.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print detailed information about this constitutive law instance and its managed data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
 

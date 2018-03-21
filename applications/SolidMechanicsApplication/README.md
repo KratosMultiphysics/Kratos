@@ -39,6 +39,8 @@ Classical FE method theory for small and large displacements.
 
 ## Solid Elements
 
+![Open cylinder pullout animation](tests/tests_data/dynamic_3d_beam.gif)
+
 ### Displacement based formulations:
 
 Infinitessimal formulation, Total Lagrangian formulation, Updated Lagrangian formulation.
@@ -47,7 +49,7 @@ Bbar element for second order elements and infinitessimal theory.
 
 ### Mixed elements:
 
-U-P formulation for linear triangles and linear tetrahedra. Monolitich aproach with Bochev stabilization.
+U-P formulation for linear triangles and linear tetrahedra. Monolitich approach with Bochev stabilization.
 
 ## Structural Elements:
 
@@ -55,9 +57,13 @@ U-P formulation for linear triangles and linear tetrahedra. Monolitich aproach w
 
 Co-rotational thick and thin 3D shells theory. Large displacements and large rotations.
 
+![Open cylinder pullout animation](tests/tests_data/shell_roll_up.gif)
+
 ### Beams
 
 Geometrically exact theory for 3D beams. Large displacements and large rotations.
+
+![Open cylinder pullout animation](tests/tests_data/beam_roll_down.gif)
 
 ### Material Laws
 

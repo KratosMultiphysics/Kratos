@@ -37,6 +37,9 @@ namespace Kratos {
             ModelPart& rModelPart, 
             bool is_embedded = false) {
 
+            // Set buffer size
+            rModelPart.SetBufferSize(2);
+
             // Variables addition
             rModelPart.AddNodalSolutionStepVariable(DENSITY);
             rModelPart.AddNodalSolutionStepVariable(DISTANCE);
@@ -134,13 +137,16 @@ namespace Kratos {
             // Initialize the fluid element
             p_element->Initialize();
 
+            // Set the STEP value (otherwise the drag wont be computed since the buffer is not filled)
+            model_part.GetProcessInfo().SetValue(STEP, 1);
+
             // Call the body fitted drag utility
             DragUtilities drag_utilities;
             array_1d<double, 3> drag_force = drag_utilities.CalculateBodyFittedDrag(model_part.GetSubModelPart("DragModelPart"));
 
             // Check computed values
-            KRATOS_CHECK_NEAR(drag_force[0], -10.7359, 1e-4);
-            KRATOS_CHECK_NEAR(drag_force[1], -0.738772, 1e-6);
+            KRATOS_CHECK_NEAR(drag_force[0], -10.7693, 1e-4);
+            KRATOS_CHECK_NEAR(drag_force[1], -0.740973, 1e-6);
             KRATOS_CHECK_NEAR(drag_force[2], 0.0, 1e-6);
 	    }
 

@@ -53,8 +53,7 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
     unsigned int cond_id = ReorderConditions();
     
     // Generate Conditions from original the edges that can be considered interface
-    for (auto it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem)
-    {
+    for (auto it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem) {
         GeometryType& this_geometry = it_elem->GetGeometry();
         Properties::Pointer p_prop = it_elem->pGetProperties();
         
@@ -98,17 +97,14 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
     unsigned int cond_id = ReorderConditions();
     
     // Generate Conditions from original the faces that can be considered interface
-    for (auto it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem)
-    {          
+    for (auto it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem) {          
         GeometryType& this_geometry = it_elem->GetGeometry();
         Properties::Pointer p_prop = it_elem->pGetProperties();
         
-        if (this_geometry.LocalSpaceDimension() == 3)
-        {
+        if (this_geometry.LocalSpaceDimension() == 3) {
             for (unsigned int i_face = 0; i_face < this_geometry.FacesNumber(); ++i_face)
                 GenerateFaceCondition(rInterfacePart, p_prop, this_geometry.Faces()[i_face], simplest_geometry, cond_counter, cond_id);
-        }
-        else
+        } else
             GenerateFaceCondition(rInterfacePart, p_prop, this_geometry, simplest_geometry, cond_counter, cond_id);
     }
     
@@ -154,8 +150,8 @@ void InterfacePreprocessCondition::PrintNodesAndConditions(
     const int CondCounter
     )
 {
-    std::cout << "\t" << NodesCounter << " nodes ";
-    std::cout << "and " << CondCounter <<  " conditions found." << std::endl;
+    KRATOS_INFO("Nodes found") << "\t" << NodesCounter << " nodes ";
+    KRATOS_INFO("Conditions found") << "and " << CondCounter <<  " conditions found." << std::endl;
 
     // Check that we actually found something
     KRATOS_ERROR_IF(NodesCounter == 0) << "No interface nodes found. Please check that nodes on both sides of the interface have been assigned Is(INTERFACE) = true." << std::endl;
@@ -171,8 +167,7 @@ unsigned int InterfacePreprocessCondition::ReorderConditions()
     ConditionsArrayType& conditions_array = mrMainModelPart.Conditions();
     const unsigned int num_conditions = static_cast<int>(conditions_array.size());
     
-    for(unsigned int i = 0; i < num_conditions; i++) 
-    {
+    for(unsigned int i = 0; i < num_conditions; ++i) {
         auto it_condition = conditions_array.begin() + i;
         it_condition->SetId(i + 1);
     }
@@ -194,8 +189,7 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
 {    
     unsigned int count = 0;
     const unsigned int number_of_points = EdgeGeometry.PointsNumber();
-    for (unsigned int it_node = 0; it_node < number_of_points; ++it_node)
-    {
+    for (unsigned int it_node = 0; it_node < number_of_points; ++it_node) {
         if (EdgeGeometry[it_node].IsDefined(INTERFACE) == true)
             if (EdgeGeometry[it_node].Is(INTERFACE) == true) ++count;
     }
@@ -204,11 +198,9 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
  
     Condition const& r_condition =  KratosComponents<Condition>::Get(condition_name);
     
-    if (count == number_of_points)
-    {
+    if (count == number_of_points) {
         ++CondId; // NOTE: To paralellize be careful with this ID
-        if (number_of_points == 2)
-        {
+        if (number_of_points == 2) {
             // We initialize a vector for the IDs
             std::vector<std::size_t> condition_ids(1);
             
@@ -217,11 +209,8 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
             ++CondCounter;
         
             rInterfacePart.AddConditions(condition_ids);
-        }
-        else
-        {                            
-            if (SimplestGeometry == false)
-            {
+        } else {                            
+            if (SimplestGeometry == false) {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(1);
                 
@@ -230,9 +219,7 @@ inline void InterfacePreprocessCondition::GenerateEdgeCondition(
                 ++CondCounter;
                 
                 rInterfacePart.AddConditions(condition_ids);
-            }
-            else
-            {
+            } else {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(2);
 
@@ -266,8 +253,7 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
 {
     unsigned int count = 0;
     const unsigned int number_of_points = FaceGeometry.PointsNumber();
-    for (unsigned int it_node = 0; it_node < number_of_points; ++it_node)
-    {
+    for (unsigned int it_node = 0; it_node < number_of_points; ++it_node) {
         if (FaceGeometry[it_node].IsDefined(INTERFACE) == true)  
             if (FaceGeometry[it_node].Is(INTERFACE) == true) ++count;
     }
@@ -276,11 +262,9 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
  
     Condition const& r_condition =  KratosComponents<Condition>::Get(condition_name);
     
-    if (count == number_of_points)
-    {
+    if (count == number_of_points) {
         ++CondId;
-        if (number_of_points == 3)
-        {
+        if (number_of_points == 3) {
             // We initialize a vector for the IDs
             std::vector<std::size_t> condition_ids(1);
             
@@ -289,11 +273,8 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
             ++CondCounter;
             
             rInterfacePart.AddConditions(condition_ids);
-        }
-        else if (number_of_points == 4)
-        {
-            if (SimplestGeometry == false)
-            {
+        } else if (number_of_points == 4) {
+            if (SimplestGeometry == false) {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(1);
             
@@ -302,9 +283,7 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 ++CondCounter;
                 
                 rInterfacePart.AddConditions(condition_ids);
-            }
-            else
-            {
+            } else {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(2);
                 
@@ -320,11 +299,8 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 
                 rInterfacePart.AddConditions(condition_ids);
             }
-        }
-        else if (number_of_points == 6)
-        {
-            if (SimplestGeometry == false)
-            {
+        } else if (number_of_points == 6) {
+            if (SimplestGeometry == false) {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(1);
                 
@@ -333,9 +309,7 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 ++CondCounter;
                 
                 rInterfacePart.AddConditions(condition_ids);
-            }
-            else
-            {
+            } else {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(4);
                 
@@ -361,11 +335,8 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 
                 rInterfacePart.AddConditions(condition_ids);
             }
-        }
-        else if (number_of_points == 8)
-        {
-            if (SimplestGeometry == false)
-            {
+        } else if (number_of_points == 8) {
+            if (SimplestGeometry == false) {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(1);
                 
@@ -374,9 +345,7 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 ++CondCounter;
                 
                 rInterfacePart.AddConditions(condition_ids);
-            }
-            else
-            {
+            } else {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(6);
 
@@ -412,11 +381,8 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 
                 rInterfacePart.AddConditions(condition_ids);
             }
-        }
-        else // Assuming it will not be a very weird geometry
-        {
-            if (SimplestGeometry == false)
-            {
+        } else { // Assuming it will not be a very weird geometry
+            if (SimplestGeometry == false) {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(1);
                 
@@ -425,9 +391,7 @@ inline void InterfacePreprocessCondition::GenerateFaceCondition(
                 ++CondCounter;
                 
                 rInterfacePart.AddConditions(condition_ids);
-            }
-            else
-            {
+            } else {
                 // We initialize a vector for the IDs
                 std::vector<std::size_t> condition_ids(8);
 

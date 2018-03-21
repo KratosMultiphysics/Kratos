@@ -2,6 +2,8 @@
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
+#include "custom_utilities/vorticity_utilities.h"
+
 namespace Kratos {
 
 /*
@@ -379,6 +381,15 @@ void FractionalStep<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<d
             rOut -= PresProj;
         }
     }
+    else if (rVariable == VORTICITY) {
+        // Shape functions and integration points
+        ShapeFunctionDerivativesArrayType DN_DX;
+        Matrix NContainer;
+        VectorType GaussWeights;
+        this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+
+        VorticityUtilities<TDim>::CalculateVorticityVector(this->GetGeometry(),DN_DX,rValues);
+    }
     else
     {
         this->GetElementalValueForOutput< array_1d<double,3> >(rVariable,rValues);
@@ -467,81 +478,23 @@ void FractionalStep<TDim>::GetValueOnIntegrationPoints(const Variable<double>& r
     }
     else if (rVariable == Q_VALUE)
     {
-      // Shape functions and integration points
-      ShapeFunctionDerivativesArrayType DN_DX;
-      Matrix NContainer;
-      VectorType GaussWeights;
-      this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-      const unsigned int NumGauss = GaussWeights.size();
-      rValues.resize(NumGauss);
-      Matrix GradVel;
+        // Shape functions and integration points
+        ShapeFunctionDerivativesArrayType DN_DX;
+        Matrix NContainer;
+        VectorType GaussWeights;
+        this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
-      // Loop on integration points
-      for (unsigned int g = 0; g < NumGauss; g++)
-      {
-        GradVel = ZeroMatrix(TDim,TDim);
-        const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-
-        // Compute velocity gradient
-        for (unsigned int i=0; i < TDim; ++i)
-          for (unsigned int j=0; j < TDim; ++j)
-            for (unsigned int iNode=0; iNode < this->GetGeometry().size(); ++iNode)
-            {
-              array_1d<double,3>& Vel =
-                  this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-              GradVel(i,j) += Vel[i] * rDN_DX(iNode,j);
-            }
-
-        // Compute Q-value
-        double qval = 0.0;
-        for (unsigned int i=0; i < TDim; ++i)
-          for (unsigned int j=0; j < TDim; ++j)
-            qval += GradVel(i,j) * GradVel(j,i);
-
-        qval *= -0.5;
-        rValues[g] = qval;
-      }
+        VorticityUtilities<TDim>::CalculateQValue(this->GetGeometry(),DN_DX,rValues);
     }
     else if (rVariable == VORTICITY_MAGNITUDE)
     {
-      // Shape functions and integration points
-      ShapeFunctionDerivativesArrayType DN_DX;
-      Matrix NContainer;
-      VectorType GaussWeights;
-      this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-      const unsigned int NumGauss = GaussWeights.size();
-      rValues.resize(NumGauss);
+        // Shape functions and integration points
+        ShapeFunctionDerivativesArrayType DN_DX;
+        Matrix NContainer;
+        VectorType GaussWeights;
+        this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
-      // Loop on integration points
-      for (unsigned int g = 0; g < NumGauss; g++)
-      {
-        const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
-        array_1d<double,3> Vorticity(3,0.0);
-
-        if(TDim == 2)
-        {
-          for (unsigned int iNode = 0; iNode < this->GetGeometry().size(); iNode++)
-          {
-            array_1d<double,3>& Vel =
-                this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-            Vorticity[2] += Vel[1] * rDN_DX(iNode,0) - Vel[0] * rDN_DX(iNode,1);
-          }
-        }
-        else
-        {
-          for (unsigned int iNode = 0; iNode < this->GetGeometry().size(); iNode++)
-          {
-            array_1d<double,3>& Vel =
-                this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-            Vorticity[0] += Vel[2] * rDN_DX(iNode,1) - Vel[1] * rDN_DX(iNode,2);
-            Vorticity[1] += Vel[0] * rDN_DX(iNode,2) - Vel[2] * rDN_DX(iNode,0);
-            Vorticity[2] += Vel[1] * rDN_DX(iNode,0) - Vel[0] * rDN_DX(iNode,1);
-          }
-        }
-
-        rValues[g] = sqrt(Vorticity[0] * Vorticity[0] + Vorticity[1] * Vorticity[1]
-                          + Vorticity[2] * Vorticity[2]);
-      }
+        VorticityUtilities<TDim>::CalculateVorticityMagnitude(this->GetGeometry(),DN_DX,rValues);
     }
     else
     {

@@ -44,8 +44,10 @@ namespace Kratos
         rOStream << "Triangle divide operations utility constructed with:\n";
         rOStream << "   Geometry type: " << geometry.Info() << "\n";
         std::stringstream distances_buffer;
+        std::stringstream stm;
         for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
-            distances_buffer << std::to_string(nodal_distances(i)) << " ";
+            stm << nodal_distances(i);
+            distances_buffer << stm.str() << " ";
         }
         rOStream << "   Distance values: " << distances_buffer.str();
     };

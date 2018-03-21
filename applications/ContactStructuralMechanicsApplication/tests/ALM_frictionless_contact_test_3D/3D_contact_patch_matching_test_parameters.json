@@ -147,14 +147,7 @@
             "model_part_name"             : "Structure",
             "contact_model_part"          : "Contact_Part",
             "assume_master_slave"         : "Parts_Part_punch",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 2.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 3,
-            "manual_ALM"                  : true,
-            "penalty"                     : 1.0e-6,
-            "scale_factor"                : 1.0e0
+            "contact_type"                : "Frictionless"
         }
     }
     ],
@@ -186,10 +179,22 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"      : ["NORMAL_CONTACT_STRESS","DISPLACEMENT_Y"],
+            "check_variables"      : ["DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test_results.json",
             "model_part_name"      : "Contact_Part",
             "time_frequency"       : 1.00
+        }
+    },{
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "input_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test_results_LM.json",
+            "model_part_name"     : "Contact_Part",
+            "historical_value"    : false,
+            "time_frequency"      : 1.0
         }
     }
     ],
@@ -200,9 +205,21 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables"     : ["NORMAL_CONTACT_STRESS","DISPLACEMENT_Y"],
+            "output_variables"     : ["DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test_results.json",
             "model_part_name"      : "Contact_Part",
+            "time_frequency"       : 1.00
+        }
+    },{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_matching_test_results_LM.json",
+            "model_part_name"      : "Contact_Part",
+            "historical_value"     : false,
             "time_frequency"       : 1.00
         }
     }

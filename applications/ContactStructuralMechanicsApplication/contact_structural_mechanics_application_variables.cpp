@@ -36,10 +36,12 @@ KRATOS_CREATE_VARIABLE( double, NORMAL_GAP )                                    
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_GAP )                                       // The integrated gap employed in mortar formulation
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_SLIP )                                      // The integrated slip employed in mortar formulation
 KRATOS_CREATE_VARIABLE( double, WEIGHTED_FRICTION )                                  // The integrated friction coefficient
-KRATOS_CREATE_VARIABLE( double, WEIGHTED_SCALAR_RESIDUAL )                           // The integrated scalar residual  
-KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )                // The integrated vector residual    
+KRATOS_CREATE_VARIABLE( double, WEIGHTED_SCALAR_RESIDUAL )                           // The integrated scalar residual
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL )                // The integrated vector residual
 
 /* For ALM mortar condition */
+KRATOS_CREATE_VARIABLE( bool, ACTIVE_SET_CONVERGED )                                 // To know if the active set has converged
+KRATOS_CREATE_VARIABLE( double, DYNAMIC_FACTOR )                                     // The factor considered for dynamic problems (in order to take intro account the gap evolution)
 KRATOS_CREATE_VARIABLE( double, AUGMENTED_NORMAL_CONTACT_PRESSURE )                  // The resultant augmented pressure in the normal direction
 KRATOS_CREATE_VARIABLE( double, AUGMENTED_TANGENT_CONTACT_PRESSURE )                 // The resultant augmented pressure in the tangent direction
 KRATOS_CREATE_VARIABLE( double, TANGENT_FACTOR )                                     // The proportion between the tangent and normal penalty

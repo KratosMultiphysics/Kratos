@@ -38,7 +38,6 @@
         "echo_level"                    : 0,
         "consider_periodic_conditions"  : false,
         "compute_reactions"             : false,
-        "divergence_clearance_steps"    : 0,
         "reform_dofs_at_each_step"      : false,
         "relative_velocity_tolerance"   : 0.001,
         "absolute_velocity_tolerance"   : 1e-5,

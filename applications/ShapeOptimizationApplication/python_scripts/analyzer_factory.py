@@ -46,7 +46,7 @@ class Analyzer:
         self.internal_analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def __IsInternalAnalyzerRequired(seslf, optimization_settings):
+    def __IsInternalAnalyzerRequired(self, optimization_settings):
         for objective_number in range(optimization_settings["objectives"].size()):
             if optimization_settings["objectives"][objective_number]["use_kratos"].GetBool():
                 return True

@@ -27,27 +27,28 @@ namespace Kratos
 
     // predict step variable from previous and current values
     array_1d<double,3>& CurrentStepVariable      = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    0);
-    array_1d<double,3>& PreviousStepVariable     = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    1);
+    // array_1d<double,3>& PreviousStepVariable     = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    1);
      
     array_1d<double,3>& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,        0);
     array_1d<double,3>& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,        1);
 
     // update step variable previous iteration instead of previous step
-    PreviousStepVariable = CurrentStepVariable;
-      
+    // PreviousStepVariable = CurrentStepVariable;
+    
     // update delta variable      
     array_1d<double,3> DeltaVariable;
     noalias(DeltaVariable) = CurrentVariable - PreviousVariable;
 
-    // update step variable
     Matrix CayleyDeltaVariable(3,3);
     noalias(CayleyDeltaVariable) = ZeroMatrix(3,3);
     BeamMathUtils<double>::CayleyTransform( DeltaVariable, CayleyDeltaVariable);
+
 
     Matrix CayleyStepVariable(3,3);
     noalias(CayleyStepVariable) = ZeroMatrix(3,3);
     BeamMathUtils<double>::CayleyTransform( CurrentStepVariable, CayleyStepVariable);
 
+    // update step variable
     Matrix ComposedVariable(3,3);
     noalias(ComposedVariable) = prod(CayleyDeltaVariable,CayleyStepVariable);
 
@@ -74,68 +75,21 @@ namespace Kratos
     const array_1d<double,3>& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 1);
 
     BeamMathUtils<double>::CayleyTransform( CurrentStepVariable, CayleyStepVariable);
-    noalias(CurrentFirstDerivative)  = -prod(CayleyStepVariable,PreviousFirstDerivative);
-    noalias(CurrentFirstDerivative) += this->mEmc.c0 * CurrentStepVariable;
+    //here DeltaVariable is updated previous first derivative
+    noalias(DeltaVariable) = prod(CayleyStepVariable,PreviousFirstDerivative);
+    noalias(CurrentFirstDerivative) = this->mEmc.c0 * CurrentStepVariable - DeltaVariable;
     
     // update second derivative
-    array_1d<double,3>& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative,  0);          
-
-    noalias(CurrentSecondDerivative) = prod(CayleyStepVariable,PreviousFirstDerivative);
-    CurrentSecondDerivative *= -this->mEmc.c1;
-
-    noalias(CurrentSecondDerivative) += this->mEmc.c1 * CurrentFirstDerivative;
-   
-       
-    KRATOS_CATCH( "" )
-  }
-
-  template<>
-  void EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::UpdateFirstDerivative(NodeType& rNode)
-  {
-    KRATOS_TRY
-
-    // predict step variable from previous and current values
-    const array_1d<double,3>& CurrentStepVariable      = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    0);
-
-    array_1d<double,3>& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,       0);
+    array_1d<double,3>& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative,  0);
+    noalias(CurrentSecondDerivative) = this->mEmc.c1 * (CurrentFirstDerivative - DeltaVariable);
+    //noalias(CurrentSecondDerivative) = (this->mEmc.c1/this->mEmc.c0) * (CurrentFirstDerivative - DeltaVariable);
     
-    const array_1d<double,3>& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 1);
-     
-    Matrix CayleyStepVariable(3,3);
-    noalias(CayleyStepVariable) = ZeroMatrix(3,3);
-    BeamMathUtils<double>::CayleyTransform( CurrentStepVariable, CayleyStepVariable);
-
-    noalias(CurrentFirstDerivative) = -prod(CayleyStepVariable,PreviousFirstDerivative);
-
-    noalias(CurrentFirstDerivative) += this->mEmc.c0 * CurrentStepVariable;
+    //std::cout<<*this->mpVariable<<" Update Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
     
     KRATOS_CATCH( "" )
   }
 
-  template<>
-  void EmcStepRotationMethod<Variable<array_1d<double, 3> >, array_1d<double,3> >::UpdateSecondDerivative(NodeType& rNode)
-  {
-    KRATOS_TRY
 
-    // predict step variable from previous and current values
-    const array_1d<double,3>& CurrentStepVariable      = rNode.FastGetSolutionStepValue(*this->mpStepVariable,    0);
-    const array_1d<double,3>& CurrentFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
-    const array_1d<double,3>& PreviousFirstDerivative = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 1);
-    
-    array_1d<double,3>& CurrentSecondDerivative  = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
-     
-    Matrix CayleyStepVariable(3,3);
-    noalias(CayleyStepVariable) = ZeroMatrix(3,3);
-    BeamMathUtils<double>::CayleyTransform( CurrentStepVariable, CayleyStepVariable);
-
-    noalias(CurrentSecondDerivative) = prod(CayleyStepVariable,PreviousFirstDerivative);
-    CurrentSecondDerivative *= -this->mEmc.c1;
-
-    noalias(CurrentSecondDerivative) += this->mEmc.c1 * CurrentFirstDerivative;
-    
-    KRATOS_CATCH( "" )
-  }
-  
   
 }  // namespace Kratos.
 
