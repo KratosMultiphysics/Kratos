@@ -32,6 +32,7 @@ except ImportError as e:
 
 # Small tests
 from shape_optimization_test_factory import opt_process_shell_test as opt_process_shell_test
+from shape_optimization_test_factory import opt_process_solid_test as opt_process_solid_test
 from shape_optimization_test_factory import opt_process_vertex_morphing_test as opt_process_vertex_morphing_test
 from shape_optimization_test_factory import opt_process_eigenfrequency_test as opt_process_eigenfrequency_test
 from shape_optimization_test_factory import algorithm_steepest_descent_test as algorithm_steepest_descent_test
@@ -62,6 +63,7 @@ def AssambleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTest(opt_process_vertex_morphing_test('test_execution'))
     smallSuite.addTest(opt_process_shell_test('test_execution'))
+    smallSuite.addTest(opt_process_solid_test('test_execution'))
     smallSuite.addTest(opt_process_eigenfrequency_test('test_execution'))
     smallSuite.addTest(algorithm_steepest_descent_test('test_execution'))
     smallSuite.addTest(algorithm_penalized_projection_test('test_execution'))

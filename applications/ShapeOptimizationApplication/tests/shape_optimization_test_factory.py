@@ -40,6 +40,10 @@ class opt_process_shell_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_shell_test"
     execution_file = "run_test"
 
+class opt_process_solid_test(ShapeOptimizationTestFactory):
+    execution_directory = "opt_process_solid_test"
+    execution_file = "run_test"
+
 class opt_process_eigenfrequency_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_eigenfrequency_test"
     execution_file = "run_test"
