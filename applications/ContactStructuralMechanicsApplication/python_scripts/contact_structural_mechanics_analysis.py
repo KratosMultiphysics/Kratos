@@ -21,26 +21,21 @@ except ImportError:
 import sys
 
 # Import the base structural analysis
-import structural_mechanics_analysis
+from structural_mechanics_analysis import StructuralMechanicsAnalysis as BaseClass
 
-class ContactStructuralMechanicsAnalysis(structural_mechanics_analysis.StructuralMechanicsAnalysis):
+class ContactStructuralMechanicsAnalysis(BaseClass):
     """
     This class is the main-script of the ContactStructuralMechanicsApplication put in a class
 
     It can be imported and used as "black-box"
     """
     def __init__(self, project_parameters, external_model_part=None):
-        if (type(project_parameters) == str): # a file name is provided
-            with open(project_parameters,'r') as parameter_file:
-                self.ProjectParameters = KM.Parameters(parameter_file.read())
-        elif (type(project_parameters) == KM.Parameters): # a Parameters object is provided
-            self.ProjectParameters = project_parameters
-        else:
-            raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
-        self.__CreateSolver(external_model_part)
+
+        # Construct the base analysis.
+        super().__init__(project_parameters, external_model_part)
 
     #### Internal functions ####
-    def __CreateSolver(self, external_model_part=None):
+    def _CreateSolver(self, external_model_part=None):
         """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
         if external_model_part != None:
             # This is a temporary solution until the importing of the ModelPart
@@ -78,8 +73,8 @@ class ContactStructuralMechanicsAnalysis(structural_mechanics_analysis.Structura
                                                       self.ProjectParameters["problem_data"]["domain_size"].GetInt())
 
         ## Solver construction
-        import python_solvers_wrapper_structural
-        self.solver = python_solvers_wrapper_structural.CreateSolver(self.main_model_part, self.ProjectParameters)
+        import python_solvers_wrapper_contact_structural
+        self.solver = python_solvers_wrapper_contact_structural.CreateSolver(self.main_model_part, self.ProjectParameters)
 
         ## Adds the necessary variables to the model_part only if they don't exist
         self.solver.AddVariables()
@@ -88,60 +83,34 @@ class ContactStructuralMechanicsAnalysis(structural_mechanics_analysis.Structura
             ## Read the model - note that SetBufferSize is done here
             self.solver.ReadModelPart() # TODO move to global instance
 
-    def __ExecuteInitialize(self):
+    def _ExecuteInitialize(self):
         """ Initializing the Analysis """
 
-        ## ModelPart is being prepared to be used by the solver
-        self.solver.PrepareModelPartForSolver()
-
-        ## Adds the Dofs if they don't exist
-        self.solver.AddDofs()
-
-        ## Creation of the Kratos model (build sub_model_parts or submeshes)
-        self.structure_model = KM.Model()
-        self.structure_model.AddModelPart(self.main_model_part)
-
-        ## Print model_part and properties
-        if self.is_printing_rank and self.echo_level > 1:
-            KM.Logger.PrintInfo("ModelPart", self.main_model_part)
-            for properties in self.main_model_part.Properties:
-                KM.Logger.PrintInfo("Property " + str(properties.Id), properties)
+        super()._ExecuteInitialize()
 
         ## Processes construction
         import process_factory
-        self.list_of_processes = process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["constraints_process_list"])
-        self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["loads_process_list"])
-        if (self.ProjectParameters.Has("list_other_processes") == True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["list_other_processes"])
-        if (self.ProjectParameters.Has("contact_process_list") == True):
+        if (self.ProjectParameters.Has("contact_process_list") is True):
             self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["contact_process_list"])
-        if (self.ProjectParameters.Has("json_output_process") == True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["json_output_process"])
-        # Processes for tests
-        if (self.ProjectParameters.Has("json_check_process") == True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["json_check_process"])
-        if (self.ProjectParameters.Has("check_analytic_results_process") == True):
-            self.list_of_processes += process_factory.KratosProcessFactory(self.structure_model).ConstructListOfProcesses(self.ProjectParameters["check_analytic_results_process"])
 
-        if self.is_printing_rank and self.echo_level > 1:
-            count = 0
-            for process in self.list_of_processes:
-                count += 1
-                # KM.Logger.PrintInfo("Process " + str(count), process) # FIXME
+        #if self.is_printing_rank and self.echo_level > 1: # FIXME
+            #KM.Logger.PrintInfo("Process " + str(len(self.list_of_processes)), self.list_of_processes[-1])
 
-        ## Processes initialization
-        for process in self.list_of_processes:
-            process.ExecuteInitialize()
+        self.list_of_processes[-1].ExecuteInitialize()
 
         ## Add the processes to the solver
         self.solver.AddProcessesList(self.list_of_processes)
-        if (self.output_post == True):
+        if (self.output_post is True):
             self.solver.AddPostProcess(self.gid_output)
 
-        ## Solver initialization
+        # Initialize the solver (again)
         self.solver.Initialize()
 
-    def __GetSimulationName(self):
+        # Setting the echo level
+        echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+        self.solver.SetEchoLevel(echo_level)
+
+    def _GetSimulationName(self):
         return "::[KCSM Simulation]:: "
 
 if __name__ == "__main__":
