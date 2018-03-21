@@ -35,7 +35,7 @@ void  AddCustomLinearSolversToPython(pybind11::module& m)
 
     typedef MixedULMLinearSolver<SpaceType,  LocalSpaceType> MixedULMLinearSolverType;
 
-    class_<MixedULMLinearSolverType, MixedULMLinearSolverType::Pointer, IterativeSolverType>(m, "MixedULMLinearSolver")
+    class_<MixedULMLinearSolverType, typename MixedULMLinearSolverType::Pointer, IterativeSolverType>(m, "MixedULMLinearSolver")
     .def(init<LinearSolverType::Pointer >())
     .def(init<LinearSolverType::Pointer,double, const std::size_t >())
     .def(init<LinearSolverType::Pointer, Parameters>())

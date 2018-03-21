@@ -29,7 +29,7 @@ using namespace pybind11;
 void  AddCustomMappersToPython(pybind11::module& m)
 {
 
-    class_<InterfacePreprocessCondition, InterfacePreprocessCondition::Pointer>(m, "InterfacePreprocessCondition")
+    class_<InterfacePreprocessCondition, typename InterfacePreprocessCondition::Pointer>(m, "InterfacePreprocessCondition")
     .def(init<ModelPart&>())
     .def("GenerateInterfacePart2D",&InterfacePreprocessCondition::GenerateInterfacePart<2>)
     .def("GenerateInterfacePart3D",&InterfacePreprocessCondition::GenerateInterfacePart<3>)
