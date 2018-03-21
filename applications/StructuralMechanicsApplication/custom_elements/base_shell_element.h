@@ -121,118 +121,16 @@ public:
 
     void ResetConstitutiveLaw() override;
 
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
 	                            ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-    * ELEMENTS inherited from this class have to implement next
-    * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
-    * they can be managed internally with a private method to do the same calculations
-    * only once: MANDATORY
-    */
-
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate all elemental contributions to the global system
-//    * matrix and the right hand side
-//    * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//    * @param rRightHandSideVector: the elemental right hand side
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateLocalSystem(
-//       MatrixType& rLeftHandSideMatrix,
-//       VectorType& rRightHandSideVector,
-//       ProcessInfo& rCurrentProcessInfo);
-
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate the elemental left hand side matrix only
-//    * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate the elemental right hand side vector only
-//    * @param rRightHandSideVector: the elemental right hand side vector
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate the first derivatives contributions for the LHS and RHS
-//    * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//    * @param rRightHandSideVector: the elemental right hand side
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateFirstDerivativesContributions(
-//       MatrixType& rLeftHandSideMatrix,
-//       VectorType& rRightHandSideVector,
-//       ProcessInfo& rCurrentProcessInfo);
-
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate the elemental left hand side matrix for the first derivatives constributions
-//    * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate the elemental right hand side vector for the first derivatives constributions
-//    * @param rRightHandSideVector: the elemental right hand side vector
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-//   /**
-//    * ELEMENTS inherited from this class must implement this methods
-//    * if they need to add dynamic element contributions
-//    * note: second derivatives means the accelerations if the displacements are the dof of the analysis
-//    * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
-//    * CalculateSecondDerivativesContributions,
-//    * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
-//    */
-
-
-//  /**
-//    * this is called during the assembling process in order
-//    * to calculate the second derivative contributions for the LHS and RHS
-//    * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//    * @param rRightHandSideVector: the elemental right hand side
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateSecondDerivativesContributions(
-//       MatrixType& rLeftHandSideMatrix,
-//       VectorType& rRightHandSideVector,
-//       ProcessInfo& rCurrentProcessInfo);
-
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate the elemental left hand side matrix for the second derivatives constributions
-//    * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateSecondDerivativesLHS(
-//       MatrixType& rLeftHandSideMatrix,
-//       ProcessInfo& rCurrentProcessInfo);
-
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate the elemental right hand side vector for the second derivatives constributions
-//    * @param rRightHandSideVector: the elemental right hand side vector
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateSecondDerivativesRHS(
-//       VectorType& rRightHandSideVector,
-//       ProcessInfo& rCurrentProcessInfo);
 
 //   /**
 //    * this is called during the assembling process in order
@@ -242,13 +140,12 @@ public:
 //    */
 //   virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
-  /**
-   * this is called during the assembling process in order
-   * to calculate the elemental damping matrix
-   * @param rDampingMatrix: the elemental damping matrix
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental damping matrix
+     * @param rDampingMatrix: the elemental damping matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
 
 //   /**
 //    * This method provides the place to perform checks on the completeness of the input
@@ -354,6 +251,13 @@ protected:
     void BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     void BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    void CheckVariables();
+    void CheckDofs();
+    void CheckProperties();
+    void CheckSpecificProperties();
+
+
 
     ///@}
     ///@name Protected  Access

@@ -174,6 +174,7 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
         rValues[index]     = vel[0];
         rValues[index + 1] = vel[1];
         rValues[index + 2] = vel[2];
+
         rValues[index + 3] = 0.0;
         rValues[index + 4] = 0.0;
         rValues[index + 5] = 0.0;
@@ -197,6 +198,7 @@ void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
         rValues[index]     = acc[0];
         rValues[index + 1] = acc[1];
         rValues[index + 2] = acc[2];
+
         rValues[index + 3] = 0.0;
         rValues[index + 4] = 0.0;
         rValues[index + 5] = 0.0;
@@ -216,7 +218,6 @@ void BaseShellElement::ResetConstitutiveLaw()
 
     KRATOS_CATCH("")
 }
-
 
 void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
@@ -244,7 +245,6 @@ void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessIn
 		mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
-
 void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     const PropertiesType& props = GetProperties();
@@ -271,126 +271,18 @@ void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 	ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
-    const bool CalculateStiffnessMatrixFlag = true; // TODO check is this can be false => see solids
-    const bool CalculateResidualVectorFlag = true;
+    const bool calculate_stiffness_matrix_flag = true; // TODO check is this can be false => see solids
+    const bool calculate_residual_vector_flag = true;
 
 	Matrix dummy;
 	CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
-// /**
-//  * ELEMENTS inherited from this class have to implement next
-//  * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
-//  * they can be managed internally with a private method to do the same calculations
-//  * only once: MANDATORY
-//  */
-
-// /**
-//  * this is called during the assembling process in order
-//  * to calculate all elemental contributions to the global system
-//  * matrix and the right hand side
-//  * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//  * @param rRightHandSideVector: the elemental right hand side
-//  * @param rCurrentProcessInfo: the current process info instance
-//  */
-// void BaseShellElement::CalculateLocalSystem(
-//     MatrixType& rLeftHandSideMatrix,
-//     VectorType& rRightHandSideVector,
-//     ProcessInfo& rCurrentProcessInfo) {
-// }
-
-// /**
-//  * this is called during the assembling process in order
-//  * to calculate the elemental left hand side matrix only
-//  * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//  * @param rCurrentProcessInfo: the current process info instance
-//  */
-// void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) {
-// }
-
-// /**
-//  * this is called during the assembling process in order
-//  * to calculate the elemental right hand side vector only
-//  * @param rRightHandSideVector: the elemental right hand side vector
-//  * @param rCurrentProcessInfo: the current process info instance
-//  */
-// void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
-// }
-
-// /**
-//  * this is called during the assembling process in order
-//  * to calculate the first derivatives contributions for the LHS and RHS
-//  * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//  * @param rRightHandSideVector: the elemental right hand side
-//  * @param rCurrentProcessInfo: the current process info instance
-//  */
-// void BaseShellElement::CalculateFirstDerivativesContributions(
-//     MatrixType& rLeftHandSideMatrix,
-//     VectorType& rRightHandSideVector,
-//     ProcessInfo& rCurrentProcessInfo) {
-
-//   if (rLeftHandSideMatrix.size1() != 0)
-//     rLeftHandSideMatrix.resize(0, 0, false);
-//   if (rRightHandSideVector.size() != 0)
-//     rRightHandSideVector.resize(0, false);
-// }
-
-// /**
-//  * this is called during the assembling process in order
-//  * to calculate the elemental left hand side matrix for the first derivatives constributions
-//  * @param rLeftHandSideMatrix: the elemental left hand side matrix
-//  * @param rCurrentProcessInfo: the current process info instance
-//  */
-// void BaseShellElement::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) {
-//   if (rLeftHandSideMatrix.size1() != 0)
-//     rLeftHandSideMatrix.resize(0, 0, false);
-// }
-
-// /**
-//  * this is called during the assembling process in order
-//  * to calculate the elemental right hand side vector for the first derivatives constributions
-//  * @param rRightHandSideVector: the elemental right hand side vector
-//  * @param rCurrentProcessInfo: the current process info instance
-//  */
-// void BaseShellElement::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
-//   if (rRightHandSideVector.size() != 0)
-//     rRightHandSideVector.resize(0, false);
-// }
-
-// /**
-//  * ELEMENTS inherited from this class must implement this methods
-//  * if they need to add dynamic element contributions
-//  * note: second derivatives means the accelerations if the displacements are the dof of the analysis
-//  * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
-//  * CalculateSecondDerivativesContributions,
-//  * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
-//  */
-
-// /**
-//  * this is called during the assembling process in order
-//  * to calculate the elemental right hand side vector for the second derivatives constributions
-//  * @param rRightHandSideVector: the elemental right hand side vector
-//  * @param rCurrentProcessInfo: the current process info instance
-//  */
-// void BaseShellElement::CalculateSecondDerivativesRHS(
-//     VectorType& rRightHandSideVector,
-//     ProcessInfo& rCurrentProcessInfo) {
-
-//   if (rRightHandSideVector.size() != 0)
-//     rRightHandSideVector.resize(0, false);
-// }
-
-// /**
-//  * this is called during the assembling process in order
-//  * to calculate the elemental mass matrix
-//  * @param rMassMatrix: the elemental mass matrix
-//  * @param rCurrentProcessInfo: the current process info instance
-//  */
-// void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) {
-//   if (rMassMatrix.size1() != 0)
-//     rMassMatrix.resize(0, 0, false);
-// }
+void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    // TODO unify implementation and move it to BaseClass
+}
 
 void BaseShellElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
@@ -438,33 +330,6 @@ void BaseShellElement::CalculateDampingMatrix(
 
     KRATOS_CATCH( "" )
 }
-
-// /**
-//  * This method provides the place to perform checks on the completeness of the input
-//  * and the compatibility with the problem options as well as the contitutive laws selected
-//  * It is designed to be called only once (or anyway, not often) typically at the beginning
-//  * of the calculations, so to verify that nothing is missing from the input
-//  * or that no common error is found.
-//  * @param rCurrentProcessInfo
-//  * this method is: MANDATORY
-//  */
-// int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo) {
-
-//   KRATOS_TRY
-
-//   if (this->Id() < 1) {
-//     KRATOS_THROW_ERROR(std::logic_error, "BaseShellElement found with Id 0 or negative","")
-//   }
-
-//   if (this->GetGeometry().Area() <= 0) {
-//     std::cout << "error on BaseShellElement -> " << this->Id() << std::endl;
-//     KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0","")
-//   }
-
-//   return 0;
-
-//   KRATOS_CATCH("");
-// }
 
 ///@}
 ///@name Access
@@ -540,6 +405,112 @@ void BaseShellElement::CalculateAll(
     )
 {
     KRATOS_ERROR << "You have called to the CalculateAll from the base class for shell elements" << std::endl;
+}
+
+void BaseShellElement::CheckVariables()
+{
+    KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
+    KRATOS_CHECK_VARIABLE_KEY(ROTATION);
+    KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(DENSITY);
+    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION); // TODO is this ok here?
+    KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
+    KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
+}
+
+void BaseShellElement::CheckDofs()
+{
+    const GeometryType& r_geom = GetGeometry();
+    // verify that the dofs exist
+    for (unsigned int i = 0; i < r_geom.size(); i++)
+    {
+        auto& r_node = r_geom[i];
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z, r_node);
+
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node);
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node);
+
+        KRATOS_ERROR_IF(r_node.GetBufferSize() < 2) << "This Element needs "
+            << "at least a buffer size = 2" << std::endl;
+    }
+}
+
+void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo, const bool IsThickShell)
+{
+    // check properties
+    if(pGetProperties() == nullptr)
+        KRATOS_ERROR << "Properties not provided for element " << Id() << std::endl;
+
+    const PropertiesType & props = GetProperties();
+
+    const GeometryType& geom = GetGeometry(); // TODO check if this can be const
+
+    if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
+    {
+        const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
+        if(section == nullptr)
+            KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << Id() << std::endl;
+
+        section->Check(props, geom, rCurrentProcessInfo);
+    }
+    else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
+    {
+        CheckSpecificProperties(props, IsThickShell);
+
+        // perform detailed orthotropic check later in shell_cross_section
+    }
+    else // ... allow the automatic creation of a homogeneous section from a material and a thickness
+    {
+        CheckSpecificProperties(props, IsThickShell);
+
+        ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
+        dummySection->BeginStack();
+        dummySection->AddPly(props[THICKNESS], 0.0, 5, pGetProperties());
+        dummySection->EndStack();
+        dummySection->SetSectionBehavior(ShellCrossSection::Thick);
+        dummySection->Check(props, geom, rCurrentProcessInfo);
+    }
+
+}
+
+void BaseShellElement::CheckSpecificProperties(const PropertiesType & rProps, const bool IsThickShell)
+{
+    if (!rProps.Has(CONSTITUTIVE_LAW))
+        KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
+    const ConstitutiveLaw::Pointer& claw = rProps[CONSTITUTIVE_LAW];
+    if (claw == nullptr)
+        KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
+
+    if(!rProps.Has(THICKNESS))
+        KRATOS_ERROR << "THICKNESS not provided for element " << Id() << std::endl;
+    if(rProps[THICKNESS] <= 0.0)
+        KRATOS_ERROR << "wrong THICKNESS value provided for element " << Id() << std::endl;
+
+    if(!rProps.Has(DENSITY))
+        KRATOS_ERROR << "DENSITY not provided for element " << Id() << std::endl;
+    if(rProps[DENSITY] < 0.0)
+        KRATOS_ERROR << "wrong DENSITY value provided for element " << Id() << std::endl;
+
+    if(IsThickShell)
+    {
+        // Check constitutive law has been verified with Stenberg stabilization
+        // applicable for 5-parameter shells only.
+        bool stenberg_stabilization_suitable = false;
+        claw->GetValue(STENBERG_SHEAR_STABILIZATION_SUITABLE, stenberg_stabilization_suitable);
+        if (!stenberg_stabilization_suitable)
+        {
+            std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
+                << "\nPlease check results carefully."
+                << std::endl;
+        }
+    }
 }
 
 ///@}
