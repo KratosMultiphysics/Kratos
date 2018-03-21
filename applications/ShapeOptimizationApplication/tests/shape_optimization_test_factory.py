@@ -1,16 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-# Importing the Kratos Library
-import KratosMultiphysics
-
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Other imports
 import os
-import sys
-import shutil
 
 class controlledExecutionScope:
     def __init__(self, scope):

@@ -21,6 +21,11 @@ from __future__ import print_function, absolute_import, division
 # Import Kratos core and apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
+
+# Additional imports
+from KratosMultiphysics.KratosUnittest import TestCase
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+import csv, os
 from math import sin
 
 # =======================================================================================================
@@ -88,11 +93,6 @@ optimizer.Optimize()
 # =======================================================================================================
 # Test results and clean directory
 # =======================================================================================================
-from KratosMultiphysics.KratosUnittest import TestCase
-import csv
-import os
-import KratosMultiphysics.kratos_utilities as kratos_utilities
-
 output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
 response_log_filename = parameters["optimization_settings"]["output"]["response_log_filename"].GetString() + ".csv"
 optimization_model_part_name = parameters["optimization_settings"]["design_variables"]["optimization_model_part_name"].GetString()

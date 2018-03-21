@@ -18,7 +18,7 @@
             "input_filename" : "structure"
         },
             "material_import_settings" :{
-            "materials_filename": "materials_2D.json"
+            "materials_filename": "materials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",

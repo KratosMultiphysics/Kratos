@@ -5,6 +5,10 @@ from __future__ import print_function, absolute_import, division
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
 
+# Additional imports
+import KratosMultiphysics.kratos_utilities as kratos_utilities
+import os
+
 # Read parameters
 with open("parameters.json",'r') as parameter_file:
     parameters = Parameters(parameter_file.read())
@@ -21,8 +25,6 @@ optimizer.Optimize()
 # =======================================================================================================
 # Test results and clean directory
 # =======================================================================================================
-import os
-import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Testing is done using the "json_output_process" & "json_check_process" within the structural analysis
 
