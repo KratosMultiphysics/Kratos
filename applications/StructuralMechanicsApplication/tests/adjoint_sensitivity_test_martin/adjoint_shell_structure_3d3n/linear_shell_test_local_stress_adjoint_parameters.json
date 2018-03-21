@@ -26,7 +26,7 @@
             "element_sensitivity_variables"  : ["THICKNESS"],
             "condition_sensitivity_variables"  : [],
             "step_size"         : 1.0e-6,
-            "traced_element"    : 5,
+            "traced_element"    : 2,
             "stress_type"       : "MXX",
             "stress_treatment"  : "mean",
             "stress_location"   : 1
@@ -77,7 +77,7 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"  : ["ADJOINT_DISPLACEMENT_Z", "SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"],
+            "check_variables"  : ["ADJOINT_DISPLACEMENT_Z", "SHAPE_SENSITIVITY_Y"],
             "input_file_name"  : "adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/linear_shell_test_local_stress_results.json",
             "model_part_name"  : "Structure",
             "sub_model_part_name"  : "test_model_part",

@@ -26,7 +26,7 @@
             "element_sensitivity_variables"  : ["THICKNESS"],
             "condition_sensitivity_variables"  : [],
             "step_size"         : 1.0e-6,
-            "traced_node"       : 6,
+            "traced_node"       : 5,
             "traced_dof"        : "DISPLACEMENT_Z"
         },
         "echo_level"                   : 0,
@@ -75,11 +75,11 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"  : ["ADJOINT_DISPLACEMENT_Z", "SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"],
+            "check_variables"  : ["ADJOINT_DISPLACEMENT_Z", "SHAPE_SENSITIVITY_Y"],
             "input_file_name"  : "adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/linear_shell_test_nodal_disp_results.json",
             "model_part_name"  : "Structure",
             "sub_model_part_name"  : "test_model_part",
-            "tolerance"            : 1e-5,
+            "tolerance"            : 1e-6,
             "time_frequency"   : -2.0
         }
     }],

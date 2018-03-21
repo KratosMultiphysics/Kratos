@@ -27,7 +27,6 @@ class TestCase(KratosUnittest.TestCase):
     def test_local_stress_response(self): 
         # Solve primal problem (only here necessary. The other tests corresponding to the same primal problem.)
         self._solve_primal_problem() 
-
         # Create the adjoint solver
         self._solve_primal_problem()
         with open("./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d3n/linear_shell_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
@@ -35,10 +34,10 @@ class TestCase(KratosUnittest.TestCase):
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
 
-        # Check sensitivities for the parameter I22
-        reference_values = [0.41386635771251334, -2.601255910505967, 0.6628211584248311]
+        # Check sensitivities for the parameter THICKNESS
+        reference_values = [1.7140339404943918, -6.857593034277518, 0.14749301178647778]
         sensitivities_to_check = []
-        element_list = [1,5,8]
+        element_list = [1,2,8]
         for element_id in element_list:
             sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
     
@@ -53,10 +52,10 @@ class TestCase(KratosUnittest.TestCase):
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
 
-        # Check sensitivities for the parameter I22
-        reference_values = [-0.002801100145774953, -0.0027781711818140294, -0.00046158741678306966]
+        # Check sensitivities for the parameter THICKNESS
+        reference_values = [-0.09916013365433643, -0.23348175177098657, -0.04942512089147077]
         sensitivities_to_check = []
-        element_list = [1,5,8]
+        element_list = [1,2,8]
         for element_id in element_list:
             sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
     
@@ -71,10 +70,10 @@ class TestCase(KratosUnittest.TestCase):
         adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(ProjectParametersAdjoint)
         adjoint_analysis.Run()
 
-        # Check sensitivities for the parameter I22
-        reference_values = [-0.003271375240263905, -0.005556342364194191, -0.001972358301203816]
+        # Check sensitivities for the parameter THICKNESS
+        reference_values = [-0.4958006682716821, -1.1674087588549331, -0.2471256044520311]
         sensitivities_to_check = []
-        element_list = [1,5,8]
+        element_list = [1,2,8]
         for element_id in element_list:
             sensitivities_to_check.append(adjoint_analysis.GetModelPart().Elements[element_id].GetValue(KratosMultiphysics.StructuralMechanicsApplication.THICKNESS_SENSITIVITY))
     
