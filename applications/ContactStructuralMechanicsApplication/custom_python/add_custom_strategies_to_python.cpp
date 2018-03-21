@@ -12,8 +12,6 @@
 // System includes
 
 // External includes
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
 
 // Project includes
 #include "includes/define.h"
