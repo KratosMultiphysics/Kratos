@@ -53,6 +53,9 @@ from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Test adjoint elements
 from test_cr_beam_adjoint_element_3d import TestCrBeamAdjointElement as TTestCrBeamAdjointElement
+from test_linear_thin_shell_adjoint_element_3d4n import TestShellThinAdjointElement3D4N as TTestShellThinAdjointElement3D4N
+from test_linear_thin_shell_adjoint_element_3d3n import TestShellThinAdjointElement3D3N as TTestShellThinAdjointElement3D3N
+
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
 from SmallTests import SimpleMeshMovingTest as TSimpleMeshMovingTest
@@ -219,6 +222,8 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     # Adjoint Elements
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestCrBeamAdjointElement]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D4N]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
