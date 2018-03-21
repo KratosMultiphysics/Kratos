@@ -113,8 +113,6 @@ public:
 
     void Initialize() override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;

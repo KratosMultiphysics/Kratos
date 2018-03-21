@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_elements/base_shell_element.h"
+#include "includes/checks.h"
 
 
 namespace Kratos
@@ -45,8 +46,9 @@ namespace Kratos
  * Constructor using Geometry
  */
 BaseShellElement::BaseShellElement(IndexType NewId,
-    GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    GeometryType::Pointer pGeometry,
+    bool IsThickShell)
+    : Element(NewId, pGeometry), mIsThickShell(IsThickShell)
 {
     SetBaseMembers();
 }
@@ -56,8 +58,9 @@ BaseShellElement::BaseShellElement(IndexType NewId,
  */
 BaseShellElement::BaseShellElement(IndexType NewId,
     GeometryType::Pointer pGeometry,
-    PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    PropertiesType::Pointer pProperties,
+    bool IsThickShell)
+    : Element(NewId, pGeometry, pProperties), mIsThickShell(IsThickShell)
 {
     SetBaseMembers();
 }
@@ -279,7 +282,7 @@ void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
-void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
     // TODO unify implementation and move it to BaseClass
 }
@@ -327,6 +330,26 @@ void BaseShellElement::CalculateDampingMatrix(
     // Rayleigh Damping Matrix: alpha*M + beta*K
     noalias( rDampingMatrix ) += alpha * MassMatrix;
     noalias( rDampingMatrix ) += beta  * StiffnessMatrix;
+
+    KRATOS_CATCH( "" )
+}
+
+int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    Element::Check(rCurrentProcessInfo);
+
+    CheckVariables();
+    CheckDofs();
+    CheckProperties(rCurrentProcessInfo);
+
+    KRATOS_ERROR_IF(GetGeometry().Area() < std::numeric_limits<double>::epsilon()*1000)
+        << "Element #" << Id() << " has an Area of zero!" << std::endl;
+
+    // TODO check ConstLaws
+
+    return 0;
 
     KRATOS_CATCH( "" )
 }
@@ -412,16 +435,20 @@ void BaseShellElement::CheckVariables()
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(ROTATION);
     KRATOS_CHECK_VARIABLE_KEY(VELOCITY);
+    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_VELOCITY);
     KRATOS_CHECK_VARIABLE_KEY(ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(ANGULAR_ACCELERATION);
+    KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
     KRATOS_CHECK_VARIABLE_KEY(DENSITY);
-    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION); // TODO is this ok here?
     KRATOS_CHECK_VARIABLE_KEY(THICKNESS);
+    KRATOS_CHECK_VARIABLE_KEY(SHELL_ORTHOTROPIC_LAYERS);
     KRATOS_CHECK_VARIABLE_KEY(CONSTITUTIVE_LAW);
+    KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
 }
 
 void BaseShellElement::CheckDofs()
 {
-    const GeometryType& r_geom = GetGeometry();
+    GeometryType& r_geom = GetGeometry();
     // verify that the dofs exist
     for (unsigned int i = 0; i < r_geom.size(); i++)
     {
@@ -442,7 +469,7 @@ void BaseShellElement::CheckDofs()
     }
 }
 
-void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo, const bool IsThickShell)
+void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
 {
     // check properties
     if(pGetProperties() == nullptr)
@@ -462,13 +489,13 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo, c
     }
     else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
     {
-        CheckSpecificProperties(props, IsThickShell);
+        CheckSpecificProperties();
 
         // perform detailed orthotropic check later in shell_cross_section
     }
     else // ... allow the automatic creation of a homogeneous section from a material and a thickness
     {
-        CheckSpecificProperties(props, IsThickShell);
+        CheckSpecificProperties();
 
         ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
         dummySection->BeginStack();
@@ -480,25 +507,27 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo, c
 
 }
 
-void BaseShellElement::CheckSpecificProperties(const PropertiesType & rProps, const bool IsThickShell)
+void BaseShellElement::CheckSpecificProperties()
 {
-    if (!rProps.Has(CONSTITUTIVE_LAW))
+    const PropertiesType & r_props = GetProperties();
+
+    if (!r_props.Has(CONSTITUTIVE_LAW))
         KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
-    const ConstitutiveLaw::Pointer& claw = rProps[CONSTITUTIVE_LAW];
+    const ConstitutiveLaw::Pointer& claw = r_props[CONSTITUTIVE_LAW];
     if (claw == nullptr)
         KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
 
-    if(!rProps.Has(THICKNESS))
+    if(!r_props.Has(THICKNESS))
         KRATOS_ERROR << "THICKNESS not provided for element " << Id() << std::endl;
-    if(rProps[THICKNESS] <= 0.0)
+    if(r_props[THICKNESS] <= 0.0)
         KRATOS_ERROR << "wrong THICKNESS value provided for element " << Id() << std::endl;
 
-    if(!rProps.Has(DENSITY))
+    if(!r_props.Has(DENSITY))
         KRATOS_ERROR << "DENSITY not provided for element " << Id() << std::endl;
-    if(rProps[DENSITY] < 0.0)
+    if(r_props[DENSITY] < 0.0)
         KRATOS_ERROR << "wrong DENSITY value provided for element " << Id() << std::endl;
 
-    if(IsThickShell)
+    if(mIsThickShell)
     {
         // Check constitutive law has been verified with Stenberg stabilization
         // applicable for 5-parameter shells only.
@@ -551,6 +580,7 @@ void BaseShellElement::save(Serializer& rSerializer) const {
   rSerializer.save("Sections", mSections);
   rSerializer.save("NumDofs", mNumDofs);
   rSerializer.save("NumGPs", mNumGPs);
+  rSerializer.save("IsThickShell", mIsThickShell);
   rSerializer.save("IntM", (int)mIntegrationMethod);
 }
 
@@ -559,6 +589,7 @@ void BaseShellElement::load(Serializer& rSerializer) {
   rSerializer.load("Sections", mSections);
   rSerializer.load("NumDofs", mNumDofs);
   rSerializer.load("NumGPs", mNumGPs);
+  rSerializer.load("IsThickShell", mIsThickShell);
   int temp;
   rSerializer.load("IntM", temp);
   mIntegrationMethod = (IntegrationMethod)temp;

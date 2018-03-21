@@ -280,17 +280,20 @@ public:
 
     ShellThickElement3D4N(IndexType NewId,
                           GeometryType::Pointer pGeometry,
-                          bool NLGeom = false);
+                          bool NLGeom = false,
+                          bool IsThickShell = true);
 
     ShellThickElement3D4N(IndexType NewId,
                           GeometryType::Pointer pGeometry,
                           PropertiesType::Pointer pProperties,
-                          bool NLGeom = false);
+                          bool NLGeom = false,
+                          bool IsThickShell = true);
 
     ShellThickElement3D4N(IndexType NewId,
                           GeometryType::Pointer pGeometry,
                           PropertiesType::Pointer pProperties,
-                          CoordinateTransformationBasePointerType pCoordinateTransformation);
+                          CoordinateTransformationBasePointerType pCoordinateTransformation,
+                          bool IsThickShell = true);
 
     ~ShellThickElement3D4N() override;
 
@@ -304,8 +307,6 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     void Initialize() override;
-
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
 

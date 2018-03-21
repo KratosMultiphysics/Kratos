@@ -99,17 +99,20 @@ namespace Kratos
 
 		ShellThickElement3D3N(IndexType NewId,
 			GeometryType::Pointer pGeometry,
-			bool NLGeom = false);
+			bool NLGeom = false,
+            bool IsThickShell = true);
 
 		ShellThickElement3D3N(IndexType NewId,
 			GeometryType::Pointer pGeometry,
 			PropertiesType::Pointer pProperties,
-			bool NLGeom = false);
+			bool NLGeom = false,
+            bool IsThickShell = true);
 
 		ShellThickElement3D3N(IndexType NewId,
 			GeometryType::Pointer pGeometry,
 			PropertiesType::Pointer pProperties,
-			CoordinateTransformationBasePointerType pCoordinateTransformation);
+			CoordinateTransformationBasePointerType pCoordinateTransformation,
+            bool IsThickShell = true);
 
 		~ShellThickElement3D3N() override;
 
@@ -123,8 +126,6 @@ namespace Kratos
 		Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 		void Initialize() override;
-
-		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;	//corotational formulation
 

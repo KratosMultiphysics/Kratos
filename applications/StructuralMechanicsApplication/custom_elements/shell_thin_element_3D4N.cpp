@@ -335,21 +335,6 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
-	int ShellThinElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
-	{
-        KRATOS_TRY
-
-        GeometryType& r_geom = GetGeometry();
-
-        ShellUtilities::CheckVariables();
-        ShellUtilities::CheckDofs(r_geom);
-        ShellUtilities::CheckProperties(this, rCurrentProcessInfo);
-
-        return 0;
-
-        KRATOS_CATCH("")
-	}
-
 	void ShellThinElement3D4N::InitializeNonLinearIteration
 	(ProcessInfo& rCurrentProcessInfo)
 	{

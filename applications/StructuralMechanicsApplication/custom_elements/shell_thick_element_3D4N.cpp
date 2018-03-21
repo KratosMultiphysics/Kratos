@@ -396,8 +396,8 @@ void ShellThickElement3D4N::EASOperator::ComputeModfiedTangentAndResidual(Matrix
 
 ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
-        bool NLGeom)
-    : BaseShellElement(NewId, pGeometry)
+        bool NLGeom, bool IsThickShell)
+    : BaseShellElement(NewId, pGeometry, IsThickShell)
     , mpCoordinateTransformation( NLGeom ?
                                   new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellQ4_CoordinateTransformation(pGeometry))
@@ -407,8 +407,8 @@ ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
 ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
-        bool NLGeom)
-    : BaseShellElement(NewId, pGeometry, pProperties)
+        bool NLGeom, bool IsThickShell)
+    : BaseShellElement(NewId, pGeometry, pProperties, IsThickShell)
     , mpCoordinateTransformation( NLGeom ?
                                   new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellQ4_CoordinateTransformation(pGeometry))
@@ -418,8 +418,9 @@ ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
 ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
-        CoordinateTransformationBasePointerType pCoordinateTransformation)
-    : BaseShellElement(NewId, pGeometry, pProperties)
+        CoordinateTransformationBasePointerType pCoordinateTransformation,
+        bool IsThickShell)
+    : BaseShellElement(NewId, pGeometry, pProperties, IsThickShell)
     , mpCoordinateTransformation(pCoordinateTransformation)
 {
 }
@@ -492,22 +493,6 @@ void ShellThickElement3D4N::Initialize()
     this->SetupOrientationAngles();
 
     mEASStorage.Initialize(geom);
-
-    KRATOS_CATCH("")
-}
-
-int ShellThickElement3D4N::Check(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    GeometryType& r_geom = GetGeometry();
-    const bool is_thick_shell = true;
-
-    ShellUtilities::CheckVariables();
-    ShellUtilities::CheckDofs(r_geom);
-    ShellUtilities::CheckProperties(this, rCurrentProcessInfo, is_thick_shell);
-
-    return 0;
 
     KRATOS_CATCH("")
 }

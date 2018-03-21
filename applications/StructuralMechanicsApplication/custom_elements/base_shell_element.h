@@ -71,12 +71,17 @@ public:
     /**
     * Constructor using Geometry
     */
-    BaseShellElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    BaseShellElement(IndexType NewId,
+                     GeometryType::Pointer pGeometry,
+                     bool IsThickShell=false);
 
     /**
     * Constructor using Properties
     */
-    BaseShellElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    BaseShellElement(IndexType NewId,
+                     GeometryType::Pointer pGeometry,
+                     PropertiesType::Pointer pProperties,
+                     bool IsThickShell=false);
 
     /**
     * Destructor
@@ -132,31 +137,16 @@ public:
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
 	                            ProcessInfo& rCurrentProcessInfo) override;
 
-//   /**
-//    * this is called during the assembling process in order
-//    * to calculate the elemental mass matrix
-//    * @param rMassMatrix: the elemental mass matrix
-//    * @param rCurrentProcessInfo: the current process info instance
-//    */
-//   virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-
     /**
-     * this is called during the assembling process in order
-     * to calculate the elemental damping matrix
-     * @param rDampingMatrix: the elemental damping matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-
-//   /**
-//    * This method provides the place to perform checks on the completeness of the input
-//    * and the compatibility with the problem options as well as the contitutive laws selected
-//    * It is designed to be called only once (or anyway, not often) typically at the beginning
-//    * of the calculations, so to verify that nothing is missing from the input
-//    * or that no common error is found.
-//    * @param rCurrentProcessInfo
-//    * this method is: MANDATORY
-//    */
-//   virtual int Check(const ProcessInfo& rCurrentProcessInfo);
+    * This method provides the place to perform checks on the completeness of the input
+    * and the compatibility with the problem options as well as the contitutive laws selected
+    * It is designed to be called only once (or anyway, not often) typically at the beginning
+    * of the calculations, so to verify that nothing is missing from the input
+    * or that no common error is found.
+    * @param rCurrentProcessInfo
+    * this method is: MANDATORY
+    */
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * returns the used integration method. In the general case this is the
@@ -209,6 +199,7 @@ protected:
     SizeType mNumDofs;
     SizeType mNumGPs;
     IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
+    bool mIsThickShell;
 
     CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
@@ -254,7 +245,7 @@ protected:
 
     void CheckVariables();
     void CheckDofs();
-    void CheckProperties();
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
     void CheckSpecificProperties();
 
 
