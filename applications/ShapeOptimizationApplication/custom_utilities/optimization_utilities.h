@@ -133,7 +133,7 @@ public:
                 if(squared_length>max_norm_search_dir)
                     max_norm_search_dir = squared_length;
             }
-            max_norm_search_dir = sqrt(max_norm_search_dir);
+            max_norm_search_dir = std::sqrt(max_norm_search_dir);
 
             // Normalize by max norm
             if(max_norm_search_dir>1e-10)
@@ -198,7 +198,7 @@ public:
         	array_3d& dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
             norm_2_dCds_i += inner_prod(dCds_i,dCds_i);
         }
-        norm_2_dCds_i = sqrt(norm_2_dCds_i);
+        norm_2_dCds_i = std::sqrt(norm_2_dCds_i);
 
         // Avoid division by zero
         if(std::abs(norm_2_dCds_i)<1e-12)
@@ -261,8 +261,8 @@ public:
     		array_3d ds = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
     		norm_search_direction += inner_prod(ds,ds);
     	}
-    	norm_correction_term = sqrt(norm_correction_term);
-    	norm_search_direction = sqrt(norm_search_direction);
+    	norm_correction_term = std::sqrt(norm_correction_term);
+    	norm_search_direction = std::sqrt(norm_search_direction);
         double correction_scaling = GetCorrectionScaling();
 
     	return correction_scaling * norm_search_direction / norm_correction_term;
