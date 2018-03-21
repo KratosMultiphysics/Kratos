@@ -74,11 +74,12 @@ void AddCustomSolversToPython()
 	register_solver<SparseQR<complex>>("ComplexSparseQRSolver");
 
 	#if defined USE_EIGEN_MKL
-	register_solver<PardisoLLT<double>>("PardisoLLTSolver");
-	register_solver<PardisoLLT<complex>>("ComplexPardisoLLTSolver");
+	// The commented complex solvers need to be tested first
+	// register_solver<PardisoLLT<double>>("PardisoLLTSolver");
+	// register_solver<PardisoLLT<complex>>("ComplexPardisoLLTSolver");
 
-	register_solver<PardisoLDLT<double>>("PardisoLDLTSolver");
-	register_solver<PardisoLDLT<complex>>("ComplexPardisoLDLTSolver");
+	// register_solver<PardisoLDLT<double>>("PardisoLDLTSolver");
+	// register_solver<PardisoLDLT<complex>>("ComplexPardisoLDLTSolver");
 
 	register_solver<PardisoLU<double>>("PardisoLUSolver");
 	register_solver<PardisoLU<complex>>("ComplexPardisoLUSolver");
