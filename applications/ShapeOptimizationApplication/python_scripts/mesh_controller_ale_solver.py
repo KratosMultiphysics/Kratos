@@ -19,7 +19,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # Additional imports
 import time as timer
 from mesh_controller_base import MeshController
-from ale_analysis import ALEAnalysis
+from mesh_moving_analysis import MeshMovingAnalysis
 
 # # ==============================================================================
 class MeshControllerUsingALESolver(MeshController) :
@@ -58,7 +58,7 @@ class MeshControllerUsingALESolver(MeshController) :
 
         self.OptimizationModelPart = OptimizationModelPart
 
-        self.mesh_solver = ALEAnalysis(self.MeshSolverSettings, OptimizationModelPart)
+        self.mesh_solver = MeshMovingAnalysis(self.MeshSolverSettings, OptimizationModelPart)
 
     # --------------------------------------------------------------------------
     def Initialize(self):
