@@ -48,8 +48,8 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.FinalizeTimeStep()
 
     def Initialize(self):
-        self._ExecuteInitialize()
         self._InitializeIO()
+        self._ExecuteInitialize()
         self._ExecuteBeforeSolutionLoop()
 
     def InitializeTimeStep(self):
