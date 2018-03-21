@@ -104,8 +104,8 @@ with open(response_log_filename, 'r') as csvfile:
     resulting_constraint_value = float(last_line[4].strip())
 
     # # Check against specifications
-    TestCase().assertAlmostEqual(resulting_improvement, -19.200369, 4)
-    TestCase().assertAlmostEqual(resulting_constraint_value, 0.015617, 4)
+    TestCase().assertAlmostEqual(resulting_improvement, -19.201365, 2)
+    TestCase().assertAlmostEqual(resulting_constraint_value, 0.015641, 4)
 
 # Cleaning
 os.chdir(original_directory)

@@ -41,11 +41,11 @@ with open(response_log_filename, 'r') as csvfile:
 
     last_line = line
     resulting_optimization_iterations = int(last_line[0].strip())
-    resulting_improvement = float(last_line[1].strip())
+    resulting_improvement = float(last_line[2].strip())
 
     # Check against specifications
     TestCase().assertEqual(resulting_optimization_iterations, 16)
-    TestCase().assertAlmostEqual(resulting_improvement, 2033094.180734, 4)
+    TestCase().assertAlmostEqual(resulting_improvement, -17.553770, 4)
 
 # Cleaning
 os.chdir(original_directory)
