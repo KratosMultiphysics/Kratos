@@ -18,11 +18,11 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "adjoint_sensitivity_test_martin/adjoint_beam_structure/Beam_structure"
+            "input_filename" : "adjoint_sensitivity_test_martin/adjoint_beam_structure_3d2n/Beam_structure"
         },
 
         "material_import_settings" :{
-            "materials_filename": "adjoint_sensitivity_test_martin/adjoint_beam_structure/materials_beam.json"
+            "materials_filename": "adjoint_sensitivity_test_martin/adjoint_beam_structure_3d2n/materials_beam.json"
         },
 		"line_search"                        : false,
         "compute_reactions"					 : true,
@@ -76,7 +76,7 @@
         "process_name"     : "OutputPrimalSolutionProcess",
         "Parameters"          : {
             "model_part_name" : "Structure",
-            "file_name"       : "adjoint_sensitivity_test_martin/adjoint_beam_structure/beam_test",
+            "file_name"       : "adjoint_sensitivity_test_martin/adjoint_beam_structure_3d2n/beam_test",
             "variable_list"   : ["DISPLACEMENT","ROTATION","POINT_LOAD"]
         }
     }],
