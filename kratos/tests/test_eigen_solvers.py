@@ -33,7 +33,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                 else:
                     M[i, j] = 0.0
 
-        # result containers
+        # create result containers (they will be resized inside the solver)
         eigenvalues = KratosMultiphysics.Vector(n)
         eigenvectors = KratosMultiphysics.Matrix(n, 1)
 
@@ -119,51 +119,78 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             }
             """)
 
-    # def test_eigen_sparse_eigensystem_solver(self):
-    #     try:
-    #         import KratosMultiphysics.EigenSolversApplication
-    #     except:
-    #         self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type": "eigen_eigensystem",
-    #                     "number_of_eigenvalues": 5,
-    #                     "max_iteration": 100,
-    #                     "tolerance": 1e-8,
-    #                     "echo_level": 1
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_eigen_sparse_eigensystem_solver(self):
+        try:
+            import KratosMultiphysics.EigenSolversApplication
+        except:
+            self.skipTest("KratosMultiphysics.EigenSolversApplication is not available")
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type": "eigen_eigensystem",
+                        "number_of_eigenvalues": 5,
+                        "max_iteration": 1000,
+                        "tolerance": 1e-8,
+                        "echo_level": 1
+                    }
+                ]
+            }
+            """)
 
-    # def test_FEAST_with_mkl_solver(self):
-    #     try:
-    #         import KratosMultiphysics.ExternalSolversApplication
-    #         import KratosMultiphysics.EigenSolversApplication
-    #     except:
-    #         self.skipTest("KratosMultiphysics.EigenSolversApplication or KratosMultiphysics.ExternalSolversApplication is not available")
-    #     #first Eigenvalues = [ 0.0614628, 0.153184, 0.153184, 0.243965, 0.305007 ]
-    #     self._RunParametrized("""
-    #         {
-    #             "test_list" : [
-    #                 {
-    #                     "solver_type": "FEAST",
-    #                     "print_feast_output": false,
-    #                     "perform_stochastic_estimate": true,
-    #                     "solve_eigenvalue_problem": true,
-    #                     "lambda_min": 0.01,
-    #                     "lambda_max": 0.20,
-    #                     "number_of_eigenvalues": 3,
-    #                     "search_dimension": 8,
-    #                     "linear_solver_settings": {
-    #                         "solver_type" : "complex_eigen_pardiso_lu"
-    #                     }
-    #                 }
-    #             ]
-    #         }
-    #         """)
+    def test_FEAST_with_eigen_solver(self):
+        try:
+            import KratosMultiphysics.ExternalSolversApplication
+            import KratosMultiphysics.EigenSolversApplication
+        except:
+            self.skipTest("KratosMultiphysics.EigenSolversApplication or KratosMultiphysics.ExternalSolversApplication is not available")
+        #first Eigenvalues = [ 0.0614628, 0.153184, 0.153184, 0.243965, 0.305007 ]
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type": "FEAST",
+                        "print_feast_output": false,
+                        "perform_stochastic_estimate": true,
+                        "solve_eigenvalue_problem": true,
+                        "lambda_min": 0.01,
+                        "lambda_max": 0.20,
+                        "number_of_eigenvalues": 3,
+                        "search_dimension": 8,
+                        "linear_solver_settings": {
+                            "solver_type" : "complex_eigen_sparse_lu"
+                        }
+                    }
+                ]
+            }
+            """)
+
+    def test_FEAST_with_mkl_solver(self):
+        try:
+            import KratosMultiphysics.ExternalSolversApplication
+            import KratosMultiphysics.EigenSolversApplication
+        except:
+            self.skipTest("KratosMultiphysics.EigenSolversApplication or KratosMultiphysics.ExternalSolversApplication is not available")
+        #first Eigenvalues = [ 0.0614628, 0.153184, 0.153184, 0.243965, 0.305007 ]
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type": "FEAST",
+                        "print_feast_output": false,
+                        "perform_stochastic_estimate": true,
+                        "solve_eigenvalue_problem": true,
+                        "lambda_min": 0.01,
+                        "lambda_max": 0.20,
+                        "number_of_eigenvalues": 3,
+                        "search_dimension": 8,
+                        "linear_solver_settings": {
+                            "solver_type" : "complex_eigen_pardiso_lu"
+                        }
+                    }
+                ]
+            }
+            """)
 
     def test_FEAST_with_skyline_solver(self):
         try:
