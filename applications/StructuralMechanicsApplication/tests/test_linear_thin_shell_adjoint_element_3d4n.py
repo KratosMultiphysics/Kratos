@@ -81,6 +81,12 @@ class TestShellThinAdjointElement3D4N(KratosUnittest.TestCase):
         for element in self.model_part_1.Elements:
             element.Initialize()
 
+        index = 1
+        for i in range(4):
+            for j in range(4):   
+                self._copy_solution_step_data_of_node(self.model_part_1.Nodes[index], self.model_part, i + 1, 0)
+                index += 1
+
     def _create_property_disturbed_elements(self,mp,delta): 
         dim = 3   
         self.model_part_2 = KratosMultiphysics.ModelPart("Property_Disturbed_Elements")
@@ -99,21 +105,28 @@ class TestShellThinAdjointElement3D4N(KratosUnittest.TestCase):
         self.property_disturbed_shell_element = self.model_part_2.GetElement(1)
         self.property_disturbed_shell_element.Initialize()
 
-    def _get_displacement_vector(self,mp,disp):   
-        index=0
-        for node in mp.Nodes:
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0)
-            index += 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0)
-            index += 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0) 
-            index += 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_X,0)
-            index += 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Y,0)
-            index += 1
-            disp[index] = node.GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0)  
-            index += 1 
+        for i in range(4):
+            self._copy_solution_step_data_of_node(self.model_part_2.Nodes[i+1], self.model_part, i+1, 0)
+
+    def _copy_solution_step_data_of_node(self, node, mp_old, node_id, step=0):
+
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,step,
+        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0))
+
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,
+        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0))
+
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,
+        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0))
+
+        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_X,step,
+        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_X,0))
+
+        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Y,step,
+        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_Y,0))
+
+        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z,step,
+        mp_old.Nodes[node_id].GetSolutionStepValue(KratosMultiphysics.ROTATION_Z,0))
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -162,63 +175,51 @@ class TestShellThinAdjointElement3D4N(KratosUnittest.TestCase):
 
     def test_CalculateSensitivityMatrix_Shape(self): 
         # unperturbed residual
-        LHSUndisturbed = KratosMultiphysics.Matrix(24,24)
-        RHSUndisturbed = KratosMultiphysics.Matrix(24,24)
-        dummy_RHS = self._zero_vector(24)
-        PrimalDisplacement = self._zero_vector(24)
-        self._get_displacement_vector(self.model_part,PrimalDisplacement)  
+        dummy_LHS = KratosMultiphysics.Matrix(24,24)
+        RHSUndisturbed = self._zero_vector(24)
         
-        self.shell_element.CalculateLocalSystem(LHSUndisturbed,dummy_RHS,self.model_part.ProcessInfo)
-        RHSUndisturbed = LHSUndisturbed * PrimalDisplacement
+        self.shell_element.CalculateLocalSystem(dummy_LHS, RHSUndisturbed, self.model_part.ProcessInfo)
 
         # pseudo-load by finite difference approximation
         h = 0.00001
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(12,24)
-        LHSDisturbed = KratosMultiphysics.Matrix(24,24)
-        RHSDisturbed = KratosMultiphysics.Matrix(24,24)
+        RHSDisturbed = self._zero_vector(24)
 
         self._create_shape_disturbed_elements(self.model_part,h) 
         
         row_index = 0
         for element in self.model_part_1.Elements:
-            element.CalculateLocalSystem(LHSDisturbed,dummy_RHS,self.model_part_1.ProcessInfo)
-            RHSDisturbed = LHSDisturbed * PrimalDisplacement
+            element.CalculateLocalSystem(dummy_LHS, RHSDisturbed, self.model_part_1.ProcessInfo)
             for j in range(24):
-                FDPseudoLoadMatrix[row_index,j] = -(RHSDisturbed[j] - RHSUndisturbed[j]) / h
+                FDPseudoLoadMatrix[row_index,j] = (RHSDisturbed[j] - RHSUndisturbed[j]) / h
             row_index = row_index + 1
       
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(12,24)
         self.adjoint_shell_element.SetValue(KratosMultiphysics.DISTURBANCE_MEASURE, h)
         self.adjoint_shell_element.CalculateSensitivityMatrix(KratosMultiphysics.SHAPE_SENSITIVITY,PseudoLoadMatrix,self.model_part.ProcessInfo)
-        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 4)
+        self._assert_matrix_almost_equal(FDPseudoLoadMatrix, PseudoLoadMatrix, 5)
 
     def test_CalculateSensitivityMatrix_Property(self):
         # unperturbed residual
-        LHSUndisturbed = KratosMultiphysics.Matrix(24,24)
+        dummy_LHS = KratosMultiphysics.Matrix(24,24)
         RHSUndisturbed = self._zero_vector(24)
-        dummy_RHS = self._zero_vector(24)
-        PrimalDisplacement = self._zero_vector(24)
 
-        self._get_displacement_vector(self.model_part,PrimalDisplacement) 
-        self.shell_element.CalculateLocalSystem(LHSUndisturbed, dummy_RHS, self.model_part.ProcessInfo)
-        RHSUndisturbed = LHSUndisturbed * PrimalDisplacement
+        self.shell_element.CalculateLocalSystem(dummy_LHS, RHSUndisturbed, self.model_part.ProcessInfo)
 
         # pseudo-load by finite difference approximation 
         h = 0.00001
         FDPseudoLoadMatrix = KratosMultiphysics.Matrix(1,24)
-        LHSDisturbed = KratosMultiphysics.Matrix(24,24)
         RHSDisturbed = self._zero_vector(24)
 
         inital_property_value = self.model_part.GetProperties()[0][KratosMultiphysics.THICKNESS]
         delta = h * inital_property_value
         self._create_property_disturbed_elements(self.model_part,delta) 
 
-        self.property_disturbed_shell_element.CalculateLocalSystem(LHSDisturbed, dummy_RHS, self.model_part_2.ProcessInfo)
-        RHSDisturbed = LHSDisturbed * PrimalDisplacement
+        self.property_disturbed_shell_element.CalculateLocalSystem(dummy_LHS, RHSDisturbed, self.model_part_2.ProcessInfo)
 
         for j in range(24):
-            FDPseudoLoadMatrix[0,j] = -(RHSDisturbed[j] - RHSUndisturbed[j]) / delta
+            FDPseudoLoadMatrix[0,j] = (RHSDisturbed[j] - RHSUndisturbed[j]) / delta
              
         # pseudo-load computation by adjoint element
         PseudoLoadMatrix = KratosMultiphysics.Matrix(1,24)
