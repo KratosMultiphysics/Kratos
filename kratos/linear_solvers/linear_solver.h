@@ -33,6 +33,7 @@
 #include "reorderer.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
+#include "includes/exception.h"
 
 
 namespace Kratos
@@ -158,11 +159,7 @@ public:
     */
     virtual void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        // fallback if the solver does not implement:
-        // - InitializeSolutionStep
-        // - PerformSolutionStep
-        // - FinalizeSolutionStep
-        Solve(rA, rX, rB);
+         throw Exception("PerformSolutionStep is not implemented. Try using the Solve function.");
     }
 
     /** This function is designed to be called at the end of the solve step.
@@ -194,6 +191,7 @@ public:
     */
     virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
+        throw Exception("'Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)' is not implemented.");
         return false;
     }
 
@@ -207,6 +205,7 @@ public:
     */
     virtual bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
+        throw Exception("'Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)' is not implemented.");
         return false;
     }
 
@@ -220,7 +219,9 @@ public:
                         SparseMatrixType& M,
                         DenseVectorType& Eigenvalues,
                         DenseMatrixType& Eigenvectors)
-    {}
+    {
+        throw Exception("'Solve(SparseMatrixType&, SparseMatrixType&, DenseVectorType&, DenseMatrixType&)' is not implemented.");
+    }
 
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
      * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
