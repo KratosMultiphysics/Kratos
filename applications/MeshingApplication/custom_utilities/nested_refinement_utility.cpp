@@ -25,13 +25,32 @@
 namespace Kratos
 {
 /// Default constructor
-NestedRefinementUtility::NestedRefinementUtility(const ModelPart& rModelPart) :
+NestedRefinementUtility::NestedRefinementUtility(ModelPart& rModelPart) :
     mrModelPart(rModelPart) {}
 
 /// Destructor
 NestedRefinementUtility::~NestedRefinementUtility() {}
 
+/// Turn back information as a string.
+std::string NestedRefinementUtility::Info() const {
+    return "Nested refinement utility.";
+}
 
+/// Print information about this object.
+void NestedRefinementUtility::PrintInfo(std::ostream& rOStream) const {
+    rOStream << "Nested refinement utility.";
+}
+
+/// Print object's data.
+void NestedRefinementUtility::PrintData(std::ostream& rOStream) const {
+    rOStream << "Nested refinement utility constructed with:\n";
+    rOStream << "   Model part: " << mrModelPart.Info() << "\n";
+}
+
+///
+void NestedRefinementUtility::Refine() {
+
+}
 
 }  // namespace Kratos.
 

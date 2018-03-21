@@ -75,7 +75,7 @@ public:
     ///@{
 
     /// Default constructor.
-    NestedRefinementUtility(const ModelPart& rModelPart);
+    NestedRefinementUtility(ModelPart& rModelPart);
 
     /// Destructor.
     virtual ~NestedRefinementUtility();
@@ -89,6 +89,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * Execute the refinement
+     */
+    void Refine();
 
 
     ///@}
