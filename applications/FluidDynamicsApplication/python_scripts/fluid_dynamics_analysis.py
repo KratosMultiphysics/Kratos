@@ -21,12 +21,12 @@ class FluidDynamicsAnalysis(object):
         # If this is an MPI run, load the distributed memory modules
         if (self.parallel_type == "MPI"):
             from KratosMultiphysics.mpi import mpi
-            import KratosMultiphysics.MetisApplication as Metis
-            import KratosMultiphysics.TrilinosApplication as Trilinos
+            import KratosMultiphysics.MetisApplication
+            import KratosMultiphysics.TrilinosApplication
             self.is_printing_rank = (mpi.rank == 0)
         else:
             self.is_printing_rank = True
-        
+
     def SetUpModel(self):
         '''Initialize the model part for the problem (stored as self.model_part) and other general model data.'''
 
