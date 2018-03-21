@@ -18,14 +18,16 @@
             "scheme_type"              : "structural"
         },
         "response_function_settings" : {
-            "response_type"     : "adjoint_strain_energy",
+            "response_type"     : "adjoint_nodal_displacement",
             "use_kratos"        : true,
             "gradient_mode"     : "semi_analytic",
             "sensitivity_model_part_name" :"Parts_AREAS",
             "nodal_sensitivity_variables"  : ["SHAPE_SENSITIVITY"],
             "element_sensitivity_variables"  : ["THICKNESS"],
             "condition_sensitivity_variables"  : [],
-            "step_size"         : 1.0e-6
+            "step_size"         : 1.0e-6,
+            "traced_node"       : 6,
+            "traced_dof"        : "DISPLACEMENT_Z"
         },
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
@@ -37,10 +39,10 @@
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename"   : "./adjoint_sensitivity_test_martin/adjoint_shell_structure/rectangular_plate"
+            "input_filename"   : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/rectangular_plate"
         },
         "material_import_settings" :{
-            "materials_filename" : "./adjoint_sensitivity_test_martin/adjoint_shell_structure/StructuralMaterials.json"
+            "materials_filename" : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/StructuralMaterials.json"
         }
     },
     "constraints_process_list" : [{
@@ -63,7 +65,7 @@
         "process_name"     : "InputPrimalSolutionProcess",
         "Parameters"          : {
             "model_part_name" : "Structure",
-            "file_name"       : "./adjoint_sensitivity_test_martin/adjoint_shell_structure/rectangular_plate",
+            "file_name"       : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/rectangular_plate",
             "variable_list"   : ["DISPLACEMENT","ROTATION","POINT_LOAD"]
         }
      },
@@ -74,7 +76,7 @@
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
             "check_variables"  : ["ADJOINT_DISPLACEMENT_Z", "SHAPE_SENSITIVITY_X", "SHAPE_SENSITIVITY_Y"],
-            "input_file_name"  : "adjoint_sensitivity_test_martin/adjoint_shell_structure/linear_shell_test_strain_energy_results.json",
+            "input_file_name"  : "adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/linear_shell_test_nodal_disp_results.json",
             "model_part_name"  : "Structure",
             "sub_model_part_name"  : "test_model_part",
             "tolerance"            : 1e-5,

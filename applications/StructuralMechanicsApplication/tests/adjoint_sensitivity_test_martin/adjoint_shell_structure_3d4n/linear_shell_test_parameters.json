@@ -18,10 +18,10 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "./adjoint_sensitivity_test_martin/adjoint_shell_structure/rectangular_plate"
+            "input_filename"   : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/rectangular_plate"
         },
         "material_import_settings"           : {
-            "materials_filename" : "./adjoint_sensitivity_test_martin/adjoint_shell_structure/StructuralMaterials.json"
+            "materials_filename" : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/StructuralMaterials.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "Residual_criterion",
@@ -57,7 +57,7 @@
         "process_name"     : "OutputPrimalSolutionProcess",
         "Parameters"          : {
             "model_part_name" : "Structure",
-            "file_name"       : "./adjoint_sensitivity_test_martin/adjoint_shell_structure/rectangular_plate",
+            "file_name"       : "./adjoint_sensitivity_test_martin/adjoint_shell_structure_3d4n/rectangular_plate",
             "variable_list"   : ["DISPLACEMENT","ROTATION","POINT_LOAD"]
         }
     }],
