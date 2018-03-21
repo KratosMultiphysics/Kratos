@@ -256,7 +256,7 @@ def AssambleTestSuites():
             TALMHertzSimpleTestContact,
             TALMHertzSimpleSphereTestContact,
             #####TALMHertzSphereTestContact,  # FIXME: This test requieres the axisymmetric to work (memmory error, correct it)
-            #TALMHertzCompleteTestContact,
+            TALMHertzCompleteTestContact,
             TComponentsALMTaylorPatchTestContact,
             TComponentsALMHertzSimpleTestContact,
             TComponentsALMHertzSimpleSphereTestContact,

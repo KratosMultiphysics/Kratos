@@ -738,7 +738,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
 //     const double distance_threshold = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR] * GetMaxNodalH();
 
     // Updating the distance distance threshold
-    mrMainModelPart.GetProcessInfo()[DISTANCE_THRESHOLD] = distance_threshold;
+    mrMainModelPart.GetProcessInfo().SetValue(DISTANCE_THRESHOLD, distance_threshold);
 
     // We get the contact model part
     ModelPart& rcontact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -805,9 +805,6 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeMappedGap(const bool Sear
     // Switch MASTER/SLAVE
     if (!SearchOrientation)
         SwitchFlagNodes(nodes_array);
-
-    // Updating the distance distance threshold
-    mrMainModelPart.GetProcessInfo()[DISTANCE_THRESHOLD] = distance_threshold;
 
     // We set the mapper parameters
     Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );

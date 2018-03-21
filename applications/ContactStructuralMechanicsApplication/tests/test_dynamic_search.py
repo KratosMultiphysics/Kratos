@@ -13,6 +13,8 @@ class TestDynamicSearch(KratosUnittest.TestCase):
         pass
 
     def _dynamic_search_tests(self, input_filename, num_nodes):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
         self.main_model_part = KratosMultiphysics.ModelPart("Structure")
         self.main_model_part.SetBufferSize(2)
 
