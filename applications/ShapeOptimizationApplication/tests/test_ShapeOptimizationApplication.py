@@ -12,13 +12,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 try:
     import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
     is_eigen_app_missing = False
-    missing_application = ''
 except ImportError as e:
     is_eigen_app_missing = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
 
 # ==============================================================================
 # Import the tests or test_classes to create the suits
