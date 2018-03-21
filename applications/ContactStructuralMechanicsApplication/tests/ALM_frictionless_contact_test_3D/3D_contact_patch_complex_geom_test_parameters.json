@@ -92,7 +92,10 @@
             "computing_model_part_name" : "computing_domain",
             "model_part_name"           : "Structure",
             "assume_master_slave"       : "Parts_Parts_Auto1",
-            "contact_type"              : "Frictionless"
+            "contact_type"              : "Frictionless",
+            "search_parameters" : {
+                "check_gap"             : "direct_check"
+            }
         }
     }],
     "json_check_process" : [
