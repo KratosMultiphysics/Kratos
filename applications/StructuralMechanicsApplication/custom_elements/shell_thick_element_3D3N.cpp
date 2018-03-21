@@ -298,21 +298,16 @@ namespace Kratos
 		BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 	}
 
-void ShellThickElement3D3N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-{
-	BaseInitializeSolutionStep(rCurrentProcessInfo);
+	void ShellThickElement3D3N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+	{
+		BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-	mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
-}
+		mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
+	}
 
 	void ShellThickElement3D3N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 	{
-		const PropertiesType& props = GetProperties();
-		const GeometryType& geom = GetGeometry();
-		const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-		for (SizeType i = 0; i < mSections.size(); i++)
-			mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
+		BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
 		mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
 	}

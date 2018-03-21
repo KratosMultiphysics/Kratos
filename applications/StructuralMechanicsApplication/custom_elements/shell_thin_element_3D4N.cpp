@@ -377,14 +377,7 @@ namespace Kratos
 	void ShellThinElement3D4N::FinalizeSolutionStep
 	(ProcessInfo& rCurrentProcessInfo)
 	{
-		const PropertiesType& props = GetProperties();
-		const GeometryType& geom = GetGeometry();
-		const Matrix & shapeFunctionsValues =
-			geom.ShapeFunctionsValues(GetIntegrationMethod());
-
-		for (int i = 0; i < 4; i++)
-			mSections[i]->FinalizeSolutionStep(props, geom,
-				row(shapeFunctionsValues, i), rCurrentProcessInfo);
+		BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
 		mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
 	}

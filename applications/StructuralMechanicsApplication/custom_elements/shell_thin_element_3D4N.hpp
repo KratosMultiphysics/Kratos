@@ -183,20 +183,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 		int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 		void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
-		//needed for corotational
 
 		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo) override;
-		//needed for corotational
 
 		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-		//needed for corotational
 
 		void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
-		//needed for corotational
 
 		void CalculateMassMatrix(MatrixType& rMassMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
-		// needed for dyn
 
 		void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 			VectorType& rRightHandSideVector,
@@ -207,7 +202,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 
 		void CalculateGeometricStiffnessMatrix(MatrixType& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
-		// needed for dyn
 
 		// Results calculation on integration points
 		void GetValueOnIntegrationPoints(const Variable<double>& rVariable,

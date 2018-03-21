@@ -346,6 +346,8 @@ protected:
 
     void BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
+    void BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
     ///@}
     ///@name Protected  Access
     ///@{

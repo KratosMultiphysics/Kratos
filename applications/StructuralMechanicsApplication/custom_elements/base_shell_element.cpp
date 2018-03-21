@@ -138,11 +138,11 @@ void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
     if (rValues.size() != mNumDofs)
         rValues.resize(mNumDofs, false);
 
-    const GeometryType & geom = GetGeometry();
+    const GeometryType& geom = GetGeometry();
 
     for (SizeType i = 0; i < geom.size(); ++i)
     {
-        const NodeType & i_node = geom[i];
+        const NodeType& i_node = geom[i];
         const array_1d<double, 3>& disp = i_node.FastGetSolutionStepValue(DISPLACEMENT, Step);
         const array_1d<double, 3>& rot = i_node.FastGetSolutionStepValue(ROTATION, Step);
 
@@ -162,11 +162,11 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
     if (rValues.size() != mNumDofs)
         rValues.resize(mNumDofs, false);
 
-    const GeometryType & geom = GetGeometry();
+    const GeometryType& geom = GetGeometry();
 
     for (SizeType i = 0; i < geom.size(); ++i)
     {
-        const NodeType & i_node = geom[i];
+        const NodeType& i_node = geom[i];
         const array_1d<double, 3>& vel = i_node.FastGetSolutionStepValue(VELOCITY, Step);
         // TODO also include the angular velocity
 
@@ -189,7 +189,7 @@ void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 
     for (SizeType i = 0; i < geom.size(); ++i)
     {
-        const NodeType & i_node = geom[i];
+        const NodeType& i_node = geom[i];
         const array_1d<double, 3>& acc = i_node.FastGetSolutionStepValue(ACCELERATION, Step);
         // TODO also include the angular acceleration
 
@@ -207,8 +207,8 @@ void BaseShellElement::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    const GeometryType & geom = GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const GeometryType& geom = GetGeometry();
+    const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
     const Properties& props = GetProperties();
     for(SizeType i = 0; i < mSections.size(); i++)
@@ -220,16 +220,16 @@ void BaseShellElement::ResetConstitutiveLaw()
 
 void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType & geom = this->GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const GeometryType& geom = this->GetGeometry();
+    const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (SizeType i = 0; i < mSections.size(); ++i)
         mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
 void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType & geom = this->GetGeometry();
-    const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const GeometryType& geom = this->GetGeometry();
+    const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (SizeType i = 0; i < mSections.size(); ++i)
         mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
@@ -238,10 +238,21 @@ void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessIn
 {
 	const PropertiesType& props = GetProperties();
 	const GeometryType & geom = GetGeometry();
-	const Matrix & shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+	const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
 
 	for (SizeType i = 0; i < mSections.size(); ++i)
 		mSections[i]->InitializeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
+}
+
+
+void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+{
+    const PropertiesType& props = GetProperties();
+    const GeometryType& geom = GetGeometry();
+    const Matrix& shapeFunctionsValues = geom.ShapeFunctionsValues(GetIntegrationMethod());
+
+    for (SizeType i = 0; i < mSections.size(); i++)
+        mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
 // /**
