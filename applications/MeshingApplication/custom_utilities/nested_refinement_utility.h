@@ -175,6 +175,8 @@ private:
     ///@name Member Variables
     ///@{
     ModelPart& mrModelPart;
+    std::unordered_map<std::pair<int, int>, int, KeyHasherRange<std::pair<int, int>>, KeyComparorRange<std::pair<int, int>> > mNodesHash;
+
 
 
     ///@}
@@ -185,6 +187,14 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    
+    /**
+     * Get the node between node_a and node_b
+     * The two input nodes define an element edge
+     * If the middle node exist, returns a pointer to the existing node
+     * If the middle node does not exist, create a new one and returns a pointer to it
+     */
+    Node<3>::Pointer GetNodeBetween(Node<3>::Pointer node_a, Node<3>::Pointer node_b);
 
 
     ///@}

@@ -47,12 +47,9 @@ void NestedRefinementUtility::PrintData(std::ostream& rOStream) const {
     rOStream << "   Model part: " << mrModelPart.Info() << "\n";
 }
 
-///
+/// Execute the refinement
 void NestedRefinementUtility::Refine() 
 {
-    // Initialize the nodes hash
-    std::unordered_map<array_1d<int,2>, int, KeyHasherRange<array_1d<int,2>>, KeyComparorRange<array_1d<int,2>> > nodes_hash;
-
     // Initialize the entities Id lists
     std::vector<int> elements_id;
     std::vector<int> conditions_id;
@@ -70,8 +67,8 @@ void NestedRefinementUtility::Refine()
     }
 
     // Get the elements id
-    const int nelements = mrModelPart.Elements().size();
-    for (int i = 0; i < nelements; i++)
+    const int n_elements = mrModelPart.Elements().size();
+    for (int i = 0; i < n_elements; i++)
     {
         ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
         elements_id.push_back(ielement->Id());
@@ -80,15 +77,50 @@ void NestedRefinementUtility::Refine()
     }
 
     // Get the conditions id
-    const int nconditions = mrModelPart.Conditions().size();
-    for (int i = 0; i < nconditions; i++)
+    const int n_conditions = mrModelPart.Conditions().size();
+    for (int i = 0; i < n_conditions; i++)
     {
         ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
         conditions_id.push_back(icondition->Id());
         if (icondition->Id() > max_cond_id)
             max_elem_id = icondition->Id();
     }
+
+    // Loop the origin elements. Get the middle node on each edge and create the nodes
+    for (const int id : elements_id)
+    {
+        // Get the element
+        Element::Pointer p_element = mrModelPart.Elements()(id);
+        // Initialize the vector containing the middle nodes Id
+        array_1d<Node<3>::Pointer, 3> p_middle_nodes;
+
+    }
+
 }
+
+/// Get the middle node on an edge
+Node<3>::Pointer NestedRefinementUtility::GetNodeBetween(Node<3>::Pointer node_a, Node<3>::Pointer node_b)
+{
+    // Initialize the output
+    Node<3>::Pointer middle_node;
+
+    // Get the middle node hash
+    std::pair<int, int> node_key;
+    node_key = std::minmax(node_a->Id(), node_b->Id());
+
+    // Check if the node exist
+    // auto search = mNodesHash.find(node_key);
+    // if (search != mNodesHash.end() )
+    // {
+    //     middle_node = mrModelPart.Nodes()(search->second);
+    // }
+    // else
+    // {
+    //     //
+    // }
+    return middle_node;
+}
+
 
 }  // namespace Kratos.
 
