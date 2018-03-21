@@ -12,6 +12,17 @@ import os
 import sys
 import shutil
 
+class controlledExecutionScope:
+    def __init__(self, scope):
+        self.currentPath = os.getcwd()
+        self.scope = scope
+
+    def __enter__(self):
+        os.chdir(self.scope)
+
+    def __exit__(self, type, value, traceback):
+        os.chdir(self.currentPath)
+
 # ==============================================================================
 class ShapeOptimizationTestFactory(KratosUnittest.TestCase):
     # --------------------------------------------------------------------------
@@ -20,40 +31,43 @@ class ShapeOptimizationTestFactory(KratosUnittest.TestCase):
 
     # --------------------------------------------------------------------------
     def test_execution(self):
-        original_directory = os.getcwd()
-        os.chdir(self.execution_directory)
-
-        __import__(self.execution_directory+"."+self.execution_file)
-
-        os.chdir(original_directory)
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))+"/"+self.execution_directory):
+            test_status = os.system("runkratos "+self.execution_file+" >run_test.log")
+            if test_status == 0:
+                kratos_utils.DeleteFileIfExisting("run_test.log")
+            else:
+                raise RuntimeError("test_run.py failed!")
 
     # --------------------------------------------------------------------------
     def tearDown(self):
-        kratos_utils.DeleteDirectoryIfExisting("__pycache__")
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
+            kratos_utils.DeleteDirectoryIfExisting("__pycache__")
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))+"/"+self.execution_directory):
+            kratos_utils.DeleteDirectoryIfExisting("__pycache__")
 
 # ==============================================================================
 class opt_process_vertex_morphing_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_vertex_morphing_test"
-    execution_file = "run_test"
+    execution_file = "run_test.py"
 
 class opt_process_shell_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_shell_test"
-    execution_file = "run_test"
+    execution_file = "run_test.py"
 
 class opt_process_solid_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_solid_test"
-    execution_file = "run_test"
+    execution_file = "run_test.py"
 
 class opt_process_eigenfrequency_test(ShapeOptimizationTestFactory):
     execution_directory = "opt_process_eigenfrequency_test"
-    execution_file = "run_test"
+    execution_file = "run_test.py"
 
 class algorithm_steepest_descent_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_steepest_descent_test"
-    execution_file = "run_test"
+    execution_file = "run_test.py"
 
 class algorithm_penalized_projection_test(ShapeOptimizationTestFactory):
     execution_directory = "algorithm_penalized_projection_test"
-    execution_file = "run_test"
+    execution_file = "run_test.py"
 
 # ==============================================================================
