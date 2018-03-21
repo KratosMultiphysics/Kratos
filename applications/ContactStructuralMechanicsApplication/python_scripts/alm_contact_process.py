@@ -69,6 +69,7 @@ class ALMContactProcess(python_process.PythonProcess):
             "contact_model_part"          : "Contact_Part",
             "assume_master_slave"         : "Parts_Parts_Auto1",
             "contact_type"                : "Frictionless",
+            "interval"                    : [0.0,"End"],
             "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
             "frictional_law"              : "Coulomb",
             "tangent_factor"              : 0.1,
@@ -122,6 +123,17 @@ class ALMContactProcess(python_process.PythonProcess):
 
         self.database_step = 0
         self.frictional_law = self.settings["frictional_law"].GetString()
+
+        # Detect "End" as a tag and replace it by a large number
+        if(self.settings.Has("interval")):
+            if(self.settings["interval"][1].IsString() ):
+                if(self.settings["interval"][1].GetString() == "End"):
+                    self.settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
+                else:
+                    raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
+
+        # Assign this here since it will change the "interval" prior to validation
+        self.interval = KM.IntervalUtility(self.settings)
 
         # Debug
         if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
@@ -241,20 +253,22 @@ class ALMContactProcess(python_process.PythonProcess):
         self -- It signifies an instance of a class.
         """
 
-        self.database_step += 1
-        self.global_step = self.main_model_part.ProcessInfo[KM.STEP]
+        current_time = self.main_model_part.ProcessInfo[KM.TIME]
+        if(self.interval.IsInInterval(current_time)):
+            self.database_step += 1
+            self.global_step = self.main_model_part.ProcessInfo[KM.STEP]
+            database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
+            if (self.database_step >= database_step_update or self.global_step == 1):
+                # We solve one linear step with a linear strategy if needed
+                # Clear current pairs
+                self.contact_search.ClearMortarConditions()
+                # Update database
+                self.contact_search.UpdateMortarConditions()
+                #self.contact_search.CheckMortarConditions()
 
-        if (self.database_step >= self.settings["search_parameters"]["database_step_update"].GetInt() or self.global_step == 1):
-            # We solve one linear step with a linear strategy if needed
-            # Clear current pairs
-            self.contact_search.ClearMortarConditions()
-            # Update database
-            self.contact_search.UpdateMortarConditions()
-            #self.contact_search.CheckMortarConditions()
-
-            # Debug
-            if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
-               self._debug_output(self.global_step, "")
+                # Debug
+                if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
+                    self._debug_output(self.global_step, "")
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
@@ -262,9 +276,10 @@ class ALMContactProcess(python_process.PythonProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
-        if (self.settings["remeshing_with_contact_bc"].GetBool() is True):
-            self._transfer_slave_to_master()
+        current_time = self.main_model_part.ProcessInfo[KM.TIME]
+        if(self.interval.IsInInterval(current_time)):
+            if (self.settings["remeshing_with_contact_bc"].GetBool() is True):
+                self._transfer_slave_to_master()
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -280,12 +295,13 @@ class ALMContactProcess(python_process.PythonProcess):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
-        modified = self.main_model_part.Is(KM.MODIFIED)
-        database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-        if (modified is False and (self.database_step >= database_step_update or self.global_step == 1)):
-            self.contact_search.ClearMortarConditions()
-            self.database_step = 0
+        current_time = self.main_model_part.ProcessInfo[KM.TIME]
+        if(self.interval.IsInInterval(current_time)):
+            modified = self.main_model_part.Is(KM.MODIFIED)
+            database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
+            if (modified is False and (self.database_step >= database_step_update or self.global_step == 1)):
+                self.contact_search.ClearMortarConditions()
+                self.database_step = 0
 
     def ExecuteFinalize(self):
         """ This method is executed in order to finalize the current computation
