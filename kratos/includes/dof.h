@@ -449,7 +449,7 @@ public:
 
     bool HasReaction()
     {
-        return (*mpReaction != *msNone);
+        return (*mpReaction != msNone);
     }
 
     ///@}
