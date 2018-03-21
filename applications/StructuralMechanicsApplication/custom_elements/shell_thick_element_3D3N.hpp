@@ -99,20 +99,17 @@ namespace Kratos
 
 		ShellThickElement3D3N(IndexType NewId,
 			GeometryType::Pointer pGeometry,
-			bool NLGeom = false,
-            bool IsThickShell = true);
+			bool NLGeom = false);
 
 		ShellThickElement3D3N(IndexType NewId,
 			GeometryType::Pointer pGeometry,
 			PropertiesType::Pointer pProperties,
-			bool NLGeom = false,
-            bool IsThickShell = true);
+			bool NLGeom = false);
 
 		ShellThickElement3D3N(IndexType NewId,
 			GeometryType::Pointer pGeometry,
 			PropertiesType::Pointer pProperties,
-			CoordinateTransformationBasePointerType pCoordinateTransformation,
-            bool IsThickShell = true);
+			CoordinateTransformationBasePointerType pCoordinateTransformation);
 
 		~ShellThickElement3D3N() override;
 
@@ -349,6 +346,12 @@ namespace Kratos
 		bool TryGetValueOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
 			std::vector<Matrix>& rValues,
 			const ProcessInfo& rCurrentProcessInfo);
+
+        /**
+        * Returns the behavior of this shell (thin/thick)
+        * @return the shell behavior
+        */
+        ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
 
 		///@}
 

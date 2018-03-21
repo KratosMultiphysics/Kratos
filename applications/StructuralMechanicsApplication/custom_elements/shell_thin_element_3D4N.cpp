@@ -321,7 +321,7 @@ namespace Kratos
 			for (SizeType i = 0; i < mNumGPs; i++)
 			{
 				ShellCrossSection::Pointer sectionClone = theSection->Clone();
-				sectionClone->SetSectionBehavior(ShellCrossSection::Thin);
+				sectionClone->SetSectionBehavior(GetSectionBehavior());
 				sectionClone->InitializeCrossSection(props, geom,
 					row(shapeFunctionsValues, i));
 				mSections.push_back(sectionClone);
@@ -2744,62 +2744,6 @@ namespace Kratos
 		return true;
 	}
 
-	void ShellThinElement3D4N::printMatrix(Matrix& matrixIn,
-		std::string stringIn)
-	{
-		std::cout << "\n" << stringIn << std::endl;
-		for (unsigned i = 0; i < matrixIn.size1(); ++i)
-		{
-			std::cout << "| ";
-			for (unsigned j = 0; j < matrixIn.size2(); ++j)
-			{
-				std::cout << std::fixed << std::setprecision(4) << std::setw(10)
-					<< matrixIn(i, j) << " | ";
-			}
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-	}
-
-	void ShellThinElement3D4N::printVector(Vector& matrixIn,
-		std::string stringIn)
-	{
-		std::cout << "\n" << stringIn << std::endl;
-		for (unsigned i = 0; i < matrixIn.size(); ++i)
-		{
-			std::cout << "| ";
-
-			std::cout << std::fixed << std::setprecision(6) << std::setw(12)
-				<< matrixIn(i) << " | ";
-
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-	}
-
-	void ShellThinElement3D4N::printMatrix(const Matrix& matrixIn,
-		std::string stringIn)
-	{
-		std::cout << "\n" << stringIn << std::endl;
-		for (unsigned i = 0; i < matrixIn.size1(); ++i)
-		{
-			std::cout << "| ";
-			for (unsigned j = 0; j < matrixIn.size2(); ++j)
-			{
-				std::cout << std::setprecision(2) << std::setw(10) <<
-					matrixIn(i, j) << " | ";
-			}
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
-	}
-
-	void ShellThinElement3D4N::printDouble(std::string stringIn,
-		double doubleIn)
-	{
-		std::cout << stringIn << doubleIn << std::endl;
-	}
-
 	// =========================================================================
 	//
 	// CalculationData
@@ -2815,6 +2759,11 @@ namespace Kratos
 		, CurrentProcessInfo(rCurrentProcessInfo)
 	{
 	}
+
+    ShellCrossSection::SectionBehaviorType ShellThinElement3D4N::GetSectionBehavior()
+    {
+        return ShellCrossSection::Thin;
+    }
 
 	// =========================================================================
 	//

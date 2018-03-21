@@ -412,13 +412,11 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 			std::vector<Matrix>& rValues,
 			const ProcessInfo& rCurrentProcessInfo);
 
-		void printMatrix(Matrix& matrixIn, std::string stringIn);
-
-		void printVector(Vector& matrixIn, std::string stringIn);
-
-		void printMatrix(const Matrix& matrixIn, std::string stringIn);
-
-		void printDouble(std::string stringIn, double doubleIn);
+        /**
+        * Returns the behavior of this shell (thin/thick)
+        * @return the shell behavior
+        */
+        ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
 
 		///@}
 

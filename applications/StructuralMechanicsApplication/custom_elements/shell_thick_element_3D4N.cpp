@@ -402,8 +402,8 @@ void ShellThickElement3D4N::EASOperator::ComputeModfiedTangentAndResidual(Matrix
 
 ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
-        bool NLGeom, bool IsThickShell)
-    : BaseShellElement(NewId, pGeometry, IsThickShell)
+        bool NLGeom)
+    : BaseShellElement(NewId, pGeometry)
     , mpCoordinateTransformation( NLGeom ?
                                   new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellQ4_CoordinateTransformation(pGeometry))
@@ -413,8 +413,8 @@ ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
 ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
-        bool NLGeom, bool IsThickShell)
-    : BaseShellElement(NewId, pGeometry, pProperties, IsThickShell)
+        bool NLGeom)
+    : BaseShellElement(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation( NLGeom ?
                                   new ShellQ4_CorotationalCoordinateTransformation(pGeometry) :
                                   new ShellQ4_CoordinateTransformation(pGeometry))
@@ -424,9 +424,8 @@ ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
 ShellThickElement3D4N::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
-        CoordinateTransformationBasePointerType pCoordinateTransformation,
-        bool IsThickShell)
-    : BaseShellElement(NewId, pGeometry, pProperties, IsThickShell)
+        CoordinateTransformationBasePointerType pCoordinateTransformation)
+    : BaseShellElement(NewId, pGeometry, pProperties)
     , mpCoordinateTransformation(pCoordinateTransformation)
 {
 }
@@ -488,7 +487,7 @@ void ShellThickElement3D4N::Initialize()
         for(int i = 0; i < 4; i++)
         {
             ShellCrossSection::Pointer sectionClone = theSection->Clone();
-            sectionClone->SetSectionBehavior(ShellCrossSection::Thick);
+            sectionClone->SetSectionBehavior(GetSectionBehavior());
             sectionClone->InitializeCrossSection(props, geom, row( shapeFunctionsValues, i ));
             mSections.push_back(sectionClone);
         }
@@ -2188,6 +2187,11 @@ bool ShellThickElement3D4N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrS
     } // Gauss Loop
 
     return true;
+}
+
+ShellCrossSection::SectionBehaviorType ShellThickElement3D4N::GetSectionBehavior()
+{
+    return ShellCrossSection::Thick;
 }
 
 

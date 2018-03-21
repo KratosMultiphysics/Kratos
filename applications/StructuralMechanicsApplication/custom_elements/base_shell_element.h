@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher (based on the work of Massimo Petracca and Peter Wilson)
+//  Main authors:    Philipp Bucher
+//                   Based on the work of Massimo Petracca and Peter Wilson
 //
 
 #if !defined(KRATOS_BASE_SHELL_ELEMENT_H_INCLUDED)
@@ -72,16 +73,14 @@ public:
     * Constructor using Geometry
     */
     BaseShellElement(IndexType NewId,
-                     GeometryType::Pointer pGeometry,
-                     bool IsThickShell=false);
+                     GeometryType::Pointer pGeometry);
 
     /**
     * Constructor using Properties
     */
     BaseShellElement(IndexType NewId,
                      GeometryType::Pointer pGeometry,
-                     PropertiesType::Pointer pProperties,
-                     bool IsThickShell=false);
+                     PropertiesType::Pointer pProperties);
 
     /**
     * Destructor
@@ -199,7 +198,6 @@ protected:
     SizeType mNumDofs;
     SizeType mNumGPs;
     IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
-    bool mIsThickShell;
 
     CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
 
@@ -249,6 +247,11 @@ protected:
     void CheckSpecificProperties();
 
 
+    /**
+    * Returns the behavior of this shell (thin/thick)
+    * @return the shell behavior
+    */
+    virtual ShellCrossSection::SectionBehaviorType GetSectionBehavior();
 
     ///@}
     ///@name Protected  Access

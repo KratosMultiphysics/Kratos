@@ -161,8 +161,8 @@ namespace Kratos
 
 	ShellThickElement3D3N::ShellThickElement3D3N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
-		bool NLGeom, bool IsThickShell)
-		: BaseShellElement(NewId, pGeometry, IsThickShell)
+		bool NLGeom)
+		: BaseShellElement(NewId, pGeometry)
 		, mpCoordinateTransformation(NLGeom ?
 			new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
 			new ShellT3_CoordinateTransformation(pGeometry))
@@ -172,8 +172,8 @@ namespace Kratos
 	ShellThickElement3D3N::ShellThickElement3D3N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
 		PropertiesType::Pointer pProperties,
-		bool NLGeom, bool IsThickShell)
-		: BaseShellElement(NewId, pGeometry, pProperties, IsThickShell)
+		bool NLGeom)
+		: BaseShellElement(NewId, pGeometry, pProperties)
 		, mpCoordinateTransformation(NLGeom ?
 			new ShellT3_CorotationalCoordinateTransformation(pGeometry) :
 			new ShellT3_CoordinateTransformation(pGeometry))
@@ -183,9 +183,8 @@ namespace Kratos
 	ShellThickElement3D3N::ShellThickElement3D3N(IndexType NewId,
 		GeometryType::Pointer pGeometry,
 		PropertiesType::Pointer pProperties,
-		CoordinateTransformationBasePointerType pCoordinateTransformation,
-        bool IsThickShell)
-		: BaseShellElement(NewId, pGeometry, pProperties, IsThickShell)
+		CoordinateTransformationBasePointerType pCoordinateTransformation)
+		: BaseShellElement(NewId, pGeometry, pProperties)
 		, mpCoordinateTransformation(pCoordinateTransformation)
 	{
 	}
@@ -254,7 +253,7 @@ namespace Kratos
 			for (SizeType i = 0; i < mNumGPs; i++)
 			{
 				ShellCrossSection::Pointer sectionClone = theSection->Clone();
-				sectionClone->SetSectionBehavior(ShellCrossSection::Thick);
+				sectionClone->SetSectionBehavior(GetSectionBehavior());
 				sectionClone->InitializeCrossSection(props, geom,
 					row(shapeFunctionsValues, i));
 				mSections.push_back(sectionClone);
@@ -1975,8 +1974,8 @@ namespace Kratos
 			// Resize the Left Hand Side if necessary,
 			// and initialize it to Zero
 
-			if ((rLeftHandSideMatrix.size1() != mNumDofs) || (rLeftHandSideMatrix.size2() != mNumDofs))
-				rLeftHandSideMatrix.resize(mNumDofs, mNumDofs, false);
+        if ((rLeftHandSideMatrix.size1() != mNumDofs) || (rLeftHandSideMatrix.size2() != mNumDofs))
+            rLeftHandSideMatrix.resize(mNumDofs, mNumDofs, false);
 		noalias(rLeftHandSideMatrix) = ZeroMatrix(mNumDofs, mNumDofs);
 
 		// Resize the Right Hand Side if necessary,
@@ -2430,6 +2429,11 @@ namespace Kratos
 		}
 		std::cout << std::endl;
 	}
+
+    ShellCrossSection::SectionBehaviorType ShellThickElement3D3N::GetSectionBehavior()
+    {
+        return ShellCrossSection::Thick;
+    }
 
 	// =====================================================================================
 	//

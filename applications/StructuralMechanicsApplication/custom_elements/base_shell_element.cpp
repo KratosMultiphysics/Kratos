@@ -7,7 +7,8 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Philipp Bucher (based on the work of Massimo Petracca and Peter Wilson)
+//  Main authors:    Philipp Bucher
+//                   Based on the work of Massimo Petracca and Peter Wilson
 //
 
 // System includes
@@ -46,9 +47,8 @@ namespace Kratos
  * Constructor using Geometry
  */
 BaseShellElement::BaseShellElement(IndexType NewId,
-    GeometryType::Pointer pGeometry,
-    bool IsThickShell)
-    : Element(NewId, pGeometry), mIsThickShell(IsThickShell)
+    GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry)
 {
     SetBaseMembers();
 }
@@ -58,9 +58,8 @@ BaseShellElement::BaseShellElement(IndexType NewId,
  */
 BaseShellElement::BaseShellElement(IndexType NewId,
     GeometryType::Pointer pGeometry,
-    PropertiesType::Pointer pProperties,
-    bool IsThickShell)
-    : Element(NewId, pGeometry, pProperties), mIsThickShell(IsThickShell)
+    PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties)
 {
     SetBaseMembers();
 }
@@ -430,6 +429,11 @@ void BaseShellElement::CalculateAll(
     KRATOS_ERROR << "You have called to the CalculateAll from the base class for shell elements" << std::endl;
 }
 
+ShellCrossSection::SectionBehaviorType BaseShellElement::GetSectionBehavior()
+{
+    KRATOS_ERROR << "You have called to the GetSectionBehavior from the base class for shell elements" << std::endl;
+}
+
 void BaseShellElement::CheckVariables()
 {
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
@@ -527,7 +531,7 @@ void BaseShellElement::CheckSpecificProperties()
     if(r_props[DENSITY] < 0.0)
         KRATOS_ERROR << "wrong DENSITY value provided for element " << Id() << std::endl;
 
-    if(mIsThickShell)
+    if(GetSectionBehavior() == ShellCrossSection::Thick)
     {
         // Check constitutive law has been verified with Stenberg stabilization
         // applicable for 5-parameter shells only.
@@ -580,7 +584,6 @@ void BaseShellElement::save(Serializer& rSerializer) const {
   rSerializer.save("Sections", mSections);
   rSerializer.save("NumDofs", mNumDofs);
   rSerializer.save("NumGPs", mNumGPs);
-  rSerializer.save("IsThickShell", mIsThickShell);
   rSerializer.save("IntM", (int)mIntegrationMethod);
 }
 
@@ -589,7 +592,6 @@ void BaseShellElement::load(Serializer& rSerializer) {
   rSerializer.load("Sections", mSections);
   rSerializer.load("NumDofs", mNumDofs);
   rSerializer.load("NumGPs", mNumGPs);
-  rSerializer.load("IsThickShell", mIsThickShell);
   int temp;
   rSerializer.load("IntM", temp);
   mIntegrationMethod = (IntegrationMethod)temp;

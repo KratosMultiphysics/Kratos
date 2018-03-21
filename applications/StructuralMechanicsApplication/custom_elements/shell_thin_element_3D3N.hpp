@@ -327,6 +327,12 @@ private:
             std::vector<Matrix>& rValues,
             const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+    * Returns the behavior of this shell (thin/thick)
+    * @return the shell behavior
+    */
+    ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
+
     ///@}
 
     ///@name Static Member Variables

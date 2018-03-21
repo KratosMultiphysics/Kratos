@@ -213,7 +213,7 @@ void ShellThinElement3D3N::Initialize()
         for(SizeType i = 0; i < mNumGPs; i++)
         {
             ShellCrossSection::Pointer sectionClone = theSection->Clone();
-            sectionClone->SetSectionBehavior(ShellCrossSection::Thin);
+            sectionClone->SetSectionBehavior(GetSectionBehavior());
             sectionClone->InitializeCrossSection(props, geom, row( shapeFunctionsValues, i ));
             mSections.push_back(sectionClone);
         }
@@ -1916,6 +1916,11 @@ bool ShellThinElement3D3N::TryGetValueOnIntegrationPoints_GeneralizedStrainsOrSt
     OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
 
     return true;
+}
+
+ShellCrossSection::SectionBehaviorType ShellThinElement3D3N::GetSectionBehavior()
+{
+    return ShellCrossSection::Thin;
 }
 
 // =====================================================================================
