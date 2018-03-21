@@ -10,14 +10,13 @@
 //
 
 #if !defined(KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_MIXED_CONTACT_CRITERIA_H)
-#define	KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_MIXED_CONTACT_CRITERIA_H
+#define KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_MIXED_CONTACT_CRITERIA_H
 
 /* System includes */
 
 /* External includes */
 
 /* Project includes */
-#include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "includes/define.h"
 #include "utilities/table_stream_utility.h"
@@ -48,10 +47,13 @@ namespace Kratos
 ///@{
 
 /**
+ * @class DisplacementLagrangeMultiplierMixedContactCriteria 
+ * @ingroup ContactStructuralMechanicsApplication 
  * @brief Convergence criteria for contact problems
- * This class implements a convergence control based on nodal displacement and
+ * @details This class implements a convergence control based on nodal displacement and
  * lagrange multiplier values. The error is evaluated separately for each of them, and
  * relative and absolute tolerances for both must be specified.
+ * @author Vicente Mataix Ferrandiz
  */
 template<   class TSparseSpace,
             class TDenseSpace >
@@ -163,59 +165,39 @@ public:
         const TSystemVectorType& b 
         ) override
     {
-        if (SparseSpaceType::Size(b) != 0) //if we are solving for something
-        {
+        if (SparseSpaceType::Size(b) != 0) { //if we are solving for something
             // Initialize
-            TDataType disp_residual_solution_norm = 0.0;
-            TDataType lm_solution_norm = 0.0;
-            TDataType lm_increase_norm = 0.0;
+            TDataType disp_residual_solution_norm = 0.0, lm_solution_norm = 0.0, lm_increase_norm = 0.0;
             unsigned int disp_dof_num(0),lm_dof_num(0);
 
-            // Set a partition for OpenMP
-            const int num_dofs = rDofSet.size();
-            PartitionVector dof_partition;
-            const int num_threads = OpenMPUtils::GetNumThreads();
-            OpenMPUtils::DivideInPartitions(num_dofs,num_threads,dof_partition);
-
             // Loop over Dofs
-            #pragma omp parallel reduction(+:disp_residual_solution_norm,lm_solution_norm,lm_increase_norm,disp_dof_num,lm_dof_num)
-            {
-                const int k = OpenMPUtils::ThisThread();
-                typename DofsArrayType::iterator dof_begin = rDofSet.begin() + dof_partition[k];
-                typename DofsArrayType::iterator dof_end = rDofSet.begin() + dof_partition[k+1];
+            #pragma omp parallel for reduction(+:disp_residual_solution_norm,lm_solution_norm,lm_increase_norm,disp_dof_num,lm_dof_num)
+            for (int i = 0; i < static_cast<int>(rDofSet.size()); i++) {
+                auto it_dof = rDofSet.begin() + i;
 
                 std::size_t dof_id;
-                TDataType residual_dof_value;
-                TDataType dof_value;
-                TDataType dof_incr;
+                TDataType residual_dof_value, dof_value, dof_incr;
 
-                for (typename DofsArrayType::iterator it_dof = dof_begin; it_dof != dof_end; ++it_dof)
-                {
-                    if (it_dof->IsFree())
-                    {
-                        dof_id = it_dof->EquationId();
-                        
-                        const KeyType curr_var = it_dof->GetVariable().Key();
-                        if ((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z))
-                        {
-                            residual_dof_value = b[dof_id];
-                            disp_residual_solution_norm += residual_dof_value * residual_dof_value;
-                            ++disp_dof_num;
-                        }
-                        else
-                        {
-                            dof_value = it_dof->GetSolutionStepValue(0);
-                            dof_incr = Dx[dof_id];
-                            lm_solution_norm += dof_value * dof_value;
-                            lm_increase_norm += dof_incr * dof_incr;
-                            ++lm_dof_num;
-                        }
+                if (it_dof->IsFree()) {
+                    dof_id = it_dof->EquationId();
+                    
+                    const KeyType curr_var = it_dof->GetVariable().Key();
+                    if ((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z)) {
+                        residual_dof_value = b[dof_id];
+                        disp_residual_solution_norm += residual_dof_value * residual_dof_value;
+                        disp_dof_num++;
+                    } else {
+                        dof_value = it_dof->GetSolutionStepValue(0);
+                        dof_incr = Dx[dof_id];
+                        lm_solution_norm += dof_value * dof_value;
+                        lm_increase_norm += dof_incr * dof_incr;
+                        lm_dof_num++;
                     }
                 }
             }
 
             if(lm_increase_norm == 0.0) lm_increase_norm = 1.0;
-            KRATOS_ERROR_IF(mEnsureContact == true && lm_solution_norm == 0.0) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+            KRATOS_ERROR_IF(mEnsureContact && lm_solution_norm == 0.0) << "ERROR::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
             
             mDispCurrentResidualNorm = disp_residual_solution_norm;
             TDataType lm_ratio = std::sqrt(lm_increase_norm/lm_solution_norm);
@@ -224,8 +206,7 @@ public:
             TDataType residual_disp_ratio; 
             
             // We initialize the solution
-            if (mInitialResidualIsSet == false)
-            {
+            if (mInitialResidualIsSet == false) {
                 mDispInitialResidualNorm = (disp_residual_solution_norm == 0.0) ? 1.0 : disp_residual_solution_norm;
                 residual_disp_ratio = 1.0;
                 mInitialResidualIsSet = true;
@@ -237,51 +218,45 @@ public:
             // We calculate the absolute norms
             TDataType residual_disp_abs = mDispCurrentResidualNorm/disp_dof_num;
 
-            // We print the results
-            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-            {
-                if (mpTable != nullptr)
-                {
+            // The process info of the model part
+            ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+            
+            // We print the results // TODO: Replace for the new log
+            if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
+                if (mpTable != nullptr) {
                     std::cout.precision(4);
                     auto& Table = mpTable->GetTable();
                     Table << residual_disp_ratio << mDispRatioTolerance << residual_disp_abs << mDispAbsTolerance << lm_ratio << mLMRatioTolerance << lm_abs << mLMAbsTolerance;
-                }
-                else
-                {
+                } else {
                     std::cout.precision(4);
-                    if (mPrintingOutput == false)
-                    {
-                        std::cout << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                    if (mPrintingOutput == false) {
+                        std::cout << BOLDFONT("MIXED CONVERGENCE CHECK") << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         std::cout << BOLDFONT("\tDISPLACEMENT: RATIO = ") << residual_disp_ratio << BOLDFONT(" EXP.RATIO = ") << mDispRatioTolerance << BOLDFONT(" ABS = ") << residual_disp_abs << BOLDFONT(" EXP.ABS = ") << mDispAbsTolerance << std::endl;
                         std::cout << BOLDFONT("\tLAGRANGE MUL: RATIO = ") << lm_ratio << BOLDFONT(" EXP.RATIO = ") << mLMRatioTolerance << BOLDFONT(" ABS = ") << lm_abs << BOLDFONT(" EXP.ABS = ") << mLMAbsTolerance << std::endl;
-                    }
-                    else
-                    {
-                        std::cout << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << rModelPart.GetProcessInfo()[STEP] << "\tNL ITERATION: " << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] << std::endl << std::scientific;
+                    } else {
+                        std::cout << "MIXED CONVERGENCE CHECK" << "\tSTEP: " << r_process_info[STEP] << "\tNL ITERATION: " << r_process_info[NL_ITERATION_NUMBER] << std::endl << std::scientific;
                         std::cout << "\tDISPLACEMENT: RATIO = " << residual_disp_ratio << " EXP.RATIO = " << mDispRatioTolerance << " ABS = " << residual_disp_abs << " EXP.ABS = " << mDispAbsTolerance << std::endl;
                         std::cout << "\tLAGRANGE MUL: RATIO = " << lm_ratio << " EXP.RATIO = " << mLMRatioTolerance << " ABS = " << lm_abs << " EXP.ABS = " << mLMAbsTolerance << std::endl;
                     }
                 }
             }
 
-            rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = (residual_disp_ratio > lm_ratio) ? residual_disp_ratio : lm_ratio;
-            rModelPart.GetProcessInfo()[RESIDUAL_NORM] = (lm_abs > mLMAbsTolerance) ? lm_abs : mLMAbsTolerance;
+            r_process_info[CONVERGENCE_RATIO] = (residual_disp_ratio > lm_ratio) ? residual_disp_ratio : lm_ratio;
+            r_process_info[RESIDUAL_NORM] = (lm_abs > mLMAbsTolerance) ? lm_abs : mLMAbsTolerance;
             
-            if ((residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance) &&
-                    (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance) )
-            {
-                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-                {
-                    if (mpTable != nullptr)
-                    {
+            // We check if converged
+            const bool disp_converged = (residual_disp_ratio <= mDispRatioTolerance || residual_disp_abs <= mDispAbsTolerance);
+            const bool lm_converged = (!mEnsureContact && lm_solution_norm == 0.0) ? true : (lm_ratio <= mLMRatioTolerance || lm_abs <= mLMAbsTolerance);
+            
+            if ( disp_converged && lm_converged ) {
+                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
+                    if (mpTable != nullptr) {
                         auto& table = mpTable->GetTable();
                         if (mPrintingOutput == false)
                             table << BOLDFONT(FGRN("       Achieved"));
                         else
                             table << "Achieved";
-                    }
-                    else
-                    {
+                    } else {
                         if (mPrintingOutput == false)
                             std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FGRN("achieved")) << std::endl;
                         else
@@ -289,21 +264,15 @@ public:
                     }
                 }
                 return true;
-            }
-            else
-            {
-                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-                {
-                    if (mpTable != nullptr)
-                    {
+            } else {
+                if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
+                    if (mpTable != nullptr) {
                         auto& table = mpTable->GetTable();
                         if (mPrintingOutput == false)
                             table << BOLDFONT(FRED("   Not achieved"));
                         else
                             table << "Not achieved";
-                    }
-                    else
-                    {
+                    } else {
                         if (mPrintingOutput == false)
                             std::cout << BOLDFONT("\tConvergence") << " is " << BOLDFONT(FRED(" not achieved")) << std::endl;
                         else
@@ -312,11 +281,8 @@ public:
                 }
                 return false;
             }
-        }
-        else // In this case all the displacements are imposed!
-        {
+        } else // In this case all the displacements are imposed!
             return true;
-        }
     }
 
     /**
@@ -328,8 +294,7 @@ public:
     {
         BaseType::mConvergenceCriteriaIsInitialized = true;
         
-        if (mpTable != nullptr && mTableIsInitialized == false)
-        {
+        if (mpTable != nullptr && mTableIsInitialized == false) {
             auto& table = mpTable->GetTable();
             table.AddColumn("DP RATIO", 10);
             table.AddColumn("EXP. RAT", 10);
@@ -418,21 +383,21 @@ private:
     ///@name Member Variables
     ///@{
     
-    bool mInitialResidualIsSet;
+    bool mInitialResidualIsSet; /// This "flag" is set in order to set that the initial residual is already computed
     
-    const bool mEnsureContact;
+    const bool mEnsureContact; /// This "flag" is used to check that the norm of the LM is always greater than 0 (no contact)
     
-    TablePrinterPointerType mpTable; // Pointer to the fancy table 
-    bool mPrintingOutput;            // If the colors and bold are printed
-    bool mTableIsInitialized;        // If the table is already initialized
+    TablePrinterPointerType mpTable; /// Pointer to the fancy table 
+    bool mPrintingOutput;            /// If the colors and bold are printed
+    bool mTableIsInitialized;        /// If the table is already initialized
     
-    TDataType mDispRatioTolerance;
-    TDataType mDispAbsTolerance;
-    TDataType mDispInitialResidualNorm;
-    TDataType mDispCurrentResidualNorm;
+    TDataType mDispRatioTolerance;      /// The ratio threshold for the norm of the displacement residual
+    TDataType mDispAbsTolerance;        /// The absolute value threshold for the norm of the displacement residual 
+    TDataType mDispInitialResidualNorm; /// The reference norm of the displacement residual
+    TDataType mDispCurrentResidualNorm; /// The current norm of the displacement residual
     
-    TDataType mLMRatioTolerance;
-    TDataType mLMAbsTolerance;
+    TDataType mLMRatioTolerance; /// The ratio threshold for the norm of the LM
+    TDataType mLMAbsTolerance;   /// The absolute value threshold for the norm of the LM
     
     ///@}
     ///@name Private Operators

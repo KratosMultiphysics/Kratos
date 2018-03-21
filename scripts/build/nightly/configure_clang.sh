@@ -38,9 +38,6 @@ cmake .. \
 -DTHERMO_MECHANICAL_APPLICATION=ON                                                              \
 -DCONTACT_STRUCTURAL_MECHANICS_APPLICATION=ON                                                   \
 -DMAPPING_APPLICATION=ON                                                                        \
--DMKL_SOLVERS_APPLICATION=OFF                                                                   \
--DMKLSOLVER_INCLUDE_DIR=\"UNSET\"                                                               \
--DMKLSOLVER_LIB_DIR=\"UNSET\"                                                                   \
 -DMETIS_APPLICATION=OFF                                                                         \
 -DPARMETIS_ROOT_DIR=\"UNSET\"                                                                   \
 -DTRILINOS_APPLICATION=OFF                                                                      \

@@ -552,19 +552,20 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     reference_velocity(0,0) = 0.0; reference_velocity(0,1) = 0.1;
     reference_velocity(1,0) = 0.1; reference_velocity(1,1) = 0.2;
     reference_velocity(2,0) = 0.2; reference_velocity(2,1) = 0.3;
-    reference_velocity(3,0) = 0.3; reference_velocity(2,1) = 0.4;
+    reference_velocity(3,0) = 0.3; reference_velocity(3,1) = 0.4;
 
 
-    Element::Pointer p_element = model_part.pGetElement(1);
+    Geometry<Node<3>>& r_geometry = model_part.ElementsBegin()->GetGeometry();
+
 
     for(unsigned int i=0; i<4; i++){
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
-        p_element->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
+        r_geometry[i].FastGetSolutionStepValue(PRESSURE)    = 0.0;
+        r_geometry[i].FastGetSolutionStepValue(PRESSURE, 1) = 0.0;
         for(unsigned int k=0; k<2; k++){
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[k]    = reference_velocity(i,k);
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9*reference_velocity(i,k);
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
-            p_element->GetGeometry()[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
+            r_geometry[i].FastGetSolutionStepValue(VELOCITY)[k]    = reference_velocity(i,k);
+            r_geometry[i].FastGetSolutionStepValue(VELOCITY, 1)[k] = 0.9*reference_velocity(i,k);
+            r_geometry[i].FastGetSolutionStepValue(MESH_VELOCITY)[k]    = 0.0;
+            r_geometry[i].FastGetSolutionStepValue(MESH_VELOCITY, 1)[k] = 0.0;
         }
     }
 
@@ -572,9 +573,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector< std::vector<double> > output(1);
-    output[0] = {-2.862147056,-1.707621905,0.02977881865,-7.703277072,-6.260649109,-0.02264084539,-12.65363298,-31.7996871,-0.05398482725,-5.280942892,-13.64870855,-0.003153146014}; // QSVMS2D4N
-    int counter = 0;
+    std::vector<double> output = {-2.665425819,-1.87894198,-0.02477280423,-10.27651236,-5.037560437,-0.05013494554,-19.87147169,-19.57971097,-0.06709466598,-14.8532568,-21.17045328,-0.05799758425}; // QSVMS2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         i->Initialize(); // Initialize constitutive law
@@ -584,11 +583,9 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMS2D4N, FluidDynamicsApplicationFastSuite)
         //std::cout << i->Info() << std::setprecision(10) << std::endl;
         //KRATOS_WATCH(RHS);
 
-        for (unsigned int j = 0; j < RHS.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output[counter][j], 1e-6);
+        for (unsigned int j = 0; j < output.size(); j++) {
+            KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-6);
         }
-
-        counter++;
     }
 }
 
