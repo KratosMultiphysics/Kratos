@@ -18,6 +18,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <unordered_map>
 
 
 // External includes
@@ -25,10 +26,11 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/model_part.h"
+#include "includes/key_hash.h"
 
 
 namespace Kratos

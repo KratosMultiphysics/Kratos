@@ -48,8 +48,46 @@ void NestedRefinementUtility::PrintData(std::ostream& rOStream) const {
 }
 
 ///
-void NestedRefinementUtility::Refine() {
+void NestedRefinementUtility::Refine() 
+{
+    // Initialize the nodes hash
+    std::unordered_map<array_1d<int,2>, int, KeyHasherRange<array_1d<int,2>>, KeyComparorRange<array_1d<int,2>> > nodes_hash;
 
+    // Initialize the entities Id lists
+    std::vector<int> elements_id;
+    std::vector<int> conditions_id;
+    unsigned int max_node_id;
+    unsigned int max_elem_id;
+    unsigned int max_cond_id;
+
+    // Get the nodes id
+    const int nnodes = mrModelPart.Nodes().size();
+    for (int i = 0; i < nnodes; i++)
+    {
+        ModelPart::NodesContainerType::iterator inode = mrModelPart.NodesBegin() + i;
+        if (inode->Id() > max_node_id)
+            max_node_id = inode->Id();
+    }
+
+    // Get the elements id
+    const int nelements = mrModelPart.Elements().size();
+    for (int i = 0; i < nelements; i++)
+    {
+        ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
+        elements_id.push_back(ielement->Id());
+        if (ielement->Id() > max_elem_id)
+            max_elem_id = ielement->Id();
+    }
+
+    // Get the conditions id
+    const int nconditions = mrModelPart.Conditions().size();
+    for (int i = 0; i < nconditions; i++)
+    {
+        ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
+        conditions_id.push_back(icondition->Id());
+        if (icondition->Id() > max_cond_id)
+            max_elem_id = icondition->Id();
+    }
 }
 
 }  // namespace Kratos.
