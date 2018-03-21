@@ -136,10 +136,6 @@ public:
 
         // don't validate linear_solver_settings here
         mpParam->ValidateAndAssignDefaults(default_params);
-
-        std::string solver_type = mpParam->GetValue("linear_solver_settings")["solver_type"].GetString();
-        if ((solver_type == "complex_eigen_pardiso_llt") or (solver_type == "complex_eigen_pardiso_ldlt"))
-            KRATOS_ERROR << "FEAST is not tested with the following linear solvers: complex_eigen_pardiso_llt, complex_eigen_pardiso_ldlt!" << std::endl;
     }
 
     /// Deleted copy constructor.
