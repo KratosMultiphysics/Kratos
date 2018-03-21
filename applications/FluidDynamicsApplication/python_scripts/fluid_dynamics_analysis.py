@@ -1,9 +1,9 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-from KratosMultiphysics import *
-from KratosMultiphysics.FluidDynamicsApplication import *
+import KratosMultiphysics as Kratos
+import KratosMultiphysics.FluidDynamicsApplication
 try:
-    from KratosMultiphysics.ExternalSolversApplication import *
+    import KratosMultiphysics.ExternalSolversApplication
 except ImportError:
     pass
 
@@ -31,10 +31,10 @@ class FluidDynamicsAnalysis(object):
         '''Initialize the model part for the problem and other general model data.'''
 
         model_part_name = self.project_parameters["problem_data"]["model_part_name"].GetString()
-        self.main_model_part = ModelPart(model_part_name)
+        self.main_model_part = Kratos.ModelPart(model_part_name)
 
         domain_size = self.project_parameters["problem_data"]["domain_size"].GetInt()
-        self.main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, domain_size)
+        self.main_model_part.ProcessInfo.SetValue(Kratos.DOMAIN_SIZE, domain_size)
 
         ## Solver construction
         import python_solvers_wrapper_fluid
@@ -50,7 +50,7 @@ class FluidDynamicsAnalysis(object):
             self.solver.AddDofs()
 
         # Fill a Model instance using input
-        self.model = Model()
+        self.model = Kratos.Model()
         self.model.AddModelPart(self.main_model_part)
 
     def SetUpAuxiliaryProcesses(self):
@@ -92,9 +92,9 @@ class FluidDynamicsAnalysis(object):
         ## Stepping and time settings
         self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
 
-        if self.main_model_part.ProcessInfo[IS_RESTARTED]:
-            self.time = self.main_model_part.ProcessInfo[TIME]
-            self.step = self.main_model_part.ProcessInfo[STEP]
+        if self.main_model_part.ProcessInfo[Kratos.IS_RESTARTED]:
+            self.time = self.main_model_part.ProcessInfo[Kratos.TIME]
+            self.step = self.main_model_part.ProcessInfo[Kratos.STEP]
         else:
             self.time = 0.0
             self.step = 0
@@ -156,11 +156,11 @@ class FluidDynamicsAnalysis(object):
         self.step = self.step + 1
         
         self.main_model_part.CloneTimeStep(self.time)
-        self.main_model_part.ProcessInfo[STEP] = self.step
+        self.main_model_part.ProcessInfo[Kratos.STEP] = self.step
 
         if self.is_printing_rank:
-            Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
-            Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
+            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
+            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
         
         for process in self.simulation_processes:
             process.ExecuteInitializeSolutionStep()
@@ -237,7 +237,7 @@ if __name__ == '__main__':
         parameter_file_name = "ProjectParameters.json"
 
     with open(parameter_file_name,'r') as parameter_file:
-        parameters = Parameters(parameter_file.read())
+        parameters = Kratos.Parameters(parameter_file.read())
 
     simulation = FluidDynamicsAnalysis(parameters)
     simulation.Run()
