@@ -48,7 +48,6 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.FinalizeTimeStep()
 
     def Initialize(self):
-        self._InitializeIO()
         self._ExecuteInitialize()
         self._ExecuteBeforeSolutionLoop()
 
@@ -137,6 +136,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
+
+        # Initialize IO
+        self._InitializeIO()
 
         ## Creation of the Kratos model (build sub_model_parts or submeshes)
         self.structure_model = KratosMultiphysics.Model()
