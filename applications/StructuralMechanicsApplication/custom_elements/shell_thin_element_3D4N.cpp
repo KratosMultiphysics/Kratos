@@ -280,14 +280,9 @@ namespace Kratos
 				"ShellThinElement3D4N Element - Wrong number of nodes",
 				geom.PointsNumber());
 
-		const GeometryType::IntegrationPointsArrayType & integrationPoints =
-			geom.IntegrationPoints(GetIntegrationMethod());
-		if (integrationPoints.size() != mNumGPs)
-			KRATOS_THROW_ERROR(std::logic_error,
-				"ShellThinElement3D4N Element - Wrong integration scheme",
-				integrationPoints.size());
+        const SizeType num_gps = GetNumberOfGPs();
 
-		if (mSections.size() != mNumGPs)
+		if (mSections.size() != num_gps)
 		{
 			const Matrix & shapeFunctionsValues =
 				geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -318,7 +313,7 @@ namespace Kratos
 			}
 
 			mSections.clear();
-			for (SizeType i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < num_gps; ++i)
 			{
 				ShellCrossSection::Pointer sectionClone = theSection->Clone();
 				sectionClone->SetSectionBehavior(GetSectionBehavior());
@@ -2277,17 +2272,17 @@ namespace Kratos
 		// Resize the Left Hand Side if necessary,
 		// and initialize it to Zero
 
-		if ((rLeftHandSideMatrix.size1() != mNumDofs) ||
-			(rLeftHandSideMatrix.size2() != mNumDofs))
-			rLeftHandSideMatrix.resize(mNumDofs, mNumDofs, false);
-		noalias(rLeftHandSideMatrix) = ZeroMatrix(mNumDofs, mNumDofs);
+		if ((rLeftHandSideMatrix.size1() != 24) ||
+			(rLeftHandSideMatrix.size2() != 24))
+			rLeftHandSideMatrix.resize(24, 24, false);
+		noalias(rLeftHandSideMatrix) = ZeroMatrix(24, 24);
 
 		// Resize the Right Hand Side if necessary,
 		// and initialize it to Zero
 
-		if (rRightHandSideVector.size() != mNumDofs)
-			rRightHandSideVector.resize(mNumDofs, false);
-		noalias(rRightHandSideVector) = ZeroVector(mNumDofs);
+		if (rRightHandSideVector.size() != 24)
+			rRightHandSideVector.resize(24, false);
+		noalias(rRightHandSideVector) = ZeroVector(24);
 
 		// Compute the local coordinate system.
 		ShellQ4_LocalCoordinateSystem localCoordinateSystem(
@@ -2304,7 +2299,7 @@ namespace Kratos
 		InitializeCalculationData(data);
 
 		// Gauss Loop.
-		for (std::size_t i = 0; i < mNumGPs; i++)
+		for (std::size_t i = 0; i < GetNumberOfGPs(); i++)
 		{
 			data.gpIndex = i;
 			CalculateGaussPointContribution(data, rLeftHandSideMatrix,

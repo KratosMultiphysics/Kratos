@@ -50,7 +50,6 @@ BaseShellElement::BaseShellElement(IndexType NewId,
     GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
-    SetBaseMembers();
 }
 
 /**
@@ -61,7 +60,6 @@ BaseShellElement::BaseShellElement(IndexType NewId,
     PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
-    SetBaseMembers();
 }
 
 /**
@@ -88,8 +86,10 @@ BaseShellElement::~BaseShellElement() {
 void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
                                         ProcessInfo& rCurrentProcessInfo)
 {
-    if (rResult.size() != mNumDofs)
-        rResult.resize(mNumDofs, false);
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rResult.size() != num_dofs)
+        rResult.resize(num_dofs, false);
 
     GeometryType& geom = GetGeometry();
 
@@ -116,8 +116,10 @@ void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
 void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
                                   ProcessInfo& rCurrentProcessInfo)
 {
+    const SizeType num_dofs = GetNumberOfDofs();
+
     rElementalDofList.resize(0);
-    rElementalDofList.reserve(mNumDofs);
+    rElementalDofList.reserve(num_dofs);
 
     GeometryType& geom = GetGeometry();
 
@@ -137,8 +139,10 @@ void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
 
 void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
 {
-    if (rValues.size() != mNumDofs)
-        rValues.resize(mNumDofs, false);
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
 
     const GeometryType& geom = GetGeometry();
 
@@ -161,8 +165,10 @@ void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
 
 void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 {
-    if (rValues.size() != mNumDofs)
-        rValues.resize(mNumDofs, false);
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
 
     const GeometryType& geom = GetGeometry();
 
@@ -185,8 +191,10 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 
 void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
-    if (rValues.size() != mNumDofs)
-        rValues.resize(mNumDofs, false);
+    const SizeType num_dofs = GetNumberOfDofs();
+
+    if (rValues.size() != num_dofs)
+        rValues.resize(num_dofs, false);
 
     const GeometryType & geom = GetGeometry();
 
@@ -293,10 +301,12 @@ void BaseShellElement::CalculateDampingMatrix(
 {
     KRATOS_TRY;
 
-    if ( rDampingMatrix.size1() != mNumDofs )
-        rDampingMatrix.resize( mNumDofs, mNumDofs, false );
+    const SizeType num_dofs = GetNumberOfDofs();
 
-    noalias( rDampingMatrix ) = ZeroMatrix( mNumDofs, mNumDofs );
+    if ( rDampingMatrix.size1() != num_dofs )
+        rDampingMatrix.resize( num_dofs, num_dofs, false );
+
+    noalias( rDampingMatrix ) = ZeroMatrix( num_dofs, num_dofs );
 
     // 1.-Calculate StiffnessMatrix:
 
@@ -357,6 +367,19 @@ int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 ///@name Access
 ///@{
 
+void BaseShellElement::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(crossSections.size() == GetNumberOfGPs())
+        << "The number of cross section is wrong: " << crossSections.size() << std::endl;
+    mSections.clear();
+    for (SizeType i = 0; i < crossSections.size(); i++)
+        mSections.push_back(crossSections[i]);
+    this->SetupOrientationAngles();
+    KRATOS_CATCH("")
+}
+
 
 ///@}
 ///@name Inquiry
@@ -408,14 +431,17 @@ void BaseShellElement::PrintData(std::ostream& rOStream) const {
 ///@name Protected Operations
 ///@{
 
-void BaseShellElement::SetBaseMembers()
+std::size_t BaseShellElement::GetNumberOfDofs()
 {
-    mNumDofs = 6 * GetGeometry().PointsNumber(); // 6 dofs per node
+    return ( 6 * GetGeometry().PointsNumber() ); // 6 dofs per node
+}
 
+std::size_t BaseShellElement::GetNumberOfGPs()
+{
     const GeometryType::IntegrationPointsArrayType& integrationPoints =
     GetGeometry().IntegrationPoints(mIntegrationMethod);
 
-    mNumGPs = integrationPoints.size();
+    return integrationPoints.size();
 }
 
 void BaseShellElement::CalculateAll(
@@ -432,6 +458,11 @@ void BaseShellElement::CalculateAll(
 ShellCrossSection::SectionBehaviorType BaseShellElement::GetSectionBehavior()
 {
     KRATOS_ERROR << "You have called to the GetSectionBehavior from the base class for shell elements" << std::endl;
+}
+
+void BaseShellElement::SetupOrientationAngles()
+{
+    KRATOS_ERROR << "You have called to the SetupOrientationAngles from the base class for shell elements" << std::endl;
 }
 
 void BaseShellElement::CheckVariables()
@@ -582,16 +613,12 @@ void BaseShellElement::CheckSpecificProperties()
 void BaseShellElement::save(Serializer& rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
   rSerializer.save("Sections", mSections);
-  rSerializer.save("NumDofs", mNumDofs);
-  rSerializer.save("NumGPs", mNumGPs);
   rSerializer.save("IntM", (int)mIntegrationMethod);
 }
 
 void BaseShellElement::load(Serializer& rSerializer) {
   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
   rSerializer.load("Sections", mSections);
-  rSerializer.load("NumDofs", mNumDofs);
-  rSerializer.load("NumGPs", mNumGPs);
   int temp;
   rSerializer.load("IntM", temp);
   mIntegrationMethod = (IntegrationMethod)temp;

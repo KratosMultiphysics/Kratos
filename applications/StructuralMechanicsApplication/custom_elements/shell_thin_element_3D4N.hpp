@@ -384,7 +384,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 
 		void DecimalCorrection(Vector& a);
 
-		void SetupOrientationAngles();
+		void SetupOrientationAngles() override;
 
 		void InitializeCalculationData(CalculationData& data);
 

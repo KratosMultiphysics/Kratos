@@ -164,7 +164,6 @@ public:
     ///@name Public specialized Access - Temporary
     ///@{
 
-    void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
 
     ///@}
 
@@ -297,7 +296,7 @@ private:
 
     void DecimalCorrection(Vector& a);
 
-    void SetupOrientationAngles();
+    void SetupOrientationAngles() override;
 
     void InitializeCalculationData(CalculationData& data);
 

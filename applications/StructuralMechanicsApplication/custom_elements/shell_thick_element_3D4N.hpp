@@ -356,8 +356,6 @@ public:
     ///@name Public specialized Access - Temporary
     ///@{
 
-    void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
-
     ///@}
 
 protected:
@@ -398,7 +396,7 @@ private:
 
     void DecimalCorrection(Vector& a);
 
-    void SetupOrientationAngles();
+    void SetupOrientationAngles() override;
 
     void CalculateBMatrix(double xi, double eta,
                           const JacobianOperator& Jac, const MITC4Params& params,

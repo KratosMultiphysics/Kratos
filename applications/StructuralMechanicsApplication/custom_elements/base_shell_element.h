@@ -161,6 +161,8 @@ public:
     ///@name Access
     ///@{
 
+    void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
+
 
     ///@}
     ///@name Inquiry
@@ -195,8 +197,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    SizeType mNumDofs;
-    SizeType mNumGPs;
     IntegrationMethod mIntegrationMethod = GeometryData::GI_GAUSS_2;
 
     CrossSectionContainerType mSections; /*!< Container for cross section associated to each integration point */
@@ -214,6 +214,10 @@ protected:
     BaseShellElement() : Element()
     {
     }
+
+    std::size_t GetNumberOfDofs();
+
+    std::size_t GetNumberOfGPs();
 
     void SetBaseMembers();
 
@@ -240,6 +244,8 @@ protected:
     void BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     void BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    virtual void SetupOrientationAngles();
 
     void CheckVariables();
     void CheckDofs();

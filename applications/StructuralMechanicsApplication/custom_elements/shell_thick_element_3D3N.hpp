@@ -175,8 +175,6 @@ namespace Kratos
 		///@name Public specialized Access - Temporary
 		///@{
 
-		void SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections);
-
 		///@}
 
 	protected:
@@ -319,7 +317,7 @@ namespace Kratos
 
 		void DecimalCorrection(Vector& a);
 
-		void SetupOrientationAngles();
+		void SetupOrientationAngles() override;
 
 		void CalculateSectionResponse(CalculationData& data);
 
@@ -368,8 +366,6 @@ namespace Kratos
 
         ///@name Serialization
         ///@{
-		void printMatrix(Matrix& matrixIn, std::string stringIn);
-
 
 		friend class Serializer;
 

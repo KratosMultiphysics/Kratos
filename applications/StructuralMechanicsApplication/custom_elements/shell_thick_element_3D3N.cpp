@@ -214,15 +214,9 @@ namespace Kratos
 				"ShellThickElement3D3N Element - Wrong number of nodes",
 				geom.PointsNumber());
 
-		const GeometryType::IntegrationPointsArrayType & integrationPoints =
-			geom.IntegrationPoints(GetIntegrationMethod());
+        const SizeType num_gps = GetNumberOfGPs();
 
-		if (integrationPoints.size() != mNumGPs)
-			KRATOS_THROW_ERROR(std::logic_error,
-				"ShellThickElement3D3N Element - Wrong integration scheme",
-				integrationPoints.size());
-
-		if (mSections.size() != mNumGPs)
+		if (mSections.size() != num_gps)
 		{
 			const Matrix & shapeFunctionsValues =
 				geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -250,7 +244,7 @@ namespace Kratos
 			}
 
 			mSections.clear();
-			for (SizeType i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < num_gps; ++i)
 			{
 				ShellCrossSection::Pointer sectionClone = theSection->Clone();
 				sectionClone->SetSectionBehavior(GetSectionBehavior());
@@ -298,9 +292,9 @@ namespace Kratos
 
 	void ShellThickElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
-		if ((rMassMatrix.size1() != mNumDofs) || (rMassMatrix.size2() != mNumDofs))
-			rMassMatrix.resize(mNumDofs, mNumDofs, false);
-		noalias(rMassMatrix) = ZeroMatrix(mNumDofs, mNumDofs);
+		if ((rMassMatrix.size1() != 18) || (rMassMatrix.size2() != 18))
+			rMassMatrix.resize(18, 18, false);
+		noalias(rMassMatrix) = ZeroMatrix(18, 18);
 
 		// Compute the local coordinate system.
 		ShellT3_LocalCoordinateSystem referenceCoordinateSystem(
@@ -308,9 +302,12 @@ namespace Kratos
 
 		// Average mass per unit area over the whole element
 		double av_mass_per_unit_area = 0.0;
-		for (std::size_t i = 0; i < mNumGPs; i++)
+
+        const SizeType num_gps = GetNumberOfGPs();
+
+		for (SizeType i = 0; i < num_gps; i++)
 			av_mass_per_unit_area += mSections[i]->CalculateMassPerUnitArea();
-		av_mass_per_unit_area /= double(mNumGPs);
+		av_mass_per_unit_area /= double(num_gps);
 
 		// Flag for consistent or lumped mass matrix
 		bool bconsistent_matrix = false;
@@ -325,12 +322,12 @@ namespace Kratos
 
 			// Average thickness over the whole element
 			double thickness = 0.0;
-			for (std::size_t i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < num_gps; i++)
 				thickness += mSections[i]->GetThickness();
-			thickness /= double(mNumGPs);
+			thickness /= double(num_gps);
 
 			// Populate mass matrix with integation results
-			for (std::size_t row = 0; row < 18; row++)
+			for (SizeType row = 0; row < 18; row++)
 			{
 				if (row % 6 < 3)
 				{
@@ -391,10 +388,10 @@ namespace Kratos
 		std::vector<double>& rValues,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
+        const SizeType num_gps = GetNumberOfGPs();
 		// resize output
-		if (rValues.size() != mNumGPs)
-			rValues.resize(mNumGPs);
-
+		if (rValues.size() != num_gps)
+			rValues.resize(num_gps);
 
 		int caseId = -1;
 		if (rVariable == TSAI_WU_RESERVE_FACTOR)
@@ -477,7 +474,7 @@ namespace Kratos
 			}
 
 			// loop over gauss points - for output only
-			for (unsigned int gauss_point = 0; gauss_point < mNumGPs; ++gauss_point)
+			for (unsigned int gauss_point = 0; gauss_point < num_gps; ++gauss_point)
 			{
 				// store the result calculated
 				rValues[gauss_point] = resultDouble;
@@ -486,8 +483,8 @@ namespace Kratos
 		else if (rVariable == TSAI_WU_RESERVE_FACTOR)
 		{
 			// resize output
-			if (rValues.size() != mNumGPs)
-				rValues.resize(mNumGPs);
+			if (rValues.size() != num_gps)
+				rValues.resize(num_gps);
 
 			// Initialize common calculation variables
 			CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
@@ -559,7 +556,7 @@ namespace Kratos
 			}
 
 			// Gauss Loop
-			for (unsigned int gauss_point = 0; gauss_point < mNumGPs; ++gauss_point)
+			for (unsigned int gauss_point = 0; gauss_point < num_gps; ++gauss_point)
 			{
 				// Output min Tsai-Wu result
 				rValues[gauss_point] = min_tsai_wu;
@@ -569,7 +566,7 @@ namespace Kratos
 		} // Tsai wu
 		else
 		{
-			for (SizeType i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < num_gps; i++)
 				mSections[i]->GetValue(rVariable, rValues[i]);
 		}
 
@@ -580,6 +577,7 @@ namespace Kratos
 		std::vector<Vector>& rValues,
 		const ProcessInfo& rCurrentProcessInfo)
 	{
+        const SizeType num_gps = GetNumberOfGPs();
 		if (rVariable == LOCAL_AXIS_1)
 		{
 			// LOCAL_AXIS_1 output DOES NOT include the effect of section
@@ -587,10 +585,10 @@ namespace Kratos
 			// and is used in element stiffness calculation.
 
 			// resize output
-			if (rValues.size() != mNumGPs)
-				rValues.resize(mNumGPs);
+			if (rValues.size() != num_gps)
+				rValues.resize(num_gps);
 
-			for (SizeType i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
+			for (SizeType i = 0; i < num_gps; ++i) rValues[i] = ZeroVector(3);
 			// Initialize common calculation variables
 			ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
@@ -606,10 +604,10 @@ namespace Kratos
 			// in-plane and is used in the element stiffness calculation.
 
 			// resize output
-			if (rValues.size() != mNumGPs)
-				rValues.resize(mNumGPs);
+			if (rValues.size() != num_gps)
+				rValues.resize(num_gps);
 
-			for (SizeType i = 0; i < mNumGPs; ++i) rValues[i] = ZeroVector(3);
+			for (SizeType i = 0; i < num_gps; ++i) rValues[i] = ZeroVector(3);
 
 			// Initialize common calculation variables
 			// Compute the local coordinate system.
@@ -711,18 +709,6 @@ namespace Kratos
 			ShellT3_LocalCoordinateSystem localCoordinateSystem(mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 			Output = localCoordinateSystem.Orientation();
 		}
-	}
-
-	void ShellThickElement3D3N::SetCrossSectionsOnIntegrationPoints(std::vector< ShellCrossSection::Pointer >& crossSections)
-	{
-		KRATOS_TRY
-			if (crossSections.size() != mNumGPs)
-				KRATOS_THROW_ERROR(std::logic_error, "The number of cross section is wrong", crossSections.size());
-		mSections.clear();
-		for (SizeType i = 0; i < crossSections.size(); i++)
-			mSections.push_back(crossSections[i]);
-		this->SetupOrientationAngles();
-		KRATOS_CATCH("")
 	}
 
 	// =====================================================================================
@@ -1279,7 +1265,8 @@ namespace Kratos
 
 		// create the integration point locations
 		if (data.gpLocations.size() != 0) data.gpLocations.clear();
-		data.gpLocations.resize(mNumGPs);
+
+		data.gpLocations.resize(GetNumberOfGPs());
 #ifdef OPT_1_POINT_INTEGRATION
 		array_1d<double, 3>& gp0 = data.gpLocations[0];
 		gp0[0] = 1.0 / 3.0;
@@ -1974,16 +1961,16 @@ namespace Kratos
 			// Resize the Left Hand Side if necessary,
 			// and initialize it to Zero
 
-        if ((rLeftHandSideMatrix.size1() != mNumDofs) || (rLeftHandSideMatrix.size2() != mNumDofs))
-            rLeftHandSideMatrix.resize(mNumDofs, mNumDofs, false);
-		noalias(rLeftHandSideMatrix) = ZeroMatrix(mNumDofs, mNumDofs);
+        if ((rLeftHandSideMatrix.size1() != 18) || (rLeftHandSideMatrix.size2() != 18))
+            rLeftHandSideMatrix.resize(18, 18, false);
+		noalias(rLeftHandSideMatrix) = ZeroMatrix(18, 18);
 
 		// Resize the Right Hand Side if necessary,
 		// and initialize it to Zero
 
-		if (rRightHandSideVector.size() != mNumDofs)
-			rRightHandSideVector.resize(mNumDofs, false);
-		noalias(rRightHandSideVector) = ZeroVector(mNumDofs);
+		if (rRightHandSideVector.size() != 18)
+			rRightHandSideVector.resize(18, false);
+		noalias(rRightHandSideVector) = ZeroVector(18);
 
 		// Initialize common calculation variables
 		CalculationData data(mpCoordinateTransformation, rCurrentProcessInfo);
@@ -2057,8 +2044,10 @@ namespace Kratos
 
 		// resize output
 
-		if (rValues.size() != mNumGPs)
-			rValues.resize(mNumGPs);
+        const SizeType num_gps = GetNumberOfGPs();
+
+		if (rValues.size() != num_gps)
+			rValues.resize(num_gps);
 
 		// Compute the local coordinate system.
 
@@ -2072,7 +2061,7 @@ namespace Kratos
 		if (ijob == 1)
 		{
 			Vector3Type eX = localCoordinateSystem.Vx();
-			for (SizeType i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < num_gps; i++)
 			{
 				QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mSections[i]->GetOrientationAngle());
 				q.RotateVector3(eX, rValues[i]);
@@ -2081,7 +2070,7 @@ namespace Kratos
 		else if (ijob == 2)
 		{
 			Vector3Type eY = localCoordinateSystem.Vy();
-			for (SizeType i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < num_gps; i++)
 			{
 				QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1), eZ(2), mSections[i]->GetOrientationAngle());
 				q.RotateVector3(eY, rValues[i]);
@@ -2089,7 +2078,7 @@ namespace Kratos
 		}
 		else if (ijob == 3)
 		{
-			for (SizeType i = 0; i < mNumGPs; i++)
+			for (SizeType i = 0; i < num_gps; i++)
 			{
 				noalias(rValues[i]) = eZ;
 			}
@@ -2110,9 +2099,11 @@ namespace Kratos
 		// quick return
 		if (ijob == 0) return false;
 
+        const SizeType num_gps = GetNumberOfGPs();
+
 		// resize output
-		if (rValues.size() != mNumGPs)
-			rValues.resize(mNumGPs);
+		if (rValues.size() != num_gps)
+			rValues.resize(num_gps);
 
 		// Just to store the rotation matrix for visualization purposes
 		Matrix R(8, 8);
@@ -2205,7 +2196,7 @@ namespace Kratos
 
 		// Gauss Loop.
 
-		for (std::size_t i = 0; i < mNumGPs; i++)
+		for (std::size_t i = 0; i < num_gps; i++)
 		{
 			// save results
 			Matrix & iValue = rValues[i];
@@ -2413,21 +2404,6 @@ namespace Kratos
 
 		OPT_INTERPOLATE_RESULTS_TO_STANDARD_GAUSS_POINTS(rValues);
 		return true;
-	}
-
-	void ShellThickElement3D3N::printMatrix(Matrix& matrixIn, std::string stringIn)
-	{
-		std::cout << "\n" << stringIn << std::endl;
-		for (unsigned i = 0; i < matrixIn.size1(); ++i)
-		{
-			std::cout << "| ";
-			for (unsigned j = 0; j < matrixIn.size2(); ++j)
-			{
-				std::cout << std::fixed << std::setprecision(2) << std::setw(8) << matrixIn(i, j) << " | ";
-			}
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;
 	}
 
     ShellCrossSection::SectionBehaviorType ShellThickElement3D3N::GetSectionBehavior()
