@@ -589,20 +589,6 @@ void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, Process
     }
 }
 
-void ShellThickElement3D4N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
-}
-
-void ShellThickElement3D4N::CalculateRightHandSide(VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
-{
-    Matrix dummy;
-    CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo, true, true);
-}
-
 // =====================================================================================
 //
 // Class ShellThickElement3D4N - Results on Gauss Points

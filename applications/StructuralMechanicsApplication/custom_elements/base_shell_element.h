@@ -121,6 +121,13 @@ public:
 
     void ResetConstitutiveLaw() override;
 
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+	                            ProcessInfo& rCurrentProcessInfo) override;
+
     /**
     * ELEMENTS inherited from this class have to implement next
     * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods

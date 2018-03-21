@@ -136,13 +136,6 @@ namespace Kratos
 
 		void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateRightHandSide(VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
-
 		// Results calculation on integration points
 
 

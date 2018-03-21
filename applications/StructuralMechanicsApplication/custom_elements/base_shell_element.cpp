@@ -255,6 +255,30 @@ void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo
         mSections[i]->FinalizeSolutionStep(props, geom, row(shapeFunctionsValues, i), rCurrentProcessInfo);
 }
 
+void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+	VectorType& rRightHandSideVector,
+	ProcessInfo& rCurrentProcessInfo)
+{
+    // Calculation flags
+    const bool calculate_stiffness_matrix_flag = true;
+    const bool calculate_residual_vector_flag = true;
+
+	CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
+                 calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
+}
+
+void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
+	ProcessInfo& rCurrentProcessInfo)
+{
+    // Calculation flags
+    const bool CalculateStiffnessMatrixFlag = true; // TODO check is this can be false => see solids
+    const bool CalculateResidualVectorFlag = true;
+
+	Matrix dummy;
+	CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo,
+                 calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
+}
+
 // /**
 //  * ELEMENTS inherited from this class have to implement next
 //  * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods

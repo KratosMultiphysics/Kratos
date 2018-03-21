@@ -306,20 +306,6 @@ void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessI
     }
 }
 
-void ShellThinElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
-{
-    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
-}
-
-void ShellThinElement3D3N::CalculateRightHandSide(VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo)
-{
-    Matrix dummy;
-    CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo, true, true);
-}
-
 // =====================================================================================
 //
 // Class ShellThinElement3D3N - Results on Gauss Points

@@ -535,29 +535,6 @@ namespace Kratos
 		}
 	}
 
-	void ShellThinElement3D4N::CalculateLocalSystem
-	(MatrixType& rLeftHandSideMatrix,
-		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo)
-	{
-		CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-			rCurrentProcessInfo, true, true);
-	}
-
-	void ShellThinElement3D4N::CalculateRightHandSide
-	(VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo)
-	{
-		Matrix dummy;
-		CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo, true,
-			true);
-	}
-
-	void ShellThinElement3D4N::CalculateGeometricStiffnessMatrix(MatrixType & rGeometricStiffnessMatrix, ProcessInfo & rCurrentProcessInfo)
-	{
-		// Placeholders for extension into stability analysis
-	}
-
 	// =========================================================================
 	//
 	// Class ShellThinElement3D4N - Results on Gauss Points

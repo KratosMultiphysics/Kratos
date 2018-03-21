@@ -397,20 +397,6 @@ namespace Kratos
 		}// Lumped mass matrix
 	}
 
-	void ShellThickElement3D3N::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-		VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo)
-	{
-		CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
-	}
-
-	void ShellThickElement3D3N::CalculateRightHandSide(VectorType& rRightHandSideVector,
-		ProcessInfo& rCurrentProcessInfo)
-	{
-		Matrix dummy;
-		CalculateAll(dummy, rRightHandSideVector, rCurrentProcessInfo, true, true);
-	}
-
 	// =====================================================================================
 	//
 	// Class ShellThickElement3D3N - Results on Gauss Points

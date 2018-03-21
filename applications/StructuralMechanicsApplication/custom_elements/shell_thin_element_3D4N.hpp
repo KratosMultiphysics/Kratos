@@ -114,7 +114,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 		* cartesian coordinate system.
 		*/
 
-		class JacobianOperator
+		class JacobianOperator // TODO cannot this be taken from the Geometry?
 		{
 		public:
 
@@ -192,16 +192,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N
 
 		void CalculateMassMatrix(MatrixType& rMassMatrix,
 			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateRightHandSide(VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
-
-		void CalculateGeometricStiffnessMatrix(MatrixType& rGeometricStiffnessMatrix,
-			ProcessInfo& rCurrentProcessInfo);
 
 		// Results calculation on integration points
 		void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
