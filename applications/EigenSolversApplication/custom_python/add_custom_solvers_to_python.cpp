@@ -36,7 +36,7 @@ void register_solver(const std::string& name)
 	using Space = SpaceType<typename SolverType::TScalar>;
 
 	using Base = DirectSolver<typename Space::Global, typename Space::Local>;
-	
+
 	class_<EigenDirectSolver<SolverType>, bases<Base>, boost::noncopyable>
 		(name.c_str(), init<>())
 		.def(init<Parameters>())
@@ -51,13 +51,11 @@ void register_eigensystem_solver(const std::string& name = SolverType::Name)
 	using Space = SpaceType<typename SolverType::TScalar>;
 
 	using Base = LinearSolver<typename Space::Global, typename Space::Local>;
-	
+
 	using EigenSolver = EigensystemSolver<SolverType>;
 
 	class_<EigenSolver, bases<Base>, boost::noncopyable>
 		(name.c_str(), init<Parameters>())
-    	.def("Solve", &EigenSolver::Solve)
-    	.def("GetEigenValue", &EigenSolver::GetEigenValue)
 	;
 }
 
@@ -71,7 +69,7 @@ void AddCustomSolversToPython()
 
 	register_solver<SparseLU<double>>("SparseLUSolver");
 	register_solver<SparseLU<complex>>("ComplexSparseLUSolver");
-	
+
 	register_solver<SparseQR<double>>("SparseQRSolver");
 	register_solver<SparseQR<complex>>("ComplexSparseQRSolver");
 
@@ -81,7 +79,7 @@ void AddCustomSolversToPython()
 
 	register_solver<PardisoLDLT<double>>("PardisoLDLTSolver");
 	register_solver<PardisoLDLT<complex>>("ComplexPardisoLDLTSolver");
-	
+
 	register_solver<PardisoLU<double>>("PardisoLUSolver");
 	register_solver<PardisoLU<complex>>("ComplexPardisoLUSolver");
 	#endif // defined USE_EIGEN_MKL

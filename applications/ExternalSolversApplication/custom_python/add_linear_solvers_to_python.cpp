@@ -77,7 +77,6 @@ void  AddLinearSolversToPython()
     class_<FEASTSolverType, FEASTSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >
         ( "FEASTSolver", init<Parameters::Pointer>() )
         .def(init<Parameters::Pointer, TLinearSolverType<std::complex<double>>::Pointer>())
-    	.def("GetEigenValue", &FEASTSolverType::GetEigenValue)
         ;
 #endif
 

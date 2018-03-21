@@ -221,25 +221,6 @@ public:
     {
     }
 
-    /**
-     * This method returns directly the first eigen value obtained
-     * @param rK: The stiffness matrix
-     * @param rM: The mass matrix
-     * @return The first eigenvalue
-     */
-    double GetEigenValue(
-        SparseMatrixType& rK,
-        SparseMatrixType& rM
-        )
-    {
-        DenseVectorType eigen_values;
-        DenseMatrixType eigen_vectors;
-
-        Solve(rK, rM, eigen_values, eigen_vectors);
-
-        return eigen_values[0];
-    }
-
     ///@}
 
 private:

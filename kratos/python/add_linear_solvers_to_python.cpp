@@ -166,19 +166,16 @@ void  AddLinearSolversToPython()
     class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("PowerIterationEigenvalueSolver")
     .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer>())
     .def(init<Parameters, LinearSolverType::Pointer>())
-    .def( "GetEigenValue",&PowerIterationEigenvalueSolverType::GetEigenValue)
     ;
 
     class_<PowerIterationHighestEigenvalueSolverType, PowerIterationHighestEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("PowerIterationHighestEigenvalueSolver")
     .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer>())
     .def(init<Parameters, LinearSolverType::Pointer>())
-    .def( "GetEigenValue",&PowerIterationHighestEigenvalueSolverType::GetEigenValue)
     ;
 
     class_<RayleighQuotientIterationEigenvalueSolverType, RayleighQuotientIterationEigenvalueSolverType::Pointer, bases<LinearSolverType>, boost::noncopyable >("RayleighQuotientIterationEigenvalueSolver")
     .def(init<double, unsigned int, unsigned int, LinearSolverType::Pointer, double>())
     .def(init<Parameters, LinearSolverType::Pointer>())
-    .def( "GetEigenValue",&RayleighQuotientIterationEigenvalueSolverType::GetEigenValue)
     ;
 
     typedef Reorderer<SpaceType,  LocalSpaceType > ReordererType;

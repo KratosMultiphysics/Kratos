@@ -94,7 +94,7 @@ public:
         unsigned int NewRequiredEigenvalueNumber,
         typename TLinearSolverType::Pointer pLinearSolver,
         double ShiftingConvergence = 0.25
-    ): BaseType(NewMaxTolerance, NewMaxIterationsNumber),          
+    ): BaseType(NewMaxTolerance, NewMaxIterationsNumber),
        mRequiredEigenvalueNumber(NewRequiredEigenvalueNumber),
        mpLinearSolver(pLinearSolver),
        mShiftingConvergence(ShiftingConvergence)
@@ -396,25 +396,6 @@ public:
         }
     }
 
-    /**
-     * This method returns directly the first eigen value obtained
-     * @param K: The stiffness matrix
-     * @param M: The mass matrix
-     * @return The first eigenvalue
-     */
-    double GetEigenValue(
-        SparseMatrixType& K,
-        SparseMatrixType& M
-        )
-    {
-        DenseVectorType eigen_values;
-        DenseMatrixType eigen_vectors;
-        
-        Solve(K, M, eigen_values, eigen_vectors);
-        
-        return eigen_values[0];
-    }
-    
     ///@}
     ///@name Access
     ///@{
@@ -583,7 +564,7 @@ inline std::ostream& operator << (std::ostream& OStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_RAYLEIGH_QUOTIENT_ITERATION_EIGENVALUE_SOLVER_H_INCLUDED defined 
+#endif // KRATOS_RAYLEIGH_QUOTIENT_ITERATION_EIGENVALUE_SOLVER_H_INCLUDED defined
 
 
 
