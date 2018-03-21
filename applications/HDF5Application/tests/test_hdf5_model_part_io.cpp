@@ -68,6 +68,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements2, KratosHDF5TestSuite)
     CompareElements(read_model_part.Elements(), write_model_part.Elements());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadElements3, KratosHDF5TestSuite)
+{
+    ModelPart write_model_part("test_write");
+    TestModelPartFactory::CreateModelPart(write_model_part, {}, {});
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
+    model_part_io.WriteNodes(write_model_part.Nodes());
+    model_part_io.WriteElements(write_model_part.Elements());
+    ModelPart read_model_part("test_read");
+    model_part_io.ReadNodes(read_model_part.Nodes());
+    model_part_io.ReadElements(read_model_part.Nodes(), read_model_part.rProperties(), read_model_part.Elements());
+}
+
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions1, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
@@ -98,6 +110,18 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions2, KratosHDF5TestSuite)
     CompareConditions(read_model_part.Conditions(), write_model_part.Conditions());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadConditions3, KratosHDF5TestSuite)
+{
+    ModelPart write_model_part("test_write");
+    TestModelPartFactory::CreateModelPart(write_model_part, {}, {});
+    HDF5::ModelPartIO model_part_io(pGetTestSerialFile(), "/Step");
+    model_part_io.WriteNodes(write_model_part.Nodes());
+    model_part_io.WriteConditions(write_model_part.Conditions());
+    ModelPart read_model_part("test_read");
+    model_part_io.ReadNodes(read_model_part.Nodes());
+    model_part_io.ReadConditions(read_model_part.Nodes(), read_model_part.rProperties(), read_model_part.Conditions());
+}
+
 KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties, KratosHDF5TestSuite)
 {
     ModelPart write_model_part("test_write");
@@ -125,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties, KratosHDF5TestSuite)
             KRATOS_CHECK(r_read_properties[4][LOCAL_AXES_MATRIX](i, j) == r_write_properties[4][LOCAL_AXES_MATRIX](i, j));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadModelPart, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadModelPart1, KratosHDF5TestSuite)
 {
     ModelPart model_part_out;
     TestModelPartFactory::CreateModelPart(model_part_out, {{"Element2D3N"}},
@@ -136,5 +160,6 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_ReadModelPart, KratosHDF5TestSuite)
     model_part_io.ReadModelPart(model_part_in);
     CompareModelParts(model_part_in, model_part_out);
 }
+
 } // namespace Testing
 } // namespace Kratos.

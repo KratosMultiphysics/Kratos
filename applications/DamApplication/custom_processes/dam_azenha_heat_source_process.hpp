@@ -45,7 +45,6 @@ class DamAzenhaHeatFluxProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "activation_energy"                   : 0.0,
                 "gas_constant"                        : 0.0,
@@ -68,7 +67,6 @@ class DamAzenhaHeatFluxProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mActivationEnergy = rParameters["activation_energy"].GetDouble();
         mGasConstant = rParameters["gas_constant"].GetDouble();
@@ -100,12 +98,12 @@ class DamAzenhaHeatFluxProcess : public Process
 
         if (mAging == false)
         {
-            const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+            const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
             Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
             if (nnodes != 0)
             {
-                ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+                ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
                 for (int i = 0; i < nnodes; i++)
@@ -139,13 +137,13 @@ class DamAzenhaHeatFluxProcess : public Process
 
         if (mAging == false)
         {
-            const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+            const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
             Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
             double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
             if (nnodes != 0)
             {
-                ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+                ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
                 for (int i = 0; i < nnodes; i++)
@@ -185,12 +183,12 @@ class DamAzenhaHeatFluxProcess : public Process
     {
         KRATOS_TRY;
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -218,13 +216,13 @@ class DamAzenhaHeatFluxProcess : public Process
     {
         KRATOS_TRY;
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
         double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -277,7 +275,6 @@ class DamAzenhaHeatFluxProcess : public Process
   protected:
     /// Member Variables
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     double mActivationEnergy;
     double mGasConstant;

@@ -183,3 +183,7 @@ class convergence_criterion:
                 Mortar.SetEchoLevel(echo_level)
                 self.mechanical_convergence_criterion = KM.AndCriteria( base_mechanical_convergence_criterion.mechanical_convergence_criterion, Mortar)
                 (self.mechanical_convergence_criterion).SetActualizeRHSFlag(True)
+            else:
+                self.mechanical_convergence_criterion = base_mechanical_convergence_criterion.mechanical_convergence_criterion
+
+
