@@ -201,7 +201,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
+            KratosMultiphysics.Logger.PrintInfo(self.__GetSimulationName(), "Analysis -START- ")
 
     def __ExecuteInitializeSolutionStep(self):
         """ Initialize the timestep and advance in time. Called once per timestep """
@@ -262,7 +262,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.gid_output.ExecuteFinalize()
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
+            KratosMultiphysics.Logger.PrintInfo(self.__GetSimulationName(), "Analysis -END- ")
 
     def GetModelPart(self):
         return self.main_model_part
@@ -270,6 +270,8 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
     def GetSolver(self):
         return self.solver
 
+    def __GetSimulationName(self):
+        return "::[KSM Simulation]:: "
 
 if __name__ == "__main__":
     from sys import argv
