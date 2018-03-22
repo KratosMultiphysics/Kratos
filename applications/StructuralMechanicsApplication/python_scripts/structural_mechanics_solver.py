@@ -32,6 +32,7 @@ class MechanicalSolver(object):
     _create_linear_solver
     _create_builder_and_solver
     _create_mechanical_solution_strategy
+    _create_restart_utility
 
     The mechanical_solution_strategy, builder_and_solver, etc. should alway be retrieved
     using the getter functions get_mechanical_solution_strategy, get_builder_and_solver,
@@ -51,9 +52,11 @@ class MechanicalSolver(object):
             "analysis_type": "non_linear",
             "model_import_settings": {
                 "input_type": "mdpa",
-                "input_filename": "unknown_name",
-                "perform_partitioning": true,
-                "input_file_label": 0
+                "input_filename": "unknown_name"
+            },
+            "restart_settings" : {
+                "load_restart"  : false,
+                "save_restart"  : false
             },
             "computing_model_part_name" : "computing_domain",
             "material_import_settings" :{
@@ -108,13 +111,21 @@ class MechanicalSolver(object):
 
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
-        self.settings.RecursivelyValidateAndAssignDefaults(default_settings)
+        self.settings.ValidateAndAssignDefaults(default_settings)
 
         #TODO: shall obtain the computing_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Construction finished")
 
+        # Set if the analysis is restarted
+        if self.settings["restart_settings"].Has("load_restart"):
+            load_restart = self.settings["restart_settings"]["load_restart"].GetBool()
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = load_restart
+        else:
+            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
+
     def AddVariables(self):
+        # this can safely be called also for restarts, it is internally checked if the variables exist already
         # Add displacements.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -145,6 +156,7 @@ class MechanicalSolver(object):
         return 2
 
     def AddDofs(self):
+        # this can safely be called also for restarts, it is internally checked if the dofs exist already
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,self.main_model_part)
@@ -157,38 +169,45 @@ class MechanicalSolver(object):
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
+        """ Legacy function, use ReadModelPart and PrepareModelPartForSolver instead """
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Importing model part.")
         problem_path = os.getcwd()
         input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+        if self.is_restarted():
+            self.get_restart_utility().LoadRestart()
+        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             # Import model part from mdpa file.
-            KratosMultiphysics.Logger.PrintInfo("ModelpartIO", "\tReading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
             KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
-            KratosMultiphysics.Logger.PrintInfo("ModelpartIO", "\tFinished reading model part from mdpa file.")
-            # Check and prepare computing model part and import constitutive laws.
-            self._execute_after_reading()
-            self._set_and_fill_buffer()
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
-            # Import model part from restart file.
-            problem_path = os.getcwd()
-            restart_path = os.path.join(problem_path, input_filename + "__" + self.settings["model_import_settings"]["input_file_label"].GetString())
-            if(os.path.exists(restart_path+".rest") == False):
-                raise Exception("Restart file not found: " + restart_path + ".rest")
-            KratosMultiphysics.Logger.PrintInfo("Restart", "\tLoading Restart file: ", restart_path + ".rest")
-            serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_NO_TRACE      # binary
-            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
-            # serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
-            serializer = KratosMultiphysics.Serializer(restart_path, serializer_flag)
-            serializer.Load(self.main_model_part.Name, self.main_model_part)
-            self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = True
-            #I use it to rebuild the contact conditions.
-            load_step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1
-            self.main_model_part.ProcessInfo[KratosMultiphysics.LOAD_RESTART] = load_step
-            KratosMultiphysics.Logger.PrintInfo("ModelpartIO", "\tFinished loading model part from restart file.")
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
+            self.PrepareModelPartForSolver()
         else:
             raise Exception("Other model part input options are not yet implemented.")
         KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished importing model part.")
+
+    def ReadModelPart(self):
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part.")
+        problem_path = os.getcwd()
+        input_filename = self.settings["model_import_settings"]["input_filename"].GetString()
+        if self.is_restarted():
+            self.get_restart_utility().LoadRestart()
+        elif(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+            # Import model part from mdpa file.
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")
+            KratosMultiphysics.ModelPartIO(input_filename).ReadModelPart(self.main_model_part)
+            KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "Finished reading model part from mdpa file.")
+        else:
+            raise Exception("Other model part input options are not yet implemented.")
+        KratosMultiphysics.Logger.PrintInfo("ModelPart", self.main_model_part)
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished reading model part.")
+
+    def PrepareModelPartForSolver(self):
+        if not self.is_restarted():
+            # Check and prepare computing model part and import constitutive laws.
+            self._execute_after_reading()
+            self._set_and_fill_buffer()
+        KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "ModelPart prepared for Solver.")
 
     def ExportModelPart(self):
         name_out_file = self.settings["model_import_settings"]["input_filename"].GetString()+".out"
@@ -204,13 +223,15 @@ class MechanicalSolver(object):
             self.Clear()
         mechanical_solution_strategy = self.get_mechanical_solution_strategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False):
+        if not self.is_restarted():
             mechanical_solution_strategy.Initialize()
         else:
             # SetInitializePerformedFlag is not a member of SolvingStrategy but
             # is used by ResidualBasedNewtonRaphsonStrategy.
-            if hasattr(mechanical_solution_strategy, SetInitializePerformedFlag):
+            try:
                 mechanical_solution_strategy.SetInitializePerformedFlag(True)
+            except AttributeError:
+                pass
         self.Check()
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
@@ -224,7 +245,12 @@ class MechanicalSolver(object):
         pass
 
     def SaveRestart(self):
-        pass #one should write the restart file here
+        # Check could be integrated in the utility
+        # It is here intentionally, this way the utility is only created if it is actually needed!
+        if self.settings["restart_settings"].Has("save_restart"):
+            if (self.settings["restart_settings"]["save_restart"].GetBool() == True):
+                # the check if this step is a restart-output step is done internally
+                self.get_restart_utility().SaveRestart()
 
     def Solve(self):
         if self.settings["clear_storage"].GetBool():
@@ -280,6 +306,11 @@ class MechanicalSolver(object):
         if not hasattr(self, '_mechanical_solution_strategy'):
             self._mechanical_solution_strategy = self._create_mechanical_solution_strategy()
         return self._mechanical_solution_strategy
+
+    def get_restart_utility(self):
+        if not hasattr(self, '_restart_utility'):
+            self._restart_utility = self._create_restart_utility()
+        return self._restart_utility
 
     def import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
@@ -354,6 +385,11 @@ class MechanicalSolver(object):
                     raise Exception('Unsupported parameter type.')
                 origin_settings.RemoveValue(name)
 
+    def is_restarted(self):
+        # this function avoids the long call to ProcessInfo and is also safer
+        # in case the detection of a restart is changed later
+        return self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
+
     def print_on_rank_zero(self, *args):
         # This function will be overridden in the trilinos-solvers
         KratosMultiphysics.Logger.PrintInfo(" ".join(map(str,args)))
@@ -386,9 +422,11 @@ class MechanicalSolver(object):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        buffer_size = self.settings["buffer_size"].GetInt()
-        if buffer_size < self.GetMinimumBufferSize():
-            buffer_size = self.GetMinimumBufferSize()
+        required_buffer_size = self.settings["buffer_size"].GetInt()
+        if required_buffer_size < self.GetMinimumBufferSize():
+            required_buffer_size = self.GetMinimumBufferSize()
+        current_buffer_size = self.main_model_part.GetBufferSize()
+        buffer_size = max(current_buffer_size, required_buffer_size)
         self.main_model_part.SetBufferSize(buffer_size)
         # Cycle the buffer. This sets all historical nodal solution step data to
         # the current value and initializes the time stepping in the process info.
@@ -402,7 +440,6 @@ class MechanicalSolver(object):
             time = time + delta_time
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
             self.main_model_part.CloneTimeStep(time)
-        self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def _add_dynamic_variables(self):
         # For being consistent for Serial and Trilinos
@@ -428,7 +465,16 @@ class MechanicalSolver(object):
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_ACCELERATION_Z,self.main_model_part)
 
-    def _create_convergence_criterion(self):
+    def _get_restart_settings(self):
+        restart_settings = self.settings["restart_settings"].Clone()
+        restart_settings.AddValue("input_filename", self.settings["model_import_settings"]["input_filename"])
+        restart_settings.AddValue("echo_level", self.settings["echo_level"])
+        restart_settings.RemoveValue("load_restart")
+        restart_settings.RemoveValue("save_restart")
+
+        return restart_settings
+
+    def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
         conv_params = KratosMultiphysics.Parameters("{}")
         conv_params.AddValue("convergence_criterion",self.settings["convergence_criterion"])
@@ -438,8 +484,12 @@ class MechanicalSolver(object):
         conv_params.AddValue("displacement_absolute_tolerance",self.settings["displacement_absolute_tolerance"])
         conv_params.AddValue("residual_relative_tolerance",self.settings["residual_relative_tolerance"])
         conv_params.AddValue("residual_absolute_tolerance",self.settings["residual_absolute_tolerance"])
+
+        return conv_params
+
+    def _create_convergence_criterion(self):
         import convergence_criteria_factory
-        convergence_criterion = convergence_criteria_factory.convergence_criterion(conv_params)
+        convergence_criterion = convergence_criteria_factory.convergence_criterion(self._get_convergence_criterion_settings())
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
@@ -526,5 +576,9 @@ class MechanicalSolver(object):
                                                      self.settings["reform_dofs_at_each_step"].GetBool(),
                                                      self.settings["move_mesh_flag"].GetBool())
 
-
-
+    def _create_restart_utility(self):
+        """Create the restart utility. Has to be overridden for MPI/trilinos-solvers"""
+        import restart_utility
+        rest_utility = restart_utility.RestartUtility(self.main_model_part,
+                                                      self._get_restart_settings())
+        return rest_utility

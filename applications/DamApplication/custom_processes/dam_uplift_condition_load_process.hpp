@@ -47,7 +47,6 @@ class DamUpliftConditionLoadProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
@@ -74,7 +73,6 @@ class DamUpliftConditionLoadProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
@@ -126,7 +124,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         //Defining necessary variables
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
 
         // Computing the rotation matrix accoding with the introduced points by the user
@@ -150,7 +148,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             double ref_coord = mReferenceCoordinate + mWaterLevel;
 
@@ -229,7 +227,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         //Defining necessary variables
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         boost::numeric::ublas::bounded_matrix<double, 3, 3> RotationMatrix;
 
         // Getting the values of table in case that it exist
@@ -263,7 +261,7 @@ class DamUpliftConditionLoadProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
             double ref_coord = mReferenceCoordinate + mWaterLevel;
 
@@ -397,7 +395,6 @@ class DamUpliftConditionLoadProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     std::string mGravityDirection;
     double mReferenceCoordinate;

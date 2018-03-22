@@ -202,6 +202,8 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
+    using HardeningRule::CalculateHardening;
+    using HardeningRule::CalculateDeltaHardening;
 
     ///@}
     ///@name Private  Access

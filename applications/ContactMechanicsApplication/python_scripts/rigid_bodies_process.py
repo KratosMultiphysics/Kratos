@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import KratosMultiphysics 
+import KratosMultiphysics
 import KratosMultiphysics.PfemApplication as KratosPfem
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 KratosMultiphysics.CheckForPreviousImport()
@@ -17,9 +17,9 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
     def __init__(self, Model, custom_settings ):
 
         KratosMultiphysics.Process.__init__(self)
-        
+
         self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
-    
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -27,14 +27,14 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
             "rigid_bodies"    : []
         }
         """)
- 
+
         ##overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
         self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
-        
+
         #construct rigid body domains
         self.rigid_bodies = []
         bodies_list = self.settings["rigid_bodies"]
@@ -44,7 +44,7 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
             rigid_body_module = __import__(item["python_module"].GetString())
             body = rigid_body_module.CreateRigidBody( self.main_model_part, item )
             self.rigid_bodies.append(body)
-                       
+
     #
     def ExecuteInitialize(self):
 
@@ -73,4 +73,10 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
 
 
     ###
-    
+
+    #
+    @classmethod
+    def GetVariables(self):
+
+        nodal_variables = ['RIGID_WALL']
+        return nodal_variables

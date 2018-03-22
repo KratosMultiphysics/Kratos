@@ -3,13 +3,14 @@
         "problem_name"    : "3D_Shell",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
-        "time_step"       : 1.1,
+        "parallel_type"   : "OpenMP",
+        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
-        "solver_type"                        : "structural_mechanics_static_solver",
+        "solver_type"                        : "static",
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
@@ -115,9 +116,10 @@
         }],
         "constraints" : [],
         "design_variables" : {
-            "design_variables_type"              : "vertex_morphing",
+            "type"                               : "vertex_morphing",
             "optimization_model_part_name"       : "3D_Shell",
             "design_surface_sub_model_part_name" : "design_surface",
+            "domain_size"                        : 3,
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 3.0,

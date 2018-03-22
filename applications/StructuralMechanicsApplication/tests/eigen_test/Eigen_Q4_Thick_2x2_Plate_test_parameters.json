@@ -21,7 +21,7 @@
             "materials_filename": "eigen_test/Eigen_Q4_Thick_2x2_Plate_test_materials.json"
         },
 	"eigensolver_settings":{
-        "solver_type": "FEAST",
+        "solver_type": "feast",
         "print_feast_output": false,
         "perform_stochastic_estimate": false,
         "solve_eigenvalue_problem": true,

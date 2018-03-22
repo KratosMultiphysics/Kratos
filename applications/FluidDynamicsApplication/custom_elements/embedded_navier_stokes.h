@@ -445,6 +445,21 @@ public:
             KRATOS_ERROR << "Calculate method not implemented for the requested variable.";
         }
     }
+    
+    void Calculate(const Variable<double>& rVariable,
+                   double& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
+
+    void Calculate(const Variable<Vector >& rVariable,
+                   Vector& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
+
+    void Calculate(const Variable<Matrix >& rVariable,
+                   Matrix& Output,
+                   const ProcessInfo& rCurrentProcessInfo) override
+    {}
 
     ///@}
     ///@name Access

@@ -931,7 +931,11 @@ void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurren
         }
     }
 
+void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+{
+
 }
+
 //***********************************************************************************
 //***********************************************************************************
 

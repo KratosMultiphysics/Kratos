@@ -27,7 +27,6 @@ class ApplyLoadVectorDamTableProcess(Process):
         if abs(self.value[0])>1.0e-15:
             x_params = Parameters("{}")
             x_params.AddValue("model_part_name",settings["model_part_name"])
-            x_params.AddValue("mesh_id",settings["mesh_id"])
             x_params.AddEmptyValue("value").SetDouble(self.value[0])
             x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
             if settings["table"].GetInt() == 0:
@@ -39,7 +38,6 @@ class ApplyLoadVectorDamTableProcess(Process):
         if abs(self.value[1])>1.0e-15:
             y_params = Parameters("{}")
             y_params.AddValue("model_part_name",settings["model_part_name"])
-            y_params.AddValue("mesh_id",settings["mesh_id"])
             y_params.AddEmptyValue("value").SetDouble(self.value[1])
             y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
             if settings["table"].GetInt() == 0:
@@ -51,7 +49,6 @@ class ApplyLoadVectorDamTableProcess(Process):
         if abs(self.value[2])>1.0e-15:
             z_params = Parameters("{}")
             z_params.AddValue("model_part_name",settings["model_part_name"])
-            z_params.AddValue("mesh_id",settings["mesh_id"])
             z_params.AddEmptyValue("value").SetDouble(self.value[2])
             z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
             if settings["table"].GetInt() == 0:

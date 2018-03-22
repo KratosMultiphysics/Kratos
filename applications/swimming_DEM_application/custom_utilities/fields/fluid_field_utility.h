@@ -37,20 +37,20 @@ virtual void ImposeVelocityOnNodes(ModelPart& r_model_part, const Variable<array
 }
 
 
-virtual std::string Info() const
+virtual std::string Info() const override
 {
     return "";
 }
 
 /// Print information about this object.
 
-virtual void PrintInfo(std::ostream& rOStream) const
+virtual void PrintInfo(std::ostream& rOStream) const override
 {
 }
 
 /// Print object's data.
 
-virtual void PrintData(std::ostream& rOStream) const
+virtual void PrintData(std::ostream& rOStream) const override
 {
 }
 

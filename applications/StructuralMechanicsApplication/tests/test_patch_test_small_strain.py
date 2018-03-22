@@ -27,7 +27,6 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             xvec[1] = node.Y0
             xvec[2] = node.Z0
             
-            u = KratosMultiphysics.Vector()
             u = A*xvec
             u += b
             
@@ -47,7 +46,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             cl = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
         else:
             cl = StructuralMechanicsApplication.LinearElastic3DLaw()
-        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl) 
+        mp.GetProperties()[1].SetValue(KratosMultiphysics.CONSTITUTIVE_LAW,cl)
             
     def _define_movement(self,dim):
         if(dim == 2):
@@ -56,7 +55,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             A = KratosMultiphysics.Matrix(3,3)
             A[0,0] = 1.0e-10;  A[0,1] = 2.0e-10; A[0,2] = 0.0
             A[1,0] = 0.5e-10;  A[1,1] = 0.7e-10; A[1,2] = 0.0
-            A[2,1] = 0.0;  A[2,1] = 0.0; A[2,2] = 0.0
+            A[2,0] = 0.0;      A[2,1] = 0.0;     A[2,2] = 0.0
                     
             b = KratosMultiphysics.Vector(3)
             b[0] = 0.5e-10
@@ -69,7 +68,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             A = KratosMultiphysics.Matrix(3,3)
             A[0,0] = 1.0e-10;   A[0,1] = 2.0e-10; A[0,2] = 0.0
             A[1,0] = 0.5e-10;   A[1,1] = 0.7e-10; A[1,2] = 0.1e-10
-            A[2,1] = -0.2e-10;  A[2,1] = 0.0;     A[2,2] = -0.3e-10
+            A[2,0] = -0.2e-10;  A[2,1] = 0.0;     A[2,2] = -0.3e-10
                     
             b = KratosMultiphysics.Vector(3)
             b[0] = 0.5e-10
@@ -122,12 +121,11 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         
         ##check that the results are exact on the nodes
         for node in mp.Nodes:
-            xvec = KratosMultiphysics.Vector(len(b))
+            xvec = KratosMultiphysics.Vector(3)
             xvec[0] = node.X0
             xvec[1] = node.Y0
             xvec[2] = node.Z0
             
-            u = KratosMultiphysics.Vector(2)
             u = A*xvec
             u += b            
             

@@ -90,6 +90,9 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             time_integration_method = KratosSolid.NewmarkMethod()
             time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
             time_integration_method.SetParameters(self.process_info)
+            angular_time_integration_method = KratosSolid.BossakMethod() #shells
+            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
+            angular_time_integration_method.SetParameters(self.process_info)
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementNewmarkScheme()
         elif(integration_method == "Bossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
@@ -98,6 +101,9 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             time_integration_method = KratosSolid.BossakMethod()
             time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
             time_integration_method.SetParameters(self.process_info)
+            angular_time_integration_method = KratosSolid.BossakMethod() #shells
+            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
+            angular_time_integration_method.SetParameters(self.process_info)
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementBossakScheme()
         elif(integration_method == "Simo"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
@@ -106,6 +112,9 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
             time_integration_method = KratosSolid.SimoMethod()
             time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
             time_integration_method.SetParameters(self.process_info)
+            angular_time_integration_method = KratosSolid.SimoMethod()  #shells
+            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
+            angular_time_integration_method.SetParameters(self.process_info)
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementSimoScheme()
         elif(integration_method == "RotationNewmark"):
             #dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble() # 0,1
