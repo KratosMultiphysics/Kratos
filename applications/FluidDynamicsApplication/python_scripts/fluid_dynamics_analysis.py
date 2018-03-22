@@ -143,6 +143,10 @@ class FluidDynamicsAnalysis(object):
             self.load_restart = False
             self.save_restart = False
 
+    def _TimeBufferIsInitialized(self):
+        # We always have one extra old step (step 0, read from input)
+        return self.step + 1 >= self.solver.GetMinimumBufferSize()
+
     def RunMainTemporalLoop(self):
         '''The main solution loop.'''
         while self.time <= self.end_time:
@@ -163,22 +167,25 @@ class FluidDynamicsAnalysis(object):
             self.FinalizeSolutionStep()
 
     def InitializeSolutionStep(self):
-        
+
         for process in self.simulation_processes:
             process.ExecuteInitializeSolutionStep()
 
         if self.have_output:
             self.output.ExecuteInitializeSolutionStep()
-        
-        self.solver.InitializeSolutionStep()
+
+        if self._TimeBufferIsInitialized():
+            self.solver.InitializeSolutionStep()
 
     def SolveSingleStep(self):
-        self.solver.Solve()
+        if self._TimeBufferIsInitialized():
+            self.solver.SolveSingleStep()
 
     def FinalizeSolutionStep(self):
 
-        self.solver.FinalizeSolutionStep()
-        
+        if self._TimeBufferIsInitialized():
+            self.solver.FinalizeSolutionStep()
+
         # shouldn't this go at the end of the iteration???
         for process in self.simulation_processes:
             process.ExecuteFinalizeSolutionStep()
@@ -192,7 +199,7 @@ class FluidDynamicsAnalysis(object):
                 process.ExecuteBeforeOutputStep()
 
             self.output.PrintOutput()
-    
+
             for process in self.simulation_processes:
                 process.ExecuteAfterOutputStep()
 
