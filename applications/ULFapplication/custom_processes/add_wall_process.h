@@ -130,7 +130,7 @@ public:
 		in->FastGetSolutionStepValue(NODAL_H)=av_mesh_size;
 		in->SetId(wall_node_id);
 		wall_node_id++;
-		//ADDING ALL THE SECOND MOULD WALL NODES TO THE MODEL PART
+		//ADDING ALL THE SECOND MOLD WALL NODES TO THE MODEL PART
 		fluid_model_part.AddNode(*(in.base()),0);
 	    
 		
