@@ -30,7 +30,6 @@
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
-#include "includes/key_hash.h"
 
 
 namespace Kratos
@@ -174,9 +173,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    
     ModelPart& mrModelPart;
-    std::unordered_map<std::pair<int, int>, int, KeyHasherRange<std::pair<int, int>>, KeyComparorRange<std::pair<int, int>> > mNodesHash;
-
+    std::map<std::pair<int, int>, int> mNodesMap;
+    //std::unordered_map<std::pair<int, int>, int, KeyHasherRange<std::pair<int, int>>, KeyComparorRange<std::pair<int, int>> > mNodesMap;
 
 
     ///@}
