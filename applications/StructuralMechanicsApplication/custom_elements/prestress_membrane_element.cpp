@@ -930,11 +930,8 @@ void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurren
             ComputeBaseVectors(integration_points);
         }
     }
-
-void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-{
-
 }
+
 
 //***********************************************************************************
 //***********************************************************************************
