@@ -18,9 +18,9 @@ class Field:
     def __init__(self, identifier):
         self.identifier = identifier
         if identifier == 'ethier':
-            self.characteristic_length = 8
-        else:
             self.characteristic_length = 4
+        else:
+            self.characteristic_length = 2
 
 class Mesh:
     def __init__(self, is_regular, tag):

@@ -993,7 +993,7 @@ class Algorithm(object):
             f.flush()
 
         if self.drag_file_output_list:
-            Say('Drag output list: 'self.drag_file_output_list)
+            Say('Drag output list:', self.drag_file_output_list)
 
     def SetPointGraphPrinter(self):
         pass
