@@ -26,12 +26,12 @@ FastTransferBetweenModelPartsProcess::FastTransferBetweenModelPartsProcess(
     ModelPart& rDestinationModelPart,
     ModelPart& rOriginModelPart,
     const std::string EntityString,
-    const std::string FlagName
+    const Flags Flag
     ) : Process(),
         mrDestinationModelPart(rDestinationModelPart),
         mrOriginModelPart(rOriginModelPart),
         mEntity(ConvertEntity(EntityString)),
-        mFlagName(FlagName)
+        mFlag(Flag)
 {
     KRATOS_TRY
 
@@ -54,10 +54,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
     KRATOS_TRY;
 
     // In case of not flag defined we transfer all the elements
-    if (mFlagName == "" || !KratosComponents<Flags>::Has(mFlagName)) {
-
-        KRATOS_WARNING_IF("FastTransferBetweenModelPartsProcess", mFlagName != "") << "WARNING:: " << mFlagName << " is not available as flag" << std::endl;
-
+    if (mFlag == Flags()) {
         const SizeType num_nodes = mrOriginModelPart.Nodes().size();
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS))
@@ -73,8 +70,6 @@ void FastTransferBetweenModelPartsProcess::Execute()
         if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS))
             mrDestinationModelPart.AddConditions(mrOriginModelPart.ConditionsBegin(),mrOriginModelPart.ConditionsEnd());
     } else {
-        const Flags this_flag = KratosComponents<Flags>::Get(mFlagName);
-
         NodesArrayType vector_nodes;
         ElementsArrayType vector_elements;
         ConditionsArrayType vector_conditions;
@@ -98,7 +93,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
                 #pragma omp for
                 for(int i = 0; i < num_nodes; ++i) {
                     auto it_node = mrOriginModelPart.NodesBegin() + i;
-                    if (it_node->Is(this_flag)) {
+                    if (it_node->Is(mFlag)) {
                         (nodes_buffer[id]).insert((nodes_buffer[id]).begin(), *(it_node.base()));
                     }
                 }
@@ -108,7 +103,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
                 #pragma omp for
                 for(int i = 0; i < num_elements; ++i) {
                     auto it_elem = mrOriginModelPart.ElementsBegin() + i;
-                    if (it_elem->Is(this_flag)) {
+                    if (it_elem->Is(mFlag)) {
                         (elements_buffer[id]).insert((elements_buffer[id]).begin(), *(it_elem.base()));
                     }
                 }
@@ -118,7 +113,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
                 #pragma omp for
                 for(int i = 0; i < num_conditions; ++i) {
                     auto it_cond = mrOriginModelPart.ConditionsBegin() + i;
-                    if (it_cond->Is(this_flag)) {
+                    if (it_cond->Is(mFlag)) {
                         (conditions_buffer[id]).insert((conditions_buffer[id]).begin(), *(it_cond.base()));
                     }
                 }

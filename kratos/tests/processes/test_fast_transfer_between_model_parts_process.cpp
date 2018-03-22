@@ -148,7 +148,7 @@ namespace Kratos
             p_cond_1->Set(MASTER, true);
                          
             // This will copy all
-            FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(destination_model_part, origin_model_part, "All", "MASTER");
+            FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(destination_model_part, origin_model_part, "All", MASTER);
             process.Execute();
 
             std::size_t count = 0;

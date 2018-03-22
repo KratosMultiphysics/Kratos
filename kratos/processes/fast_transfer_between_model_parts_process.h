@@ -100,7 +100,7 @@ public:
         ModelPart& rDestinationModelPart,
         ModelPart& rOriginModelPart,
         const std::string EntityString = "All",
-        const std::string FlagName = ""
+        const Flags Flag = Flags()
         );
 
     /// Destructor.
@@ -199,7 +199,7 @@ private:
     
     const EntityTransfered mEntity;    /// The entity to transfer
 
-    const std::string mFlagName;       /// A flag in order to tranfer only components with that flag
+    const Flags mFlag;                 /// A flag in order to tranfer only components with that flag
     
     ///@}
     ///@name Private Operators
