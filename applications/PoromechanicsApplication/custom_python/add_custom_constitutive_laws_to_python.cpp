@@ -6,10 +6,9 @@
 //
 
 // System includes
-#include <boost/python.hpp>
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define_python.h"
 #include "includes/constitutive_law.h"
 
 //Application includes
@@ -37,11 +36,13 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomConstitutiveLawsToPython()
+void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {        
-    class_< BilinearCohesive3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "BilinearCohesive3DLaw",init<>() );
+    class_< BilinearCohesive3DLaw, BilinearCohesive3DLaw::Pointer, ConstitutiveLaw >(m, "BilinearCohesive3DLaw")
+        .def( init<>() );
+    //TODO: seguir
     class_< BilinearCohesive2DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "BilinearCohesive2DLaw",init<>() );
     
     class_< SimoJuLocalDamage3DLaw, bases< ConstitutiveLaw >, boost::noncopyable >( "SimoJuLocalDamage3DLaw",init<>() );

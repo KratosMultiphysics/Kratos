@@ -2,6 +2,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosPoromechanicsApplication ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #dependecies on other applications
@@ -69,9 +72,7 @@ if(${USE_PORO_MPI} MATCHES ON)
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.cpp
     )
     
-    ## define library Kratos which defines the basic python interface
-    add_library(KratosPoromechanicsApplication SHARED ${KRATOS_POROMECHANICS_APPLICATION_SOURCES})
-    target_link_libraries(KratosPoromechanicsApplication KratosCore KratosTrilinosApplication KratosSolidMechanicsApplication)
+    #target_link_libraries(KratosPoromechanicsApplication KratosCore KratosTrilinosApplication KratosSolidMechanicsApplication)
 
 else()
 
@@ -131,11 +132,13 @@ else()
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.cpp
     )
 
-    ## define library Kratos which defines the basic python interface
-    add_library(KratosPoromechanicsApplication SHARED ${KRATOS_POROMECHANICS_APPLICATION_SOURCES})
-    target_link_libraries(KratosPoromechanicsApplication KratosCore KratosSolidMechanicsApplication)
+    #target_link_libraries(KratosPoromechanicsApplication KratosCore KratosSolidMechanicsApplication)
 
 endif()
+
+## define library Kratos which defines the basic python interface
+pybind11_add_module(KratosPoromechanicsApplication MODULE ${KRATOS_POROMECHANICS_APPLICATION_SOURCES})
+target_link_libraries(KratosPoromechanicsApplication PRIVATE KratosCore)
 
 set_target_properties(KratosPoromechanicsApplication PROPERTIES PREFIX "")
 set_target_properties(KratosPoromechanicsApplication PROPERTIES COMPILE_DEFINITIONS "POROMECHANICS_APPLICATION=EXPORT,API")
