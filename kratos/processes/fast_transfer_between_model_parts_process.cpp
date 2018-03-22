@@ -116,7 +116,7 @@ void FastTransferBetweenModelPartsProcess::Execute()
 
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS)) {
                 #pragma omp for
-                for(int i = 0; i < num_nodes; ++i) {
+                for(int i = 0; i < num_conditions; ++i) {
                     auto it_cond = mrOriginModelPart.ConditionsBegin() + i;
                     if (it_cond->Is(this_flag)) {
                         (conditions_buffer[id]).insert((conditions_buffer[id]).begin(), *(it_cond.base()));
