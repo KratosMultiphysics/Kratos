@@ -383,6 +383,7 @@ typedef array_1d<double,6> Vector6;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D2N;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement3D3N;
    const LargeDisplacementBeamEMCElement    mLargeDisplacementBeamEMCElement3D2N;
+   const LargeDisplacementBeamEMCElement    mLargeDisplacementBeamEMCElement3D3N;
    const LargeDisplacementBeamSEMCElement   mLargeDisplacementBeamSEMCElement3D2N;
    const GeometricallyExactRodElement       mGeometricallyExactRodElement3D2N;
    const LargeDisplacementBeamElement       mLargeDisplacementBeamElement2D2N;

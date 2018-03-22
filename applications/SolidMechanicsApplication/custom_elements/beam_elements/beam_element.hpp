@@ -133,7 +133,10 @@ protected:
 
         //integration point
         unsigned int PointNumber;
- 
+
+        //delta time
+        double DeltaTime;
+      
         //element length
         double  Length;
         double  detJ;           
@@ -225,6 +228,7 @@ protected:
 	  Length = 0;  
 	  detJ  = 1;
 	  Alpha = 1;
+          DeltaTime = 0;
 
 	  //vectors
 	  StrainVector.resize(voigt_size,false);
