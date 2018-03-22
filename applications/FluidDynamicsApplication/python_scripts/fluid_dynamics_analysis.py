@@ -179,7 +179,7 @@ class FluidDynamicsAnalysis(object):
 
     def SolveSingleStep(self):
         if self._TimeBufferIsInitialized():
-            self.solver.SolveSingleStep()
+            self.solver.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
 
