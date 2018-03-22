@@ -18,8 +18,6 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
-
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -33,7 +31,13 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         self.echo_level        = 1
-        self.dimension         = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
+
+
+    #
+    def ExecuteInitialize(self):
+
+        self.main_model_part = Model[custom_settings["model_part_name"].GetString()]
+        self.dimension       = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         #construct rigid body domains
         self.rigid_bodies = []
@@ -44,9 +48,6 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
             rigid_body_module = __import__(item["python_module"].GetString())
             body = rigid_body_module.CreateRigidBody( self.main_model_part, item )
             self.rigid_bodies.append(body)
-
-    #
-    def ExecuteInitialize(self):
 
         # initialize rigid body domains
         print("::[RigidBodies_Process]:: Initialize Domains ")
