@@ -26,7 +26,36 @@ namespace Kratos
 {
 /// Default constructor
 NestedRefinementUtility::NestedRefinementUtility(ModelPart& rModelPart) :
-    mrModelPart(rModelPart) {}
+    mrModelPart(rModelPart) 
+{
+    // Initialize the member variables storing the Id
+    // Get the last node id
+    const int nnodes = mrModelPart.Nodes().size();
+    for (int i = 0; i < nnodes; i++)
+    {
+        ModelPart::NodesContainerType::iterator inode = mrModelPart.NodesBegin() + i;
+        if (inode->Id() > mLastNodeId)
+            mLastNodeId = inode->Id();
+    }
+
+    // Get the elements id
+    const int n_elements = mrModelPart.Elements().size();
+    for (int i = 0; i < n_elements; i++)
+    {
+        ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
+        if (ielement->Id() > mLastElemId)
+            mLastElemId = ielement->Id();
+    }
+
+    // Get the conditions id
+    const int n_conditions = mrModelPart.Conditions().size();
+    for (int i = 0; i < n_conditions; i++)
+    {
+        ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
+        if (icondition->Id() > mLastCondId)
+            mLastCondId = icondition->Id();
+    }
+}
 
 /// Destructor
 NestedRefinementUtility::~NestedRefinementUtility() {}
@@ -54,14 +83,6 @@ void NestedRefinementUtility::Refine()
     std::vector<int> elements_id;
     std::vector<int> conditions_id;
 
-    // Get the nodes id
-    const int nnodes = mrModelPart.Nodes().size();
-    for (int i = 0; i < nnodes; i++)
-    {
-        ModelPart::NodesContainerType::iterator inode = mrModelPart.NodesBegin() + i;
-        if (inode->Id() > mLastNodeId)
-            mLastNodeId = inode->Id();
-    }
 
     // Get the elements id
     const int n_elements = mrModelPart.Elements().size();
@@ -69,8 +90,6 @@ void NestedRefinementUtility::Refine()
     {
         ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
         elements_id.push_back(ielement->Id());
-        if (ielement->Id() > mLastElemId)
-            mLastElemId = ielement->Id();
     }
 
     // Get the conditions id
@@ -79,8 +98,6 @@ void NestedRefinementUtility::Refine()
     {
         ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
         conditions_id.push_back(icondition->Id());
-        if (icondition->Id() > mLastCondId)
-            mLastCondId = icondition->Id();
     }
 
     // Loop the origin elements. Get the middle node on each edge and create the nodes
@@ -88,14 +105,14 @@ void NestedRefinementUtility::Refine()
     {
         // Get the element
         Element::Pointer p_element = mrModelPart.Elements()(id);
-        // Initialize the vector containing the middle nodes Id
+        // Initialize the vector containing the middle nodes
         array_1d<Node<3>::Pointer, 3> p_middle_nodes;
 
     }
 
 }
 
-/// Get the middle node on an edge
+/// Get the middle node on an edge defined by two nodes
 Node<3>::Pointer NestedRefinementUtility::GetNodeBetween(Node<3>::Pointer node_a, Node<3>::Pointer node_b)
 {
     // Initialize the output
