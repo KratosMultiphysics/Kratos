@@ -177,6 +177,9 @@ private:
     ModelPart& mrModelPart;
     std::map<std::pair<int, int>, int> mNodesMap;
     //std::unordered_map<std::pair<int, int>, int, KeyHasherRange<std::pair<int, int>>, KeyComparorRange<std::pair<int, int>> > mNodesMap;
+    unsigned int mLastNodeId;
+    unsigned int mLastElemId;
+    unsigned int mLastCondId;
 
 
     ///@}

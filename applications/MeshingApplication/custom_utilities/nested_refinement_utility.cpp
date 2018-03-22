@@ -53,17 +53,14 @@ void NestedRefinementUtility::Refine()
     // Initialize the entities Id lists
     std::vector<int> elements_id;
     std::vector<int> conditions_id;
-    unsigned int max_node_id;
-    unsigned int max_elem_id;
-    unsigned int max_cond_id;
 
     // Get the nodes id
     const int nnodes = mrModelPart.Nodes().size();
     for (int i = 0; i < nnodes; i++)
     {
         ModelPart::NodesContainerType::iterator inode = mrModelPart.NodesBegin() + i;
-        if (inode->Id() > max_node_id)
-            max_node_id = inode->Id();
+        if (inode->Id() > mLastNodeId)
+            mLastNodeId = inode->Id();
     }
 
     // Get the elements id
@@ -72,8 +69,8 @@ void NestedRefinementUtility::Refine()
     {
         ModelPart::ElementsContainerType::iterator ielement = mrModelPart.ElementsBegin() + i;
         elements_id.push_back(ielement->Id());
-        if (ielement->Id() > max_elem_id)
-            max_elem_id = ielement->Id();
+        if (ielement->Id() > mLastElemId)
+            mLastElemId = ielement->Id();
     }
 
     // Get the conditions id
@@ -82,8 +79,8 @@ void NestedRefinementUtility::Refine()
     {
         ModelPart::ConditionsContainerType::iterator icondition = mrModelPart.ConditionsBegin() + i;
         conditions_id.push_back(icondition->Id());
-        if (icondition->Id() > max_cond_id)
-            max_elem_id = icondition->Id();
+        if (icondition->Id() > mLastCondId)
+            mLastCondId = icondition->Id();
     }
 
     // Loop the origin elements. Get the middle node on each edge and create the nodes
@@ -103,21 +100,30 @@ Node<3>::Pointer NestedRefinementUtility::GetNodeBetween(Node<3>::Pointer node_a
 {
     // Initialize the output
     Node<3>::Pointer middle_node;
-
-    // Get the middle node hash
+    
+    // Get the middle node key
     std::pair<int, int> node_key;
     node_key = std::minmax(node_a->Id(), node_b->Id());
 
     // Check if the node exist
-    // auto search = mNodesHash.find(node_key);
-    // if (search != mNodesHash.end() )
-    // {
-    //     middle_node = mrModelPart.Nodes()(search->second);
-    // }
-    // else
-    // {
-    //     //
-    // }
+    auto search = mNodesMap.find(node_key);
+    if (search != mNodesMap.end() )
+    {
+        middle_node = mrModelPart.Nodes()(search->second);
+    }
+    else
+    {
+        // Create the new node
+        double new_x = node_a->X() - node_b->X();
+        double new_y = node_a->Y() - node_b->Y();
+        double new_z = node_a->Z() - node_b->Z();
+        middle_node = mrModelPart.CreateNewNode(mLastNodeId++, new_x, new_y, new_z);
+
+        // Store the node in the map
+        //std::pair< std::pair<int, int>, int > node_map = (node_key, middle_node->Id());
+        mNodesMap.insert( std::pair< std::pair<int, int>, int > (node_key, middle_node->Id()) );
+    }
+
     return middle_node;
 }
 
