@@ -51,10 +51,12 @@ namespace Kratos
     /// Default constructor.
     PrintOutputMeshProcess(ModelPart& rModelPart,
 			   ModelerUtilities::MeshingParameters& rRemeshingParameters,
+			   std::string FileName,
 			   int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
     {
+      mFileName  = FileName;
       mEchoLevel = EchoLevel;
     }
 
@@ -85,7 +87,7 @@ namespace Kratos
       KRATOS_TRY
 
       if( mEchoLevel > 0 ){
-	std::cout<<" [ PRINT OUTPUT FROM MESHER: "<<std::endl;
+	 std::cout<<" [ PRINT IN/OUT MESHER: ("<<mFileName<<") "<<std::endl;
 	//std::cout<<"   Nodes before erasing : "<<mrModelPart.Nodes().size()<<std::endl;
       }
 
@@ -93,7 +95,7 @@ namespace Kratos
       
       PrintMesh();
       
-      std::cout<<"   PRINT OUTPUT FROM MESHER ]; "<<std::endl;	
+      std::cout<<"   PRINT IN/OUT MESHER ]; "<<std::endl;	
       
 
       KRATOS_CATCH(" ")
@@ -189,6 +191,8 @@ namespace Kratos
  
     ModelerUtilities::MeshingParameters& mrRemesh;
 
+    std::string mFileName;
+     
     int mEchoLevel;
 
     ///@}
@@ -206,7 +210,9 @@ namespace Kratos
       
       std::string FileName;
       FileName += mrModelPart.Name();
-      FileName += "_points_output_";
+      FileName += "_points_";
+      FileName += mFileName;
+      FileName += "_";
       FileName += std::to_string(step);
       FileName += ".txt";
       
@@ -214,18 +220,25 @@ namespace Kratos
 
       File.open(FileName);
 	
-      double* OutPointList   = mrRemesh.OutMesh.GetPointList();
-      int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
-
+      double* PointList;
+      int NumberOfPoints;
+      if( mFileName == "input" ){
+	  PointList = mrRemesh.InMesh.GetPointList();
+	  NumberOfPoints = mrRemesh.InMesh.GetNumberOfPoints();
+      }
+      else{
+	  PointList = mrRemesh.OutMesh.GetPointList();
+	  NumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
+      }
       
       unsigned int base = 0;
-      for(unsigned int pn=0; pn<OutNumberOfPoints; pn++)
+      for(unsigned int pn=0; pn<NumberOfPoints; pn++)
 	{
 	  std::string Point;
 	  for(unsigned int i=0; i<dimension; i++)
 	    {	      
 	      Point += " ";
-	      Point += std::to_string(OutPointList[base]);
+	      Point += std::to_string(PointList[base]);
 	      base++;
 	    }
 
@@ -248,7 +261,9 @@ namespace Kratos
 
       std::string FileName;
       FileName += mrModelPart.Name();
-      FileName += "_mesh_output_";
+      FileName += "_mesh_";
+      FileName += mFileName;
+      FileName += "_";
       FileName += std::to_string(step);
       FileName += ".msh";
       
@@ -283,21 +298,29 @@ namespace Kratos
       File << "\n";
       File << "coordinates  \n";
       File << "\n";
-      
-      double* OutPointList   = mrRemesh.OutMesh.GetPointList();
-      int& OutNumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
 
+      double* PointList;
+      int NumberOfPoints;
+      if( mFileName == "input" ){
+	  PointList = mrRemesh.InMesh.GetPointList();
+	  NumberOfPoints = mrRemesh.InMesh.GetNumberOfPoints();
+      }
+      else{
+	  PointList = mrRemesh.OutMesh.GetPointList();
+	  NumberOfPoints = mrRemesh.OutMesh.GetNumberOfPoints();
+      }
+      
       const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
       
       unsigned int base = 0;
-      for(unsigned int pn=0; pn<OutNumberOfPoints; pn++)
+      for(unsigned int pn=0; pn<NumberOfPoints; pn++)
 	{
 	  std::string Point(std::to_string( pn+1 ));
 	  
 	  for(unsigned int i=0; i<dimension; i++)
 	    {	      
 	      Point += " ";
-	      Point += std::to_string(OutPointList[base]);
+	      Point += std::to_string(PointList[base]);
 	      base++;
 	    }
 
@@ -323,9 +346,18 @@ namespace Kratos
       File << "elements  \n";
       File << "\n";
       
-      int* OutElementList = mrRemesh.OutMesh.GetElementList();
-      int& OutNumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
-
+      int* ElementList;
+      int NumberOfElements;
+      if( mFileName == "input" ){
+	  ElementList = mrRemesh.InMesh.GetElementList();
+	  NumberOfElements = mrRemesh.InMesh.GetNumberOfElements();
+      }
+      else{
+	  ElementList = mrRemesh.OutMesh.GetElementList();
+	  NumberOfElements = mrRemesh.OutMesh.GetNumberOfElements();
+      }
+      
+      
       const int& dimension = mrModelPart.GetProcessInfo()[SPACE_DIMENSION];
 
       int nds = 3; //number of nodes of a triangle
@@ -333,14 +365,14 @@ namespace Kratos
 	nds = 4;
 
       
-      for(unsigned int el=0; el<OutNumberOfElements; el++)
+      for(unsigned int el=0; el<NumberOfElements; el++)
 	{
 	  std::string Element(std::to_string( el+1 ));
 	  
 	  for(unsigned int pn=0; pn<nds; pn++)
 	    {
 	      Element += " ";
-	      Element += std::to_string(OutElementList[el*nds+pn]);
+	      Element += std::to_string(ElementList[el*nds+pn]);
 	    }
 
 	  Element += " \n";

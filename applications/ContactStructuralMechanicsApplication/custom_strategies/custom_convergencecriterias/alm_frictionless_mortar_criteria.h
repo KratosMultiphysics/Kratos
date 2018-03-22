@@ -45,7 +45,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Custom convergence criteria for the mortar condition 
+/**  
+ * @class ALMFrictionlessMortarConvergenceCriteria 
+ * @ingroup ContactStructuralMechanicsApplication 
+ * @brief Custom convergence criteria for the mortar condition for frictionless case with components
+ * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace, class TDenseSpace>
 class ALMFrictionlessMortarConvergenceCriteria 
@@ -110,7 +114,30 @@ public:
     ///@{
     
     /**
-     * Compute relative and absolute error.
+     * @brief Criterias that need to be called before getting the solution
+     * @param rModelPart Reference to the ModelPart containing the contact problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
+    
+    bool PreCriteria(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+        ) override
+    {        
+        BaseType::PreCriteria(rModelPart, rDofSet, A, Dx, b);
+        
+        return true;
+    }
+    
+    /**
+     * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -138,74 +165,53 @@ public:
         
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
-        #pragma omp parallel for 
+        #pragma omp parallel for reduction(+:is_converged)
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) 
         {
             auto it_node = nodes_array.begin() + i;
             
             const double epsilon = it_node->GetValue(INITIAL_PENALTY);
             
-            // Check if the node is slave
-            bool node_is_slave = true;
-            if (it_node->IsDefined(SLAVE))
-                node_is_slave = it_node->Is(SLAVE);
-            
-            if (node_is_slave == true)
-            {
-                const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
-                    
-                it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
+            const double augmented_normal_pressure = scale_factor * it_node->FastGetSolutionStepValue(NORMAL_CONTACT_STRESS) + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);     
+                
+            it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
-                if (augmented_normal_pressure < 0.0) // NOTE: This could be conflictive (< or <=)
-                {
-                    if (it_node->Is(ACTIVE) == false )
-                    {
-                        it_node->Set(ACTIVE, true);
-                        #pragma omp atomic
-                        is_converged += 1;
-                    }
+            if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
+                if (it_node->Is(ACTIVE) == false ) {
+                    it_node->Set(ACTIVE, true);
+                    is_converged += 1;
                 }
-                else
-                {
-                    if (it_node->Is(ACTIVE) == true )
-                    {
-                        it_node->Set(ACTIVE, false);
-                        #pragma omp atomic
-                        is_converged += 1;
-                    }
+            } else {
+                if (it_node->Is(ACTIVE) == true ) {
+                    it_node->Set(ACTIVE, false);
+                    is_converged += 1;
                 }
             }
         }
         
-        if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
-        {
-            if (mpTable != nullptr)
-            {
+        // We save to the process info if the active set has converged
+        const bool active_set_converged = (is_converged == 0 ? true : false);
+        rModelPart.GetProcessInfo()[ACTIVE_SET_CONVERGED] = active_set_converged;
+        
+        if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {
+            if (mpTable != nullptr) {
                 auto& table = mpTable->GetTable();
-                if (is_converged == 0)
-                {
+                if (active_set_converged) {
                     if (mPrintingOutput == false)
                         table << BOLDFONT(FGRN("       Achieved"));
                     else
                         table << "Achieved";
-                }
-                else
-                {
+                } else {
                     if (mPrintingOutput == false)
                         table << BOLDFONT(FRED("   Not achieved"));
                     else
                         table << "Not achieved";
                 }
-            }
-            else
-            {
-                if (is_converged == 0)
-                {
+            } else {
+                if (active_set_converged) {
                     if (mPrintingOutput == false)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FGRN("achieved")) << std::endl;
-                }
-                else
-                {
+                } else {
                     if (mPrintingOutput == false)
                         std::cout << BOLDFONT("\tActive set") << " convergence is " << BOLDFONT(FRED("not achieved")) << std::endl;
                     else
@@ -214,11 +220,11 @@ public:
             }
         }
         
-        return (is_converged == 0 ? true : false);
+        return active_set_converged;
     }
     
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart The model part of interest
      */ 
     
@@ -226,8 +232,7 @@ public:
     {
         ConvergenceCriteriaBaseType::mConvergenceCriteriaIsInitialized = true;
         
-        if (mpTable != nullptr && mTableIsInitialized == false)
-        {
+        if (mpTable != nullptr && mTableIsInitialized == false) {
             auto& table = mpTable->GetTable();
             table.AddColumn("ACTIVE SET CONV", 15);
             mTableIsInitialized = true;
@@ -288,9 +293,9 @@ private:
     ///@name Member Variables
     ///@{
     
-    TablePrinterPointerType mpTable; // Pointer to the fancy table 
-    bool mPrintingOutput;            // If the colors and bold are printed
-    bool mTableIsInitialized;        // If the table is already initialized
+    TablePrinterPointerType mpTable; /// Pointer to the fancy table 
+    bool mPrintingOutput;            /// If the colors and bold are printed
+    bool mTableIsInitialized;        /// If the table is already initialized
     
     ///@}
     ///@name Private Operators

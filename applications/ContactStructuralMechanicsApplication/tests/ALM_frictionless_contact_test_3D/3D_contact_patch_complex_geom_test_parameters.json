@@ -15,8 +15,7 @@
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test",
-            "input_file_label" : 0
+            "input_filename"   : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test"
         },
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_materials.json"
@@ -93,20 +92,10 @@
             "computing_model_part_name" : "computing_domain",
             "model_part_name"           : "Structure",
             "assume_master_slave"       : "Parts_Parts_Auto1",
-            "search_factor"             : 2.5,
             "contact_type"              : "Frictionless",
-            "max_number_results"        : 1000,
-            "normal_variation"          : "NO_DERIVATIVES_COMPUTATION",
-            "type_search"               : "InRadius",
-            "integration_order"         : 2,
-            "active_check_factor"       : 1.0e-1,
-            "stiffness_factor"          : 10.0,
-            "penalty_scale_factor"      : 1.0,
-            "manual_ALM"                : false,
-            "penalty"                   : 1.0e0,
-            "scale_factor"              : 1.0e0,
-            "check_gap"                 : "DirectCheck",
-            "debug_mode"                : false
+            "search_parameters" : {
+                "check_gap"             : "direct_check"
+            }
         }
     }],
     "json_check_process" : [
@@ -116,10 +105,24 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"      : ["NORMAL_CONTACT_STRESS","DISPLACEMENT_Y"],
+            "check_variables"      : ["DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
             "time_frequency"       : 1.00
+        }
+    },{
+        "python_module"   : "from_json_check_result_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "FromJsonCheckResultProcess",
+        "Parameters"            : {
+            "check_variables"      : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
+            "model_part_name"      : "CONTACT_Contact_Auto1",
+            "check_for_flag"       : "ACTIVE",
+            "historical_value"     : false,
+            "relative_tolerance"   : 1e-2,
+            "time_frequency"       : 1.0
         }
     }
     ],
@@ -130,9 +133,22 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables"     : ["NORMAL_CONTACT_STRESS","DISPLACEMENT_Y"],
+            "output_variables"     : ["DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
+            "time_frequency"       : 1.00
+        }
+    },{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"     : ["AUGMENTED_NORMAL_CONTACT_PRESSURE"],
+            "output_file_name"     : "ALM_frictionless_contact_test_3D/3D_contact_patch_complex_geom_test_LM.json",
+            "model_part_name"      : "CONTACT_Contact_Auto1",
+            "check_for_flag"       : "ACTIVE",
+            "historical_value"     : false,
             "time_frequency"       : 1.00
         }
     }

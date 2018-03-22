@@ -607,22 +607,45 @@ proc ::wkcf::WriteAppliedLoadsData {AppId} {
     }
 }
 
-proc ::wkcf::WriteBoundingBoxDefaults {fileid} {
-    puts $fileid "BoundingBoxMaxX                  =  10.0"
-    puts $fileid "BoundingBoxMaxY                  =  10.0"
-    puts $fileid "BoundingBoxMaxZ                  =  10.0"
-    puts $fileid "BoundingBoxMinX                  = -10.0"
-    puts $fileid "BoundingBoxMinY                  = -10.0"
-    puts $fileid "BoundingBoxMinZ                  = -10.0"
+proc ::wkcf::WriteBoundingBoxDefaults {fileid} {	
+	global KPriv
+
+	if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+		puts $fileid "BoundingBoxMaxX                  =  10.0"
+		puts $fileid "BoundingBoxMaxY                  =  10.0"
+		puts $fileid "BoundingBoxMaxZ                  =  10.0"
+		puts $fileid "BoundingBoxMinX                  = -10.0"
+		puts $fileid "BoundingBoxMinY                  = -10.0"
+		puts $fileid "BoundingBoxMinZ                  = -10.0"
+	} else {
+		puts $fileid "BoundingBoxMaxX                  =  1.00000e+01"
+		puts $fileid "BoundingBoxMaxY                  =  1.00000e+01"
+		puts $fileid "BoundingBoxMaxZ                  =  1.00000e+01"
+		puts $fileid "BoundingBoxMinX                  = -1.00000e+01"
+		puts $fileid "BoundingBoxMinY                  = -1.00000e+01"
+		puts $fileid "BoundingBoxMinZ                  = -1.00000e+01"
+	}
 }
 
 proc ::wkcf::WriteBoundingBoxDefaultsInJsonFile {fileid} {
-    puts $fileid "\"BoundingBoxMaxX\"                  : 10.0,"
-    puts $fileid "\"BoundingBoxMaxY\"                  : 10.0,"
-    puts $fileid "\"BoundingBoxMaxZ\"                  : 10.0,"
-    puts $fileid "\"BoundingBoxMinX\"                  : -10.0,"
-    puts $fileid "\"BoundingBoxMinY\"                  : -10.0,"
-    puts $fileid "\"BoundingBoxMinZ\"                  : -10.0,"
+
+	global KPriv
+
+	if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+		puts $fileid "\"BoundingBoxMaxX\"                  : 10.0,"
+		puts $fileid "\"BoundingBoxMaxY\"                  : 10.0,"
+		puts $fileid "\"BoundingBoxMaxZ\"                  : 10.0,"
+		puts $fileid "\"BoundingBoxMinX\"                  : -10.0,"
+		puts $fileid "\"BoundingBoxMinY\"                  : -10.0,"
+		puts $fileid "\"BoundingBoxMinZ\"                  : -10.0,"
+	} else {
+		puts $fileid "\"BoundingBoxMaxX\"                  :  1.00000e+01,"
+		puts $fileid "\"BoundingBoxMaxY\"                  :  1.00000e+01,"
+		puts $fileid "\"BoundingBoxMaxZ\"                  :  1.00000e+01,"
+		puts $fileid "\"BoundingBoxMinX\"                  : -1.00000e+01,"
+		puts $fileid "\"BoundingBoxMinY\"                  : -1.00000e+01,"
+		puts $fileid "\"BoundingBoxMinZ\"                  : -1.00000e+01,"
+	}
 }
 
 proc ::wkcf::WriteMatTestData {fileid} {
@@ -1244,9 +1267,11 @@ proc ::wkcf::WritePostProcessDataForJson {fileid} {
     puts $fileid "\"PostShearStress\"                  : [::wkcf::TranslateToBinaryJson $PrintOrNot],"
     
     # PostReactions
-    #set cxpath "$cxpathtoDEMresults//i.DEM-Reactions"
-    #set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    #puts $fileid "\"PostReactions\"                    : [::wkcf::TranslateToBinaryJson [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-Reactions" "dv"]],"
+	if {$KPriv(what_dempack_package) eq "C-DEMpack"} {
+		set cxpath "$cxpathtoDEMresults//i.DEM-Reactions"
+		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
+		puts $fileid "\"PostReactions\"                    : [::wkcf::TranslateToBinaryJson [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-Reactions" "dv"]],"
+	}
 
     # PostPressure
     set cxpath "$cxpathtoDEMresults//i.DEM-Pressure"
@@ -1611,12 +1636,12 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
     # Clean IndentationsOption
     set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CleanInitialIndentations"
     set CleanIndentationsOption [::xmlutils::setXml $cxpath $cproperty]
-    if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
-	puts $fileid "CleanIndentationsOption          = \"OFF\""
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+        puts $fileid "CleanIndentationsOption          = \"OFF\""
     } elseif {$CleanIndentationsOption == "Yes"} {
-	puts $fileid "CleanIndentationsOption          = \"ON\""
+        puts $fileid "CleanIndentationsOption          = \"ON\""
     } else {
-	puts $fileid "CleanIndentationsOption          = \"OFF\""
+        puts $fileid "CleanIndentationsOption          = \"OFF\""
     }
 
     if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
@@ -2166,12 +2191,12 @@ proc ::wkcf::WriteExplicitSolverVariablesInJsonFile {} {
     # Clean IndentationsOption
     set cxpath "$rootid//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CleanInitialIndentations"
     set CleanIndentationsOption [::xmlutils::setXml $cxpath $cproperty]
-    if {$KPriv(what_dempack_package) ne "C-DEMPack"} {
-	puts $fileid "\"CleanIndentationsOption\"          : false,"
+    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
+        puts $fileid "\"CleanIndentationsOption\"          : false,"
     } elseif {$CleanIndentationsOption == "Yes"} {
-	puts $fileid "\"CleanIndentationsOption\"          : true,"
+        puts $fileid "\"CleanIndentationsOption\"          : true,"
     } else {
-	puts $fileid "\"CleanIndentationsOption\"          : false,"
+        puts $fileid "\"CleanIndentationsOption\"          : false,"
     }
 
     if {$KPriv(what_dempack_package) ne "C-DEMPack"} {

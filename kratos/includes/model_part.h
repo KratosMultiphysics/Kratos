@@ -310,7 +310,7 @@ public:
 
     /** Inserts a list of nodes in a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
-    void AddNodes(std::vector<IndexType>& NodeIds, IndexType ThisIndex = 0);
+    void AddNodes(std::vector<IndexType> const& NodeIds, IndexType ThisIndex = 0);
     
     /** Inserts a list of pointers to nodes
      */    
@@ -709,7 +709,7 @@ public:
     
     /** Inserts a list of elements to a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
-    void AddElements(std::vector<IndexType>& ElementIds, IndexType ThisIndex = 0);
+    void AddElements(std::vector<IndexType> const& ElementIds, IndexType ThisIndex = 0);
     
     /** Inserts a list of pointers to nodes
      */    
@@ -731,7 +731,7 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it_found))//check if the pointee coincides
+                if(&(*it_found) != &(*it))//check if the pointee coincides
                     KRATOS_ERROR << "attempting to add a new element with Id :" << it_found->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
@@ -872,7 +872,7 @@ public:
     
     /** Inserts a list of conditions to a submodelpart provided their Id. Does nothing if applied to the top model part
      */    
-    void AddConditions(std::vector<IndexType>& ConditionIds, IndexType ThisIndex = 0);
+    void AddConditions(std::vector<IndexType> const& ConditionIds, IndexType ThisIndex = 0);
     
     /** Inserts a list of pointers to nodes
      */    
@@ -894,8 +894,8 @@ public:
             }
             else //if it does exist verify it is the same node
             {
-                if(&(*it_found) != &(*it_found))//check if the pointee coincides
-                    KRATOS_ERROR << "attempting to add a new node with Id :" << it_found->Id() << ", unfortunately a (different) node with the same Id already exists" << std::endl;
+                if(&(*it_found) != &(*it))//check if the pointee coincides
+                    KRATOS_ERROR << "attempting to add a new Condition with Id :" << it_found->Id() << ", unfortunately a (different) Condition with the same Id already exists" << std::endl;
                 else
                     aux.push_back( *(it.base()) );
             }

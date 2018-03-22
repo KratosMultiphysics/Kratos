@@ -22,6 +22,8 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/io.h"
+#include "includes/kratos_parameters.h"
+#include "includes/communicator.h"
 
 // Application includes
 #include "custom_io/hdf5_file.h"

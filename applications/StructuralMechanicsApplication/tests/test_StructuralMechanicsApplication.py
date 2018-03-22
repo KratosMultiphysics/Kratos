@@ -20,11 +20,12 @@ except ImportError as e:
 
 ##### SELF-CONTAINED TESTS #####
 # CL tests
-from constitutive_law_test import TestConstitutiveLaw as TTestConstitutiveLaw
+from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
+from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
 from test_patch_test_large_strain import TestPatchTestLargeStrain as TTestPatchTestLargeStrain
 from test_quadratic_elements import TestQuadraticElements as TTestQuadraticElements
 from test_patch_test_shells import TestPatchTestShells as TTestPatchTestShells
@@ -48,6 +49,8 @@ from test_spring_damper_element import SpringDamperElementTests as TSpringDamper
 from test_harmonic_analysis import HarmonicAnalysisTests as THarmonicAnalysisTests
 # Dynamic basic tests
 from test_dynamic_schemes import DynamicSchemesTests as TDynamicSchemesTests
+# Eigenvalues Postprocessing Process test
+from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -155,6 +158,10 @@ from ValidationTests import ShellT3AndQ4NonLinearStaticUnstructHingedCylRoofSnap
 from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateTests
 from ValidationTests import ShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests
 
+##### RESTART TESTS #####
+from RestartTests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4N
+from RestartTests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
+from RestartTests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
 
 def AssambleTestSuites():
     ''' Populates the test suites to run.
@@ -183,6 +190,7 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestLargeStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestQuadraticElements]))
     # Shells
@@ -206,10 +214,16 @@ def AssambleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMultipointConstraints]))
     # Dynamic basic tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
+    # Eigenvalues Postprocessing Process test
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
     smallSuite.addTest(TSimpleMeshMovingTest('test_execution'))
+    # Basic restart test (leave these in the smallSuite to have the Exection script tested)
+    smallSuite.addTest(TTestSmallDisplacement2D4N('test_execution'))
+    smallSuite.addTest(TTestTotalLagrangian2D3N('test_execution'))
+    smallSuite.addTest(TTestUpdatedLagrangian3D8N('test_execution'))
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
@@ -311,7 +325,7 @@ def AssambleTestSuites():
     validationSuite.addTest(TShellT3ThinDrillingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3IsotropicScordelisTests('test_execution'))
     validationSuite.addTest(TShellQ4ThickBendingRollUpTests('test_execution'))
-    validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
+    # validationSuite.addTest(TShellQ4ThickDrillingRollUpTests('test_execution'))
     validationSuite.addTest(TShellQ4ThickOrthotropicLaminateLinearStaticTests('test_execution'))
     validationSuite.addTest(TShellT3ThinBendingRollUpTests('test_execution'))
     validationSuite.addTest(TShellT3ThinOrthotropicLaminateLinearStaticTests('test_execution'))

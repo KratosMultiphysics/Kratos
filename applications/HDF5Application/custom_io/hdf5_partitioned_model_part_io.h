@@ -22,7 +22,7 @@
 
 // Application includes
 #include "hdf5_application_define.h"
-#include "custom_io/hdf5_model_part_io_base.h"
+#include "custom_io/hdf5_model_part_io.h"
 
 namespace Kratos
 {
@@ -34,7 +34,7 @@ namespace HDF5
 ///@{
 
 /// A class for partitioned IO of a model part in HDF5.
-class PartitionedModelPartIO : public ModelPartIOBase
+class PartitionedModelPartIO : public ModelPartIO
 {
 public:
     ///@name Type Definitions
@@ -43,7 +43,7 @@ public:
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(PartitionedModelPartIO);
 
-    typedef ModelPartIOBase BaseType;
+    typedef ModelPartIO BaseType;
 
     ///@}
     ///@name Life Cycle
@@ -59,18 +59,6 @@ public:
 
     void WriteNodes(NodesContainerType const& rNodes) override;
 
-    void ReadElements(NodesContainerType& rNodes,
-                      PropertiesContainerType& rProperties,
-                      ElementsContainerType& rElements) override;
-
-    void WriteElements(ElementsContainerType const& rElements) override;
-
-    void ReadConditions(NodesContainerType& rNodes,
-                        PropertiesContainerType& rProperties,
-                        ConditionsContainerType& rConditions) override;
-
-    void WriteConditions(ConditionsContainerType const& rConditions) override;
-
     void ReadModelPart(ModelPart& rModelPart) override;
 
     ///@}
@@ -80,6 +68,10 @@ protected:
     ///@{
 
     void Check();
+
+    std::tuple<unsigned, unsigned> StartIndexAndBlockSize(std::string const& rPath) const override;
+    
+    void StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo) override;
 
     ///@}
 

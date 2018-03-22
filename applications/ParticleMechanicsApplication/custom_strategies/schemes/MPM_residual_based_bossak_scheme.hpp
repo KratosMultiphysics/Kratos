@@ -453,7 +453,6 @@ public:
 			auto i = mr_grid_model_part.NodesBegin() + iter;
 			if( (i)->SolutionStepsDataHas(NODAL_MOMENTUM) && (i)->SolutionStepsDataHas(NODAL_MASS) && (i)->SolutionStepsDataHas(NODAL_INERTIA))//&& (i)->SolutionStepsDataHas(NODAL_INTERNAL_FORCE) )
             {
-
                 array_1d<double, 3 > & NodalMomentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                 array_1d<double, 3 > & NodalInertia = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
                 double & NodalMass = (i)->FastGetSolutionStepValue(NODAL_MASS);
@@ -473,7 +472,6 @@ public:
                 NodalAuxR = 0.0;
                 NodalAuxRVel.clear();
                 NodalAuxRAcc.clear();
-                //std::cout<< "NodalDensity "<< (i)->FastGetSolutionStepValue(DENSITY)<<std::endl;
             }
 
             if((i)->SolutionStepsDataHas(DISPLACEMENT) && (i)->SolutionStepsDataHas(VELOCITY) && (i)->SolutionStepsDataHas(ACCELERATION) )
@@ -593,7 +591,7 @@ public:
 
                     array_1d<double, 3 > & NodalMomentum     = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                     array_1d<double, 3 > & NodalInertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
-                    
+
                     array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
                     array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
                     double & NodalPressure = (i)->FastGetSolutionStepValue(PRESSURE,1);

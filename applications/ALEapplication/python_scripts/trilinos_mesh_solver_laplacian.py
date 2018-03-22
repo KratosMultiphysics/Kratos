@@ -29,6 +29,7 @@ class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolv
         time_order = self.settings["time_order"].GetInt()
         reform_dofs_each_step = self.settings["reform_dofs_each_step"].GetBool()
         compute_reactions = self.settings["compute_reactions"].GetBool()
+        calculate_mesh_velocities = self.settings["calculate_mesh_velocities"].GetBool()
         echo_level = self.settings["echo_level"].GetInt()
         communicator = self.get_communicator()
         solver = TrilinosApplication.TrilinosLaplacianMeshMovingStrategy(
@@ -38,5 +39,6 @@ class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolv
             time_order,
             reform_dofs_each_step,
             compute_reactions,
+            calculate_mesh_velocities,
             echo_level)
         return solver

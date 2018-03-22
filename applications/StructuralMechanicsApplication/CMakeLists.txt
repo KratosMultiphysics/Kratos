@@ -42,6 +42,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_3d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyper_elastic_isotropic_neo_hookean_plane_strain_2d.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_orthotropic_2D_law.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_plane_strain_2d.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_j2_plasticity_3d.cpp
 
   ## ELEMENTS
   #Adding truss element
@@ -73,7 +75,8 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_total_lagrangian.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_updated_lagrangian.cpp
-  
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_bbar.cpp
+
   # Adding the SPRISM element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SprismElement3D6N.cpp
 
@@ -117,7 +120,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 if(${INSTALL_TESTING_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN ".svn" EXCLUDE)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME} FILES_MATCHING PATTERN "*.py" PATTERN  "*.json" PATTERN "*.mdpa" PATTERN "*.ref")
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

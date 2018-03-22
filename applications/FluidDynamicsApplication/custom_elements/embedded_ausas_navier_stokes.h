@@ -742,8 +742,10 @@ protected:
     }
 
     /**
-    * This function adds the local system contribution of the interface pressure boundary terms,
-    * coming from the integration by parts.
+    * This function adds the local system contribution of the interface pressure boundary 
+    * terms. Bear in mind that the shear stress boundary term contribution is not added 
+    * since it is weakly imposed to be zero using a Neumann BC. The addition of such 
+    * Neumann BC and the integration by parts boundary term yields what is added in here.
     * @param rLeftHandSideMatrix reference to the LHS matrix
     * @param rRightHandSideVector reference to the RHS vector
     * @param rData reference to element data structure
@@ -778,36 +780,11 @@ protected:
             // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
 
-            // Set the auxiliar test function matrix
-            bounded_matrix<double, MatrixSize, TDim> test_mat = ZeroMatrix(MatrixSize, TDim);
-            this->SetTestMatrix(aux_N, test_mat);
-
-            // Set the normal projection matrix in Voigt notation
-            bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
-            this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
-
-            // Set the strain matrix (expanded with zeros in the pressure rows)
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> exp_strain_mat = ZeroMatrix((TDim-1)*3, MatrixSize);
-            this->SetExpandedStrainMatrix(aux_DN_DX, exp_strain_mat);
-
             // Pressure contribution
             for (unsigned int i = 0; i < TNumNodes; ++i) {
                 for (unsigned int j = 0; j < TNumNodes; ++j) {
                     for (unsigned int d = 0; d < TDim; ++d) {
                         auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) += w_gauss * aux_N(i) * aux_N(j) * side_normal(d);
-                    }
-                }
-            }
-
-            // Shear stress contribution
-            for (unsigned int i = 0; i < MatrixSize; ++i) {
-                for (unsigned int j = 0; j < MatrixSize; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
-                            for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
-                                auxLeftHandSideMatrix(i,j) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j);
-                            }
-                        }
                     }
                 }
             }
@@ -828,36 +805,11 @@ protected:
             // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
 
-            // Set the auxiliar test function matrix
-            bounded_matrix<double, MatrixSize, TDim> test_mat = ZeroMatrix(MatrixSize, TDim);
-            this->SetTestMatrix(aux_N, test_mat);
-
-            // Set the normal projection matrix in Voigt notation
-            bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
-            this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
-
-            // Set the strain matrix (expanded with zeros in the pressure rows)
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> exp_strain_mat = ZeroMatrix((TDim-1)*3, MatrixSize);
-            this->SetExpandedStrainMatrix(aux_DN_DX, exp_strain_mat);
-
             // Pressure contribution
             for (unsigned int i = 0; i < TNumNodes; ++i) {
                 for (unsigned int j = 0; j < TNumNodes; ++j) {
                     for (unsigned int d = 0; d < TDim; ++d) {
                         auxLeftHandSideMatrix(i * BlockSize + d, j * BlockSize + TDim) += w_gauss * aux_N(i) * aux_N(j) * side_normal(d);
-                    }
-                }
-            }
-
-            // Shear stress contribution
-            for (unsigned int i = 0; i < MatrixSize; ++i) {
-                for (unsigned int j = 0; j < MatrixSize; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
-                            for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
-                                auxLeftHandSideMatrix(i,j) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j);
-                            }
-                        }
                     }
                 }
             }
@@ -871,8 +823,10 @@ protected:
     }
 
     /**
-    * This function adds the RHS contribution of the interface boundary terms,
-    * coming from the integration by parts.
+    * This function adds the local system contribution of the interface pressure boundary 
+    * terms. Bear in mind that the shear stress boundary term contribution is not added 
+    * since it is weakly imposed to be zero using a Neumann BC. The addition of such 
+    * Neumann BC and the integration by parts boundary term yields what is added in here.
     * @param rRightHandSideVector reference to the RHS vector
     * @param rData reference to element data structure
     */
@@ -905,36 +859,11 @@ protected:
             // Get the positive side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.pos_int_unit_normals[i_gauss];
 
-            // Set the auxiliar test function matrix
-            bounded_matrix<double, MatrixSize, TDim> test_mat = ZeroMatrix(MatrixSize, TDim);
-            this->SetTestMatrix(aux_N, test_mat);
-
-            // Set the normal projection matrix in Voigt notation
-            bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
-            this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
-
-            // Set the strain matrix (expanded with zeros in the pressure rows)
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> exp_strain_mat = ZeroMatrix((TDim-1)*3, MatrixSize);
-            this->SetExpandedStrainMatrix(aux_DN_DX, exp_strain_mat);
-
             // Pressure contribution
             for (unsigned int i = 0; i < TNumNodes; ++i) {
                 for (unsigned int j = 0; j < TNumNodes; ++j) {
                     for (unsigned int d = 0; d < TDim; ++d) {
-                        auxRightHandSideVector(i * BlockSize + d) += w_gauss * aux_N(i) * aux_N(j) * side_normal(d) * prev_sol(j * BlockSize + TDim);
-                    }
-                }
-            }
-
-            // Shear stress contribution
-            for (unsigned int i = 0; i < MatrixSize; ++i) {
-                for (unsigned int j = 0; j < MatrixSize; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
-                            for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
-                                auxRightHandSideVector(i) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j) * prev_sol(j);
-                            }
-                        }
+                        rRightHandSideVector(i * BlockSize + d) -= w_gauss * aux_N(i) * aux_N(j) * side_normal(d) * prev_sol(j * BlockSize + TDim);
                     }
                 }
             }
@@ -955,43 +884,15 @@ protected:
             // Get the negative side Gauss pt. normal
             const array_1d<double, 3> side_normal = rData.neg_int_unit_normals[i_gauss];
 
-            // Set the auxiliar test function matrix
-            bounded_matrix<double, MatrixSize, TDim> test_mat = ZeroMatrix(MatrixSize, TDim);
-            this->SetTestMatrix(aux_N, test_mat);
-
-            // Set the normal projection matrix in Voigt notation
-            bounded_matrix<double, TDim, (TDim-1)*3> normal_proj_mat = ZeroMatrix(TDim, (TDim-1)*3);
-            this->SetVoigtNormalProjectionMatrix(side_normal, normal_proj_mat);
-
-            // Set the strain matrix (expanded with zeros in the pressure rows)
-            bounded_matrix<double, (TDim-1)*3, MatrixSize> exp_strain_mat = ZeroMatrix((TDim-1)*3, MatrixSize);
-            this->SetExpandedStrainMatrix(aux_DN_DX, exp_strain_mat);
-
             // Pressure contribution
             for (unsigned int i = 0; i < TNumNodes; ++i) {
                 for (unsigned int j = 0; j < TNumNodes; ++j) {
                     for (unsigned int d = 0; d < TDim; ++d) {
-                        auxRightHandSideVector(i * BlockSize + d) += w_gauss * aux_N(i) * aux_N(j) * side_normal(d) * prev_sol(j * BlockSize + TDim);
-                    }
-                }
-            }
-
-            // Shear stress contribution
-            for (unsigned int i = 0; i < MatrixSize; ++i) {
-                for (unsigned int j = 0; j < MatrixSize; ++j) {
-                    for (unsigned int m = 0; m < TDim; ++m) {
-                        for (unsigned int k = 0; k < (TDim-1)*3; ++k) {
-                            for (unsigned int n = 0; n < (TDim-1)*3; ++n) {
-                                auxRightHandSideVector(i) -= w_gauss * test_mat(i,m) * normal_proj_mat(m,n) * rData.C(n,k) * exp_strain_mat(k,j) * prev_sol(j);
-                            }
-                        }
+                        rRightHandSideVector(i * BlockSize + d) -= w_gauss * aux_N(i) * aux_N(j) * side_normal(d) * prev_sol(j * BlockSize + TDim);
                     }
                 }
             }
         }
-
-        // RHS assembly
-        rRightHandSideVector -= auxRightHandSideVector;
     }
 
     /**
@@ -1352,7 +1253,7 @@ protected:
 
         // Compute the penalty constant
         const double pen_cons = avg_rho*std::pow(rData.h, TDim)/rData.dt +
-                                avg_rho*avg_visc*std::pow(rData.h,TDim-2) +
+                                avg_visc*std::pow(rData.h,TDim-2) +
                                 avg_rho*v_norm*std::pow(rData.h, TDim-1);
 
         // Return the penalty coefficient
@@ -1497,61 +1398,6 @@ protected:
             rVoigtNormProjMatrix(0,2) = rUnitNormal(1);
             rVoigtNormProjMatrix(1,1) = rUnitNormal(1);
             rVoigtNormProjMatrix(1,2) = rUnitNormal(0);
-        }
-    }
-
-    /**
-    * This functions sets the B strain matrix (pressure columns are set to zero)
-    * @param rData reference to element data structure (it contains the shape functions derivatives)
-    * @param[out] rBmatrix reference to the computed B strain matrix
-    */
-    void SetExpandedStrainMatrix(
-        const bounded_matrix<double, TNumNodes, TDim> &rDN_DX,
-        bounded_matrix<double, (TDim-1)*3, TNumNodes*(TDim+1)> &rBmatrix) {
-
-        constexpr unsigned int block_size = TDim + 1;
-        rBmatrix.clear();
-
-        // Set the shape function derivatives values
-        if (TDim == 3) {
-            for (unsigned int i = 0; i < TNumNodes; i++) {
-                rBmatrix(0, i * block_size)     = rDN_DX(i, 0);
-                rBmatrix(1, i * block_size + 1) = rDN_DX(i, 1);
-                rBmatrix(2, i * block_size + 2) = rDN_DX(i, 2);
-                rBmatrix(3, i * block_size)     = rDN_DX(i, 1);
-                rBmatrix(3, i * block_size + 1) = rDN_DX(i, 0);
-                rBmatrix(4, i * block_size + 1) = rDN_DX(i, 2);
-                rBmatrix(4, i * block_size + 2) = rDN_DX(i, 1);
-                rBmatrix(5, i * block_size)     = rDN_DX(i, 2);
-                rBmatrix(5, i * block_size + 2) = rDN_DX(i, 0);
-            }
-        } else {
-            for (unsigned int i = 0; i < TNumNodes; i++) {
-                rBmatrix(0, i * block_size)     = rDN_DX(i, 0);
-                rBmatrix(1, i * block_size + 1) = rDN_DX(i, 1);
-                rBmatrix(2, i * block_size)     = rDN_DX(i, 1);
-                rBmatrix(2, i * block_size + 1) = rDN_DX(i, 0);
-            }
-        }
-    }
-
-    /**
-    * This functions sets the test function matrix given the Gauss pt. shape function values
-    * @param rN shape function values on a Gauss pt.
-    * @return Computed test function matrix
-    */
-    void SetTestMatrix(
-        const array_1d<double, TNumNodes> &rN,
-        bounded_matrix<double, (TDim+1)*TNumNodes, TDim> &rTestMatrix) {
-
-        constexpr unsigned int block_size = TDim + 1;
-        rTestMatrix.clear();
-
-        // Set the test function matrix using the shape functions values
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            for (unsigned int d = 0; d < TDim; ++d) {
-                rTestMatrix(i * block_size + d, d) = rN(i);
-            }
         }
     }
 
