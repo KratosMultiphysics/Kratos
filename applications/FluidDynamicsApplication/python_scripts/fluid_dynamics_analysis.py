@@ -146,21 +146,23 @@ class FluidDynamicsAnalysis(object):
     def RunMainTemporalLoop(self):
         '''The main solution loop.'''
         while self.time <= self.end_time:
+
+            dt = self.solver.ComputeDeltaTime()
+            self.time = self.time + dt
+            self.step = self.step + 1
+
+            self.main_model_part.CloneTimeStep(self.time)
+            self.main_model_part.ProcessInfo[Kratos.STEP] = self.step
+
+            if self.is_printing_rank:
+                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
+                Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
+
             self.InitializeSolutionStep()
             self.SolveSingleStep()
             self.FinalizeSolutionStep()
 
     def InitializeSolutionStep(self):
-        dt = self.solver.ComputeDeltaTime()
-        self.time = self.time + dt
-        self.step = self.step + 1
-        
-        self.main_model_part.CloneTimeStep(self.time)
-        self.main_model_part.ProcessInfo[Kratos.STEP] = self.step
-
-        if self.is_printing_rank:
-            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","STEP = ", self.step)
-            Kratos.Logger.PrintInfo("Fluid Dynamics Analysis","TIME = ", self.time)
         
         for process in self.simulation_processes:
             process.ExecuteInitializeSolutionStep()
