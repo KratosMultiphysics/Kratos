@@ -120,6 +120,8 @@ void PrestressMembraneElement::Initialize()
 
 {
     KRATOS_TRY
+    if(this->Id()==1)
+    std::cout<<"Element initialized"<<std::endl;
 
     // reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
@@ -912,6 +914,8 @@ void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProce
 //***********************************************************************************
 void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo){
     // for formfinding: update basevectors (and prestress in case of anisotropy)
+    //if(this->Id()>43 && this->Id()<53)
+    //    std::cout<<"Base Vectors"<<this->Id()<<": "<<GetValue(BASE_REF_1)<<","<<GetValue(BASE_REF_2)<<std::endl;
     if(this->Has(IS_FORMFINDING)){
         if(this->GetValue(IS_FORMFINDING)){
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
@@ -1270,11 +1274,11 @@ void PrestressMembraneElement::ModifyPrestress(const unsigned int& rPointNumber,
 
 }
 void PrestressMembraneElement::ComputePrestress(const unsigned int& rIntegrationPointSize){
-
     // initialize prestress matrix and prestress directions (with dummy zero values)
     unsigned int strain_size = this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
     Matrix prestress_matrix(strain_size,rIntegrationPointSize,0), prestress_direction1(3,rIntegrationPointSize,0), prestress_direction2(3,rIntegrationPointSize,0);
-    this->SetValue(MEMBRANE_PRESTRESS,prestress_matrix);
+    if(this->Has(MEMBRANE_PRESTRESS) == false)
+        this->SetValue(MEMBRANE_PRESTRESS,prestress_matrix);
     this->SetValue(PRESTRESS_AXIS_1_GLOBAL, prestress_direction1);
     this->SetValue(PRESTRESS_AXIS_2_GLOBAL, prestress_direction2);
 
@@ -1345,8 +1349,6 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
     Matrix& base_2 = GetValue(BASE_REF_2);
     base_1.resize(3,rIntegrationPoints.size());
     base_2.resize(3,rIntegrationPoints.size());
-    
-
 
     // Calculating geometry tensors in reference configuration on Integration points
     for (unsigned int point_number = 0; point_number < rIntegrationPoints.size(); point_number++)
@@ -1369,6 +1371,7 @@ void PrestressMembraneElement::ComputeBaseVectors(const GeometryType::Integratio
         // Store base vectors in reference configuration
         column(base_1,point_number) = G1;
         column(base_2,point_number) = G2;
+        std::cout<<"base vectors"<<Id()<<": "<<base_1<<base_2<<std::endl;
         // base vector G3
         MathUtils<double>::CrossProduct(G3, G1, G2);
         // differential area dA

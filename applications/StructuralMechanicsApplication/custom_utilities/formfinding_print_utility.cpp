@@ -56,12 +56,37 @@ namespace Kratos
 			prop.Data().Clear();
 		}
 
+		// Write ModelPart
     	ModelPartIO model_part_io("formfinding_out", IO::WRITE);
     	model_part_io.WriteModelPart(mModelPart);
+		
+	}
 
+	void FormfindingPrintUtility::PrintPrestressData(){
+
+		// erase elemental data
+    	for( auto& ele: mModelPart.Elements()){
+    	    const Variable<Matrix> variable = KratosComponents<Variable<Matrix>>::Get("MEMBRANE_PRESTRESS");
+    	    if(ele.Has(variable)){
+    	        const Matrix membrane_prestress(ele.GetValue(MEMBRANE_PRESTRESS));
+    	        ele.Data().Clear();
+    	        ele.SetValue(MEMBRANE_PRESTRESS, membrane_prestress);
+    	    }
+    	    else
+    	        ele.Data().Clear();
+
+    	}
+
+		// write prestress data
 		ModelPartIO model_part_io_prestress("prestress_data", IO::WRITE);
     	model_part_io_prestress.WriteDataBlock(mModelPart.Elements(), "Element");
-		
+
+	}
+
+	void FormfindingPrintUtility::ReadPrestressData(){
+		ModelPartIO model_part_io("prestress_data", IO::READ);
+		model_part_io.ReadInitialValues(mModelPart);
+		std::cout<<"Prestress read"<<std::endl;
 	}
 }  // namespace Kratos.
 

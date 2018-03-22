@@ -43,6 +43,8 @@ void  AddCustomUtilitiesToPython()
 
     class_<FormfindingPrintUtility>("FormfindingPrintUtility", init<const ModelPart&, const Parameters>())
     .def("PrintModelPart",&FormfindingPrintUtility::PrintModelPart)
+    .def("ReadPrestressData",&FormfindingPrintUtility::ReadPrestressData )
+    .def("PrintPrestressData",&FormfindingPrintUtility::PrintPrestressData )
     ;
 
 }

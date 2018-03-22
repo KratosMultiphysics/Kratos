@@ -21,24 +21,27 @@ class PrintAfterFormfinding(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters(
             """
             {
-                "python_module"   : "print_after_formfinding_process",
-                "kratos_module"   : "KratosMultiphysics.StructuralMechanicsApplication",
-                "help"                  : "This process writes the mesh resulting from the formfinding in a .mdpa-file",
-                "process_name"          : "PrintAfterFormfindingProcess",
-                "Parameters"            : {
-                    "model_part_name"   : "Structure"
-                }
+                "model_part_name"   : "Structure",
+                "print_mdpa"        : false,
+                "print_prestress"   : false,
+                "read_prestress"    : false
+                
             }
             """
         );
-
-        settings.ValidateAndAssignDefaults(default_settings)
+        self.settings = settings["Parameters"]
+        self.settings.ValidateAndAssignDefaults(default_settings)
         KratosMultiphysics.Process.__init__(self)
-        model = Model[settings["Parameters"]["model_part_name"].GetString()]
-        self.print_prestress = StructuralMechanicsApplication.FormfindingPrintUtility(model, settings)
+        model = Model[self.settings["model_part_name"].GetString()]
+        self.print_mdpa = self.settings["print_mdpa"].GetBool()
+        self.print_prestress = self.settings["print_prestress"].GetBool()
+        self.read_prestress = self.settings["read_prestress"].GetBool()
+        self.formfinding_io = StructuralMechanicsApplication.FormfindingPrintUtility(model, settings)
                                                                               
     def ExecuteInitialize(self):
-        pass
+        if (self.read_prestress):
+            self.formfinding_io.ReadPrestressData()
+            print (" read prestress")
     
     def ExecuteBeforeSolutionLoop(self):
         pass
@@ -57,4 +60,9 @@ class PrintAfterFormfinding(KratosMultiphysics.Process):
             
 
     def ExecuteFinalize(self):
-        self.print_prestress.PrintModelPart()
+        if (self.print_mdpa):
+            self.formfinding_io.PrintModelPart()
+            print (" print mdpa")
+        if (self.print_prestress):
+            self.formfinding_io.PrintPrestressData()
+            print ("print prestress")

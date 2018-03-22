@@ -43,6 +43,10 @@ namespace Kratos
 
 		void PrintModelPart();
 
+		void ReadPrestressData();
+
+		void PrintPrestressData();
+
 		private:
 
 		ModelPart mModelPart;
