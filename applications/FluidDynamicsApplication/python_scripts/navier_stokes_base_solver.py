@@ -76,6 +76,9 @@ class NavierStokesBaseSolver(object):
 
         return delta_time
 
+    def GetMinimumBufferSize(self):
+        return self.min_buffer_size
+
     def Initialize(self):
         raise Exception("Calling the Navier-Stokes base solver. Please implement the custom Initialize() method of your solver.")
 
@@ -92,22 +95,27 @@ class NavierStokesBaseSolver(object):
         (self.solver).SetEchoLevel(level)
 
     def InitializeSolutionStep(self):
-        (self.solver).InitializeSolutionStep()
+        self.solver.Initialize()
+        self.solver.InitializeSolutionStep()
+        self.solver.Predict()
 
     def Predict(self):
-        (self.solver).Predict()
+        self.solver.Predict()
 
     def SolveSolutionStep(self):
-        is_converged = (self.solver).SolveSolutionStep()
-        return is_converged
+        is_converged = self.solver.SolveSolutionStep()
+        if not is_converged:
+            msg  = "Navier-Stokes solver did not converge for iteration " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            KratosMultiphysics.Logger.PrintWarning("NavierStokesBaseSolver",msg)
 
     def FinalizeSolutionStep(self):
         (self.solver).FinalizeSolutionStep()
 
     def Solve(self):
-        # We always have one extra old step (step 0, read from input)
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.min_buffer_size:
-            self.solver.Solve()
+        self.InitializeSolutionStep()
+        self.SolveSolutionStep()
+        self.FinalizeSolutionStep()
 
     def _model_part_reading(self):
         ## Model part reading
