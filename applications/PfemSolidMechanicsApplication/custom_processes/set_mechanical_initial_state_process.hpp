@@ -76,8 +76,6 @@ namespace Kratos
          /*@{ */
 
 
-         virtual void ExecuteFinalizeSolutionStep();
-
 
          void operator()()
          {
