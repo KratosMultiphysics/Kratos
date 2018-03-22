@@ -824,12 +824,19 @@ class Algorithm(object):
         Say('ELAPSED TIME = ', self.timer.time() - self.simulation_start_time, '\n')
 
     def TellFinalSummary(self, time, step, DEM_step):
+        simulation_elapsed_time = self.timer.time() - self.simulation_start_time
+        if simulation_elapsed_time and step and DEM_step:
+            elapsed_time_per_unit_fluid_step = simulation_elapsed_time / step
+            elapsed_time_per_unit_DEM_step = simulation_elapsed_time / DEM_step
+        else:
+            elapsed_time_per_unit_fluid_step = 0.0
+            elapsed_time_per_unit_DEM_step = 0.0
         Say('*************************************************************')
         Say('CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.')
-        simulation_elapsed_time = self.timer.time() - self.simulation_start_time
+
         Say('Elapsed time: ' + '%.5f'%(simulation_elapsed_time) + ' s ')
-        Say('per fluid time step: ' + '%.5f'%(simulation_elapsed_time / step) + ' s ')
-        Say('per DEM time step: ' + '%.5f'%(simulation_elapsed_time / DEM_step) + ' s ')
+        Say('per fluid time step: ' + '%.5f'%(elapsed_time_per_unit_fluid_step) + ' s ')
+        Say('per DEM time step: ' + '%.5f'%(elapsed_time_per_unit_DEM_step) + ' s ')
         Say('*************************************************************\n')
 
     def GetFluidSolveCounter(self):

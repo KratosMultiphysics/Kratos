@@ -881,7 +881,7 @@ void DerivativeRecovery<TDim>::OrderByDistance(Node<3>::Pointer &p_node, WeakPoi
     WeakPointerVector<Node<3> > ordered_neighbours;
 
     for (unsigned int i = 0; i < n_nodes; ++i){
-        Node<3>::WeakPointer p_neigh = neigh_nodes(ordering[i].first);
+        Node<3>::WeakPointer& p_neigh = neigh_nodes(ordering[i].first);
         ordered_neighbours.push_back(p_neigh);
     }
 
@@ -1024,7 +1024,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     unsigned int n_poly_terms = Factorial(TDim + 2) / (2 * Factorial(TDim)); // 2 is the polynomial order
 
     if (TDim == 2){
-        KRATOS_THROW_ERROR(std::runtime_error,"Gradient recovery not implemented yet in 2D!)","");
+        KRATOS_THROW_ERROR(std::runtime_error, "Gradient recovery not implemented yet in 2D!)","");
     }
 
     WeakPointerVector<Node<3> >& neigh_nodes = p_node->GetValue(NEIGHBOUR_NODES);
@@ -1069,7 +1069,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
     matrix<double>AtransA(n_poly_terms, n_poly_terms);
     noalias(AtransA) = prod(trans(A), A);
 
-    if (fabs(mMyCustomFunctions.template determinant< matrix<double> >(AtransA)) < 0.01){
+    if (std::abs(mMyCustomFunctions.template determinant< matrix<double> >(AtransA)) < 0.01){
         return false;
     }
 
@@ -1117,8 +1117,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
 
         Vector& nodal_weights = p_node->FastGetSolutionStepValue(NODAL_WEIGHTS);
         nodal_weights.resize(n_relevant_terms * n_nodal_neighs);
-        matrix<double>AtransAinv(n_poly_terms, n_poly_terms);
-        noalias(AtransAinv) = mMyCustomFunctions.Inverse(AtransA);
+        const matrix<double> AtransAinv = mMyCustomFunctions.Inverse(AtransA);
 //        for (unsigned i = 0; i < n_poly_terms; i++){
 //            for (unsigned j = 0; j < n_poly_terms; j++){
 //                if (abs(AtransAinv(i,j))>1e6){
@@ -1150,7 +1149,7 @@ bool DerivativeRecovery<TDim>::SetWeightsAndRunLeastSquaresTest(ModelPart& r_mod
 
         for (unsigned int i = 0; i < n_nodal_neighs; ++i){
             const array_1d <double, 3>& rel_coordinates = (neigh_nodes[i].Coordinates() - origin) * h_inv;
-            abs_difference += fabs(SecondDegreeGenericPolynomial(C, rel_coordinates) - SecondDegreeTestPolynomial(rel_coordinates));
+            abs_difference += std::abs(SecondDegreeGenericPolynomial(C, rel_coordinates) - SecondDegreeTestPolynomial(rel_coordinates));
         }
 //        abs_difference = abs(C(7, 0) - 1.0) + abs(C(8, 0) - 1.0) + abs(C(8, 0) - 1.0);
         const double tolerance = 0.001; // recommended by E Ortega

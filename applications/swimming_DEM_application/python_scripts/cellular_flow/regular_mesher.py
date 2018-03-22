@@ -30,8 +30,11 @@ if __name__ == "__main__":
 
     if tag == 'Altair':
         box = altair_box_data(xmin, ymin, zmin, xmax, ymax, zmax, nx, ny, nz)
-    else:
+    elif tag == 'Kratos':
         box = box_data(xmin, ymin, zmin, xmax, ymax, zmax, nx, ny, nz)
+    else:
+        except ValueError:
+            print('the provided tag: ', tag, 'must be either \'Altair\' or \'Kratos\'')
 
     box.x_periodic = False
     # box.y_periodic = True

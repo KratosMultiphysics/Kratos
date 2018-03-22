@@ -93,9 +93,13 @@ class Algorithm(BaseAlgorithm):
         self.recovery.Recover()
         t1 = timer.clock()
         self.recovery_time = t1 - t0
+        self.CalculateRecoveryErrors(0.0)
 
     def FluidSolve(self, time = 'None', solve_system = True):
         self.CalculateRecoveryErrors(time)
+
+    def GetFirstStepForFluidComputation(self):
+        return 1
 
     def CalculateRecoveryErrors(self, time):
         L2_norm_mat_deriv = 0.
@@ -218,7 +222,11 @@ class Algorithm(BaseAlgorithm):
                   self.post_path +
                   '/' + sys.stdout.console_output_file_name)
 
-        dir_name = self.post_path + '_FINISHED_AT_t=' + str(round(time, int(math.log(10. / time))))
+        if time <= 0:
+            time_string = '0.0'
+        else:
+            time_string = str(round(time, int(math.log(10. / time))))
+        dir_name = self.post_path + '_FINISHED_AT_t=' + time_string
 
         if os.path.isdir(dir_name):
             import shutil

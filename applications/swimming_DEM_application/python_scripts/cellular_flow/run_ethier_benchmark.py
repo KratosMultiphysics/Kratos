@@ -45,6 +45,7 @@ if regular_mesh_n_points:
 
 number_of_simulations = sum(len(mt.sizes) for mt in mesh_types)
 number_of_simulations *= len(derivatives_types)
+number_of_simulations *= len(field_identifiers)
 varying_parameters = dict()
 varying_parameters['print_VECTORIAL_ERROR_option'] = True
 

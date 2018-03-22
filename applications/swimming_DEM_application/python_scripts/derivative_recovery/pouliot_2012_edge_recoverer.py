@@ -27,7 +27,8 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
         self.CreateCPluPlusStrategies()
 
     def FillUpModelPart(self, element_type):
-        self.recovery_model_part.Nodes = self.model_part.Nodes
+        for node in self.model_part.Nodes:
+            self.recovery_model_part.AddNode(node, 0)
         self.recovery_model_part.ProcessInfo = self.model_part.ProcessInfo
         self.meshing_tool = self.GetMeshingTool()
         self.meshing_tool.FillUpEdgesModelPartFromSimplicesModelPart(self.recovery_model_part, self.model_part, element_type)
