@@ -385,7 +385,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     ;
     
     // Adding table from table stream to python
-    class_<TableStreamUtility>(m,"TableStreamUtility")
+    class_<TableStreamUtility, typename TableStreamUtility::Pointer>(m,"TableStreamUtility")
     .def(init<>())
     .def(init< bool >())
     ;
