@@ -96,8 +96,10 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                                                         resulting_squared_distances.begin(),
                                                         max_number_of_neighbors ); */
 
+            int nr_searches(0);
             while (number_of_neighbors<1)
-            {            
+            {        
+                nr_searches++;    
                 neighbor_nodes.clear();
                 resulting_squared_distances.clear();
                 //1.) find nodal neighbors
@@ -107,9 +109,8 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
                                                                         resulting_squared_distances.begin(),
                                                                         max_number_of_neighbors );
                 
-                (neighbor_search_radius>1000.0)?(KRATOS_ERROR << "found no neighbor for slave node "
+                (nr_searches>1000.0)?(KRATOS_ERROR << "found no neighbor for slave node "
                  << node_i.Id() << " " << node_i.Coordinates() << std::endl):neighbor_search_radius*=2.0;
-
             }
 
             if(m_parameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << std::endl;
