@@ -26,6 +26,8 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         self.condition_name = "NavierStokesWallCondition"
         self.min_buffer_size = 3
 
+        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -86,7 +88,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         import trilinos_linear_solver_factory
         self.trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        if self._is_printing_rank():
+        if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Construction of NavierStokesMPIEmbeddedMonolithicSolver finished.")
 
 
@@ -97,7 +99,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
 
         KratosMPI.mpi.world.barrier()
 
-        if self._is_printing_rank():
+        if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Variables for the Trilinos monolithic embedded fluid solver added correctly.")
 
 
@@ -123,7 +125,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         # Construct the Trilinos communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
-        if self._is_printing_rank():
+        if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","Trilinos import model part performed correctly.")
 
 
@@ -132,7 +134,7 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         super(NavierStokesMPIEmbeddedMonolithicSolver, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
-        if self._is_printing_rank():
+        if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedMonolithicSolver","DOFs for the VMS Trilinos fluid solver added correctly.")
 
 
@@ -195,6 +197,3 @@ class NavierStokesMPIEmbeddedMonolithicSolver(navier_stokes_embedded_solver.Navi
         (self.solver).Check()
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
-
-    def _is_printing_rank(self):
-        return KratosMPI.mpi.rank == 0

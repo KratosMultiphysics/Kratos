@@ -23,6 +23,9 @@ class NavierStokesSolverFractionalStep(navier_stokes_base_solver.NavierStokesBas
         self.condition_name = "WallCondition"
         self.min_buffer_size = 3
 
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 

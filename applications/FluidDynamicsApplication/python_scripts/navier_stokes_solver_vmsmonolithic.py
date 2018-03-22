@@ -18,10 +18,13 @@ def CreateSolver(main_model_part, custom_settings):
 class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSolver):
 
     def __init__(self, main_model_part, custom_settings):
-        
+
         self.element_name = "VMS"
         self.condition_name = "MonolithicWallCondition"
         self.min_buffer_size = 2
+
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
 
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
@@ -105,7 +108,7 @@ class NavierStokesSolverMonolithic(navier_stokes_base_solver.NavierStokesBaseSol
 
     def ImportModelPart(self):
         super(NavierStokesSolverMonolithic, self).ImportModelPart()
-        
+
         ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
         self._set_physical_properties()
 

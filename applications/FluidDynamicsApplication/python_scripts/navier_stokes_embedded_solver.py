@@ -23,6 +23,9 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         self.condition_name = "NavierStokesWallCondition"
         self.min_buffer_size = 3
 
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -68,7 +71,7 @@ class NavierStokesEmbeddedMonolithicSolver(navier_stokes_base_solver.NavierStoke
         ## Overwrite the default settings with user-provided parameters
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        
+
         # TODO: Remove this once we finish the new implementations
         if (self.settings["solver_type"].GetString() == "EmbeddedDevelopment"):
             self.element_name = "EmbeddedSymbolicNavierStokes"
