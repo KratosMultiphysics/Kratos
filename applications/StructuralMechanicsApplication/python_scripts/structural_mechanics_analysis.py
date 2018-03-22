@@ -33,7 +33,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.ProjectParameters = project_parameters
         else:
             raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
-        self.__CreateSolver(external_model_part)
+        self._CreateSolver(external_model_part)
 
     #### Public functions to run the Analysis ####
     def Run(self):
@@ -48,25 +48,24 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.FinalizeTimeStep()
 
     def Initialize(self):
-        self.__ExecuteInitialize()
-        self.__InitializeIO()
-        self.__ExecuteBeforeSolutionLoop()
+        self._ExecuteInitialize()
+        self._ExecuteBeforeSolutionLoop()
 
     def InitializeTimeStep(self):
-        self.__ExecuteInitializeSolutionStep()
+        self._ExecuteInitializeSolutionStep()
 
     def SolveTimeStep(self):
-        self.__SolveSolutionStep()
+        self._SolveSolutionStep()
 
     def FinalizeTimeStep(self):
-        self.__ExecuteFinalizeSolutionStep()
+        self._ExecuteFinalizeSolutionStep()
 
     def Finalize(self):
-        self.__ExecuteFinalize()
+        self._ExecuteFinalize()
 
 
     #### Internal functions ####
-    def __CreateSolver(self, external_model_part=None):
+    def _CreateSolver(self, external_model_part=None):
         """ Create the Solver (and create and import the ModelPart if it is not passed from outside) """
         if external_model_part != None:
             # This is a temporary solution until the importing of the ModelPart
@@ -114,7 +113,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             ## Read the model - note that SetBufferSize is done here
             self.solver.ReadModelPart() # TODO move to global instance
 
-    def __InitializeIO(self):
+    def _InitializeIO(self):
         """ Initialize GiD  I/O """
         self.output_post  = self.ProjectParameters.Has("output_configuration")
         if (self.output_post == True):
@@ -129,7 +128,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
             self.gid_output.ExecuteInitialize()
 
-    def __ExecuteInitialize(self):
+    def _ExecuteInitialize(self):
         """ Initializing the Analysis """
 
         ## ModelPart is being prepared to be used by the solver
@@ -137,6 +136,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
         ## Adds the Dofs if they don't exist
         self.solver.AddDofs()
+
+        # Initialize IO
+        self._InitializeIO()
 
         ## Creation of the Kratos model (build sub_model_parts or submeshes)
         self.structure_model = KratosMultiphysics.Model()
@@ -175,7 +177,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         ## Solver initialization
         self.solver.Initialize()
 
-    def __ExecuteBeforeSolutionLoop(self):
+    def _ExecuteBeforeSolutionLoop(self):
         """ Perform Operations before the SolutionLoop """
         if (self.output_post == True):
             self.gid_output.ExecuteBeforeSolutionLoop()
@@ -201,9 +203,9 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -START- ")
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
-    def __ExecuteInitializeSolutionStep(self):
+    def _ExecuteInitializeSolutionStep(self):
         """ Initialize the timestep and advance in time. Called once per timestep """
         self.time += self.delta_time
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
@@ -220,21 +222,21 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
         if (self.output_post == True):
             self.gid_output.ExecuteInitializeSolutionStep()
 
-    def __ExecuteBeforeSolve(self):
+    def _ExecuteBeforeSolve(self):
         """ Function to be called before solving. Can be executed several times per timestep """
         pass
 
-    def __SolveSolutionStep(self):
+    def _SolveSolutionStep(self):
         """ Solving one step. Can be called several times per timestep """
-        self.__ExecuteBeforeSolve()
+        self._ExecuteBeforeSolve()
         self.solver.Solve()
-        self.__ExecuteAfterSolve()
+        self._ExecuteAfterSolve()
 
-    def __ExecuteAfterSolve(self):
+    def _ExecuteAfterSolve(self):
         """ Function to be called after solving. Can be executed several times per timestep """
         pass
 
-    def __ExecuteFinalizeSolutionStep(self):
+    def _ExecuteFinalizeSolutionStep(self):
         """ Finalizing the timestep and printing the output. Called once per timestep """
         for process in self.list_of_processes:
             process.ExecuteFinalizeSolutionStep()
@@ -253,7 +255,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
 
         self.solver.SaveRestart() # whether a restart-file is written is decided internally
 
-    def __ExecuteFinalize(self):
+    def _ExecuteFinalize(self):
         """ Operations to be performed at the end of the Analysis """
         for process in self.list_of_processes:
             process.ExecuteFinalize()
@@ -262,7 +264,7 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
             self.gid_output.ExecuteFinalize()
 
         if self.is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("::[KSM Simulation]:: ", "Analysis -END- ")
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
     def GetModelPart(self):
         return self.main_model_part
@@ -270,6 +272,8 @@ class StructuralMechanicsAnalysis(object): # TODO in the future this could deriv
     def GetSolver(self):
         return self.solver
 
+    def _GetSimulationName(self):
+        return "::[KSM Simulation]:: "
 
 if __name__ == "__main__":
     from sys import argv
