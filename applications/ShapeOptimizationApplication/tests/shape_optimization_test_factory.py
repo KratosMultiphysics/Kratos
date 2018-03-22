@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import KratosMultiphysics.kratos_utilities as kratos_utils
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 # Other imports
 import os
@@ -33,11 +33,11 @@ class ShapeOptimizationTestFactory(KratosUnittest.TestCase):
     # --------------------------------------------------------------------------
     def tearDown(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            kratos_utils.DeleteDirectoryIfExisting("__pycache__")
+            kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 
         test_scope = os.path.join(os.path.dirname(os.path.realpath(__file__)), self.execution_directory)
         with controlledExecutionScope(test_scope):
-            kratos_utils.DeleteDirectoryIfExisting("__pycache__")
+            kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
 
 # ==============================================================================
 class opt_process_vertex_morphing_test(ShapeOptimizationTestFactory):
