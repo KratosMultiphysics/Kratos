@@ -19,7 +19,7 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 # Additional imports
 import time as timer
 from mesh_controller_base import MeshController
-from ale_analysis import ALEAnalysis
+from mesh_moving_analysis import MeshMovingAnalysis
 
 # # ==============================================================================
 class MeshControllerUsingALESolver(MeshController) :
@@ -58,7 +58,7 @@ class MeshControllerUsingALESolver(MeshController) :
 
         self.OptimizationModelPart = OptimizationModelPart
 
-        self.mesh_solver = ALEAnalysis(self.MeshSolverSettings, OptimizationModelPart)
+        self.mesh_solver = MeshMovingAnalysis(self.MeshSolverSettings, OptimizationModelPart)
 
     # --------------------------------------------------------------------------
     def Initialize(self):
@@ -80,9 +80,13 @@ class MeshControllerUsingALESolver(MeshController) :
         VariableUtils().ApplyFixity(MESH_DISPLACEMENT_Z, True, surface_nodes)
         VariableUtils().CopyVectorVar(SHAPE_UPDATE, MESH_DISPLACEMENT, surface_nodes)
 
+        time_before_mesh_update = self.OptimizationModelPart.ProcessInfo.GetValue(TIME)
+
         self.mesh_solver.InitializeTimeStep()
         self.mesh_solver.SolveTimeStep()
         self.mesh_solver.FinalizeTimeStep()
+
+        self.OptimizationModelPart.ProcessInfo.SetValue(TIME, time_before_mesh_update)
 
         MeshControllerUtilities(self.OptimizationModelPart).LogMeshChangeAccordingInputVariable(MESH_DISPLACEMENT)
 
