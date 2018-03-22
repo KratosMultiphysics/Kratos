@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
 # Other imports
-import os, sys
+import os
 
 class controlledExecutionScope:
     def __init__(self, scope):

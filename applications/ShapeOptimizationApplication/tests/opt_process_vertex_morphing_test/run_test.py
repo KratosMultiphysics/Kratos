@@ -26,7 +26,6 @@ from KratosMultiphysics.ShapeOptimizationApplication import *
 from KratosMultiphysics.KratosUnittest import TestCase
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import csv, os
-from math import sin
 
 # =======================================================================================================
 # Define external analyzer
@@ -65,7 +64,8 @@ class CustomAnalyzer(AnalyzerBaseClass):
         return sensitivity
 
     # --------------------------------------------------------------------------------------------------
-    def __TentFunction(self, x):
+    @staticmethod
+    def __TentFunction(x):
         """ Defines the target curve z=__TentFunction(x) """
         if x <= 15.0:
             return 0.0
