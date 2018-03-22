@@ -178,7 +178,7 @@
         "line_search" : {
             "line_search_type"           : "manual_stepping",
             "normalize_search_direction" : true,
-            "step_size"                  : 0.01
+            "step_size"                  : 0.1
         },
         "output" : {
             "output_directory"        : "Optimization_Results",
