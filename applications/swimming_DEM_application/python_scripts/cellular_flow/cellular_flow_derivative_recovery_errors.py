@@ -53,7 +53,7 @@ def GetCurveCharacteristics(mat_deriv_or_laplacian, method):
             type_name = 'standard'
             color = 'r'
         elif method == 2:
-            type_name = 'Zhang and Naga 2005'
+            type_name = 'Zhang and Naga'
             color = 'k'
         elif method == 3:
             type_name = 'L2-lumped'
@@ -65,17 +65,17 @@ def GetCurveCharacteristics(mat_deriv_or_laplacian, method):
             type_name = 'L2 only gradient'
             color = 'c'
         elif method == 6:
-            type_name = 'Pouliot et al. 2012'
+            type_name = 'Pouliot et al.'
             color = 'brown'
         elif method == 7:
-            type_name = 'Zhang and Naga 2005'
+            type_name = 'Zhang and Naga'
             color = 'm'
     elif mat_deriv_or_laplacian == 'L':
         if method == 1:
             type_name = 'standard'
             color = 'r'
         elif method == 2:
-            type_name = 'Zhang and Naga 2005'
+            type_name = 'Zhang and Naga'
             color = 'm'
         elif method == 3:
             type_name = 'L2-lumped' # L2-div. of gradient from L2-lumped
@@ -84,10 +84,10 @@ def GetCurveCharacteristics(mat_deriv_or_laplacian, method):
             type_name = 'L2' # L2-div. of gradient from L2
             color = 'g'
         elif method == 6:
-            type_name = 'L2 + Pouliot et al. 2012' # L2-div. of gradient from L2
+            type_name = 'L2 + Pouliot et al.' # L2-div. of gradient from L2
             color = 'brown'
         elif method == 7:
-            type_name = 'Guo et al. 2016'
+            type_name = 'Guo et al.'
             color = 'm'
     return color, type_name
 
@@ -155,23 +155,24 @@ class Plotter:
                              markersize=20)
 
             self.PlotSlope(figure)
-            plt.xlabel('$h$', fontsize=20)
-            plt.ylabel('$E_2$', fontsize=20)
-            legend = plt.legend(loc='upper right', prop={'size': 11})
+            plt.xlabel('$h$', fontsize=30)
+            plt.ylabel('$E_2$', fontsize=30)
+            plt.xticks(fontsize=20)
+            plt.yticks(fontsize=20)
+            legend = plt.legend(loc='lower right', prop={'size': 15})
             for handle in legend.legendHandles:
                 handle._legmarker.set_markersize(6)
+
             plt.savefig(figure.title, format='pdf', bbox_inches='tight')
 
     def PlotSlope(self, figure):
             plt.semilogx()
             plt.semilogy()
-            plt.axis('equal')
             x_min, x_max = figure.GetMinMax('sizes')
             error_avg_min, error_avg_max = figure.GetMinMax('average_errors')
             error_max_min, error_max_max = figure.GetMinMax('max_errors')
             error_min, error_max = min(error_avg_min, error_max_min), max(error_avg_max, error_max_max)
-            plt.xlim([x_min, 2 * x_max])
-            plt.ylim([0.25 * error_min, 2 * error_max])
+            plt.xlim([0.5 * x_min, 2 * x_max])
             sizes = [x_min * 2 ** i for i in range(3)]
             expected_order = figure.GetExpectedOrder()
             slope = [0.5 * error_min * (size / sizes[0]) ** expected_order for size in sizes]
@@ -250,13 +251,13 @@ class Figure:
         for curve in self.curves:
             try:
                 curve.slope = Figure.CalculateLastSlopes(curve.sizes, curve.average_errors)
-                curve.slope_msg = ' (m = ' + str(round(curve.slope, 2)) + ')'
+                curve.slope_msg = ' (' + str(round(curve.slope, 2)) + ')'
             except:
                 curve.slope_msg = ''
             if do_print_max_error:
                 try:
                     curve.max_slope = Figure.CalculateLastSlopes(curve.sizes, curve.max_errors)
-                    curve.max_slope_msg = ' (m = ' + str(round(curve.max_slope, 2)) + ')'
+                    curve.max_slope_msg = ' (' + str(round(curve.max_slope, 2)) + ')'
                 except:
                     curve.max_slope_msg = ''
 
