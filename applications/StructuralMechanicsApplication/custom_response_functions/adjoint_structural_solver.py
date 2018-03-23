@@ -49,7 +49,8 @@ class AdjointStructuralSolver(structural_mechanics_solver.MechanicalSolver):
                 {
                 "Add_string": "Adjoint",
                 "Add_before_in_element_name": "Element",
-                "Add_before_in_condition_name": "Condition"
+                "Add_before_in_condition_name": "Condition",
+                "Add_Exception": "ShapeOptimizationCondition"
                 }
                 """)
 

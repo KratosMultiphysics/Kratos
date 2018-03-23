@@ -62,7 +62,8 @@ public:
             {
                 "Add_string": "NAME_OF_ADD_STRING",
                 "Add_before_in_element_name": "ADD_STRING_BEFORE",
-                "Add_before_in_condition_name": "ADD_STRING_BEFORE"
+                "Add_before_in_condition_name": "ADD_STRING_BEFORE",
+                "Add_Exception": "NAME_OF_EXEPTION"
             }  )" );
 
         //now validate agains defaults -- this also ensures no type mismatch*/
@@ -103,6 +104,7 @@ public:
         std::string sub_name_element = mSettings["Add_before_in_element_name"].GetString();
         std::string sub_name_condition = mSettings["Add_before_in_condition_name"].GetString();
         std::string adding_string = mSettings["Add_string"].GetString();
+        std::string exection_string = mSettings["Add_Exception"].GetString();
         
     #pragma omp parallel for                              //--> TODO: Check if this really works in parallel
         for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
@@ -110,20 +112,24 @@ public:
             ModelPart::ElementsContainerType::iterator it = r_root_model_part.ElementsBegin() + i;
 
             std::string element_name = it->Info();
-            std::string::size_type position_ele = 0;
-            std::string::size_type found_ele;
-            found_ele = element_name.find(sub_name_element, position_ele);
-            element_name.insert(found_ele, adding_string);
 
-            if( !KratosComponents< Element >::Has( element_name ) )
-                KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", element_name);
-            const Element& rReferenceElement = KratosComponents<Element>::Get(element_name); //is this a problem to initialize the element in the loop?
-            Element::Pointer p_element = rReferenceElement.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+            if(!(element_name == exection_string))
+            {
+                std::string::size_type position_ele = 0;
+                std::string::size_type found_ele;
+                found_ele = element_name.find(sub_name_element, position_ele);
+                element_name.insert(found_ele, adding_string);
+
+                if( !KratosComponents< Element >::Has( element_name ) )
+                    KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", element_name);
+                const Element& rReferenceElement = KratosComponents<Element>::Get(element_name); //is this a problem to initialize the element in the loop?
+                Element::Pointer p_element = rReferenceElement.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
  
-            //deep copy elemental data
-            p_element->Data() = it->Data();
+                //deep copy elemental data
+                p_element->Data() = it->Data();
             
-            (*it.base()) = p_element;
+                (*it.base()) = p_element;
+            }
         }
         
     #pragma omp parallel for                              //--> TODO: Check if this really works in parallel
@@ -132,21 +138,25 @@ public:
             ModelPart::ConditionsContainerType::iterator it = r_root_model_part.ConditionsBegin() + i;
 
             std::string condition_name = it->Info();
-            std::string::size_type position_cond = 0;
-            std::string::size_type found_cond;
-            found_cond = condition_name.find(sub_name_condition, position_cond);
-            condition_name.insert(found_cond, adding_string);
+
+            if(!(condition_name == exection_string))
+            {
+                std::string::size_type position_cond = 0;
+                std::string::size_type found_cond;
+                found_cond = condition_name.find(sub_name_condition, position_cond);
+                condition_name.insert(found_cond, adding_string);
       
-            if( !KratosComponents< Condition >::Has( condition_name ) )
-                KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", condition_name);
-            const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name); //is this a problem to initialize the element in the loop?
+                if( !KratosComponents< Condition >::Has( condition_name ) )
+                    KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", condition_name);
+                const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name); //is this a problem to initialize the element in the loop?
       
-            Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+                Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
      
-            //deep copy elemental data
-            p_condition->Data() = it->Data();
+                //deep copy elemental data
+                p_condition->Data() = it->Data();
             
-            (*it.base()) = p_condition;
+                (*it.base()) = p_condition;
+            }
         }      
         
         //change the sons
