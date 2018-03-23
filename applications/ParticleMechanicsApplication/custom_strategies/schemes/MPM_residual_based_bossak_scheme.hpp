@@ -571,7 +571,7 @@ public:
             int nodes_counter = 0;
             Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
 
-
+            // int counter = 0;
 			#pragma omp parallel for
 			for(int iter = 0; iter < static_cast<int>(mr_grid_model_part.Nodes().size()); ++iter)
 			{
@@ -592,7 +592,6 @@ public:
                     array_1d<double, 3 > & NodalMomentum     = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
                     array_1d<double, 3 > & NodalInertia    = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
 
-
                     array_1d<double, 3 > & NodalVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
                     array_1d<double, 3 > & NodalAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
                     double & NodalPressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
@@ -604,6 +603,8 @@ public:
                         DeltaNodalPressure = NodalMPressure/NodalMass;
                     }
 
+                    // Where the boundary condition is defined
+
                     if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
                     {
                         DeltaNodalVelocity[0] = NodalMomentum[0]/NodalMass;
@@ -611,6 +612,9 @@ public:
                     }
                     else
                     {
+                        // #pragma omp critical
+                        // counter++;
+
                         DeltaNodalVelocity[0] = 0.0;
                         DeltaNodalAcceleration[0] = 0.0;
                         //DeltaNodalAcceleration[0] = NodalInertia[0]/NodalMass;
@@ -655,7 +659,7 @@ public:
 
                     NodalPressure += DeltaNodalPressure;
 
-                    
+                   
 
 
                     NormDeltaVel += (DeltaNodalVelocity[0]*DeltaNodalVelocity[0]+DeltaNodalVelocity[1]*DeltaNodalVelocity[1]+DeltaNodalVelocity[2]*DeltaNodalVelocity[2]);
@@ -672,7 +676,7 @@ public:
 			
 			}
 
-
+            //  std::cout << "Node Count = " << nodes_counter << std::endl;
             
             
 
@@ -799,6 +803,12 @@ public:
             {
                 NodalVelocity[1] = 0.0;
                 NodalAcceleration[1] = 0.0;
+
+            }
+            if ((i->pGetDof(DISPLACEMENT_Z))->IsFixed() == true)
+            {
+                NodalVelocity[2] = 0.0;
+                NodalAcceleration[2] = 0.0;
 
             }
         }
