@@ -131,7 +131,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
                     
     // Custom mortar and criteria
-    class_< MortarAndConvergenceCriteriaType, MortarAndConvergenceCriteriaType::Pointer,
+    class_< MortarAndConvergenceCriteriaType, typename MortarAndConvergenceCriteriaType::Pointer,
             ConvergenceCriteriaType >
             (m, "MortarAndConvergenceCriteria") 
             .def(init<ConvergenceCriteriaPointer, ConvergenceCriteriaPointer>())
@@ -149,7 +149,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictionless case)
-    class_< ALMFrictionlessMortarConvergenceCriteriaType, ALMFrictionlessMortarConvergenceCriteriaType::Pointer,
+    class_< ALMFrictionlessMortarConvergenceCriteriaType, typename ALMFrictionlessMortarConvergenceCriteriaType::Pointer,
             ConvergenceCriteriaType >
             (m, "ALMFrictionlessMortarConvergenceCriteria") 
             .def(init< >())
@@ -159,7 +159,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictionless components case)
-    class_< ALMFrictionlessComponentsMortarConvergenceCriteriaType, ALMFrictionlessComponentsMortarConvergenceCriteriaType::Pointer,
+    class_< ALMFrictionlessComponentsMortarConvergenceCriteriaType, typename ALMFrictionlessComponentsMortarConvergenceCriteriaType::Pointer,
             ConvergenceCriteriaType >
             (m, "ALMFrictionlessComponentsMortarConvergenceCriteria")
             .def(init< >())
@@ -169,7 +169,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
             
     // Dual set strategy for SSNM Convergence Criterion (frictional case)
-    class_< ALMFrictionalMortarConvergenceCriteriaType, ALMFrictionalMortarConvergenceCriteriaType::Pointer,
+    class_< ALMFrictionalMortarConvergenceCriteriaType, typename ALMFrictionalMortarConvergenceCriteriaType::Pointer,
             ConvergenceCriteriaType >
             (m, "ALMFrictionalMortarConvergenceCriteria") 
             .def(init< >())
@@ -179,7 +179,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
             
     // Displacement and lagrange multiplier Convergence Criterion
-    class_< DisplacementLagrangeMultiplierContactCriteriaType, DisplacementLagrangeMultiplierContactCriteriaType::Pointer,
+    class_< DisplacementLagrangeMultiplierContactCriteriaType, typename DisplacementLagrangeMultiplierContactCriteriaType::Pointer,
             ConvergenceCriteriaType >
             (m, "DisplacementLagrangeMultiplierContactCriteria") 
             .def(init< double, double, double, double >())
@@ -189,7 +189,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
             
     // Displacement and lagrange multiplier mixed Convergence Criterion
-    class_< DisplacementLagrangeMultiplierMixedContactCriteriaType, DisplacementLagrangeMultiplierMixedContactCriteriaType::Pointer,
+    class_< DisplacementLagrangeMultiplierMixedContactCriteriaType, typename DisplacementLagrangeMultiplierMixedContactCriteriaType::Pointer,
             ConvergenceCriteriaType >
             (m, "DisplacementLagrangeMultiplierMixedContactCriteria") 
             .def(init< double, double, double, double >())
@@ -199,7 +199,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
             ;
             
     // Displacement and lagrange multiplier residual Convergence Criterion
-    class_< DisplacementLagrangeMultiplierResidualContactCriteriaType, DisplacementLagrangeMultiplierResidualContactCriteriaType::Pointer,
+    class_< DisplacementLagrangeMultiplierResidualContactCriteriaType, typename DisplacementLagrangeMultiplierResidualContactCriteriaType::Pointer,
             ConvergenceCriteriaType >
             (m, "DisplacementLagrangeMultiplierResidualContactCriteria") 
             .def(init< double, double, double, double >())
@@ -213,7 +213,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     //********************************************************************
             
     typedef ContactResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ContactResidualBasedBlockBuilderAndSolverType;
-    class_< ContactResidualBasedBlockBuilderAndSolverType, ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
+    class_< ContactResidualBasedBlockBuilderAndSolverType, typename ContactResidualBasedBlockBuilderAndSolverType::Pointer, BuilderAndSolverType > (m, "ContactResidualBasedBlockBuilderAndSolver")
     .def(init< LinearSolverType::Pointer > ());
 }
 
