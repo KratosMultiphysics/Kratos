@@ -80,11 +80,13 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
-      bool Find(const Point& rThePoint);
+      bool FindNode(const Point& rThePoint, int& rNodeId, double DistanceThreshold);
+      bool FindElement(const Point& rThePoint, int& rObjectId, Vector& rLocalCoordinates);
+      bool FindCondition(const Point& rThePoint, int& rObjectId, Vector& rLocalCoordinates);
 
-      void InterpolateValue(const Variable<double>& rVariable, double& rValue);
-    //   void InterpolateValue(const Variable<T>& rVariable, T& rValue);
-
+      template<typename TObjectType>
+      bool FindObject(const TObjectType& rObjects, const std::string& rObjectType,
+                      const Point& rThePoint, int& rObjectId, Vector& rLocalCoordinates);
 
       ///@}
       ///@name Access
@@ -164,9 +166,6 @@ namespace Kratos
       ///@{
 
       ModelPart& mrModelPart;
-      bool mIsInitalized = false;
-      Element::Pointer mpFoundElement;
-
 
       ///@}
       ///@name Private Operators
@@ -177,6 +176,13 @@ namespace Kratos
       ///@name Private Operations
       ///@{
 
+      void CheckResults(const std::string& rObjectType,
+                        const Point& rThePoint,
+                        int GlobalObjectsFound);
+
+      bool NodeIsCloseEnough(const Node<3>& rNode,
+                             const Point& rThePoint,
+                             double DistanceThreshold);
 
       ///@}
       ///@name Private  Access

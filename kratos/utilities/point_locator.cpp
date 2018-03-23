@@ -23,27 +23,124 @@
 
 namespace Kratos
 {
-
-    bool PointLocator::Find(const Point& rThePoint)
+        bool PointLocator::FindNode(const Point& rThePoint, int& rNodeId, double DistanceThreshold)
     {
-        KRATOS_ERROR_IF(mIsInitalized) << "This instance can only be used for one Point" << std::endl;
+        rNodeId = -1;
+        bool is_close_enough = false;
+
+        int global_nodes_found = 0;
 
         // note that this cannot be omp bcs breaking is not allowed in omp
-        for (const auto& r_elem : mrModelPart.Elements())
+        for (auto& r_node : mrModelPart.GetCommunicator().LocalMesh().Nodes())
         {
-            // if found
-            //     break
+            is_close_enough = NodeIsCloseEnough(r_node, rThePoint, DistanceThreshold);
+            if (is_close_enough)
+            {
+                global_nodes_found = 1;
+                rNodeId = r_node.Id();
+                break;
+            }
+        }
+
+        CheckResults("Node", rThePoint, global_nodes_found);
+
+        return is_close_enough;
+    }
+
+    bool PointLocator::FindElement(const Point& rThePoint,
+                                   int& rObjectId,
+                                   Vector& rLocalCoordinates)
+    {
+        const auto& r_elements = mrModelPart.GetCommunicator().LocalMesh().Elements();
+        const bool is_inside = FindObject(r_elements, "Element",
+                                          rThePoint, rObjectId,
+                                          rLocalCoordinates);
+        return is_inside;
+    }
+
+    bool PointLocator::FindCondition(const Point& rThePoint,
+                                     int& rObjectId,
+                                     Vector& rLocalCoordinates)
+    {
+        const auto& r_conditions = mrModelPart.GetCommunicator().LocalMesh().Conditions();
+        const bool is_inside = FindObject(r_conditions, "Condition",
+                                          rThePoint, rObjectId,
+                                          rLocalCoordinates);
+        return is_inside;
+    }
+
+    template<typename TObjectType>
+    bool PointLocator::FindObject(const TObjectType& rObjects, const std::string& rObjectType,
+                                  const Point& rThePoint, int& rObjectId, Vector& rLocalCoordinates)
+    {
+        typedef Node<3> PointType;
+        typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
+
+        const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
+
+        const auto& r_geom = rObjects.begin()->GetGeometry();
+
+        KRATOS_ERROR_IF_NOT(static_cast<std::size_t>(domain_size) == r_geom.WorkingSpaceDimension())
+            << "Domain size (" << domain_size << ") and WorkingSpaceDimension ("
+            << r_geom.WorkingSpaceDimension() << ") of the "
+            << "Elements are not equal!" << std::endl;
+
+        rObjectId = -1;
+        bool is_inside;
+
+        int global_objects_found = 0;
+        CoordinatesArrayType local_coords;
+
+        // note that this cannot be omp bcs breaking is not allowed in omp
+        for (auto& r_object : rObjects)
+        {
+            is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coords);
+            if (is_inside)
+            {
+                global_objects_found = 1;
+                rObjectId = r_object.Id();
+                break;
+            }
+        }
+
+        CheckResults(rObjectType, rThePoint, global_objects_found);
+
+        return is_inside;
+    }
+
+    void PointLocator::CheckResults(const std::string& rObjectType,
+                                    const Point& rThePoint,
+                                    int GlobalObjectsFound)
+    {
+        mrModelPart.GetCommunicator().SumAll(GlobalObjectsFound);
+
+        if (GlobalObjectsFound > 1)
+        {
+            KRATOS_WARNING_IF("Point Locator", mrModelPart.GetCommunicator().MyPID() == 0)
+                << "More than one " << rObjectType << " found for Point: " << rThePoint << std::endl;
+            mrModelPart.GetCommunicator().Barrier();
+            KRATOS_WARNING("Point Locator")
+                << "    In Rank: " << mrModelPart.GetCommunicator().MyPID() << std::endl;
+            mrModelPart.GetCommunicator().Barrier();
+        }
+        else if (GlobalObjectsFound == 0)
+        {
+            KRATOS_WARNING_IF("Point Locator", mrModelPart.GetCommunicator().MyPID() == 0)
+                << "No " << rObjectType << " found for Point: " << rThePoint << std::endl;
         }
     }
 
 
-
-    void PointLocator::InterpolateValue(const Variable<double>& rVariable, double& rValue)
+    bool PointLocator::NodeIsCloseEnough(const Node<3>& rNode,
+                                         const Point& rThePoint,
+                                         double DistanceThreshold)
     {
+        const double distance = std::sqrt( std::pow(rNode.X() - rThePoint.X(),2)
+                                         + std::pow(rNode.Y() - rThePoint.Y(),2)
+                                         + std::pow(rNode.Z() - rThePoint.Z(),2) );
 
+        return (distance < DistanceThreshold);
     }
-
-
 
 }  // namespace Kratos.
 
