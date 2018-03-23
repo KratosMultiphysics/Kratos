@@ -37,42 +37,32 @@ namespace Python
 {
 
 
-  void  AddCustomUtilitiesToPython()
-  {
-    using namespace boost::python;
+	void  AddCustomUtilitiesToPython()
+	{
+		using namespace boost::python;
 
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-    typedef std::vector<BrepModel> BrepModelVector;
-    typedef std::vector<BrepFace> BrepFacesVector;
-    typedef std::vector<BrepEdge> BrepEdgesVector;
+		typedef std::vector<BrepModel> BrepModelVector;
+		typedef std::vector<BrepFace>  BrepFacesVector;
+		typedef std::vector<BrepEdge>  BrepEdgesVector;
 
-    class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<BrepModelGeometryReader&, ModelPart&>())
-      .def("CreateIntegrationDomain", &NurbsBrepModeler::CreateIntegrationDomain)
-      ;
-      //.def("SetUp", &NurbsBrepModeler::SetUp)
-      //;
-    //class_<BrepModel, boost::noncopyable>("BrepModel", init<unsigned int&, FacesVector&, EdgesVector&>());
-   /* class_<std::vector<BrepModel> >("BrepModelVec")
-      .def(vector_indexing_suite<std::vector<BrepModel> >())
-      ;*/
+		class_<NurbsBrepModeler, boost::noncopyable>("NurbsBrepModeler", init<ModelPart&>())
+			.def("LoadGeometry", &NurbsBrepModeler::LoadGeometry)
+			.def("CreateIntegrationDomain", &NurbsBrepModeler::CreateIntegrationDomain)
+			.def("ApplyGeometryRefinement", &NurbsBrepModeler::ApplyGeometryRefinement)
+			.def("ComputeArea", &NurbsBrepModeler::ComputeArea)
+			.def("MapNode", &NurbsBrepModeler::MapNode)
+			;
 
-    class_<BrepModelGeometryReader, boost::noncopyable>("BrepModelGeometryReader", init<Parameters&>())
-      .def("ReadGeometry", &BrepModelGeometryReader::ReadGeometry)
-      .def("WriteGaussPoints", &BrepModelGeometryReader::WriteGaussPoints)
-      ;
-    //void BrepModelGeometryReader::ReadGeometry(BrepModelVector& r_brep_model_vector, ModelPart& model_part)
-    //  .def("EvaluateShapeFunction", &NurbsShapeFunctionModeler::EvaluateShapeFunction)
-    //  .def("EvaluateShapeFunctionSecondOrder", &NurbsShapeFunctionModeler::EvaluateShapeFunctionSecondOrder)
-    //  ;
-  }
-
-
-
-
+		class_<BrepModelGeometryReader, boost::noncopyable>("BrepModelGeometryReader", init<Parameters&>())
+			.def("ReadGeometry", &BrepModelGeometryReader::ReadGeometry)
+			.def("WriteGaussPoints", &BrepModelGeometryReader::WriteGaussPoints)
+			;
+	}
 
 }  // namespace Python.
 
