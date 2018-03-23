@@ -935,6 +935,8 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
+        if (rOutput.size1() != 0)
+	        rOutput.resize(0, 0, false);
     }
 
     /**
@@ -944,6 +946,8 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo)
     {
+         if (rOutput.size1() != 0)
+	        rOutput.resize(0, 0, false);
     }
 
 
