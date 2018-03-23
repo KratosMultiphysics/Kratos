@@ -822,25 +822,28 @@ protected:
                 it->CalculateSensitivityMatrix(
                     rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
-                // This part of the sensitivity is computed from the objective
-                // with primal variables treated as constant.
-                this->CalculateSensitivityGradient(
-                    *it, rSensitivityVariable, sensitivity_matrix[k],
-                    response_gradient[k], r_process_info);
+                if(sensitivity_matrix[k].size1() > 0)
+                {  
+                    // This part of the sensitivity is computed from the objective
+                    // with primal variables treated as constant.
+                    this->CalculateSensitivityGradient(
+                        *it, rSensitivityVariable, sensitivity_matrix[k],
+                        response_gradient[k], r_process_info);
 
-			    // Get the adjoint displacement field
-                it->GetValuesVector(adjoint_vector[k]);
+			        // Get the adjoint displacement field
+                    it->GetValuesVector(adjoint_vector[k]);
 
-                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-			    // Compute the whole sensitivity
-                noalias(sensitivity_vector[k]) =
-                    			/*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                response_gradient[k]);
+			        // Compute the whole sensitivity
+                    noalias(sensitivity_vector[k]) =
+                    			    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                    response_gradient[k]);
 
-                this->AssembleNodalSensitivityContribution(
-                    rSensitivityVariable, sensitivity_vector[k], r_geom);  //----> check for correct output
+                    this->AssembleNodalSensitivityContribution(
+                        rSensitivityVariable, sensitivity_vector[k], r_geom);  //----> check for correct output
+                }
             }
         }
 
@@ -872,31 +875,34 @@ protected:
                 it->CalculateSensitivityMatrix(
                     rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
-                // This part of the sensitivity is computed from the objective
-                // with primal variables treated as constant.
-                this->CalculateSensitivityGradient(
-                    *it, rSensitivityVariable, sensitivity_matrix[k],
-                    response_gradient[k], r_process_info);
+                if(sensitivity_matrix[k].size1() > 0)
+                {  
+                    // This part of the sensitivity is computed from the objective
+                    // with primal variables treated as constant.
+                    this->CalculateSensitivityGradient(
+                        *it, rSensitivityVariable, sensitivity_matrix[k],
+                        response_gradient[k], r_process_info);
 
-			    // Get the adjoint displacement field
-                it->GetValuesVector(adjoint_vector[k]);
+			        // Get the adjoint displacement field
+                    it->GetValuesVector(adjoint_vector[k]);
 
-                if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                    sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-			    // Compute the whole sensitivity
-                noalias(sensitivity_vector[k]) =
-                    			/*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                    response_gradient[k]);
+			        // Compute the whole sensitivity
+                    noalias(sensitivity_vector[k]) =
+                    			    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                        response_gradient[k]);
 
 
-			    /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
-			    {
-					std::cout << ("SA result conditions = ") << i << sensitivity_vector[i] << std::endl;
-			    }*/
+			        /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
+			        {
+					    std::cout << ("SA result conditions = ") << i << sensitivity_vector[i] << std::endl;
+			        }*/
 
-                this->AssembleNodalSensitivityContribution(
-                    rSensitivityVariable, sensitivity_vector[k], r_geom);	//----> check for correct output
+                    this->AssembleNodalSensitivityContribution(
+                        rSensitivityVariable, sensitivity_vector[k], r_geom);	//----> check for correct output
+                }
             }
         }
 
@@ -940,28 +946,32 @@ protected:
                     it->CalculateSensitivityMatrix(
             	        rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
-                    // This part of the sensitivity is computed from the objective
-                    // with primal variables treated as constant.
-                    this->CalculateSensitivityGradient(
-                        *it, rSensitivityVariable, sensitivity_matrix[k],
-                            response_gradient[k], r_process_info);
+                    if(sensitivity_matrix[k].size1() > 0)
+                    {    
+                        // This part of the sensitivity is computed from the objective
+                        // with primal variables treated as constant.
+                        this->CalculateSensitivityGradient(
+                            *it, rSensitivityVariable, sensitivity_matrix[k],
+                                response_gradient[k], r_process_info);
+                    
+                  
+			            // Get the adjoint displacement field
+                        it->GetValuesVector(adjoint_vector[k]);
 
-			        // Get the adjoint displacement field
-                    it->GetValuesVector(adjoint_vector[k]);
+                        if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                            sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+			            // Compute the whole sensitivity
+                        noalias(sensitivity_vector[k]) =
+                				    /*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
+                                    response_gradient[k]);
 
-			        // Compute the whole sensitivity
-                    noalias(sensitivity_vector[k]) =
-                				/*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
-                                 response_gradient[k]);
+			            //std::cout << ("element sensitivty = ") << sensitivity_vector[0] << std::endl;
+                        this->AssembleElementSensitivityContribution(
+                  	            rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
 
-			        //std::cout << ("element sensitivty = ") << sensitivity_vector[0] << std::endl;
-                    this->AssembleElementSensitivityContribution(
-                  	        rOutputVariable, sensitivity_vector[k], *it);		//----> check for correct output
-
-                    //std::cout <<  sensitivity_vector[k][0] << std::endl;
+                        //std::cout <<  sensitivity_vector[k][0] << std::endl;
+                    }
                 }
             }
         }
@@ -1004,33 +1014,34 @@ protected:
                     it->CalculateSensitivityMatrix(
                         rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
-                    // This part of the sensitivity is computed from the objective
-                    // with primal variables treated as constant.
-                    this->CalculateSensitivityGradient(
-                        *it, rSensitivityVariable, sensitivity_matrix[k],
-                        response_gradient[k], r_process_info);
+                    if(sensitivity_matrix[k].size1() > 0)
+                    {      
+                        // This part of the sensitivity is computed from the objective
+                        // with primal variables treated as constant.
+                        this->CalculateSensitivityGradient(
+                            *it, rSensitivityVariable, sensitivity_matrix[k],
+                            response_gradient[k], r_process_info);
 
-			        // Get the adjoint displacement field
-                    it->GetValuesVector(adjoint_vector[k]);
+			            // Get the adjoint displacement field
+                        it->GetValuesVector(adjoint_vector[k]);
 
-                    if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
-                        sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
+                        if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
+                            sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-			        // Compute the whole sensitivity
-                    noalias(sensitivity_vector[k]) =
+			            // Compute the whole sensitivity
+                        noalias(sensitivity_vector[k]) =
                     			/*delta_time * */(prod(sensitivity_matrix[k], adjoint_vector[k]) +
                                     response_gradient[k]);
 
+			            /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
+			            {
+					        std::cout << ("SA result = ") << sensitivity_vector[i] << std::endl;
+			            }*/
 
-			        /*for(unsigned i = 0; i < sensitivity_vector.size(); i++)
-			        {
-					    std::cout << ("SA result = ") << sensitivity_vector[i] << std::endl;
-			        }*/
-
-		            Condition::GeometryType& r_geom = it->GetGeometry();
-                    this->AssembleConditionSensitivityContribution(
-               		         rOutputVariable, sensitivity_vector[k], r_geom); //----> check for correct output
-
+		                Condition::GeometryType& r_geom = it->GetGeometry();
+                        this->AssembleConditionSensitivityContribution(
+               		            rOutputVariable, sensitivity_vector[k], r_geom); //----> check for correct output
+                    }
                 }
             }
         }
