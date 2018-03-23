@@ -18,7 +18,7 @@
 
 
 // Project includes
-#include "custom_conditions/meshless_load_condition.h"
+#include "custom_conditions/meshless_force_interface_condition.h"
 #include "utilities/math_utils.h"
 #include "includes/define.h"
 
@@ -30,7 +30,7 @@ namespace Kratos
 {
 	//************************************************************************************
 	//************************************************************************************
-	MeshlessLoadCondition::MeshlessLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+	MeshlessForceInterfaceCondition::MeshlessForceInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry)
 		: MeshlessBaseCondition(NewId, pGeometry)
 	{
 		//DO NOT ADD DOFS HERE!!!
@@ -39,26 +39,26 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	MeshlessLoadCondition::MeshlessLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+	MeshlessForceInterfaceCondition::MeshlessForceInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
 		: MeshlessBaseCondition(NewId, pGeometry, pProperties)
 	{
 	}
 
 
-	Condition::Pointer MeshlessLoadCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+	Condition::Pointer MeshlessForceInterfaceCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 	{
-		return MeshlessBaseCondition::Pointer(new MeshlessLoadCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+		return MeshlessBaseCondition::Pointer(new MeshlessForceInterfaceCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 	}
 
 
 	// Destructor
-	MeshlessLoadCondition::~MeshlessLoadCondition()
+	MeshlessForceInterfaceCondition::~MeshlessForceInterfaceCondition()
 	{
 	}
 
 	//************************************************************************************
 	//************************************************************************************
-	void MeshlessLoadCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void MeshlessForceInterfaceCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		MatrixType temp(0, 0);
 		CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
@@ -71,7 +71,7 @@ namespace Kratos
 	* Returns only rRightHandSideVector as there is no impact on the 
 	* siffness due to loads
 	*/
-	void MeshlessLoadCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+	void MeshlessForceInterfaceCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
 
@@ -87,80 +87,20 @@ namespace Kratos
 
 		if (!Has(SHAPE_FUNCTION_VALUES))
 			KRATOS_ERROR << "No SHAPE_FUNCTION_VALUES assigned!" << std::endl;
-		Vector ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
+		Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
 
-		if (!Has(SHAPE_FUNCTION_LOCAL_DERIVATIVES))
-			KRATOS_ERROR << "No SHAPE_FUNCTION_LOCAL_DERIVATIVES assigned!" << std::endl;
-		Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-
-		if (!Has(INTEGRATION_WEIGHT))
-			KRATOS_ERROR << "No INTEGRATION_WEIGHT assigned!" << std::endl;
-		double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-
-		if (!this->Has(DISTRIBUTED_LOAD_FACTOR))
-			KRATOS_ERROR << "No DISTRIBUTED_LOAD_FACTOR assigned!" << std::endl;
-		double load = this->GetValue(DISTRIBUTED_LOAD_FACTOR);
-
-		//TODO: find better way to pass condition type
-		int conditiontype = this->GetValue(LOAD_TYPE);
-		int SURFACE_PRESSURE = (conditiontype % 1000) / 100;
-		int SURFACE_DEAD = (conditiontype % 100) / 10;
-		int EDGE_LOAD = (conditiontype % 10) / 1;
-
-		array_1d<double, 3> g1, g2, g3; 
-		GetBasisVectors(DN_De, g1, g2, g3); //g3 normalized!
-
-		array_1d<double, 3> direction;
-
-		if (SURFACE_PRESSURE == 1)
-		{
-			CrossProduct(g3, g1, g2);
-
-			double dArea = norm_2(g3);
-
-			integration_weight *= dArea;
-
-			direction = g3 / dArea;
-		}
-		else if (SURFACE_DEAD == 1)
-		{
-			if (!Has(DIRECTION))
-				KRATOS_ERROR << "No DIRECTION assigned!" << std::endl;
-
-			direction = this->GetValue(DIRECTION);
-
-			CrossProduct(g3, g1, g2);
-
-			double dArea = norm_2(g3);
-
-			integration_weight *= dArea;
-		}
-		else if (EDGE_LOAD == 1)
-		{
-			// Edge Load:
-			// simulates self weight.
-			// needs direction of forces.
-			if (!Has(DIRECTION))
-				KRATOS_ERROR << "No DIRECTION assigned!" << std::endl;
-
-			direction = this->GetValue(DIRECTION);
-
-			Vector Tangents = this->GetValue(TANGENTS);
-			double JGeometricToParameter;
-			MappingGeometricToParameter(DN_De, Tangents, JGeometricToParameter);
-
-			integration_weight *= JGeometricToParameter;
-		}
-
+		if (!this->Has(EXTERNAL_FORCES_VECTOR))
+			KRATOS_ERROR << "EXTERNAL_FORCES_VECTOR not assigned!" << std::endl;
+		Vector force_vector = this->GetValue(EXTERNAL_FORCES_VECTOR);
 
 		Vector fLoads(number_of_points * 3);
 
 		for (unsigned int i = 0; i < number_of_points; i++)
 		{
 			int index = 3 * i;
-			fLoads[index]	  = - load * integration_weight * direction[0] * ShapeFunctionsN[i];
-			fLoads[index + 1] = - load * integration_weight * direction[1] * ShapeFunctionsN[i];
-			fLoads[index + 2] = - load * integration_weight * direction[2] * ShapeFunctionsN[i];
+			fLoads[index]	  = - force_vector[0] * N[i];
+			fLoads[index + 1] = - force_vector[1] * N[i];
+			fLoads[index + 2] = - force_vector[2] * N[i];
 		}
 		noalias(rRightHandSideVector) -= fLoads;
 		KRATOS_CATCH("")
@@ -170,10 +110,11 @@ namespace Kratos
 	//***********************************************************************************
 	//***********************************************************************************
 
-	void MeshlessLoadCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+	void MeshlessForceInterfaceCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 	{
 		KRATOS_TRY
-			unsigned int number_of_nodes = GetGeometry().size();
+
+		unsigned int number_of_nodes = GetGeometry().size();
 		unsigned int dim = number_of_nodes * 3;
 
 		if (rResult.size() != dim)
@@ -193,7 +134,7 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void MeshlessLoadCondition::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+	void MeshlessForceInterfaceCondition::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
 	{
 
 		ElementalDofList.resize(0);
@@ -203,6 +144,27 @@ namespace Kratos
 			ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
 			ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
 			ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+		}
+	}
+
+	//************************************************************************************
+	//************************************************************************************
+	void MeshlessForceInterfaceCondition::GetFirstDerivativesVector(Vector& values, int Step)
+	{
+		if (values.size() != 3)
+			values.resize(3, false);
+
+		const int& number_of_nodes = GetGeometry().size();
+		Vector N = this->GetValue(SHAPE_FUNCTION_VALUES);
+
+		for (SizeType i = 0; i < number_of_nodes; i++)
+		{
+			const NodeType & iNode = GetGeometry()[i];
+			const array_1d<double, 3>& vel = iNode.FastGetSolutionStepValue(VELOCITY, Step);
+
+			values[0] += N[i] * vel[0];
+			values[1] += N[i] * vel[1];
+			values[2] += N[i] * vel[2];
 		}
 	}
 

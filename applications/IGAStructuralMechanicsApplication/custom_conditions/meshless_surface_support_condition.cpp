@@ -70,16 +70,11 @@ void MeshlessSurfaceSupportCondition::CalculateLocalSystem(MatrixType& rLeftHand
         rRightHandSideVector.resize(number_of_points*3,false);
     rRightHandSideVector = ZeroVector(number_of_points*3); //resetting RHS
 
-    //Read in Data
-  const Vector& ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
-	//const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-
+    //Read in Data		
+	const Vector& ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
 	const array_1d<double, 3>& support = this->GetValue(DISPLACEMENT);
-
 	double Penalty = this->GetValue(PENALTY_FACTOR);
-  //KRATOS_WATCH(Penalty)
 	const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-	//Vector Tangents = this->GetValue(TANGENTS);
 
 	const int displacement_rotation_fix = this->GetValue(DISPLACEMENT_ROTATION_FIX);
 
@@ -104,7 +99,7 @@ void MeshlessSurfaceSupportCondition::CalculateLocalSystem(MatrixType& rLeftHand
 			Stiffness(2, 3 * i + 2) = ShapeFunctionsN[i];
 	}
 
-  Vector TDisplacements(number_of_points*3);
+	Vector TDisplacements(number_of_points*3);
 	for (unsigned int i = 0; i < number_of_points; i++)
 	{
 		const array_1d<double, 3> disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -114,36 +109,22 @@ void MeshlessSurfaceSupportCondition::CalculateLocalSystem(MatrixType& rLeftHand
 		TDisplacements[index + 2] = (disp[2] - support[2]);
 	}
 
-  noalias(rLeftHandSideMatrix) += prod(trans(Stiffness), Stiffness);
+	noalias(rLeftHandSideMatrix) += prod(trans(Stiffness), Stiffness);
 	noalias(rRightHandSideVector) -= prod(prod(trans(Stiffness), Stiffness), TDisplacements);
 
+	Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+	array_1d<double, 3> g1, g2, g3;
+	GetBasisVectors(DN_De, g1, g2, g3);
 
-  Matrix DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-  array_1d<double, 3> g1, g2, g3;
-  GetBasisVectors(DN_De, g1, g2, g3);
+	CrossProduct(g3, g1, g2);
 
-  CrossProduct(g3, g1, g2);
+	double dArea = norm_2(g3);
 
-  double dArea = norm_2(g3);
-
-  KRATOS_WATCH(rLeftHandSideMatrix)
-    KRATOS_WATCH(rRightHandSideVector)
-
-    KRATOS_WATCH(support)
-    KRATOS_WATCH(dArea)
-
-  std::cout << "Meshless Surface Support Condition" << std::endl;
-        KRATOS_WATCH(Penalty)
-          KRATOS_WATCH(integration_weight)
 	//MAPPING
 	rLeftHandSideMatrix *= integration_weight * Penalty * dArea;
 	rRightHandSideVector *= integration_weight * Penalty *dArea;
 
-  KRATOS_WATCH(rLeftHandSideMatrix)
-    KRATOS_WATCH(rRightHandSideVector)
-
-  //KRATOS_WATCH(rLeftHandSideMatrix)
-  KRATOS_CATCH("")
+	KRATOS_CATCH("")
 } // MeshlessSurfaceSupportCondition::MeshlessSurfaceSupportCondition
 
 

@@ -105,9 +105,7 @@ namespace Kratos
 		rRightHandSideVector = ZeroVector(number_of_points * 3); //resetting RHS
 
 		const Vector& ShapeFunctionsN = this->GetValue(SHAPE_FUNCTION_VALUES);
-		//KRATOS_WATCH(ShapeFunctionsN)
 		const Vector& NSlave = this->GetValue(SHAPE_FUNCTION_VALUES_SLAVE);
-		//KRATOS_WATCH(NSlave)
 		Vector ShapeFunctions = ZeroVector(ShapeFunctionsN.size() + NSlave.size());
 		for (unsigned int i = 0; i < ShapeFunctionsN.size(); i++)
 		{
@@ -148,14 +146,10 @@ namespace Kratos
 		array_1d<double, 3> t2 = localTrimTangentsMaster(0)*g1 + localTrimTangentsMaster(1)*g2;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		array_1d<double, 3> t1;
 		CrossProduct(t1, t2, g3);
-		//t2 = t2 / norm_2(t2);
-		//t1 = t1 / norm_2(t1);
 
 		array_1d<double, 3> T2 = localTrimTangentsMaster(0)*mg1_0_master + localTrimTangentsMaster(1)*mg2_0_master;  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		array_1d<double, 3> T1;
 		CrossProduct(T1, T2, mg3_0_master);
-		//T2 = T2 / norm_2(T2);
-		//T1 = T1 / norm_2(T1);
 
 
 		gab[0] = pow(t1[0], 2) + pow(t1[1], 2) + pow(t1[2], 2);
@@ -182,15 +176,15 @@ namespace Kratos
 		mConstitutiveLawVector->Check(GetProperties(), GetGeometry(), rCurrentProcessInfo);
 		double damage_t = 0.0;
 		mConstitutiveLawVector->GetValue(DAMAGE_T, damage_t);
-		double rest_percentage = pow(1.0 - damage_t,0.1);
-		double blablabla = 1.0;
-		if (damage_t > 0.1)
+		double rest_percentage = 1.0 - damage_t;// pow(1.0 - damage_t, 0.1);
+		//double blablabla = 1.0;
+		if (damage_t > 0.7)
 		{
-			blablabla = 0.0;
 			this->SetValue(PENALTY_FACTOR, 0.0);
+			Penalty = 0.0;
 		}
-		KRATOS_WATCH(Penalty)
-			KRATOS_WATCH(blablabla)
+		//Penalty *= rest_percentage;
+		//KRATOS_WATCH(Penalty)
 		const int displacement_rotation_fix = this->GetValue(DISPLACEMENT_ROTATION_FIX);
     //KRATOS_WATCH(displacement_rotation_fix)
 
@@ -221,8 +215,6 @@ namespace Kratos
 			}
 		}
 
-		KRATOS_WATCH(DMembrane)
-
 		//FOR DISPLACEMENTS
 		Matrix Hcomplete = ZeroMatrix(3, number_of_points * 3);
 		for (unsigned int i = 0; i < number_of_points; i++)
@@ -231,7 +223,7 @@ namespace Kratos
 				Hcomplete(0, 3 * i) = ShapeFunctions[i] * Penalty;// *DMembrane(0, 0);
 
 			if (dispY == 1)
-				Hcomplete(1, 3 * i + 1) = ShapeFunctions[i] * Penalty * blablabla;//  * DMembrane(1, 1);
+				Hcomplete(1, 3 * i + 1) = ShapeFunctions[i] * Penalty;//  * DMembrane(1, 1);
 
 			if (dispZ == 1)
 				Hcomplete(2, 3 * i + 2) = ShapeFunctions[i] * Penalty;//  * DMembrane(2, 2);
