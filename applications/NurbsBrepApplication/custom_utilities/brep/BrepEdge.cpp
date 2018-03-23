@@ -11,54 +11,57 @@
 //                   Michael Breitenberger
 //
 
+
 // Project includes
 #include "BrepEdge.h"
-#include "nurbs_brep_application.h"
-#include "nurbs_brep_application_variables.h"
-
 
 namespace Kratos
 {
-  // --------------------------------------------------------------------------
-  //std::vector<Node<3>::Pointer> BrepEdge::GetQuadraturePoints(const int& shapefunction_order)
-  //{
-  //  if (this->isCouplingEdge())
-  //  {
+	/* Returns the topology information for one trim. The topology index typically goes from
+	*  0 to 1. 0 is master, 1 is slave.
+	*  @param[in]  rTopology
+	*/
+	BrepEdge::Topology BrepEdge::GetEdgeInformation(const int& rTopologyIndex)
+	{
+		KRATOS_ERROR_IF(rTopologyIndex > m_brep_edge_topology_vector.size() - 1) << "Topology index out of topology range. Edge " 
+			<< Id() << " only has " << m_brep_edge_topology_vector.size() << " topology items." << std::endl;
 
-  //  }
-  //  else
-  //  {
+		return m_brep_edge_topology_vector[rTopologyIndex];
+	}
 
-  //  }
-  //}
-  void BrepEdge::GetEdgeInformation(const int& face_trim, int& face_id, int& trim_index)
-  {
-    face_id = m_brep_face_trims_vector[face_trim].GetFaceId();
-    trim_index = m_brep_face_trims_vector[face_trim].GetTrimIndex();
-  }
+	/* If edge has more then one brep topology object, then the edge is a coupling
+	*  edge.
+	*/
+	bool BrepEdge::IsCouplingEdge()
+	{
+	if (m_brep_edge_topology_vector.size() > 1)
+		return true;
+	else
+		return false;
+	}
 
-  // --------------------------------------------------------------------------
-  bool BrepEdge::isCouplingEdge()
-  {
-    if (m_brep_face_trims_vector.size() > 1)
-      return true;
-    else
-      return false;
-  }
+	///Constructor
+	BrepEdge::BrepEdge(unsigned int edge_id,
+		std::vector<Topology>& brep_edge_topology_vector,
+		std::vector<TrimmingRange>& trimming_range_vector,
+		unsigned int& degree,
+		Vector& knot_vector,
+		Vector& active_range,
+		std::vector<int>& control_point_ids,
+		ModelPart::Pointer model_part)
+	: m_brep_edge_topology_vector(brep_edge_topology_vector),
+		m_trimming_range_vector(trimming_range_vector),
+		m_degree(degree),
+		m_knot_vector(knot_vector),
+		m_active_range(active_range),
+		m_control_point_ids(control_point_ids),
+		mp_model_part(model_part),
+		IndexedObject(edge_id),
+		Flags()
+	{}
 
-  ///Constructor
-  BrepEdge::BrepEdge(unsigned int edge_id, 
-    BrepFaceTrimVector& brep_face_trims_vector)
-    : m_brep_face_trims_vector(brep_face_trims_vector),
-      IndexedObject(edge_id),
-      Flags()
-  {
-  }
-
-  ///Destructor
-  BrepEdge::~BrepEdge()
-  {
-  }
-
+	///Destructor
+	BrepEdge::~BrepEdge()
+	{}
 }  // namespace Kratos.
 

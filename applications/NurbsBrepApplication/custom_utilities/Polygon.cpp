@@ -17,33 +17,6 @@
 
 namespace Kratos
 {
-  //bool Polygon::GetOrientation() {
-  //  long i1, i2;
-  //  double area = 0;
-  //  std::vector<PointXYType> const& points = m_polygon.outer();
-  //  int number_of_points = boost::geometry::num_points(m_polygon);
-  //  for (i1 = 0; i1<number_of_points; i1++) {
-  //    i2 = i1 + 1;
-  //    if (i2 == number_of_points) i2 = 0;
-  //    area += points[i1].x() * points[i2].y() - points[i1].y() * points[i2].x();
-  //  }
-  //  if (area>0) return false;
-  //  if (area<0) return true;
-  //  return 0;
-  //}
-
-  //void Polygon::Invert() {
-  //  int i;
-  //  std::vector<PointXYType> const& points = m_polygon.outer();
-  //  int number_of_points = boost::geometry::num_points(m_polygon);
-  //  std::vector<PointXYType> inverse_points(number_of_points);
-  //  //inverse_points.resize(m_polygon.size());
-  //  for (i = 0; i<number_of_points; i++) {
-  //    inverse_points[i] = points[number_of_points - i - 1];
-  //  }
-  //  m_polygon.outer = inverse_points;
-  //}
-
   /**
   * @date   Mai, 2017
   * @brief   Basic function to triangulate polygon. Produces minimal number of triangles.
@@ -188,147 +161,6 @@ namespace Kratos
     return true;
   }
 
-  //bool Polygon::Triangulate_OPT(std::vector<Matrix>& triangles)
-  //{
-  //  //std::vector<Matrix> triangles;
-  //  std::cout << "check 1" << std::endl;
-  //  //DPState **dpstates;
-  //  array_1d<double, 2> p1, p2, p3, p4;
-  //  long bestvertex;
-  //  double weight, minweight, d1, d2;
-  //  Diagonal diagonal, newdiagonal;
-  //  std::list<Diagonal> diagonals;
-  //  bool ret = true;
-  //
-  //  int n = m_polygon.size();
-  //  matrix<DPState> dpstates(n, n);
-  //  //dpstates = new DPState *[n];
-  //  //for (unsigned int i = 1; i<n; i++) {
-  //  //  dpstates[i] = new DPState[i];
-  //  //}
-  //
-  //  std::cout << "check 2" << std::endl;
-  //  //init states and visibility
-  //  for (unsigned int i = 0; i<(n - 1); i++) {
-  //    p1 = m_polygon[i];
-  //    for (unsigned int j = i + 1; j<n; j++) {
-  //      dpstates(j,i).visible = true;
-  //      dpstates(j,i).weight = 0;
-  //      dpstates(j,i).bestvertex = -1;
-  //      if (j != (i + 1)) {
-  //        p2 = m_polygon[j];
-  //
-  //        //visibility check
-  //        if (i == 0) p3 = m_polygon[n - 1];
-  //        else p3 = m_polygon[i - 1];
-  //        if (i == (n - 1)) p4 = m_polygon[0];
-  //        else p4 = m_polygon[i + 1];
-  //        if (!InCone(p3, p1, p4, p2)) {
-  //          dpstates(j,i).visible = false;
-  //          continue;
-  //        }
-  //
-  //        if (j == 0) p3 = m_polygon[n - 1];
-  //        else p3 = m_polygon[j - 1];
-  //        if (j == (n - 1)) p4 = m_polygon[0];
-  //        else p4 = m_polygon[j + 1];
-  //        if (!InCone(p3, p2, p4, p1)) {
-  //          dpstates(j,i).visible = false;
-  //          continue;
-  //        }
-  //
-  //        for (unsigned int k = 0; k<n; k++) {
-  //          p3 = m_polygon[k];
-  //          if (k == (n - 1)) p4 = m_polygon[0];
-  //          else p4 = m_polygon[k + 1];
-  //          if (Intersects(p1, p2, p3, p4)) {
-  //            dpstates(j,i).visible = false;
-  //            break;
-  //          }
-  //        }
-  //      }
-  //    }
-  //  }
-  //  std::cout << "check 3" << std::endl;
-  //  dpstates(n-1,0).visible = true;
-  //  dpstates(n-1,0).weight = 0;
-  //  dpstates(n-1,0).bestvertex = -1;
-  //
-  //  for (unsigned int gap = 2; gap<n; gap++) {
-  //    for (unsigned int i = 0; i<(n - gap); i++) {
-  //      int j = i + gap;
-  //      if (!dpstates(j,i).visible) continue;
-  //      bestvertex = -1;
-  //      for (unsigned int k = (i + 1); k<j; k++) {
-  //        if (!dpstates(k,i).visible) continue;
-  //        if (!dpstates(j,k).visible) continue;
-  //
-  //        if (k <= (i + 1)) d1 = 0;
-  //        else d1 = Distance(m_polygon[i], m_polygon[k]);
-  //        if (j <= (k + 1)) d2 = 0;
-  //        else d2 = Distance(m_polygon[k], m_polygon[j]);
-  //
-  //        weight = dpstates(k,i).weight + dpstates(j,k).weight + d1 + d2;
-  //
-  //        if ((bestvertex == -1) || (weight<minweight)) {
-  //          bestvertex = k;
-  //          minweight = weight;
-  //        }
-  //      }
-  //      if (bestvertex == -1) {
-  //        //for (unsigned int i = 1; i<n; i++) {
-  //        //  delete[] dpstates[i];
-  //        //}
-  //        //delete[] dpstates;
-  //
-  //        return false;
-  //      }
-  //
-  //      dpstates(j,i).bestvertex = bestvertex;
-  //      dpstates(j,i).weight = minweight;
-  //    }
-  //  }
-  //
-  //  newdiagonal.index1 = 0;
-  //  newdiagonal.index2 = n - 1;
-  //  diagonals.push_back(newdiagonal);
-  //  while (!diagonals.empty()) {
-  //    diagonal = *(diagonals.begin());
-  //    diagonals.pop_front();
-  //    bestvertex = dpstates(diagonal.index2,diagonal.index1).bestvertex;
-  //    if (bestvertex == -1) {
-  //      ret = false;
-  //      break;
-  //    }
-  //    Matrix triangle(3, 2);
-  //    triangle(0, 0) = m_polygon[diagonal.index1][0];
-  //    triangle(0, 1) = m_polygon[diagonal.index1][1];
-  //    triangle(1, 0) = m_polygon[bestvertex][0];
-  //    triangle(1, 1) = m_polygon[bestvertex][1];
-  //    triangle(2, 0) = m_polygon[diagonal.index2][0];
-  //    triangle(2, 1) = m_polygon[diagonal.index2][1];
-  //    if (GetAreaOfTriangle(triangle)>1e-9)
-  //      triangles.push_back(triangle);
-  //    if (bestvertex > (diagonal.index1 + 1)) {
-  //      newdiagonal.index1 = diagonal.index1;
-  //      newdiagonal.index2 = bestvertex;
-  //      diagonals.push_back(newdiagonal);
-  //    }
-  //    if (diagonal.index2 > (bestvertex + 1)) {
-  //      newdiagonal.index1 = bestvertex;
-  //      newdiagonal.index2 = diagonal.index2;
-  //      diagonals.push_back(newdiagonal);
-  //    }
-  //  }
-  //  std::cout << "check 5" << std::endl;
-  //
-  //  //for (unsigned int i = 1; i<n; i++) {
-  //  //  delete[] dpstates[i];
-  //  //}
-  //  //delete[] dpstates;
-  //  //triangles;// = triangles;
-  //  return true;
-  //}
 
   double Polygon::GetAreaOfTriangle(const Matrix& triangle)
   {
@@ -358,16 +190,11 @@ namespace Kratos
   std::vector<Matrix> Polygon::Triangulate()
   {
     std::vector<Matrix> triangles;
-    //std::cout << "m_polygon: " << m_polygon_list.size() << std::endl;
-    //for (auto polygon = m_polygon_list.begin(); polygon != m_polygon_list.end(); ++polygon)
     for (unsigned int i = 0; i<m_polygon_list.size(); i++)
     {
-      //std::cout << boost::geometry::wkt<PolygonType>(m_polygon_list[i]) << std::endl;
       if (boost::geometry::area(m_polygon_list[i]) > 0)
       {
         Reverse(i);
-        //std::cout << "reverse polygon: "<< boost::geometry::wkt<PolygonType>(m_polygon_list[i]) << std::endl;
-        //std::cout << "reverse polygon are: " << boost::geometry::area(m_polygon_list[i]) << std::endl;
       }
 
       if (boost::geometry::num_points(m_polygon_list[i]) > 0)
@@ -383,11 +210,6 @@ namespace Kratos
       else
         KRATOS_THROW_ERROR(std::runtime_error, "Polygon::Triangulate: No points in polygon.", std::endl);
     }
-    //std::cout << triangles.size() << std::endl;
-    //for (unsigned int t = 0; t < triangles.size(); t++)
-    //{
-    //  //KRATOS_WATCH(triangles[t])
-    //}
     return triangles;
   }
 
@@ -416,7 +238,7 @@ namespace Kratos
     }
     Polygon new_polygon(polygon_vector);
     //std::cout << "area full knot span: " << abs(boost::geometry::area(polygon)) << ", area of clipped polygon: " << new_polygon.GetArea() << std::endl;
-    if (abs(abs(boost::geometry::area(polygon)) - new_polygon.GetArea()) < 1e-7)
+    if (abs(abs(boost::geometry::area(polygon)) - abs(new_polygon.GetArea())) < 1e-7)
       new_polygon.m_is_full_knot_span = true;
     return new_polygon;
   }
@@ -618,7 +440,7 @@ namespace Kratos
   Polygon Polygon::GetDifference(Polygon Substractor)
   {
 	  PolygonVectorType polygon_outer_list;
-	  PolygonVectorType polygon_inner_list;
+	  PolygonVectorType polygon_union_list;
 	  //PolygonVectorType polygon_list;
 	  //std::vector<array_1d<double, 2>> boundary_polygon;
 	  //for (unsigned int loop_i = 0; loop_i < boundary_loops.size(); loop_i++)
@@ -626,27 +448,29 @@ namespace Kratos
 		 // std::vector<array_1d<double, 2>> boundary_polygon;
 		 // std::vector<PointXYType> points;
 		 // boundary_polygon = boundary_loops[loop_i].GetBoundaryPolygon(5);
-
+	  //
 		 // for (unsigned int i = 0; i < boundary_polygon.size(); i++)
 			//  points.push_back(PointXYType(boundary_polygon[i][0], boundary_polygon[i][1]));
-
+	  //
 		 // PolygonType polygon;
 		 // boost::geometry::assign_points(polygon, points);
 		 // boost::geometry::correct(polygon);
-
+	  //
 		 // if (boundary_loops[loop_i].IsOuterLoop())
 			//  polygon_outer_list.push_back(polygon);
 		 // else
 			//  polygon_inner_list.push_back(polygon);
 	  //}
+	  //
+	  //std::cout << "start get difference... m_polygon_list.size(): " << m_polygon_list.size() 
+		 // << ", Substractor.m_polygon_list.size(): " << Substractor.m_polygon_list.size() << std::endl;
 
-	  //std::cout << "start get difference..." << std::endl;
 	  for (unsigned int i = 0; i < m_polygon_list.size(); i++)
 	  {
 		  for (unsigned int j = 0; j < Substractor.m_polygon_list.size(); j++)
 		  {
 			  std::deque<PolygonType> output;
-			  boost::geometry::difference(m_polygon_list[j], Substractor.m_polygon_list[i], output);
+			  boost::geometry::difference(m_polygon_list[i], Substractor.m_polygon_list[j], output);
 			  //std::cout << "output size: " << output.size() << std::endl;
 			  //if (output.size() >= 1)
 			  //{
@@ -665,8 +489,25 @@ namespace Kratos
 			  //  KRATOS_THROW_ERROR(std::runtime_error, "Error in boundary loop definition.", std::endl);
 		  }
 	  }
+
+	  for (unsigned int i = 0; i < polygon_outer_list.size(); i++)
+	  {
+		  for (unsigned int j = i+1; j < polygon_outer_list.size(); j++)
+		  {
+			  std::deque<PolygonType> output;
+			  boost::geometry::intersection(polygon_outer_list[i], polygon_outer_list[j], output);
+			  //std::cout << "output: " << output.size() << std::endl;
+			  for (auto it = output.begin(); it != output.end(); ++it)
+			  {
+				  polygon_union_list.push_back(*it);
+			  }
+		  }
+	  }
+	  //std::cout << "end get difference... polygon_union_list: " << polygon_union_list.size() << std::endl;
+
+	  //std::cout << "end get difference... polygon_outer_list: " << polygon_outer_list.size() <<  std::endl;
 	  //std::cout << "Size of polygon outer list: " << polygon_outer_list.size() << std::endl;
-	  return Polygon(polygon_outer_list);
+	  return Polygon(polygon_union_list);
   }
 
   double Polygon::GetArea()
@@ -686,83 +527,77 @@ namespace Kratos
   {
   }
 
-  Polygon::Polygon(PolygonType polygon)
-  {
-    PolygonVectorType polygon_list;
-    std::cout << boost::geometry::wkt<PolygonType>(polygon) << std::endl;
-    polygon_list.push_back(polygon);
-      m_polygon_list = polygon_list;
-  }
+	Polygon::Polygon(PolygonType polygon)
+	{
+		PolygonVectorType polygon_list;
+		polygon_list.push_back(polygon);
+		m_polygon_list = polygon_list;
+	}
 
-  Polygon::Polygon(std::vector<array_1d<double, 2>> polygon)
-  {
-    PolygonVectorType polygon_list;
-    PolygonType boost_polygon;
+	Polygon::Polygon(std::vector<array_1d<double, 2>> polygon)
+	{
+		PolygonVectorType polygon_list;
+		PolygonType boost_polygon;
 
-    for (unsigned int i = 0; i < polygon.size(); i++)
-      boost::geometry::append(boost::geometry::exterior_ring(boost_polygon),
-        boost::geometry::make<PointXYType>(polygon[i][0], polygon[i][1]));
-    //if (polygon.size() > 0)
-    //  boost::geometry::append(boost::geometry::exterior_ring(boost_polygon_1),
-    //    boost::geometry::make<PointXYType>(polygon[0][0], polygon[0][1]));
-    boost::geometry::correct(boost_polygon);
+		for (unsigned int i = 0; i < polygon.size(); i++)
+			boost::geometry::append(boost::geometry::exterior_ring(boost_polygon),
+				boost::geometry::make<PointXYType>(polygon[i][0], polygon[i][1]));
 
-    std::cout << boost::geometry::wkt<PolygonType>(boost_polygon) << std::endl;
+		boost::geometry::correct(boost_polygon);
 
-    polygon_list.push_back(boost_polygon);
-    m_polygon_list = polygon_list;
-  }
+		std::cout << boost::geometry::wkt<PolygonType>(boost_polygon) << std::endl;
 
-  Polygon::Polygon(std::vector<BrepBoundaryLoop>& boundary_loops)
-  {
-    PolygonVectorType polygon_outer_list;
-    PolygonVectorType polygon_inner_list;
-    PolygonVectorType polygon_list;
-    std::vector<array_1d<double, 2>> boundary_polygon;
-    for (unsigned int loop_i = 0; loop_i < boundary_loops.size(); loop_i++)
-    {
-      std::vector<array_1d<double, 2>> boundary_polygon;
-      std::vector<PointXYType> points;
-      boundary_polygon = boundary_loops[loop_i].GetBoundaryPolygon(5);
+		polygon_list.push_back(boost_polygon);
+		m_polygon_list = polygon_list;
+	}
 
-      for (unsigned int i = 0; i < boundary_polygon.size(); i++)
-        points.push_back(PointXYType(boundary_polygon[i][0], boundary_polygon[i][1]));
-
-      PolygonType polygon;
-      boost::geometry::assign_points(polygon, points);
-      boost::geometry::correct(polygon);
-
-      if (boundary_loops[loop_i].IsOuterLoop())
-        polygon_outer_list.push_back(polygon);
-      else
-        polygon_inner_list.push_back(polygon);
-    }
-    for (unsigned int i = 0; i < polygon_inner_list.size(); i++)
-    {
-      for (unsigned int j = 0; j < polygon_outer_list.size(); j++)
-      {
-        std::deque<PolygonType> output;
-        boost::geometry::difference(polygon_outer_list[j], polygon_inner_list[i], output);
-		std::cout <<"output size: "<< output.size() << std::endl;
-        if (output.size() == 1)
-          polygon_outer_list[j] = output[0];
-		else
+	Polygon::Polygon(std::vector<BrepBoundaryLoop>& boundary_loops)
+	{
+		PolygonVectorType polygon_outer_list;
+		PolygonVectorType polygon_inner_list;
+		PolygonVectorType polygon_list;
+		std::vector<array_1d<double, 2>> boundary_polygon;
+		for (unsigned int loop_i = 0; loop_i < boundary_loops.size(); loop_i++)
 		{
-			std::cout << boost::geometry::wkt<PolygonType>(polygon_inner_list[i]) << std::endl;
-			std::cout << boost::geometry::wkt<PolygonType>(polygon_outer_list[j]) << std::endl;
+			std::vector<array_1d<double, 2>> boundary_polygon;
+			std::vector<PointXYType> points;
+			boundary_polygon = boundary_loops[loop_i].GetBoundaryPolygon(5);
+
+			for (unsigned int i = 0; i < boundary_polygon.size(); i++)
+				points.push_back(PointXYType(boundary_polygon[i][0], boundary_polygon[i][1]));
+
+			PolygonType polygon;
+			boost::geometry::assign_points(polygon, points);
+			boost::geometry::correct(polygon);
+
+			if (boundary_loops[loop_i].IsOuterLoop())
+				polygon_outer_list.push_back(polygon);
+			else
+				polygon_inner_list.push_back(polygon);
 		}
-			
-        //  KRATOS_THROW_ERROR(std::runtime_error, "Error in boundary loop definition.", std::endl);
-      }
-    }
-    m_polygon_list = polygon_outer_list;
-  }
+		for (unsigned int i = 0; i < polygon_inner_list.size(); i++)
+		{
+			for (unsigned int j = 0; j < polygon_outer_list.size(); j++)
+			{
+				std::deque<PolygonType> output;
+				boost::geometry::difference(polygon_outer_list[j], polygon_inner_list[i], output);
+				if (output.size() == 1)
+					polygon_outer_list[j] = output[0];
+				else
+				{
+					std::cout << boost::geometry::wkt<PolygonType>(polygon_inner_list[i]) << std::endl;
+					std::cout << boost::geometry::wkt<PolygonType>(polygon_outer_list[j]) << std::endl;
+				}
 
+				//  KRATOS_THROW_ERROR(std::runtime_error, "Error in boundary loop definition.", std::endl);
+			}
+		}
+		m_polygon_list = polygon_outer_list;
+	}
 
-
-  ///Destructor
-  Polygon::~Polygon()
-  {
-  }
+	///Destructor
+	Polygon::~Polygon()
+	{
+	}
 
 }  // namespace Kratos.

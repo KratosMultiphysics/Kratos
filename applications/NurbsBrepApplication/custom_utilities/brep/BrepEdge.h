@@ -1,97 +1,101 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:     BSD License
+//           Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//
+//  Main authors:    Tobias Teschemacher
+//                   Michael Breitenberger
+//
+
+
 #if !defined(KRATOS_BREP_EDGE_H_INCLUDED )
 #define  KRATOS_BREP_EDGE_H_INCLUDED
 
 
-// ------------------------------------------------------------------------------
-// System includes
-// ------------------------------------------------------------------------------
-#include <iostream>
-#include <string>
-#include <algorithm>
-#include <cmath>
-#include <math.h>
-#include <vector>
-
-// ------------------------------------------------------------------------------
 // Project includes
-// ------------------------------------------------------------------------------
-#include "BrepFaceTrim.h"
-#include "../../kratos/includes/node.h"
-
 #include "nurbs_brep_application.h"
 #include "nurbs_brep_application_variables.h"
 
-// ==============================================================================
 
 namespace Kratos
 {
+///@name Kratos Classes
+///@{
+/// Edge in global space.
+/** Detail class definition.
+*/
+class BrepEdge : public IndexedObject, public Flags
+{
+public:
+	/* Used to separate the curve into trimmed ranges. */
+	struct TrimmingRange
+	{
+		int trim_index;
+		Vector range;
 
-  ///@name Kratos Globals
-  ///@{ 
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  ///@}
-  ///@name  Enum's
-  ///@{
-  ///@}
-  ///@name  Functions 
-  ///@{
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class BrepEdge : public IndexedObject, public Flags
-  {
-  public:
-    ///@name Type Definitions
-    ///@{
+		TrimmingRange(const int& rTrimIndex, const Vector& rRange)
+		{
+			trim_index = rTrimIndex;
+			range = rRange;
+		}
+	};
 
-    typedef std::vector<BrepFaceTrim> BrepFaceTrimVector;
-    typedef std::vector<Vector> ParameterVector;
-    
-    /// Pointer definition of KratosNurbsTestcaseApplication
-    //KRATOS_CLASS_POINTER_DEFINITION(BrepEdge);
+	/* Used to descibe the topology of edges. */
+	struct Topology
+	{
+		int face_id;
+		int trim_index;
+		bool relative_direction;
 
-    ///@}
+		Topology(const int& rFaceId, const int& rTrimIndex, const bool& rRelativeDirection)
+		{
+			face_id = rFaceId;
+			trim_index = rTrimIndex;
+			relative_direction = rRelativeDirection;
+		}
+	};
+
     ///@name Life Cycle 
     ///@{ 
-    //std::vector<Node<3>::Pointer> GetQuadraturePoints(const int& shapefunction_order);
-    bool isCouplingEdge();
-    void GetEdgeInformation(const int& face_trim, int& face_id, int& trim_index);
+    bool IsCouplingEdge();
+    Topology GetEdgeInformation(const int& rTopologyIndex);
 
-    //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
     BrepEdge(unsigned int edge_id,
-      BrepFaceTrimVector& brep_face_trims_vector);
+		std::vector<Topology>& brep_edge_topology_vector,
+		std::vector<TrimmingRange>& trimming_range_vector,
+		unsigned int& degree,
+		Vector& knot_vector,
+		Vector& active_range,
+		std::vector<int>& control_point_ids,
+		ModelPart::Pointer model_part);
 
     /// Destructor.
     virtual ~BrepEdge();
 
-    /// Copy constructor.
-    //BrepEdge(BrepEdge const& rOther);
-
-    /// Assignment operator.
-    //BrepEdge& operator=(BrepEdge const& rOther);
     ///@} 
-  protected:
+protected:
 
-  private:
+private:
 
-    ///@name Private methods
-    ///@{ 
+	///@name Member Variables
+	///@{ 
+	// topology parameter
+	std::vector<Topology> m_brep_edge_topology_vector;
+	std::vector<TrimmingRange> m_trimming_range_vector;
 
-    ///@} 
-    ///@name Member Variables
-    ///@{ 
-
-    BrepFaceTrimVector m_brep_face_trims_vector;
-
-    ///@}    
-
-  }; // Class BrepEdge 
+	//3d curve parameter
+	unsigned int                  m_degree;
+	Vector                        m_knot_vector;
+	Vector                        m_active_range;
+	std::vector<int>              m_control_point_ids;
+	ModelPart::Pointer            mp_model_part;
+	///@}    
+}; // Class BrepEdge 
 
 }  // namespace Kratos.
 

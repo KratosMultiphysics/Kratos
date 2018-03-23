@@ -56,7 +56,7 @@ namespace Kratos
     return m_is_outer_loop;
   }
 //Constructor
-BrepBoundaryLoop::BrepBoundaryLoop(BrepTrimmingCurveVector& brep_trimming_curves, bool is_outer_loop)
+BrepBoundaryLoop::BrepBoundaryLoop(std::vector<BrepTrimmingCurve>& brep_trimming_curves, bool is_outer_loop)
   : m_brep_trimming_curves(brep_trimming_curves),
     m_is_outer_loop(is_outer_loop)
 {

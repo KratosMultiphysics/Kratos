@@ -87,6 +87,8 @@ namespace Kratos
     double GetArea();
 
     bool IsFullKnotSpan();
+
+
     bool m_is_full_knot_span = false;
 
 	Polygon Polygon::GetDifference(Polygon Substractor);

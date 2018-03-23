@@ -44,7 +44,7 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
-    typedef std::vector<BrepTrimmingCurve> BrepTrimmingCurveVector;
+    //typedef std::vector<BrepTrimmingCurve> BrepTrimmingCurveVector;
     
     /// Pointer definition of KratosNurbsBrepApplication
     KRATOS_CLASS_POINTER_DEFINITION(BrepBoundaryLoop);
@@ -53,12 +53,12 @@ namespace Kratos
     ///@name Life Cycle 
     ///@{ 
 
-    BrepTrimmingCurveVector GetTrimmingCurves();
+	std::vector<BrepTrimmingCurve> GetTrimmingCurves();
     bool& IsOuterLoop();
     std::vector<array_1d<double, 2>> GetBoundaryPolygon(unsigned int number_polygon_points);
 
     /// Constructor.
-    BrepBoundaryLoop(BrepTrimmingCurveVector& brep_trimming_curves, bool is_outer_loop);
+    BrepBoundaryLoop(std::vector<BrepTrimmingCurve>& brep_trimming_curves, bool is_outer_loop);
 
     /// Destructor.
     virtual ~BrepBoundaryLoop();
@@ -75,7 +75,7 @@ namespace Kratos
     ///@name Member Variables
     ///@{ 
 
-    BrepTrimmingCurveVector m_brep_trimming_curves;
+	  std::vector<BrepTrimmingCurve> m_brep_trimming_curves;
     bool m_is_outer_loop;
 
   

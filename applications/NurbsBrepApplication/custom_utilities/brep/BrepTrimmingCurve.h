@@ -23,30 +23,13 @@
 
 namespace Kratos
 {
-
-  ///@name Kratos Globals
-  ///@{ 
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  ///@}
-  ///@name  Enum's
-  ///@{
-  ///@}
-  ///@name  Functions 
-  ///@{
-  ///@}
   ///@name Kratos Classes
   ///@{
-  /// Short class definition.
-  /** Detail class definition.
-  */
   class BrepTrimmingCurve
   {
   public:
     ///@name Type Definitions
     ///@{
-
     typedef std::vector<array_1d<double, 4>> ControlPointVector;
     
     /// Pointer definition of KratosNurbsBrepApplication
@@ -55,43 +38,50 @@ namespace Kratos
     ///@}
     ///@name Life Cycle 
     ///@{ 
+	// Discretization function
     std::vector<array_1d<double, 2>> CreatePolygon(unsigned int number_polygon_points);
     std::vector<array_1d<double, 3>> CreatePolygonWithParameter(unsigned int number_polygon_points);
-    void EvaluateCurvePoint(Point& rCurvePoint, double parameter_u);
-    unsigned int& GetIndex();
-    void PrintData();
 
-
+	// Integration functions
     std::vector<array_1d<double, 3>> GetQuadraturePoints(std::vector<double> span, double polynomial_order_p);
-    std::vector<double> FindIntersections(const int& p, const int& q, const Vector& knot_vector_u, const Vector& knot_vector_v);
-    std::vector<double> FindIntersectionsWithPoints(std::vector<array_1d<double, 2>> intersection_points);
-    double EvaluateIntersection(double initial_u, int intersection_base, const double& coordinate_base);
-    array_1d<double, 2> GetBaseVector(const int& u);
-    void GetCurveDerivatives(std::vector<Vector>& derivatives, const int& order, const double& u);
-    void EvaluateCurveDerivatives(Matrix& DN_De, const int& order, const double& u);
-    void EvaluateLocalParameter(double& parameter, bool& converged, int baseVec,
-    double baseComp, double uinit, double itmax, double iteps);
-    bool GetClosestPoint(const array_1d<double, 2>& closest_point, double& parameter);
+	std::vector<array_1d<double, 4>> GetIntegrationPoints(const std::vector<double>& rSpan, const double& rDegree);
+
+	// Knot intersections for entire curve:
+    std::vector<double> GetKnotIntersections(const int& p, const int& q, const Vector& knot_vector_u, const Vector& knot_vector_v, const int& rNumberOfPolygonPoints);
+
+	// Closest Point projections:
+	bool GetClosestPoint(const array_1d<double, 2>& closest_point, double& parameter);
+	bool GetClosestPoint(
+		const array_1d<double, 2>& rClosestPoint,
+		const double& rKnotPercentage,
+		double& rParameter);
+	std::vector<double> GetClosestPoints(std::vector<array_1d<double, 2>> points, const int& rNumberOfPolygonPoints);
+
+	// Projections towards curve
     bool ProjectionNewtonRaphson(double& parameter, const array_1d<double, 2>& closest_point);
     bool ProjectionBisection(double& parameter, const array_1d<double, 2>& closest_point);
     bool ProjectionBisection(double& parameter, const array_1d<double, 2>& closest_point, double parameter_min, double parameter_max);
-    bool GetClosestPointBisection(double& parameter, const array_1d<double, 2>& closest_point);
+
+	// Knot intersections for specific knot
     bool GetKnotIntersection(double& parameter, const int& direction, const double& knot);
-    bool Bisection(double& parameter, const double& parameter_1, const double& parameter_2,
+    bool GetKnotIntersectionBisection(double& parameter, const double& parameter_1, const double& parameter_2,
       const double& direction, const double& knot);
 
+	// Geoemetrical functions
+	void EvaluateCurvePoint(Point& rCurvePoint, double parameter_u);
+	void EvaluateCurveDerivatives(std::vector<Vector>& derivatives, const int& order, const double& u);
+
+	// Shape Functions
     void EvaluateRationalCurveDerivatives(std::vector<Vector>& DN_De, const int& order, const double& u);
 
+	void RefineKnotVector(const Vector& rRu);
 
-    //Shape Functions:
-    void EvaluateRationalCurveDerivativesPrint(std::vector<Vector>& DN_De, const int& order, const double& u);
-    void EvaluateCurveDerivativesPrint(Matrix& DN_De, const int& order, const double& u);
-
+	// Utilities
+	unsigned int& GetIndex();
 
     //TODO: you need to give reading access to your internals through the Calculate function
     /// Constructor.
     //TODO: pass by reference not by value
-    //TODO: why control points have size 4??? pass them as kratos nodes
     BrepTrimmingCurve(unsigned int trim_index, bool curve_direction, Vector& knot_vector_u,
       unsigned int p, ControlPointVector& control_points,
       Vector& active_range);
@@ -99,11 +89,6 @@ namespace Kratos
     /// Destructor.
     virtual ~BrepTrimmingCurve();
 
-    /// Copy constructor.
-    //BrepTrimmingCurve(BrepTrimmingCurve const& rOther);
-
-    /// Assignment operator.
-    //BrepTrimmingCurve& operator=(BrepTrimmingCurve const& rOther);
     ///@} 
   protected:
 
@@ -117,7 +102,6 @@ namespace Kratos
     ControlPointVector m_control_points;
     Vector m_active_range;
     ///@}    
-     
     ///@name Un accessible methods 
     ///@{ 
 

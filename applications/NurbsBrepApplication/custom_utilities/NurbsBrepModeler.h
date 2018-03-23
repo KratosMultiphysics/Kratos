@@ -1,16 +1,5 @@
-//
-//   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
-//   Date:                $Date:  $
-//   Revision:            $Revision: 1.2 $
-//
-//
-
-
 #if !defined(KRATOS_NURBS_BREP_MODELER_H_INCLUDED )
 #define  KRATOS_NURBS_BREP_MODELER_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -27,46 +16,12 @@
 #include "includes/kratos_parameters.h"
 
 #include "../../kratos/spatial_containers/spatial_containers.h"
-//#include "../../kratos/utilities/binbased_fast_point_locator.h"
-//#include "../../kratos/includes/kratos_flags.h"
-
-//#include "nurbs_utilities.h"
 
 #include "BrepModelGeometryReader.h"
 #include "brep/BrepModel.h"
 
 namespace Kratos
 {
-
-  ///@name Kratos Globals
-  ///@{ 
-
-
-
-
-
-
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-/**
- * Typedefs for search
- */
-  ///@}
-  ///@name  Enum's
-  ///@{
-
-  ///@}
-  ///@name  Functions 
-  ///@{
-
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-
-  /// Short class definition.
-  /** Detail class definition.
-  */
   class NurbsBrepModeler
   {
   public:
@@ -94,66 +49,48 @@ namespace Kratos
     ///@}
     ///@name functions 
     ///@{ 
-    void CreateIntegrationDomain(const int& shapefunction_order, ModelPart& model_part);
+
+	void LoadGeometry(BrepModelGeometryReader& rBrepModelGeometryReader);
+
+    //void CreateIntegrationDomain(const int& shapefunction_order, ModelPart& model_part);
+	void CreateIntegrationDomain(
+		Parameters& rIntegrationDomainParameter, 
+		ModelPart& rIntegrationDomainModelPart);
+
+	/* Applies all geometry refinement operations on the patches which are defined in the
+	*  RefinementParameters.
+	*  @param[in] rRefinementParameters */
+	void ApplyGeometryRefinement(Parameters& rRefinementParameters);
+
+	/* Computes the spatial area of each model part and prints it respectiveley */
+	void ComputeArea(ModelPart& rModelPart);
+
+	void MapNode(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry, ModelPart& rSearchModelPart);
     ///@} 
     ///@name Life Cycle 
     ///@{ 
     /// Constructor.
-    NurbsBrepModeler(BrepModelGeometryReader& brep_model_geometry_reader, ModelPart& model_part);
+    NurbsBrepModeler(ModelPart& rModelPart);
 
-        //NurbsBrepModeler();
     /// Destructor.
     virtual ~NurbsBrepModeler();
     ///@} 
   protected:
-    ///@name Protected static Member Variables 
-    ///@{
-    ///@} 
-    ///@name Protected member Variables 
-    ///@{
-    ///@} 
-    ///@name Protected Operators
-    ///@{ 
-    ///@} 
-    ///@name Protected Operations
-    ///@{ 
-    ///@} 
-    ///@name Protected  Access 
-    ///@{ 
-    ///@}      
-    ///@name Protected Inquiry 
-    ///@{ 
-    ///@}    
-    ///@name Protected LifeCycle 
-    ///@{
-    ///@}
   private:
-    ///@name Static Member Variables 
-    ///@{ 
-    //       static const ApplicationCondition  msApplicationCondition; 
-    ///@} 
     ///@name Member Variables
     ///@{ 
-    ModelPart m_model_part;
+	// should be ModelPart::Pointer ??
+    ModelPart       m_model_part;
     BrepModelVector m_brep_model_vector;
-    //TreeType m_search_tree;
-    ///@} 
-    ///@name Private Operators
-    ///@{ 
+
+	double m_model_tolerance;
     ///@} 
     ///@name Private Operations
     ///@{ 
     void CreateMeshedPoints(ModelPart& model_part);
     BrepFace& GetFace(const unsigned int face_id);
-    //Tree< KDTreePartition<BucketType> > CreateSearchTree(ModelPart model_part);
-    void MapNode(const Node<3>::Pointer& node, Node<3>::Pointer& node_on_geometry);
+
     ///@} 
-    ///@name Private  Access 
-    ///@{ 
-    ///@}    
-    ///@name Private Inquiry 
-    ///@{ 
-    ///@}    
     ///@name Un accessible methods 
     ///@{ 
     /// Assignment operator.

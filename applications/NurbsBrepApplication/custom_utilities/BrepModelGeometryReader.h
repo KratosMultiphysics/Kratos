@@ -28,7 +28,6 @@
 #include "brep/BrepBoundaryLoop.h"
 #include "brep/BrepFace.h"
 #include "brep/BrepEdge.h"
-#include "brep/BrepFaceTrim.h"
 
 #include "includes/kratos_parameters.h"
 #include "../../kratos/includes/model_part.h"
@@ -61,22 +60,22 @@ namespace Kratos
   public:
     ///@name Type Definitions
     ///@{
-    typedef std::vector<BrepModel> BrepModelVector;
+    //typedef std::vector<BrepModel> BrepModelVector;
 
-    typedef std::vector<int> IntVector;
+    //typedef std::vector<int> IntVector;
 
-    typedef std::vector<Vector> ParameterVector;
+    //typedef std::vector<Vector> ParameterVector;
 
     //Edge:
-    typedef std::vector<BrepFaceTrim> BrepFaceTrimVector;
+    //typedef std::vector<BrepFaceTrim> BrepFaceTrimVector;
 
     //Face:
-    typedef std::vector<BrepTrimmingCurve> BrepTrimmingCurveVector;
-    typedef std::vector<BrepBoundaryLoop> BrepTrimmingLoopVector;
+    //typedef std::vector<BrepTrimmingCurve> BrepTrimmingCurveVector;
+    //typedef std::vector<BrepBoundaryLoop> BrepTrimmingLoopVector;
 
     //BrepModel:
-    typedef std::vector<BrepFace> BrepFacesVector;
-    typedef std::vector<BrepEdge> BrepEdgesVector;
+    //typedef std::vector<BrepFace> BrepFacesVector;
+    //typedef std::vector<BrepEdge> BrepEdgesVector;
 
 
     
@@ -87,6 +86,7 @@ namespace Kratos
     ///@name Life Cycle 
     ///@{ 
     std::vector<BrepModel> ReadGeometry(ModelPart& model_part);
+	double ReadModelTolerance();
     void WriteGaussPoints(ModelPart& model_part);
 
     /// Constructor.

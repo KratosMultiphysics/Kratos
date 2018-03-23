@@ -22,7 +22,6 @@ namespace Kratos
   std::vector<array_1d<double, 3>> KnotSpan2d::getIntegrationPointsInFullGaussianDomain()
   {
     std::vector<array_1d<double, 3>> IntegrationPoints;
-    //IntegrationPoints.resize((m_p + 1)*(m_q + 1));
 
     int number_of_nodes_u = (m_p + 1);
     int number_of_nodes_v = (m_q + 1);
@@ -45,8 +44,6 @@ namespace Kratos
         point[1] = coords_dir_gv(j);
         point[2] = weights_gu(i)*weights_gv(j);
 
-        //KRATOS_WATCH(point)
-
         IntegrationPoints.push_back(point);// [i*number_of_nodes_v + j] = point;
       }
     }
@@ -66,13 +63,6 @@ namespace Kratos
     double du = u2 - u1;
     double dv = v2 - v1;
 
-    //KRATOS_WATCH(u1)
-    //KRATOS_WATCH(u2)
-    //KRATOS_WATCH(v1)
-    //KRATOS_WATCH(v2)
-    //KRATOS_WATCH(du)
-    //KRATOS_WATCH(dv)
-
     double mapping = (u1 - u2)*(v1 - v2)*0.25;
 
     if (m_is_untrimmed)
@@ -84,8 +74,6 @@ namespace Kratos
         point[0] = (u2 + u1 + IntegrationPointsInGaussianDomain[i][0] * du)*0.5;
         point[1] = (v2 + v1 + IntegrationPointsInGaussianDomain[i][1] * dv)*0.5;
         point[2] = mapping*IntegrationPointsInGaussianDomain[i][2];
-
-        //KRATOS_WATCH(point)
 
         IntegrationPoints.push_back(point);// [i*number_of_nodes_v + j] = point;
       }
