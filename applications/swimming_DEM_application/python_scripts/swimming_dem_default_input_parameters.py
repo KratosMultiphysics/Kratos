@@ -86,6 +86,8 @@ def GetDefaultInputParameters():
             "non_newtonian_option"                   : false,
             "yield_stress"                           : 0.0,
             "regularization_coefficient"             : 0.0,
+            "power_law_k"                            : 0.0,
+            "power_law_n"                            : 0.0,
 
             "GraphExportFreq"                  : 1e-3,
             "VelTrapGraphExportFreq"           : 1e-3,

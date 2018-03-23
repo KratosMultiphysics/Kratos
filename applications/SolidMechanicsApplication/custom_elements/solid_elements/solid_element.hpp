@@ -96,7 +96,7 @@ protected:
         double  ReferenceRadius;
 
         //general variables for large displacement use
-        double  detF;
+        double  detF; 
         double  detF0; 
         double  detH; //Wildcard ( detF(0 to n+1) )
         double  detJ;

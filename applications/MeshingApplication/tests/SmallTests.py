@@ -50,7 +50,3 @@ class TwoDDynamicBeamLineLoadTest(MeshingTestFactory):
     
 class ThreeDDynamicBeamTest(MeshingTestFactory):
     file_name = "mmg_lagrangian_test/beam3D_test"
-    
-class TwoDDynamicPlasticBeamTest(MeshingTestFactory):
-    file_name = "mmg_lagrangian_test/beam2D_internal_variables_interpolation_test"
-    

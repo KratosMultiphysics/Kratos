@@ -321,7 +321,6 @@ double& AxisymmetricUpdatedLagrangianElement::CalculateTotalMass( double& rTotal
 
     //Compute the Volume Change acumulated:
     ElementVariables Variables;
-
     this->InitializeElementVariables(Variables,rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
@@ -378,7 +377,7 @@ void AxisymmetricUpdatedLagrangianElement::CalculateKinematics(ElementVariables&
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
+    noalias(rVariables.N) = matrix_row<const Matrix>( Ncontainer, rPointNumber);
 
     //Calculate IntegrationPoint radius
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);

@@ -27,7 +27,6 @@ from test_remesh_sphere import TestRemeshMMG                as TTestRemeshMMG
 from SmallTests  import TwoDDynamicBeamTest                 as TTwoDDynamicBeamTest
 from SmallTests  import TwoDDynamicBeamLineLoadTest         as TTwoDDynamicBeamLineLoadTest
 from SmallTests  import ThreeDDynamicBeamTest               as TThreeDDynamicBeamTest
-from SmallTests  import TwoDDynamicPlasticBeamTest          as TTwoDDynamicPlasticBeamTest
 
 ## NIGHTLY TESTS
 
@@ -62,7 +61,6 @@ def AssambleTestSuites():
             smallSuite.addTest(TTwoDDynamicBeamTest('test_execution'))
             smallSuite.addTest(TTwoDDynamicBeamLineLoadTest('test_execution'))
             smallSuite.addTest(TThreeDDynamicBeamTest('test_execution'))
-            smallSuite.addTest(TTwoDDynamicPlasticBeamTest('test_execution'))
     else:
         print("MMG process is not compiled and the corresponding tests will not be executed")
 
@@ -107,7 +105,6 @@ def AssambleTestSuites():
                     TTwoDDynamicBeamTest,
                     TTwoDDynamicBeamLineLoadTest,
                     TThreeDDynamicBeamTest,
-                    #TTwoDDynamicPlasticBeamTest,
                 ])
             )
     else:

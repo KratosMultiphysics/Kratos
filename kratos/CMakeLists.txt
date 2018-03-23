@@ -145,10 +145,9 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define library Kratos which defines the basic python interface
-add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
-target_link_libraries(Kratos ${KRATOS_TEST_LIBRARIES} KratosCore)
+add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES} ${KRATOS_TEST_SOURCES})
+target_link_libraries(Kratos KratosCore)
 set_target_properties(Kratos PROPERTIES PREFIX "")
-
 
 if(USE_COTIRE MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram
@@ -170,24 +169,15 @@ endif(USE_COTIRE MATCHES ON)
 
 ## Changing the .dll suffix to .pyd (For Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    if(${KRATOS_BUILD_TESTING} MATCHES ON)
-        set_target_properties(KratosTests PROPERTIES SUFFIX .pyd)
-    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
     set_target_properties(Kratos PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 ## Changing the .dylib suffix to .so (For MacOS)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    if(${KRATOS_BUILD_TESTING} MATCHES ON)
-        set_target_properties(KratosTests PROPERTIES SUFFIX .so)
-    endif(${KRATOS_BUILD_TESTING} MATCHES ON)
     set_target_properties(Kratos PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 install(TARGETS Kratos DESTINATION libs )
-if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    install(TARGETS KratosTests DESTINATION libs)
-endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 install(TARGETS KratosCore DESTINATION libs)
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

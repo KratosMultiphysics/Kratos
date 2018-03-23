@@ -86,17 +86,11 @@ class MmgProcess(KratosMultiphysics.Process):
 
         self.initial_remeshing = self.params["initial_remeshing"].GetBool()
 
-        # Select the remeshing strategy
-        self.strategy = self.params["strategy"].GetString()
-        if (self.strategy == "LevelSet"):
-            self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["scalar_variable"].GetString() )
-            self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["gradient_variable"].GetString() )
-        elif (self.strategy == "Hessian"):
-            self.metric_variable = self.__generate_variable_list_from_input(self.params["hessian_strategy_parameters"]["metric_variable"])
-            mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
-            if (mesh_dependent_constant == 0.0):
-                self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
-        
+        self.initial_step = self.params["initial_step"].GetInt()
+        self.step_frequency = self.params["step_frequency"].GetInt()
+
+    def ExecuteInitialize(self):
+
         # Calculate NODAL_H
         self.find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.Model[self.model_part_name])
         self.find_nodal_h.Execute()
@@ -133,11 +127,19 @@ class MmgProcess(KratosMultiphysics.Process):
             if (self.params["automatic_remesh"].GetBool() == True):
                 self.params["anisotropy_parameters"]["boundary_layer_max_distance"].SetDouble(self.params["minimal_size"].GetDouble() * self.params["anisotropy_parameters"]["boundary_layer_min_size_ratio"].GetDouble())
 
-        self.initial_step = self.params["initial_step"].GetInt()
-        self.step_frequency = self.params["step_frequency"].GetInt()
-
-    def ExecuteInitialize(self):
-
+        # Select the remeshing strategy
+        self.strategy = self.params["strategy"].GetString()
+        if (self.strategy == "LevelSet"):
+            self.scalar_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["scalar_variable"].GetString() )
+            self.gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable( self.params["level_set_strategy_parameters"]["gradient_variable"].GetString() )
+        elif (self.strategy == "Hessian"):
+            self.metric_variable = self.__generate_variable_list_from_input(self.params["hessian_strategy_parameters"]["metric_variable"])
+            mesh_dependent_constant = self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].GetDouble()
+            if (mesh_dependent_constant == 0.0):
+                self.params["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(0.5 * (self.dim/(self.dim + 1))**2.0)
+        
+        self.internal_variable_interpolation_list = self.__generate_internal_variable_list_from_input(self.params["internal_variables_parameters"]["internal_variable_interpolation_list"])
+        
         # NOTE: Add more model part if interested
         submodelpartslist = self.__generate_submodelparts_list_from_input(self.params["fix_contour_model_parts"])
 
@@ -184,7 +186,7 @@ class MmgProcess(KratosMultiphysics.Process):
             self.step += 1
             if self.step_frequency > 0:
                 if self.step >= self.step_frequency:
-                    if self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.TIME_STEPS] >= self.initial_step:
+                    if self.Model[self.model_part_name].ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
                         self._ExecuteRefinement()
                         self.step = 0  # Reset
 
@@ -314,19 +316,34 @@ class MmgProcess(KratosMultiphysics.Process):
       # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
 
       variable_list = []
+      if (len(self.Model[self.model_part_name].Nodes) > 0):
+          node = (self.Model[self.model_part_name].Nodes)[1]
+          for i in range( 0,param.size()):
+              aux_var = KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() )
+              val = node.GetSolutionStepValue(aux_var, 0)
+              if isinstance(val,float):
+                  variable_list.append(aux_var)
+              else:
+                  variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
+                  variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
+                  if (self.dim == 3):
+                      variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
+
+      return variable_list
+  
+    def __generate_internal_variable_list_from_input(self,param):
+      '''Parse a list of variables from input.'''
+      # At least verify that the input is a string
+      if not param.IsArray():
+          raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+      # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
+
+      variable_list = []
 
       for i in range( 0,param.size()):
           aux_var = KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() )
-          for node in self.Model[self.model_part_name].Nodes:
-            val = node.GetSolutionStepValue(aux_var, 0)
-            break
-          if isinstance(val,float):
-              variable_list.append(aux_var)
-          else:
-              variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_X" ))
-              variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Y" ))
-              if (self.dim == 3):
-                variable_list.append( KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString()+"_Z" ))
+          variable_list.append(aux_var)
 
       return variable_list
 
@@ -340,6 +357,8 @@ class MmgProcess(KratosMultiphysics.Process):
         gid_io.InitializeResults(label, self.Model[self.model_part_name].GetMesh())
         if (self.params["framework"].GetString() ==  "Lagrangian"):
             gid_io.WriteNodalResults(KratosMultiphysics.DISPLACEMENT, self.Model[self.model_part_name].Nodes, label, 0)
+            for var in self.internal_variable_interpolation_list:
+                gid_io.PrintOnGaussPoints(var, self.Model[self.model_part_name], label)
         else:
             gid_io.WriteNodalResults(KratosMultiphysics.VELOCITY, self.Model[self.model_part_name].Nodes, label, 0)
         gid_io.FinalizeResults()

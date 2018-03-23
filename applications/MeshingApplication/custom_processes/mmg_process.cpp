@@ -1442,7 +1442,7 @@ void MmgProcess<TDim>::SaveSolutionToFile(const bool PostOutput)
 {
     /* GET RESULTS */
 
-    const unsigned int& step = mrThisModelPart.GetProcessInfo()[TIME_STEPS];
+    const unsigned int& step = mrThisModelPart.GetProcessInfo()[STEP];
     
     // Automatically save the mesh 
     OutputMesh(PostOutput, step);

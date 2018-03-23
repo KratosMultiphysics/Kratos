@@ -518,6 +518,7 @@ namespace Kratos
   template<class TVariableType, class TValueType>
   inline std::istream & operator >> (std::istream & rIStream, EmcStepMethod<TVariableType,TValueType>& rThis)
   {
+    return rIStream;
   }
 
   template<class TVariableType, class TValueType>

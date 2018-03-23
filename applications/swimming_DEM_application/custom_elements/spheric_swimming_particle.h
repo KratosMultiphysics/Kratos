@@ -178,7 +178,7 @@ namespace Kratos
         double ComputeIntermediateRegimeDragCoefficient();
         double ComputeHaiderDragCoefficient();
         double ComputeBeetstraDragCoefficient();
-        double ComputeShahDragCoefficient(const bool use_shahi_correction = false);
+        double ComputeShahDragCoefficient(const ProcessInfo& r_current_process_info, const bool use_shahi_correction = false);
         void ComputeGanserParameters(const int isometric_shape, const double dn, double& k_1, double& k_2);
         void ApplyDragPorosityModification(double& drag_coeff);
         double ComputeElSamniLiftCoefficient(const double norm_of_shear_rate, const double vorticity_norm, const ProcessInfo& r_current_process_info);
