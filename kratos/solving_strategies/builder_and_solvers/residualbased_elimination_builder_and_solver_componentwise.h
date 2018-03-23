@@ -349,15 +349,11 @@ public:
 
     if(BaseType::GetCalculateReactionsFlag())
     {
-        int num_dofs =  static_cast<int> (BaseType::mDofSet.size());
-#pragma omp parallel for firstprivate(num_dofs)        
-        for(int i = 0; i<num_dofs; i++)
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
         { 
-            typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + i;
-
-            KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
-                << "Node : "<<dof_iterator->Id()<< std::endl
-                << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
         }
     }
     #endif
