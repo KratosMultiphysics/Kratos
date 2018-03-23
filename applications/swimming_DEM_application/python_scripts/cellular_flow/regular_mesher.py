@@ -33,9 +33,7 @@ if __name__ == "__main__":
     elif tag == 'Kratos':
         box = box_data(xmin, ymin, zmin, xmax, ymax, zmax, nx, ny, nz)
     else:
-        except ValueError:
-            print('the provided tag: ', tag, 'must be either \'Altair\' or \'Kratos\'')
-
+        raise ValueError('the provided tag: ', tag, 'must be either \'Altair\' or \'Kratos\'')
     box.x_periodic = False
     # box.y_periodic = True
     def x_scale_func(box, position):

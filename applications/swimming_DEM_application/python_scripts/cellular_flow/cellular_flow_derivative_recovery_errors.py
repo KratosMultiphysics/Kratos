@@ -5,10 +5,9 @@ import h5py
 do_print_max_error = True
 mat_deriv_recovery_types = [1, 3, 4, 6, 7]
 laplacian_recovery_types = [1, 3, 4, 6, 7]
-field_identifiers = ['sines', 'ethier']
-mesh_regularities = [False, True]
-mesh_tags = ['Altair']
-
+field_identifiers = ['ethier', 'sines']
+mesh_regularities = [True, False]
+mesh_tags = ['Altair', 'Kratos']
 
 meshes = []
 recovery_cases = []
@@ -111,7 +110,6 @@ class Plotter:
 
         data_path = curve.field_id + '/' + recovery_tag + '/' + mesh_identifier
 
-        print('data_path', data_path)
         with h5py.File('errors_recorded/recovery_errors.hdf5', 'r') as f:
             for i, dset in enumerate(f[data_path].values()):
                 size = float(dset.attrs['mesh size'])
@@ -130,6 +128,8 @@ class Plotter:
             for curve in figure.curves:
                 figure.CalculateSlopes()
                 color, derivative_type = GetCurveCharacteristics(curve.m_or_l, curve.method)
+                curve.sizes, curve.average_errors, curve.max_errors = \
+                zip(*sorted(zip(curve.sizes, curve.average_errors, curve.max_errors)))
                 plt.plot(curve.sizes,
                          curve.average_errors,
                          marker=curve.average_marker_type,
@@ -143,16 +143,16 @@ class Plotter:
                 if do_print_max_error:
                     color, derivative_type = GetCurveCharacteristics(curve.m_or_l, curve.method)
                     plt.plot(curve.sizes,
-                            curve.max_errors,
-                            marker=curve.average_marker_type,
-                            markeredgecolor=color,
-                            markerfacecolor='None',
-                            ms=self.marker_size,
-                            color=color,
-                            label= '” ' + curve.max_slope_msg,
-                            linewidth=self.line_width,
-                            linestyle='solid',
-                            markersize=20)
+                             curve.max_errors,
+                             marker=curve.average_marker_type,
+                             markeredgecolor=color,
+                             markerfacecolor='None',
+                             ms=self.marker_size,
+                             color=color,
+                             label= '” ' + curve.max_slope_msg,
+                             linewidth=self.line_width,
+                             linestyle='solid',
+                             markersize=20)
 
             self.PlotSlope(figure)
             plt.xlabel('$h$', fontsize=20)
@@ -216,15 +216,20 @@ class Figure:
 
     def SetTitle(self):
         field_id, m_or_l, mesh_tag = self.combination
-        self.title = field_id
+
         if m_or_l == 'M':
-            self.title += '_material_deriv_'
+            self.title = 'M_'
         else:
-            self.title += '_laplacian_'
+            self.title = 'L_' 
+
+        self.title += field_id
+
         if mesh_tag == '':
-            self.title += 'irregular_mesh_'
+            self.title += '_irregular'
         else:
-            self.title += 'regular_mesh_' + mesh_tag
+            self.title += '_regular_' + mesh_tag
+        
+        self.title += '.pdf'
 
     def SetOrder(self):
         m_or_l = self.combination[1]
