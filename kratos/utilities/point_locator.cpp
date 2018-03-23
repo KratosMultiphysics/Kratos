@@ -23,9 +23,9 @@
 
 namespace Kratos
 {
-        bool PointLocator::FindNode(const Point& rThePoint,
-                                    int& rNodeId,
-                                    double DistanceThreshold)
+    bool PointLocator::FindNode(const Point& rThePoint,
+                                int& rNodeId,
+                                double DistanceThreshold)
     {
         rNodeId = -1;
         bool is_close_enough = false;

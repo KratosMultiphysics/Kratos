@@ -29,7 +29,7 @@
 #include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/pointlocation.h"
+#include "utilities/point_locator.h"
 #include "utilities/deflation_utils.h"
 #include "utilities/iso_printer.h"
 #include "utilities/activation_utilities.h"
@@ -67,7 +67,7 @@ void AddUtilitiesToPython()
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-    
+
     // NOTE: this function is special in that it accepts a "pyObject" - this is the reason for which it is defined in this same file
     class_<PythonGenericFunctionUtility,  PythonGenericFunctionUtility::Pointer >("PythonGenericFunctionUtility", init<const std::string&>() )
     .def(init<const std::string&, Parameters>())
@@ -95,7 +95,7 @@ void AddUtilitiesToPython()
 
     InputGetConditionNumber ThisGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
     DirectGetConditionNumber ThisDirectGetConditionNumber = &ConditionNumberUtility::GetConditionNumber;
-    
+
     class_<ConditionNumberUtility>("ConditionNumberUtility", init<>())
     .def(init<LinearSolverType::Pointer, LinearSolverType::Pointer>())
     .def("GetConditionNumber", ThisGetConditionNumber)
@@ -224,15 +224,10 @@ void AddUtilitiesToPython()
     .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
     ;
 
-    class_<PointLocation > ("PointLocation", init<ModelPart& >())
-    .def("Find", &PointLocation::Find)
-    .def("Find2D", &PointLocation::Find2D)
-    .def("Find3D", &PointLocation::Find3D)
-    .def("found", &PointLocation::found)
-    .def("ReturnDefaultPointData_scalar", &PointLocation::ReturnDefaultPointData_scalar)
-    .def("ReturnDefaultPointData_vector", &PointLocation::ReturnDefaultPointData_vector)
-    .def("ReturnCustomPointData_scalar", &PointLocation::ReturnCustomPointData_scalar)
-    .def("ReturnCustomPointData_vector", &PointLocation::ReturnCustomPointData_vector)
+    class_<PointLocator, boost::noncopyable > ("PointLocator", init<ModelPart& >())
+    .def("FindNode", &PointLocator::FindNode)
+    .def("FindElement", &PointLocator::FindElement)
+    .def("FindCondition", &PointLocator::FindCondition)
     ;
 
     class_<ParticleConvectUtily<2> > ("ParticleConvectUtily2D", init< BinBasedFastPointLocator < 2 >::Pointer >())
@@ -359,12 +354,12 @@ void AddUtilitiesToPython()
     .def("GetIntervalEnd", &IntervalUtility::GetIntervalEnd)
     .def("IsInInterval", &IntervalUtility ::IsInInterval)
     ;
-    
+
     // Adding table from table stream to python
     class_<TableStreamUtility>("TableStreamUtility", init<>())
     .def(init< bool >())
     ;
-    
+
     // Exact integration (for testing)
     class_<ExactMortarIntegrationUtility<2,2>>("ExactMortarIntegrationUtility2D2N", init<>())
     .def(init<const unsigned int>())
