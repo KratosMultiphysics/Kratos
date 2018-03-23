@@ -48,7 +48,7 @@ namespace Kratos
 		for (unsigned int i = 0; i < number_of_nodes; i++)
 		{
 			int index = i * 3;
-			rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+			rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
 			rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
 			rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
 		}
@@ -75,7 +75,42 @@ namespace Kratos
 
 		KRATOS_CATCH("")
 	};
+	//***********************************************************************************
+	//***********************************************************************************
+	void MeshlessShellKLElement::FinalizeSolutionStep(
+		ProcessInfo& rCurrentProcessInfo)
+	{
+		mConstitutiveLaw->FinalizeSolutionStep(GetProperties(),
+			GetGeometry(),
+			this->GetValue(SHAPE_FUNCTION_VALUES),
+			rCurrentProcessInfo);
+	}
+	//************************************************************************************
+	//************************************************************************************
+	void MeshlessShellKLElement::InitializeMaterial()
+	{
+		KRATOS_TRY
 
+			if (GetProperties()[CONSTITUTIVE_LAW] != NULL)
+			{
+				//get shape functions for evaluation of stresses inside the constitutive law
+				const Vector&  N = this->GetValue(SHAPE_FUNCTION_VALUES);
+				const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+				const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
+
+				mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
+				ProcessInfo emptyProcessInfo = ProcessInfo();
+				//mConstitutiveLaw->SetValue(INTEGRATION_WEIGHT, integration_weight, emptyProcessInfo);
+				//mConstitutiveLaw->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, DN_De, emptyProcessInfo);
+				mConstitutiveLaw->InitializeMaterial(GetProperties(), GetGeometry(), N);
+			}
+			else
+			{
+				KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
+			}
+
+		KRATOS_CATCH("");
+	}
 	//************************************************************************************
 	//************************************************************************************
 	void MeshlessShellKLElement::CalculateAll(
@@ -124,8 +159,6 @@ namespace Kratos
 		ConstitutiveVariables constitutive_variables(3);
 		CalculateConstitutiveVariables(actual_metric, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
 
-		//KRATOS_WATCH(constitutive_variables.DMembrane)
-		//KRATOS_WATCH(constitutive_variables.DCurvature)
 
 		// calculate B MATRICES
 		Matrix BMembrane = ZeroMatrix(3, mat_size);
@@ -166,6 +199,7 @@ namespace Kratos
 				constitutive_variables.StressCurvatureVector,
 				integration_weight);
 		}
+		//KRATOS_WATCH(rLeftHandSideMatrix)
 
 		// RIGHT HAND SIDE VECTOR
 		if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
@@ -174,7 +208,6 @@ namespace Kratos
 			noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables.StressVector);
 			noalias(rRightHandSideVector) += integration_weight * prod(trans(BCurvature), constitutive_variables.StressCurvatureVector);
 		}
-
 		KRATOS_CATCH("");
 	}
 
@@ -207,8 +240,8 @@ namespace Kratos
 			double detF = actual_metric.dA / mInitialMetric.dA;
 
 			Vector n_pk2_ca = prod(constitutive_variables.DMembrane, constitutive_variables.StrainVector);
-			Vector n_pk2 = prod(mInitialMetric.Q, n_pk2_ca);
-			Vector n_cau = 1.0 / detF*n_pk2;
+			Vector n_pk2_con = prod(mInitialMetric.T, n_pk2_ca);
+			Vector n_cau = 1.0 / detF*n_pk2_con;
 
 			Vector n = ZeroVector(8);
 			// Cauchy normal force in normalized g1,g2
@@ -226,19 +259,20 @@ namespace Kratos
 
 			// -------------------  moments -------------------------
 			// PK2 moment in local cartesian E1,E2
-			Vector m_pk2_ca = prod(constitutive_variables.DCurvature, constitutive_variables.StrainCurvatureVector);
+			Vector m_pk2_local_ca = prod(constitutive_variables.DCurvature, constitutive_variables.StrainCurvatureVector);
 			// PK2 moment in G1,G2
-			Vector m_pk2 = prod(mInitialMetric.T, m_pk2_ca);
+			Vector m_pk2_con = prod(mInitialMetric.T, m_pk2_local_ca);
 			// Cauchy moment in g1,g2
-			array_1d<double, 3> m_cau = 1.0 / detF*m_pk2; 
+			array_1d<double, 3> m_cau = 1.0 / detF*m_pk2_con; 
 
 
 			Vector m = ZeroVector(8);
+			// Cauchy moment in normalized g1,g2
 			m[0] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[0])*m_cau[0];
 			m[1] = sqrt(actual_metric.gab[1] / actual_metric.gab_con[1])*m_cau[1];
 			m[2] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[1])*m_cau[2];
 			// Cauchy moment in local cartesian e1,e2
-			Vector m_e = prod(actual_metric.Q, m_cau);
+			Vector m_e = prod(actual_metric.T, m_cau);
 			m[3] = m_e[0];
 			m[4] = m_e[1];
 			m[5] = m_e[2];
@@ -267,6 +301,91 @@ namespace Kratos
 		else
 		{
 			rOutput[0] = 0.0;// mConstitutiveLawVector[0]->GetValue(rVariable, rOutput[0]);
+		}
+	}
+
+	void MeshlessShellKLElement::CalculateOnIntegrationPoints(
+		const Variable<Vector>& rVariable,
+		std::vector<Vector>& rValues,
+		const ProcessInfo& rCurrentProcessInfo
+	)
+	{
+		if (rValues.size() != 1)
+		{
+			rValues.resize(1);
+		}
+
+		if (rVariable == STRESSES)
+		{
+			// Create constitutive law parameters:
+			ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
+			// Set constitutive law flags:
+			Flags& ConstitutiveLawOptions = Values.GetOptions();
+			ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
+			ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+			ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+			MetricVariables actual_metric(3);
+			CalculateMetric(actual_metric);
+			ConstitutiveVariables constitutive_variables(3);
+			CalculateConstitutiveVariables(actual_metric, constitutive_variables, Values, ConstitutiveLaw::StressMeasure_PK2);
+
+			double detF = actual_metric.dA / mInitialMetric.dA;
+
+			Vector n_pk2_ca = prod(constitutive_variables.DMembrane, constitutive_variables.StrainVector);
+			Vector n_pk2_con = prod(mInitialMetric.T, n_pk2_ca);
+			Vector n_cau = 1.0 / detF*n_pk2_con;
+
+			Vector n = ZeroVector(8);
+			// Cauchy normal force in normalized g1,g2
+			n[0] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[0])*n_cau[0];
+			n[1] = sqrt(actual_metric.gab[1] / actual_metric.gab_con[1])*n_cau[1];
+			n[2] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[1])*n_cau[2];
+			// Cauchy normal force in local cartesian e1,e2
+			array_1d<double, 3> n_e = prod(actual_metric.T, n_cau);
+			n[3] = n_e[0];
+			n[4] = n_e[1];
+			n[5] = n_e[2];
+			// Principal normal forces
+			n[6] = 0.5*(n_e[0] + n_e[1] + sqrt(pow(n_e[0] - n_e[1], 2) + 4.0*pow(n_e[2], 2)));
+			n[7] = 0.5*(n_e[0] + n_e[1] - sqrt(pow(n_e[0] - n_e[1], 2) + 4.0*pow(n_e[2], 2)));
+
+			// -------------------  moments -------------------------
+			// PK2 moment in local cartesian E1,E2
+			Vector m_pk2_local_ca = prod(constitutive_variables.DCurvature, constitutive_variables.StrainCurvatureVector);
+			// PK2 moment in G1,G2
+			Vector m_pk2_con = prod(mInitialMetric.T, m_pk2_local_ca);
+			// Cauchy moment in g1,g2
+			array_1d<double, 3> m_cau = 1.0 / detF*m_pk2_con;
+
+
+			Vector m = ZeroVector(8);
+			// Cauchy moment in normalized g1,g2
+			m[0] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[0])*m_cau[0];
+			m[1] = sqrt(actual_metric.gab[1] / actual_metric.gab_con[1])*m_cau[1];
+			m[2] = sqrt(actual_metric.gab[0] / actual_metric.gab_con[1])*m_cau[2];
+			// Cauchy moment in local cartesian e1,e2
+			Vector m_e = prod(actual_metric.T, m_cau);
+			m[3] = m_e[0];
+			m[4] = m_e[1];
+			m[5] = m_e[2];
+			// principal moment
+			m[6] = 0.5*(m_e[0] + m_e[1] + sqrt(pow(m_e[0] - m_e[1], 2) + 4.0*pow(m_e[2], 2)));
+			m[7] = 0.5*(m_e[0] + m_e[1] - sqrt(pow(m_e[0] - m_e[1], 2) + 4.0*pow(m_e[2], 2)));
+
+			double thickness = this->GetProperties().GetValue(THICKNESS);
+
+			double W = pow(thickness, 2) / 6.0;
+			Vector sigma_top = ZeroVector(3);
+			sigma_top(0) = m[3] / W + n[3] / thickness;
+			sigma_top(1) = m[4] / W + n[4] / thickness;
+			sigma_top(2) = m[5] / W + n[5] / thickness;
+
+			rValues[0] = sigma_top;
+		}
+		else
+		{
+			rValues[0] = ZeroVector(3);
 		}
 	}
 
@@ -391,6 +510,25 @@ namespace Kratos
 		rThisConstitutiveVariables.StressCurvatureVector = prod(
 			trans(rThisConstitutiveVariables.DCurvature), rThisConstitutiveVariables.StrainCurvatureVector);
 	}
+
+	//************************************************************************************
+	//************************************************************************************
+	int MeshlessShellKLElement::Check(const ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_TRY;
+		if (DISPLACEMENT.Key() == 0)
+			KRATOS_ERROR << "DISPLACEMENT has Key zero! check if the application is correctly registered" << std::endl;
+		if (SHAPE_FUNCTION_VALUES.Key() == 0)
+			KRATOS_ERROR << "SHAPE_FUNCTION_VALUES has Key zero! check if the application is correctly registered" << std::endl;
+		if (SHAPE_FUNCTION_LOCAL_DERIVATIVES.Key() == 0)
+			KRATOS_ERROR << "SHAPE_FUNCTION_LOCAL_DERIVATIVES has Key zero! check if the application is correctly registered" << std::endl;
+		if (DISPLACEMENT.Key() == 0)
+			KRATOS_ERROR << "SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES has Key zero! check if the application is correctly registered" << std::endl;
+		return 0;
+		KRATOS_CATCH("");
+	}
+
+
 } // Namespace Kratos
 
 

@@ -75,6 +75,32 @@ public:
 		const bool CalculateResidualVectorFlag
 	) override;
 
+
+	/**
+	* Calculate a double Variable on the Element Constitutive Law
+	* @param rVariable: The variable we want to get
+	* @param rOutput: The values obtained int the integration points
+	* @param rCurrentProcessInfo: the current process info instance
+	*/
+	void CalculateOnIntegrationPoints(
+		const Variable<double>& rVariable,
+		std::vector<double>& rOutput,
+		const ProcessInfo& rCurrentProcessInfo
+	) override;
+
+	/**
+	* Calculate a Vector Variable on the Element Constitutive Law
+	* @param rVariable: The variable we want to get
+	* @param rOutput: The values obtained int the integration points
+	* @param rCurrentProcessInfo: the current process info instance
+	*/
+	void CalculateOnIntegrationPoints(
+		const Variable<Vector>& rVariable,
+		std::vector<Vector>& rValues,
+		const ProcessInfo& rCurrentProcessInfo
+	) override;
+
+
 	/**
 	* Sets on rResult the ID's of the element degrees of freedom
 	* @param rResult: The vector containing the equation id
@@ -95,10 +121,28 @@ public:
 		ProcessInfo& rCurrentProcessInfo
 	) override;
 
+
+	/**
+	* This function provides the place to perform checks on the completeness of the input.
+	* It is designed to be called only once (or anyway, not often) typically at the beginning
+	* of the calculations, so to verify that nothing is missing from the input
+	* or that no common error is found.
+	* @param rCurrentProcessInfo
+	*/
+	int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
 	///@}
 
 protected:
-
+	/**
+	* It initializes the material
+	*/
+	virtual void InitializeMaterial();
+	/**
+	* Called at the end of eahc solution step
+	* @param rCurrentProcessInfo: the current process info instance
+	*/
+	void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 private:
 	///@name Static Member Variables
@@ -107,17 +151,6 @@ private:
 	///@{
 	void CalculateMetric( MetricVariables& metric ) override;
 
-	/**
-	* Calculate a double Variable on the Element Constitutive Law
-	* @param rVariable: The variable we want to get
-	* @param rOutput: The values obtained int the integration points
-	* @param rCurrentProcessInfo: the current process info instance
-	*/
-	void CalculateOnIntegrationPoints(
-		const Variable<double>& rVariable,
-		std::vector<double>& rOutput,
-		const ProcessInfo& rCurrentProcessInfo
-	) override;
 
 	/**
 	* This functions updates the constitutive variables

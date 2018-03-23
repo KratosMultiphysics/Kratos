@@ -43,17 +43,8 @@ namespace Kratos
 		CalculateMetric(initial_metric);
 		mInitialMetric = initial_metric;
 
+
 		KRATOS_CATCH("")
-	}
-	//***********************************************************************************
-	//***********************************************************************************
-	void MeshlessBaseSurfaceElement::FinalizeSolutionStep(
-		ProcessInfo& rCurrentProcessInfo)
-	{
-		mConstitutiveLaw->FinalizeSolutionStep(GetProperties(),
-			GetGeometry(),
-			this->GetValue(SHAPE_FUNCTION_VALUES),
-			rCurrentProcessInfo);
 	}
 	//************************************************************************************
 	//************************************************************************************
@@ -61,25 +52,16 @@ namespace Kratos
 	{
 		KRATOS_TRY
 
-		if (GetProperties()[CONSTITUTIVE_LAW] != NULL)
-		{
-			//get shape functions for evaluation of stresses inside the constitutive law
-			const Vector&  N = this->GetValue(SHAPE_FUNCTION_VALUES);
-			const Matrix& DN_De = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
-			const double integration_weight = this->GetValue(INTEGRATION_WEIGHT);
-
-			mConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
-			ProcessInfo emptyProcessInfo = ProcessInfo();
-			//mConstitutiveLaw->SetValue(INTEGRATION_WEIGHT, integration_weight, emptyProcessInfo);
-			//mConstitutiveLaw->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, DN_De, emptyProcessInfo);
-			mConstitutiveLaw->InitializeMaterial(GetProperties(), GetGeometry(), N);
-		}
-		else
-		{
-			KRATOS_ERROR << "A constitutive law needs to be specified for the element with ID " << this->Id() << std::endl;
-		}
-
+		KRATOS_ERROR << "You have called to the InitializeMaterial from the base class for meshless surface elements" << std::endl;
+		
 		KRATOS_CATCH("");
+	}
+	//************************************************************************************
+	//************************************************************************************
+	void MeshlessBaseSurfaceElement::FinalizeSolutionStep(
+		ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_ERROR << "You have called to the FinalizeSolutionStep from the base class for meshless surface elements" << std::endl;
 	}
 
 	//************************************************************************************

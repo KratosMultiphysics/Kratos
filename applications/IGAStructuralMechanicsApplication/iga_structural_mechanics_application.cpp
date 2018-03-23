@@ -30,8 +30,6 @@
 
 #include "geometries/geometry.h"
 
-//#include "custom_geometries/meshless_geometry.h"
-
 
 namespace Kratos {
 
@@ -42,6 +40,7 @@ KratosIGAStructuralMechanicsApplication::KratosIGAStructuralMechanicsApplication
 	mMeshlessLaplaceElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessShellElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessShellKLElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
+	mMeshlessShellKLThickElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	//mMeshlessShellKLElement(0, Element::GeometryType::Pointer(new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1)))),
 	//mContinuityConditionLagrange(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
 	mMeshlessLagrangeCouplingCondition(0, Condition::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
@@ -98,6 +97,7 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 	KRATOS_REGISTER_ELEMENT("MeshlessLaplaceElement", mMeshlessLaplaceElement)
 	KRATOS_REGISTER_ELEMENT("MeshlessShellElement", mMeshlessShellElement)
 	KRATOS_REGISTER_ELEMENT("MeshlessShellKLElement", mMeshlessShellKLElement)
+	KRATOS_REGISTER_ELEMENT("MeshlessShellKLThickElement", mMeshlessShellKLThickElement)
 	
 	// Register meshless condition
 	KRATOS_REGISTER_CONDITION("MeshlessSupportRotationCondition", mMeshlessSupportRotationCondition)
@@ -111,7 +111,11 @@ void KratosIGAStructuralMechanicsApplication::Register() {
 
 	// for damage constitutive law
 	KRATOS_REGISTER_VARIABLE(DAMAGE_T)
+	KRATOS_REGISTER_VARIABLE(DAMAGE_T_INSIDE)
+	KRATOS_REGISTER_VARIABLE(DAMAGE_T_OUTSIDE)
 	KRATOS_REGISTER_VARIABLE(DAMAGE_C)
+	KRATOS_REGISTER_VARIABLE(DAMAGE_C_INSIDE)
+	KRATOS_REGISTER_VARIABLE(DAMAGE_C_OUTSIDE)
 	KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY_T)
 	KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY_C)
 	KRATOS_REGISTER_VARIABLE(YIELD_STRESS_T)

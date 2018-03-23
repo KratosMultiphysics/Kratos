@@ -155,7 +155,7 @@ protected:
 	* Called at the end of eahc solution step
 	* @param rCurrentProcessInfo: the current process info instance
 	*/
-	void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+	virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 	/**
 	* This functions calculates both the RHS and the LHS

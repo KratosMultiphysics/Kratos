@@ -650,16 +650,11 @@ void MeshlessShellElement::CalculateBCurvature(
 	Matrix H = ZeroMatrix(3, 3);
 	Hessian(H, DDN_DDe);
 
-	KRATOS_WATCH(H)
-	KRATOS_WATCH(DDN_DDe)
-	KRATOS_WATCH(g1)
-	KRATOS_WATCH(g2)
-	
+
 	//basis vector g3
 	array_1d<double, 3> g3;
 	array_1d<double, 3> n;
 	CrossProduct(g3, g1, g2);
-	KRATOS_WATCH(g3)
 
 	//differential area dA
 	double dA = norm_2(g3);
@@ -1130,7 +1125,6 @@ void MeshlessShellElement::CalculateAll(
 
 {
 	KRATOS_TRY
-	std::cout << "Calculate All Shell Element!" << std::endl;
 	// definition of problem size
 	const unsigned int number_of_nodes = GetGeometry().size();
 	unsigned int MatSize = number_of_nodes * 3;
@@ -1204,6 +1198,9 @@ void MeshlessShellElement::CalculateAll(
 	ForceVector_in_Q_coordinates = prod(trans(DMembrane), StrainVector_in_Q_coordinates);
 	MomentVector_in_Q_coordinates = prod(trans(DCurvature), CurvatureVector_in_Q_coordinates);
 
+	std::cout << "Id of element: " << Id() << std::endl;
+	KRATOS_WATCH(ForceVector_in_Q_coordinates)
+	KRATOS_WATCH(MomentVector_in_Q_coordinates)
 	//double damage_t = 0.0;
 	//mConstitutiveLawVector->GetValue(DAMAGE_T, damage_t);
 	////KRATOS_WATCH(damage_t)
@@ -1211,7 +1208,7 @@ void MeshlessShellElement::CalculateAll(
 	//mConstitutiveLawVector->GetValue(DAMAGE_C, damage_c);
 	//KRATOS_WATCH(damage_c)
 
-	KRATOS_WATCH(Q)
+	//KRATOS_WATCH(Q)
 	// calculate B MATRICES
 	//B matrices:
 	Matrix BMembrane = ZeroMatrix(3, MatSize);
@@ -1241,8 +1238,10 @@ void MeshlessShellElement::CalculateAll(
 	{
 		//adding membrane contributions to the stiffness matrix
 		CalculateAndAddKm(rLeftHandSideMatrix, BMembrane, DMembrane, IntToReferenceWeight);
+		KRATOS_WATCH(DMembrane)
 		//adding curvature contributions to the stiffness matrix
 		CalculateAndAddKm(rLeftHandSideMatrix, BCurvature, DCurvature, IntToReferenceWeight);
+		KRATOS_WATCH(DCurvature)
 
 		// adding  non-linear-contribution to Stiffness-Matrix
 		CalculateAndAddNonlinearKm(rLeftHandSideMatrix,
@@ -1255,7 +1254,7 @@ void MeshlessShellElement::CalculateAll(
 			MomentVector_in_Q_coordinates,
 			IntToReferenceWeight);
 	}
-
+	KRATOS_WATCH(rLeftHandSideMatrix)
 	//if(this->Id() == 30) //TODO: remove this! it is just for debugging purposes
 	//{
 	//	KRATOS_WATCH(StrainVector)
@@ -1269,6 +1268,7 @@ void MeshlessShellElement::CalculateAll(
 		noalias(rRightHandSideVector) -= IntToReferenceWeight * prod(trans(BMembrane), ForceVector_in_Q_coordinates);
 		noalias(rRightHandSideVector) += IntToReferenceWeight * prod(trans(BCurvature), MomentVector_in_Q_coordinates);
 	}
+	KRATOS_WATCH(rRightHandSideVector)
 
   //if (this->Id() == 1) //TODO: remove this! it is just for debugging purposes
   //{
@@ -1386,10 +1386,9 @@ int  MeshlessShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 	}
 
 	//verify that the constitutive law exists
+	KRATOS_ERROR_IF_NOT(this->GetProperties().Has(CONSTITUTIVE_LAW)) << "constitutive law not provided for property" << std::endl;
 	if (this->GetProperties().Has(CONSTITUTIVE_LAW) == false)
-	{
-		KRATOS_THROW_ERROR(std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id())
-	}
+
 
 	//verify that the constitutive law has the correct dimension
 	if (this->GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize() != 3)

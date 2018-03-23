@@ -27,6 +27,7 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_base_surface_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_shell_kl_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_shell_kl_thick_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_membrane_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_laplace_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/meshless_shell_element.cpp
@@ -34,6 +35,7 @@ set( KRATOS_IGA_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 	##CONDITIONS  ContinuityConditionPenalty
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_base_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_load_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_force_interface_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_support_rotation_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_surface_support_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/meshless_base_coupling_condition.cpp

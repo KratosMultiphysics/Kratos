@@ -1,5 +1,5 @@
-#if !defined(KRATOS_MESHLESS_MEMBRANE_ELEMENT_H_INCLUDED )
-#define  KRATOS_MESHLESS_MEMBRANE_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_MESHLESS_SHELL_KL_THICK_ELEMENT_H_INCLUDED )
+#define  KRATOS_MESHLESS_SHELL_KL_THICK_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -22,37 +22,37 @@ namespace Kratos
 /// Short class definition.
 /** Kirchhoff-Love Shell. Optimized Isogeometric Analysis Element by Kiendl et al. .
 */
-class MeshlessMembraneElement
+class MeshlessShellKLThickElement
     : public MeshlessBaseSurfaceElement
 {
 public:
     ///@name Type Definitions
     ///@{
-    /// Counted pointer of MeshlessMembraneElement
-    KRATOS_CLASS_POINTER_DEFINITION(MeshlessMembraneElement);
+    /// Counted pointer of MeshlessShellKLThickElement
+    KRATOS_CLASS_POINTER_DEFINITION(MeshlessShellKLThickElement);
     ///@}
     ///@name Life Cycle
     ///@{
     /// Default constructor.
 	// Constructor using an array of nodes
-	MeshlessMembraneElement(IndexType NewId, GeometryType::Pointer pGeometry)
+	MeshlessShellKLThickElement(IndexType NewId, GeometryType::Pointer pGeometry)
 		: MeshlessBaseSurfaceElement(NewId, pGeometry)
 	{};
 	// Constructor using an array of nodes with properties
-	MeshlessMembraneElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+	MeshlessShellKLThickElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
 		: MeshlessBaseSurfaceElement(NewId, pGeometry, pProperties)
 	{};
 
 	// default constructor necessary for serialization
-	MeshlessMembraneElement() : MeshlessBaseSurfaceElement() {};
+	MeshlessShellKLThickElement() : MeshlessBaseSurfaceElement() {};
 
 	/// Destructor.
-	virtual ~MeshlessMembraneElement() override
+	virtual ~MeshlessShellKLThickElement() override
 	{};
 
 	Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
 	{
-		return boost::make_shared< MeshlessMembraneElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
+		return boost::make_shared< MeshlessShellKLThickElement >(NewId, GetGeometry().Create(ThisNodes), pProperties);
 	};
 
     ///@}
@@ -74,32 +74,6 @@ public:
 		const bool CalculateStiffnessMatrixFlag,
 		const bool CalculateResidualVectorFlag
 	) override;
-
-
-	/**
-	* Calculate a double Variable on the Element Constitutive Law
-	* @param rVariable: The variable we want to get
-	* @param rOutput: The values obtained int the integration points
-	* @param rCurrentProcessInfo: the current process info instance
-	*/
-	void CalculateOnIntegrationPoints(
-		const Variable<double>& rVariable,
-		std::vector<double>& rOutput,
-		const ProcessInfo& rCurrentProcessInfo
-	) override;
-
-	/**
-	* Calculate a Vector Variable on the Element Constitutive Law
-	* @param rVariable: The variable we want to get
-	* @param rOutput: The values obtained int the integration points
-	* @param rCurrentProcessInfo: the current process info instance
-	*/
-	void CalculateOnIntegrationPoints(
-		const Variable<Vector>& rVariable,
-		std::vector<Vector>& rValues,
-		const ProcessInfo& rCurrentProcessInfo
-	) override;
-
 
 	/**
 	* Sets on rResult the ID's of the element degrees of freedom
@@ -124,10 +98,12 @@ public:
 	///@}
 
 protected:
+
 	/**
 	* It initializes the material
 	*/
 	virtual void InitializeMaterial();
+	
 	/**
 	* Called at the end of eahc solution step
 	* @param rCurrentProcessInfo: the current process info instance
@@ -135,12 +111,27 @@ protected:
 	void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
 private:
+
+	/* Container for constitutive law instances on each integration point */
+	std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+
 	///@name Static Member Variables
 	///@{
 	///@name Operations
 	///@{
 	void CalculateMetric( MetricVariables& metric ) override;
 
+	/**
+	* Calculate a double Variable on the Element Constitutive Law
+	* @param rVariable: The variable we want to get
+	* @param rOutput: The values obtained int the integration points
+	* @param rCurrentProcessInfo: the current process info instance
+	*/
+	void CalculateOnIntegrationPoints(
+		const Variable<double>& rVariable,
+		std::vector<double>& rOutput,
+		const ProcessInfo& rCurrentProcessInfo
+	) override;
 
 	/**
 	* This functions updates the constitutive variables
@@ -175,9 +166,9 @@ private:
 
 	///@}
 
-};	 // Class MeshlessMembraneElement
+};	 // Class MeshlessShellKLThickElement
 ///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MESHLESS_MESHLESS_MEMBRANE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_MESHLESS_MESHLESS_SHELL_KL_THICK_ELEMENT_H_INCLUDED  defined 

@@ -41,6 +41,7 @@
 #include "custom_elements/meshless_laplace_element.h"
 #include "custom_elements/meshless_shell_element.h"
 #include "custom_elements/meshless_shell_kl_element.h"
+#include "custom_elements/meshless_shell_kl_thick_element.h"
 
 //#include "custom_conditions/ContinuityConditionLagrange.h"
 //#include "custom_conditions/ContinuityConditionPenalty.h"
@@ -89,8 +90,14 @@ namespace Kratos {
 
 	KRATOS_DEFINE_VARIABLE(double, DAMAGE_T_INTERFACE)
 	KRATOS_DEFINE_VARIABLE(double, DAMAGE_C_INTERFACE)
+
 	KRATOS_DEFINE_VARIABLE(double, DAMAGE_T)
+	KRATOS_DEFINE_VARIABLE(double, DAMAGE_T_INSIDE)
+	KRATOS_DEFINE_VARIABLE(double, DAMAGE_T_OUTSIDE)
 	KRATOS_DEFINE_VARIABLE(double, DAMAGE_C)
+	KRATOS_DEFINE_VARIABLE(double, DAMAGE_C_INSIDE)
+	KRATOS_DEFINE_VARIABLE(double, DAMAGE_C_OUTSIDE)
+
 	KRATOS_DEFINE_VARIABLE(double, FRACTURE_ENERGY_T)
 	KRATOS_DEFINE_VARIABLE(double, FRACTURE_ENERGY_C)
 	KRATOS_DEFINE_VARIABLE(double, YIELD_STRESS_T) /** @todo: to be removed*/
@@ -235,11 +242,12 @@ private:
 	///@name Member Variables
 	///@{
 	// Meshless Elements
-	const MeshlessBaseElement     mMeshlessElement;
-	const MeshlessMembraneElement mMeshlessMembraneElement;
-	const MeshlessLaplaceElement  mMeshlessLaplaceElement;
-	const MeshlessShellElement    mMeshlessShellElement;
-	const MeshlessShellKLElement  mMeshlessShellKLElement;
+	const MeshlessBaseElement         mMeshlessElement;
+	const MeshlessMembraneElement     mMeshlessMembraneElement;
+	const MeshlessLaplaceElement      mMeshlessLaplaceElement;
+	const MeshlessShellElement        mMeshlessShellElement;
+	const MeshlessShellKLElement      mMeshlessShellKLElement;
+	const MeshlessShellKLThickElement mMeshlessShellKLThickElement;
 
 	// Meshless Conditions
 	const MeshlessSupportRotationCondition         mMeshlessSupportRotationCondition;
