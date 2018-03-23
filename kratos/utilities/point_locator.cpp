@@ -23,7 +23,9 @@
 
 namespace Kratos
 {
-        bool PointLocator::FindNode(const Point& rThePoint, int& rNodeId, double DistanceThreshold)
+        bool PointLocator::FindNode(const Point& rThePoint,
+                                    int& rNodeId,
+                                    double DistanceThreshold)
     {
         rNodeId = -1;
         bool is_close_enough = false;
@@ -49,7 +51,7 @@ namespace Kratos
 
     bool PointLocator::FindElement(const Point& rThePoint,
                                    int& rObjectId,
-                                   Vector& rLocalCoordinates)
+                                   CoordinatesArrayType& rLocalCoordinates)
     {
         const auto& r_elements = mrModelPart.GetCommunicator().LocalMesh().Elements();
         const bool is_inside = FindObject(r_elements, "Element",
@@ -60,7 +62,7 @@ namespace Kratos
 
     bool PointLocator::FindCondition(const Point& rThePoint,
                                      int& rObjectId,
-                                     Vector& rLocalCoordinates)
+                                     CoordinatesArrayType& rLocalCoordinates)
     {
         const auto& r_conditions = mrModelPart.GetCommunicator().LocalMesh().Conditions();
         const bool is_inside = FindObject(r_conditions, "Condition",
@@ -71,10 +73,8 @@ namespace Kratos
 
     template<typename TObjectType>
     bool PointLocator::FindObject(const TObjectType& rObjects, const std::string& rObjectType,
-                                  const Point& rThePoint, int& rObjectId, Vector& rLocalCoordinates)
+                                  const Point& rThePoint, int& rObjectId, CoordinatesArrayType& rLocalCoordinates)
     {
-        typedef Node<3> PointType;
-        typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
 
         const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
@@ -89,12 +89,11 @@ namespace Kratos
         bool is_inside;
 
         int global_objects_found = 0;
-        CoordinatesArrayType local_coords;
 
         // note that this cannot be omp bcs breaking is not allowed in omp
         for (auto& r_object : rObjects)
         {
-            is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coords);
+            is_inside = r_object.GetGeometry().IsInside(rThePoint, rLocalCoordinates);
             if (is_inside)
             {
                 global_objects_found = 1;
