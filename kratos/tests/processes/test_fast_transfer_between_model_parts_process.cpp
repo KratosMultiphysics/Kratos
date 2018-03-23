@@ -70,7 +70,7 @@ namespace Kratos
             Condition::Pointer p_cond_1 = origin_model_part.CreateNewCondition("Condition3D", 2, triangle_1, p_cond_prop);
 
             // This will copy all
-            FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(destination_model_part, origin_model_part, "All");
+            FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(destination_model_part, origin_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL);
             process.Execute();
 
             std::size_t count = 0;
@@ -148,7 +148,7 @@ namespace Kratos
             p_cond_1->Set(MASTER, true);
                          
             // This will copy all
-            FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(destination_model_part, origin_model_part, "All", MASTER);
+            FastTransferBetweenModelPartsProcess process = FastTransferBetweenModelPartsProcess(destination_model_part, origin_model_part, FastTransferBetweenModelPartsProcess::EntityTransfered::ALL, MASTER);
             process.Execute();
 
             std::size_t count = 0;

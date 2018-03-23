@@ -36,16 +36,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    /**
-     * @brief This enum helps us to identify the elements to transfer between the modelparts
-     */
-    enum class EntityTransfered {
-        NODES = 0,
-        ELEMENTS = 1,
-        NODESANDELEMENTS = 2,
-        CONDITIONS = 3,
-        ALL = 4};
-
 ///@}
 ///@name  Functions
 ///@{
@@ -87,6 +77,21 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FastTransferBetweenModelPartsProcess);
 
     ///@}
+    ///@name  Enum's
+    ///@{
+
+    /**
+     * @brief This enum helps us to identify the elements to transfer between the modelparts
+     */
+    enum class EntityTransfered {
+        NODES = 0,
+        ELEMENTS = 1,
+        NODESANDELEMENTS = 2,
+        CONDITIONS = 3,
+        ALL = 4
+    };
+
+    ///@}
     ///@name Life Cycle
     ///@{
     
@@ -94,12 +99,13 @@ public:
      * @brief Default constructor. Without flag
      * @param rDestinationModelPart The destination model part
      * @param rOriginModelPart The origin model part
-     * @param EntityString The elements to transfer
+     * @param Entity The elements to transfer
+     * @param Flag The flag used to differentiate between elements to transfer
      */
     FastTransferBetweenModelPartsProcess(
         ModelPart& rDestinationModelPart,
         ModelPart& rOriginModelPart,
-        const std::string EntityString = "All",
+        const EntityTransfered Entity = EntityTransfered::ALL,
         const Flags Flag = Flags()
         );
 
@@ -208,14 +214,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
-    /**
-     * @brief This converts the entity string to an enum
-     * @param Str The string that you want to convert in the equivalent enum
-     * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
-     */
-
-    EntityTransfered ConvertEntity(const std::string& Str);
     
     ///@}
     ///@name Private  Access

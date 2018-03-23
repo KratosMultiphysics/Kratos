@@ -25,12 +25,12 @@ namespace Kratos
 FastTransferBetweenModelPartsProcess::FastTransferBetweenModelPartsProcess(
     ModelPart& rDestinationModelPart,
     ModelPart& rOriginModelPart,
-    const std::string EntityString,
+    const EntityTransfered Entity,
     const Flags Flag
     ) : Process(),
         mrDestinationModelPart(rDestinationModelPart),
         mrOriginModelPart(rOriginModelPart),
-        mEntity(ConvertEntity(EntityString)),
+        mEntity(Entity),
         mFlag(Flag)
 {
     KRATOS_TRY
@@ -138,26 +138,6 @@ void FastTransferBetweenModelPartsProcess::Execute()
     }
 
     KRATOS_CATCH("");
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-EntityTransfered FastTransferBetweenModelPartsProcess::ConvertEntity(const std::string& Str)
-{
-    if(Str == "Nodes" || Str == "NODES")
-        return EntityTransfered::NODES;
-    else if(Str == "Elements" || Str == "ELEMENTS")
-        return EntityTransfered::ELEMENTS;
-    else if(Str == "NodesAndElements" || Str == "NODESANDELEMENTS")
-        return EntityTransfered::NODESANDELEMENTS;
-    else if(Str == "Conditions" || Str == "CONDITIONS")
-        return EntityTransfered::CONDITIONS;
-    else if(Str == "All" || Str == "ALL")
-        return EntityTransfered::ALL;
-    else
-        KRATOS_ERROR << "The entity declared " << Str << " is not on the following list\n" \
-                        << "- NODES\n" << "- ELEMENTS\n" << "- NODESANDELEMENTS\n" << "- CONDITIONS\n" << "- ALL\n" << std::endl;
 }
 
 }
