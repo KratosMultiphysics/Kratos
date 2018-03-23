@@ -6,14 +6,10 @@
 //
 
 // External includes 
-#include <boost/python.hpp>
-#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+#include "spaces/ublas_space.h"
 
 // Project includes
-#include "includes/define.h"
 #include "custom_python/add_custom_mpi_strategies_to_python.h"
-#include "spaces/ublas_space.h"
 #include "includes/kratos_parameters.h"
 
 //Trilinos includes
@@ -40,9 +36,9 @@ namespace Kratos
 namespace Python
 {
 
-using namespace boost::python;
+using namespace pybind11;
 
-void  AddCustomMPIStrategiesToPython()
+void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 {
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
@@ -56,6 +52,7 @@ void  AddCustomMPIStrategiesToPython()
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     // Schemes
+    //TODO: seguir
     class_< TrilinosNewmarkQuasistaticUPwSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable >( "TrilinosNewmarkQuasistaticUPwScheme", 
         init< double, double, double >() );
     class_< TrilinosNewmarkQuasistaticDampedUPwSchemeType,bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosNewmarkQuasistaticDampedUPwScheme",
