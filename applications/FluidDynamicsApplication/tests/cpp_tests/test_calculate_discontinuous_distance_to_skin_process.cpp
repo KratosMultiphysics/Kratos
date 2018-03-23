@@ -19,6 +19,8 @@
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 
+// TODO: REMOVE THAT ONCE THE IMPLEMENTATION IS FINISHED.
+// TODO: BESIDES, MOVE THE TEST TO THE CORE 
 #include "custom_processes/embedded_skin_visualization_process.h"
 
 namespace Kratos {
@@ -397,7 +399,7 @@ namespace Testing {
         }
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximation, KratosCoreFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximation2D, KratosCoreFastSuite)
     {
         // Generate the triangular element
         ModelPart volume_part("Volume");
@@ -442,7 +444,72 @@ namespace Testing {
         visualization_tool.ExecuteBeforeOutputStep();
         visualization_tool.ExecuteFinalizeSolutionStep();
 
-        GidIO<> gid_io_fluid_visualization("/home/rzorrilla/Desktop/DiscontinuousDistanceProcessPlaneApproximation", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        GidIO<> gid_io_fluid_visualization("/home/rzorrilla/Desktop/DiscontinuousDistanceProcessPlaneApproximation2D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+        gid_io_fluid_visualization.InitializeMesh(0.00);
+        gid_io_fluid_visualization.WriteMesh(visualization_model_part.GetMesh());
+        gid_io_fluid_visualization.FinalizeMesh();
+        gid_io_fluid_visualization.InitializeResults(0, visualization_model_part.GetMesh());
+        gid_io_fluid_visualization.WriteNodalResults(DISTANCE, visualization_model_part.Nodes(), 0, 0);
+        gid_io_fluid_visualization.FinalizeResults();
+
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(DiscontinuousDistanceProcessPlaneApproximation3D, KratosCoreFastSuite)
+    {
+        // Generate the triangular element
+        ModelPart volume_part("Volume");
+        volume_part.AddNodalSolutionStepVariable(VELOCITY);
+        volume_part.AddNodalSolutionStepVariable(DISTANCE);
+        volume_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
+        volume_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        volume_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        volume_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        volume_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+        Properties::Pointer p_properties_0(new Properties(0));
+        volume_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_0);
+
+        // Generate the skin such that one edge is cut twice
+        ModelPart skin_part("Skin");
+        skin_part.AddNodalSolutionStepVariable(VELOCITY);
+        skin_part.CreateNewNode(1, -1.0, 0.0,  0.5);
+        skin_part.CreateNewNode(2,  1.0, 0.0,  0.5);
+        skin_part.CreateNewNode(3,  1.0, 1.0,  0.5);
+        skin_part.CreateNewNode(4,  1.0, 0.0, -0.5);
+        Properties::Pointer p_properties_1(new Properties(1));
+        skin_part.CreateNewElement("Element3D3N", 1, {1,2,3}, p_properties_1);
+        skin_part.CreateNewElement("Element3D3N", 2, {2,3,4}, p_properties_1);
+
+        // Compute the discontinuous distance function
+        CalculateDiscontinuousDistanceToSkinProcess(volume_part, skin_part).Execute();
+
+        auto n_elems = volume_part.NumberOfElements();
+        auto elems_begin = volume_part.ElementsBegin();
+        for (std::size_t i_elem = 0; i_elem < n_elems; ++i_elem){
+            auto it_elem = elems_begin + i_elem;
+            auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+            KRATOS_WATCH(elem_dist)
+        }
+        
+        // Call the visualization utility to see the resultant splitting pattern
+        ModelPart visualization_model_part("VolumeVisualization");
+        visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
+        visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
+        visualization_model_part.AddNodalSolutionStepVariable(EMBEDDED_VELOCITY);
+        Parameters visualization_parameters(R"(
+        {
+            "shape_functions"                     : "ausas",
+            "reform_model_part_at_each_time_step" : false,
+            "visualization_variables"             : ["DISTANCE"]
+        })");
+        EmbeddedSkinVisualizationProcess visualization_tool(volume_part, visualization_model_part, visualization_parameters);
+        visualization_tool.ExecuteInitialize();
+        visualization_tool.ExecuteInitialize();
+        visualization_tool.ExecuteBeforeSolutionLoop();
+        visualization_tool.ExecuteInitializeSolutionStep();
+        visualization_tool.ExecuteBeforeOutputStep();
+        visualization_tool.ExecuteFinalizeSolutionStep();
+
+        GidIO<> gid_io_fluid_visualization("/home/rzorrilla/Desktop/DiscontinuousDistanceProcessPlaneApproximation3D", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
         gid_io_fluid_visualization.InitializeMesh(0.00);
         gid_io_fluid_visualization.WriteMesh(visualization_model_part.GetMesh());
         gid_io_fluid_visualization.FinalizeMesh();

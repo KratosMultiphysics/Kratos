@@ -134,6 +134,20 @@ namespace Kratos
 
 		double CalculateDistanceToNode(Element& rElement1, int NodeIndex, PointerVector<GeometricalObject>& rIntersectedObjects, const double Epsilon);
 
+    void ComputeEdgesIntersections(
+      Element& rElement1, 
+      const PointerVector<GeometricalObject>& rIntersectedObjects,
+      std::vector<unsigned int> &rCutEdgesVector,
+      std::vector<array_1d <double,3> > &rIntersectionPointsArray);
+
+    int ComputeEdgeIntersection(
+      const Element::GeometryType& rIntObjGeometry,
+      const Element::NodeType& rEdgePoint1,
+      const Element::NodeType& rEdgePoint2, 
+      Point& rIntersectionPoint);
+
+    bool DoPlaneApproximation(const Element& rElement1, const std::vector<unsigned int> &rCutEdgesVector);
+
       ///@}
 
     }; // Class CalculateDiscontinuousDistanceToSkinProcess
