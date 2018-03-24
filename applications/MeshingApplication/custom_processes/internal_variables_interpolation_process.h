@@ -68,15 +68,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-    /**
-     * @brief This enum it used to list the different types of interpolations available
-     */
-    enum class InterpolationTypes {
-        CPT = 0, /// Closest Point Transfer. It transfer the values from the closest GP
-        LST = 1, /// Least-Square projection Transfer. It transfers from the closest GP from the old mesh
-        SFT = 2  /// Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
-        };
-
 ///@}
 ///@name  Functions
 ///@{
@@ -109,6 +100,19 @@ public:
 
     /// Pointer definition of InternalVariablesInterpolationProcess
     KRATOS_CLASS_POINTER_DEFINITION( InternalVariablesInterpolationProcess );
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    /**
+     * @brief This enum it used to list the different types of interpolations available
+     */
+    enum class InterpolationTypes {
+        CPT = 0, /// Closest Point Transfer. It transfer the values from the closest GP
+        LST = 1, /// Least-Square projection Transfer. It transfers from the closest GP from the old mesh
+        SFT = 2  /// Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+        };
 
     ///@}
     ///@name Life Cycle
