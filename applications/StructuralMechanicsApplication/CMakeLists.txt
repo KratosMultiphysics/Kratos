@@ -28,6 +28,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
   ## PROCESSES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/postprocess_eigenvalues_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/total_structural_mass_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/prism_neighbours_process.cpp
 
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
