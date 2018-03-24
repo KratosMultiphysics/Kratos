@@ -26,7 +26,7 @@
 #include "geometries/prism_3d_6.h"
 #include "custom_utilities/local_refine_geometry_mesh.hpp"
 #include "utilities/split_prism.hpp"
-#include "custom_utilities/sprism_neighbours.hpp"
+#include "custom_processes/sprism_neighbours.hpp"
 
 namespace Kratos
 {
