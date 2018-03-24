@@ -29,28 +29,11 @@ class controlledExecutionScope:
 class ContactStructuralMechanicsTestFactory(KratosUnittest.TestCase):
     def setUp(self):
         # Within this location context:
-        problem_path = os.path.dirname(os.path.realpath(__file__))
-        with controlledExecutionScope(problem_path):
+        with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
 
             # Reading the ProjectParameters
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
-
-        # NOTE Fix this properly
-        name_mdpa = ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].GetString()
-        ProjectParameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(problem_path + "/" + name_mdpa)
-        name_material = ProjectParameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
-        ProjectParameters["solver_settings"]["material_import_settings"]["materials_filename"].SetString(problem_path + "/" + name_material)
-
-        if (ProjectParameters.Has("json_check_process") is True):
-            for param in ProjectParameters["json_check_process"]:
-                name_check = param["Parameters"]["intput_file_name"].GetString()
-                param["Parameters"]["intput_file_name"].SetString(problem_path + "/" + name_check)
-
-        if (ProjectParameters.Has("json_output_process") is True):
-            for param in ProjectParameters["json_output_process"]:
-                name_output = param["Parameters"]["intput_file_name"].GetString()
-                param["Parameters"]["output_file_name"].SetString(problem_path + "/" + name_output)
 
         # Checking if frictionless_by_components is defined
         try:
