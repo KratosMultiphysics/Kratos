@@ -105,13 +105,18 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const;
+      virtual std::string Info() const
+      {
+	        std::stringstream buffer;
+          buffer << "PointLocator" ;
+          return buffer.str();
+      }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "PointLocator";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
+      virtual void PrintData(std::ostream& rOStream) const {}
 
 
       ///@}
@@ -204,12 +209,6 @@ namespace Kratos
       ///@name Un accessible methods
       ///@{
 
-      /// Assignment operator.
-      PointLocator& operator=(PointLocator const& rOther);
-
-      /// Copy constructor.
-      PointLocator(PointLocator const& rOther);
-
 
       ///@}
 
@@ -225,21 +224,16 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    PointLocator& rThis);
-
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream,
 				    const PointLocator& rThis)
-    {
+  {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
       rThis.PrintData(rOStream);
 
       return rOStream;
-    }
+  }
   ///@}
 
   ///@} addtogroup block
