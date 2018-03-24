@@ -26,7 +26,7 @@
 #include "geometries/prism_3d_6.h"
 #include "custom_utilities/local_refine_geometry_mesh.hpp"
 #include "utilities/split_prism.hpp"
-#include "custom_processes/sprism_neighbours_process.h"
+#include "custom_processes/prism_neighbours_process.h"
 
 namespace Kratos
 {
@@ -271,7 +271,7 @@ public:
         /* Now remove all of the "old" elements */
         rElements.erase(this_model_part.Elements().end() - to_be_deleted, this_model_part.Elements().end());
 
-        SprismNeighbours sprism_neighbour_search(this_model_part);
+        PrismNeighboursProcess sprism_neighbour_search(this_model_part);
         sprism_neighbour_search.ClearNeighbours();
         sprism_neighbour_search.Execute();
 
