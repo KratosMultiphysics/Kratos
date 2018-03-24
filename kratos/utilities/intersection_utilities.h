@@ -10,8 +10,8 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined(KRATOS_INTERSECTION_TRIANGLE_LINE_UTILITY )
-#define  KRATOS_INTERSECTION_TRIANGLE_LINE_UTILITY
+#if !defined(KRATOS_INTERSECTION_UTILITIES )
+#define  KRATOS_INTERSECTION_UTILITIES
 
 /* System includes */
 
@@ -294,5 +294,5 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_INTERSECTION_TRIANGLE_LINE_UTILITY  defined */
+#endif /* KRATOS_INTERSECTION_UTILITIES  defined */
 
