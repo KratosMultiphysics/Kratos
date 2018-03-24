@@ -9,17 +9,17 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SPRISM_NEIGHBOURS_H_INCLUDED )
-#define  KRATOS_SPRISM_NEIGHBOURS_H_INCLUDED
+#if !defined(KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED )
+#define  KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED
 
 // System includes
 
 // External includes
-#include <boost/functional/hash.hpp>
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 
 // Project includes
 #include "processes/process.h"
+#include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -33,15 +33,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The definition of the index type
-    typedef std::size_t IndexType;
-
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
-
-    /// Definition of the vector indexes considered
-    typedef vector<int> VectorIndexType;
-
 ///@}
 ///@name  Enum's
 ///@{
@@ -49,34 +40,6 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-#if !defined(KEY_COMPAROR)
-#define KEY_COMPAROR
-    struct KeyComparor
-    {
-        bool operator()(const VectorIndexType& lhs, const VectorIndexType& rhs) const
-        {
-            if(lhs.size() != rhs.size())
-                return false;
-
-            for(std::size_t i = 0; i < lhs.size(); i++) {
-                if(lhs[i] != rhs[i]) return false;
-            }
-
-            return true;
-        }
-    };
-#endif
-    
-#if !defined(KEY_HASHER)
-#define KEY_HASHER
-    struct KeyHasher
-    {
-        std::size_t operator()(const VectorIndexType& k) const
-        {
-            return boost::hash_range(k.begin(), k.end());
-        }
-    };
-#endif
 
 ///@}
 ///@name Kratos Classes
@@ -89,7 +52,6 @@ namespace Kratos
  * @details For that pourpose if builds an unordered map of the surrounding elements and nodes and performs different checks
  * @author Vicente Mataix Ferrandiz
  * @todo Remove the dependence of the boost::unordered_map
- * @todo Use std::size_t instead of teh int
 */
 class PrismNeighboursProcess
     : public Process
@@ -119,14 +81,29 @@ public:
     typedef WeakPointerVector<NodeType> NodePointerVector;
     typedef WeakPointerVector<Element> ElementPointerVector;
 
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
+    /// Definition of the vector indexes considered
+    typedef vector<IndexType> VectorIndexType;
+
+    /// Definition of the hasher considered
+    typedef VectorIndexHasher<VectorIndexType> VectorIndexHasherType;
+
+    /// Definition of the key comparor considered
+    typedef VectorIndexComparor<VectorIndexType> VectorIndexComparorType;
+
     /// Define the map considered for indexes
-    typedef boost::unordered_map<VectorIndexType, int, KeyHasher, KeyComparor > HashMapVectorIntIntType;
+    typedef std::unordered_map<VectorIndexType, IndexType, VectorIndexHasherType, VectorIndexComparorType > HashMapVectorIntIntType;
 
     /// Define the HashMapVectorIntIntType iterator type
     typedef HashMapVectorIntIntType::iterator HashMapVectorIntIntIteratorType;
 
     /// Define the map considered for elemento pointers
-    typedef boost::unordered_map<VectorIndexType, Element::Pointer, KeyHasher, KeyComparor > HashMapVectorIntElementPointerType;
+    typedef std::unordered_map<VectorIndexType, Element::Pointer, VectorIndexHasherType, VectorIndexComparorType > HashMapVectorIntElementPointerType;
 
     /// Define the HashMapVectorIntElementPointerType iterator type
     typedef HashMapVectorIntElementPointerType::iterator HashMapVectorIntElementPointerIteratorType;
@@ -350,7 +327,7 @@ public:
                 NodeType::WeakPointer temp;
 
                 // Adding nodes from the element
-                int aux_index1, aux_index2;
+                IndexType aux_index1, aux_index2;
 
                 if (i == 0) {
                     aux_index1 = 2;
@@ -569,4 +546,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SPRISM_NEIGHBOURS_H_INCLUDED  defined
+#endif // KRATOS_PRISM_NEIGHBOURS_PROCESS_H_INCLUDED  defined
