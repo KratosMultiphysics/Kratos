@@ -33,6 +33,15 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
+    /// Definition of the vector indexes considered
+    typedef vector<int> VectorIndexType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -42,31 +51,31 @@ namespace Kratos
 ///@{
 #if !defined(KEY_COMPAROR)
 #define KEY_COMPAROR
-struct KeyComparor
-{
-    bool operator()(const vector<int>& lhs, const vector<int>& rhs) const
+    struct KeyComparor
     {
-        if(lhs.size() != rhs.size())
-            return false;
+        bool operator()(const VectorIndexType& lhs, const VectorIndexType& rhs) const
+        {
+            if(lhs.size() != rhs.size())
+                return false;
 
-        for(std::size_t i = 0; i < lhs.size(); i++) {
-            if(lhs[i] != rhs[i]) return false;
+            for(std::size_t i = 0; i < lhs.size(); i++) {
+                if(lhs[i] != rhs[i]) return false;
+            }
+
+            return true;
         }
-
-        return true;
-    }
-};
+    };
 #endif
     
 #if !defined(KEY_HASHER)
 #define KEY_HASHER
-struct KeyHasher
-{
-    std::size_t operator()(const vector<int>& k) const
+    struct KeyHasher
     {
-        return boost::hash_range(k.begin(), k.end());
-    }
-};
+        std::size_t operator()(const VectorIndexType& k) const
+        {
+            return boost::hash_range(k.begin(), k.end());
+        }
+    };
 #endif
 
 ///@}
@@ -110,11 +119,17 @@ public:
     typedef WeakPointerVector<NodeType> NodePointerVector;
     typedef WeakPointerVector<Element> ElementPointerVector;
 
-    /// The definition of the index type
-    typedef std::size_t IndexType;
+    /// Define the map considered for indexes
+    typedef boost::unordered_map<VectorIndexType, int, KeyHasher, KeyComparor > HashMapVectorIntIntType;
 
-    /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    /// Define the HashMapVectorIntIntType iterator type
+    typedef HashMapVectorIntIntType::iterator HashMapVectorIntIntIteratorType;
+
+    /// Define the map considered for elemento pointers
+    typedef boost::unordered_map<VectorIndexType, Element::Pointer, KeyHasher, KeyComparor > HashMapVectorIntElementPointerType;
+
+    /// Define the HashMapVectorIntElementPointerType iterator type
+    typedef HashMapVectorIntElementPointerType::iterator HashMapVectorIntElementPointerIteratorType;
 
     ///@}
     ///@name Life Cycle
@@ -173,9 +188,8 @@ public:
         }
 
         /* NEIGHBOUR ELEMENTS */
-        // Create the hashmap_el
-        typedef boost::unordered_map<vector<int>, Element::Pointer, KeyHasher, KeyComparor > hashmap_el;
-        hashmap_el face_map;
+        // Create the HashMapVectorIntElementPointerType
+        HashMapVectorIntElementPointerType face_map;
         
         for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
             GeometryType& geom = it_elem->GetGeometry();
@@ -184,7 +198,7 @@ public:
             ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
 
             /* IN-PLANE FACES */
-            vector<int> ids_4(4);
+            VectorIndexType ids_4(4);
             
             /* FACE 1 */
             ids_4[0] = geom[0].Id();
@@ -194,8 +208,8 @@ public:
             
             /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
             std::sort(ids_4.begin(), ids_4.end());
-            // Check if the elements already exist in the hashmap_el
-            hashmap_el::iterator it_check = face_map.find(ids_4);
+            // Check if the elements already exist in the HashMapVectorIntElementPointerType
+            HashMapVectorIntElementPointerIteratorType it_check = face_map.find(ids_4);
 
             if(it_check != face_map.end() ) {
                 // If it exists the node is added as a neighbour, reciprocally
@@ -204,7 +218,7 @@ public:
                 aux_3.push_back(*it_elem.base());
             } else {
                 // If it doesn't exist it is added to the database
-                face_map.insert( hashmap_el::value_type(ids_4, *it_elem.base()) );
+                face_map.insert( HashMapVectorIntElementPointerType::value_type(ids_4, *it_elem.base()) );
             }
 
             /* FACE 2 */
@@ -215,7 +229,7 @@ public:
 
             /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
             std::sort(ids_4.begin(), ids_4.end());
-            // Check if the elements already exist in the hashmap_el
+            // Check if the elements already exist in the HashMapVectorIntElementPointerType
             it_check = face_map.find(ids_4);
 
             if(it_check != face_map.end() ) {
@@ -225,7 +239,7 @@ public:
                 aux_el_2.push_back(*it_elem.base());
             } else {
                 // If it doesn't exist it is added to the database
-                face_map.insert( hashmap_el::value_type(ids_4, *it_elem.base()) );
+                face_map.insert( HashMapVectorIntElementPointerType::value_type(ids_4, *it_elem.base()) );
             }
 
             /* FACE 3 */
@@ -236,7 +250,7 @@ public:
 
             /*** THE ARRAY OF IDS MUST BE ORDERED!!! ***/
             std::sort(ids_4.begin(), ids_4.end());
-            // Check if the elements already exist in the hashmap_el
+            // Check if the elements already exist in the HashMapVectorIntElementPointerType
             it_check = face_map.find(ids_4);
 
             if(it_check != face_map.end() ) {
@@ -246,24 +260,19 @@ public:
                 aux_el_3.push_back(*it_elem.base());
             } else {
                 // If it doesn't exist it is added to the database
-                face_map.insert( hashmap_el::value_type(ids_4, *it_elem.base()) );
+                face_map.insert( HashMapVectorIntElementPointerType::value_type(ids_4, *it_elem.base()) );
             }
         }
 
         /* NEIGHBOURS NODES */
-        // Create the hashmap_no
-        typedef boost::unordered_map<vector<int>, int, KeyHasher, KeyComparor > hashmap_no;
 
         // Create the ids and aux vectors
-        vector<int> ids(2);
-        vector<int> aux_1(2);
-        vector<int> aux_2(2);
-        vector<int> aux_3(2);
+        VectorIndexType ids(2),  aux_1(2), aux_2(2), aux_3(2);
 
         // Search the neighbour nodes(for elements)
         for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
             GeometryType& geom = it_elem->GetGeometry();
-            WeakPointerVector< NodeType >& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
+            NodePointerVector& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
             neighb_nodes.resize(6);
 
             for (IndexType fill = 0; fill < 6; fill++) {
@@ -273,26 +282,26 @@ public:
             // Just upper nodes, the others are +3 IDs
             ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
             for (ElementPointerVector::iterator it_neigh_elem = r_neighbour_elements.begin(); it_neigh_elem != r_neighbour_elements.end(); it_neigh_elem++) {
-                hashmap_no node_map;
+                HashMapVectorIntIntType node_map;
                 GeometryType& geom_neig = it_neigh_elem->GetGeometry();
 
                 // Edge 1
                 ids[0] = geom_neig[0].Id();
                 ids[1] = geom_neig[1].Id();
                 std::sort(ids.begin(), ids.end());
-                node_map.insert( hashmap_no::value_type(ids, 2) );
+                node_map.insert( HashMapVectorIntIntType::value_type(ids, 2) );
 
                 // Edge 2
                 ids[0] = geom_neig[1].Id();
                 ids[1] = geom_neig[2].Id();
                 std::sort(ids.begin(), ids.end());
-                node_map.insert( hashmap_no::value_type(ids, 0) );
+                node_map.insert( HashMapVectorIntIntType::value_type(ids, 0) );
 
                 // Edge 3
                 ids[0] = geom_neig[2].Id();
                 ids[1] = geom_neig[0].Id();
                 std::sort(ids.begin(), ids.end());
-                node_map.insert( hashmap_no::value_type(ids, 1) );
+                node_map.insert( HashMapVectorIntIntType::value_type(ids, 1) );
 
                 aux_1[0] = geom[1].Id();
                 aux_1[1] = geom[2].Id();
@@ -304,11 +313,11 @@ public:
                 aux_3[1] = geom[1].Id();
 
                 std::sort(aux_1.begin(), aux_1.end());
-                hashmap_no::iterator it_1 = node_map.find(aux_1);
+                HashMapVectorIntIntIteratorType it_1 = node_map.find(aux_1);
                 std::sort(aux_2.begin(), aux_2.end());
-                hashmap_no::iterator it_2 = node_map.find(aux_2);
+                HashMapVectorIntIntIteratorType it_2 = node_map.find(aux_2);
                 std::sort(aux_3.begin(), aux_3.end());
-                hashmap_no::iterator it_3 = node_map.find(aux_3);
+                HashMapVectorIntIntIteratorType it_3 = node_map.find(aux_3);
 
                 if(it_1 != node_map.end() ) {
                     neighb_nodes(0) = NodeType ::WeakPointer(geom_neig(it_1->second));
@@ -335,7 +344,7 @@ public:
         for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
             GeometryType& geom = it_elem->GetGeometry();
 
-            WeakPointerVector< NodeType >& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
+            NodePointerVector& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
 
             for (IndexType i = 0; i < 3; i++) {
                 NodeType::WeakPointer temp;
