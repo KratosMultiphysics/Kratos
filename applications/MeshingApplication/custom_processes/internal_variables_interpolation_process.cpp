@@ -645,7 +645,7 @@ std::size_t InternalVariablesInterpolationProcess::ComputeTotalNumberOfVariables
 /***********************************************************************************/
 /***********************************************************************************/
 
-InterpolationTypes InternalVariablesInterpolationProcess::ConvertInter(const std::string& Str)
+InternalVariablesInterpolationProcess::InterpolationTypes InternalVariablesInterpolationProcess::ConvertInter(const std::string& Str)
 {
     if(Str == "CPT")
         return InterpolationTypes::CPT;
