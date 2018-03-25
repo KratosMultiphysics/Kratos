@@ -25,6 +25,7 @@
 #include "custom_processes/apply_multi_point_constraints_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
+#include "custom_processes/shell_to_solid_shell_process.h"
 
 namespace Kratos
 {
@@ -61,6 +62,16 @@ void  AddCustomProcessesToPython()
     .def(init< ModelPart&, const bool >())
     .def("Execute",&PrismNeighboursProcess::Execute)
     .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
+    ;
+
+    class_<ShellToSolidShellProcess<3>, bases<ProcessBaseType>>("TriangleShellToSolidShellProcess", init<ModelPart&>())
+    .def(init< ModelPart&, Parameters >())
+    .def("Execute",&ShellToSolidShellProcess<3>::Execute)
+    ;
+
+    class_<ShellToSolidShellProcess<4>, bases<ProcessBaseType>>("QuadrilateralShellToSolidShellProcess", init<ModelPart&>())
+    .def(init< ModelPart&, Parameters >())
+    .def("Execute",&ShellToSolidShellProcess<4>::Execute)
     ;
 }
 
