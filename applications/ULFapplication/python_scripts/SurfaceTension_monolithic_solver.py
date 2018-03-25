@@ -60,6 +60,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(NORMAL_TRIPLE_POINT)
     model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_GRADIENT)
     model_part.AddNodalSolutionStepVariable(PHASE_FRACTION_GRADIENT)
+    model_part.AddNodalSolutionStepVariable(INITIAL_MESH_SIZE)
 
 
 
