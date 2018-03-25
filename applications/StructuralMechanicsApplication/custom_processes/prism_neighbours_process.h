@@ -50,7 +50,6 @@ namespace Kratos
  * @brief An algorithm that looks for neighbour nodes and elements in a mesh of prismatic elements
  * @details For that pourpose if builds an unordered map of the surrounding elements and nodes and performs different checks
  * @author Vicente Mataix Ferrandiz
- * @todo Remove the dependence of the boost::unordered_map
 */
 class PrismNeighboursProcess
     : public Process
