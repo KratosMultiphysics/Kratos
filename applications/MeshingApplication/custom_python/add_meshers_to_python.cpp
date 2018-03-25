@@ -24,9 +24,12 @@
 #include "external_includes/tetgen_pfem_refine_face.h"
 #include "external_includes/tetgen_pfem_contact.h"
 #include "external_includes/tetgen_cdt.h"
+#include "external_includes/tetgen_droplet_refine.h"
+
 #else
 #define REAL double
 #endif 
+
 
 // #include "triangle.h"
 #include "external_includes/trigen_pfem_refine.h"
@@ -40,7 +43,7 @@
 
 //#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
-//#include "external_includes/trigen_refine.h"
+// #include "external_includes/trigen_refine.h"
 
 // #include "external_includes/msuite_pfem_refine.h"
 
@@ -65,6 +68,15 @@ void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* Condi
                           KratosComponents<Element>::Get(ElementName),
                           KratosComponents<Condition>::Get(ConditionName),node_erase,rem_nodes, add_nodes,  alpha_shape, h_factor	);
 }
+
+//Alex-elaf -> for the droplet 3D
+void TetRegenerateMeshDROPLET3D(TetGenDropletModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part, NodeEraseProcess& node_erase,bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor)
+{
+    Mesher.ReGenerateMesh(model_part,
+                          KratosComponents<Element>::Get(ElementName),
+                          KratosComponents<Condition>::Get(ConditionName),node_erase,rem_nodes, add_nodes,  alpha_shape, h_factor	);
+}
+
 
 //tetgen pfem refine
 void GenerateCDT(TetGenCDT& Mesher, ModelPart& model_part, char* ElementName, bool add_nodes, unsigned int property_id)
@@ -161,6 +173,7 @@ void TriRegenerateMeshDROPLET(TriGenDropletModeler& Mesher, char* ElementName, c
                           KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	);
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 //											//
 //				BOUNDARY CONFORMANT 2D MESHER				//
@@ -217,6 +230,12 @@ void  AddMeshersToPython()
     .def("ReGenerateMesh",TetRegenerateMesh)
     .def("ReGenerateMesh",&TetGenPfemModeler::ReGenerateMesh)
     ;
+    
+    class_<TetGenDropletModeler >("TetGenDropletModeler",
+                               init< >())
+    .def("ReGenerateMeshDROPLET3D",TetRegenerateMeshDROPLET3D)
+    .def("ReGenerateMeshDROPLET3D",&TetGenDropletModeler::ReGenerateMesh)
+    ;
 
     class_<TetGenPfemRefineFace >("TetGenPfemRefineFace",
                                   init< >())
@@ -271,7 +290,7 @@ void  AddMeshersToPython()
                                      init< >())
     .def("ReGenerateMesh",TriRegenerateMeshWithSegment)
     ;
-
+    
 
 
 }
