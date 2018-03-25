@@ -65,9 +65,6 @@ namespace Kratos
       ///@name Life Cycle
       ///@{
 
-      typedef Node<3> PointType;
-      typedef typename PointType::CoordinatesArrayType CoordinatesArrayType;
-
       /// Default constructor.
       PointLocator(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
 
@@ -86,9 +83,9 @@ namespace Kratos
 
       bool FindNode(const Point& rThePoint, int& rNodeId, double DistanceThreshold);
 
-      bool FindElement(const Point& rThePoint, int& rObjectId, CoordinatesArrayType& rLocalCoordinates);
+      bool FindElement(const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues);
 
-      bool FindCondition(const Point& rThePoint, int& rObjectId, CoordinatesArrayType& rLocalCoordinates);
+      bool FindCondition(const Point& rThePoint, int& rObjectId, Vector& rShapeFunctionValues);
 
       ///@}
       ///@name Access

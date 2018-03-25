@@ -51,7 +51,7 @@ namespace Kratos
 
     bool PointLocator::FindElement(const Point& rThePoint,
                                    int& rObjectId,
-                                   CoordinatesArrayType& rLocalCoordinates)
+                                   Vector& rShapeFunctionValues)
     {
         const auto& r_elements = mrModelPart.GetCommunicator().LocalMesh().Elements();
         const bool is_inside = FindObject(r_elements, "Element",
@@ -62,7 +62,7 @@ namespace Kratos
 
     bool PointLocator::FindCondition(const Point& rThePoint,
                                      int& rObjectId,
-                                     CoordinatesArrayType& rLocalCoordinates)
+                                     Vector& rShapeFunctionValues)
     {
         const auto& r_conditions = mrModelPart.GetCommunicator().LocalMesh().Conditions();
         const bool is_inside = FindObject(r_conditions, "Condition",
@@ -72,8 +72,11 @@ namespace Kratos
     }
 
     template<typename TObjectType>
-    bool PointLocator::FindObject(const TObjectType& rObjects, const std::string& rObjectType,
-                                  const Point& rThePoint, int& rObjectId, CoordinatesArrayType& rLocalCoordinates)
+    bool PointLocator::FindObject(const TObjectType& rObjects,
+                                  const std::string& rObjectType,
+                                  const Point& rThePoint,
+                                  int& rObjectId,
+                                  Vector& rShapeFunctionValues)
     {
 
         const int domain_size = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
@@ -89,15 +92,18 @@ namespace Kratos
         bool is_inside;
 
         int global_objects_found = 0;
+        array_1d<double, 3> local_coordinates;
 
         // note that this cannot be omp bcs breaking is not allowed in omp
         for (auto& r_object : rObjects)
         {
-            is_inside = r_object.GetGeometry().IsInside(rThePoint, rLocalCoordinates);
+            is_inside = r_object.GetGeometry().IsInside(rThePoint, local_coordinates);
             if (is_inside)
             {
                 global_objects_found = 1;
                 rObjectId = r_object.Id();
+                // resizing of rShapeFunctionValues happens inside the function if required
+                r_object.GetGeometry().ShapeFunctionsValues(rShapeFunctionValues, local_coordinates);
                 break;
             }
         }
