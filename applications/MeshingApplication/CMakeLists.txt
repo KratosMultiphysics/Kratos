@@ -64,7 +64,11 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMeshingApplication SHARED ${KRATOS_MESHING_APPLICATION_SOURCES} ${KRATOS_MESHING_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosMeshingApplication KratosCore KratosStructuralMechanicsApplication triangle tetMeshOpt)
+if(${STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+    target_link_libraries(KratosMeshingApplication KratosCore KratosStructuralMechanicsApplication triangle tetMeshOpt)
+else(${STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
+    target_link_libraries(KratosMeshingApplication KratosCore triangle tetMeshOpt)
+endif(${STRUCTURAL_MECHANICS_APPLICATION} MATCHES ON)
 
 
 if(${USE_TETGEN_NONFREE_TPL} MATCHES ON )

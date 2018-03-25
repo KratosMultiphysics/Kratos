@@ -25,7 +25,9 @@
 
 #include "custom_utilities/local_refine_triangle_mesh.hpp"
 #include "custom_utilities/local_refine_prism_mesh.hpp"
+#ifdef  STRUCTURAL_MECHANICS_APPLICATION
 #include "custom_utilities/local_refine_sprism_mesh.hpp"
+#endif
 #include "custom_utilities/local_refine_tetrahedra_mesh.hpp"
 
 #ifdef  USE_TETGEN_NONFREE_TPL
@@ -118,10 +120,12 @@ void AddCustomUtilitiesToPython()
     .def("LocalRefineMesh", &LocalRefinePrismMesh::LocalRefineMesh)
     ;
 
+#ifdef  STRUCTURAL_MECHANICS_APPLICATION
     class_<LocalRefineSPrismMesh, boost::noncopyable >
     ("LocalRefineSPrismMesh", init<ModelPart&>())
     .def("LocalRefineMesh", &LocalRefineSPrismMesh::LocalRefineMesh)
     ;
+#endif
 
     class_<LocalRefineTetrahedraMesh, boost::noncopyable >
     ("LocalRefineTetrahedraMesh", init<ModelPart&>())
