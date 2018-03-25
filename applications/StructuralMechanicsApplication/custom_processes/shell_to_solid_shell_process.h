@@ -227,6 +227,11 @@ private:
 
     void InitializeElements();
 
+    /**
+     * @brief It computes the mean of the normal on the elements in all the nodes (non historical version)
+     */
+    inline void ComputeNodesMeanNormalModelPartNonHistorical();
+
     ///@}
     ///@name Private  Access
     ///@{
