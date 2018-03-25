@@ -23,16 +23,6 @@ void PrismNeighboursProcess::Execute()
 {
     KRATOS_TRY;
 
-    for(NodesIterarorType it_node = mrModelPart.NodesBegin(); it_node!=mrModelPart.NodesEnd(); it_node++) {
-        (it_node->GetValue(NEIGHBOUR_NODES)).reserve(6); // Just it_node-plane neighbours
-        NodePointerVector& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
-        r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
-
-        (it_node->GetValue(NEIGHBOUR_ELEMENTS)).reserve(3); // Just it_node-plane neighbours
-        ElementPointerVector& r_neighbour_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
-        r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
-    }
-
     for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
         (it_elem->GetValue(NEIGHBOUR_NODES)).reserve(6); // Just in-plane neighbours
         NodePointerVector& r_neighbour_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
@@ -41,6 +31,18 @@ void PrismNeighboursProcess::Execute()
         (it_elem->GetValue(NEIGHBOUR_ELEMENTS)).reserve(3); // Just in-plane neighbours
         ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
         r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
+    }
+
+    if (mComputeOnNodes) {
+        for(NodesIterarorType it_node = mrModelPart.NodesBegin(); it_node!=mrModelPart.NodesEnd(); it_node++) {
+            (it_node->GetValue(NEIGHBOUR_NODES)).reserve(6); // Just it_node-plane neighbours
+            NodePointerVector& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+            r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
+
+            (it_node->GetValue(NEIGHBOUR_ELEMENTS)).reserve(3); // Just it_node-plane neighbours
+            ElementPointerVector& r_neighbour_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+            r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
+        }
     }
 
     /* NEIGHBOUR ELEMENTS */
@@ -188,65 +190,68 @@ void PrismNeighboursProcess::Execute()
         }
     }
 
-    // Add the neighbour elements to all the nodes in the mesh
-    for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
-        GeometryType& geom = it_elem->GetGeometry();
-        for(IndexType i = 0; i < geom.size(); i++) {
-            (geom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(it_elem.base()) ) );
+    // We add the neighbour to the nodes
+    if (mComputeOnNodes) {
+        // Add the neighbour elements to all the nodes in the mesh
+        for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
+            GeometryType& geom = it_elem->GetGeometry();
+            for(IndexType i = 0; i < geom.size(); i++) {
+                (geom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(it_elem.base()) ) );
+            }
         }
-    }
 
-    // Adding the neighbouring nodes (in the same face)
-    for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
-        GeometryType& geom = it_elem->GetGeometry();
+        // Adding the neighbouring nodes (in the same face)
+        for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
+            GeometryType& geom = it_elem->GetGeometry();
 
-        NodePointerVector& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
+            NodePointerVector& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
 
-        for (IndexType i = 0; i < 3; i++) {
-            NodeType::WeakPointer temp;
+            for (IndexType i = 0; i < 3; i++) {
+                NodeType::WeakPointer temp;
 
-            // Adding nodes from the element
-            IndexType aux_index1, aux_index2;
+                // Adding nodes from the element
+                IndexType aux_index1, aux_index2;
 
-            if (i == 0) {
-                aux_index1 = 2;
-                aux_index2 = 1;
-            } else if (i == 1) {
-                aux_index1 = 0;
-                aux_index2 = 2;
-            } else {
-                aux_index1 = 1;
-                aux_index2 = 0;
-            }
+                if (i == 0) {
+                    aux_index1 = 2;
+                    aux_index2 = 1;
+                } else if (i == 1) {
+                    aux_index1 = 0;
+                    aux_index2 = 2;
+                } else {
+                    aux_index1 = 1;
+                    aux_index2 = 0;
+                }
 
-            // Lower face
-            temp = geom(aux_index1);
-            AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
-            temp = geom(aux_index2);
-            AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
-
-            // Upper face
-            temp = geom(aux_index1 + 3);
-            AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
-            temp = geom(aux_index2 + 3);
-            AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
-
-            // Adding neighbour elements
-            if (neighb_nodes[aux_index1].Id() != geom[i].Id()) {
                 // Lower face
-                temp = neighb_nodes(aux_index1);
+                temp = geom(aux_index1);
                 AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
-                // Upper face
-                temp = neighb_nodes(aux_index1 + 3);
-                AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
-            }
-            if (neighb_nodes[aux_index2].Id() != geom[i].Id()) {
-                // Lower face
-                temp = neighb_nodes(aux_index2);
+                temp = geom(aux_index2);
                 AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
+
                 // Upper face
-                temp = neighb_nodes(aux_index2 + 3);
+                temp = geom(aux_index1 + 3);
                 AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                temp = geom(aux_index2 + 3);
+                AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+
+                // Adding neighbour elements
+                if (neighb_nodes[aux_index1].Id() != geom[i].Id()) {
+                    // Lower face
+                    temp = neighb_nodes(aux_index1);
+                    AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
+                    // Upper face
+                    temp = neighb_nodes(aux_index1 + 3);
+                    AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                }
+                if (neighb_nodes[aux_index2].Id() != geom[i].Id()) {
+                    // Lower face
+                    temp = neighb_nodes(aux_index2);
+                    AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
+                    // Upper face
+                    temp = neighb_nodes(aux_index2 + 3);
+                    AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                }
             }
         }
     }

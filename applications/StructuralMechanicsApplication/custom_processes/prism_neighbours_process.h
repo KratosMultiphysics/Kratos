@@ -114,9 +114,13 @@ public:
     /**
      * @brief Default constructor.
      * @param rModelPart The model part where the search of neighbours is performed
+     * @param ComputeOnNodes If true it will compute neighbours on nodes besides the elements. False by default to save memory
      */
-    PrismNeighboursProcess(ModelPart& rModelPart)
-        : mrModelPart(rModelPart)
+    PrismNeighboursProcess(
+        ModelPart& rModelPart,
+        const bool ComputeOnNodes = false
+        ) : mrModelPart(rModelPart),
+            mComputeOnNodes(ComputeOnNodes)
     {
     }
 
@@ -222,7 +226,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart; /// The main model part
+    ModelPart& mrModelPart;     /// The main model part
+    const bool mComputeOnNodes; /// If true it will compute neighbours on nodes besides the elements. False by default to save memory
 
     ///@}
     ///@name Private Operators

@@ -58,6 +58,7 @@ void  AddCustomProcessesToPython()
     ;
     
     class_<PrismNeighboursProcess, bases<ProcessBaseType>>("PrismNeighboursProcess", init<ModelPart&>())
+    .def(init< ModelPart&, const bool >())
     .def("Execute",&PrismNeighboursProcess::Execute)
     .def("ClearNeighbours",&PrismNeighboursProcess::ClearNeighbours)
     ;
