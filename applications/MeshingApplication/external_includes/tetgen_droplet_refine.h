@@ -20,25 +20,24 @@
 #include <boost/timer.hpp>
 
 
-#if !defined(KRATOS_TETGEN_EXTERNAL_H_INCLUDED)
-#define  KRATOS_TETGEN_EXTERNAL_H_INCLUDED
-#include "tetgen.h"
-#endif
-
-// #include "tetgen.h" // Defined tetgenio, tetrahedralize().
+#include "tetgen.h" // Defined tetgenio, tetrahedralize().
 
 // Project includes
 #include "includes/define.h"
 #include "utilities/geometry_utilities.h"
 #include "includes/model_part.h"
-#include "includes/deprecated_variables.h"
+// #include "includes/deprecated_variables.h"
 
+#include "includes/kratos_application.h"
+#include "/home/elaf/Kratos/applications/ULFapplication/ULF_application_variables.h"
 
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "meshing_application.h"
 #include "processes/node_erase_process.h"
 #include "includes/deprecated_variables.h"
+#include "includes/variables.h"
+
 
 #include "spatial_containers/spatial_containers.h"
 #include "tetgen_pfem_refine.h"
@@ -129,6 +128,9 @@ namespace Kratos
                         
                         
                         int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
+                        
+                        //20151124 ajarauta -> TO FINISH!!! INSERT NODE AT CENTER OF FACE IF TRIANGLE IS TOO BIG
+			int id = (ThisModelPart.Nodes().end() - 1)->Id() + 1;
                         
                         // Loop to find the initial mesh size. Once it finds a face with two TRIPLE_POINT nodes, it computes this value and exits the loop
 			double mesh_size = 0.0;
@@ -517,7 +519,6 @@ namespace Kratos
 			typedef std::vector<double>               DistanceVector;
 			typedef std::vector<double>::iterator     DistanceIterator;
 
-			int step_data_size = ThisModelPart.GetNodalSolutionStepDataSize();
 
 			// bucket types
 			//typedef Bucket<3, PointType, ModelPart::NodesContainerType, PointPointerType, PointIterator, DistanceIterator > BucketType;
@@ -1550,9 +1551,9 @@ ModelPart::NodesContainerType& ModelNodes = ThisModelPart.Nodes();
 		    if (pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)>0.2)
 		    {
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=1.0;
-			pnode->FastGetSolutionStepValue(NORMAL_NORMAL_EQUILIBRIUM_X) = 0.0;
-			pnode->FastGetSolutionStepValue(NORMAL_NORMAL_EQUILIBRIUM_Y) = 0.0;
-			pnode->FastGetSolutionStepValue(NORMAL_NORMAL_EQUILIBRIUM_Z) = 0.0;
+			pnode->FastGetSolutionStepValue(NORMAL_EQUILIBRIUM_X) = 0.0;
+			pnode->FastGetSolutionStepValue(NORMAL_EQUILIBRIUM_Y) = 0.0;
+			pnode->FastGetSolutionStepValue(NORMAL_EQUILIBRIUM_Z) = 0.0;
 		    }
 		    else 
 			pnode->FastGetSolutionStepValue(IS_FREE_SURFACE)=0.0;
