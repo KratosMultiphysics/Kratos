@@ -28,7 +28,7 @@ namespace Kratos
     {
         typedef Node<3> NodeType;
         
-        void GiDIODebug(ModelPart& ThisModelPart)
+        void PrismNeighboursProcessGiDIODebug(ModelPart& ThisModelPart)
         {
             GidIO<> gid_io("TEST_NEIGHBOUR_PRISM", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
             const int nl_iter = ThisModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
@@ -40,7 +40,7 @@ namespace Kratos
             gid_io.InitializeResults(label, ThisModelPart.GetMesh());
         }
 
-        void CreateModelPart(
+        void PrismNeighboursProcessCreateModelPart(
             ModelPart& ThisModelPart,
             const std::size_t NumberNeighbours
             )
@@ -116,7 +116,7 @@ namespace Kratos
             }
 
 //             // DEBUG
-//             GiDIODebug(ThisModelPart);
+//             PrismNeighboursProcessGiDIODebug(ThisModelPart);
         }
 
         /** 
@@ -129,7 +129,7 @@ namespace Kratos
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
 
-            CreateModelPart(this_model_part, 3);
+            PrismNeighboursProcessCreateModelPart(this_model_part, 3);
 
             PrismNeighboursProcess prism_neighbours_process = PrismNeighboursProcess(this_model_part);
             prism_neighbours_process.Execute();
@@ -149,7 +149,7 @@ namespace Kratos
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
 
-            CreateModelPart(this_model_part, 2);
+            PrismNeighboursProcessCreateModelPart(this_model_part, 2);
 
             PrismNeighboursProcess prism_neighbours_process = PrismNeighboursProcess(this_model_part);
             prism_neighbours_process.Execute();
@@ -169,7 +169,7 @@ namespace Kratos
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
 
-            CreateModelPart(this_model_part, 1);
+            PrismNeighboursProcessCreateModelPart(this_model_part, 1);
 
             PrismNeighboursProcess prism_neighbours_process = PrismNeighboursProcess(this_model_part);
             prism_neighbours_process.Execute();
@@ -189,7 +189,7 @@ namespace Kratos
             ModelPart this_model_part("Main");
             this_model_part.SetBufferSize(2);
             
-            CreateModelPart(this_model_part, 0);
+            PrismNeighboursProcessCreateModelPart(this_model_part, 0);
                          
             PrismNeighboursProcess prism_neighbours_process = PrismNeighboursProcess(this_model_part);
             prism_neighbours_process.Execute();
