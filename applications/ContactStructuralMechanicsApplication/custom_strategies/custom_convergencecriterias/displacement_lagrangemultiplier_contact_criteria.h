@@ -181,14 +181,14 @@ public:
                     dof_incr = Dx[dof_id];
 
                     const KeyType curr_var = it_dof->GetVariable().Key();
-                    if ((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z)) {
-                        disp_solution_norm += dof_value * dof_value;
-                        disp_increase_norm += dof_incr * dof_incr;
-                        disp_dof_num++;
-                    } else {
+                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == NORMAL_CONTACT_STRESS)) {
                         lm_solution_norm += dof_value * dof_value;
                         lm_increase_norm += dof_incr * dof_incr;
                         lm_dof_num++;
+                    } else {
+                        disp_solution_norm += dof_value * dof_value;
+                        disp_increase_norm += dof_incr * dof_incr;
+                        disp_dof_num++;
                     }
                 }
             }
