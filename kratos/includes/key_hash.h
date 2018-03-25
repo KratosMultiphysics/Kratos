@@ -29,7 +29,7 @@ namespace Kratos
     typedef std::size_t IndexType;
 
     /// The definition of the hash type
-    typedef std::size_t HasType;
+    typedef std::size_t HashType;
 
 ///@}
 ///@name  Enum's
@@ -47,7 +47,7 @@ namespace Kratos
      */
     template <class TClassType>
     inline void HashCombine(
-        HasType& Seed,
+        HashType& Seed,
         const TClassType& Value
         )
     {
@@ -63,12 +63,12 @@ namespace Kratos
      * @return The resulting seed
      */
     template <class TClassType>
-    inline HasType HashRange(
+    inline HashType HashRange(
         TClassType First, 
         TClassType Last
         )
     {
-        HasType seed = 0;
+        HashType seed = 0;
 
         while (First!=Last) {
             HashCombine(seed, *First);
@@ -128,7 +128,7 @@ namespace Kratos
          * @param rRange The shared pointer to be hashed
          * @return The corresponding hash
          */
-        HasType operator()(const TClassType& rRange) const
+        HashType operator()(const TClassType& rRange) const
         {
             return HashRange(rRange.begin(), rRange.end());
         }
@@ -146,9 +146,9 @@ namespace Kratos
          * @param pPointer The shared pointer to be hashed
          * @return The corresponding hash
          */
-        HasType operator()(const TSharedPointer& pPointer) const
+        HashType operator()(const TSharedPointer& pPointer) const
         {
-            return reinterpret_cast<HasType>(pPointer.get());
+            return reinterpret_cast<HashType>(pPointer.get());
         }
     };
     
@@ -185,7 +185,7 @@ namespace Kratos
          * @param k The vector of indexes to be hashed
          * @return The corresponding hash
          */
-        HasType operator()(const TVectorIndex& k) const
+        HashType operator()(const TVectorIndex& k) const
         {
             return HashRange(k.begin(), k.end());
         }
