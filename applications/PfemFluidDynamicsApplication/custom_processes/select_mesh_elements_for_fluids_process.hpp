@@ -174,7 +174,6 @@ public:
 	      box_side_element = false;
 	      unsigned int countIsolatedWallNodes=0; 
 	      // bool isolatedWallElement=true;
-	      bool verticalWall=false;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
 		  double posY=0;
@@ -211,10 +210,7 @@ public:
 		  }
 		  if(vertices.back().Is(RIGID) || vertices.back().Is(SOLID)){
 		    numrigid++;
-		    posY=vertices.back().Y();
-		    if(posY>0.01){
-		      verticalWall=true;
-		    }
+
 		    WeakPointerVector<Node<3> >& rN = vertices.back().GetValue(NEIGHBOUR_NODES);
 		    bool localIsolatedWallNode=true;
 		    for(unsigned int i = 0; i < rN.size(); i++)
@@ -307,19 +303,12 @@ public:
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
 		}else{
-		  // Alpha*=1.125;
-		  Alpha*=1.1;
+		  Alpha*=1.125;
 		}
 		
 		if(numrigid==nds){
 		  Alpha*=0.95;
 		}
-
-		// if(currentTime>0.11){
-		//   if(numrigid>0 && verticalWall==true){
-		//     Alpha*=0;		    
-		//   }
-		// }
 
 	      }
 	      if(firstMesh==true){
