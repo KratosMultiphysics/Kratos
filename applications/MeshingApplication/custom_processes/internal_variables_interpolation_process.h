@@ -109,9 +109,9 @@ public:
      * @brief This enum it used to list the different types of interpolations available
      */
     enum class InterpolationTypes {
-        CPT = 0, /// Closest Point Transfer. It transfer the values from the closest GP
-        LST = 1, /// Least-Square projection Transfer. It transfers from the closest GP from the old mesh
-        SFT = 2  /// Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+        CLOSEST_POINT_TRANSFER = 0, /// Closest Point Transfer. It transfer the values from the closest GP
+        LEAST_SQUARE_TRANSFER = 1, /// Least-Square projection Transfer. It transfers from the closest GP from the old mesh
+        SHAPE_FUNCTION_TRANSFER = 2  /// Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
         };
 
     ///@}
@@ -151,9 +151,9 @@ public:
     /**
      * @brief We execute the search relative to the old and new model part
      * @details There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
-     * - CPT: Closest Point Transfer. It transfer the values from the closest GP
-     * - LST: Least-Square projection Transfer. It transfers from the closest GP from the old mesh
-     * - SFT: Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+     * - CLOSEST_POINT_TRANSFER: Closest Point Transfer. It transfer the values from the closest GP
+     * - LEAST_SQUARE_TRANSFER: Least-Square projection Transfer. It transfers from the closest GP from the old mesh
+     * - SHAPE_FUNCTION_TRANSFER: Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
      * @note SFT THIS DOESN'T WORK, AND REQUIRES EXTRA STORE
      */
     void Execute() override;
@@ -268,19 +268,19 @@ private:
     PointVector CreateGaussPointList(ModelPart& ThisModelPart);
 
     /**
-     * @brief This method interpolate the values of the GP using the CPT method
+     * @brief This method interpolate the values of the GP using the Closest Point Transfer method
      */
 
     void InterpolateGaussPointsClosestPointTransfer();
 
     /**
-     * @brief This method interpolate the values of the GP using the LST method
+     * @brief This method interpolate the values of the GP using the Least-Square projection Transfer method
      */
 
     void InterpolateGaussPointsLeastSquareTransfer();
 
     /**
-     * @brief This method interpolate the values of the GP using the SFT method
+     * @brief This method interpolate the values of the GP using the Shape Function Transfer method
      */
 
     void InterpolateGaussPointsShapeFunctionTransfer();
