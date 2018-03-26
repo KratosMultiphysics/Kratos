@@ -2,9 +2,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.DEMApplication import *
 import ethier_benchmark_algorithm
-import swimming_DEM_procedures as SDP
-import math
-import numpy as np
 BaseAlgorithm = ethier_benchmark_algorithm.Algorithm
 
 class Algorithm(BaseAlgorithm):

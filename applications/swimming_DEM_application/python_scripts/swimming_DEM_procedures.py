@@ -512,9 +512,6 @@ class ResultsFileCreator:
 
         self.scalar_vars = scalar_vars_list
 
-        for var in self.scalar_vars:
-            a = str(var).split()
-
         self.vector_vars = vector_vars_list
         self.n_scalars = len(scalar_vars_list)
         self.n_vectors = len(vector_vars_list)

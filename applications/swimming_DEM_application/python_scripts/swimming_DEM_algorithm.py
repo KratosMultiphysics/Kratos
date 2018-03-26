@@ -201,6 +201,7 @@ class Algorithm(object):
         Add("print_DISPERSE_FRACTION_option").SetBool(False)
         Add("print_FLUID_FRACTION_GRADIENT_option").SetBool(False)
         Add("print_FLUID_FRACTION_GRADIENT_PROJECTED_option").SetBool(False)
+        Add("print_VECTORIAL_ERROR_option").SetBool(False)
         Add("calculate_diffusivity_option").SetBool(False)
         Add("print_CONDUCTIVITY_option").SetBool(False)
         Add("filter_velocity_option").SetBool(False)

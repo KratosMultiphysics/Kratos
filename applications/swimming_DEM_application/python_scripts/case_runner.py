@@ -52,7 +52,7 @@ class CaseRunner:
             error = None
             message_start = 'Successfully finished running simulation number ' + str(simulation_id)
             self.FinishAndSayEndMessage(message_start)
-        except:
+        except Exception:
             error = sys.exc_info()
             message_start = 'Finished running simulation number ' + str(simulation_id)
             self.FinishAndSayEndMessage(message_start)

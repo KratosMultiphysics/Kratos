@@ -48,8 +48,8 @@ class Pouliot2012EdgeDerivativesRecoverer(recoverer.DerivativesRecoverer):
 
     def CreateCPluPlusStrategies(self, echo_level = 1):
         from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
-        from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
-        #linear_solver = SuperLUIterativeSolver()
+        # from KratosMultiphysics.ExternalSolversApplication import SuperLUSolver
+        # linear_solver = SuperLUIterativeSolver()
         scheme = ResidualBasedIncrementalUpdateStaticScheme()
         amgcl_smoother = AMGCLSmoother.SPAI0
         amgcl_krylov_type = AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK

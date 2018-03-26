@@ -4,10 +4,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from cube_mesher import *
 from altair_cube_mesher import *
-import math
 
 if __name__ == "__main__":
-    import sys
 
     # mesh dimensions
     nx = int(sys.argv[1])

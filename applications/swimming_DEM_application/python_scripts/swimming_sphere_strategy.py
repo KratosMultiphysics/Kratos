@@ -7,6 +7,18 @@ import sphere_strategy
 BaseStrategy = sphere_strategy.ExplicitStrategy
 
 class SwimmingStrategy(BaseStrategy):
+    @classmethod
+    def GetTranslationalSchemeInstance(class_name):
+         if not class_name == 'NewmarkBetaScheme':
+             return globals().get(class_name)()
+         else:
+             return globals().get(class_name)(0.5,0.25)
+    @classmethod
+    def GetRotationalSchemeInstance(class_name):
+         if not class_name == 'NewmarkBetaScheme':
+             return globals().get(class_name)()
+         else:
+             return globals().get(class_name)(0.5,0.25)
 
     def TranslationalIntegrationSchemeTranslator(self, name):
         class_name = BaseStrategy.TranslationalIntegrationSchemeTranslator(self, name)
@@ -52,17 +64,6 @@ class SwimmingStrategy(BaseStrategy):
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                              self.search_strategy, do_search_neighbours)
 
-    def GetTranslationalSchemeInstance(self, class_name):
-         if not class_name == 'NewmarkBetaScheme':
-             return globals().get(class_name)()
-         else:
-             return globals().get(class_name)(0.5,0.25)
-    
-    def GetRotationalSchemeInstance(self, class_name):
-         if not class_name == 'NewmarkBetaScheme':
-             return globals().get(class_name)()
-         else:
-             return globals().get(class_name)(0.5,0.25)
 
     def ModifyProperties(self, properties, param = 0):
         

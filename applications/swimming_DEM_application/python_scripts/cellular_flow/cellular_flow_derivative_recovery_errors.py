@@ -98,6 +98,21 @@ class Plotter:
         self.curves = []
         self.figures = []
 
+    @classmethod
+    def PlotSlope(figure):
+            plt.semilogx()
+            plt.semilogy()
+            x_min, x_max = figure.GetMinMax('sizes')
+            error_avg_min, error_avg_max = figure.GetMinMax('average_errors')
+            error_max_min, error_max_max = figure.GetMinMax('max_errors')
+            error_min = min(error_avg_min, error_max_min), max(error_avg_max, error_max_max)[0]
+            plt.xlim([0.5 * x_min, 2 * x_max])
+            sizes = [x_min * 2 ** i for i in range(3)]
+            expected_order = figure.GetExpectedOrder()
+            slope = [0.5 * error_min * (size / sizes[0]) ** expected_order for size in sizes]
+
+            plt.plot(sizes, slope, color='k', linestyle='dashed', label='slope = ' + str(expected_order))
+
     def ReadCurveData(self, curve):
         if curve.m_or_l == 'M':
             recovery_tag = 'material derivative/method = ' + str(curve.method)
@@ -111,7 +126,7 @@ class Plotter:
         data_path = curve.field_id + '/' + recovery_tag + '/' + mesh_identifier
 
         with h5py.File('errors_recorded/recovery_errors.hdf5', 'r') as f:
-            for i, dset in enumerate(f[data_path].values()):
+            for dset in f[data_path].values():
                 size = float(dset.attrs['mesh size'])
                 curve.sizes.append(size / curve.field_length_scale)
                 curve.average_errors.append(dset[0])
@@ -154,7 +169,7 @@ class Plotter:
                              linestyle='solid',
                              markersize=20)
 
-            self.PlotSlope(figure)
+            Plotter.PlotSlope(figure)
             plt.xlabel('$h$', fontsize=30)
             plt.ylabel('$E_2$', fontsize=30)
             plt.xticks(fontsize=20)
@@ -164,20 +179,6 @@ class Plotter:
                 handle._legmarker.set_markersize(6)
 
             plt.savefig(figure.title, format='pdf', bbox_inches='tight')
-
-    def PlotSlope(self, figure):
-            plt.semilogx()
-            plt.semilogy()
-            x_min, x_max = figure.GetMinMax('sizes')
-            error_avg_min, error_avg_max = figure.GetMinMax('average_errors')
-            error_max_min, error_max_max = figure.GetMinMax('max_errors')
-            error_min, error_max = min(error_avg_min, error_max_min), max(error_avg_max, error_max_max)
-            plt.xlim([0.5 * x_min, 2 * x_max])
-            sizes = [x_min * 2 ** i for i in range(3)]
-            expected_order = figure.GetExpectedOrder()
-            slope = [0.5 * error_min * (size / sizes[0]) ** expected_order for size in sizes]
-
-            plt.plot(sizes, slope, color='k', linestyle='dashed', label='slope = ' + str(expected_order))
 
     def ClassifyCurvesIntoDifferentFigures(self):
         figure_correspondences = dict()
@@ -221,7 +222,7 @@ class Figure:
         if m_or_l == 'M':
             self.title = 'M_'
         else:
-            self.title = 'L_' 
+            self.title = 'L_'
 
         self.title += field_id
 
@@ -229,7 +230,7 @@ class Figure:
             self.title += '_irregular'
         else:
             self.title += '_regular_' + mesh_tag
-        
+
         self.title += '.pdf'
 
     def SetOrder(self):
