@@ -34,6 +34,7 @@ namespace Kratos
 
   //Papanastasiou variables
   KRATOS_CREATE_VARIABLE(double, FLOW_INDEX )
+  KRATOS_CREATE_VARIABLE(double, YIELDED )
   KRATOS_CREATE_VARIABLE(double, YIELD_SHEAR )
   KRATOS_CREATE_VARIABLE(double, ADAPTIVE_EXPONENT )
 
