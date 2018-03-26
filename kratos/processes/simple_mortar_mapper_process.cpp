@@ -25,33 +25,6 @@ namespace Kratos
 {
 template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
 SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SimpleMortarMapperProcess(
-    ModelPart& rThisModelPart,
-    TVarType& ThisVariable,
-    Parameters ThisParameters,
-    LinearSolverType::Pointer pThisLinearSolver
-    ): mOriginModelPart(ModelPart("OriginModelPart")),
-       mDestinationModelPart(ModelPart("DestinationModelPart")),
-       mOriginVariable(ThisVariable),
-       mDestinationVariable(ThisVariable),
-       mThisParameters(ThisParameters),
-       mpThisLinearSolver(pThisLinearSolver)
-{
-    // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-    // We set some values
-    mEchoLevel = mThisParameters["echo_level"].GetInt();
-    
-    // We add the corresponding conditions and nodes to the modelparts
-    SetOriginDestinationModelParts(rThisModelPart);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
-SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SimpleMortarMapperProcess(
     ModelPart& rOriginModelPart,
     ModelPart& rDestinationModelPart,
     TVarType& OriginVariable,
@@ -71,34 +44,6 @@ SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestinati
 
     // We set some values
     mEchoLevel = mThisParameters["echo_level"].GetInt();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
-SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SimpleMortarMapperProcess(
-    ModelPart& rThisModelPart,
-    TVarType& OriginVariable,
-    TVarType& DestinationVariable,
-    Parameters ThisParameters,
-    LinearSolverType::Pointer pThisLinearSolver
-    ): mOriginModelPart(ModelPart("OriginModelPart")),
-       mDestinationModelPart(ModelPart("DestinationModelPart")),
-       mOriginVariable(OriginVariable),
-       mDestinationVariable(DestinationVariable),
-       mThisParameters(ThisParameters),
-       mpThisLinearSolver(pThisLinearSolver)
-{
-    // The default parameters
-    Parameters default_parameters = GetDefaultParameters();
-    mThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-    // We set some values
-    mEchoLevel = mThisParameters["echo_level"].GetInt();
-    
-    // We add the corresponding conditions and nodes to the modelparts
-    SetOriginDestinationModelParts(rThisModelPart);
 }
 
 /***********************************************************************************/
@@ -956,7 +901,6 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THi
         "max_number_iterations"            : 10,
         "integration_order"                : 2,
         "distance_threshold"               : 1.0e24,
-        "inverted_master_slave_pairing"    : false,
         "search_parameters"                : {
             "allocation_size"                  : 1000, 
             "bucket_size"                      : 4, 
@@ -965,58 +909,6 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THi
     })" );
     
     return default_parameters;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template< int TDim, int TNumNodes, class TVarType, HistoricalValues THistOrigin, HistoricalValues THistDestination>
-void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, THistOrigin, THistDestination>::SetOriginDestinationModelParts(ModelPart& rModelPart)
-{
-    // We check if the MapperModelPart already exists
-    if (rModelPart.HasSubModelPart("MapperModelPart") == true) {
-        auto& mapper_sub_model_part = rModelPart.GetSubModelPart("MapperModelPart");
-        mOriginModelPart = mapper_sub_model_part.GetSubModelPart("OriginModelPart");
-        mDestinationModelPart = mapper_sub_model_part.GetSubModelPart("DestinationModelPart");
-    } else {
-        auto mapper_sub_model_part = rModelPart.CreateSubModelPart("MapperModelPart");
-        mOriginModelPart = *mapper_sub_model_part->CreateSubModelPart("OriginModelPart");
-        mDestinationModelPart = *mapper_sub_model_part->CreateSubModelPart("DestinationModelPart");
-    }
-    
-    // The if the master/slaves are paired inverted  
-    const bool inverted_pairing = mThisParameters["inverted_master_slave_pairing"].GetBool();
-    
-    for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-        auto it_cond = rModelPart.ConditionsBegin() + i;
-
-        if (it_cond->Is(SLAVE) == !inverted_pairing) {
-            mDestinationModelPart.AddCondition(*(it_cond.base()));
-        } else if (it_cond->Is(MASTER) == !inverted_pairing) {
-            mOriginModelPart.AddCondition(*(it_cond.base()));
-        }
-    }
-
-    for(int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
-        auto it_node = rModelPart.NodesBegin() + i;
-
-        if (it_node->Is(SLAVE) == !inverted_pairing) {
-            mDestinationModelPart.AddNode(*(it_node.base()));
-        } else if (it_node->Is(MASTER) == !inverted_pairing) {
-            mOriginModelPart.AddNode(*(it_node.base()));
-        }
-    }
-    
-    KRATOS_ERROR_IF(mOriginModelPart.Conditions().size() == 0) << "No origin conditions. Check your flags are properly set" << std::endl;
-    KRATOS_ERROR_IF(mDestinationModelPart.Conditions().size() == 0) << "No destination conditions. Check your flags are properly set" << std::endl;
-    
-    KRATOS_ERROR_IF(mOriginModelPart.Nodes().size() == 0) << "No origin nodes. Check your flags are properly set" << std::endl;
-    KRATOS_ERROR_IF(mDestinationModelPart.Nodes().size() == 0) << "No destination nodes. Check your flags are properly set" << std::endl;
-    
-    if (mEchoLevel > 2) {
-        KRATOS_WATCH(mOriginModelPart)
-        KRATOS_WATCH(mDestinationModelPart)
-    }
 }
 
 /***********************************************************************************/

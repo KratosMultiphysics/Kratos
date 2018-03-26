@@ -103,6 +103,9 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
         else
             mTypeSolution = ScalarLagrangeMultiplier;
     }
+
+    // We create the submodelparts for master and slave
+    SetOriginDestinationModelParts(rcontact_model_part);
 }
 
 /***********************************************************************************/
@@ -879,9 +882,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeMappedGap(const bool Sear
         SwitchFlagNodes(nodes_array);
 
     // We set the mapper parameters
-    SetOriginDestinationModelParts(rcontact_model_part);
-    Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );
-    mapping_parameters["inverted_master_slave_pairing"].SetBool(!SearchOrientation);
+    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24})" );
     mapping_parameters["distance_threshold"].SetDouble(distance_threshold);
     typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, NonHistorical> MapperType;
     ModelPart& r_master_model_part = rcontact_model_part.GetSubModelPart("MasterSubModelPart");
