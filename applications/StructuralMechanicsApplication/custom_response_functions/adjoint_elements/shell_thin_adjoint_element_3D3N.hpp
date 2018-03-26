@@ -199,6 +199,7 @@ public:
 
     //void GetValueOnIntegrationPoints(const Variable<array_1d<double,6> >& rVariable, std::vector<array_1d<double,6> >& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
+    std::string Info() const override; 
     ///@}
 
     ///@name Public specialized Access - Temporary

@@ -918,6 +918,11 @@ void ShellThinAdjointElement3D3N::GetValueOnIntegrationPoints(const Variable<dou
 	KRATOS_CATCH("")
 }
 
+std::string ShellThinAdjointElement3D4N::Info() const 
+{		
+	return "ShellThinAdjointElement3D3N";
+}	
+
 
 // =====================================================================================
 //
