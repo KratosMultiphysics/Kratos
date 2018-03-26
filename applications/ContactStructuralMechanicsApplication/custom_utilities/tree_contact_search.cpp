@@ -810,7 +810,7 @@ inline void TreeContactSearch<TDim, TNumNodes>::CheckPairing(
 //     const double distance_threshold = mrMainModelPart.GetProcessInfo()[ACTIVE_CHECK_FACTOR] * GetMaxNodalH();
 
     // Updating the distance distance threshold
-    mrMainModelPart.GetProcessInfo()[DISTANCE_THRESHOLD] = distance_threshold;
+    mrMainModelPart.GetProcessInfo().SetValue(DISTANCE_THRESHOLD, distance_threshold);
 
     // We get the contact model part
     ModelPart& rcontact_model_part = mrMainModelPart.GetSubModelPart("Contact");
@@ -1343,11 +1343,11 @@ SearchTreeType TreeContactSearch<TDim, TNumNodes>::ConvertSearchTree(const std::
 {
     KRATOS_ERROR_IF(str == "KDOP") << "KDOP contact search: Not yet implemented" << std::endl;
 
-    if(str == "InRadius")
+    if(str == "InRadius" || str == "in_radius")
         return KdtreeInRadius;
-    else if(str == "InBox")
+    else if(str == "InBox" || str == "in_box")
         return KdtreeInBox;
-    else if (str == "KDOP")
+    else if (str == "KDOP" || str == "kdop")
         return Kdop;
     else
         return KdtreeInRadius;
@@ -1359,11 +1359,11 @@ SearchTreeType TreeContactSearch<TDim, TNumNodes>::ConvertSearchTree(const std::
 template<unsigned int TDim, unsigned int TNumNodes>
 CheckGap TreeContactSearch<TDim, TNumNodes>::ConvertCheckGap(const std::string& str)
 {
-    if(str == "NoCheck")
+    if(str == "NoCheck" || str == "no_check")
         return NoCheck;
-    else if(str == "DirectCheck")
+    else if(str == "DirectCheck" || str == "direct_check")
         return DirectCheck;
-    else if (str == "MappingCheck")
+    else if (str == "MappingCheck" || str == "mapping_check")
         return MappingCheck;
     else
         return MappingCheck;

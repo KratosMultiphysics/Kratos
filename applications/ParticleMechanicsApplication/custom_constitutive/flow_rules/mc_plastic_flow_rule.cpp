@@ -378,8 +378,8 @@ bool MCPlasticFlowRule::CalculateConsistencyCondition(RadialReturnVariables& rRe
     double FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
     double DilatancyAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
 
-    FrictionAngle *= GetPI() / 180.0;
-    DilatancyAngle *= GetPI() / 180.0;
+    //FrictionAngle *= GetPI() / 180.0;
+    //DilatancyAngle *= GetPI() / 180.0;
 
     //k
     double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
@@ -890,8 +890,8 @@ void MCPlasticFlowRule::CalculateElastoPlasticMatrix(const RadialReturnVariables
     double FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
     double DilatancyAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
 
-    FrictionAngle *= GetPI() / 180.0;
-    DilatancyAngle *= GetPI() / 180.0;
+    //FrictionAngle *= GetPI() / 180.0;
+    //DilatancyAngle *= GetPI() / 180.0;
 
     //k
     double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
@@ -1075,8 +1075,8 @@ bool MCPlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnM
     double FrictionAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
     double DilatancyAngle = mpYieldCriterion->GetHardeningLaw().GetProperties()[INTERNAL_DILATANCY_ANGLE];
 
-    FrictionAngle *= GetPI() / 180.0;
-    DilatancyAngle *= GetPI() / 180.0;
+    //FrictionAngle *= GetPI() / 180.0;
+    //DilatancyAngle *= GetPI() / 180.0;
 
     //k
     double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));

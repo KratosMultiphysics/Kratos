@@ -161,7 +161,7 @@ public:
         AssignResultingGeometryVectorsToNodalVariable( rNodalVariableInGeometrySpace );
 
         std::cout << "> Time needed for mapping: " << mapping_time.elapsed() << " s" << std::endl;
-    }    
+    }
     // --------------------------------------------------------------------------
 
     ///@}
@@ -305,7 +305,7 @@ private:
     // --------------------------------------------------------------------------
     void InitializeMappingVariables()
     {
-        mMappingMatrix.resize(mNumberOfDesignVariables,mNumberOfDesignVariables);
+        mMappingMatrix.resize(mNumberOfDesignVariables,mNumberOfDesignVariables,false);
         mMappingMatrix.clear();
 
         x_variables_in_design_space.resize(mNumberOfDesignVariables,0.0);
@@ -403,7 +403,7 @@ private:
             int collumn_id = neighbor_node.GetValue(MAPPING_ID);
 
             double weight = list_of_weights[neighbor_itr] / sum_of_weights;
-            mMappingMatrix.push_back(row_id,collumn_id,weight);
+            mMappingMatrix.insert_element(row_id,collumn_id,weight);
         }
     }
 
@@ -530,7 +530,7 @@ private:
             return true;
         }
     }
-    
+
     // --------------------------------------------------------------------------
 
     ///@}
