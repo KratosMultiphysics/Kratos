@@ -272,6 +272,13 @@ private:
     ///@{
        
     /**
+     * @brief This method sets the origin destination model maps when only one model part is provided
+     * @details The only model part should have MASTER/SLAVE flags in the nodes and conditions
+     * @param rModelPart The main model part, where the origin/destination model parts will be created
+     */
+    void SetOriginDestinationModelParts(ModelPart& rModelPart);
+
+    /**
      * @brief This function clears the mortar conditions already created 
      * @param NodesArray The array of nodes to clear
      */
