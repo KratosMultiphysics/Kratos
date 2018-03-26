@@ -79,7 +79,7 @@ namespace Kratos
 		NodesArrayType const& ThisNodes,
 		PropertiesType::Pointer pProperties) const
 	{
-		bool NLGeom = false; //--------------------------> hard coded linar shell element!!!
+		bool NLGeom = false; //--------------------------> hard coded linear shell element!!!
     	GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
     	return boost::make_shared< ShellThinAdjointElement3D4N >(NewId, newGeom, pProperties, NLGeom);
 	}
@@ -91,7 +91,7 @@ namespace Kratos
 	{
     	KRATOS_TRY
 
-    	bool NLGeom = false; //------------------> hard coded linar shell element!!!
+    	bool NLGeom = false; //------------------> hard coded linear shell element!!!
     	return Element::Pointer(
                 new ShellThinAdjointElement3D4N(NewId, pGeom, pProperties, NLGeom));
     

@@ -163,7 +163,7 @@ Element::Pointer ShellThinAdjointElement3D3N::Create(IndexType NewId,
             PropertiesType::Pointer pProperties) const 
 {
     KRATOS_TRY
-    bool NLGeom = false; //-----------------------------------------------------------> hard coded linar shell element!!!
+    bool NLGeom = false; //-----------------------------------------------------------> hard coded linear shell element!!!
     return Element::Pointer(
                 new ShellThinAdjointElement3D3N(NewId, pGeom, pProperties, NLGeom));
     
@@ -173,7 +173,7 @@ Element::Pointer ShellThinAdjointElement3D3N::Create(IndexType NewId,
 Element::Pointer ShellThinAdjointElement3D3N::Create(IndexType NewId, 
                     NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const 
 {
-    bool NLGeom = false; //-----------------------------------------------------------> hard coded linar shell element!!!
+    bool NLGeom = false; //-----------------------------------------------------------> hard coded linear shell element!!!
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
     return boost::make_shared< ShellThinAdjointElement3D3N >(NewId, newGeom, pProperties, NLGeom);
 
