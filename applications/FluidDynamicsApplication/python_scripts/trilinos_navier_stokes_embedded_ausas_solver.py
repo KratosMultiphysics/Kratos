@@ -1,7 +1,8 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.mpi as KratosMPI
 
 # Check that applications were imported in the main script
 KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
@@ -22,6 +23,8 @@ class NavierStokesMPIEmbeddedAusasMonolithicSolver(trilinos_navier_stokes_embedd
         self.element_name = "EmbeddedAusasNavierStokes"
         self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
         self.min_buffer_size = 3
+
+        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
 
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
@@ -84,20 +87,22 @@ class NavierStokesMPIEmbeddedAusasMonolithicSolver(trilinos_navier_stokes_embedd
         if (self.settings["distance_reading_settings"]["import_mode"].GetString() == "from_GiD_file"):
             self.settings["distance_reading_settings"]["distance_file_name"].SetString(self.settings["model_import_settings"]["input_filename"].GetString()+".post.res")
 
-        print("Construction of NavierStokesEmbeddedAusasSolver finished.")
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedAusasMonolithicSolver","Construction of NavierStokesEmbeddedAusasSolver finished.")
 
 
     def Initialize(self):
         # Initialize the solver as in the base embedded solver
         super(NavierStokesMPIEmbeddedAusasMonolithicSolver, self).Initialize()
-        
+
         # Set the find nodal neighbours process used in the embedded Ausas formulation condition
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
         self.find_nodal_neighbours_process = KratosMultiphysics.FindNodalNeighboursProcess(self.computing_model_part,
                                                                                            number_of_avg_elems,
                                                                                            number_of_avg_nodes)
-        print ("Monolithic embedded Ausas fluid solver initialization finished.")
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesMPIEmbeddedAusasMonolithicSolver","Monolithic embedded Ausas fluid solver initialization finished.")
 
 
     def InitializeSolutionStep(self):

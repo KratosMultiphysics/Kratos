@@ -567,6 +567,22 @@ public:
         if (BaseType::mDofSet.size()==0)
             KRATOS_ERROR << "No degrees of freedom!";
 
+    // If reactions are to be calculated, we check if all the dofs have reactions defined
+    // This is tobe done only in debug mode
+
+    #ifdef KRATOS_DEBUG        
+
+    if(BaseType::GetCalculateReactionsFlag())
+    {
+        for(auto dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+        { 
+                KRATOS_ERROR_IF_NOT(dof_iterator->HasReaction()) << "Reaction variable not set for the following : " <<std::endl
+                    << "Node : "<<dof_iterator->Id()<< std::endl
+                    << "Dof : "<<(*dof_iterator)<<std::endl<<"Not possible to calculate reactions."<<std::endl;
+        }
+    }
+    #endif
+
         BaseType::mDofSetIsInitialized = true;
 
         KRATOS_CATCH("")
@@ -945,13 +961,10 @@ public:
         {
             typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin() + k;
 
-            if (dof_iterator->IsFixed())
-            {
-                const int i = (dof_iterator)->EquationId();
-                // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
-                const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
-                (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
-            }
+            const int i = (dof_iterator)->EquationId();
+            // (dof_iterator)->GetSolutionStepReactionValue() = -(*b[i]);
+            const double react_val = temp_RHS[pDofImporter->TargetMap().LID(i)];
+            (dof_iterator->GetSolutionStepReactionValue()) = -react_val;
         }
     }
 

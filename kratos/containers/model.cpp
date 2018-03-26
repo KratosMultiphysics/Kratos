@@ -86,7 +86,9 @@ namespace Kratos
     ModelPart& Model::GetModelPart(std::string name)
     {
         KRATOS_TRY
-        
+
+        KRATOS_ERROR_IF( name.empty() ) << "Attempting to find a model part with empty name (\"\")!" << std::endl;
+                
         auto search = mflat_map.find(name);
         if(search != mflat_map.end()) {
             //TODO: issue a warning message telling that this behaviour is DEPRECATED and that it will be removed

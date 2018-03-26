@@ -23,10 +23,12 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/process_factory_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
 
   ## PROCESSES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/aalm_adapt_penalty_value_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/compute_dynamic_factor_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/master_slave_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_fast_init_process.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/alm_variables_calculation_process.cpp

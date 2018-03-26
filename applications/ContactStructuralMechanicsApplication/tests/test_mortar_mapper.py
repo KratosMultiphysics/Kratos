@@ -15,6 +15,8 @@ class TestMortarMapping(KratosUnittest.TestCase):
         pass
 
     def __base_test_mapping(self, input_filename, num_nodes, pure_implicit):
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
         self.main_model_part = KratosMultiphysics.ModelPart("Structure")
         self.main_model_part.SetBufferSize(2)
 
@@ -22,6 +24,8 @@ class TestMortarMapping(KratosUnittest.TestCase):
         self.StructureModel = {"Structure": self.main_model_part}
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)

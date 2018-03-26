@@ -22,6 +22,7 @@
 // External includes
 
 // Project includes
+#include "geometries/plane_3d.h"
 #include "geometries/line_3d_2.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
@@ -2334,33 +2335,6 @@ private:
         if(min_max.first>rad || min_max.second<-rad) return true;
         else return false;
     }
-
-
-	// TODO: I should move this class to a separate file but is out of scope of this branch
-	class Plane3D {
-	public:
-		using VectorType = array_1d<double, 3>;
-		using PointType = Point;
-
-		Plane3D(VectorType const& TheNormal, double DistanceToOrigin) :mNormal(TheNormal), mD(DistanceToOrigin) {}
-		Plane3D() = delete;
-		Plane3D(PointType const& Point1, PointType const& Point2, PointType const& Point3) {
-			VectorType v1 = Point2 - Point1;
-			VectorType v2 = Point3 - Point1;
-			MathUtils<double>::CrossProduct(mNormal, v1, v2);
-			mD = -inner_prod(mNormal, Point1);
-		}
-		VectorType const& GetNormal() { return mNormal; }
-		double GetDistance() { return mD; }
-		double CalculateSignedDistance(PointType const& ThePoint) {
-			return inner_prod(mNormal, ThePoint) + mD;
-		}
-
-	private:
-		VectorType mNormal;
-		double mD;
-	};
-
 
     ///@}
     ///@name Private  Access

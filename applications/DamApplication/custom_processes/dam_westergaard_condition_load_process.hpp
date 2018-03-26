@@ -46,7 +46,6 @@ class DamWestergaardConditionLoadProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "Modify"                                                : true,
                 "Gravity_Direction"                                     : "Y",
@@ -67,7 +66,6 @@ class DamWestergaardConditionLoadProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mGravityDirection = rParameters["Gravity_Direction"].GetString();
         mReferenceCoordinate = rParameters["Reservoir_Bottom_Coordinate_in_Gravity_Direction"].GetDouble();
@@ -106,7 +104,7 @@ class DamWestergaardConditionLoadProcess : public Process
         KRATOS_TRY;
 
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
         double pressure;
 
@@ -122,7 +120,7 @@ class DamWestergaardConditionLoadProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -168,7 +166,7 @@ class DamWestergaardConditionLoadProcess : public Process
             mAcceleration = mpTableAcceleration->GetValue(time);
         }
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         int direction;
         double pressure;
 
@@ -184,7 +182,7 @@ class DamWestergaardConditionLoadProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -245,7 +243,6 @@ class DamWestergaardConditionLoadProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     std::string mGravityDirection;
     double mReferenceCoordinate;

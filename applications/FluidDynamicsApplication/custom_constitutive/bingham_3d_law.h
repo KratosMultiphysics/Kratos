@@ -108,7 +108,7 @@ public:
     /**
      * Turn back information as a string.
      */
-    virtual std::string Info() const;
+    std::string Info() const override;
 
 
 protected:
