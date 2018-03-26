@@ -54,6 +54,7 @@ namespace Kratos
  * the base point and each one of the points to approximate.
  * @author Ruben Zorrilla
  */
+template <unsigned int TDim> 
 class PlaneApproximationUtility
 {
 public:
@@ -96,8 +97,8 @@ public:
         array_1d<double,3> &rPlaneBasePointCoords,
         array_1d<double,3> &rPlaneNormal)
     {
-        GetPlaneBasePoint(rPointsCoords,rPlaneBasePointCoords);
-        GetPlaneNormal(rPointsCoords, rPlaneBasePointCoords, rPlaneNormal);
+        ComputeBasePoint(rPointsCoords,rPlaneBasePointCoords);
+        ComputePlaneNormal(rPointsCoords, rPlaneBasePointCoords, rPlaneNormal);
     }
 
     ///@}
@@ -138,7 +139,7 @@ private:
      * @param rPointsCoords Vector containing the set of point coordinates
      * @return rBasePointCoords Plane base point coordinates
      */
-    static void GetPlaneBasePoint(
+    static void ComputeBasePoint(
         const std::vector< array_1d<double,3> > &rPointsCoords,
         array_1d<double,3> &rBasePointCoords) 
     {
@@ -185,7 +186,7 @@ private:
      * @param rBasePointCoords Plane base point coordinates
      * @return rPlaneNormal The plane unit normal
      */
-    static void GetPlaneNormal(
+    static void ComputePlaneNormal(
         const std::vector< array_1d<double,3> > &rPointsCoords,
         const array_1d<double,3> &rPlaneBasePointCoords,
         array_1d<double,3> &rPlaneNormal) 
@@ -197,12 +198,12 @@ private:
         KRATOS_ERROR_IF(!converged) << "Plane normal can't be computed. Eigenvalue problem did not converge." << std::endl;
 
         // Find the minimum eigenvalue
-        double min_eigval = 0.0;
+        double min_eigval = std::numeric_limits<double>::max();
         unsigned int min_eigval_id = 0;
-        for (unsigned int i = 0; i < 3; ++i){
+        for (unsigned int i = 0; i < TDim; ++i){
             if (eigenval_mat(i,i) < min_eigval){
                 min_eigval_id = i;
-                min_eigval = std::min(min_eigval, eigenval_mat(i,i));
+                min_eigval = eigenval_mat(i,i);
             }
         }
 
