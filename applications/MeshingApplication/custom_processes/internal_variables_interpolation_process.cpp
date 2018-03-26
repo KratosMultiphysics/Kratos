@@ -60,13 +60,13 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
 
 void InternalVariablesInterpolationProcess::Execute()
 {
-    if (mThisInterpolationType == InterpolationTypes::CPT && mInternalVariableList.size() > 0) {
+    if (mThisInterpolationType == InterpolationTypes::CLOSEST_POINT_TRANSFER && mInternalVariableList.size() > 0) {
         InterpolateGaussPointsClosestPointTransfer();
-    } else if (mThisInterpolationType == InterpolationTypes::LST && mInternalVariableList.size() > 0) {
+    } else if (mThisInterpolationType == InterpolationTypes::LEAST_SQUARE_TRANSFER && mInternalVariableList.size() > 0) {
         InterpolateGaussPointsLeastSquareTransfer();
-    } else if (mThisInterpolationType == InterpolationTypes::SFT && mInternalVariableList.size() > 0) {
+    } else if (mThisInterpolationType == InterpolationTypes::SHAPE_FUNCTION_TRANSFER && mInternalVariableList.size() > 0) {
 //         InterpolateGaussPointsShapeFunctionTransfer();
-        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: SFT THIS DOESN'T WORK, AND REQUIRES EXTRA STORE. PLEASE COOSE ANY OTHER ALTERNATIVE" << std::endl;
+        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: SHAPE FUNCTION TRANSFER THIS DOESN'T WORK, AND REQUIRES EXTRA STORE. PLEASE COOSE ANY OTHER ALTERNATIVE" << std::endl;
     } else
         KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: INTERPOLATION TYPE NOT AVALAIBLE OR EMPTY LIST" << std::endl;
 }
@@ -512,14 +512,14 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
 InternalVariablesInterpolationProcess::InterpolationTypes InternalVariablesInterpolationProcess::ConvertInter(const std::string& Str)
 {
-    if(Str == "CPT")
-        return InterpolationTypes::CPT;
-    else if(Str == "LST")
-        return InterpolationTypes::LST;
-    else if(Str == "SFT")
-        return InterpolationTypes::SFT;
+    if(Str == "CPT" || Str == "CLOSEST_POINT_TRANSFER")
+        return InterpolationTypes::CLOSEST_POINT_TRANSFER;
+    else if(Str == "LST" || Str == "LEAST_SQUARE_TRANSFER")
+        return InterpolationTypes::LEAST_SQUARE_TRANSFER;
+    else if(Str == "SFT" || Str == "SHAPE_FUNCTION_TRANSFER")
+        return InterpolationTypes::SHAPE_FUNCTION_TRANSFER;
     else
-        return InterpolationTypes::LST;
+        return InterpolationTypes::LEAST_SQUARE_TRANSFER;
 }
 
 }  // namespace Kratos.
