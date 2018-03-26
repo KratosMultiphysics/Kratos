@@ -219,9 +219,18 @@ namespace Kratos
 				auto &r_int_obj_geom = rIntersectedObjects[i_int_obj].GetGeometry();
 				const int int_id = ComputeEdgeIntersection(r_int_obj_geom,r_edges_container[i_edge][0],r_edges_container[i_edge][1],int_pt);
 				// If there is intersection, save the intersection point and increase the edge counter
+				// Besides, save the vertices of the intersection entities, they will be used later 
+				// on as complementary points if the plane approximation is required.
 				if (int_id == 1){
+					// Increase the edge intersections counter
 					rCutEdgesVector[i_edge] += 1;
+					// Save the intersection point
 					rIntersectionPointsArray.push_back(int_pt);
+					// Save the intersection geometry vertices as complementary points
+					const std::size_t n_pts = r_int_obj_geom.PointsNumber();
+					for (std::size_t i_pt = 0; i_pt < n_pts; ++i_pt){
+						rIntersectionPointsArray.push_back(r_int_obj_geom.GetPoint(i_pt).Coordinates());
+					}
 				}
 			}
 		}
