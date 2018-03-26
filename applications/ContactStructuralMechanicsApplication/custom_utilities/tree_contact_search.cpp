@@ -194,9 +194,6 @@ void TreeContactSearch<TDim, TNumNodes>::SetOriginDestinationModelParts(ModelPar
 
     KRATOS_ERROR_IF(r_master_model_part.Conditions().size() == 0) << "No origin conditions. Check your flags are properly set" << std::endl;
     KRATOS_ERROR_IF(r_slave_model_part.Conditions().size() == 0) << "No destination conditions. Check your flags are properly set" << std::endl;
-
-    KRATOS_ERROR_IF(r_master_model_part.Nodes().size() == 0) << "No origin nodes. Check your flags are properly set" << std::endl;
-    KRATOS_ERROR_IF(r_slave_model_part.Nodes().size() == 0) << "No destination nodes. Check your flags are properly set" << std::endl;
 }
 
 /***********************************************************************************/
