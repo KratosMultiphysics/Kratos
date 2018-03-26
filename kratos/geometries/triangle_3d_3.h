@@ -1670,8 +1670,9 @@ private:
             X(2,i ) = this->GetPoint( i ).Z();
         }
 
-        const double tol = 1.0e-8;
-        const int maxiter = 1000;
+        static constexpr double MaxNormPointLocalCoordinates = 30.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
 
         bounded_matrix<double, 2, 2> J = ZeroMatrix( 2, 2 );
         bounded_matrix<double, 2, 2> invJ = ZeroMatrix( 2, 2 );
@@ -1682,7 +1683,7 @@ private:
         array_1d<double,3> current_global_coords;
 
         //Newton iteration:
-        for ( int k = 0; k < maxiter; k++ )
+        for ( std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ )
         {
             noalias(current_global_coords) = ZeroVector( 3 );
             this->GlobalCoordinates( current_global_coords, rResult );
@@ -1713,12 +1714,12 @@ private:
             rResult[1] += delta_xi[1];
             rResult[2] = 0.0;
 
-            if ( k>0 && norm_2( delta_xi ) > 30 ) {
+            if ( k>0 && norm_2( delta_xi ) > MaxNormPointLocalCoordinates ) {
                 KRATOS_WARNING_IF("Triangle3D3", IsInside == false) << "detJ =\t" << det_j << " DeltaX =\t" << delta_xi << " stopping calculation. Iteration:\t" << k << std::endl;
                 break;
             }
 
-            if ( norm_2( delta_xi ) < tol ) {
+            if ( norm_2( delta_xi ) < MaxTolerancePointLocalCoordinates ) {
                 break;
             }
         }

@@ -1497,8 +1497,9 @@ private:
             X(2,i ) = this->GetPoint( i ).Z();
         }
 
-        const double tol = 1.0e-8;
-        const int maxiter = 500;
+        static constexpr double MaxNormPointLocalCoordinates = 300.0;
+        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 500;
+        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
 
         Matrix J = ZeroMatrix( 2, 2 );
         Matrix invJ = ZeroMatrix( 2, 2 );
@@ -1509,7 +1510,7 @@ private:
         array_1d<double,3> CurrentGlobalCoords;
 
         //Newton iteration:
-        for ( int k = 0; k < maxiter; k++ )
+        for ( std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ )
         {
             noalias(CurrentGlobalCoords) = ZeroVector( 3 );
             this->GlobalCoordinates( CurrentGlobalCoords, rResult );
@@ -1539,12 +1540,12 @@ private:
             rResult[0] += DeltaXi[0];
             rResult[1] += DeltaXi[1];
 
-            if ( norm_2( DeltaXi ) > 300 ) {
+            if ( norm_2( DeltaXi ) > MaxNormPointLocalCoordinates ) {
                 KRATOS_WARNING_IF("Quadrilateral3D4", IsInside == false && k > 0) << "detJ =\t" << det_j << " DeltaX =\t" << DeltaXi << " stopping calculation. Iteration:\t" << k << std::endl;
                 break;
             }
 
-            if ( norm_2( DeltaXi ) < tol )
+            if ( norm_2( DeltaXi ) < MaxTolerancePointLocalCoordinates )
             {
                 break;
             }
