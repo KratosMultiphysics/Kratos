@@ -140,22 +140,19 @@ public:
 	{
 		KRATOS_TRY;
 
-		ModelPart& r_model_part = rModelPart; //TODO this->GetModelPart();
+		ModelPart& r_model_part = rModelPart; 
 		ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
 		m_current_response_value = 0.0;
 
-		double pre_factor = 0.5; //This would be the case if primal elements are used at the time of calling
+		double pre_factor = 0.5;
 
 		// Check if there are at the time of calling adjoint or primal elements
 		// TODO: ist there a nicer solution to get this information??
-		std::string element_name = r_model_part.Elements()[1].Info();//TODO: is there always an element of ID 1?
-		std::string::size_type position_ele = 0;
-        std::string::size_type found_ele;
-        found_ele = element_name.find("Adjoint", position_ele);
-		if(found_ele != std::string::npos)
-			pre_factor = 2.0; //This would be the case if adjoint elements are used at the time of calling
-			// the optional multiplication with 2.0 instead of 0.5 is due to the fact that GetValuesVector of the adjoint element 
-			//delivers the adjoint displacements and NOT the primal solution. In Detail then is
+		std::string element_name = r_model_part.Elements()[r_model_part.ElementsBegin()->Id()].Info();
+		if( element_name.find("Adjoint", 0) != std::string::npos)
+			pre_factor = 2.0; 
+			// The optional multiplication with 2.0 instead of 0.5 is due to the fact that GetValuesVector of the
+			// adjoint element delivers the adjoint displacements and NOT the primal displacement. In Detail then is
 			// S = 2.0 * (0.5*u)^T * 0.5*f = 0.5 * (u)^T * f computed.
 
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
