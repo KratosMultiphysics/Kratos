@@ -133,7 +133,13 @@ public:
                 if( !KratosComponents< Element >::Has( element_name ) )
                     KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", element_name);
                 const Element& rReferenceElement = KratosComponents<Element>::Get(element_name); //is this a problem to initialize the element in the loop?
-                Element::Pointer p_element = rReferenceElement.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+
+				Element::NodesArrayType ele_nodes_array;
+				for(unsigned int i = 0; i < it->GetGeometry().PointsNumber(); i++)
+					ele_nodes_array.push_back(it->GetGeometry().pGetPoint(i));
+                Element::Pointer p_element = rReferenceElement.Create(it->Id(), ele_nodes_array, it->pGetProperties());
+     
+                //Element::Pointer p_element = rReferenceElement.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
  
                 //deep copy elemental data
                 p_element->Data() = it->Data();
@@ -166,8 +172,13 @@ public:
                 if( !KratosComponents< Condition >::Has( condition_name ) )
                     KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", condition_name);
                 const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name); //is this a problem to initialize the element in the loop?
-      
-                Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+                
+                //Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+
+                Condition::NodesArrayType cond_nodes_array;
+				for(unsigned int i = 0; i < it->GetGeometry().PointsNumber(); i++)
+					cond_nodes_array.push_back(it->GetGeometry().pGetPoint(i));
+                Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), cond_nodes_array, it->pGetProperties());
      
                 //deep copy elemental data
                 p_condition->Data() = it->Data();
