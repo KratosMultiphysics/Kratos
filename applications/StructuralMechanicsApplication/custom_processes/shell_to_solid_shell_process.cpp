@@ -33,7 +33,9 @@ ShellToSolidShellProcess<TNumNodes>::ShellToSolidShellProcess(
     {
         "element_name"    : "SolidShellElementSprism3D6N",
         "model_part_name" : "",
-        "number_of_layers": 1
+        "number_of_layers": 1,
+        "export_to_mdpa"  : false,
+        "output_name"     : "output"
     })" );
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -180,6 +182,13 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
 
 //     // We initialize the new elements
 //     InitializeElements();
+
+    if (mThisParameters["export_to_mdpa"].GetBool()) {
+        const std::string& output_name = mThisParameters["output_name"].GetString();
+        std::ofstream output_file;
+        ModelPartIO model_part_io(output_name, IO::WRITE);
+        model_part_io.WriteModelPart(mrThisModelPart);
+    }
 
     KRATOS_CATCH("")
 }
