@@ -54,7 +54,7 @@
         },
         "optimization_algorithm" : {
             "name"                                 : "steepest_descent",
-            "max_iterations"                       : 100,
+            "max_iterations"                       : 2,
             "relative_tolerance"                   : 1e-1,
             "project_gradients_on_surface_normals" : true
         },

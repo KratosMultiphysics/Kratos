@@ -144,23 +144,34 @@ public:
 		ProcessInfo &CurrentProcessInfo = r_model_part.GetProcessInfo();
 		m_current_response_value = 0.0;
 
+		double pre_factor = 0.5; //This would be the case if primal elements are used at the time of calling
+
+		// Check if there are at the time of calling adjoint or primal elements
+		// TODO: ist there a nicer solution to get this information??
+		std::string element_name = r_model_part.Elements()[1].Info();//TODO: is there always an element of ID 1?
+		std::string::size_type position_ele = 0;
+        std::string::size_type found_ele;
+        found_ele = element_name.find("Adjoint", position_ele);
+		if(found_ele != std::string::npos)
+			pre_factor = 2.0; //This would be the case if adjoint elements are used at the time of calling
+			// the optional multiplication with 2.0 instead of 0.5 is due to the fact that GetValuesVector of the adjoint element 
+			//delivers the adjoint displacements and NOT the primal solution. In Detail then is
+			// S = 2.0 * (0.5*u)^T * 0.5*f = 0.5 * (u)^T * f computed.
+
 		// Sum all elemental strain energy values calculated as: W_e = u_e^T K_e u_e
 		for (auto& elem_i : r_model_part.Elements())
 		{
 			Matrix LHS;
 			Vector RHS;
-			Vector adjoint_variables;
+			Vector disp;
 
 			// Get state solution relevant for energy calculation
-			elem_i.GetValuesVector(adjoint_variables,0);
+			elem_i.GetValuesVector(disp,0);
 
 			elem_i.CalculateLocalSystem(LHS,RHS,CurrentProcessInfo);
 
 			// Compute strain energy
-			m_current_response_value += 2.0 * inner_prod(adjoint_variables,prod(LHS,adjoint_variables));
-			// the multiplication with 2.0 instead of 0.5 is due to the fact that GetValuesVector delivers
-			// the adjoint displacements and NOT the primal solution. In Detail here is
-			// S = 2.0 * (0.5*u)^T * 0.5*f = 0.5 * (u)^T * f computed.
+			m_current_response_value += pre_factor * inner_prod(disp,prod(LHS,disp));
  		}
 
 		return m_current_response_value;
