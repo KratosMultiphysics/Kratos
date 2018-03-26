@@ -164,7 +164,7 @@ public:
             ModelPart::NodeIterator nodes_end;
             OpenMPUtils::PartitionedIterators(rModelPart.Nodes(), nodes_begin, nodes_end);
             for (auto it = nodes_begin; it != nodes_end; ++it)
-                it->GetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS) = 0.0;
+                it->SetValue(NUMBER_OF_NEIGHBOUR_ELEMENTS,0.0);
         }
 
 #pragma omp parallel
@@ -325,7 +325,7 @@ public:
             // reduce communication here.
             r_comm.SynchronizeNodalSolutionStepsData();
 
-            // Assign contributions to adjoint second derivatives that don't 
+            // Assign contributions to adjoint second derivatives that don't
             // require assembly.
             #pragma omp parallel
             {
@@ -387,7 +387,7 @@ public:
 
                 mAdjointSecondDerivsVector[k] = (1.0 - mGammaNewmark) * mDt *
                     (prod(mFirstDerivsLHS[k], mAdjointValuesVector[k]) + mFirstDerivsResponseGradient[k]);
-                
+
                 // Assemble contributions to adjoint acceleration.
                 unsigned int local_index = 0;
                 for (unsigned int i_node = 0; i_node < it->GetGeometry().PointsNumber(); ++i_node)
@@ -439,10 +439,10 @@ public:
 
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_1) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_FLUID_VECTOR_1 << std::endl;
-        
+
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_FLUID_SCALAR_1) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_FLUID_SCALAR_1 << std::endl;
-        
+
         if (rModelPart.NodesBegin()->SolutionStepsDataHas(ADJOINT_FLUID_VECTOR_3) == false)
             KRATOS_ERROR << "Nodal solution steps data missing variable: " << ADJOINT_FLUID_VECTOR_3 << std::endl;
 
