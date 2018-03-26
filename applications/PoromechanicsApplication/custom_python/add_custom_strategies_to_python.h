@@ -22,7 +22,7 @@ namespace Kratos
 namespace Python
 {
 
-void  AddCustomStrategiesToPython();
+void  AddCustomStrategiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 }  // namespace Kratos.

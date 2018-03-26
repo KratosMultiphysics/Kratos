@@ -52,13 +52,15 @@ void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     // Schemes
-    class_< TrilinosNewmarkQuasistaticUPwSchemeType, TrilinosNewmarkQuasistaticUPwSchemeType::Pointer, TrilinosBaseSchemeType >(m, "TrilinosNewmarkQuasistaticUPwScheme")
-        .def(init< double, double, double >() );
-    //TODO: seguir
-    class_< TrilinosNewmarkQuasistaticDampedUPwSchemeType,bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosNewmarkQuasistaticDampedUPwScheme",
-        init<  double, double, double, double, double >());
-    class_< TrilinosNewmarkDynamicUPwSchemeType,bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosNewmarkDynamicUPwScheme",
-        init<  double, double, double, double, double >());
+    class_< TrilinosNewmarkQuasistaticUPwSchemeType, typename TrilinosNewmarkQuasistaticUPwSchemeType::Pointer, TrilinosBaseSchemeType >
+    (m, "TrilinosNewmarkQuasistaticUPwScheme")
+    .def(init< double, double, double >() );
+    class_< TrilinosNewmarkQuasistaticDampedUPwSchemeType, typename TrilinosNewmarkQuasistaticDampedUPwSchemeType::Pointer, TrilinosBaseSchemeType >
+    (m, "TrilinosNewmarkQuasistaticDampedUPwScheme")
+    .def(init<  double, double, double, double, double >());
+    class_< TrilinosNewmarkDynamicUPwSchemeType, typename TrilinosNewmarkDynamicUPwSchemeType::Pointer, TrilinosBaseSchemeType >
+    (m, "TrilinosNewmarkDynamicUPwScheme")
+    .def(init<  double, double, double, double, double >());
 
 }
 
