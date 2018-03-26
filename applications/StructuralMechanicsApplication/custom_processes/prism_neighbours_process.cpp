@@ -23,24 +23,26 @@ void PrismNeighboursProcess::Execute()
 {
     KRATOS_TRY;
 
-    for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
-        (it_elem->GetValue(NEIGHBOUR_NODES)).reserve(6); // Just in-plane neighbours
+    for(IndexType i = 0; i < mrModelPart.Elements().size(); ++i) {
+        auto it_elem = mrModelPart.Elements().begin() + i;
         NodePointerVector& r_neighbour_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
+        r_neighbour_nodes.reserve(6); // Just in-plane neighbours
         r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
 
-        (it_elem->GetValue(NEIGHBOUR_ELEMENTS)).reserve(3); // Just in-plane neighbours
         ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
+        r_neighbour_elements.reserve(3); // Just in-plane neighbours
         r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
     }
 
     if (mComputeOnNodes) {
-        for(NodesIterarorType it_node = mrModelPart.NodesBegin(); it_node!=mrModelPart.NodesEnd(); it_node++) {
-            (it_node->GetValue(NEIGHBOUR_NODES)).reserve(6); // Just it_node-plane neighbours
+        for(IndexType i = 0; i < mrModelPart.Nodes().size(); ++i) {
+            auto it_node = mrModelPart.Nodes().begin() + i;
             NodePointerVector& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+            r_neighbour_nodes.reserve(6); // Just it_node-plane neighbours
             r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
 
-            (it_node->GetValue(NEIGHBOUR_ELEMENTS)).reserve(3); // Just it_node-plane neighbours
             ElementPointerVector& r_neighbour_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+            r_neighbour_elements.reserve(3); // Just it_node-plane neighbours
             r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end() );
         }
     }
@@ -49,7 +51,9 @@ void PrismNeighboursProcess::Execute()
     // Create the HashMapVectorIntElementPointerType
     HashMapVectorIntElementPointerType face_map;
 
-    for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
+    for(IndexType i = 0; i < mrModelPart.Elements().size(); ++i) {
+        auto it_elem = mrModelPart.Elements().begin() + i;
+
         GeometryType& geom = it_elem->GetGeometry();
 
         // Insert a pointer to the element identified by the hash value ids if it doesn't exist
@@ -128,18 +132,22 @@ void PrismNeighboursProcess::Execute()
     VectorIndexType ids(2),  aux_1(2), aux_2(2), aux_3(2);
 
     // Search the neighbour nodes(for elements)
-    for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
+    for(IndexType i = 0; i < mrModelPart.Elements().size(); ++i) {
+        auto it_elem = mrModelPart.Elements().begin() + i;
+
         GeometryType& geom = it_elem->GetGeometry();
         NodePointerVector& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
         neighb_nodes.resize(6);
 
-        for (IndexType fill = 0; fill < 6; fill++) {
+        for (IndexType fill = 0; fill < 6; ++fill) {
             neighb_nodes(fill) = NodeType::WeakPointer(geom(fill));
         }
 
         // Just upper nodes, the others are +3 IDs
         ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
-        for (ElementPointerVector::iterator it_neigh_elem = r_neighbour_elements.begin(); it_neigh_elem != r_neighbour_elements.end(); it_neigh_elem++) {
+        for (IndexType j = 0; j < r_neighbour_elements.size(); ++j) {
+
+            auto it_neigh_elem = r_neighbour_elements.begin() + j;
             HashMapVectorIntIntType node_map;
             GeometryType& geom_neig = it_neigh_elem->GetGeometry();
 
@@ -178,14 +186,14 @@ void PrismNeighboursProcess::Execute()
             HashMapVectorIntIntIteratorType it_3 = node_map.find(aux_3);
 
             if(it_1 != node_map.end() ) {
-                neighb_nodes(0) = NodeType ::WeakPointer(geom_neig(it_1->second));
-                neighb_nodes(3) = NodeType ::WeakPointer(geom_neig(it_1->second + 3));
+                neighb_nodes(0) = NodeType::WeakPointer(geom_neig(it_1->second));
+                neighb_nodes(3) = NodeType::WeakPointer(geom_neig(it_1->second + 3));
             } else if(it_2 != node_map.end() ) {
-                neighb_nodes(1) = NodeType ::WeakPointer(geom_neig(it_2->second));
-                neighb_nodes(4) = NodeType ::WeakPointer(geom_neig(it_2->second + 3));
+                neighb_nodes(1) = NodeType::WeakPointer(geom_neig(it_2->second));
+                neighb_nodes(4) = NodeType::WeakPointer(geom_neig(it_2->second + 3));
             } else if(it_3 != node_map.end() ) {
-                neighb_nodes(2) = NodeType ::WeakPointer(geom_neig(it_3->second));
-                neighb_nodes(5) = NodeType ::WeakPointer(geom_neig(it_3->second + 3));
+                neighb_nodes(2) = NodeType::WeakPointer(geom_neig(it_3->second));
+                neighb_nodes(5) = NodeType::WeakPointer(geom_neig(it_3->second + 3));
             }
         }
     }
@@ -193,29 +201,33 @@ void PrismNeighboursProcess::Execute()
     // We add the neighbour to the nodes
     if (mComputeOnNodes) {
         // Add the neighbour elements to all the nodes in the mesh
-        for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
+        for(IndexType i = 0; i < mrModelPart.Elements().size(); ++i) {
+            auto it_elem = mrModelPart.Elements().begin() + i;
+
             GeometryType& geom = it_elem->GetGeometry();
-            for(IndexType i = 0; i < geom.size(); i++) {
-                (geom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(it_elem.base()) ) );
+            for(IndexType j = 0; j < geom.size(); ++j) {
+                (geom[j].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(it_elem.base()) ) );
             }
         }
 
         // Adding the neighbouring nodes (in the same face)
-        for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
+        for(IndexType i = 0; i < mrModelPart.Elements().size(); ++i) {
+            auto it_elem = mrModelPart.Elements().begin() + i;
+
             GeometryType& geom = it_elem->GetGeometry();
 
             NodePointerVector& neighb_nodes = it_elem->GetValue(NEIGHBOUR_NODES);
 
-            for (IndexType i = 0; i < 3; i++) {
+            for (IndexType j = 0; j < 3; ++j) {
                 NodeType::WeakPointer temp;
 
                 // Adding nodes from the element
                 IndexType aux_index1, aux_index2;
 
-                if (i == 0) {
+                if (j == 0) {
                     aux_index1 = 2;
                     aux_index2 = 1;
-                } else if (i == 1) {
+                } else if (j == 1) {
                     aux_index1 = 0;
                     aux_index2 = 2;
                 } else {
@@ -225,32 +237,32 @@ void PrismNeighboursProcess::Execute()
 
                 // Lower face
                 temp = geom(aux_index1);
-                AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
+                AddUniqueWeakPointer<NodeType>(geom[j].GetValue(NEIGHBOUR_NODES), temp);
                 temp = geom(aux_index2);
-                AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
+                AddUniqueWeakPointer<NodeType>(geom[j].GetValue(NEIGHBOUR_NODES), temp);
 
                 // Upper face
                 temp = geom(aux_index1 + 3);
-                AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                AddUniqueWeakPointer<NodeType>(geom[j + 3].GetValue(NEIGHBOUR_NODES), temp);
                 temp = geom(aux_index2 + 3);
-                AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                AddUniqueWeakPointer<NodeType>(geom[j + 3].GetValue(NEIGHBOUR_NODES), temp);
 
                 // Adding neighbour elements
-                if (neighb_nodes[aux_index1].Id() != geom[i].Id()) {
+                if (neighb_nodes[aux_index1].Id() != geom[j].Id()) {
                     // Lower face
                     temp = neighb_nodes(aux_index1);
-                    AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
+                    AddUniqueWeakPointer<NodeType>(geom[j].GetValue(NEIGHBOUR_NODES), temp);
                     // Upper face
                     temp = neighb_nodes(aux_index1 + 3);
-                    AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                    AddUniqueWeakPointer<NodeType>(geom[j + 3].GetValue(NEIGHBOUR_NODES), temp);
                 }
-                if (neighb_nodes[aux_index2].Id() != geom[i].Id()) {
+                if (neighb_nodes[aux_index2].Id() != geom[j].Id()) {
                     // Lower face
                     temp = neighb_nodes(aux_index2);
-                    AddUniqueWeakPointer< NodeType >(geom[i].GetValue(NEIGHBOUR_NODES), temp);
+                    AddUniqueWeakPointer<NodeType>(geom[j].GetValue(NEIGHBOUR_NODES), temp);
                     // Upper face
                     temp = neighb_nodes(aux_index2 + 3);
-                    AddUniqueWeakPointer< NodeType >(geom[i + 3].GetValue(NEIGHBOUR_NODES), temp);
+                    AddUniqueWeakPointer<NodeType>(geom[j + 3].GetValue(NEIGHBOUR_NODES), temp);
                 }
             }
         }
@@ -264,17 +276,21 @@ void PrismNeighboursProcess::Execute()
 
 void PrismNeighboursProcess::ClearNeighbours()
 {
-    for(NodesIterarorType it_node = mrModelPart.NodesBegin(); it_node!=mrModelPart.NodesEnd(); it_node++) {
-        NodePointerVector& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
-        r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
-
-        ElementPointerVector& r_neighbour_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+    for(IndexType i = 0; i < mrModelPart.Elements().size(); ++i) {
+        auto it_elem = mrModelPart.Elements().begin() + i;
+        ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
         r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end());
     }
 
-    for (ElementsIteratorType it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
-        ElementPointerVector& r_neighbour_elements = it_elem->GetValue(NEIGHBOUR_ELEMENTS);
-        r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end());
+    if (mComputeOnNodes) {
+        for(IndexType i = 0; i < mrModelPart.Nodes().size(); ++i) {
+            auto it_node = mrModelPart.Nodes().begin() + i;
+            NodePointerVector& r_neighbour_nodes = it_node->GetValue(NEIGHBOUR_NODES);
+            r_neighbour_nodes.erase(r_neighbour_nodes.begin(),r_neighbour_nodes.end() );
+
+            ElementPointerVector& r_neighbour_elements = it_node->GetValue(NEIGHBOUR_ELEMENTS);
+            r_neighbour_elements.erase(r_neighbour_elements.begin(),r_neighbour_elements.end());
+        }
     }
 }
 
