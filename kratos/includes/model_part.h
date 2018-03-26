@@ -251,7 +251,7 @@ public:
     ModelPart(std::string const& NewName, IndexType NewBufferSize);
 
     /// Copy constructor.
-    explicit ModelPart(ModelPart const& rOther);
+    ModelPart(ModelPart const& rOther) = delete;
 
 
     /// Destructor.

@@ -84,22 +84,6 @@ ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
-// Copy constructor.
-ModelPart::ModelPart(ModelPart const& rOther)
-    : DataValueContainer(rOther)
-    , Flags(rOther)
-    , mName(rOther.mName)
-    , mBufferSize(rOther.mBufferSize)
-    , mpProcessInfo(rOther.mpProcessInfo)
-    , mIndices(rOther.mIndices)
-    , mMeshes(rOther.mMeshes)
-    , mpVariablesList(new VariablesList(*rOther.mpVariablesList))
-    , mpCommunicator(rOther.mpCommunicator)
-    , mpParentModelPart(rOther.mpParentModelPart)
-    , mSubModelParts(rOther.mSubModelParts)
-{
-}
-
 /// Destructor.
 ModelPart::~ModelPart()
 {

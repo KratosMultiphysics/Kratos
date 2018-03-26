@@ -207,8 +207,6 @@ public:
     typedef Element::GeometryType                            GeomType;
     typedef Node<3>                                          NodeType;
 
-
-    BoundingBoxUtilities() {}
     BoundingBoxUtilities(ModelPart& model_part, const unsigned int& dimension) : mr_model_part(model_part), mrdimension(dimension)
     {
     }
@@ -879,7 +877,7 @@ public:
     //       */
 
 private:
-    ModelPart mr_model_part;
+    ModelPart& mr_model_part;
     unsigned int mrdimension;
 
 
