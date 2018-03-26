@@ -134,3 +134,109 @@ class MassResponseFunctionWrapper(ResponseFunctionBase):
         return gradient
     def Finalize(self):
         pass
+
+class AdjointStrainEnergyResponse(ResponseFunctionBase):
+    def __init__(self, identifier, project_parameters, response_function_utility, model_part = None):
+        super(AdjointStrainEnergyResponse, self).__init__(identifier, project_parameters)
+
+        # Create the primal solver
+        self.ProjectParametersPrimal = Parameters( open(project_parameters["primal_settings"].GetString(),'r').read() )
+        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(self.ProjectParametersPrimal, model_part)
+
+        self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(SHAPE_SENSITIVITY)
+
+        # Add variables to save the solution of the adjoint problem
+        self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(ADJOINT_DISPLACEMENT)
+        if self.ProjectParametersPrimal["solver_settings"]["rotation_dofs"].GetBool():
+            self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(ADJOINT_ROTATION)
+        #self.primal_analysis.GetModelPart().AddNodalSolutionStepVariable(StructuralMechanicsApplication.POINT_LOAD_SENSITIVITY)    
+        # TODO: Is it necessary to add other variables (e.g. POINT_LOAD_SENSITIVITY)?
+  
+        self.response_function_utility = response_function_utility
+    def Initialize(self):
+        self.primal_analysis.Initialize()
+    def CalculateValue(self):
+        print("\n> Starting primal analysis for response:", self.identifier)
+
+        step = self.primal_analysis.GetModelPart().ProcessInfo[STEP]
+        if(step > 0): # bigger than 0 because STEP is increased at InitializeTimeStep()
+            self.__performReplacementProcess(False)
+            self.__initializeAfterReplacement(self.primal_analysis.GetModelPart())
+
+        startTime = timer.time()
+        self.primal_analysis.InitializeTimeStep()
+        self.primal_analysis.SolveTimeStep()
+        self.primal_analysis.FinalizeTimeStep()
+        print("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+        startTime = timer.time()
+        value = self.response_function_utility.CalculateValue(self.primal_analysis.GetModelPart())
+        print("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
+        return value
+    def CalculateGradient(self):
+        # Replace elements and conditions by its adjoint equivalents
+        self.__performReplacementProcess(True)
+        self.response_function_utility.Initialize() 
+        # 'Solve' the adjoint problem
+        for node in self.primal_analysis.GetModelPart().Nodes:
+            disp_x = node.GetSolutionStepValue(DISPLACEMENT_X,0)
+            disp_y = node.GetSolutionStepValue(DISPLACEMENT_Y,0)
+            disp_z = node.GetSolutionStepValue(DISPLACEMENT_Z,0)
+            node.SetSolutionStepValue(ADJOINT_DISPLACEMENT_X,0,disp_x * 0.5)
+            node.SetSolutionStepValue(ADJOINT_DISPLACEMENT_Y,0,disp_y * 0.5)
+            node.SetSolutionStepValue(ADJOINT_DISPLACEMENT_Z,0,disp_z * 0.5)
+            if self.ProjectParametersPrimal["solver_settings"]["rotation_dofs"].GetBool():
+                rot_x = node.GetSolutionStepValue(ROTATION_X,0)
+                rot_y = node.GetSolutionStepValue(ROTATION_Y,0)
+                rot_z = node.GetSolutionStepValue(ROTATION_Z,0)
+                node.SetSolutionStepValue(ADJOINT_ROTATION_X,0,rot_x * 0.5)
+                node.SetSolutionStepValue(ADJOINT_ROTATION_Y,0,rot_y * 0.5)
+                node.SetSolutionStepValue(ADJOINT_ROTATION_Z,0,rot_z * 0.5)
+        # Compute Sensitivities in a post-processing step          
+        self.response_function_utility.FinalizeSolutionStep()
+    def GetShapeGradient(self):
+        gradient = {}
+        for node in self.primal_analysis.GetModelPart().Nodes:
+            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
+        return gradient
+    def Finalize(self):
+        self.primal_analysis.Finalize() 
+    def __performReplacementProcess(self, from_primal_to_adjoint=True):
+        self.ProjectParametersPrimal.AddEmptyValue("element_replace_settings")
+        if(self.primal_analysis.GetModelPart().ProcessInfo[DOMAIN_SIZE] == 3):
+            if(from_primal_to_adjoint == True):
+                self.ProjectParametersPrimal["element_replace_settings"] = Parameters("""
+                    {
+                    "Add_string": "Adjoint",
+                    "Add_before_in_element_name": "Element",
+                    "Add_before_in_condition_name": "Condition",
+                    "Add_Exception": "ShapeOptimizationCondition",
+                    "From_Primal_To_Adjoint": true
+                    }
+                    """)
+            else:
+                self.ProjectParametersPrimal["element_replace_settings"] = Parameters("""
+                    {
+                    "Add_string": "Adjoint",
+                    "Add_before_in_element_name": "Element",
+                    "Add_before_in_condition_name": "Condition",
+                    "Add_Exception": "ShapeOptimizationCondition",
+                    "From_Primal_To_Adjoint": false
+                    }
+                    """)
+
+        elif(self.primal_analysis.GetModelPart().ProcessInfo[DOMAIN_SIZE] == 2):
+            raise Exception("there is currently no 2D adjoint element")
+        else:
+            raise Exception("domain size is not 2 or 3")    
+        StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(
+            self.primal_analysis.GetModelPart(), self.ProjectParametersPrimal["element_replace_settings"]).Execute()   
+
+    def __initializeAfterReplacement(self, model_part):  
+        for element in model_part.Elements:       
+            element.Initialize()
+        for condition in model_part.Conditions:       
+            condition.Initialize()
+      
+
+
+     
