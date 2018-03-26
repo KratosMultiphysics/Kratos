@@ -114,7 +114,7 @@ public:
             ModelPart::ElementsContainerType::iterator it = r_root_model_part.ElementsBegin() + i;
 
             std::string element_name = it->Info();
-
+ 
             if(!(element_name == exception_string))
             {
                 if(from_primal_to_adjoint) 
@@ -138,7 +138,7 @@ public:
 				for(unsigned int i = 0; i < it->GetGeometry().PointsNumber(); i++)
 					ele_nodes_array.push_back(it->GetGeometry().pGetPoint(i));
                 Element::Pointer p_element = rReferenceElement.Create(it->Id(), ele_nodes_array, it->pGetProperties());
-     
+                // TODO: or use:
                 //Element::Pointer p_element = rReferenceElement.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
  
                 //deep copy elemental data
@@ -172,14 +172,14 @@ public:
                 if( !KratosComponents< Condition >::Has( condition_name ) )
                     KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", condition_name);
                 const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name); //is this a problem to initialize the element in the loop?
-                
-                //Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
 
                 Condition::NodesArrayType cond_nodes_array;
 				for(unsigned int i = 0; i < it->GetGeometry().PointsNumber(); i++)
 					cond_nodes_array.push_back(it->GetGeometry().pGetPoint(i));
                 Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), cond_nodes_array, it->pGetProperties());
-     
+                //TODO: or use:
+                //Condition::Pointer p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+                
                 //deep copy elemental data
                 p_condition->Data() = it->Data();
             
