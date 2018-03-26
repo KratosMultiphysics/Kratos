@@ -136,6 +136,8 @@ namespace Kratos
 		void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 			std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
+		std::string Info() const override; 
+
 		//void Initialize() override;
 		///@}
 

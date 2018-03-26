@@ -869,6 +869,11 @@ namespace Kratos
 		KRATOS_CATCH("")
 	}
 
+	std::string ShellThinAdjointElement3D4N::Info() const 
+	{		
+		return "ShellThinAdjointElement3D4N";
+	}	
+
 	
 	// =========================================================================
 	//
