@@ -98,7 +98,7 @@ class Plotter:
         self.curves = []
         self.figures = []
 
-    @classmethod
+    @staticmethod
     def PlotSlope(figure):
             plt.semilogx()
             plt.semilogy()
