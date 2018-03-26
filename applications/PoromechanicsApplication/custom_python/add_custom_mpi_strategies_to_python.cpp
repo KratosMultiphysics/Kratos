@@ -52,9 +52,9 @@ void  AddCustomMPIStrategiesToPython(pybind11::module& m)
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
     // Schemes
+    class_< TrilinosNewmarkQuasistaticUPwSchemeType, TrilinosNewmarkQuasistaticUPwSchemeType::Pointer, TrilinosBaseSchemeType >(m, "TrilinosNewmarkQuasistaticUPwScheme")
+        .def(init< double, double, double >() );
     //TODO: seguir
-    class_< TrilinosNewmarkQuasistaticUPwSchemeType, bases<TrilinosBaseSchemeType>, boost::noncopyable >( "TrilinosNewmarkQuasistaticUPwScheme", 
-        init< double, double, double >() );
     class_< TrilinosNewmarkQuasistaticDampedUPwSchemeType,bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosNewmarkQuasistaticDampedUPwScheme",
         init<  double, double, double, double, double >());
     class_< TrilinosNewmarkDynamicUPwSchemeType,bases< TrilinosBaseSchemeType >, boost::noncopyable >("TrilinosNewmarkDynamicUPwScheme",
