@@ -218,6 +218,12 @@ namespace Kratos {
 
 	this->CalcElasticPlasticCauchySplitted(rElementalVariables,TimeStep,g);
 
+	std::vector<double> rOutput;
+	this->GetElementalValueForOutput(YIELDED,rOutput);
+	// std::cout<<"rOutput[0] "<<rOutput[0]<<std::endl;
+	// this->GetValueOnIntegrationPoints(YIELDED,rOutput,rCurrentProcessInfo);
+	// std::cout<<"   rOutput[0] "<<rOutput[0]<<std::endl;
+	
 	if(computeElement==true){
 	  // Add integration point contribution to the local mass matrix
 	  // double DynamicWeight=GaussWeight*Density;
@@ -313,6 +319,17 @@ namespace Kratos {
  
   }
 
+
+    template< unsigned int TDim >
+  void TwoStepUpdatedLagrangianVPElement<TDim>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+									  std::vector<double>& rValues,
+									  const ProcessInfo& rCurrentProcessInfo )
+{
+    if ( rVariable == YIELDED)
+    {
+      rValues[0]=this->GetValue(YIELDED);
+    }
+}
 
   template<>
   void TwoStepUpdatedLagrangianVPElement<2>::ComputeCompleteTangentTerm(ElementalVariables & rElementalVariables,
@@ -616,12 +633,12 @@ namespace Kratos {
     for (SizeType i = 0; i < NumNodes; ++i){
       rValues[i] = rGeom[i].FastGetSolutionStepValue(PRESSURE,Step);
 
-      if(rGeom[i].Is(FREE_SURFACE)){
-	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
+      // if(rGeom[i].Is(FREE_SURFACE)){
+      // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 1;
 
-      }else{
-      	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
-      }
+      // }else{
+      // 	rGeom[i].FastGetSolutionStepValue(FREESURFACE) = 0;
+      // }
 
     }
   }

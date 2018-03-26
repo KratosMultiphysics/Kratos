@@ -174,8 +174,10 @@ public:
 	      box_side_element = false;
 	      unsigned int countIsolatedWallNodes=0; 
 	      // bool isolatedWallElement=true;
+	      bool verticalWall=false;
 	      for(unsigned int pn=0; pn<nds; pn++)
 		{
+		  double posY=0;
 		  //set vertices
 		  if(mrRemesh.NodalPreIds[OutElementList[el*nds+pn]]<0){
 		    if(mrRemesh.Options.IsNot(ModelerUtilities::CONTACT_SEARCH))
@@ -209,6 +211,10 @@ public:
 		  }
 		  if(vertices.back().Is(RIGID) || vertices.back().Is(SOLID)){
 		    numrigid++;
+		    posY=vertices.back().Y();
+		    if(posY>0.01){
+		      verticalWall=true;
+		    }
 		    WeakPointerVector<Node<3> >& rN = vertices.back().GetValue(NEIGHBOUR_NODES);
 		    bool localIsolatedWallNode=true;
 		    for(unsigned int i = 0; i < rN.size(); i++)
@@ -301,12 +307,19 @@ public:
 		if(numrigid==0 && numfreesurf==0 && numisolated==0){
 		  Alpha*=1.75;
 		}else{
-		  Alpha*=1.125;
+		  // Alpha*=1.125;
+		  Alpha*=1.1;
 		}
 		
 		if(numrigid==nds){
 		  Alpha*=0.95;
 		}
+
+		// if(currentTime>0.11){
+		//   if(numrigid>0 && verticalWall==true){
+		//     Alpha*=0;		    
+		//   }
+		// }
 
 	      }
 	      if(firstMesh==true){
@@ -353,39 +366,41 @@ public:
 	      	// }
 	      }
 	      
-	      // //5.- to control that the element has a good shape
-	      // if(accepted && (numfreesurf>0 || numrigid==nds))
-	      // 	{
-	      // 	  if(dimension==2 && nds==3){
+	      //5.- to control that the element has a good shape
+	      if(accepted && (numfreesurf>0 || numrigid==nds))
+	      	{
+	      	  // if(dimension==2 && nds==3){
 
-	      // 	    Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
-	      // 	    double Area = triangle->Area();
-	      // 	    double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
-	      // 	    if(Area<CriticalArea){
-	      // 	      std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
-	      // 	      accepted = false;
-	      // 	      number_of_slivers++;
-	      // 	    }
-	      // 	    delete triangle;
+	      	  //   Geometry<Node<3> >* triangle = new Triangle2D3<Node<3> > (vertices);
+	      	  //   double Area = triangle->Area();
+	      	  //   double CriticalArea=0.01*mrRemesh.Refine->MeanVolume;
+	      	  //   if(Area<CriticalArea){
+	      	  //     std::cout<<"SLIVER! Area= "<<Area<<" VS Critical Area="<<CriticalArea<<std::endl;
+	      	  //     accepted = false;
+	      	  //     number_of_slivers++;
+	      	  //   }
+	      	  //   delete triangle;
 
-	      // 	  }else if(dimension==3 && nds==4){
-	      // 	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
-	      // 	    double Volume = tetrahedron->Volume();
-	      // 	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
-	      // 	    if(Volume<CriticalVolume){
-	      // 	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
-	      // 	      // for( unsigned int n=0; n<nds; n++)
-	      // 	      // 	{
-	      // 	      // 	  vertices[n].Set(INTERFACE);
-	      // 	      // 	  sliverNodes++;
-       	      // 	      // 	}
-	      // 	      accepted = false;
-	      // 	      number_of_slivers++;
-	      // 	    }
-	      // 	    delete tetrahedron;
-	      // 	  }
+	      	  // }else
+		    if(dimension==3 && nds==4){
+	      	    Geometry<Node<3> >* tetrahedron = new Tetrahedra3D4<Node<3> > (vertices);
+	      	    double Volume = tetrahedron->Volume();
+	      	    double CriticalVolume=0.01*mrRemesh.Refine->MeanVolume;
+		    // std::cout<<"riticalVolume "<<Volume<<std::endl;
+	      	    if(Volume<CriticalVolume){
+	      	      std::cout<<"SLIVER! Volume="<<Volume<<" VS Critical Volume="<<CriticalVolume<<std::endl;
+	      	      // for( unsigned int n=0; n<nds; n++)
+	      	      // 	{
+	      	      // 	  vertices[n].Set(INTERFACE);
+	      	      // 	  sliverNodes++;
+       	      	      // 	}
+	      	      accepted = false;
+	      	      number_of_slivers++;
+	      	    }
+	      	    delete tetrahedron;
+	      	  }
 
-	      // 	}
+	      	}
 
 
 	      // else{

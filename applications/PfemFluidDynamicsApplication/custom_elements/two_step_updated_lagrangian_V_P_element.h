@@ -368,6 +368,10 @@ namespace Kratos
       ///@name Protected Operations
       ///@{
 
+      void GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+					std::vector<double>& rValues,
+					const ProcessInfo& rCurrentProcessInfo );
+      
       void CalculateLocalMomentumEquations(MatrixType& rLeftHandSideMatrix,
 					   VectorType& rRightHandSideVector,
 					   ProcessInfo& rCurrentProcessInfo);
@@ -381,6 +385,12 @@ namespace Kratos
 					      double& VolumetricCoeff,
 					      ProcessInfo& rCurrentProcessInfo,
 					      ElementalVariables& rElementalVariables){};
+
+      virtual void ComputeMaterialParametersGranularGas (double& Density,
+							 double& DeviatoricCoeff,
+							 double& VolumetricCoeff,
+							 ProcessInfo& rCurrentProcessInfo,
+							 ElementalVariables& rElementalVariables){};
 
       virtual double GetThetaMomentum (){return 1.0;};
 
@@ -750,10 +760,10 @@ namespace Kratos
 	  const TwoStepUpdatedLagrangianVPElement<TDim>* const_this = static_cast<const TwoStepUpdatedLagrangianVPElement<TDim>*> (this);
 	  const TValueType& Val = const_this->GetValue(rVariable);
 
-	  for (unsigned int i = 0; i < NumValues; i++)
+	  for (unsigned int i = 0; i < NumValues; i++){
 	    rOutput[i] = Val;
+	  }
 	}
-
       ///@}
       ///@name Protected  Access
       ///@{

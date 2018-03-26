@@ -335,6 +335,12 @@ namespace Kratos
       
       double ComputeNonLinearViscosity(double & equivalentStrainRate);
 
+      void ComputeMaterialParametersGranularGas(double& Density,
+						double& DeviatoricCoeff,
+						double& VolumetricCoeff,
+						ProcessInfo& rCurrentProcessInfo,
+						ElementalVariables& rElementalVariables);
+
       double ComputeJopMuIrheologyViscosity(ElementalVariables & rElementalVariables);
 
       double ComputeBercovierMuIrheologyViscosity(ElementalVariables & rElementalVariables);
