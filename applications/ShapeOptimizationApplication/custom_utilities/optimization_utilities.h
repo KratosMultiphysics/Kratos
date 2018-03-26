@@ -107,7 +107,7 @@ public:
 
     ///@}
     ///@name Operations
-    ///@{     
+    ///@{
 
     // ==============================================================================
     // General optimization operations
@@ -129,11 +129,11 @@ public:
             {
                 array_3d& search_dir = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
                 double squared_length = inner_prod(search_dir,search_dir);
-                
+
                 if(squared_length>max_norm_search_dir)
                     max_norm_search_dir = squared_length;
             }
-            max_norm_search_dir = sqrt(max_norm_search_dir);
+            max_norm_search_dir = std::sqrt(max_norm_search_dir);
 
             // Normalize by max norm
             if(max_norm_search_dir>1e-10)
@@ -198,7 +198,11 @@ public:
         	array_3d& dCds_i = node_i.FastGetSolutionStepValue(MAPPED_CONSTRAINT_SENSITIVITY);
             norm_2_dCds_i += inner_prod(dCds_i,dCds_i);
         }
-       norm_2_dCds_i = sqrt(norm_2_dCds_i);
+        norm_2_dCds_i = std::sqrt(norm_2_dCds_i);
+
+        // Avoid division by zero
+        if(std::abs(norm_2_dCds_i)<1e-12)
+            norm_2_dCds_i = 1.0;
 
         // Compute dot product of objective gradient and normalized constraint gradient
         double dot_dFds_dCds = 0.0;
@@ -257,8 +261,8 @@ public:
     		array_3d ds = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
     		norm_search_direction += inner_prod(ds,ds);
     	}
-    	norm_correction_term = sqrt(norm_correction_term);
-    	norm_search_direction = sqrt(norm_search_direction);
+    	norm_correction_term = std::sqrt(norm_correction_term);
+    	norm_search_direction = std::sqrt(norm_search_direction);
         double correction_scaling = GetCorrectionScaling();
 
     	return correction_scaling * norm_search_direction / norm_correction_term;
@@ -267,7 +271,7 @@ public:
     // --------------------------------------------------------------------------
     double GetCorrectionScaling()
     {
-        double correction_scaling = mOptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble(); 
+        double correction_scaling = mOptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble();
         if(mOptimizationSettings["optimization_algorithm"]["use_adaptive_correction"].GetBool())
         {
             correction_scaling = AdaptCorrectionScaling( correction_scaling );

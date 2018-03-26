@@ -83,7 +83,7 @@ double& MCYieldCriterion::CalculateYieldCondition(double& rStateFunction, const 
     double Cohesion = this->GetHardeningLaw().GetProperties()[COHESION];
     double FrictionAngle = this->GetHardeningLaw().GetProperties()[INTERNAL_FRICTION_ANGLE];
 
-    FrictionAngle *= GetPI() / 180.0;
+    //FrictionAngle *= GetPI() / 180.0;
 
     double FrictionCoefficient = (1 + std::sin(FrictionAngle))/(1 - std::sin(FrictionAngle));
     double CohesionCoefficient = 2 * Cohesion * sqrt(FrictionCoefficient);

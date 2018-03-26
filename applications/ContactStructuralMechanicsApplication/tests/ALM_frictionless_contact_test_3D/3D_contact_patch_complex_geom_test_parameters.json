@@ -93,7 +93,9 @@
             "model_part_name"           : "Structure",
             "assume_master_slave"       : "Parts_Parts_Auto1",
             "contact_type"              : "Frictionless",
-            "check_gap"                 : "DirectCheck"
+            "search_parameters" : {
+                "check_gap"             : "direct_check"
+            }
         }
     }],
     "json_check_process" : [
