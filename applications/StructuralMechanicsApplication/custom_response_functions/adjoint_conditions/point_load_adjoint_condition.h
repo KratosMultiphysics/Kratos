@@ -111,6 +111,7 @@ public:
 
     int Check( const ProcessInfo& rCurrentProcessInfo ) override; 
 
+    std::string Info() const override; 
     ///@}
     ///@name Access
     ///@{
@@ -178,7 +179,7 @@ protected:
     // A protected default constructor necessary for serialization
     PointLoadAdjointCondition(): PointLoadCondition(){};
 
-    std::string Info() const override; //fusseder needed for sensitivity analysis
+    
 
     ///@}
 
