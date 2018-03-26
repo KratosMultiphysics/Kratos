@@ -198,8 +198,10 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
         for node in self.primal_analysis.GetModelPart().Nodes:
             gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
         return gradient
+    #TODO: Is it necessary to reset some variables (DISPLACEMENT, ROTATION, ADJOINT_DISPLACEMENT and ADJOINT_ROTATION)
     def Finalize(self):
         self.primal_analysis.Finalize() 
+
     def __performReplacementProcess(self, from_primal_to_adjoint=True):
         self.ProjectParametersPrimal.AddEmptyValue("element_replace_settings")
         if(self.primal_analysis.GetModelPart().ProcessInfo[DOMAIN_SIZE] == 3):
