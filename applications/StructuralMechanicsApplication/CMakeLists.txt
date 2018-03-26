@@ -139,6 +139,7 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 if(USE_COTIRE MATCHES ON)
+    cotire(KratosStructuralMechanicsCore)
     cotire(KratosStructuralMechanicsApplication)
 endif(USE_COTIRE MATCHES ON)
 
