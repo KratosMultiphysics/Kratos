@@ -63,7 +63,8 @@ public:
                 "Add_string": "NAME_OF_ADD_STRING",
                 "Add_before_in_element_name": "ADD_STRING_BEFORE",
                 "Add_before_in_condition_name": "ADD_STRING_BEFORE",
-                "Add_Exception": "NAME_OF_EXEPTION"
+                "Add_Exception": "NAME_OF_EXEPTION",
+                "From_Primal_To_Adjoint": true
             }  )" );
 
         //now validate agains defaults -- this also ensures no type mismatch*/
@@ -104,7 +105,8 @@ public:
         std::string sub_name_element = mSettings["Add_before_in_element_name"].GetString();
         std::string sub_name_condition = mSettings["Add_before_in_condition_name"].GetString();
         std::string adding_string = mSettings["Add_string"].GetString();
-        std::string exection_string = mSettings["Add_Exception"].GetString();
+        std::string exception_string = mSettings["Add_Exception"].GetString();
+        bool  from_primal_to_adjoint = mSettings["From_Primal_To_Adjoint"].GetBool();
         
     #pragma omp parallel for                              //--> TODO: Check if this really works in parallel
         for(int i=0; i< (int)r_root_model_part.Elements().size(); i++)
@@ -113,12 +115,20 @@ public:
 
             std::string element_name = it->Info();
 
-            if(!(element_name == exection_string))
+            if(!(element_name == exception_string))
             {
-                std::string::size_type position_ele = 0;
-                std::string::size_type found_ele;
-                found_ele = element_name.find(sub_name_element, position_ele);
-                element_name.insert(found_ele, adding_string);
+                if(from_primal_to_adjoint) 
+                {
+                    std::string::size_type position_ele = 0;
+                    std::string::size_type found_ele;
+                    found_ele = element_name.find(sub_name_element, position_ele);
+                    element_name.insert(found_ele, adding_string);
+                }
+                else
+                {
+                   auto pos = element_name.find(adding_string);
+                   element_name.erase(pos,adding_string.length());   
+                }
 
                 if( !KratosComponents< Element >::Has( element_name ) )
                     KRATOS_THROW_ERROR(std::invalid_argument, "Element name not found in KratosComponents< Element > -- name is ", element_name);
@@ -139,13 +149,20 @@ public:
 
             std::string condition_name = it->Info();
 
-            if(!(condition_name == exection_string))
+            if(!(condition_name == exception_string))
             {
-                std::string::size_type position_cond = 0;
-                std::string::size_type found_cond;
-                found_cond = condition_name.find(sub_name_condition, position_cond);
-                condition_name.insert(found_cond, adding_string);
-      
+                if(from_primal_to_adjoint) 
+                {
+                    std::string::size_type position_cond = 0;
+                    std::string::size_type found_cond;
+                    found_cond = condition_name.find(sub_name_condition, position_cond);
+                    condition_name.insert(found_cond, adding_string);
+                }
+                else
+                {
+                    auto pos = condition_name.find(adding_string);
+                    condition_name.erase(pos,adding_string.length());
+                }
                 if( !KratosComponents< Condition >::Has( condition_name ) )
                     KRATOS_THROW_ERROR(std::invalid_argument, "Condition name not found in KratosComponents< Condition > -- name is ", condition_name);
                 const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name); //is this a problem to initialize the element in the loop?
