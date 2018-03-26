@@ -144,7 +144,7 @@ namespace Kratos
 			
 			// Call the plane optimization utility
 			array_1d<double,3> base_pt, normal;
-			PlaneApproximationUtility::ComputePlaneApproximation(int_pts_vector,base_pt,normal);
+			ComputePlaneApproximation(rElement1,int_pts_vector,base_pt,normal);
 
 			// Compute the distance to that plane
 			for (int i = 0; i < number_of_tetrahedra_points; i++) {
@@ -246,6 +246,22 @@ namespace Kratos
 		}
 
 		return intersection_flag;
+	}
+
+	void CalculateDiscontinuousDistanceToSkinProcess::ComputePlaneApproximation(
+		const Element& rElement1, 
+		const std::vector< array_1d<double,3> >& rPointsCoord,
+		array_1d<double,3>& rPlaneBasePointCoords,
+		array_1d<double,3>& rPlaneNormal){
+
+		const auto work_dim = rElement1.GetGeometry().WorkingSpaceDimension();
+		if (work_dim == 2){
+			PlaneApproximationUtility<2>::ComputePlaneApproximation(rPointsCoord,rPlaneBasePointCoords,rPlaneNormal);
+		} else if (work_dim == 3){
+			PlaneApproximationUtility<3>::ComputePlaneApproximation(rPointsCoord,rPlaneBasePointCoords,rPlaneNormal);
+		} else {
+			KRATOS_ERROR << "Working space dimension value equal to " << work_dim << ". Check your skin geometry implementation." << std::endl;
+		}
 	}
 
 	bool CalculateDiscontinuousDistanceToSkinProcess::DoPlaneApproximation(
