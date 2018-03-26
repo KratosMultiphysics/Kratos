@@ -98,7 +98,6 @@ ModelPart::ModelPart(ModelPart const& rOther)
     , mpParentModelPart(rOther.mpParentModelPart)
     , mSubModelParts(rOther.mSubModelParts)
 {
-    KRATOS_WATCH(mMeshes.size())
 }
 
 /// Destructor.
