@@ -22,17 +22,11 @@
 #include "includes/gid_io.h"
 #include "meshing_application.h"
 
-// Elements and CL
-#include "custom_elements/small_displacement_bbar.h"
-#include "custom_elements/updated_lagrangian.h"
-#include "custom_constitutive/linear_plane_strain.h"
-#include "custom_constitutive/elastic_isotropic_3d.h"
-#include "custom_constitutive/linear_j2_plasticity_plane_strain_2d.h"
-#include "custom_constitutive/linear_j2_plasticity_3d.h"
-
 /* Processes */
 #include "processes/find_nodal_h_process.h"
 #include "custom_processes/mmg_process.h"
+#include "includes/mat_variables.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos 
 {
@@ -67,6 +61,172 @@ namespace Kratos
             gid_io.PrintOnGaussPoints(REFERENCE_DEFORMATION_GRADIENT_DETERMINANT, ThisModelPart, label);
         }
         
+        void Create2DModelPart(ModelPart& ThisModelPart)
+        {
+            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+
+            // First we create the nodes
+            NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_2 = ThisModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_3 = ThisModelPart.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+            NodeType::Pointer p_node_4 = ThisModelPart.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+            NodeType::Pointer p_node_5 = ThisModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_6 = ThisModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+
+            // Now we create the "conditions"
+            std::vector<NodeType::Pointer> element_nodes_0 (3);
+            element_nodes_0[0] = p_node_1;
+            element_nodes_0[1] = p_node_2;
+            element_nodes_0[2] = p_node_3;
+
+            std::vector<NodeType::Pointer> element_nodes_1 (3);
+            element_nodes_1[0] = p_node_1;
+            element_nodes_1[1] = p_node_3;
+            element_nodes_1[2] = p_node_4;
+
+            std::vector<NodeType::Pointer> element_nodes_2 (3);
+            element_nodes_2[0] = p_node_2;
+            element_nodes_2[1] = p_node_5;
+            element_nodes_2[2] = p_node_3;
+
+            std::vector<NodeType::Pointer> element_nodes_3 (3);
+            element_nodes_3[0] = p_node_5;
+            element_nodes_3[1] = p_node_6;
+            element_nodes_3[2] = p_node_3;
+
+            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 1, element_nodes_0, p_elem_prop);
+            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 2, element_nodes_1, p_elem_prop);
+            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 3, element_nodes_2, p_elem_prop);
+            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement2D3N", 4, element_nodes_3, p_elem_prop);
+
+            // Initialize Elements
+            p_elem_0->Initialize();
+            p_elem_1->Initialize();
+            p_elem_2->Initialize();
+            p_elem_3->Initialize();
+        }
+
+        void Create3DModelPart(ModelPart& ThisModelPart)
+        {
+            Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
+
+            // First we create the nodes
+            NodeType::Pointer p_node_1 = ThisModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
+            NodeType::Pointer p_node_2 = ThisModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
+            NodeType::Pointer p_node_3 = ThisModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
+            NodeType::Pointer p_node_4 = ThisModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
+            NodeType::Pointer p_node_5 = ThisModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_6 = ThisModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
+
+            NodeType::Pointer p_node_7 = ThisModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
+            NodeType::Pointer p_node_8 = ThisModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
+            NodeType::Pointer p_node_9 = ThisModelPart.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
+            NodeType::Pointer p_node_10 = ThisModelPart.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
+            NodeType::Pointer p_node_11 = ThisModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
+            NodeType::Pointer p_node_12 = ThisModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
+
+            // Now we create the "conditions"
+            std::vector<NodeType::Pointer> element_nodes_0 (4);
+            element_nodes_0[0] = p_node_12;
+            element_nodes_0[1] = p_node_10;
+            element_nodes_0[2] = p_node_8;
+            element_nodes_0[3] = p_node_9;
+
+            std::vector<NodeType::Pointer> element_nodes_1 (4);
+            element_nodes_1[0] = p_node_4;
+            element_nodes_1[1] = p_node_6;
+            element_nodes_1[2] = p_node_9;
+            element_nodes_1[3] = p_node_7;
+
+            std::vector<NodeType::Pointer> element_nodes_2 (4);
+            element_nodes_2[0] = p_node_11;
+            element_nodes_2[1] = p_node_7;
+            element_nodes_2[2] = p_node_9;
+            element_nodes_2[3] = p_node_8;
+
+            std::vector<NodeType::Pointer> element_nodes_3 (4);
+            element_nodes_3[0] = p_node_5;
+            element_nodes_3[1] = p_node_3;
+            element_nodes_3[2] = p_node_8;
+            element_nodes_3[3] = p_node_6;
+
+            std::vector<NodeType::Pointer> element_nodes_4 (4);
+            element_nodes_4[0] = p_node_4;
+            element_nodes_4[1] = p_node_6;
+            element_nodes_4[2] = p_node_7;
+            element_nodes_4[3] = p_node_3;
+
+            std::vector<NodeType::Pointer> element_nodes_5 (4);
+            element_nodes_5[0] = p_node_2;
+            element_nodes_5[1] = p_node_3;
+            element_nodes_5[2] = p_node_5;
+            element_nodes_5[3] = p_node_6;
+
+            std::vector<NodeType::Pointer> element_nodes_6 (4);
+            element_nodes_6[0] = p_node_10;
+            element_nodes_6[1] = p_node_9;
+            element_nodes_6[2] = p_node_6;
+            element_nodes_6[3] = p_node_8;
+
+            std::vector<NodeType::Pointer> element_nodes_7 (4);
+            element_nodes_7[0] = p_node_7;
+            element_nodes_7[1] = p_node_8;
+            element_nodes_7[2] = p_node_3;
+            element_nodes_7[3] = p_node_6;
+
+            std::vector<NodeType::Pointer> element_nodes_8 (4);
+            element_nodes_8[0] = p_node_7;
+            element_nodes_8[1] = p_node_8;
+            element_nodes_8[2] = p_node_6;
+            element_nodes_8[3] = p_node_9;
+
+            std::vector<NodeType::Pointer> element_nodes_9 (4);
+            element_nodes_9[0] = p_node_4;
+            element_nodes_9[1] = p_node_1;
+            element_nodes_9[2] = p_node_6;
+            element_nodes_9[3] = p_node_3;
+
+            std::vector<NodeType::Pointer> element_nodes_10 (4);
+            element_nodes_10[0] = p_node_9;
+            element_nodes_10[1] = p_node_12;
+            element_nodes_10[2] = p_node_11;
+            element_nodes_10[3] = p_node_8;
+
+            std::vector<NodeType::Pointer> element_nodes_11 (4);
+            element_nodes_11[0] = p_node_3;
+            element_nodes_11[1] = p_node_2;
+            element_nodes_11[2] = p_node_1;
+            element_nodes_11[3] = p_node_6;
+
+            Element::Pointer p_elem_0 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 1, element_nodes_0, p_elem_prop);
+            Element::Pointer p_elem_1 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 2, element_nodes_1, p_elem_prop);
+            Element::Pointer p_elem_2 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 3, element_nodes_2, p_elem_prop);
+            Element::Pointer p_elem_3 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 4, element_nodes_3, p_elem_prop);
+            Element::Pointer p_elem_4 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 5, element_nodes_4, p_elem_prop);
+            Element::Pointer p_elem_5 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 6, element_nodes_5, p_elem_prop);
+            Element::Pointer p_elem_6 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 7, element_nodes_6, p_elem_prop);
+            Element::Pointer p_elem_7 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 8, element_nodes_7, p_elem_prop);
+            Element::Pointer p_elem_8 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 9, element_nodes_8, p_elem_prop);
+            Element::Pointer p_elem_9 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 10, element_nodes_9, p_elem_prop);
+            Element::Pointer p_elem_10 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 11, element_nodes_10, p_elem_prop);
+            Element::Pointer p_elem_11 = ThisModelPart.CreateNewElement("UpdatedLagrangianElement3D4N", 12, element_nodes_11, p_elem_prop);
+
+            // Initialize Elements
+            p_elem_0->Initialize();
+            p_elem_1->Initialize();
+            p_elem_2->Initialize();
+            p_elem_3->Initialize();
+            p_elem_4->Initialize();
+            p_elem_5->Initialize();
+            p_elem_6->Initialize();
+            p_elem_7->Initialize();
+            p_elem_8->Initialize();
+            p_elem_9->Initialize();
+            p_elem_10->Initialize();
+            p_elem_11->Initialize();
+        }
+
+
         /**
         * Checks the correct work of the internal variable interpolation process after remesh CPT test
         * Test triangle
@@ -83,68 +243,15 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto p_this_law = Kratos::make_shared<LinearJ2PlasticityPlaneStrain2D>();
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
+            auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
-
-            // Now we create the "conditions"
-            std::vector<NodeType::Pointer> element_nodes_0 (3);
-            element_nodes_0[0] = p_node_1;
-            element_nodes_0[1] = p_node_2;
-            element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_0( element_nodes_0 );
-
-            std::vector<NodeType::Pointer> element_nodes_1 (3);
-            element_nodes_1[0] = p_node_1;
-            element_nodes_1[1] = p_node_3;
-            element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType> triangle_1( element_nodes_1 );
-
-            std::vector<NodeType::Pointer> element_nodes_2 (3);
-            element_nodes_2[0] = p_node_2;
-            element_nodes_2[1] = p_node_5;
-            element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_2( element_nodes_2 );
-
-            std::vector<NodeType::Pointer> element_nodes_3 (3);
-            element_nodes_3[0] = p_node_5;
-            element_nodes_3[1] = p_node_6;
-            element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
-
-            // Creating pointers
-            auto p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_0);
-            auto p_triangle_1 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_1);
-            auto p_triangle_2 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_2);
-            auto p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_3);
-
-            Element::Pointer p_elem_0 = Kratos::make_shared<SmallDisplacementBbar>(1, p_triangle_0, p_elem_prop);;
-            Element::Pointer p_elem_1 = Kratos::make_shared<SmallDisplacementBbar>(2, p_triangle_1, p_elem_prop);
-            Element::Pointer p_elem_2 = Kratos::make_shared<SmallDisplacementBbar>(3, p_triangle_2, p_elem_prop);
-            Element::Pointer p_elem_3 = Kratos::make_shared<SmallDisplacementBbar>(4, p_triangle_3, p_elem_prop);
-
-            // Adding to the model part
-            this_model_part.AddElement(p_elem_0);
-            this_model_part.AddElement(p_elem_1);
-            this_model_part.AddElement(p_elem_2);
-            this_model_part.AddElement(p_elem_3);
-
-            // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
+            Create2DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
             Vector ref_metric(3);
@@ -229,68 +336,15 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto p_this_law = Kratos::make_shared<LinearJ2PlasticityPlaneStrain2D>();
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
+            auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
-
-            // Now we create the "conditions"
-            std::vector<NodeType::Pointer> element_nodes_0 (3);
-            element_nodes_0[0] = p_node_1;
-            element_nodes_0[1] = p_node_2;
-            element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_0( element_nodes_0 );
-
-            std::vector<NodeType::Pointer> element_nodes_1 (3);
-            element_nodes_1[0] = p_node_1;
-            element_nodes_1[1] = p_node_3;
-            element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType> triangle_1( element_nodes_1 );
-
-            std::vector<NodeType::Pointer> element_nodes_2 (3);
-            element_nodes_2[0] = p_node_2;
-            element_nodes_2[1] = p_node_5;
-            element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_2( element_nodes_2 );
-
-            std::vector<NodeType::Pointer> element_nodes_3 (3);
-            element_nodes_3[0] = p_node_5;
-            element_nodes_3[1] = p_node_6;
-            element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
-
-            // Creating pointers
-            auto p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_0);
-            auto p_triangle_1 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_1);
-            auto p_triangle_2 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_2);
-            auto p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_3);
-
-            Element::Pointer p_elem_0 = Kratos::make_shared<SmallDisplacementBbar>(1, p_triangle_0, p_elem_prop);;
-            Element::Pointer p_elem_1 = Kratos::make_shared<SmallDisplacementBbar>(2, p_triangle_1, p_elem_prop);
-            Element::Pointer p_elem_2 = Kratos::make_shared<SmallDisplacementBbar>(3, p_triangle_2, p_elem_prop);
-            Element::Pointer p_elem_3 = Kratos::make_shared<SmallDisplacementBbar>(4, p_triangle_3, p_elem_prop);
-
-            // Adding to the model part
-            this_model_part.AddElement(p_elem_0);
-            this_model_part.AddElement(p_elem_1);
-            this_model_part.AddElement(p_elem_2);
-            this_model_part.AddElement(p_elem_3);
-
-            // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
+            Create2DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
             Vector ref_metric(3);
@@ -380,167 +434,15 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto p_this_law = Kratos::make_shared<LinearJ2Plasticity3D>();
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
+            auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
-
-            NodeType::Pointer p_node_7 = this_model_part.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_8 = this_model_part.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_9 = this_model_part.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_10 = this_model_part.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_11 = this_model_part.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_12 = this_model_part.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
-
-            // Now we create the "conditions"
-            std::vector<NodeType::Pointer> element_nodes_0 (4);
-            element_nodes_0[0] = p_node_12;
-            element_nodes_0[1] = p_node_10;
-            element_nodes_0[2] = p_node_8;
-            element_nodes_0[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_0( element_nodes_0 );
-
-            std::vector<NodeType::Pointer> element_nodes_1 (4);
-            element_nodes_1[0] = p_node_4;
-            element_nodes_1[1] = p_node_6;
-            element_nodes_1[2] = p_node_9;
-            element_nodes_1[3] = p_node_7;
-            Tetrahedra3D4 <NodeType> tetrahedra_1( element_nodes_1 );
-
-            std::vector<NodeType::Pointer> element_nodes_2 (4);
-            element_nodes_2[0] = p_node_11;
-            element_nodes_2[1] = p_node_7;
-            element_nodes_2[2] = p_node_9;
-            element_nodes_2[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_2( element_nodes_2 );
-
-            std::vector<NodeType::Pointer> element_nodes_3 (4);
-            element_nodes_3[0] = p_node_5;
-            element_nodes_3[1] = p_node_3;
-            element_nodes_3[2] = p_node_8;
-            element_nodes_3[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_3( element_nodes_3 );
-
-            std::vector<NodeType::Pointer> element_nodes_4 (4);
-            element_nodes_4[0] = p_node_4;
-            element_nodes_4[1] = p_node_6;
-            element_nodes_4[2] = p_node_7;
-            element_nodes_4[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_4( element_nodes_4 );
-
-            std::vector<NodeType::Pointer> element_nodes_5 (4);
-            element_nodes_5[0] = p_node_2;
-            element_nodes_5[1] = p_node_3;
-            element_nodes_5[2] = p_node_5;
-            element_nodes_5[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_5( element_nodes_5 );
-
-            std::vector<NodeType::Pointer> element_nodes_6 (4);
-            element_nodes_6[0] = p_node_10;
-            element_nodes_6[1] = p_node_9;
-            element_nodes_6[2] = p_node_6;
-            element_nodes_6[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_6( element_nodes_6 );
-
-            std::vector<NodeType::Pointer> element_nodes_7 (4);
-            element_nodes_7[0] = p_node_7;
-            element_nodes_7[1] = p_node_8;
-            element_nodes_7[2] = p_node_3;
-            element_nodes_7[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_7( element_nodes_7 );
-
-            std::vector<NodeType::Pointer> element_nodes_8 (4);
-            element_nodes_8[0] = p_node_7;
-            element_nodes_8[1] = p_node_8;
-            element_nodes_8[2] = p_node_6;
-            element_nodes_8[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_8( element_nodes_8 );
-
-            std::vector<NodeType::Pointer> element_nodes_9 (4);
-            element_nodes_9[0] = p_node_4;
-            element_nodes_9[1] = p_node_1;
-            element_nodes_9[2] = p_node_6;
-            element_nodes_9[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_9( element_nodes_9 );
-
-            std::vector<NodeType::Pointer> element_nodes_10 (4);
-            element_nodes_10[0] = p_node_9;
-            element_nodes_10[1] = p_node_12;
-            element_nodes_10[2] = p_node_11;
-            element_nodes_10[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_10( element_nodes_10 );
-
-            std::vector<NodeType::Pointer> element_nodes_11 (4);
-            element_nodes_11[0] = p_node_3;
-            element_nodes_11[1] = p_node_2;
-            element_nodes_11[2] = p_node_1;
-            element_nodes_11[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_11( element_nodes_11 );
-
-            // Creating pointers
-            auto p_tetrahedra_0 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_0);
-            auto p_tetrahedra_1 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_1);
-            auto p_tetrahedra_2 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_2);
-            auto p_tetrahedra_3 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_3);
-            auto p_tetrahedra_4 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_4);
-            auto p_tetrahedra_5 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_5);
-            auto p_tetrahedra_6 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_6);
-            auto p_tetrahedra_7 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_7);
-            auto p_tetrahedra_8 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_8);
-            auto p_tetrahedra_9 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_9);
-            auto p_tetrahedra_10 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_10);
-            auto p_tetrahedra_11 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_11);
-
-            Element::Pointer p_elem_0 = Kratos::make_shared<SmallDisplacementBbar>(1, p_tetrahedra_0, p_elem_prop);
-            Element::Pointer p_elem_1 = Kratos::make_shared<SmallDisplacementBbar>(2, p_tetrahedra_1, p_elem_prop);
-            Element::Pointer p_elem_2 = Kratos::make_shared<SmallDisplacementBbar>(3, p_tetrahedra_2, p_elem_prop);
-            Element::Pointer p_elem_3 = Kratos::make_shared<SmallDisplacementBbar>(4, p_tetrahedra_3, p_elem_prop);
-            Element::Pointer p_elem_4 = Kratos::make_shared<SmallDisplacementBbar>(5, p_tetrahedra_4, p_elem_prop);
-            Element::Pointer p_elem_5 = Kratos::make_shared<SmallDisplacementBbar>(6, p_tetrahedra_5, p_elem_prop);
-            Element::Pointer p_elem_6 = Kratos::make_shared<SmallDisplacementBbar>(7, p_tetrahedra_6, p_elem_prop);
-            Element::Pointer p_elem_7 = Kratos::make_shared<SmallDisplacementBbar>(8, p_tetrahedra_7, p_elem_prop);
-            Element::Pointer p_elem_8 = Kratos::make_shared<SmallDisplacementBbar>(9, p_tetrahedra_8, p_elem_prop);
-            Element::Pointer p_elem_9 = Kratos::make_shared<SmallDisplacementBbar>(10, p_tetrahedra_9, p_elem_prop);
-            Element::Pointer p_elem_10 = Kratos::make_shared<SmallDisplacementBbar>(11, p_tetrahedra_10, p_elem_prop);
-            Element::Pointer p_elem_11 = Kratos::make_shared<SmallDisplacementBbar>(12, p_tetrahedra_11, p_elem_prop);
-
-            // Adding to the model part
-            this_model_part.AddElement(p_elem_0);
-            this_model_part.AddElement(p_elem_1);
-            this_model_part.AddElement(p_elem_2);
-            this_model_part.AddElement(p_elem_3);
-            this_model_part.AddElement(p_elem_4);
-            this_model_part.AddElement(p_elem_5);
-            this_model_part.AddElement(p_elem_6);
-            this_model_part.AddElement(p_elem_7);
-            this_model_part.AddElement(p_elem_8);
-            this_model_part.AddElement(p_elem_9);
-            this_model_part.AddElement(p_elem_10);
-            this_model_part.AddElement(p_elem_11);
-
-            // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
-            p_elem_4->Initialize();
-            p_elem_5->Initialize();
-            p_elem_6->Initialize();
-            p_elem_7->Initialize();
-            p_elem_8->Initialize();
-            p_elem_9->Initialize();
-            p_elem_10->Initialize();
-            p_elem_11->Initialize();
+            Create3DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
             Vector ref_metric = ZeroVector(6);
@@ -626,167 +528,15 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto p_this_law = Kratos::make_shared<LinearJ2Plasticity3D>();
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
+            auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
-
-            NodeType::Pointer p_node_7 = this_model_part.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_8 = this_model_part.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_9 = this_model_part.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_10 = this_model_part.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_11 = this_model_part.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_12 = this_model_part.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
-
-            // Now we create the "conditions"
-            std::vector<NodeType::Pointer> element_nodes_0 (4);
-            element_nodes_0[0] = p_node_12;
-            element_nodes_0[1] = p_node_10;
-            element_nodes_0[2] = p_node_8;
-            element_nodes_0[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_0( element_nodes_0 );
-
-            std::vector<NodeType::Pointer> element_nodes_1 (4);
-            element_nodes_1[0] = p_node_4;
-            element_nodes_1[1] = p_node_6;
-            element_nodes_1[2] = p_node_9;
-            element_nodes_1[3] = p_node_7;
-            Tetrahedra3D4 <NodeType> tetrahedra_1( element_nodes_1 );
-
-            std::vector<NodeType::Pointer> element_nodes_2 (4);
-            element_nodes_2[0] = p_node_11;
-            element_nodes_2[1] = p_node_7;
-            element_nodes_2[2] = p_node_9;
-            element_nodes_2[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_2( element_nodes_2 );
-
-            std::vector<NodeType::Pointer> element_nodes_3 (4);
-            element_nodes_3[0] = p_node_5;
-            element_nodes_3[1] = p_node_3;
-            element_nodes_3[2] = p_node_8;
-            element_nodes_3[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_3( element_nodes_3 );
-
-            std::vector<NodeType::Pointer> element_nodes_4 (4);
-            element_nodes_4[0] = p_node_4;
-            element_nodes_4[1] = p_node_6;
-            element_nodes_4[2] = p_node_7;
-            element_nodes_4[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_4( element_nodes_4 );
-
-            std::vector<NodeType::Pointer> element_nodes_5 (4);
-            element_nodes_5[0] = p_node_2;
-            element_nodes_5[1] = p_node_3;
-            element_nodes_5[2] = p_node_5;
-            element_nodes_5[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_5( element_nodes_5 );
-
-            std::vector<NodeType::Pointer> element_nodes_6 (4);
-            element_nodes_6[0] = p_node_10;
-            element_nodes_6[1] = p_node_9;
-            element_nodes_6[2] = p_node_6;
-            element_nodes_6[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_6( element_nodes_6 );
-
-            std::vector<NodeType::Pointer> element_nodes_7 (4);
-            element_nodes_7[0] = p_node_7;
-            element_nodes_7[1] = p_node_8;
-            element_nodes_7[2] = p_node_3;
-            element_nodes_7[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_7( element_nodes_7 );
-
-            std::vector<NodeType::Pointer> element_nodes_8 (4);
-            element_nodes_8[0] = p_node_7;
-            element_nodes_8[1] = p_node_8;
-            element_nodes_8[2] = p_node_6;
-            element_nodes_8[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_8( element_nodes_8 );
-
-            std::vector<NodeType::Pointer> element_nodes_9 (4);
-            element_nodes_9[0] = p_node_4;
-            element_nodes_9[1] = p_node_1;
-            element_nodes_9[2] = p_node_6;
-            element_nodes_9[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_9( element_nodes_9 );
-
-            std::vector<NodeType::Pointer> element_nodes_10 (4);
-            element_nodes_10[0] = p_node_9;
-            element_nodes_10[1] = p_node_12;
-            element_nodes_10[2] = p_node_11;
-            element_nodes_10[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_10( element_nodes_10 );
-
-            std::vector<NodeType::Pointer> element_nodes_11 (4);
-            element_nodes_11[0] = p_node_3;
-            element_nodes_11[1] = p_node_2;
-            element_nodes_11[2] = p_node_1;
-            element_nodes_11[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_11( element_nodes_11 );
-
-            // Creating pointers
-            auto p_tetrahedra_0 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_0);
-            auto p_tetrahedra_1 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_1);
-            auto p_tetrahedra_2 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_2);
-            auto p_tetrahedra_3 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_3);
-            auto p_tetrahedra_4 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_4);
-            auto p_tetrahedra_5 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_5);
-            auto p_tetrahedra_6 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_6);
-            auto p_tetrahedra_7 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_7);
-            auto p_tetrahedra_8 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_8);
-            auto p_tetrahedra_9 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_9);
-            auto p_tetrahedra_10 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_10);
-            auto p_tetrahedra_11 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_11);
-
-            Element::Pointer p_elem_0 = Kratos::make_shared<SmallDisplacementBbar>(1, p_tetrahedra_0, p_elem_prop);
-            Element::Pointer p_elem_1 = Kratos::make_shared<SmallDisplacementBbar>(2, p_tetrahedra_1, p_elem_prop);
-            Element::Pointer p_elem_2 = Kratos::make_shared<SmallDisplacementBbar>(3, p_tetrahedra_2, p_elem_prop);
-            Element::Pointer p_elem_3 = Kratos::make_shared<SmallDisplacementBbar>(4, p_tetrahedra_3, p_elem_prop);
-            Element::Pointer p_elem_4 = Kratos::make_shared<SmallDisplacementBbar>(5, p_tetrahedra_4, p_elem_prop);
-            Element::Pointer p_elem_5 = Kratos::make_shared<SmallDisplacementBbar>(6, p_tetrahedra_5, p_elem_prop);
-            Element::Pointer p_elem_6 = Kratos::make_shared<SmallDisplacementBbar>(7, p_tetrahedra_6, p_elem_prop);
-            Element::Pointer p_elem_7 = Kratos::make_shared<SmallDisplacementBbar>(8, p_tetrahedra_7, p_elem_prop);
-            Element::Pointer p_elem_8 = Kratos::make_shared<SmallDisplacementBbar>(9, p_tetrahedra_8, p_elem_prop);
-            Element::Pointer p_elem_9 = Kratos::make_shared<SmallDisplacementBbar>(10, p_tetrahedra_9, p_elem_prop);
-            Element::Pointer p_elem_10 = Kratos::make_shared<SmallDisplacementBbar>(11, p_tetrahedra_10, p_elem_prop);
-            Element::Pointer p_elem_11 = Kratos::make_shared<SmallDisplacementBbar>(12, p_tetrahedra_11, p_elem_prop);
-
-            // Adding to the model part
-            this_model_part.AddElement(p_elem_0);
-            this_model_part.AddElement(p_elem_1);
-            this_model_part.AddElement(p_elem_2);
-            this_model_part.AddElement(p_elem_3);
-            this_model_part.AddElement(p_elem_4);
-            this_model_part.AddElement(p_elem_5);
-            this_model_part.AddElement(p_elem_6);
-            this_model_part.AddElement(p_elem_7);
-            this_model_part.AddElement(p_elem_8);
-            this_model_part.AddElement(p_elem_9);
-            this_model_part.AddElement(p_elem_10);
-            this_model_part.AddElement(p_elem_11);
-
-            // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
-            p_elem_4->Initialize();
-            p_elem_5->Initialize();
-            p_elem_6->Initialize();
-            p_elem_7->Initialize();
-            p_elem_8->Initialize();
-            p_elem_9->Initialize();
-            p_elem_10->Initialize();
-            p_elem_11->Initialize();
+            Create3DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
             Vector ref_metric = ZeroVector(6);
@@ -876,68 +626,15 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto p_this_law = Kratos::make_shared<LinearPlaneStrain>();
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
+            auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
-
-            // Now we create the "conditions"
-            std::vector<NodeType::Pointer> element_nodes_0 (3);
-            element_nodes_0[0] = p_node_1;
-            element_nodes_0[1] = p_node_2;
-            element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_0( element_nodes_0 );
-
-            std::vector<NodeType::Pointer> element_nodes_1 (3);
-            element_nodes_1[0] = p_node_1;
-            element_nodes_1[1] = p_node_3;
-            element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType> triangle_1( element_nodes_1 );
-
-            std::vector<NodeType::Pointer> element_nodes_2 (3);
-            element_nodes_2[0] = p_node_2;
-            element_nodes_2[1] = p_node_5;
-            element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_2( element_nodes_2 );
-
-            std::vector<NodeType::Pointer> element_nodes_3 (3);
-            element_nodes_3[0] = p_node_5;
-            element_nodes_3[1] = p_node_6;
-            element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
-
-            // Creating pointers
-            auto p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_0);
-            auto p_triangle_1 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_1);
-            auto p_triangle_2 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_2);
-            auto p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_3);
-
-            Element::Pointer p_elem_0 = Kratos::make_shared<UpdatedLagrangian>(1, p_triangle_0, p_elem_prop);;
-            Element::Pointer p_elem_1 = Kratos::make_shared<UpdatedLagrangian>(2, p_triangle_1, p_elem_prop);
-            Element::Pointer p_elem_2 = Kratos::make_shared<UpdatedLagrangian>(3, p_triangle_2, p_elem_prop);
-            Element::Pointer p_elem_3 = Kratos::make_shared<UpdatedLagrangian>(4, p_triangle_3, p_elem_prop);
-
-            // Adding to the model part
-            this_model_part.AddElement(p_elem_0);
-            this_model_part.AddElement(p_elem_1);
-            this_model_part.AddElement(p_elem_2);
-            this_model_part.AddElement(p_elem_3);
-
-            // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
+            Create2DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
             Vector ref_metric(3);
@@ -1002,69 +699,16 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto p_this_law = Kratos::make_shared<LinearPlaneStrain>();
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
+            auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
             
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
             
-            // First we create the nodes 
-            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5, 2.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6, 2.0 , 1.0 , 0.0);
-            
-            // Now we create the "conditions"
-            std::vector<NodeType::Pointer> element_nodes_0 (3);
-            element_nodes_0[0] = p_node_1;
-            element_nodes_0[1] = p_node_2;
-            element_nodes_0[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_0( element_nodes_0 );
-            
-            std::vector<NodeType::Pointer> element_nodes_1 (3);
-            element_nodes_1[0] = p_node_1;
-            element_nodes_1[1] = p_node_3;
-            element_nodes_1[2] = p_node_4;
-            Triangle2D3 <NodeType> triangle_1( element_nodes_1 );
-            
-            std::vector<NodeType::Pointer> element_nodes_2 (3);
-            element_nodes_2[0] = p_node_2;
-            element_nodes_2[1] = p_node_5;
-            element_nodes_2[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_2( element_nodes_2 );
-            
-            std::vector<NodeType::Pointer> element_nodes_3 (3);
-            element_nodes_3[0] = p_node_5;
-            element_nodes_3[1] = p_node_6;
-            element_nodes_3[2] = p_node_3;
-            Triangle2D3 <NodeType> triangle_3( element_nodes_3 );
+            Create2DModelPart(this_model_part);
 
-            // Creating pointers
-            auto p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_0);
-            auto p_triangle_1 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_1);
-            auto p_triangle_2 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_2);
-            auto p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>> (triangle_3);
-
-            Element::Pointer p_elem_0 = Kratos::make_shared<UpdatedLagrangian>(1, p_triangle_0, p_elem_prop);;
-            Element::Pointer p_elem_1 = Kratos::make_shared<UpdatedLagrangian>(2, p_triangle_1, p_elem_prop);
-            Element::Pointer p_elem_2 = Kratos::make_shared<UpdatedLagrangian>(3, p_triangle_2, p_elem_prop);
-            Element::Pointer p_elem_3 = Kratos::make_shared<UpdatedLagrangian>(4, p_triangle_3, p_elem_prop);
-            
-            // Adding to the model part
-            this_model_part.AddElement(p_elem_0);
-            this_model_part.AddElement(p_elem_1);
-            this_model_part.AddElement(p_elem_2);
-            this_model_part.AddElement(p_elem_3);
-
-            // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
-            
             // Set DISTANCE and other variables
             Vector ref_metric(3);
             ref_metric[0] = 1.0;
@@ -1133,167 +777,15 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto p_this_law = Kratos::make_shared<ElasticIsotropic3D>();
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
+            auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
 
-            // First we create the nodes
-            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
-
-            NodeType::Pointer p_node_7 = this_model_part.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_8 = this_model_part.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_9 = this_model_part.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_10 = this_model_part.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_11 = this_model_part.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_12 = this_model_part.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
-
-            // Now we create the "conditions"
-            std::vector<NodeType::Pointer> element_nodes_0 (4);
-            element_nodes_0[0] = p_node_12;
-            element_nodes_0[1] = p_node_10;
-            element_nodes_0[2] = p_node_8;
-            element_nodes_0[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_0( element_nodes_0 );
-
-            std::vector<NodeType::Pointer> element_nodes_1 (4);
-            element_nodes_1[0] = p_node_4;
-            element_nodes_1[1] = p_node_6;
-            element_nodes_1[2] = p_node_9;
-            element_nodes_1[3] = p_node_7;
-            Tetrahedra3D4 <NodeType> tetrahedra_1( element_nodes_1 );
-
-            std::vector<NodeType::Pointer> element_nodes_2 (4);
-            element_nodes_2[0] = p_node_11;
-            element_nodes_2[1] = p_node_7;
-            element_nodes_2[2] = p_node_9;
-            element_nodes_2[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_2( element_nodes_2 );
-
-            std::vector<NodeType::Pointer> element_nodes_3 (4);
-            element_nodes_3[0] = p_node_5;
-            element_nodes_3[1] = p_node_3;
-            element_nodes_3[2] = p_node_8;
-            element_nodes_3[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_3( element_nodes_3 );
-
-            std::vector<NodeType::Pointer> element_nodes_4 (4);
-            element_nodes_4[0] = p_node_4;
-            element_nodes_4[1] = p_node_6;
-            element_nodes_4[2] = p_node_7;
-            element_nodes_4[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_4( element_nodes_4 );
-
-            std::vector<NodeType::Pointer> element_nodes_5 (4);
-            element_nodes_5[0] = p_node_2;
-            element_nodes_5[1] = p_node_3;
-            element_nodes_5[2] = p_node_5;
-            element_nodes_5[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_5( element_nodes_5 );
-
-            std::vector<NodeType::Pointer> element_nodes_6 (4);
-            element_nodes_6[0] = p_node_10;
-            element_nodes_6[1] = p_node_9;
-            element_nodes_6[2] = p_node_6;
-            element_nodes_6[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_6( element_nodes_6 );
-
-            std::vector<NodeType::Pointer> element_nodes_7 (4);
-            element_nodes_7[0] = p_node_7;
-            element_nodes_7[1] = p_node_8;
-            element_nodes_7[2] = p_node_3;
-            element_nodes_7[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_7( element_nodes_7 );
-
-            std::vector<NodeType::Pointer> element_nodes_8 (4);
-            element_nodes_8[0] = p_node_7;
-            element_nodes_8[1] = p_node_8;
-            element_nodes_8[2] = p_node_6;
-            element_nodes_8[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_8( element_nodes_8 );
-
-            std::vector<NodeType::Pointer> element_nodes_9 (4);
-            element_nodes_9[0] = p_node_4;
-            element_nodes_9[1] = p_node_1;
-            element_nodes_9[2] = p_node_6;
-            element_nodes_9[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_9( element_nodes_9 );
-
-            std::vector<NodeType::Pointer> element_nodes_10 (4);
-            element_nodes_10[0] = p_node_9;
-            element_nodes_10[1] = p_node_12;
-            element_nodes_10[2] = p_node_11;
-            element_nodes_10[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_10( element_nodes_10 );
-
-            std::vector<NodeType::Pointer> element_nodes_11 (4);
-            element_nodes_11[0] = p_node_3;
-            element_nodes_11[1] = p_node_2;
-            element_nodes_11[2] = p_node_1;
-            element_nodes_11[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_11( element_nodes_11 );
-
-            // Creating pointers
-            auto p_tetrahedra_0 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_0);
-            auto p_tetrahedra_1 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_1);
-            auto p_tetrahedra_2 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_2);
-            auto p_tetrahedra_3 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_3);
-            auto p_tetrahedra_4 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_4);
-            auto p_tetrahedra_5 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_5);
-            auto p_tetrahedra_6 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_6);
-            auto p_tetrahedra_7 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_7);
-            auto p_tetrahedra_8 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_8);
-            auto p_tetrahedra_9 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_9);
-            auto p_tetrahedra_10 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_10);
-            auto p_tetrahedra_11 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_11);
-
-            Element::Pointer p_elem_0 = Kratos::make_shared<UpdatedLagrangian>(1, p_tetrahedra_0, p_elem_prop);
-            Element::Pointer p_elem_1 = Kratos::make_shared<UpdatedLagrangian>(2, p_tetrahedra_1, p_elem_prop);
-            Element::Pointer p_elem_2 = Kratos::make_shared<UpdatedLagrangian>(3, p_tetrahedra_2, p_elem_prop);
-            Element::Pointer p_elem_3 = Kratos::make_shared<UpdatedLagrangian>(4, p_tetrahedra_3, p_elem_prop);
-            Element::Pointer p_elem_4 = Kratos::make_shared<UpdatedLagrangian>(5, p_tetrahedra_4, p_elem_prop);
-            Element::Pointer p_elem_5 = Kratos::make_shared<UpdatedLagrangian>(6, p_tetrahedra_5, p_elem_prop);
-            Element::Pointer p_elem_6 = Kratos::make_shared<UpdatedLagrangian>(7, p_tetrahedra_6, p_elem_prop);
-            Element::Pointer p_elem_7 = Kratos::make_shared<UpdatedLagrangian>(8, p_tetrahedra_7, p_elem_prop);
-            Element::Pointer p_elem_8 = Kratos::make_shared<UpdatedLagrangian>(9, p_tetrahedra_8, p_elem_prop);
-            Element::Pointer p_elem_9 = Kratos::make_shared<UpdatedLagrangian>(10, p_tetrahedra_9, p_elem_prop);
-            Element::Pointer p_elem_10 = Kratos::make_shared<UpdatedLagrangian>(11, p_tetrahedra_10, p_elem_prop);
-            Element::Pointer p_elem_11 = Kratos::make_shared<UpdatedLagrangian>(12, p_tetrahedra_11, p_elem_prop);
-
-            // Adding to the model part
-            this_model_part.AddElement(p_elem_0);
-            this_model_part.AddElement(p_elem_1);
-            this_model_part.AddElement(p_elem_2);
-            this_model_part.AddElement(p_elem_3);
-            this_model_part.AddElement(p_elem_4);
-            this_model_part.AddElement(p_elem_5);
-            this_model_part.AddElement(p_elem_6);
-            this_model_part.AddElement(p_elem_7);
-            this_model_part.AddElement(p_elem_8);
-            this_model_part.AddElement(p_elem_9);
-            this_model_part.AddElement(p_elem_10);
-            this_model_part.AddElement(p_elem_11);
-
-            // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
-            p_elem_4->Initialize();
-            p_elem_5->Initialize();
-            p_elem_6->Initialize();
-            p_elem_7->Initialize();
-            p_elem_8->Initialize();
-            p_elem_9->Initialize();
-            p_elem_10->Initialize();
-            p_elem_11->Initialize();
+            Create3DModelPart(this_model_part);
 
             // Set DISTANCE and other variables
             Vector ref_metric = ZeroVector(6);
@@ -1359,167 +851,15 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
-            auto p_this_law = Kratos::make_shared<ElasticIsotropic3D>();
+            ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
+            auto p_this_law = r_clone_cl.Clone();
             p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_this_law);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
             
-            // First we create the nodes 
-            NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_2 = this_model_part.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_3 = this_model_part.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_4 = this_model_part.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_5 = this_model_part.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_6 = this_model_part.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
-            
-            NodeType::Pointer p_node_7 = this_model_part.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_8 = this_model_part.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
-            NodeType::Pointer p_node_9 = this_model_part.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
-            NodeType::Pointer p_node_10 = this_model_part.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
-            NodeType::Pointer p_node_11 = this_model_part.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
-            NodeType::Pointer p_node_12 = this_model_part.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
-            
-            // Now we create the "conditions"
-            std::vector<NodeType::Pointer> element_nodes_0 (4);
-            element_nodes_0[0] = p_node_12;
-            element_nodes_0[1] = p_node_10;
-            element_nodes_0[2] = p_node_8;
-            element_nodes_0[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_0( element_nodes_0 );
-            
-            std::vector<NodeType::Pointer> element_nodes_1 (4);
-            element_nodes_1[0] = p_node_4;
-            element_nodes_1[1] = p_node_6;
-            element_nodes_1[2] = p_node_9;
-            element_nodes_1[3] = p_node_7;
-            Tetrahedra3D4 <NodeType> tetrahedra_1( element_nodes_1 );
-            
-            std::vector<NodeType::Pointer> element_nodes_2 (4);
-            element_nodes_2[0] = p_node_11;
-            element_nodes_2[1] = p_node_7;
-            element_nodes_2[2] = p_node_9;
-            element_nodes_2[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_2( element_nodes_2 );
-            
-            std::vector<NodeType::Pointer> element_nodes_3 (4);
-            element_nodes_3[0] = p_node_5;
-            element_nodes_3[1] = p_node_3;
-            element_nodes_3[2] = p_node_8;
-            element_nodes_3[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_3( element_nodes_3 );
-            
-            std::vector<NodeType::Pointer> element_nodes_4 (4);
-            element_nodes_4[0] = p_node_4;
-            element_nodes_4[1] = p_node_6;
-            element_nodes_4[2] = p_node_7;
-            element_nodes_4[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_4( element_nodes_4 );
-            
-            std::vector<NodeType::Pointer> element_nodes_5 (4);
-            element_nodes_5[0] = p_node_2;
-            element_nodes_5[1] = p_node_3;
-            element_nodes_5[2] = p_node_5;
-            element_nodes_5[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_5( element_nodes_5 );
-            
-            std::vector<NodeType::Pointer> element_nodes_6 (4);
-            element_nodes_6[0] = p_node_10;
-            element_nodes_6[1] = p_node_9;
-            element_nodes_6[2] = p_node_6;
-            element_nodes_6[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_6( element_nodes_6 );
-            
-            std::vector<NodeType::Pointer> element_nodes_7 (4);
-            element_nodes_7[0] = p_node_7;
-            element_nodes_7[1] = p_node_8;
-            element_nodes_7[2] = p_node_3;
-            element_nodes_7[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_7( element_nodes_7 );
-            
-            std::vector<NodeType::Pointer> element_nodes_8 (4);
-            element_nodes_8[0] = p_node_7;
-            element_nodes_8[1] = p_node_8;
-            element_nodes_8[2] = p_node_6;
-            element_nodes_8[3] = p_node_9;
-            Tetrahedra3D4 <NodeType> tetrahedra_8( element_nodes_8 );
-            
-            std::vector<NodeType::Pointer> element_nodes_9 (4);
-            element_nodes_9[0] = p_node_4;
-            element_nodes_9[1] = p_node_1;
-            element_nodes_9[2] = p_node_6;
-            element_nodes_9[3] = p_node_3;
-            Tetrahedra3D4 <NodeType> tetrahedra_9( element_nodes_9 );
-            
-            std::vector<NodeType::Pointer> element_nodes_10 (4);
-            element_nodes_10[0] = p_node_9;
-            element_nodes_10[1] = p_node_12;
-            element_nodes_10[2] = p_node_11;
-            element_nodes_10[3] = p_node_8;
-            Tetrahedra3D4 <NodeType> tetrahedra_10( element_nodes_10 );
-            
-            std::vector<NodeType::Pointer> element_nodes_11 (4);
-            element_nodes_11[0] = p_node_3;
-            element_nodes_11[1] = p_node_2;
-            element_nodes_11[2] = p_node_1;
-            element_nodes_11[3] = p_node_6;
-            Tetrahedra3D4 <NodeType> tetrahedra_11( element_nodes_11 );
-
-            // Creating pointers
-            auto p_tetrahedra_0 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_0);
-            auto p_tetrahedra_1 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_1);
-            auto p_tetrahedra_2 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_2);
-            auto p_tetrahedra_3 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_3);
-            auto p_tetrahedra_4 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_4);
-            auto p_tetrahedra_5 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_5);
-            auto p_tetrahedra_6 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_6);
-            auto p_tetrahedra_7 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_7);
-            auto p_tetrahedra_8 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_8);
-            auto p_tetrahedra_9 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_9);
-            auto p_tetrahedra_10 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_10);
-            auto p_tetrahedra_11 = Kratos::make_shared<Tetrahedra3D4 <NodeType>> (tetrahedra_11);
-
-            Element::Pointer p_elem_0 = Kratos::make_shared<UpdatedLagrangian>(1, p_tetrahedra_0, p_elem_prop);
-            Element::Pointer p_elem_1 = Kratos::make_shared<UpdatedLagrangian>(2, p_tetrahedra_1, p_elem_prop);
-            Element::Pointer p_elem_2 = Kratos::make_shared<UpdatedLagrangian>(3, p_tetrahedra_2, p_elem_prop);
-            Element::Pointer p_elem_3 = Kratos::make_shared<UpdatedLagrangian>(4, p_tetrahedra_3, p_elem_prop);
-            Element::Pointer p_elem_4 = Kratos::make_shared<UpdatedLagrangian>(5, p_tetrahedra_4, p_elem_prop);
-            Element::Pointer p_elem_5 = Kratos::make_shared<UpdatedLagrangian>(6, p_tetrahedra_5, p_elem_prop);
-            Element::Pointer p_elem_6 = Kratos::make_shared<UpdatedLagrangian>(7, p_tetrahedra_6, p_elem_prop);
-            Element::Pointer p_elem_7 = Kratos::make_shared<UpdatedLagrangian>(8, p_tetrahedra_7, p_elem_prop);
-            Element::Pointer p_elem_8 = Kratos::make_shared<UpdatedLagrangian>(9, p_tetrahedra_8, p_elem_prop);
-            Element::Pointer p_elem_9 = Kratos::make_shared<UpdatedLagrangian>(10, p_tetrahedra_9, p_elem_prop);
-            Element::Pointer p_elem_10 = Kratos::make_shared<UpdatedLagrangian>(11, p_tetrahedra_10, p_elem_prop);
-            Element::Pointer p_elem_11 = Kratos::make_shared<UpdatedLagrangian>(12, p_tetrahedra_11, p_elem_prop);
-            
-            // Adding to the model part
-            this_model_part.AddElement(p_elem_0);
-            this_model_part.AddElement(p_elem_1);
-            this_model_part.AddElement(p_elem_2);
-            this_model_part.AddElement(p_elem_3);
-            this_model_part.AddElement(p_elem_4);
-            this_model_part.AddElement(p_elem_5);
-            this_model_part.AddElement(p_elem_6);
-            this_model_part.AddElement(p_elem_7);
-            this_model_part.AddElement(p_elem_8);
-            this_model_part.AddElement(p_elem_9);
-            this_model_part.AddElement(p_elem_10);
-            this_model_part.AddElement(p_elem_11);
-
-            // Initialize Elements
-            p_elem_0->Initialize();
-            p_elem_1->Initialize();
-            p_elem_2->Initialize();
-            p_elem_3->Initialize();
-            p_elem_4->Initialize();
-            p_elem_5->Initialize();
-            p_elem_6->Initialize();
-            p_elem_7->Initialize();
-            p_elem_8->Initialize();
-            p_elem_9->Initialize();
-            p_elem_10->Initialize();
-            p_elem_11->Initialize();
+            Create3DModelPart(this_model_part);
             
             // Set DISTANCE and other variables
             Vector ref_metric = ZeroVector(6);
