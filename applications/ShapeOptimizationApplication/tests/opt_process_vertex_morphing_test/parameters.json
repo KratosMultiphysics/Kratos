@@ -8,7 +8,7 @@
         "constraints" : [],
         "design_variables" : {
             "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "vertex_morphing_tent",
+            "optimization_model_part_name"       : "tent",
             "design_surface_sub_model_part_name" : "design_surface",
             "domain_size"                        : 3,
             "filter" : {

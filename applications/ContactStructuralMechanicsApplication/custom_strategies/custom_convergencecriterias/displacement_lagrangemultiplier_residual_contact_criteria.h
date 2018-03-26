@@ -185,12 +185,12 @@ public:
                     residual_dof_value = b[dof_id];
 
                     const KeyType curr_var = it_dof->GetVariable().Key();
-                    if ((curr_var == DISPLACEMENT_X) || (curr_var == DISPLACEMENT_Y) || (curr_var == DISPLACEMENT_Z)) {
-                        disp_residual_solution_norm += residual_dof_value * residual_dof_value;
-                        disp_dof_num++;
-                    } else {
+                    if ((curr_var == VECTOR_LAGRANGE_MULTIPLIER_X) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Y) || (curr_var == VECTOR_LAGRANGE_MULTIPLIER_Z) || (curr_var == NORMAL_CONTACT_STRESS)) {
                         lm_residual_solution_norm += residual_dof_value * residual_dof_value;
                         lm_dof_num++;
+                    } else {
+                        disp_residual_solution_norm += residual_dof_value * residual_dof_value;
+                        disp_dof_num++;
                     }
                 }
             }
