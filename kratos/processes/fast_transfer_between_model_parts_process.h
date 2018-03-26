@@ -50,7 +50,7 @@ namespace Kratos
  * @details This function assigns a value to a variable belonging to all of the nodes in a given mesh
  * @author Vicente Mataix Ferrandiz
 */
-class FastTransferBetweenModelPartsProcess
+class KRATOS_API(KRATOS_CORE) FastTransferBetweenModelPartsProcess
     : public Process
 {
 public:
