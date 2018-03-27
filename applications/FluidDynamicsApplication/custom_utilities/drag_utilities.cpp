@@ -81,6 +81,9 @@ namespace Kratos
                     }
                 }
             }
+            
+            // Restore the step index
++           r_current_process_info[FRACTIONAL_STEP] = current_fractional_step;
         }
 
         // Sum the reactions in the model part of interest. Note that in the non fractional 
