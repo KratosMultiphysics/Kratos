@@ -11,7 +11,7 @@ def FactoryHelper(settings, Model):
                 "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
                 "file_output_settings" : {},
                 "model_part_output_settings" : {},
-                "results_settings" : {},
+                "nodal_results_settings" : {},
                 "output_time_settings" : {}
             }
             """)
@@ -20,10 +20,10 @@ def FactoryHelper(settings, Model):
     model_part = Model[settings["model_part_name"].GetString()]
     hdf5_file_factory = hdf5_output.HDF5SerialFileFactory(settings["file_output_settings"])
     model_part_output = hdf5_output.ModelPartOutput(settings["model_part_output_settings"])
-    results_output = hdf5_output.NodalResultsOutput(settings["results_settings"])
+    nodal_results_output = hdf5_output.NodalResultsOutput(settings["nodal_results_settings"])
     temporal_output_process = hdf5_output.TemporalOutputProcess(
-            model_part, hdf5_file_factory, settings["output_time_settings"], [model_part_output, results_output])
-    return (temporal_output_process, model_part_output, [results_output])
+            model_part, hdf5_file_factory, settings["output_time_settings"], [model_part_output, nodal_results_output])
+    return (temporal_output_process, model_part_output, [nodal_results_output])
 
 
 def Factory(settings, Model):
