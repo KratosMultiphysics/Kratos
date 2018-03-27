@@ -173,6 +173,7 @@ class Solution(object):
         # Step by step (2)
         #self.solver.SolveSolutionStep()
 
+        # All steps included (1)(2)(3)
         self.solver.Solve()
 
         self._stop_time_measuring(self.clock_time,"Solve Step", self.report);

@@ -158,7 +158,7 @@ namespace Kratos
       class_< SolutionStrategyType, bases<Flags>, boost::noncopyable >("SolutionStrategy", init< ModelPart& >() )
          .def(init < ModelPart&, Flags& >())
          .def("InitializeSolutionStep", &SolutionStrategyType::InitializeSolutionStep)
-         .def("FinalizeSolutionStep", &SolutionStrategyType::InitializeSolutionStep)
+         .def("FinalizeSolutionStep", &SolutionStrategyType::FinalizeSolutionStep)
          .def("SolveSolutionStep", &SolutionStrategyType::SolveSolutionStep )
          .def("Solve", &SolutionStrategyType::Solve)
          .def("Check", &SolutionStrategyType::Check)
