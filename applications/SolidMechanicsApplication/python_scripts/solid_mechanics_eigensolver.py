@@ -95,7 +95,7 @@ class EigenSolver(BaseSolver.MechanicalSolver):
         builder_and_solver = self._get_builder_and_solver() # The eigensolver is created here.
 
         options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.StrategyLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
         
         return KratosSolid.EigensolverStrategy(self.model_part, eigen_scheme, builder_and_solver, options, self.compute_modal_contribution)
 

@@ -46,12 +46,18 @@ namespace Kratos
 /** @brief Solving strategy local flags class definition
  *  @details This is the base class for strategy local flags
  */
-class StrategyLocalFlags
+class SolverLocalFlags
 {
  public:
   /// Flags for the Strategy control
+
+  /// external type:
   KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( CONVERGED );  
+  KRATOS_DEFINE_LOCAL_FLAG( CONVERGED );
+
+  /// internal type:
+  KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED_ELEMENTS );
+  KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED_CONDITIONS );
   
   /// Flags for the Strategy options
   KRATOS_DEFINE_LOCAL_FLAG( MOVE_MESH );
@@ -77,7 +83,7 @@ class SolutionStrategy : public Flags
   ///@{
   typedef SolutionStrategy<TSparseSpace, TDenseSpace, TLinearSolver>  SolutionStrategyType;
 
-  typedef StrategyLocalFlags                                                 LocalFlagType;
+  typedef SolverLocalFlags                                                   LocalFlagType;
 
   typedef typename TSparseSpace::MatrixType                               SystemMatrixType;
   typedef typename TSparseSpace::VectorType                               SystemVectorType;
@@ -234,6 +240,39 @@ class SolutionStrategy : public Flags
   ///@{
 
   /**
+   * @brief This sets the level of echo for the solving strategy
+   * @param Level of echo for the solving strategy
+   * @details 
+   * {
+   * 0 -> Mute... no echo at all
+   * 1 -> Printing time and basic informations
+   * 2 -> Printing linear solver data
+   * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+   * }
+   */
+  virtual void SetEchoLevel(const int Level)
+  {
+    mEchoLevel = Level;
+  }
+
+  /**
+   * @brief This returns the level of echo for the solving strategy
+   * @details
+   * {
+   * 0 -> Mute... no echo at all
+   * 1 -> Printing time and basic informations
+   * 2 -> Printing linear solver data
+   * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+   * }
+   * @return Level of echo for the solving strategy
+   */
+  virtual int GetEchoLevel()
+  {
+    return mEchoLevel;
+  }
+
+  
+  /**
    * @brief Sets strategy options
    */
   inline void SetOptions(Flags& rOptions)
@@ -365,17 +404,19 @@ class SolutionStrategy : public Flags
 /**
  * Flags for the Strategy control
  */
-KRATOS_CREATE_LOCAL_FLAG( StrategyLocalFlags, INITIALIZED,               0 );
-KRATOS_CREATE_LOCAL_FLAG( StrategyLocalFlags, CONVERGED,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED,               0 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONVERGED,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED_ELEMENTS,      2 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED_CONDITIONS,    3 );
 
 /**
  * Flags for the Strategy options
  */
-KRATOS_CREATE_LOCAL_FLAG( StrategyLocalFlags, MOVE_MESH,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( StrategyLocalFlags, REFORM_DOFS,               1 );
-KRATOS_CREATE_LOCAL_FLAG( StrategyLocalFlags, CONSTANT_SYSTEM_LHS,       2 );
-KRATOS_CREATE_LOCAL_FLAG( StrategyLocalFlags, COMPUTE_REACTIONS,         3 );
-KRATOS_CREATE_LOCAL_FLAG( StrategyLocalFlags, IMPLEX,                    4 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, MOVE_MESH,                 0 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, REFORM_DOFS,               1 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_LHS,       2 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, COMPUTE_REACTIONS,         3 );
+KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, IMPLEX,                    4 );
 
 
 ///@}

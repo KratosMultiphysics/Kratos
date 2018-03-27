@@ -186,9 +186,9 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         builder_and_solver = self._get_builder_and_solver()
 
         options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.StrategyLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
-        options.Set(KratosSolid.StrategyLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
-        options.Set(KratosSolid.StrategyLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
         
         return KratosSolid.ComponentWiseNewtonRaphsonStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
                                                               options, self.solving_strategy_settings["max_iteration"].GetInt())
@@ -210,9 +210,9 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         builder_and_solver = self._get_builder_and_solver()
 
         options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.StrategyLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
-        options.Set(KratosSolid.StrategyLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
-        options.Set(KratosSolid.StrategyLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
         
         return KratosSolid.LineSearchStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
                                               options, self.solving_strategy_settings["max_iteration"].GetInt())
@@ -236,10 +236,10 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         builder_and_solver = self._get_builder_and_solver()
 
         options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.StrategyLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
-        options.Set(KratosSolid.StrategyLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
-        options.Set(KratosSolid.StrategyLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
-        options.Set(KratosSolid.StrategyLocalFlags.IMPLEX, self.solving_strategy_settings["implex"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.IMPLEX, self.solving_strategy_settings["implex"].GetBool())
 
         return KratosSolid.LineSearchStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
                                               options, self.solving_strategy_settings["max_iteration"].GetInt())
@@ -261,9 +261,9 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         builder_and_solver = self._get_builder_and_solver()
 
         options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.StrategyLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
-        options.Set(KratosSolid.StrategyLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
-        options.Set(KratosSolid.StrategyLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
         
         return KratosSolid.NewtonRaphsonStrategy(self.model_part, mechanical_scheme, builder_and_solver, convergence_criterion,
                                                  options, self.solving_strategy_settings["max_iteration"].GetInt())

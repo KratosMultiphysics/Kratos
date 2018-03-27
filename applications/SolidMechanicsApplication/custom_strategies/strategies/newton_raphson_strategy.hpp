@@ -215,7 +215,8 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
                                                    this->GetModelPart().GetProcessInfo());
     double end_time = OpenMPUtils::GetCurrentTime();
 
-    KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    if (this->mEchoLevel == 2)
+      KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
     
     //initial operations ... things that are constant over the Solution Step
     mpBuilderAndSolver->InitializeSolutionStep(this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
@@ -282,7 +283,7 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
     //Iteration Cicle... performed only for NonLinearProblems
     while( this->IsNot(LocalFlagType::CONVERGED) && iteration_number++ < mMaxIterationNumber)
     {
-      this->Set(LocalFlagType::CONVERGED, this->SolveIteration(iteration_number));
+      this->Set(LocalFlagType::CONVERGED, this->SolveIteration(iteration_number));      
     }
 
     //plots a warning if the maximum number of iterations is exceeded
@@ -529,16 +530,44 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
     mpScheme->Update(this->GetModelPart(), mpBuilderAndSolver->GetDofSet(), (*mpA), (*mpDx), (*mpb));
 
     // Move the mesh if needed
-    if(this->mOptions.Is(LocalFlagType::MOVE_MESH)){
+    if(this->mOptions.Is(LocalFlagType::MOVE_MESH))
       BaseType::MoveMesh();
-      KRATOS_INFO(" MOVE MESH ") << std::endl;
-    }
-
+ 
     KRATOS_CATCH("")
   }
  
 
+  /**
+   * @brief This method returns the components of the system of equations depending of the echo level
+   * @param IterationNumber The non linear iteration in the solution loop
+   */
+  virtual void EchoInfo(const unsigned int IterationNumber)
+  {
+    if (this->mEchoLevel == 2) //if it is needed to print the debug info
+    {
+      KRATOS_INFO("Dx")  << "Solution = " << (*mpDx) << std::endl;
+      KRATOS_INFO("RHS") << "RHS  = " << (*mpb) << std::endl;
+    }
+    else if (this->mEchoLevel == 3) //if it is needed to print the debug info
+    {
+      KRATOS_INFO("LHS") << "LHS = " << (*mpA) << std::endl;
+      KRATOS_INFO("Dx")  << "Solution = " << (*mpDx) << std::endl;
+      KRATOS_INFO("RHS") << "RHS  = " << (*mpb) << std::endl;
+            
+    }
+    else if (this->mEchoLevel == 4) //print to matrix market file
+    {
+      std::stringstream matrix_market_name;
+      matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm";
+      TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), (*mpA), false);
 
+      std::stringstream matrix_market_vectname;
+      matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << IterationNumber << ".mm.rhs";
+      TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), (*mpb));
+    }
+  }
+
+  
   /**
    * @brief Performs all the required operations to reform dofs
    */  
@@ -546,22 +575,24 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
   {
     KRATOS_TRY
 
-
-    KRATOS_INFO(" Reform Dofs ") << " Flag = " <<this->mOptions.Is(LocalFlagType::REFORM_DOFS) << std::endl;
+    if (this->mEchoLevel == 2)
+      KRATOS_INFO(" Reform Dofs ") << " Flag = " <<this->mOptions.Is(LocalFlagType::REFORM_DOFS) << std::endl;
                                                                                         
     //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
         
     //setting up the list of the DOFs to be solved
-    //double begin_time = OpenMPUtils::GetCurrentTime();
+    double begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpDofSet(mpScheme, this->GetModelPart());
-    //double end_time = OpenMPUtils::GetCurrentTime();
-    //KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    double end_time = OpenMPUtils::GetCurrentTime();
+    if (this->mEchoLevel == 2)
+      KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
       
     //shaping correctly the system
-    //begin_time = OpenMPUtils::GetCurrentTime();
+    begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpSystem(this->GetModelPart());
-    //end_time = OpenMPUtils::GetCurrentTime();
-    //KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    end_time = OpenMPUtils::GetCurrentTime();
+    if (this->mEchoLevel == 2)
+      KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
 
     KRATOS_CATCH("")
   }
@@ -605,10 +636,9 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
       mpBuilderAndSolver->BuildRHSAndSolve(mpScheme, this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
     }
 
-    // Debugging info
-    //KRATOS_TRACE("LHS") << "LHS = " << (*mpA) <<  "\n" << LoggerMessage::Category::CHECKING;
-    //KRATOS_TRACE("Dx")  << "Solution = " << (*mpDx) <<  "\n" << LoggerMessage::Category::CHECKING;
-    //KRATOS_TRACE("RHS") << "RHS  = " << (*mpb) << "\n" << LoggerMessage::Category::CHECKING;
+    // EchoInfo
+    this->EchoInfo(rIterationNumber);
+    
 
     // Updating the results
     this->Update();
@@ -622,7 +652,6 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
       //initialisation of the convergence criteria (after first calculation only)
       if( rIterationNumber == 1 ){
         mpConvergenceCriteria->InitializeSolutionStep(this->GetModelPart(), mpBuilderAndSolver->GetDofSet(), (*mpA), (*mpDx), (*mpb));
-        KRATOS_INFO(" Initial Residual ") << " iteration: "<< rIterationNumber <<std::endl;
       }
       
       if(mpConvergenceCriteria->GetActualizeRHSflag() == true)

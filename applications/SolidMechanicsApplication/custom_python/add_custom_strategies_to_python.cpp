@@ -144,14 +144,14 @@ namespace Kratos
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
 
-      // Strategy Local Flags
-      class_<StrategyLocalFlags, boost::noncopyable> ("StrategyLocalFlags", init<>() )
-          .def_readonly("INITIALIZED", &StrategyLocalFlags::INITIALIZED)
-          .def_readonly("MOVE_MESH", &StrategyLocalFlags::MOVE_MESH)
-          .def_readonly("REFORM_DOFS", &StrategyLocalFlags::REFORM_DOFS)
-          .def_readonly("CONSTANT_SYSTEM_LHS", &StrategyLocalFlags::CONSTANT_SYSTEM_LHS)
-          .def_readonly("COMPUTE_REACTIONS", &StrategyLocalFlags::COMPUTE_REACTIONS)
-          .def_readonly("IMPLEX", &StrategyLocalFlags::IMPLEX)
+      // Solver Local Flags
+      class_<SolverLocalFlags, boost::noncopyable> ("SolverLocalFlags", init<>() )
+          .def_readonly("INITIALIZED", &SolverLocalFlags::INITIALIZED)
+          .def_readonly("MOVE_MESH", &SolverLocalFlags::MOVE_MESH)
+          .def_readonly("REFORM_DOFS", &SolverLocalFlags::REFORM_DOFS)
+          .def_readonly("CONSTANT_SYSTEM_LHS", &SolverLocalFlags::CONSTANT_SYSTEM_LHS)
+          .def_readonly("COMPUTE_REACTIONS", &SolverLocalFlags::COMPUTE_REACTIONS)
+          .def_readonly("IMPLEX", &SolverLocalFlags::IMPLEX)
           ;
       
       // Solid Mechanics Base Strategy
@@ -164,6 +164,8 @@ namespace Kratos
          .def("Check", &SolutionStrategyType::Check)
          .def("Clear", &SolutionStrategyType::Clear)
          .def("SetOptions", &SolutionStrategyType::SetOptions)
+         .def("SetEchoLevel", &SolutionStrategyType::SetEchoLevel)
+         .def("GetEchoLevel", &SolutionStrategyType::GetEchoLevel)
          ;
 
       // Solid Mechanics Linear Strategy

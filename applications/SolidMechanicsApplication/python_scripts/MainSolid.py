@@ -33,17 +33,9 @@ class Solution(object):
         # Set input file name
         self._set_input_file_name(file_name)
 
-        # Set echo level
-        self.echo_level = 0
-        if( self.ProjectParameters.Has("problem_data") ):
-            if( self.ProjectParameters["problem_data"].Has("echo_level") ):
-                self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
-
-        # Print solving time
-        self.report = False
-        if( self.echo_level > 0 ):
-            self.report = True
-
+        # Set logger severity level
+        self._set_severity_level()
+            
         # Defining the number of threads
         num_threads =  self._get_parallel_size()
         if( self.ProjectParameters.Has("problem_data") ):
@@ -362,6 +354,30 @@ class Solution(object):
             print("::[KSM Simulation]:: No Output")
             return (KratosMultiphysics.Process())
 
+    def _set_severity_level(self):
+        # Set echo level
+        self.echo_level = 0
+        if( self.ProjectParameters.Has("problem_data") ):
+            if( self.ProjectParameters["problem_data"].Has("echo_level") ):
+                self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
+
+        self.severity = KratosMultiphysics.Logger.Severity.WARNING
+        if( self.echo_level == 1 ):
+            self.severity = KratosMultiphysics.Logger.Severity.INFO
+        elif( self.echo_level == 2 ):
+            self.severity = KratosMultiphysics.Logger.Severity.DETAIL
+        elif( self.echo_level == 3 ):
+            self.severity = KratosMultiphysics.Logger.Severity.DEBUG
+        elif( self.echo_level == 4 ):
+            self.severity = KratosMultiphysics.Logger.Severity.TRACE
+                
+        # Print solving time
+        self.report = False
+        if( self.echo_level > 0 ):
+            self.report = True
+
+        KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(self.severity)
+        
     def _set_parallel_size(self, num_threads):
         parallel = KratosMultiphysics.OpenMPUtils()
         parallel.SetNumThreads(int(num_threads))

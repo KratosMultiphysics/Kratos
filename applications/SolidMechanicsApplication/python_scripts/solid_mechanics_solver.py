@@ -162,7 +162,7 @@ class MechanicalSolver(object):
         if self.solving_strategy_settings["clear_storage"].GetBool():
             self.Clear()
         mechanical_solver = self._get_mechanical_solver()
-        #mechanical_solver.SetEchoLevel(self.echo_level)
+        mechanical_solver.SetEchoLevel(self.echo_level)
         #if( self._is_not_restarted() ):
         #    mechanical_solver.Initialize()
         #else:
@@ -172,13 +172,13 @@ class MechanicalSolver(object):
         #    if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
         #        mechanical_solver.SetInitializePerformedFlag(True)
         #    else:
-        #        mechanical_solver.Set(KratosSolid.StrategyLocalFlags.INITIALIZED, True)
+        #        mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
         if( not self._is_not_restarted() ):
             self._get_solution_scheme().Initialize(self.main_model_part)
             if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
                 mechanical_solver.SetInitializePerformedFlag(True)
             else:
-                mechanical_solver.Set(KratosSolid.StrategyLocalFlags.INITIALIZED, True)
+                mechanical_solver.Set(KratosSolid.SolverLocalFlags.INITIALIZED, True)
         
         self.Check()
 
