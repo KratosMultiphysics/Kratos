@@ -21,9 +21,16 @@ else:
 
 class Solution(object):
 
-    def LoadParametersFile(self):
-        parameters_file = open("ProjectParametersDEM.json", 'r')
-        self.DEM_parameters = Parameters(parameters_file.read())
+    def GetParametersFileName(self):
+        return "ProjectParametersDEM.json"
+
+    def GetInputParameters(self):
+        parameters_file_name = self.GetParametersFileName()
+        parameters_file = open(parameters_file_name, 'r')
+        return Parameters(parameters_file.read())
+
+    def LoadParametersFile(self):        
+        self.DEM_parameters = self.GetInputParameters()
         default_input_parameters = self.GetDefaultInputParameters()
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
 
@@ -35,6 +42,9 @@ class Solution(object):
     @classmethod
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ReorderConsecutiveFromGivenIdsModelPartIO(modelpart, nodeid, elemid, condid)
+
+    def GetMainPath(self):
+        return os.getcwd()
 
     def __init__(self):
 
@@ -50,9 +60,9 @@ class Solution(object):
         self.KRATOSprint = self.procedures.KRATOSprint
 
         # Creating necessary directories:
-        self.main_path = os.getcwd()
-        problem_name = self.GetProblemTypeFilename()
-        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(problem_name))
+        self.main_path = self.GetMainPath()
+        self.problem_name = self.GetProblemTypeFilename()
+        [self.post_path, self.data_and_results, self.graphs_path, MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name))
 
         self.SetGraphicalOutput()
         self.report = DEM_procedures.Report()
@@ -304,17 +314,20 @@ class Solution(object):
     def SolverInitialize(self):
         self.solver.Initialize() # Possible modifications of number of elements and number of nodes
 
+    def GetProblemNameWithPath(self):
+        return self.DEM_parameters["problem_name"].GetString()
+
     def GetMpFilename(self):
-        return self.DEM_parameters["problem_name"].GetString() + "DEM"
+        return self.GetProblemNameWithPath() + "DEM"
 
     def GetInletFilename(self):
-        return self.DEM_parameters["problem_name"].GetString() + "DEM_Inlet"
+        return self.GetProblemNameWithPath() + "DEM_Inlet"
 
     def GetFemFilename(self):
-        return self.DEM_parameters["problem_name"].GetString() + "DEM_FEM_boundary"
+        return self.GetProblemNameWithPath() + "DEM_FEM_boundary"
 
     def GetClusterFilename(self):
-        return self.DEM_parameters["problem_name"].GetString() + "DEM_Clusters"
+        return self.GetProblemNameWithPath() + "DEM_Clusters"
 
     def GetProblemTypeFilename(self):
         return self.DEM_parameters["problem_name"].GetString()
