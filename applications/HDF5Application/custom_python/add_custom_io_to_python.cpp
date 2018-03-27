@@ -30,6 +30,7 @@
 #include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_model_part_io.h"
 #include "custom_io/hdf5_nodal_solution_step_data_io.h"
+#include "custom_io/hdf5_non_historical_nodal_value_io.h"
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_file_parallel.h"
 #include "custom_io/hdf5_partitioned_model_part_io.h"
@@ -73,6 +74,12 @@ void AddCustomIOToPython()
         .def("SetPrefix", &HDF5::NodalSolutionStepDataIO::SetPrefix)
         .def("WriteNodalResults", &HDF5::NodalSolutionStepDataIO::WriteNodalResults)
         .def("ReadNodalResults", &HDF5::NodalSolutionStepDataIO::ReadNodalResults)
+    ;
+
+    class_<HDF5::NonHistoricalNodalValueIO, HDF5::NonHistoricalNodalValueIO::Pointer, boost::noncopyable>(
+        "HDF5NonHistoricalNodalValueIO", init<Parameters, HDF5::File::Pointer>())
+        .def("WriteNodalResults", &HDF5::NonHistoricalNodalValueIO::WriteNodalResults)
+        .def("ReadNodalResults", &HDF5::NonHistoricalNodalValueIO::ReadNodalResults)
     ;
 
 #ifdef KRATOS_USING_MPI

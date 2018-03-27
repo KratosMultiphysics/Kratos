@@ -85,8 +85,6 @@ class NodalResultsOutput(OutputObject):
             """)
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
-        self.settings.AddEmptyValue("partitioned")
-        self.settings["partitioned"].SetBool(False)
 
     def Execute(self, model_part, hdf5_file):
         KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
@@ -106,25 +104,6 @@ class PartitionedModelPartOutput(OutputObject):
 
     def Execute(self, model_part, hdf5_file):
         KratosHDF5.HDF5PartitionedModelPartIO(hdf5_file, self.settings["prefix"].GetString()).WriteModelPart(model_part)
-
-
-class PartitionedNodalResultsOutput(OutputObject):
-    """Provides the interface for writing partitioned nodal results to a file."""
-
-    def __init__(self, settings):
-        default_settings = KratosMultiphysics.Parameters("""
-            {
-                "prefix" : "/ResultsData",
-                "list_of_variables": []
-            }
-            """)
-        self.settings = settings.Clone()
-        self.settings.ValidateAndAssignDefaults(default_settings)
-        self.settings.AddEmptyValue("partitioned")
-        self.settings["partitioned"].SetBool(True)
-
-    def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
 
 
 class StaticOutputProcess(KratosMultiphysics.Process):

@@ -20,7 +20,7 @@ def FactoryHelper(settings, Model):
     model_part = Model[settings["model_part_name"].GetString()]
     hdf5_file_factory = hdf5_output.HDF5ParallelFileFactory(settings["file_output_settings"])
     model_part_output = hdf5_output.PartitionedModelPartOutput(settings["model_part_output_settings"])
-    results_output = hdf5_output.PartitionedNodalResultsOutput(settings["results_settings"])
+    results_output = hdf5_output.NodalResultsOutput(settings["results_settings"])
     temporal_output_process = hdf5_output.TemporalOutputProcess(
             model_part, hdf5_file_factory, settings["output_time_settings"], [model_part_output, results_output])
     return (temporal_output_process, model_part_output, [results_output])
