@@ -72,7 +72,7 @@ namespace Kratos
  * @author Miguel Maso Sotomayor
  * @author Vicente Mataix Ferrandiz
  */
-class SubModelPartsListUtility
+class KRATOS_API(KRATOS_CORE) SubModelPartsListUtility
 {
     public:
     ///@name Type Definitions
