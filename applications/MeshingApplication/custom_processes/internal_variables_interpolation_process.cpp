@@ -50,7 +50,7 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
         for (unsigned int i_var = 0; i_var < variable_array_list.size(); ++i_var)
             mInternalVariableList.push_back(KratosComponents<Variable<double>>::Get(variable_array_list[i_var].GetString()));
     } else {
-        std::cout << "WARNING:: No variables to interpolate, look that internal_variable_interpolation_list is correctly defined in your parameters" << std::endl;
+        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: No variables to interpolate, look that internal_variable_interpolation_list is correctly defined in your parameters" << std::endl;
         mInternalVariableList.clear();
     }
 }
@@ -60,20 +60,15 @@ InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
 
 void InternalVariablesInterpolationProcess::Execute()
 {
-    /** NOTE: There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
-    * CPT: Closest point transfer. It transfer the values from the closest GP
-    * LST: Least-square projection transfer. It transfers from the closest GP from the old mesh
-    * SFT: It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the sahpe functions all the time (NOTE: THIS DOESN"T WORK, AND REQUIRES EXTRA STORE)
-    */
-
-    if (mThisInterpolationType == CPT && mInternalVariableList.size() > 0)
-        InterpolateGaussPointsCPT();
-    else if (mThisInterpolationType == LST && mInternalVariableList.size() > 0)
-        InterpolateGaussPointsLST();
-    else if (mThisInterpolationType == SFT && mInternalVariableList.size() > 0)
-        InterpolateGaussPointsSFT();
-    else
-        std::cout << "WARNING:: INTERPOLATION TYPE NOT AVALAIBLE OR EMPTY LIST" << std::endl;
+    if (mThisInterpolationType == InterpolationTypes::CLOSEST_POINT_TRANSFER && mInternalVariableList.size() > 0) {
+        InterpolateGaussPointsClosestPointTransfer();
+    } else if (mThisInterpolationType == InterpolationTypes::LEAST_SQUARE_TRANSFER && mInternalVariableList.size() > 0) {
+        InterpolateGaussPointsLeastSquareTransfer();
+    } else if (mThisInterpolationType == InterpolationTypes::SHAPE_FUNCTION_TRANSFER && mInternalVariableList.size() > 0) {
+//         InterpolateGaussPointsShapeFunctionTransfer();
+        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: SHAPE FUNCTION TRANSFER THIS DOESN'T WORK, AND REQUIRES EXTRA STORE. PLEASE COOSE ANY OTHER ALTERNATIVE" << std::endl;
+    } else
+        KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: INTERPOLATION TYPE NOT AVALAIBLE OR EMPTY LIST" << std::endl;
 }
 
 /***********************************************************************************/
@@ -149,7 +144,7 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InternalVariablesInterpolationProcess::InterpolateGaussPointsCPT()
+void InternalVariablesInterpolationProcess::InterpolateGaussPointsClosestPointTransfer()
 {
     // We Initialize the process info
     const ProcessInfo& current_process_info = mrDestinationMainModelPart.GetProcessInfo();
@@ -210,7 +205,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsCPT()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InternalVariablesInterpolationProcess::InterpolateGaussPointsLST()
+void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTransfer()
 {
     // We Initialize the process info
     const ProcessInfo& current_process_info = mrDestinationMainModelPart.GetProcessInfo();
@@ -304,7 +299,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLST()
                         (constitutive_law_vector[i_gauss_point])->SetValue(this_var, destination_value, current_process_info);
                     }
                 } else
-                    std::cout << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;
+                    KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING:: It wasn't impossible to find any Gauss Point from where interpolate the internal variables" << std::endl;
             }
         }
     //}
@@ -313,7 +308,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLST()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
+void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionTransfer()
 {
     // Initialize some values
     GeometryData::IntegrationMethod this_integration_method;
@@ -418,8 +413,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
             const bool found = point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_element, mAllocationSize);
 
             if (found == false) {
-                std::cout << "WARNING: GP not found (interpolation not posible)" << std::endl;
-                std::cout << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << std::endl;
+                KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: GP not found (interpolation not posible)" << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << std::endl;
             } else {
                 for (auto this_var : mInternalVariableList) {
                     Vector values(p_element->GetGeometry().size());
@@ -452,8 +446,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
             const bool found = point_locator.FindPointOnMeshSimplified(it_node->Coordinates(), N, p_element, mAllocationSize);
 
             if (found == false) {
-                std::cout << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << std::endl;
-                std::cout << "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                KRATOS_WARNING("InternalVariablesInterpolationProcess") << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" <<  "\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
             } else {
                 for (auto this_var : mInternalVariableList) {
                     Vector values(p_element->GetGeometry().size());
@@ -517,16 +510,16 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsSFT()
 /***********************************************************************************/
 /***********************************************************************************/
 
-InterpolationTypes InternalVariablesInterpolationProcess::ConvertInter(const std::string& Str)
+InternalVariablesInterpolationProcess::InterpolationTypes InternalVariablesInterpolationProcess::ConvertInter(const std::string& Str)
 {
-    if(Str == "CPT")
-        return CPT;
-    else if(Str == "LST")
-        return LST;
-    else if(Str == "SFT")
-        return SFT;
+    if(Str == "CPT" || Str == "CLOSEST_POINT_TRANSFER")
+        return InterpolationTypes::CLOSEST_POINT_TRANSFER;
+    else if(Str == "LST" || Str == "LEAST_SQUARE_TRANSFER")
+        return InterpolationTypes::LEAST_SQUARE_TRANSFER;
+    else if(Str == "SFT" || Str == "SHAPE_FUNCTION_TRANSFER")
+        return InterpolationTypes::SHAPE_FUNCTION_TRANSFER;
     else
-        return LST;
+        return InterpolationTypes::LEAST_SQUARE_TRANSFER;
 }
 
 }  // namespace Kratos.

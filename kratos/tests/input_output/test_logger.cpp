@@ -43,7 +43,7 @@ namespace Kratos {
 			KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::DETAIL);
             KRATOS_CHECK_EQUAL(message.GetCategory(), LoggerMessage::Category::CRITICAL);
             KRATOS_CHECK_NOT_EQUAL(message.GetLocation().GetFileName().find("test_logger.cpp"), std::string::npos);
-            KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), "virtual void Kratos::Testing::TestLoggerMessageStream::TestFunction()");
+            KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), KRATOS_CURRENT_FUNCTION);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), 40);
 		}
 
