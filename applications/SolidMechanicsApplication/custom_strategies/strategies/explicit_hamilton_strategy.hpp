@@ -44,33 +44,23 @@ public:
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+    typedef typename BaseType::BuilderAndSolverType BuilderAndSolverType;
 
-    typedef typename BaseType::TDataType TDataType;
+    typedef TLinearSolver LinearSolverType;
 
     typedef TSparseSpace SparseSpaceType;
 
-    typedef typename BaseType::TSchemeType TSchemeType;
+    typedef typename BaseType::SchemeType SchemeType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    typedef typename BaseType::SystemMatrixType SystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    typedef typename BaseType::SystemVectorType SystemVectorType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::SystemMatrixPointerType SystemMatrixPointerType;
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-
-    typedef ModelPart::NodesContainerType NodesArrayType;
-
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-
-    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    typedef typename BaseType::SystemVectorPointerType SystemVectorPointerType;
 
 
     /** Constructors.
@@ -85,8 +75,8 @@ public:
 
     ExplicitHamiltonStrategy(
         ModelPart& model_part,
-        typename TSchemeType::Pointer pScheme,
-        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename SchemeType::Pointer pScheme,
+        typename LinearSolverType::Pointer pNewLinearSolver,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
@@ -107,7 +97,7 @@ public:
         mpLinearSolver = pNewLinearSolver; //Not used in explicit strategies
 
         //setting up the default builder and solver
-        mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
+        mpBuilderAndSolver = typename BuilderAndSolverType::Pointer
                              (
                                  new ExplicitHamiltonBuilderAndSolver <TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
                              );
@@ -143,24 +133,24 @@ public:
 
     //Set and Get Scheme ... containing Builder, Update and other
 
-    void SetScheme(typename TSchemeType::Pointer pScheme)
+    void SetScheme(typename SchemeType::Pointer pScheme)
     {
         mpScheme = pScheme;
     };
 
-    typename TSchemeType::Pointer GetScheme()
+    typename SchemeType::Pointer GetScheme()
     {
         return mpScheme;
     };
     
      //Set and Get the BuilderAndSolver
 
-    void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
+    void SetBuilderAndSolver(typename BuilderAndSolverType::Pointer pNewBuilderAndSolver)
     {
         mpBuilderAndSolver = pNewBuilderAndSolver;
     };
 
-    typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
+    typename BuilderAndSolverType::Pointer GetBuilderAndSolver()
     {
         return mpBuilderAndSolver;
     };
@@ -220,13 +210,13 @@ public:
         KRATOS_TRY
 
         //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme                     = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+        typename SchemeType::Pointer pScheme                     = GetScheme();
+        typename BuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
-        TSystemMatrixType mA  = TSystemMatrixType();   //dummy initialization. Not used in builder and solver.
-	TSystemVectorType mDx = TSystemVectorType();
-	TSystemVectorType mb  = TSystemVectorType();
+        SystemMatrixType mA  = SystemMatrixType();   //dummy initialization. Not used in builder and solver.
+	SystemVectorType mDx = SystemVectorType();
+	SystemVectorType mb  = SystemVectorType();
 
         //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
         if (pScheme->SchemeIsInitialized() == false)
@@ -254,13 +244,13 @@ public:
     {
         KRATOS_TRY
 
-        typename TSchemeType::Pointer pScheme                     = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+        typename SchemeType::Pointer pScheme                     = GetScheme();
+        typename BuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         ModelPart& r_model_part                                   = BaseType::GetModelPart();
 
-        TSystemMatrixType mA = TSystemMatrixType();   //dummy initialization. Not used in builder and solver.
-        TSystemVectorType mDx = TSystemVectorType();
-        TSystemVectorType mb = TSystemVectorType();
+        SystemMatrixType mA = SystemMatrixType();   //dummy initialization. Not used in builder and solver.
+        SystemVectorType mDx = SystemVectorType();
+        SystemVectorType mb = SystemVectorType();
 
         //initial operations ... things that are constant over the Solution Step
         pScheme->InitializeSolutionStep(BaseType::GetModelPart(), mA, mDx, mb);
@@ -300,13 +290,13 @@ public:
         KRATOS_TRY
         
         DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
-        TSystemMatrixType mA  = TSystemMatrixType();
-        TSystemVectorType mDx = TSystemVectorType();
-        TSystemVectorType mb  = TSystemVectorType();
+        SystemMatrixType mA  = SystemMatrixType();
+        SystemVectorType mDx = SystemVectorType();
+        SystemVectorType mb  = SystemVectorType();
 
         //pointers needed in the solution
-        typename TSchemeType::Pointer pScheme = GetScheme();
-        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+        typename SchemeType::Pointer pScheme = GetScheme();
+        typename BuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
         
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
@@ -491,15 +481,15 @@ protected:
     /**@name Member Variables */
     /*@{ */
 
-    typename TSchemeType::Pointer mpScheme;
+    typename SchemeType::Pointer mpScheme;
 
-    typename TLinearSolver::Pointer mpLinearSolver;
+    typename LinearSolverType::Pointer mpLinearSolver;
 
-    typename TBuilderAndSolverType::Pointer mpBuilderAndSolver;
+    typename BuilderAndSolverType::Pointer mpBuilderAndSolver;
 
-    TSystemVectorPointerType mpDx;
-    TSystemVectorPointerType mpb;
-    TSystemMatrixPointerType mpA;
+    SystemVectorPointerType mpDx;
+    SystemVectorPointerType mpb;
+    SystemMatrixPointerType mpA;
 
 
     /**

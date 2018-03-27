@@ -162,15 +162,24 @@ class MechanicalSolver(object):
         if self.solving_strategy_settings["clear_storage"].GetBool():
             self.Clear()
         mechanical_solver = self._get_mechanical_solver()
-        mechanical_solver.SetEchoLevel(self.echo_level)
-        if( self._is_not_restarted() ):
-            mechanical_solver.Initialize()
-        else:
-            # SetInitializePerformedFlag is not a member of SolvingStrategy but
-            # is used by ResidualBasedNewtonRaphsonStrategy.
+        #mechanical_solver.SetEchoLevel(self.echo_level)
+        #if( self._is_not_restarted() ):
+        #    mechanical_solver.Initialize()
+        #else:
+        #    # SetInitializePerformedFlag is not a member of SolvingStrategy but
+        #    # is used by ResidualBasedNewtonRaphsonStrategy.
+        #    self._get_solution_scheme().Initialize(self.main_model_part)
+        #    if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
+        #        mechanical_solver.SetInitializePerformedFlag(True)
+        #    else:
+        #        mechanical_solver.Set(KratosSolid.StrategyLocalFlags.INITIALIZED, True)
+        if( not self._is_not_restarted() ):
             self._get_solution_scheme().Initialize(self.main_model_part)
             if hasattr(mechanical_solver, 'SetInitializePerformedFlag'):
                 mechanical_solver.SetInitializePerformedFlag(True)
+            else:
+                mechanical_solver.Set(KratosSolid.StrategyLocalFlags.INITIALIZED, True)
+        
         self.Check()
 
         print("::[Mechanical_Solver]:: Solver Ready")
@@ -208,9 +217,6 @@ class MechanicalSolver(object):
 
     def InitializeSolutionStep(self):
         self._get_mechanical_solver().InitializeSolutionStep()
-
-    def Predict(self):
-        self._get_mechanical_solver().Predict()
 
     def SolveSolutionStep(self):
         is_converged = self._get_mechanical_solver().SolveSolutionStep()

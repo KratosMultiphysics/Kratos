@@ -97,10 +97,19 @@ class ExplicitMechanicalSolver(BaseSolver.MechanicalSolver):
 
     def _create_explicit_strategy(self):
         mechanical_scheme = self._get_solution_scheme()
-        linear_solver = self._get_linear_solver()
-        return KratosSolid.ExplicitStrategy(self.model_part,
-                                            mechanical_scheme,
-                                            linear_solver,
-                                            self.solving_strategy_settings["compute_reactions"].GetBool(),
-                                            self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool(),
-                                            self.solving_strategy_settings["move_mesh_flag"].GetBool())
+        #linear_solver = self._get_linear_solver()
+        
+        options = KratosMultiphysics.Flags()
+        options.Set(KratosSolid.StrategyLocalFlags.COMPUTE_REACTIONS, self.solving_strategy_settings["compute_reactions"].GetBool())
+        options.Set(KratosSolid.StrategyLocalFlags.REFORM_DOFS, self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolid.StrategyLocalFlags.MOVE_MESH, self.solving_strategy_settings["move_mesh_flag"].GetBool())
+
+        return KratosSolid.ExplicitStrategy(self.model_part, mechanical_scheme, options)
+
+        
+        #return KratosSolid.ExplicitStrategy(self.model_part,
+        #                                    mechanical_scheme,
+        #                                    linear_solver,
+        #                                    self.solving_strategy_settings["compute_reactions"].GetBool(),
+        #                                    self.solving_strategy_settings["reform_dofs_at_each_step"].GetBool(),
+        #                                    self.solving_strategy_settings["move_mesh_flag"].GetBool())

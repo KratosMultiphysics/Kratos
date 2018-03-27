@@ -21,13 +21,14 @@
 #include "spaces/ublas_space.h"
 
 //strategies
-#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
-
+#include "custom_strategies/strategies/linear_strategy.hpp"
+#include "custom_strategies/strategies/newton_raphson_strategy.hpp"
 #include "custom_strategies/strategies/component_wise_newton_raphson_strategy.hpp"
-#include "custom_strategies/strategies/residual_based_newton_raphson_line_search_strategy.hpp"
-#include "custom_strategies/strategies/residual_based_newton_raphson_line_search_implex_strategy.hpp"
+#include "custom_strategies/strategies/line_search_strategy.hpp"
 #include "custom_strategies/strategies/explicit_strategy.hpp" 
-#include "custom_strategies/strategies/eigensolver_strategy.hpp" 
+#include "custom_strategies/strategies/eigensolver_strategy.hpp"
+
+// to update
 #include "custom_strategies/strategies/explicit_hamilton_strategy.hpp"
 
 //builders and solvers
@@ -72,22 +73,20 @@ namespace Kratos
       typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
       typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
       typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-      typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+      //typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+      typedef SolutionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolutionStrategyType;
       typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-      typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+      typedef Scheme< SparseSpaceType, LocalSpaceType > SchemeType;
       typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
-      typedef BuilderAndSolverType::Pointer BuilderAndSolverPointer;
-
 
       //custom strategy types
-      typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
+      typedef LinearStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LinearStrategyType;
+      typedef NewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > NewtonRaphsonStrategyType;
       typedef ComponentWiseNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseNewtonRaphsonStrategyType;
-      typedef ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchStrategyType;
-      typedef ResidualBasedNewtonRaphsonLineSearchImplexStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchImplexStrategyType;
+      typedef LineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > LineSearchStrategyType;
       typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitStrategyType;
       typedef ExplicitHamiltonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitHamiltonStrategyType;
       typedef EigensolverStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > EigensolverStrategyType;
-
 
       //custom builder_and_solver types
       typedef ComponentWiseBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseBuilderAndSolverType;
@@ -145,89 +144,84 @@ namespace Kratos
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
 
-      // Solid Mechanics Explicit Strategy
-      class_< ExplicitStrategyType, 
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
-	(
-	 "ExplicitStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool >())
+      // Strategy Local Flags
+      class_<StrategyLocalFlags, boost::noncopyable> ("StrategyLocalFlags", init<>() )
+          .def_readonly("INITIALIZED", &StrategyLocalFlags::INITIALIZED)
+          .def_readonly("MOVE_MESH", &StrategyLocalFlags::MOVE_MESH)
+          .def_readonly("REFORM_DOFS", &StrategyLocalFlags::REFORM_DOFS)
+          .def_readonly("CONSTANT_SYSTEM_LHS", &StrategyLocalFlags::CONSTANT_SYSTEM_LHS)
+          .def_readonly("COMPUTE_REACTIONS", &StrategyLocalFlags::COMPUTE_REACTIONS)
+          .def_readonly("IMPLEX", &StrategyLocalFlags::IMPLEX)
+          ;
       
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
-	.def("SetInitializePerformedFlag", &ExplicitStrategyType::SetInitializePerformedFlag)
-	.def("GetInitializePerformedFlag", &ExplicitStrategyType::GetInitializePerformedFlag)
+      // Solid Mechanics Base Strategy
+      class_< SolutionStrategyType, bases<Flags>, boost::noncopyable >("SolutionStrategy", init< ModelPart& >() )
+         .def(init < ModelPart&, Flags& >())
+         .def("InitializeSolutionStep", &SolutionStrategyType::InitializeSolutionStep)
+         .def("FinalizeSolutionStep", &SolutionStrategyType::InitializeSolutionStep)
+         .def("SolveSolutionStep", &SolutionStrategyType::SolveSolutionStep )
+         .def("Solve", &SolutionStrategyType::Solve)
+         .def("Check", &SolutionStrategyType::Check)
+         .def("Clear", &SolutionStrategyType::Clear)
+         .def("SetOptions", &SolutionStrategyType::SetOptions)
+         ;
+
+      // Solid Mechanics Linear Strategy
+      class_< LinearStrategyType, 
+	      bases< SolutionStrategyType >, boost::noncopyable >
+          ("LinearStrategy",init < ModelPart&, SchemeType::Pointer, BuilderAndSolverType::Pointer, Flags& >() )
+          .def(init < ModelPart&, SchemeType::Pointer, LinearSolverType::Pointer, Flags& >())
+	;
+      
+      // Solid Mechanics Newton Raphson Strategy
+      class_< NewtonRaphsonStrategyType, 
+	      bases< SolutionStrategyType >, boost::noncopyable >
+          ("NewtonRaphsonStrategy",init < ModelPart&, SchemeType::Pointer, BuilderAndSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >() )
+          .def(init < ModelPart&, SchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >())
+          .def("SetMaxIterationNumber", &NewtonRaphsonStrategyType::SetMaxIterationNumber)
+          .def("GetMaxIterationNumber", &NewtonRaphsonStrategyType::GetMaxIterationNumber)  
 	;
 
+      // Solid Mechanics Newton Raphson Line Search Strategy
+      class_< LineSearchStrategyType, 
+	      bases< NewtonRaphsonStrategyType >, boost::noncopyable >
+          ("LineSearchStrategy",init < ModelPart&, SchemeType::Pointer, BuilderAndSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >() )
+          .def(init < ModelPart&, SchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >())
+	;
+      
+      // Solid Mechanics Explicit Strategy
+      class_< ExplicitStrategyType, 
+	      bases< SolutionStrategyType >, boost::noncopyable >
+          ("ExplicitStrategy",init < ModelPart&, SchemeType::Pointer, Flags& >() )
+	;
         
       // Component Wise Newton-Raphson Strategy
       class_< ComponentWiseNewtonRaphsonStrategyType, 
-	      bases< ResidualBasedNewtonRaphsonStrategyType >, boost::noncopyable >
+	      bases< NewtonRaphsonStrategyType >, boost::noncopyable >
 	(
 	 "ComponentWiseNewtonRaphsonStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool >())
-      
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-	.def("SetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::SetMaxIterationNumber)
-	.def("GetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::GetMaxIterationNumber)
-	.def("SetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
-	.def("GetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
-
+	 init <ModelPart&, SchemeType::Pointer, BuilderAndSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >() )
+          .def(init < ModelPart&, SchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, Flags&, unsigned int >())
 	;
-  
+ 
 
-      // Residual Based Newton-Raphson Line Search Strategy
-      class_< ResidualBasedNewtonRaphsonLineSearchStrategyType, 
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
+      // Eigensolver Strategy
+      class_< EigensolverStrategyType,
+	      bases< SolutionStrategyType >, boost::noncopyable >
 	(
-	 "ResidualBasedNewtonRaphsonLineSearchStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool>())
-      
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-	.def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetMaxIterationNumber)
-	.def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetMaxIterationNumber)
-	.def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetInitializePerformedFlag)
-	.def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetInitializePerformedFlag)
-	.def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetKeepSystemConstantDuringIterations)
-	.def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetKeepSystemConstantDuringIterations)
-	.def("SetFinalizeSolutionStepFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetFinalizeSolutionStepFlag)
-	.def("GetFinalizeSolutionStepFlag", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetFinalizeSolutionStepFlag)
+            "EigensolverStrategy", init<ModelPart&, SchemeType::Pointer, BuilderAndSolverType::Pointer, Flags&, bool>() )
 	;
-     
+
       
-      // Residual Based Newton-Raphson Line Search Implex Strategy
-      class_< ResidualBasedNewtonRaphsonLineSearchImplexStrategyType, 
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
-	(
-	 "ResidualBasedNewtonRaphsonLineSearchImplexStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool>())
+      // // Explicit Hamilton Estrategy for Explicit Beam solution
+      // class_< ExplicitHamiltonStrategyType, 
+      //         bases< BaseSolvingStrategyType >, boost::noncopyable >
+      //   (
+      //    "ExplicitHamiltonStrategy",
+      //    init < ModelPart&, SchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool>())
 	
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-	.def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetMaxIterationNumber)
-	.def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetMaxIterationNumber)
-	.def("SetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetInitializePerformedFlag)
-	.def("GetInitializePerformedFlag", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetInitializePerformedFlag)
-	.def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::SetKeepSystemConstantDuringIterations)
-	.def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchImplexStrategyType::GetKeepSystemConstantDuringIterations)
-	;
-
-      // Explicit Hamilton Estrategy for Explicit Beam solution
-      class_< ExplicitHamiltonStrategyType, 
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
-	(
-	 "ExplicitHamiltonStrategy",
-	 init < ModelPart&, BaseSchemeType::Pointer,  LinearSolverType::Pointer, bool, bool, bool>())
-	
-	.def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
-	.def("SetInitializePerformedFlag", &ExplicitHamiltonStrategyType::SetInitializePerformedFlag)
-	.def("GetInitializePerformedFlag", &ExplicitHamiltonStrategyType::GetInitializePerformedFlag)
-	;
-
-      // Eigensolver Scheme Type
-      class_< EigensolverDynamicSchemeType, EigensolverDynamicSchemeType::Pointer,
-	      bases< BaseSchemeType >, boost::noncopyable >
-	(
-	 "EigensolverDynamicScheme",
-	 init<>())
-	;
+      //   .def(init < ModelPart&, SchemeType::Pointer, LinearSolverType::Pointer,  bool, bool, bool >())
+      //   ;
 
       
       //********************************************************************
@@ -255,7 +249,7 @@ namespace Kratos
 
       // Component Wise Bossak Scheme Type
       class_< ComponentWiseBossakSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
+	      bases< SchemeType >,  boost::noncopyable >
 	(
 	 "ComponentWiseBossakScheme", init< double >() )
 
@@ -265,7 +259,7 @@ namespace Kratos
 
       // Explicit scheme: Central differences 
       class_< ExplicitCentralDifferencesSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
+	      bases< SchemeType >,  boost::noncopyable >
 	(
 	 "ExplicitCentralDifferencesScheme", init< const double, const double, const double, const bool >() )
 
@@ -274,7 +268,7 @@ namespace Kratos
 
       // Residual Based Rotational Newmark Scheme Type
       class_< ResidualBasedRotationNewmarkSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
+	      bases< SchemeType >,  boost::noncopyable >
 	(
 	 "ResidualBasedRotationNewmarkScheme", init< double, double >() )
 	
@@ -283,7 +277,7 @@ namespace Kratos
 
       // Residual Based Rotational Simo Scheme Type
       class_< ResidualBasedRotationSimoSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
+	      bases< SchemeType >,  boost::noncopyable >
 	(
 	 "ResidualBasedRotationSimoScheme", init< double, double >() )
 	
@@ -292,7 +286,7 @@ namespace Kratos
 
       // Residual Based Rotational EMC Scheme Type
       class_< ResidualBasedRotationEMCSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
+	      bases< SchemeType >,  boost::noncopyable >
 	(
 	 "ResidualBasedRotationEMCScheme", init< double >() )
 	
@@ -301,7 +295,7 @@ namespace Kratos
 
       // Explicit Hamilton Scheme Type
       class_< ExplicitHamiltonSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
+	      bases< SchemeType >,  boost::noncopyable >
 	(
 	 "ExplicitHamiltonScheme", init< double, double, double, bool >() )
 	
@@ -311,7 +305,7 @@ namespace Kratos
 
       // Residual Based Displacement Static Scheme Type
       class_< ResidualBasedDisplacementStaticSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	      bases< SchemeType >,  boost::noncopyable >
       	(
       	 "ResidualBasedDisplacementStaticScheme", init<>() )
       	.def("Initialize", &ResidualBasedDisplacementStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
@@ -319,7 +313,7 @@ namespace Kratos
 	    
       // Residual Based Displacement Rotation Static Scheme Type
       class_< ResidualBasedDisplacementRotationStaticSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	      bases< SchemeType >,  boost::noncopyable >
       	(
       	 "ResidualBasedDisplacementRotationStaticScheme", init<>() )
       	.def("Initialize", &ResidualBasedDisplacementRotationStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
@@ -327,7 +321,7 @@ namespace Kratos
 
       // Residual Based Displacement Newmark Scheme Type
       class_< ResidualBasedDisplacementNewmarkSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	      bases< SchemeType >,  boost::noncopyable >
       	(
       	 "ResidualBasedDisplacementNewmarkScheme", init<>() )
       	.def("Initialize", &ResidualBasedDisplacementNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
@@ -335,7 +329,7 @@ namespace Kratos
 	    
       // Residual Based Displacement Rotation Newmark Scheme Type
       class_< ResidualBasedDisplacementRotationNewmarkSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	      bases< SchemeType >,  boost::noncopyable >
       	(
       	 "ResidualBasedDisplacementRotationNewmarkScheme", init<>() )
       	.def("Initialize", &ResidualBasedDisplacementRotationNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
@@ -343,7 +337,7 @@ namespace Kratos
       
       // Residual Based Displacement Bossak Scheme Type
       class_< ResidualBasedDisplacementBossakSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	      bases< SchemeType >,  boost::noncopyable >
       	(
       	 "ResidualBasedDisplacementBossakScheme", init<>() )
       	.def("Initialize", &ResidualBasedDisplacementBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
@@ -351,7 +345,7 @@ namespace Kratos
       
       // Residual Based Displacement Rotation Bossak Scheme Type
       class_< ResidualBasedDisplacementRotationBossakSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	      bases< SchemeType >,  boost::noncopyable >
       	(
       	 "ResidualBasedDisplacementRotationBossakScheme", init<>() )
       	.def("Initialize", &ResidualBasedDisplacementRotationBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
@@ -359,7 +353,7 @@ namespace Kratos
 
       // Residual Based Displacement Simo Scheme Type
       class_< ResidualBasedDisplacementSimoSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	      bases< SchemeType >,  boost::noncopyable >
       	(
       	 "ResidualBasedDisplacementSimoScheme", init<>() )
       	.def("Initialize", &ResidualBasedDisplacementSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
@@ -367,7 +361,7 @@ namespace Kratos
 
       // Residual Based Displacement Rotation Simo Scheme Type
       class_< ResidualBasedDisplacementRotationSimoSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	      bases< SchemeType >,  boost::noncopyable >
       	(
       	 "ResidualBasedDisplacementRotationSimoScheme", init<>() )
       	.def("Initialize", &ResidualBasedDisplacementRotationSimoScheme<SparseSpaceType, LocalSpaceType>::Initialize)
@@ -375,11 +369,20 @@ namespace Kratos
       
       // Residual Based Displacement Rotation Emc Scheme Type
       class_< ResidualBasedDisplacementRotationEmcSchemeType,
-      	      bases< BaseSchemeType >,  boost::noncopyable >
+      	      bases< SchemeType >,  boost::noncopyable >
       	(
       	 "ResidualBasedDisplacementRotationEmcScheme", init<>() )
       	.def("Initialize", &ResidualBasedDisplacementRotationEmcScheme<SparseSpaceType, LocalSpaceType>::Initialize)
       	;
+
+
+      // Eigensolver Scheme Type
+      class_< EigensolverDynamicSchemeType, EigensolverDynamicSchemeType::Pointer,
+	      bases< SchemeType >, boost::noncopyable >
+	(
+	 "EigensolverDynamicScheme",
+	 init<>())
+	;
 
       //********************************************************************
       //*******************CONVERGENCE CRITERIA CLASSES*********************
@@ -405,13 +408,6 @@ namespace Kratos
 	;
 
       
-      // Eigensolver Strategy
-      class_< EigensolverStrategyType,
-	      bases< BaseSolvingStrategyType >, boost::noncopyable >
-	(
-	 "EigensolverStrategy", init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
-	;
-
 
 
       //********************************************************************

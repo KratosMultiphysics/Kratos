@@ -169,7 +169,8 @@ class Solution(object):
 
         self.output.ExecuteInitializeSolutionStep()
 
-        self.solver.InitializeSolutionStep()
+        # Step by step (1)
+        #self.solver.InitializeSolutionStep()
 
         self._stop_time_measuring(self.clock_time,"Initialize Step", self.report);
 
@@ -178,11 +179,8 @@ class Solution(object):
 
         self.clock_time = self._start_time_measuring();
 
-        #self.solver.Predict()
-
+        # Step by step (2)
         #self.solver.SolveSolutionStep()
-
-        #self.solver.FinalizeSolutionStep()
 
         self.solver.Solve()
 
@@ -193,6 +191,9 @@ class Solution(object):
 
         self.clock_time = self._start_time_measuring();
 
+        # Step by step (3)
+        #self.solver.FinalizeSolutionStep()
+        
         self.output.ExecuteFinalizeSolutionStep()
 
         # Processes to be executed at the end of the solution step

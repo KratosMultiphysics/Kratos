@@ -88,35 +88,30 @@ namespace Kratos
             public:
                /**@name Type Definitions */
                /*@{ */
-               typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
+               typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> ConvergenceCriterionType;
 
                /** Counted pointer of ClassName */
                KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonLineSearchStrategy );
 
                typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-               typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+               typedef typename BaseType::BuilderAndSolverType BuilderAndSolverType;
+           
+               typedef typename BaseType::SchemeType SchemeType;
 
-               typedef typename BaseType::TDataType TDataType;
-
+               typedef TLinearSolver LinearSolverType;
+           
                typedef TSparseSpace SparseSpaceType;
-
-               typedef typename BaseType::TSchemeType TSchemeType;
-
-               //typedef typename BaseType::DofSetType DofSetType;
 
                typedef typename BaseType::DofsArrayType DofsArrayType;
 
-               typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+               typedef typename BaseType::SystemMatrixType SystemMatrixType;
 
-               typedef typename BaseType::TSystemVectorType TSystemVectorType;
+               typedef typename BaseType::SystemVectorType SystemVectorType;
 
-               typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+               typedef typename BaseType::SystemMatrixPointerType SystemMatrixPointerType;
 
-               typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-               typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-               typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+               typedef typename BaseType::SystemVectorPointerType SystemVectorPointerType;
 
 
                /*@} */
@@ -128,9 +123,9 @@ namespace Kratos
                 */
                ResidualBasedNewtonRaphsonLineSearchStrategy(
                      ModelPart& model_part,
-                     typename TSchemeType::Pointer pScheme,
-                     typename TLinearSolver::Pointer pNewLinearSolver,
-                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+                     typename SchemeType::Pointer pScheme,
+                     typename LinearSolverType::Pointer pNewLinearSolver,
+                     typename ConvergenceCriterionType::Pointer pNewConvergenceCriteria,
                      int MaxIterations = 30,
                      bool CalculateReactions = false,
                      bool ReformDofSetAtEachStep = false,
@@ -159,7 +154,7 @@ namespace Kratos
                   mpLinearSolver = pNewLinearSolver;
 
                   //setting up the default builder and solver
-                  mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
+                  mpBuilderAndSolver = typename BuilderAndSolverType::Pointer
                      (
                       new ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
                      );
@@ -189,10 +184,10 @@ namespace Kratos
 
                ResidualBasedNewtonRaphsonLineSearchStrategy(
                      ModelPart& model_part,
-                     typename TSchemeType::Pointer pScheme,
-                     typename TLinearSolver::Pointer pNewLinearSolver,
-                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-                     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+                     typename SchemeType::Pointer pScheme,
+                     typename LinearSolverType::Pointer pNewLinearSolver,
+                     typename ConvergenceCriterionType::Pointer pNewConvergenceCriteria,
+                     typename BuilderAndSolverType::Pointer pNewBuilderAndSolver,
                      int MaxIterations = 30,
                      bool CalculateReactions = false,
                      bool ReformDofSetAtEachStep = false,
@@ -259,24 +254,24 @@ namespace Kratos
 
                //Set and Get Scheme ... containing Builder, Update and other
 
-               void SetScheme(typename TSchemeType::Pointer pScheme)
+               void SetScheme(typename SchemeType::Pointer pScheme)
                {
                   mpScheme = pScheme;
                };
 
-               typename TSchemeType::Pointer GetScheme()
+               typename SchemeType::Pointer GetScheme()
                {
                   return mpScheme;
                };
 
                //Set and Get the BuilderAndSolver
 
-               void SetBuilderAndSolver(typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver)
+               void SetBuilderAndSolver(typename BuilderAndSolverType::Pointer pNewBuilderAndSolver)
                {
                   mpBuilderAndSolver = pNewBuilderAndSolver;
                };
 
-               typename TBuilderAndSolverType::Pointer GetBuilderAndSolver()
+               typename BuilderAndSolverType::Pointer GetBuilderAndSolver()
                {
                   return mpBuilderAndSolver;
                };
@@ -372,9 +367,9 @@ namespace Kratos
 
                   DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
-                  TSystemMatrixType& mA = *mpA;
-                  TSystemVectorType& mDx = *mpDx;
-                  TSystemVectorType& mb = *mpb;
+                  SystemMatrixType& mA = *mpA;
+                  SystemVectorType& mDx = *mpDx;
+                  SystemVectorType& mb = *mpb;
 
 
                   GetScheme()->Predict(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
@@ -395,8 +390,8 @@ namespace Kratos
                   {
 
                      //pointers needed in the solution
-                     typename TSchemeType::Pointer pScheme = GetScheme();
-                     typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
+                     typename SchemeType::Pointer pScheme = GetScheme();
+                     typename ConvergenceCriterionType::Pointer pConvergenceCriteria = mpConvergenceCriteria;
 
                      //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
                      if (pScheme->SchemeIsInitialized() == false)
@@ -462,8 +457,8 @@ namespace Kratos
                {
                   KRATOS_TRY
 
-                  typename TSchemeType::Pointer pScheme = GetScheme();
-                  typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+                  typename SchemeType::Pointer pScheme = GetScheme();
+                  typename BuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
 
 
@@ -492,9 +487,9 @@ namespace Kratos
                      //setting up the Vectors involved to the correct size
                      pBuilderAndSolver->ResizeAndInitializeVectors(pScheme, mpA, mpDx, mpb, BaseType::GetModelPart().Elements(), BaseType::GetModelPart().Conditions(), BaseType::GetModelPart().GetProcessInfo());
 
-                     TSystemMatrixType& mA = *mpA;
-                     TSystemVectorType& mDx = *mpDx;
-                     TSystemVectorType& mb = *mpb;
+                     SystemMatrixType& mA = *mpA;
+                     SystemVectorType& mDx = *mpDx;
+                     SystemVectorType& mb = *mpb;
 
 
                      //initial operations ... things that are constant over the Solution Step
@@ -521,12 +516,12 @@ namespace Kratos
                   KRATOS_TRY
 
                   //pointers needed in the solution
-                  typename TSchemeType::Pointer pScheme = GetScheme();
-                  typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+                  typename SchemeType::Pointer pScheme = GetScheme();
+                  typename BuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
-                  TSystemMatrixType& mA = *mpA;
-                  TSystemVectorType& mDx = *mpDx;
-                  TSystemVectorType& mb = *mpb;
+                  SystemMatrixType& mA = *mpA;
+                  SystemVectorType& mDx = *mpDx;
+                  SystemVectorType& mb = *mpb;
 
                   //Finalisation of the solution step,
                   //operations to be done after achieving convergence, for example the
@@ -566,14 +561,14 @@ namespace Kratos
                   KRATOS_TRY
 
                   //pointers needed in the solution
-                  typename TSchemeType::Pointer pScheme = GetScheme();
-                  typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
+                  typename SchemeType::Pointer pScheme = GetScheme();
+                  typename BuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
 
                   DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
-                  TSystemMatrixType& mA = *mpA;
-                  TSystemVectorType& mDx = *mpDx;
-                  TSystemVectorType& mb = *mpb;
+                  SystemMatrixType& mA = *mpA;
+                  SystemVectorType& mDx = *mpDx;
+                  SystemVectorType& mb = *mpb;
 
 
                   //initializing the parameters of the Newton-Raphson cicle
@@ -775,9 +770,9 @@ namespace Kratos
                {
                   KRATOS_TRY
 
-                  TSystemMatrixType& mA  = *mpA;
-                  TSystemVectorType& mDx = *mpDx;
-                  TSystemVectorType& mb  = *mpb;
+                  SystemMatrixType& mA  = *mpA;
+                  SystemVectorType& mDx = *mpDx;
+                  SystemVectorType& mb  = *mpb;
 
                   LineSearchCalculationUtilities<TSparseSpace, TDenseSpace, TLinearSolver> LineSearch(this->GetEchoLevel(), BaseType::MoveMeshFlag());
 
@@ -817,9 +812,9 @@ namespace Kratos
                {
                   KRATOS_TRY
 
-                  TSystemMatrixType& mA = *mpA;
-                  TSystemVectorType& mDx = *mpDx;
-                  TSystemVectorType& mb = *mpb;
+                  SystemMatrixType& mA = *mpA;
+                  SystemVectorType& mDx = *mpDx;
+                  SystemVectorType& mb = *mpb;
 
 
                   if (mpConvergenceCriteria->mActualizeRHSIsNeeded == true)
@@ -844,9 +839,9 @@ namespace Kratos
                 */
                void CalculateOutputData()
                {
-                  TSystemMatrixType& mA = *mpA;
-                  TSystemVectorType& mDx = *mpDx;
-                  TSystemVectorType& mb = *mpb;
+                  SystemMatrixType& mA = *mpA;
+                  SystemVectorType& mDx = *mpDx;
+                  SystemVectorType& mb = *mpb;
 
                   DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
                   GetScheme()->CalculateOutputData(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
@@ -862,9 +857,9 @@ namespace Kratos
                   if (this->GetEchoLevel() > 1) //if it is needed to print info
                      std::cout << "Newton Raphson strategy Clear function used" << std::endl;
 
-                  TSystemMatrixType& mA = *mpA;
-                  TSystemVectorType& mDx = *mpDx;
-                  TSystemVectorType& mb = *mpb;
+                  SystemMatrixType& mA = *mpA;
+                  SystemVectorType& mDx = *mpDx;
+                  SystemVectorType& mb = *mpb;
 
                   SparseSpaceType::Clear(mpA);
                   SparseSpaceType::Resize(mA, 0, 0);
@@ -900,23 +895,23 @@ namespace Kratos
 
                /*@{ */
 
-               TSystemMatrixType& GetSystemMatrix()
+               SystemMatrixType& GetSystemMatrix()
                {
-                  TSystemMatrixType& mA = *mpA;
+                  SystemMatrixType& mA = *mpA;
 
                   return mA;
                }
 
-               TSystemVectorType& GetSystemDx()
+               SystemVectorType& GetSystemDx()
                {
-                  TSystemVectorType& mDx = *mpDx;
+                  SystemVectorType& mDx = *mpDx;
 
                   return mDx; 
                }
 
-               TSystemVectorType& GetSystemb()
+               SystemVectorType& GetSystemb()
                {
-                  TSystemVectorType& mb = *mpb;
+                  SystemVectorType& mb = *mpb;
 
                   return mb; 
                }
@@ -992,20 +987,20 @@ namespace Kratos
                /**@name Member Variables */
                /*@{ */
 
-               typename TSchemeType::Pointer mpScheme;
+               typename SchemeType::Pointer mpScheme;
 
-               typename TLinearSolver::Pointer mpLinearSolver;
+               typename LinearSolverType::Pointer mpLinearSolver;
 
-               typename TBuilderAndSolverType::Pointer mpBuilderAndSolver;
+               typename BuilderAndSolverType::Pointer mpBuilderAndSolver;
 
-               typename TConvergenceCriteriaType::Pointer mpConvergenceCriteria;
+               typename ConvergenceCriterionType::Pointer mpConvergenceCriteria;
 
-               /*		TSystemVectorType mDx;
-                     TSystemVectorType mb;
-                     TSystemMatrixType mA;*/
-               TSystemVectorPointerType mpDx;
-               TSystemVectorPointerType mpb;
-               TSystemMatrixPointerType mpA;
+               /*		SystemVectorType mDx;
+                     SystemVectorType mb;
+                     SystemMatrixType mA;*/
+               SystemVectorPointerType mpDx;
+               SystemVectorPointerType mpb;
+               SystemMatrixPointerType mpA;
 
                /**
                  Flag telling if it is needed to reform the DofSet at each

@@ -92,7 +92,7 @@ namespace Kratos
             public:
                /**@name Type Definitions */
                /*@{ */
-               typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
+               typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> ConvergenceCriterionType;
 
                /** Counted pointer of ClassName */
 
@@ -100,28 +100,23 @@ namespace Kratos
 
                typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-               typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+               typedef typename BaseType::BuilderAndSolverType BuilderAndSolverType;
 
-               typedef typename BaseType::TDataType TDataType;
-
+               typedef TLinearSolver LinearSolverType;
+           
                typedef TSparseSpace SparseSpaceType;
 
-               typedef typename BaseType::TSchemeType TSchemeType;
-
-               //typedef typename BaseType::DofSetType DofSetType;
+               typedef typename BaseType::SchemeType SchemeType;
 
                typedef typename BaseType::DofsArrayType DofsArrayType;
 
-               typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+               typedef typename BaseType::SystemMatrixType SystemMatrixType;
 
-               typedef typename BaseType::TSystemVectorType TSystemVectorType;
+               typedef typename BaseType::SystemVectorType SystemVectorType;
 
-               typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+               typedef typename BaseType::SystemMatrixPointerType SystemMatrixPointerType;
 
-               typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-               typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-               typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+               typedef typename BaseType::SystemVectorPointerType SystemVectorPointerType;
 
 
                /*@} */
@@ -133,9 +128,9 @@ namespace Kratos
                 */
                ResidualBasedNewtonRaphsonLineSearchImplexStrategy(
                      ModelPart& model_part,
-                     typename TSchemeType::Pointer pScheme,
-                     typename TLinearSolver::Pointer pNewLinearSolver,
-                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+                     typename SchemeType::Pointer pScheme,
+                     typename LinearSolverType::Pointer pNewLinearSolver,
+                     typename ConvergenceCriterionType::Pointer pNewConvergenceCriteria,
                      int MaxIterations = 30,
                      bool CalculateReactions = false,
                      bool ReformDofSetAtEachStep = false,
@@ -152,10 +147,10 @@ namespace Kratos
 
                ResidualBasedNewtonRaphsonLineSearchImplexStrategy(
                      ModelPart& model_part,
-                     typename TSchemeType::Pointer pScheme,
-                     typename TLinearSolver::Pointer pNewLinearSolver,
-                     typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-                     typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
+                     typename SchemeType::Pointer pScheme,
+                     typename LinearSolverType::Pointer pNewLinearSolver,
+                     typename ConvergenceCriterionType::Pointer pNewConvergenceCriteria,
+                     typename BuilderAndSolverType::Pointer pNewBuilderAndSolver,
                      int MaxIterations = 30,
                      bool CalculateReactions = false,
                      bool ReformDofSetAtEachStep = false,
@@ -218,11 +213,11 @@ namespace Kratos
                   if ( ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::GetCalculateReactionsFlag() == true)
                      //if ( this->GetCalculateReactionsFlag() == true) 
                   {
-                     typename TSchemeType::Pointer pScheme = this->GetScheme();
-                     typename TBuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
-                     TSystemMatrixType& mA  = this->GetSystemMatrix();
-                     TSystemVectorType& mDx = this->GetSystemDx();
-                     TSystemVectorType& mb  = this->GetSystemb();
+                     typename SchemeType::Pointer pScheme = this->GetScheme();
+                     typename BuilderAndSolverType::Pointer pBuilderAndSolver = this->GetBuilderAndSolver();
+                     SystemMatrixType& mA  = this->GetSystemMatrix();
+                     SystemVectorType& mDx = this->GetSystemDx();
+                     SystemVectorType& mb  = this->GetSystemb();
 
                      (pBuilderAndSolver)->CalculateReactions( pScheme, BaseType::GetModelPart(), mA, mDx, mb);
                   }
