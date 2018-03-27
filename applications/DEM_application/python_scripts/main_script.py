@@ -239,8 +239,10 @@ class Solution(object):
 
         self.ReadModelParts()
 
+        self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
+                self.post_normal_impact_velocity_option = True
                 self.FillAnalyticSubModelParts()
 
         # Setting up the buffer size
@@ -446,24 +448,22 @@ class Solution(object):
         pass
 
     def BeforeSolveOperations(self, time):
-        if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
-                if self.IsCountStep():
-                    #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
-                    #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
-                    self.FillAnalyticSubModelPartsWithNewParticles()
+        if self.post_normal_impact_velocity_option:
+            if self.IsCountStep():
+                #time_to_print = self.time - self.time_old_print    # add new particles to analytic mp each time an output is generated
+                #if (self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt):
+                self.FillAnalyticSubModelPartsWithNewParticles()
 
     def BeforePrintingOperations(self, time):
         pass
 
     def AfterSolveOperations(self):
-        if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
-                self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-                time_to_print = self.time - self.time_old_print
-                if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt:
-                    self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
-                    self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
+        if self.post_normal_impact_velocity_option:
+            self.particle_watcher.MakeMeasurements(self.analytic_model_part)            
+            time_to_print = self.time - self.time_old_print
+            if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.dt:
+                self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
+                self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
 
     def FinalizeTimeStep(self, time):
         pass
