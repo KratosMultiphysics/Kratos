@@ -43,7 +43,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Solving strategy local flags class definition
+/** @brief Solution strategy local flags class definition
  *  @details This is the base class for strategy local flags
  */
 class SolverLocalFlags
@@ -67,7 +67,7 @@ class SolverLocalFlags
   KRATOS_DEFINE_LOCAL_FLAG( IMPLEX );
 };
 
-/** @brief Solving strategy base class
+/** @brief Solution strategy base class
  *  @details This is the base class for strategies
  */
 
@@ -109,10 +109,10 @@ class SolutionStrategy : public Flags
 
 
   /// Default constructor.
-  SolutionStrategy(ModelPart& rModelPart) : Flags(), mrModelPart(rModelPart) {}
+  SolutionStrategy(ModelPart& rModelPart) : Flags(), mrModelPart(rModelPart) { mEchoLevel = 0; }
 
   /// Default constructor.
-  SolutionStrategy(ModelPart& rModelPart, Flags& rOptions) : Flags(), mOptions(rOptions), mrModelPart(rModelPart) {}
+  SolutionStrategy(ModelPart& rModelPart, Flags& rOptions) : Flags(), mOptions(rOptions), mrModelPart(rModelPart) {mEchoLevel = 0; }
   
   /// Destructor.
   virtual ~SolutionStrategy() {}
@@ -240,8 +240,8 @@ class SolutionStrategy : public Flags
   ///@{
 
   /**
-   * @brief This sets the level of echo for the solving strategy
-   * @param Level of echo for the solving strategy
+   * @brief This sets the level of echo for the solution strategy
+   * @param Level of echo for the solution strategy
    * @details 
    * {
    * 0 -> Mute... no echo at all
@@ -256,7 +256,7 @@ class SolutionStrategy : public Flags
   }
 
   /**
-   * @brief This returns the level of echo for the solving strategy
+   * @brief This returns the level of echo for the solution strategy
    * @details
    * {
    * 0 -> Mute... no echo at all
@@ -264,7 +264,7 @@ class SolutionStrategy : public Flags
    * 2 -> Printing linear solver data
    * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
    * }
-   * @return Level of echo for the solving strategy
+   * @return Level of echo for the solution strategy
    */
   virtual int GetEchoLevel()
   {
@@ -316,7 +316,7 @@ class SolutionStrategy : public Flags
   // Flags to set options
   Flags mOptions;
   
-  // Level of echo for the solving strategy
+  // Level of echo for the solution strategy
   int mEchoLevel;
   
   ///@}

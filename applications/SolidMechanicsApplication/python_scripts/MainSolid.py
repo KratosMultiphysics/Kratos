@@ -108,7 +108,6 @@ class Solution(object):
 
         self.solver.ExecuteBeforeSolutionLoop()
 
-
         # Print model_part and properties
         if(self.echo_level>0):
             print("")

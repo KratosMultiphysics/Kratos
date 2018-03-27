@@ -140,6 +140,8 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
     else
       mpBuilderAndSolver->SetReshapeMatrixFlag(false);
 
+    mpBuilderAndSolver->SetEchoLevel(this->mEchoLevel);
+    
     mpA  = TSparseSpace::CreateEmptyMatrixPointer();
     mpDx = TSparseSpace::CreateEmptyVectorPointer();
     mpb  = TSparseSpace::CreateEmptyVectorPointer();
@@ -546,13 +548,13 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
     if (this->mEchoLevel == 2) //if it is needed to print the debug info
     {
       KRATOS_INFO("Dx")  << "Solution = " << (*mpDx) << std::endl;
-      KRATOS_INFO("RHS") << "RHS  = " << (*mpb) << std::endl;
+      KRATOS_INFO("RHS") << "Vector = " << (*mpb) << std::endl;
     }
     else if (this->mEchoLevel == 3) //if it is needed to print the debug info
     {
-      KRATOS_INFO("LHS") << "LHS = " << (*mpA) << std::endl;
+      KRATOS_INFO("LHS") << "Matrix = " << (*mpA) << std::endl;
       KRATOS_INFO("Dx")  << "Solution = " << (*mpDx) << std::endl;
-      KRATOS_INFO("RHS") << "RHS  = " << (*mpb) << std::endl;
+      KRATOS_INFO("RHS") << "Vector = " << (*mpb) << std::endl;
             
     }
     else if (this->mEchoLevel == 4) //print to matrix market file
@@ -626,7 +628,10 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
       TSparseSpace::SetToZero((*mpDx));
       TSparseSpace::SetToZero((*mpb));
       
-      mpBuilderAndSolver->BuildAndSolve(mpScheme, this->GetModelPart(), (*mpA), (*mpDx), (*mpb));      
+      mpBuilderAndSolver->BuildAndSolve(mpScheme, this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
+
+      KRATOS_INFO("build") << " LHS and RHS " << std::endl;
+      
     }
     else{
       
@@ -634,12 +639,13 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
       TSparseSpace::SetToZero((*mpb));
       
       mpBuilderAndSolver->BuildRHSAndSolve(mpScheme, this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
+
+      KRATOS_INFO("build") << " RHS only " << std::endl;
     }
 
     // EchoInfo
     this->EchoInfo(rIterationNumber);
     
-
     // Updating the results
     this->Update();
 
@@ -673,6 +679,24 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
   ///@}
   ///@name Protected  Access
   ///@{
+  
+  /**
+   * @brief This sets the level of echo for the solving strategy
+   * @param Level of echo for the solving strategy
+   * @details 
+   * {
+   * 0 -> Mute... no echo at all
+   * 1 -> Printing time and basic informations
+   * 2 -> Printing linear solver data
+   * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+   * }
+   */
+  void SetEchoLevel(const int Level) override
+  {
+    BaseType::SetEchoLevel(Level);
+    mpBuilderAndSolver->SetEchoLevel(Level);        
+  }
+
   ///@}
   ///@name Protected Inquiry
   ///@{
