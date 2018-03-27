@@ -24,6 +24,7 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
         model_part1.CreateNewElement("Element2D3N", 2, [1,2,4], model_part1.GetProperties()[1])
         
         model_part1.CreateNewCondition("Condition2D2N", 2, [2,4], model_part1.GetProperties()[1])
+        sub1.AddConditions([2])
         
         new_model_part = KratosMultiphysics.ModelPart("Other")
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
@@ -57,6 +58,12 @@ class TestConnectivityPreserveModeler(KratosUnittest.TestCase):
                 self.assertTrue( cond.Id in new_part.Conditions)
             for elem in part.Elements:
                 self.assertTrue( elem.Id in new_part.Elements)
+                
+        model_part1.GetSubModelPart("sub1").Conditions[2].SetValue(KratosMultiphysics.TEMPERATURE, 1234.0)
+        self.assertEqual(model_part1.Conditions[2].GetValue(KratosMultiphysics.TEMPERATURE), 1234.0)
+        self.assertEqual(model_part1.GetSubModelPart("sub1").Conditions[2].GetValue(KratosMultiphysics.TEMPERATURE), 1234.0)
+        self.assertEqual(new_model_part.Conditions[2].GetValue(KratosMultiphysics.TEMPERATURE), 0.0)
+        self.assertEqual(new_model_part.GetSubModelPart("sub1").Conditions[2].GetValue(KratosMultiphysics.TEMPERATURE), 0.0)
 
         
 if __name__ == '__main__':

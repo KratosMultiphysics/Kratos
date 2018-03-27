@@ -11,31 +11,29 @@
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
-            "input_filename"   : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test",
-            "input_file_label" : 0
+            "input_filename"   : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test"
         },
         "material_import_settings" :{
             "materials_filename": "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test_materials.json"
         },
         "contact_settings":
         {
-            "mortar_type"                    : "ALMContactFrictionless",
-            "ensure_contact"                 : true
+            "mortar_type"                    : "ALMContactFrictionless"
         },
-        "block_builder"                      : false,
+        "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : false,
         "reform_dofs_at_each_step"           : true,
-        "convergence_criterion"              : "contact_displacement_criterion",
+        "convergence_criterion"              : "contact_residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
         "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
+        "max_iteration"                      : 20,
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","DISPLACEMENT_Displacement_Auto3","CONTACT_Contact_Auto1","SelfWeight2D_Self_weight_Auto1"],
         "linear_solver_settings"             : {
@@ -92,19 +90,7 @@
             "model_part_name"             : "Structure",
             "assume_master_slave"         : "Parts_Parts_Auto1",
             "contact_model_part"          : "CONTACT_Contact_Auto1",
-            "contact_type"                : "Frictionless",
-            "search_factor"               : 30.0,
-            "max_number_results"          : 1000,
-            "type_search"                 : "InRadius",
-            "integration_order"           : 2,
-            "active_check_factor"         : 5.0e-1,
-            "normal_variation"            : "NO_DERIVATIVES_COMPUTATION",
-            "stiffness_factor"            : 10.0,
-            "penalty_scale_factor"        : 1.0,
-            "manual_ALM"                  : false,
-            "penalty"                     : 1.0e0,
-            "scale_factor"                : 1.0e0,
-            "debug_mode"                  : false
+            "contact_type"                : "Frictionless"
         }
     }
     ],
@@ -115,7 +101,7 @@
         "help"                  : "",
         "process_name"          : "FromJsonCheckResultProcess",
         "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "check_variables"      : ["DISPLACEMENT_Y"],
             "input_file_name"      : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test_results.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
             "time_frequency"       : 1.00
@@ -129,7 +115,7 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_variables"     : ["DISPLACEMENT_Y"],
             "output_file_name"     : "ALM_frictionless_contact_test_2D/contact_patch_complex_geom_test_results.json",
             "model_part_name"      : "CONTACT_Contact_Auto1",
             "time_frequency"       : 1.00
