@@ -139,8 +139,6 @@ public:
 
 		m_displacement_value = 0.0;
 		this->GetNeighboringElementPointer();
-
-
 	}
 
 	/// Destructor.
@@ -287,20 +285,17 @@ public:
 
 			const VariableComponentType& rTRACED_ADJOINT_DOF =
             	KratosComponents<VariableComponentType>::Get(std::string("ADJOINT_") + m_traced_dof_label);
-			int index = 0;
+
 			for(unsigned int i = 0; i < dofs_of_lement.size(); ++i)
 			{
 				if(m_traced_pNode->pGetDof(rTRACED_ADJOINT_DOF) == dofs_of_lement[i])
 				{
 					rResponseGradient[i] = -1;
 				}
-				index++;
 			}
 		}
 
-
 		KRATOS_CATCH("");
-
 	}
 
 

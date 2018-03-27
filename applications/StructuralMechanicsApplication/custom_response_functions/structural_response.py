@@ -158,6 +158,7 @@ class AdjointStrainEnergyResponse(ResponseFunctionBase):
     def CalculateValue(self):
         print("\n> Starting primal analysis for response:", self.identifier)
 
+        # exchange the the adjoint elements/conditions with its primal quivalents. Necessary from the 2nd iteration step.
         step = self.primal_analysis.GetModelPart().ProcessInfo[STEP]
         if(step > 0): # bigger than 0 because STEP is increased at InitializeTimeStep()
             self.__performReplacementProcess(False)
