@@ -208,14 +208,14 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
       this->SetSystemDofs();   
 
     //setting up the vectors involved to the correct size
-    //double begin_time = OpenMPUtils::GetCurrentTime();
+    double begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb,
                                                    this->GetModelPart().Elements(),
                                                    this->GetModelPart().Conditions(),
                                                    this->GetModelPart().GetProcessInfo());
-    //double end_time = OpenMPUtils::GetCurrentTime();
+    double end_time = OpenMPUtils::GetCurrentTime();
 
-    //KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
     
     //initial operations ... things that are constant over the Solution Step
     mpBuilderAndSolver->InitializeSolutionStep(this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
@@ -529,8 +529,10 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
     mpScheme->Update(this->GetModelPart(), mpBuilderAndSolver->GetDofSet(), (*mpA), (*mpDx), (*mpb));
 
     // Move the mesh if needed
-    if(this->mOptions.Is(LocalFlagType::MOVE_MESH))
+    if(this->mOptions.Is(LocalFlagType::MOVE_MESH)){
       BaseType::MoveMesh();
+      KRATOS_INFO(" MOVE MESH ") << std::endl;
+    }
 
     KRATOS_CATCH("")
   }
@@ -604,9 +606,9 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
     }
 
     // Debugging info
-    KRATOS_TRACE("LHS") << "LHS = " << (*mpA) <<  "\n" << LoggerMessage::Category::CHECKING;
-    KRATOS_TRACE("Dx")  << "Solution = " << (*mpDx) <<  "\n" << LoggerMessage::Category::CHECKING;
-    KRATOS_TRACE("RHS") << "RHS  = " << (*mpb) << "\n" << LoggerMessage::Category::CHECKING;
+    //KRATOS_TRACE("LHS") << "LHS = " << (*mpA) <<  "\n" << LoggerMessage::Category::CHECKING;
+    //KRATOS_TRACE("Dx")  << "Solution = " << (*mpDx) <<  "\n" << LoggerMessage::Category::CHECKING;
+    //KRATOS_TRACE("RHS") << "RHS  = " << (*mpb) << "\n" << LoggerMessage::Category::CHECKING;
 
     // Updating the results
     this->Update();
@@ -618,9 +620,10 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
     {
 
       //initialisation of the convergence criteria (after first calculation only)
-      if( rIterationNumber == 1 )
+      if( rIterationNumber == 1 ){
         mpConvergenceCriteria->InitializeSolutionStep(this->GetModelPart(), mpBuilderAndSolver->GetDofSet(), (*mpA), (*mpDx), (*mpb));
-
+        KRATOS_INFO(" Initial Residual ") << " iteration: "<< rIterationNumber <<std::endl;
+      }
       
       if(mpConvergenceCriteria->GetActualizeRHSflag() == true)
       {
