@@ -23,6 +23,7 @@
 
 // Project includes
 #include "custom_processes/mmg_process.h"
+#include "utilities/sub_model_parts_list_utility.h"
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
@@ -259,7 +260,7 @@ void MmgProcess<TDim>::InitializeMeshData()
     /* Nodes */
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
     mDofs = nodes_array.begin()->GetDofs();
-    for (typename Node<3>::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+    for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
     
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
@@ -1828,7 +1829,7 @@ void MmgProcess<3>::SetNodes(
 
 template<>  
 void MmgProcess<2>::SetConditions(
-    Geometry<Node<3> > & Geom,
+    GeometryType & Geom,
     const int Color,
     const int Index
     )
@@ -1864,7 +1865,7 @@ void MmgProcess<2>::SetConditions(
 
 template<>  
 void MmgProcess<3>::SetConditions(
-    Geometry<Node<3> > & Geom,
+    GeometryType & Geom,
     const int Color,
     const int Index
     )
@@ -1931,7 +1932,7 @@ void MmgProcess<3>::SetConditions(
 
 template<>  
 void MmgProcess<2>::SetElements(
-    Geometry<Node<3> > & Geom,
+    GeometryType & Geom,
     const int Color,
     const int Index
     )
@@ -1949,7 +1950,7 @@ void MmgProcess<2>::SetElements(
 
 template<>  
 void MmgProcess<3>::SetElements(
-    Geometry<Node<3> > & Geom,
+    GeometryType & Geom,
     const int Color,
     const int Index
     )
