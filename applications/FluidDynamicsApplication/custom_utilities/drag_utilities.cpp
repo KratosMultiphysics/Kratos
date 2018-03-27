@@ -36,6 +36,7 @@ namespace Kratos
         // Get the process info
         ProcessInfo& r_current_process_info = root_model_part.GetProcessInfo();
 
+        // Fractional step case
         if (r_current_process_info.Has(FRACTIONAL_STEP)) {
 
             Vector RHS_Contribution;
@@ -51,7 +52,8 @@ namespace Kratos
             }
 
             // Set the step index to compute the momentum equation
-            int current_fractional_step = r_current_process_info[FRACTIONAL_STEP];
+            int current_fractional_step = 0;
+            current_fractional_step = r_current_process_info[FRACTIONAL_STEP];
             r_current_process_info[FRACTIONAL_STEP] = 1;
 
             // Calculate only if the buffer size is full and the solution is already running
@@ -80,10 +82,13 @@ namespace Kratos
                         r_geom[i_node].UnSetLock();
                     }
                 }
+
+                // Assemble reaction data
+                root_model_part.GetCommunicator().AssembleCurrentData(REACTION);
+
+                // Fractional step case: restore the step index
+                r_current_process_info[FRACTIONAL_STEP] = current_fractional_step;
             }
-            
-            // Restore the step index
-+           r_current_process_info[FRACTIONAL_STEP] = current_fractional_step;
         }
 
         // Sum the reactions in the model part of interest. Note that in the non fractional 
@@ -93,7 +98,6 @@ namespace Kratos
         drag_force *= -1.0;
 
         return drag_force;
-
     }
 
     array_1d<double, 3> DragUtilities::CalculateEmbeddedDrag(ModelPart& rModelPart) {
