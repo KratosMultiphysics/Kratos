@@ -18,7 +18,7 @@
 #include <string>
 #include <iomanip>
 
-#define OPT_NUM_NODES 3 //---------------------------------------------->TODO: check which of the stuff is here really needed
+#define OPT_NUM_NODES 3 //------------------------->TODO: check which of the stuff is here really needed
 #define OPT_STRAIN_SIZE 6
 #define OPT_NUM_DOFS 18
 
@@ -177,16 +177,6 @@ Element::Pointer ShellThinAdjointElement3D3N::Create(IndexType NewId,
     GeometryType::Pointer newGeom( GetGeometry().Create(ThisNodes) );
     return boost::make_shared< ShellThinAdjointElement3D3N >(NewId, newGeom, pProperties, NLGeom);
 
-}
-
-void ShellThinAdjointElement3D3N::InitializeAgainAfterDisturbing()
-{
-    KRATOS_TRY
-
-    //ShellThinElement3D3N::mSections.clear();
-    ShellThinElement3D3N::Initialize();
-
-    KRATOS_CATCH("")
 }
 
 void ShellThinAdjointElement3D3N::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
@@ -672,22 +662,22 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
 	rOutput.clear();
     	
  	// Built vector of variables containing the DOF-variables of the primal problem 
-	std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_varibale_list; 
-    primal_solution_varibale_list.push_back(DISPLACEMENT_X);       
-	primal_solution_varibale_list.push_back(DISPLACEMENT_Y);       
-	primal_solution_varibale_list.push_back(DISPLACEMENT_Z);       
-	primal_solution_varibale_list.push_back(ROTATION_X);       
-	primal_solution_varibale_list.push_back(ROTATION_Y);       
-	primal_solution_varibale_list.push_back(ROTATION_Z);  
+	std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list; 
+    primal_solution_variable_list.push_back(DISPLACEMENT_X);       
+	primal_solution_variable_list.push_back(DISPLACEMENT_Y);       
+	primal_solution_variable_list.push_back(DISPLACEMENT_Z);       
+	primal_solution_variable_list.push_back(ROTATION_X);       
+	primal_solution_variable_list.push_back(ROTATION_Y);       
+	primal_solution_variable_list.push_back(ROTATION_Z);  
 
 	int index = 0;
     for (int i = 0; i < num_nodes; i++) 
 	{	
-		for(unsigned int j = 0; j < primal_solution_varibale_list.size(); j++)
+		for(unsigned int j = 0; j < primal_solution_variable_list.size(); j++)
 		{
-        	initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]);
+        	initial_value_of_state_variable = this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
 				
-			this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]) = initial_value_of_state_variable + dist_measure;
+			this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable + dist_measure;
 				
 			this->Calculate(rStressVariable, stress_vector_dist, rCurrentProcessInfo);
 			
@@ -698,7 +688,7 @@ void ShellThinAdjointElement3D3N::CalculateStressDisplacementDerivative(const Va
             	rOutput(index,k) = stress_vector_dist[k];
         	}
 
-			this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_varibale_list[j]) = initial_value_of_state_variable;
+			this->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_value_of_state_variable;
 
 			stress_vector_dist.clear();
 			index++;

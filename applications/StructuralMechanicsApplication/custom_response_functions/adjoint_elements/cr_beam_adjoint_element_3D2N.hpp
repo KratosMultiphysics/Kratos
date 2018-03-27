@@ -29,7 +29,6 @@ namespace Kratos
 	public:
 		KRATOS_CLASS_POINTER_DEFINITION(CrBeamAdjointElement3D2N);
 
-
 		typedef Element BaseType;
 		typedef BaseType::GeometryType GeometryType;
 		typedef BaseType::NodesArrayType NodesArrayType;
@@ -45,9 +44,7 @@ namespace Kratos
 		CrBeamAdjointElement3D2N(IndexType NewId, GeometryType::Pointer pGeometry,
 						PropertiesType::Pointer pProperties);
 
-
 		~CrBeamAdjointElement3D2N() override;
-
 
 		BaseType::Pointer Create(
 			IndexType NewId,
