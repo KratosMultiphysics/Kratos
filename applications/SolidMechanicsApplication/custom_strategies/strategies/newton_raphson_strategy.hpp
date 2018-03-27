@@ -543,7 +543,10 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
   void SetSystemDofs()
   {
     KRATOS_TRY
-    
+
+
+    KRATOS_INFO(" Reform Dofs ") << " Flag = " <<this->mOptions.Is(LocalFlagType::REFORM_DOFS) << std::endl;
+                                                                                        
     //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
         
     //setting up the list of the DOFs to be solved
