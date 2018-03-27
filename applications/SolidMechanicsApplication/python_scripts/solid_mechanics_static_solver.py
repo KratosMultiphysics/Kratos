@@ -51,16 +51,15 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
 
     def _create_solution_scheme (self):
 
+        self.linear_integration_method = None
+        self.angular_integration_method = None
+        
         integration_method   = self.time_integration_settings["integration_method"].GetString()
 
         if(integration_method == "Linear"):
             #mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-            time_integration_method = KratosSolid.StaticMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            angular_time_integration_method = KratosSolid.StaticMethod() #shells
-            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-            angular_time_integration_method.SetParameters(self.process_info)
+            self.linear_integration_method = KratosSolid.StaticMethod()
+            self.angular_integration_method = KratosSolid.StaticMethod() #shells
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()
         elif(integration_method == "Non-Linear" ):
             if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
@@ -69,27 +68,22 @@ class StaticMechanicalSolver(BaseSolver.ImplicitMechanicalSolver):
                 mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(damp_factor_m, dynamic_factor)
             else:
                 mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-                time_integration_method = KratosSolid.StaticMethod()
-                time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-                time_integration_method.SetParameters(self.process_info)
-                angular_time_integration_method = KratosSolid.StaticMethod() #shells
-                angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-                angular_time_integration_method.SetParameters(self.process_info)
+                self.linear_integration_method = KratosSolid.StaticMethod()
+                self.angular_integration_method = KratosSolid.StaticMethod() #shells
                 #mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()
 
         elif(integration_method == "RotationStatic"):
             #dynamic_factor = 0.0
             #damp_factor_m  = 0.0
             #mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, damp_factor_m)
-            time_integration_method = KratosSolid.StaticStepMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            angular_time_integration_method = KratosSolid.StaticStepRotationMethod()
-            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-            angular_time_integration_method.SetParameters(self.process_info)
+            self.linear_integration_method = KratosSolid.StaticStepMethod()
+            self.angular_integration_method = KratosSolid.StaticStepRotationMethod()
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationStaticScheme()
         else:
             raise Exception("Unsupported integration_method: " + integration_method)
+
+        # set integration parameters
+        self._set_time_integration_methods()
 
         return mechanical_scheme
 

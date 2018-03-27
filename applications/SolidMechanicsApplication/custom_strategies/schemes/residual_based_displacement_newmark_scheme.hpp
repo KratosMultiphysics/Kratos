@@ -331,7 +331,7 @@ namespace Kratos
 				TSystemVectorType& b) override
     {
       KRATOS_TRY;
-
+      
       Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
 
       KRATOS_CATCH( "" );
@@ -769,7 +769,7 @@ namespace Kratos
 
     virtual void SetIntegrationMethod(ProcessInfo& rCurrentProcessInfo)
     {      
-      this->mpIntegrationMethod = IntegrationTypePointer( new NewmarkMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
+      mpIntegrationMethod = IntegrationTypePointer( new NewmarkMethod<Variable<array_1d<double, 3> >, array_1d<double,3> > );
 
       // Set scheme variables
       mpIntegrationMethod->SetVariables(DISPLACEMENT,VELOCITY,ACCELERATION);

@@ -110,7 +110,13 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    // set parameters
+    // set parameters (to call it once with the original input parameters)
+    virtual void CalculateParameters(ProcessInfo& rCurrentProcessInfo)
+    {
+    
+    }
+    
+    // set parameters (do not calculate parameters here, only read them)
     virtual void SetParameters(const ProcessInfo& rCurrentProcessInfo)
     {
     

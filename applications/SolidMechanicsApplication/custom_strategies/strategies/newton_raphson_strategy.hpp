@@ -203,7 +203,7 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
       this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
     
     //prints informations about the current time
-    //KRATOS_INFO << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
+    //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
     
     //set up the system
     if(this->mOptions.Is(LocalFlagType::REFORM_DOFS)) 
@@ -217,7 +217,7 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
                                                    this->GetModelPart().GetProcessInfo());
     double end_time = OpenMPUtils::GetCurrentTime();
 
-    if (this->mEchoLevel == 2)
+    if (this->mEchoLevel >= 2)
       KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
     
     //initial operations ... things that are constant over the Solution Step
@@ -319,7 +319,6 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
       SparseSpaceType::Clear(mpb);
 
     //setting to zero the internal flag to ensure that the dof sets are recalculated
-    mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
     mpBuilderAndSolver->Clear();
     mpScheme->Clear();
 
@@ -354,9 +353,25 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
 
   ///@}
   ///@name Access
-
   ///@{
 
+  /**
+   * @brief This sets the level of echo for the solving strategy
+   * @param Level of echo for the solving strategy
+   * @details 
+   * {
+   * 0 -> Mute... no echo at all
+   * 1 -> Printing time and basic informations
+   * 2 -> Printing linear solver data
+   * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+   * }
+   */
+  void SetEchoLevel(const int Level) override
+  {
+    BaseType::SetEchoLevel(Level);
+    mpBuilderAndSolver->SetEchoLevel(Level);        
+  }
+  
   /**
    * @brief Set method for the time scheme
    * @param pScheme The pointer to the time scheme considered
@@ -468,7 +483,8 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
   ///@}
   ///@name Protected Operations
   ///@{
-    /**
+
+  /**
    * @brief Initialization of member variables and prior operations
    */    
   void Initialize() override
@@ -498,7 +514,6 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
     
     KRATOS_CATCH("")
   }
-
   
   /**
    * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the
@@ -577,7 +592,7 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
   {
     KRATOS_TRY
 
-    if (this->mEchoLevel == 2)
+    if (this->mEchoLevel >= 2)
       KRATOS_INFO(" Reform Dofs ") << " Flag = " <<this->mOptions.Is(LocalFlagType::REFORM_DOFS) << std::endl;
                                                                                         
     //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
@@ -586,14 +601,14 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
     double begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpDofSet(mpScheme, this->GetModelPart());
     double end_time = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel == 2)
+    if (this->mEchoLevel >= 2)
       KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
       
     //shaping correctly the system
     begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpSystem(this->GetModelPart());
     end_time = OpenMPUtils::GetCurrentTime();
-    if (this->mEchoLevel == 2)
+    if (this->mEchoLevel >= 2)
       KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
 
     KRATOS_CATCH("")
@@ -629,8 +644,6 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
       TSparseSpace::SetToZero((*mpb));
       
       mpBuilderAndSolver->BuildAndSolve(mpScheme, this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
-
-      KRATOS_INFO("build") << " LHS and RHS " << std::endl;
       
     }
     else{
@@ -639,8 +652,6 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
       TSparseSpace::SetToZero((*mpb));
       
       mpBuilderAndSolver->BuildRHSAndSolve(mpScheme, this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
-
-      KRATOS_INFO("build") << " RHS only " << std::endl;
     }
 
     // EchoInfo
@@ -679,24 +690,6 @@ class NewtonRaphsonStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace,
   ///@}
   ///@name Protected  Access
   ///@{
-  
-  /**
-   * @brief This sets the level of echo for the solving strategy
-   * @param Level of echo for the solving strategy
-   * @details 
-   * {
-   * 0 -> Mute... no echo at all
-   * 1 -> Printing time and basic informations
-   * 2 -> Printing linear solver data
-   * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
-   * }
-   */
-  void SetEchoLevel(const int Level) override
-  {
-    BaseType::SetEchoLevel(Level);
-    mpBuilderAndSolver->SetEchoLevel(Level);        
-  }
-
   ///@}
   ///@name Protected Inquiry
   ///@{

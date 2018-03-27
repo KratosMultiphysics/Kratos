@@ -165,6 +165,7 @@ class MechanicalSolver(object):
         mechanical_solver.SetEchoLevel(self.echo_level)
         #if( self._is_not_restarted() ):
         #    mechanical_solver.Initialize()
+        #    #self._get_solution_scheme().Initialize(self.main_model_part)            
         #else:
         #    # SetInitializePerformedFlag is not a member of SolvingStrategy but
         #    # is used by ResidualBasedNewtonRaphsonStrategy.
@@ -216,6 +217,8 @@ class MechanicalSolver(object):
     # step by step:
 
     def InitializeSolutionStep(self):
+        if self.solving_strategy_settings["clear_storage"].GetBool():
+            self.Clear()
         self._get_mechanical_solver().InitializeSolutionStep()
 
     def SolveSolutionStep(self):

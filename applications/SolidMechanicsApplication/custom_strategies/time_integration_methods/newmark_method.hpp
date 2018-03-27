@@ -167,7 +167,7 @@ namespace Kratos
     ///@name Operations
     ///@{
     
-    // set parameters
+    // set parameters (do not calculate parameters here, only read them)
     virtual void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY

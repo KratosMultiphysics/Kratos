@@ -104,7 +104,46 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    // set parameters
+    //calculate parameters (to call it once with the original input parameters)
+    void CalculateParameters(ProcessInfo& rCurrentProcessInfo) override
+    {
+     KRATOS_TRY
+            
+     double beta = 0.25;
+     if (rCurrentProcessInfo.Has(NEWMARK_BETA))
+       {
+	 beta = rCurrentProcessInfo[NEWMARK_BETA];
+       }
+     double gamma = 0.5;
+     if (rCurrentProcessInfo.Has(NEWMARK_GAMMA))
+       {
+	 gamma = rCurrentProcessInfo[NEWMARK_GAMMA];
+       }
+
+     mAlpha = -0.3;
+     if (rCurrentProcessInfo.Has(BOSSAK_ALPHA))
+       {
+	 mAlpha = rCurrentProcessInfo[BOSSAK_ALPHA];
+       }
+
+     if(mAlpha > 0.0 || mAlpha < -0.3)
+        {
+	  KRATOS_ERROR << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha << std::endl; 
+        }
+     
+     beta  = (1.0 - mAlpha) * (1.0 - mAlpha) * beta;
+     gamma = gamma - mAlpha;
+
+     rCurrentProcessInfo[NEWMARK_BETA]  = beta;      
+     rCurrentProcessInfo[NEWMARK_GAMMA] = gamma;
+     rCurrentProcessInfo[BOSSAK_ALPHA]  = mAlpha;
+
+     this->SetParameters(rCurrentProcessInfo);
+     
+     KRATOS_CATCH( "" )
+    }
+    
+    // set parameters (do not calculate parameters here, only read them)
     void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
@@ -137,10 +176,7 @@ namespace Kratos
         {
 	  KRATOS_ERROR << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha << std::endl; 
         }
-     
-     beta  = (1.0 - mAlpha) * (1.0 - mAlpha) * beta;
-     gamma = gamma - mAlpha;
-     
+
      this->mNewmark.SetParameters(beta,gamma,delta_time);
      
      KRATOS_CATCH( "" )

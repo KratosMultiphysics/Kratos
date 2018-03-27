@@ -63,6 +63,9 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
 
     def _create_solution_scheme(self):
 
+        self.linear_integration_method  = None
+        self.angular_integration_method = None
+        
         integration_method   = self.time_integration_settings["integration_method"].GetString()
 
         if( self.implicit_solver_settings["rayleigh_damping"].GetBool() == True ):
@@ -87,85 +90,71 @@ class ImplicitMechanicalSolver(BaseSolver.MechanicalSolver):
         elif(integration_method == "Newmark"):
             #damp_factor_m = 0.0
             #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
-            time_integration_method = KratosSolid.NewmarkMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            angular_time_integration_method = KratosSolid.BossakMethod() #shells
-            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-            angular_time_integration_method.SetParameters(self.process_info)
+            self.linear_integration_method = KratosSolid.NewmarkMethod()
+            self.angular_integration_method = KratosSolid.BossakMethod() #shells
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementNewmarkScheme()
         elif(integration_method == "Bossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
             #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
-            time_integration_method = KratosSolid.BossakMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            angular_time_integration_method = KratosSolid.BossakMethod() #shells
-            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-            angular_time_integration_method.SetParameters(self.process_info)
+            self.linear_integration_method = KratosSolid.BossakMethod()
+            self.angular_integration_method = KratosSolid.BossakMethod() #shells
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementBossakScheme()
         elif(integration_method == "Simo"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
             #mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(bossak_factor)
-            time_integration_method = KratosSolid.SimoMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            angular_time_integration_method = KratosSolid.SimoMethod()  #shells
-            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-            angular_time_integration_method.SetParameters(self.process_info)
+            self.linear_integration_method = KratosSolid.SimoMethod()
+            self.angular_integration_method = KratosSolid.SimoMethod()  #shells
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementSimoScheme()
         elif(integration_method == "RotationNewmark"):
             #dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble() # 0,1
             #damp_factor_m = self.implicit_solver_settings["bossak_factor"].GetDouble()
             #mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, damp_factor_m)
-            time_integration_method = KratosSolid.NewmarkStepMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            angular_time_integration_method = KratosSolid.NewmarkStepRotationMethod()
-            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-            angular_time_integration_method.SetParameters(self.process_info)
+            self.linear_integration_method = KratosSolid.NewmarkStepMethod()
+            self.angular_integration_method = KratosSolid.NewmarkStepRotationMethod()
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationNewmarkScheme()
         elif(integration_method == "RotationBossak"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
             #dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble() # 0,1
             #mechanical_scheme = KratosSolid.ResidualBasedRotationNewmarkScheme(dynamic_factor, bossak_factor)
-            time_integration_method = KratosSolid.BossakStepMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            angular_time_integration_method = KratosSolid.BossakStepRotationMethod()
-            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-            angular_time_integration_method.SetParameters(self.process_info)
+            self.linear_integration_method = KratosSolid.BossakStepMethod()
+            self.angular_integration_method = KratosSolid.BossakStepRotationMethod()
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationBossakScheme()
         elif(integration_method == "RotationSimo"):
             bossak_factor = self.implicit_solver_settings["bossak_factor"].GetDouble()
             self.process_info[KratosMultiphysics.BOSSAK_ALPHA] = bossak_factor;
             #dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble() # 0,1
             #mechanical_scheme = KratosSolid.ResidualBasedRotationSimoScheme(dynamic_factor, bossak_factor)
-            time_integration_method = KratosSolid.SimoStepMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            angular_time_integration_method = KratosSolid.SimoStepRotationMethod()
-            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-            angular_time_integration_method.SetParameters(self.process_info)
+            self.linear_integration_method = KratosSolid.SimoStepMethod()
+            self.angular_integration_method = KratosSolid.SimoStepRotationMethod()
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationSimoScheme()
         elif(integration_method == "RotationEMC"):
             #dynamic_factor = self.implicit_solver_settings["dynamic_factor"].GetDouble() # 0,1
             #mechanical_scheme = KratosSolid.ResidualBasedRotationEMCScheme(dynamic_factor)
-            time_integration_method = KratosSolid.EmcStepMethod()
-            time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
-            time_integration_method.SetParameters(self.process_info)
-            angular_time_integration_method = KratosSolid.EmcStepRotationMethod()
-            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
-            angular_time_integration_method.SetParameters(self.process_info)
+            self.linear_integration_method = KratosSolid.EmcStepMethod()
+            self.angular_integration_method = KratosSolid.EmcStepRotationMethod()
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementRotationEmcScheme()
         else:
             raise Exception("Unsupported integration_method: " + integration_method)
 
+        # set integration parameters
+        self._set_time_integration_methods()
+        
         return mechanical_scheme
 
+    def _set_time_integration_methods(self):
+
+        # first: calculate parameters (only once permitted) (set is included)
+        self.linear_integration_method.CalculateParameters(self.process_info) #calculate
+        self.linear_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, self.linear_integration_method, self.process_info)
+
+        # second: for the same method the parameters (already calculated) 
+        self.angular_integration_method.SetParameters(self.process_info) #set parameters
+        self.angular_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, self.angular_integration_method, self.process_info)
+
+    
     def _create_mechanical_solver(self):
         if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
             mechanical_solver = self._create_component_wise_strategy()

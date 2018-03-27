@@ -123,6 +123,8 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     else
       mpBuilderAndSolver->SetReshapeMatrixFlag(false);
 
+    mpBuilderAndSolver->SetEchoLevel(this->mEchoLevel);
+    
     mpA  = TSparseSpace::CreateEmptyMatrixPointer();
     mpDx = TSparseSpace::CreateEmptyVectorPointer();
     mpb  = TSparseSpace::CreateEmptyVectorPointer();
@@ -176,21 +178,22 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
       this->Initialize();
     
     //prints informations about the current time
-    //KRATOS_INFO << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
+    //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
     
     //set up the system
     if(this->mOptions.Is(LocalFlagType::REFORM_DOFS)) 
       this->SetSystemDofs();   
 
     //setting up the vectors involved to the correct size
-    //double begin_time = OpenMPUtils::GetCurrentTime();
+    double begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->ResizeAndInitializeVectors(mpScheme, mpA, mpDx, mpb,
                                                    this->GetModelPart().Elements(),
                                                    this->GetModelPart().Conditions(),
                                                    this->GetModelPart().GetProcessInfo());
-    //double end_time = OpenMPUtils::GetCurrentTime();
+    double end_time = OpenMPUtils::GetCurrentTime();
 
-    //KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    if (this->mEchoLevel >= 2)
+      KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
     
     //initial operations ... things that are constant over the Solution Step
     mpBuilderAndSolver->InitializeSolutionStep(this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
@@ -269,10 +272,8 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
       mpBuilderAndSolver->BuildRHSAndSolve(mpScheme, this->GetModelPart(), (*mpA), (*mpDx), (*mpb));
     }
 
-    // Debugging info
-    KRATOS_TRACE("LHS") << "LHS = " << (*mpA) <<  "\n" << LoggerMessage::Category::CHECKING;
-    KRATOS_TRACE("Dx")  << "Solution = " << (*mpDx) <<  "\n" << LoggerMessage::Category::CHECKING;
-    KRATOS_TRACE("RHS") << "RHS  = " << (*mpb) << "\n" << LoggerMessage::Category::CHECKING;
+    // EchoInfo
+    this->EchoInfo();
 
     // Updating the results
     this->Update();
@@ -336,9 +337,26 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
 
   ///@}
   ///@name Access
-
   ///@{
 
+  /**
+   * @brief This sets the level of echo for the solving strategy
+   * @param Level of echo for the solving strategy
+   * @details 
+   * {
+   * 0 -> Mute... no echo at all
+   * 1 -> Printing time and basic informations
+   * 2 -> Printing linear solver data
+   * 3 -> Print of debug informations: Echo of stiffness matrix, Dx, b...
+   * }
+   */
+  void SetEchoLevel(const int Level) override
+  {
+    BaseType::SetEchoLevel(Level);
+    mpBuilderAndSolver->SetEchoLevel(Level);        
+  }
+
+  
   /**
    * @brief Set method for the time scheme
    * @param pScheme The pointer to the time scheme considered
@@ -495,7 +513,35 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
     KRATOS_CATCH("")
   }
  
+  /**
+   * @brief This method returns the components of the system of equations depending of the echo level
+   * @param IterationNumber The non linear iteration in the solution loop
+   */
+  void EchoInfo()
+  {
+    if (this->mEchoLevel == 2) //if it is needed to print the debug info
+    {
+      KRATOS_INFO("Dx")  << "Solution = " << (*mpDx) << std::endl;
+      KRATOS_INFO("RHS") << "Vector = " << (*mpb) << std::endl;
+    }
+    else if (this->mEchoLevel == 3) //if it is needed to print the debug info
+    {
+      KRATOS_INFO("LHS") << "Matrix = " << (*mpA) << std::endl;
+      KRATOS_INFO("Dx")  << "Solution = " << (*mpDx) << std::endl;
+      KRATOS_INFO("RHS") << "Vector = " << (*mpb) << std::endl;
+            
+    }
+    else if (this->mEchoLevel == 4) //print to matrix market file
+    {
+      std::stringstream matrix_market_name;
+      matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << ".mm";
+      TSparseSpace::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), (*mpA), false);
 
+      std::stringstream matrix_market_vectname;
+      matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] <<  ".mm.rhs";
+      TSparseSpace::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), (*mpb));
+    }
+  }
 
   /**
    * @brief Performs all the required operations to reform dofs
@@ -504,19 +550,24 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
   {
     KRATOS_TRY
     
+   if (this->mEchoLevel >= 2)
+      KRATOS_INFO(" Reform Dofs ") << " Flag = " <<this->mOptions.Is(LocalFlagType::REFORM_DOFS) << std::endl;
+                                                                                        
     //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
         
     //setting up the list of the DOFs to be solved
-    //double begin_time = OpenMPUtils::GetCurrentTime();
+    double begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpDofSet(mpScheme, this->GetModelPart());
-    //double end_time = OpenMPUtils::GetCurrentTime();
-    //KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    double end_time = OpenMPUtils::GetCurrentTime();
+    if (this->mEchoLevel >= 2)
+      KRATOS_INFO("setup_dofs_time") << "setup_dofs_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
       
     //shaping correctly the system
-    //begin_time = OpenMPUtils::GetCurrentTime();
+    begin_time = OpenMPUtils::GetCurrentTime();
     mpBuilderAndSolver->SetUpSystem(this->GetModelPart());
-    //end_time = OpenMPUtils::GetCurrentTime();
-    //KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
+    end_time = OpenMPUtils::GetCurrentTime();
+    if (this->mEchoLevel >= 2)
+      KRATOS_INFO("setup_system_time") << ": setup_system_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;    //set up the system, operation performed just once unless it is required to reform the dof set at each iteration
 
     KRATOS_CATCH("")
   }

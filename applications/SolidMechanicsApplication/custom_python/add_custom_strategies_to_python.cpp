@@ -428,6 +428,7 @@ namespace Kratos
       	.def("SetInputVariable", &IntegrationMethodType::SetInputVariable)
 	.def("HasStepVariable", &IntegrationMethodType::HasStepVariable)
 	.def("SetStepVariable", &IntegrationMethodType::SetStepVariable)
+        .def("CalculateParameters", &IntegrationMethodType::CalculateParameters)
       	.def("SetParameters", &IntegrationMethodType::SetParameters)
       	.def("Predict", &IntegrationMethodType::Predict)
 	.def(self_ns::str(self))
