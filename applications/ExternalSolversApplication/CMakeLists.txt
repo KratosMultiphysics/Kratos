@@ -87,6 +87,10 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add Cotire
 if(USE_COTIRE MATCHES ON)
+    ## The Pastix is not compatible with cotire
+    if(${INCLUDE_PASTIX} MATCHES ON)
+        set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_linear_solvers_to_python.cpp  PROPERTIES COTIRE_EXCLUDED TRUE)
+    endif(${INCLUDE_PASTIX} MATCHES ON)
     cotire(KratosExternalSolversApplication)
 endif(USE_COTIRE MATCHES ON)
 
