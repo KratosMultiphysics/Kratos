@@ -82,9 +82,6 @@ namespace Kratos
                         r_geom[i_node].UnSetLock();
                     }
                 }
-
-                // Assemble reaction data
-                root_model_part.GetCommunicator().AssembleCurrentData(REACTION);
             }
         }
 
