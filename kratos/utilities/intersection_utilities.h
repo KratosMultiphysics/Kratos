@@ -100,12 +100,11 @@ public:
         const TGeometryType& rTriangleGeometry, 
         const array_1d<double,3>& rLinePoint1, 
         const array_1d<double,3>& rLinePoint2, 
-        array_1d<double,3>& rIntersectionPoint) {
+        array_1d<double,3>& rIntersectionPoint,
+		const double epsilon = std::numeric_limits<double>::epsilon()) {
 		
 		// This is the adaption of the implemnetation provided in:
         // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
-
-		const double epsilon = std::numeric_limits<double>::epsilon();
 
 		// Get triangle edge vectors and plane normal
 		const array_1d<double,3> u = rTriangleGeometry[1] - rTriangleGeometry[0];
@@ -180,9 +179,8 @@ public:
         const TGeometryType& rLineGeometry, 
         const array_1d<double,3>& rLinePoint0, 
         const array_1d<double,3>& rLinePoint1, 
-        array_1d<double,3>& rIntersectionPoint) {
-
-		const double epsilon = std::numeric_limits<double>::epsilon();
+        array_1d<double,3>& rIntersectionPoint,
+		const double epsilon = std::numeric_limits<double>::epsilon()) {
 
 		const array_1d<double,3> r = rLineGeometry[1] - rLineGeometry[0];
 		const array_1d<double,3> s = rLinePoint1 - rLinePoint0;
