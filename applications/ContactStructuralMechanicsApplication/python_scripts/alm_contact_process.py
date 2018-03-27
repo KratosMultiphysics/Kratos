@@ -496,20 +496,43 @@ class ALMContactProcess(python_process.PythonProcess):
             "absolute_convergence_tolerance"   : 1.0e-9,
             "relative_convergence_tolerance"   : 1.0e-4,
             "max_number_iterations"            : 10,
-            "integration_order"                : 2,
-            "inverted_master_slave_pairing"    : true
+            "integration_order"                : 2
         }
         """)
 
         computing_model_part = self.main_model_part.GetSubModelPart(self.computing_model_part_name)
         interface_model_part = computing_model_part.GetSubModelPart("Contact")
+        if (interface_model_part.HasSubModelPart("SlaveSubModelPart")):
+            slave_interface_model_part = interface_model_part.GetSubModelPart("SlaveSubModelPart")
+        else:
+            slave_interface_model_part = interface_model_part.CreateSubModelPart("SlaveSubModelPart")
+            for cond in interface_model_part.Conditions:
+                if (cond.Is(KM.SLAVE)):
+                    slave_interface_model_part.AddCondition(cond)
+            del(cond)
+            for node in interface_model_part.Nodes:
+                if (node.Is(KM.SLAVE)):
+                    slave_interface_model_part.AddNode(node, 0)
+            del(node)
+        if (interface_model_part.HasSubModelPart("MasterSubModelPart")):
+            master_interface_model_part = interface_model_part.GetSubModelPart("MasterSubModelPart")
+        else:
+            master_interface_model_part = interface_model_part.CreateSubModelPart("MasterSubModelPart")
+            for cond in interface_model_part.Conditions:
+                if (cond.Is(KM.MASTER)):
+                    slave_interface_model_part.AddCondition(cond)
+            del(cond)
+            for node in interface_model_part.Nodes:
+                if (node.Is(KM.MASTER)):
+                    slave_interface_model_part.AddNode(node, 0)
+            del(node)
         if (self.dimension == 2):
-            mortar_mapping = KM.SimpleMortarMapperProcess2D2NDoubleNonHistorical(interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+            mortar_mapping1 = KM.SimpleMortarMapperProcess2D2NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
         else:
             if (num_nodes == 3):
-                mortar_mapping = KM.SimpleMortarMapperProcess3D3NDoubleNonHistorical(interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+                mortar_mapping1 = KM.SimpleMortarMapperProcess3D3NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
             else:
-                mortar_mapping = KM.SimpleMortarMapperProcess3D4NDoubleNonHistorical(interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
+                mortar_mapping1 = KM.SimpleMortarMapperProcess3D4NDoubleNonHistorical(slave_interface_model_part, master_interface_model_part, CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, map_parameters)
 
         mortar_mapping.Execute()
 

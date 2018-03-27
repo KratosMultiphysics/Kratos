@@ -103,6 +103,9 @@ TreeContactSearch<TDim, TNumNodes>::TreeContactSearch(
         else
             mTypeSolution = ScalarLagrangeMultiplier;
     }
+
+    // We create the submodelparts for master and slave
+    SetOriginDestinationModelParts(rcontact_model_part);
 }
 
 /***********************************************************************************/
@@ -122,6 +125,75 @@ void TreeContactSearch<TDim, TNumNodes>::InitializeMortarConditions()
         if (it_cond->Has(INDEX_SET) == false) it_cond->SetValue(INDEX_SET, Kratos::make_shared<IndexSet>());
 //             it_cond->GetValue(INDEX_SET)->reserve(mThisParameters["allocation_size"].GetInt());
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim, unsigned int TNumNodes>
+void TreeContactSearch<TDim, TNumNodes>::SetOriginDestinationModelParts(ModelPart& rModelPart)
+{
+    // We check if the MapperModelPart already exists
+    if (rModelPart.HasSubModelPart("MasterSubModelPart") == false) {
+        rModelPart.CreateSubModelPart("MasterSubModelPart");
+    } else {
+        ModelPart& r_master_model_part = rModelPart.GetSubModelPart("MasterSubModelPart");
+        NodesArrayType& nodes_array = r_master_model_part.Nodes();
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+            (nodes_array.begin() + i)->Set(TO_ERASE, true);
+
+        r_master_model_part.RemoveNodes(TO_ERASE);
+        ConditionsArrayType& conditions_array = r_master_model_part.Conditions();
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+            (conditions_array.begin() + i)->Set(TO_ERASE, true);
+
+        r_master_model_part.RemoveConditions(TO_ERASE);
+    }
+    if (rModelPart.HasSubModelPart("SlaveSubModelPart") == false) {
+        rModelPart.CreateSubModelPart("SlaveSubModelPart");
+    } else {
+        ModelPart&  r_slave_model_part = rModelPart.GetSubModelPart("SlaveSubModelPart");
+        NodesArrayType& nodes_array = r_slave_model_part.Nodes();
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
+            (nodes_array.begin() + i)->Set(TO_ERASE, true);
+
+        r_slave_model_part.RemoveNodes(TO_ERASE);
+        ConditionsArrayType& conditions_array = r_slave_model_part.Conditions();
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+            (conditions_array.begin() + i)->Set(TO_ERASE, true);
+
+        r_slave_model_part.RemoveConditions(TO_ERASE);
+    }
+
+    ModelPart& r_master_model_part = rModelPart.GetSubModelPart("MasterSubModelPart");
+    ModelPart& r_slave_model_part = rModelPart.GetSubModelPart("SlaveSubModelPart");
+
+    for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
+        auto it_cond = rModelPart.ConditionsBegin() + i;
+
+        if (it_cond->Is(SLAVE) == !mInvertedSearch) {
+            r_slave_model_part.AddCondition(*(it_cond.base()));
+        } else if (it_cond->Is(MASTER) == !mInvertedSearch) {
+            r_master_model_part.AddCondition(*(it_cond.base()));
+        }
+    }
+
+    for(int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
+        auto it_node = rModelPart.NodesBegin() + i;
+
+        if (it_node->Is(SLAVE) == !mInvertedSearch) {
+            r_slave_model_part.AddNode(*(it_node.base()));
+        } else if (it_node->Is(MASTER) == !mInvertedSearch) {
+            r_master_model_part.AddNode(*(it_node.base()));
+        }
+    }
+
+    KRATOS_ERROR_IF(r_master_model_part.Conditions().size() == 0) << "No origin conditions. Check your flags are properly set" << std::endl;
+    KRATOS_ERROR_IF(r_slave_model_part.Conditions().size() == 0) << "No destination conditions. Check your flags are properly set" << std::endl;
 }
 
 /***********************************************************************************/
@@ -807,11 +879,12 @@ inline void TreeContactSearch<TDim, TNumNodes>::ComputeMappedGap(const bool Sear
         SwitchFlagNodes(nodes_array);
 
     // We set the mapper parameters
-    Parameters mapping_parameters = Parameters(R"({"inverted_master_slave_pairing": false, "distance_threshold" : 1.0e24})" );
-    mapping_parameters["inverted_master_slave_pairing"].SetBool(!SearchOrientation);
+    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24})" );
     mapping_parameters["distance_threshold"].SetDouble(distance_threshold);
     typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, NonHistorical> MapperType;
-    MapperType mapper = MapperType(rcontact_model_part, AUXILIAR_COORDINATES, mapping_parameters);
+    ModelPart& r_master_model_part = rcontact_model_part.GetSubModelPart("MasterSubModelPart");
+    ModelPart& r_slave_model_part = rcontact_model_part.GetSubModelPart("SlaveSubModelPart");
+    MapperType mapper = MapperType(r_master_model_part, r_slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
     mapper.Execute();
 
     // Switch again MASTER/SLAVE

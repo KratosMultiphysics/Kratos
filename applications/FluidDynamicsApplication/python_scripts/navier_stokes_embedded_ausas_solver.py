@@ -23,6 +23,9 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
         self.condition_name = "EmbeddedAusasNavierStokesWallCondition"
         self.min_buffer_size = 3
 
+        # There is only a single rank in OpenMP, we always print
+        self._is_printing_rank = True
+
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
 
@@ -84,7 +87,7 @@ class NavierStokesEmbeddedAusasMonolithicSolver(navier_stokes_embedded_solver.Na
     def Initialize(self):
         # Initialize the solver as in the base embedded solver
         super(NavierStokesEmbeddedAusasMonolithicSolver, self).Initialize()
-        
+
         # Set the find nodal neighbours process used in the embedded Ausas formulation condition
         if (self.settings["solver_type"].GetString() == "EmbeddedAusas"):
             number_of_avg_elems = 10
