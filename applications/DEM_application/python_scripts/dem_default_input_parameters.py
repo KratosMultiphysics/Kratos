@@ -115,6 +115,8 @@ def GetDefaultInputParameters():
             "PostAppliedForces"                : false,
             "PostGroupId"                      : false,
             "PostExportId"                     : false,
+            "PostNormalImpactVelocity"         : false,
+            "PostTangentialImpactVelocity"     : false,
                       
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
             
