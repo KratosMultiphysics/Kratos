@@ -16,6 +16,7 @@
 // Project includes
 #include "contact_structural_mechanics_application_variables.h" 
 #include "custom_utilities/interface_preprocess.h" 
+
 /* Geometries */
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -52,15 +53,18 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
     // We reorder the conditions
     IndexType cond_id = ReorderConditions();
     
+    // Store new properties in a map
+    std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties(rOriginPart);
+
     // Generate Conditions from original the edges that can be considered interface
     for (auto it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem) {
         GeometryType& this_geometry = it_elem->GetGeometry();
-        Properties::Pointer p_prop = it_elem->pGetProperties();
+        Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
+        KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
         
         for (IndexType i_edge = 0; i_edge < this_geometry.EdgesNumber(); ++i_edge)
             GenerateEdgeCondition(rInterfacePart, p_prop, this_geometry.Edges()[i_edge], simplest_geometry, cond_counter, cond_id);
     }
-    
     
     // NOTE: Reorder ID if parallellization
     
@@ -96,10 +100,14 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
     // We reorder the conditions
     IndexType cond_id = ReorderConditions();
     
+    // Store new properties in a map
+    std::unordered_map<IndexType, Properties::Pointer> new_properties = CreateNewProperties(rOriginPart);
+
     // Generate Conditions from original the faces that can be considered interface
     for (auto it_elem = rOriginPart.ElementsBegin(); it_elem != rOriginPart.ElementsEnd(); ++it_elem) {          
         GeometryType& this_geometry = it_elem->GetGeometry();
-        Properties::Pointer p_prop = it_elem->pGetProperties();
+        Properties::Pointer p_prop = new_properties[it_elem->pGetProperties()->Id()];
+        KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
         
         if (this_geometry.LocalSpaceDimension() == 3) {
             for (IndexType i_face = 0; i_face < this_geometry.FacesNumber(); ++i_face)
@@ -119,12 +127,44 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition::CreateNewProperties(ModelPart& rOriginPart)
+{
+    const SizeType number_properties = mrMainModelPart.NumberOfProperties();
+
+    std::unordered_map<IndexType, Properties::Pointer> new_properties;
+    // Reorder id Properties
+    IndexType count = 0;
+    for (auto it_prop = mrMainModelPart.PropertiesBegin(); it_prop < mrMainModelPart.PropertiesEnd(); ++it_prop) {
+        ++count;
+        it_prop->SetId(count);
+    }
+    // Create new properties
+    count = 0;
+    for (auto it_prop = rOriginPart.PropertiesBegin(); it_prop < rOriginPart.PropertiesEnd(); ++it_prop) {
+        Properties::Pointer p_original_prop = *(it_prop.base());
+        ++count;
+        Properties new_prop(number_properties + count + 1);
+        Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(new_prop);
+        new_properties.insert({p_original_prop->Id(), p_new_prop});
+
+        // Now we copy (an remove) the properties we have interest
+        CopyProperties(p_original_prop, p_new_prop, FRICTION_COEFFICIENT);
+        CopyProperties(p_original_prop, p_new_prop, THICKNESS);
+        CopyProperties(p_original_prop, p_new_prop, YOUNG_MODULUS);
+    }
+
+    return new_properties;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void InterfacePreprocessCondition::CreateNewCondition(
-        Properties::Pointer pThisProperties,
-        GeometryType& rGeometry,
-        const IndexType CondId,
-        Condition const& rCondition
-        )
+    Properties::Pointer pThisProperties,
+    GeometryType& rGeometry,
+    const IndexType CondId,
+    Condition const& rCondition
+    )
 {
     KRATOS_TRY;
 

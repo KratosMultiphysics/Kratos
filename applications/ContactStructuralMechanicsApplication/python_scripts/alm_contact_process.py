@@ -181,13 +181,6 @@ class ALMContactProcess(python_process.PythonProcess):
         if self.settings["contact_type"].GetString() == "Frictional":
             process_info[CSMA.TANGENT_FACTOR] = self.settings["tangent_factor"].GetDouble()
 
-        # Copying the properties in the contact model part
-        self.contact_model_part.SetProperties(computing_model_part.GetProperties())
-
-        # Setting the integration order and active check factor
-        for prop in computing_model_part.GetProperties():
-            prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
-
         # We set the interface flag
         KM.VariableUtils().SetFlag(KM.INTERFACE, True, self.contact_model_part.Nodes)
 
@@ -197,6 +190,10 @@ class ALMContactProcess(python_process.PythonProcess):
         else:
             master_slave_process = CSMA.MasterSlaveProcess(computing_model_part)
             master_slave_process.Execute()
+
+        # Setting the integration order and active check factor
+        for prop in self.contact_model_part.GetProperties():
+            prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
 
         # We initialize the contact values
         self._initialize_contact_values(computing_model_part)
@@ -369,11 +366,8 @@ class ALMContactProcess(python_process.PythonProcess):
         if self.settings["contact_type"].GetString() == "Frictional":
             process_info[CSMA.TANGENT_FACTOR] = self.settings["tangent_factor"].GetDouble()
 
-        # Copying the properties in the contact model part
-        self.contact_model_part.SetProperties(computing_model_part.GetProperties())
-
         # Setting the integration order and active check factor
-        for prop in computing_model_part.GetProperties():
+        for prop in self.contact_model_part.GetProperties():
             prop[CSMA.INTEGRATION_ORDER_CONTACT] = self.settings["integration_order"].GetInt()
             prop[CSMA.ACTIVE_CHECK_FACTOR] = self.settings["search_parameters"]["active_check_factor"].GetDouble()
 

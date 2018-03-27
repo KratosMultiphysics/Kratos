@@ -31,7 +31,7 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -58,18 +58,21 @@ public:
     ///@{
     
     /// Geometric definitions
-    typedef Point                                         PointType;
-    typedef Node<3>                                        NodeType;
-    typedef Geometry<NodeType>                         GeometryType;
-    typedef Geometry<PointType>                   GeometryPointType;
+    typedef Point                                              PointType;
+    typedef Node<3>                                             NodeType;
+    typedef Geometry<NodeType>                              GeometryType;
+    typedef Geometry<PointType>                        GeometryPointType;
 
     /// The index type
-    typedef std::size_t                                   IndexType;
+    typedef std::size_t                                        IndexType;
+
+    /// The size type
+    typedef std::size_t                                         SizeType;
 
     /// Definition of the entities container
-    typedef ModelPart::NodesContainerType            NodesArrayType;
-    typedef ModelPart::ElementsContainerType      ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType  ConditionsArrayType;
+    typedef ModelPart::NodesContainerType                 NodesArrayType;
+    typedef ModelPart::ElementsContainerType           ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType       ConditionsArrayType;
     
     /// Pointer definition of ExactMortarIntegrationUtility
     KRATOS_CLASS_POINTER_DEFINITION(InterfacePreprocessCondition);
@@ -151,7 +154,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart&  mrMainModelPart;
+    ModelPart&  mrMainModelPart; /// The main model part storing all the information
     
     ///@}
     ///@name Private Operators
@@ -160,6 +163,34 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief Creates a new properties (contaning just values related with contact)
+     * @details These values are removed from the original property (in order to reduce overload of properties on the original elements)
+     * @param rOriginPart The original model part
+     * @return A map containing new properties
+     */
+
+    std::unordered_map<IndexType, Properties::Pointer> CreateNewProperties(ModelPart& rOriginPart);
+
+    /**
+     * @brief Copies a value from the original property to the new one
+     * @param pOriginalProperty The original property
+     * @param pNewProperty The new property
+     * @param rVariable The variable to copy an erase
+     */
+    template<class TClass>
+    void CopyProperties(
+        Properties::Pointer pOriginalProperty,
+        Properties::Pointer pNewProperty,
+        const Variable<TClass>& rVariable
+        )
+    {
+        if(pOriginalProperty->Has(rVariable)) {
+            const TClass& value = pOriginalProperty->GetValue(rVariable);
+            pNewProperty->SetValue(rVariable, value);
+        }
+    }
 
     /**
      * @brief Creates a new condition with a giving name
