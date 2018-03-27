@@ -31,11 +31,12 @@ ShellToSolidShellProcess<TNumNodes>::ShellToSolidShellProcess(
 
     Parameters default_parameters = Parameters(R"(
     {
-        "element_name"    : "SolidShellElementSprism3D6N",
-        "model_part_name" : "",
-        "number_of_layers": 1,
-        "export_to_mdpa"  : false,
-        "output_name"     : "output"
+        "element_name"        : "SolidShellElementSprism3D6N",
+        "model_part_name"     : "",
+        "number_of_layers"    : 1,
+        "export_to_mdpa"      : false,
+        "output_name"         : "output",
+        "initialize_elements" : false
     })" );
 
     mThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -180,8 +181,10 @@ void ShellToSolidShellProcess<TNumNodes>::Execute()
     // Reorder again all the IDs
     ReorderAllIds();
 
-//     // We initialize the new elements
-//     InitializeElements();
+    // We initialize the new elements
+    if (mThisParameters["initialize_elements"].GetBool()) {
+        InitializeElements();
+    }
 
     if (mThisParameters["export_to_mdpa"].GetBool()) {
         const std::string& output_name = mThisParameters["output_name"].GetString();
