@@ -243,6 +243,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearJ2PlasticityPlaneStrain2DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
@@ -338,6 +339,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearJ2PlasticityPlaneStrain2DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2PlasticityPlaneStrain2DLaw");
@@ -438,6 +440,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearJ2Plasticity3DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
@@ -534,6 +537,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearJ2Plasticity3DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearJ2Plasticity3DLaw");
@@ -634,6 +638,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
@@ -710,6 +715,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElasticPlaneStrain2DLaw");
@@ -791,6 +797,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
@@ -868,6 +875,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
 
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            // In case the StructuralMechanicsApplciation is not compiled we skip the test
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
                 return void();
             ConstitutiveLaw const& r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("LinearElastic3DLaw");
