@@ -13,9 +13,9 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return PrintAfterFormfinding(Model,settings)
+    return FormfindingIO(Model,settings)
 
-class PrintAfterFormfinding(KratosMultiphysics.Process):
+class FormfindingIO(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
 
         default_settings = KratosMultiphysics.Parameters(
@@ -36,7 +36,7 @@ class PrintAfterFormfinding(KratosMultiphysics.Process):
         self.print_mdpa = self.settings["print_mdpa"].GetBool()
         self.print_prestress = self.settings["print_prestress"].GetBool()
         self.read_prestress = self.settings["read_prestress"].GetBool()
-        self.formfinding_io = StructuralMechanicsApplication.FormfindingPrintUtility(model, settings)
+        self.formfinding_io = StructuralMechanicsApplication.FormfindingIOUtility(model, settings)
                                                                               
     def ExecuteInitialize(self):
         if (self.read_prestress):

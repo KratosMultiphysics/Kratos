@@ -21,7 +21,7 @@
 
 //Utilities
 #include "custom_utilities/sprism_neighbours.hpp"
-#include "custom_utilities/formfinding_print_utility.h"
+#include "custom_utilities/formfinding_IO_utility.h"
 
 namespace Kratos
 {
@@ -41,10 +41,10 @@ void  AddCustomUtilitiesToPython()
     .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
     ;
 
-    class_<FormfindingPrintUtility>("FormfindingPrintUtility", init<const ModelPart&, const Parameters>())
-    .def("PrintModelPart",&FormfindingPrintUtility::PrintModelPart)
-    .def("ReadPrestressData",&FormfindingPrintUtility::ReadPrestressData )
-    .def("PrintPrestressData",&FormfindingPrintUtility::PrintPrestressData )
+    class_<FormfindingIOUtility>("FormfindingIOUtility", init<const ModelPart&, const Parameters>())
+    .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)
+    .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
+    .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
     ;
 
 }

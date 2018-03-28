@@ -33,13 +33,13 @@
 
 namespace Kratos
 {
-	class FormfindingPrintUtility
+	class FormfindingIOUtility
 	{
 		public:
 		
-		FormfindingPrintUtility(const ModelPart& rModelPart, const Parameters rParameter);
+		FormfindingIOUtility(const ModelPart& rModelPart, const Parameters rParameter);
 
-		~FormfindingPrintUtility(){}
+		~FormfindingIOUtility(){}
 
 		void PrintModelPart();
 

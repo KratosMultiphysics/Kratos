@@ -24,7 +24,6 @@
 #include "custom_processes/apply_multi_point_constraints_process.h"
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
-#include "custom_processes/print_after_formfinding_process.h"
 
 namespace Kratos
 {
@@ -49,10 +48,7 @@ void  AddCustomProcessesToPython()
 
     class_<PostprocessEigenvaluesProcess, boost::noncopyable, bases<Process>>(
         "PostprocessEigenvaluesProcess", init<ModelPart&, Parameters>());
-    
-    class_<PrintAfterFormfindingProcess, boost::noncopyable, bases<Process>>(
-        "PrintAfterFormfindingProcess", init<ModelPart&, Parameters>());
-    
+        
     class_<TotalStructuralMassProcess, bases<ProcessBaseType>, boost::noncopyable >
     (
         "TotalStructuralMassProcess", init<ModelPart&>()

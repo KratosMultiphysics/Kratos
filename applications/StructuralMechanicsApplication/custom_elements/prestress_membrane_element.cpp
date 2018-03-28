@@ -230,6 +230,9 @@ void PrestressMembraneElement::CalculateMassMatrix(
             rMassMatrix(index, index) = temp;
         }
     }
+    if(Id()== 27){
+        std::cout<<"Mass matrix calculated"<<std::endl;
+    }
 
     KRATOS_CATCH("")
 }
@@ -271,6 +274,9 @@ void PrestressMembraneElement::CalculateDampingMatrix(
         }
     }
 
+    if(Id()== 27){
+        std::cout<<"Damping matrix calculated"<<std::endl;
+    }
     KRATOS_CATCH("")
 }
 
@@ -679,7 +685,7 @@ void PrestressMembraneElement::CalculateAll(
         //Deformation Gradient
         Values.SetDeformationGradientF(CalculateDeformationGradient(point_number));
 
-        mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);     // Why is the curviliear strains are used here?
+        mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_PK2);
 
         // Deformations for Non-linear force vector
         Vector strain_deformation;
@@ -690,6 +696,9 @@ void PrestressMembraneElement::CalculateAll(
         for (int i = 0; i < 3; ++i)
             strain_deformation[i] += GetValue(MEMBRANE_PRESTRESS)(i,point_number);
 
+        if (this->Id()==35){
+            std::cout<<"Membrane Prestress:"<<GetValue(MEMBRANE_PRESTRESS)<<", strain deformation: "<< strain_deformation<<std::endl;
+        }
         // calculate B matrices
         Matrix B(3, mat_size);
         noalias(B) = ZeroMatrix(3, mat_size);

@@ -19,7 +19,7 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "formfinding_print_utility.h"
+#include "formfinding_IO_utility.h"
 #include "structural_mechanics_application_variables.h"
 #include "includes/model_part_io.h"
 
@@ -27,10 +27,10 @@
 namespace Kratos
 {
 
-	FormfindingPrintUtility::FormfindingPrintUtility(const ModelPart& rModelPart, const Parameters rParameter): 
+	FormfindingIOUtility::FormfindingIOUtility(const ModelPart& rModelPart, const Parameters rParameter): 
 		mModelPart(rModelPart)
 		{}
-    void FormfindingPrintUtility::PrintModelPart(){
+    void FormfindingIOUtility::PrintModelPart(){
 		// erase nodal data
     	mModelPart.GetNodalSolutionStepVariablesList().clear();
 
@@ -62,7 +62,7 @@ namespace Kratos
 		
 	}
 
-	void FormfindingPrintUtility::PrintPrestressData(){
+	void FormfindingIOUtility::PrintPrestressData(){
 
 		// erase elemental data
     	for( auto& ele: mModelPart.Elements()){
@@ -83,7 +83,7 @@ namespace Kratos
 
 	}
 
-	void FormfindingPrintUtility::ReadPrestressData(){
+	void FormfindingIOUtility::ReadPrestressData(){
 		ModelPartIO model_part_io("prestress_data", IO::READ);
 		model_part_io.ReadInitialValues(mModelPart);
 		std::cout<<"Prestress read"<<std::endl;
