@@ -26,27 +26,27 @@ namespace Kratos {
 
     typedef Node<3>                   PointType;
     typedef Node<3>::Pointer          PointPtrType;
-    typedef Tetrahedra3D4<PointType>  GeometryType;
-    typedef GeometryType::Pointer     GeometryPtrType;
+    typedef Tetrahedra3D4<PointType>  TetGeometryType;
+    typedef TetGeometryType::Pointer  TetGeometryPtrType;
 
     /** Generates a sample Tetrahedra3D4.
      * Generates a tetrahedra defined by three random points in the space.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateTetrahedra3D4(
+    TetGeometryPtrType GenerateTetrahedra3D4(
         PointPtrType PointA = GeneratePoint<PointType>(),
         PointPtrType PointB = GeneratePoint<PointType>(),
         PointPtrType PointC = GeneratePoint<PointType>(),
         PointPtrType PointD = GeneratePoint<PointType>()) {
-      return GeometryPtrType(new GeometryType(PointA, PointB, PointC, PointD));
+      return TetGeometryPtrType(new TetGeometryType(PointA, PointB, PointC, PointD));
     }
 
     /** Generates a sample Tetrahedra3D4.
      * Generates a trirectangular tetrahedra on the origin with positive volume and side 1.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateTriRectangularTetrahedra3D4() {
-      return GeometryPtrType(new GeometryType(
+    TetGeometryPtrType GenerateTriRectangularTetrahedra3D4() {
+      return TetGeometryPtrType(new TetGeometryType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0),
         GeneratePoint<PointType>(1.0, 0.0, 0.0),
         GeneratePoint<PointType>(0.0, 1.0, 0.0),
@@ -58,8 +58,8 @@ namespace Kratos {
      * Generates a regular tetrahedra with positive volume and side 1.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateRegInvtLen1Tetrahedra3D4() {
-      return GeometryPtrType(new GeometryType(
+    TetGeometryPtrType GenerateRegInvtLen1Tetrahedra3D4() {
+      return TetGeometryPtrType(new TetGeometryType(
         GeneratePoint<PointType>(0.0, 1.0, 1.0),
         GeneratePoint<PointType>(1.0, 0.0, 1.0),
         GeneratePoint<PointType>(1.0, 1.0, 0.0),
@@ -71,8 +71,8 @@ namespace Kratos {
      * Generates a regular tetrahedra with negative volume and side 1.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateRegularLen1Tetrahedra3D4() {
-      return GeometryPtrType(new GeometryType(
+    TetGeometryPtrType GenerateRegularLen1Tetrahedra3D4() {
+      return TetGeometryPtrType(new TetGeometryType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0),
         GeneratePoint<PointType>(0.0, 1.0, 1.0),
         GeneratePoint<PointType>(1.0, 0.0, 1.0),
@@ -84,8 +84,8 @@ namespace Kratos {
      * Generates a regular tetrahedra with positive volume with side 2.
      * @return  Pointer to a Tetrahedra3D4
      */
-    GeometryPtrType GenerateRegularLen2Tetrahedra3D4() {
-      return GeometryPtrType(new GeometryType(
+    TetGeometryPtrType GenerateRegularLen2Tetrahedra3D4() {
+      return TetGeometryPtrType(new TetGeometryType(
         GeneratePoint<PointType>(0.0, 0.0, 0.0),
         GeneratePoint<PointType>(0.0, 2.0, 2.0),
         GeneratePoint<PointType>(2.0, 0.0, 2.0),
@@ -257,7 +257,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS;
+      auto criteria = TetGeometryType::QualityCriteria::INRADIUS_TO_CIRCUMRADIUS;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
@@ -276,7 +276,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::INRADIUS_TO_LONGEST_EDGE;
+      auto criteria = TetGeometryType::QualityCriteria::INRADIUS_TO_LONGEST_EDGE;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
@@ -295,7 +295,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
+      auto criteria = TetGeometryType::QualityCriteria::SHORTEST_TO_LONGEST_EDGE;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), 1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.000000, TOLERANCE);
@@ -314,7 +314,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::REGULARITY;
+      auto criteria = TetGeometryType::QualityCriteria::REGULARITY;
 
       // KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
       // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
@@ -337,7 +337,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_SURFACE_AREA;
+      auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_SURFACE_AREA;
 
       // KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria), 1.0, TOLERANCE);
       // KRATOS_CHECK_NEAR(geomRegLen2->Quality(criteria), 1.0, TOLERANCE);
@@ -360,7 +360,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
+      auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_EDGE_LENGTH;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
@@ -379,7 +379,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
+      auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_AVERAGE_EDGE_LENGTH;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
@@ -398,7 +398,7 @@ namespace Kratos {
       auto geomRegLen2 = GenerateRegularLen2Tetrahedra3D4();
       auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
 
-      auto criteria = GeometryType::QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH;
+      auto criteria = TetGeometryType::QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH;
 
       KRATOS_CHECK_NEAR(geomInvLen1->Quality(criteria), -1.000000, TOLERANCE);
       KRATOS_CHECK_NEAR(geomRegLen1->Quality(criteria),  1.000000, TOLERANCE);
