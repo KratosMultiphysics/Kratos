@@ -37,6 +37,10 @@ namespace Kratos {
             KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Main.Random"),
                 "Error: The ModelPart named : \"Random\" was not found as SubModelPart of : \"Main\". The total input string was \"Main.Random\"");
 
+            // TODO this should throw in the future
+            // KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Inlet1"),
+            //     "Error: The ModelPart named : \"Inlet1\" was not found as root-ModelPart. The total input string was \"Inlet1\"");
+
             KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Maiiiiin"),
                 "Error: The ModelPart named : \"Maiiiiin\" was not found as root-ModelPart. The total input string was \"Maiiiiin\"");
 		}
