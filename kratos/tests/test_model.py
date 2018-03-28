@@ -39,6 +39,10 @@ class TestModel(KratosUnittest.TestCase):
         #self.assertEqual(model["Main.Outlet"].Info(), outlet.Info() )
         #self.assertEqual(model["Main.Outlet.aaa"].Info(), aaa.Info() )
 
+        self.assertTrue(model.HasModelPart("Main"))
+        self.assertTrue(model.HasModelPart("Main.Outlet"))
+        self.assertFalse(model.HasModelPart("Outlet"))
+
 
 if __name__ == '__main__':
     KratosUnittest.main()
