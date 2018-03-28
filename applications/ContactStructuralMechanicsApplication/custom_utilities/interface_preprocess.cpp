@@ -149,7 +149,7 @@ std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition:
 
         // Now we copy (an remove) the properties we have interest
         CopyProperties(p_original_prop, p_new_prop, FRICTION_COEFFICIENT);
-        CopyProperties(p_original_prop, p_new_prop, THICKNESS);
+        CopyProperties(p_original_prop, p_new_prop, THICKNESS, false);
         CopyProperties(p_original_prop, p_new_prop, YOUNG_MODULUS);
     }
 

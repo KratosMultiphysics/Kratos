@@ -183,12 +183,16 @@ private:
     void CopyProperties(
         Properties::Pointer pOriginalProperty,
         Properties::Pointer pNewProperty,
-        const Variable<TClass>& rVariable
+        const Variable<TClass>& rVariable,
+        const bool AssignZero = true
         )
     {
         if(pOriginalProperty->Has(rVariable)) {
             const TClass& value = pOriginalProperty->GetValue(rVariable);
             pNewProperty->SetValue(rVariable, value);
+        } else if (AssignZero) {
+            KRATOS_INFO("InterfacePreprocessCondition") << "WARNING:: Property " << rVariable.Name() << " not available. Assigning zero value" << std::endl;
+            pNewProperty->SetValue(rVariable, rVariable.Zero());
         }
     }
 
