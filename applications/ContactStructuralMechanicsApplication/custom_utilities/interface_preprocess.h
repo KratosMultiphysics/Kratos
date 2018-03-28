@@ -49,7 +49,7 @@ namespace Kratos
  * @class InterfacePreprocessCondition
  * @brief Creates Model Parts containing the interface
  * @todo Add parallelization
- * @author Vicebte Mataix Ferrandiz
+ * @author Vicente Mataix Ferrandiz
  */
 class InterfacePreprocessCondition
 {
@@ -191,7 +191,7 @@ private:
             const TClass& value = pOriginalProperty->GetValue(rVariable);
             pNewProperty->SetValue(rVariable, value);
         } else if (AssignZero) {
-            KRATOS_INFO("InterfacePreprocessCondition") << "WARNING:: Property " << rVariable.Name() << " not available. Assigning zero value" << std::endl;
+            KRATOS_INFO("InterfacePreprocessCondition") << "Property " << rVariable.Name() << " not available. Assigning zero value" << std::endl;
             pNewProperty->SetValue(rVariable, rVariable.Zero());
         }
     }
