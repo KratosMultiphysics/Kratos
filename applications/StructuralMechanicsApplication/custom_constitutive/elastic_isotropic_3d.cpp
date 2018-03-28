@@ -66,6 +66,7 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if(Options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rValues.IsSetDeformationGradientF()) << "Element does not provide strain, hence F has to be provide. This is not the case" << std::endl;
         CalculateCauchyGreenStrain(rValues, StrainVector);
     }
 
