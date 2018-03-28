@@ -140,7 +140,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             data["RESULTANT"][variable_name] = []
 
                 # TODO: Add pending classes
+            count += 1
 
+        count = 0
         # Gauss points values
         for elem in self.sub_model_part.Elements:
             if (self.resultant_solution == False):
@@ -205,7 +207,6 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                 data["RESULTANT"][variable_name][str(gp)] = []
 
                 # TODO: Add pending classes
-
             count += 1
 
         write_external_json(self.output_file_name, data)
@@ -290,10 +291,14 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             data["NODE_" + str(node.Id)][variable_name].append(value)
                         else:
                             if (count == 0):
+                                data["RESULTANT"][variable_name].append(value)
+                            else:
                                 data["RESULTANT"][variable_name][-1] += value
 
                     # TODO: Add pending classes
+                count += 1
 
+            count = 0
             # Gauss points values
             for elem in self.sub_model_part.Elements:
                 for i in range(self.params["gauss_points_output_variables"].size()):
@@ -395,7 +400,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
         pass
 
-    def __kratos_vector_to__python_list(self,value):
+    def __kratos_vector_to__python_list(self, value):
         """ This method is executed in order to finalize the current computation
 
         Keyword arguments:
@@ -408,7 +413,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
             list.append(value[index])
         return list
 
-    def __generate_variable_list_from_input(self,param):
+    def __generate_variable_list_from_input(self, param):
       """ Parse a list of variables from input.
 
       Keyword arguments:
