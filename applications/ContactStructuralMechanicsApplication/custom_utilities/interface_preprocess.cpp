@@ -179,8 +179,12 @@ void InterfacePreprocessCondition::CreateNewCondition(
     // We set the condition as master or slave (master by default)
     GeometryType& this_geometry = p_cond->GetGeometry();
     bool is_slave = true;
-    for (IndexType it_node = 0; it_node < this_geometry.size(); ++it_node)
-        if (this_geometry[it_node].Is(SLAVE) == false) is_slave = false;
+    for (IndexType i_node = 0; i_node < this_geometry.size(); ++i_node) {
+        if (this_geometry[i_node].Is(SLAVE) == false) {
+            is_slave = false;
+            break;
+        }
+    }
     if (is_slave == true)  p_cond->Set(SLAVE, true);
     else  p_cond->Set(MASTER, true);
 
