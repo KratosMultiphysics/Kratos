@@ -138,24 +138,28 @@ std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition:
         ++count;
         it_prop->SetId(count);
     }
-    // Create new properties
+
+    // Create a vector with the ids of the old properties
+    const SizeType number_properties_origin = rOriginPart.NumberOfProperties();
+    std::vector<IndexType> index_vector(number_properties_origin);
     count = 0;
     for (auto it_prop = rOriginPart.PropertiesBegin(); it_prop < rOriginPart.PropertiesEnd(); ++it_prop) {
-        Properties::Pointer p_original_prop = *(it_prop.base());
+        index_vector[count] = it_prop->Id();
         ++count;
-        Properties new_prop(number_properties + count + 1);
-        Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(new_prop);
-        new_properties.insert({p_original_prop->Id(), p_new_prop});
+    }
+
+    // Copy to the new properties
+    count = 0;
+    for (auto& i_prop : index_vector) {
+        Properties::Pointer p_original_prop = mrMainModelPart.pGetProperties(i_prop);;
+        ++count;
+        Properties::Pointer p_new_prop = mrMainModelPart.pGetProperties(number_properties + count + 1);
+        new_properties.insert({i_prop, p_new_prop});
 
         // Now we copy (an remove) the properties we have interest
         CopyProperties(p_original_prop, p_new_prop, FRICTION_COEFFICIENT);
         CopyProperties(p_original_prop, p_new_prop, THICKNESS, false);
         CopyProperties(p_original_prop, p_new_prop, YOUNG_MODULUS);
-    }
-
-    // Adding created properties to the parent model part
-    for (auto& prop : new_properties) {
-        mrMainModelPart.AddProperties(prop.second);
     }
 
     return new_properties;
