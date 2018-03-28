@@ -61,14 +61,31 @@ public:
     ///@name Operations
     ///@{
 
-    std::string GetPrefix() const;
-
-    void SetPrefix(std::string const& rPrefix);
-
     void WriteNodalResults(NodesContainerType const& rNodes, unsigned Step=0);
 
     void ReadNodalResults(NodesContainerType& rNodes, Communicator& rComm, unsigned Step=0);
     
+    ///@}
+
+protected:
+    ///@name Protected Operations
+    ///@{
+
+    std::string const& GetPrefix() const noexcept
+    {
+        return mPrefix;
+    }
+
+    std::vector<std::string> const& VariableNames() const noexcept
+    {
+        return mVariableNames;
+    }
+
+    File& GetFile()
+    {
+        return *mpFile;
+    }
+
     ///@}
 
 private:

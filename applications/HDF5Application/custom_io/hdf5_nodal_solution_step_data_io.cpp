@@ -84,16 +84,6 @@ NodalSolutionStepDataIO::NodalSolutionStepDataIO(Parameters Settings, File::Poin
     KRATOS_CATCH("");
 }
 
-std::string NodalSolutionStepDataIO::GetPrefix() const
-{
-    return mPrefix;
-}
-
-void NodalSolutionStepDataIO::SetPrefix(std::string const& rPrefix)
-{
-    mPrefix = rPrefix;
-}
-
 void NodalSolutionStepDataIO::WriteNodalResults(NodesContainerType const& rNodes, unsigned Step)
 {
     KRATOS_TRY;
