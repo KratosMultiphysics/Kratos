@@ -135,9 +135,9 @@ public:
         VariableUtils().SetFlag(
             STRUCTURE, true, rModelPart.GetSubModelPart(mStructureModelPartName).Nodes());
 
-        VariableUtils().SetNonHistoricalVar(UPDATE_SENSITIVITIES, false,
+        VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, false,
                                             rModelPart.Nodes());
-        VariableUtils().SetNonHistoricalVar(
+        VariableUtils().SetNonHistoricalVariable(
             UPDATE_SENSITIVITIES, true,
             rModelPart.GetSubModelPart(mSensitivityModelPartName).Nodes());
 

@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -31,7 +32,7 @@ namespace Kratos
  * The utility is intended to be inherited by a concrete response function,
  * which customizes CalculatePartialSensitivity and calls the provided
  * build functions to assemble its sensitivity variables.
- * 
+ *
  */
 class ResponseFunctionSensitivityBuilderUtility
 {
@@ -63,7 +64,7 @@ protected:
      * Defines the local contribution from an element for a sensitivity variable.
      * This is overridden by the derived response function and called in the
      * assembly loop.
-     * 
+     *
      * @param[in]     rVariable             sensitivity variable.
      * @param[in]     rElement              local adjoint element.
      * @param[in]     rSensitivityMatrix    transposed gradient of the residual
