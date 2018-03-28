@@ -67,11 +67,6 @@ class MonolithicSolver:
 
         self.alpha = -0.3
         self.move_mesh_strategy = 0
-# self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
-        # definition of the solvers
-# self.linear_solver =  SkylineLUFactorizationSolver()
-# self.linear_solver =SuperLUSolver()
-# self.linear_solver = MKLPardisoSolver()
 
         pPrecond = DiagonalPreconditioner()
 # pPrecond = ILU0Preconditioner()

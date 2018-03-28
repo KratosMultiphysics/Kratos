@@ -12,7 +12,7 @@ import navier_stokes_solver_vmsmonolithic
 def CreateSolver(main_model_part, custom_settings):
     return SteadyNavierStokesSolver_VMSMonolithic(main_model_part, custom_settings)
 
-class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolver_VMSMonolithic):
+class SteadyNavierStokesSolver_VMSMonolithic(navier_stokes_solver_vmsmonolithic.NavierStokesSolverMonolithic):
 
     def __init__(self, main_model_part, custom_settings):
     

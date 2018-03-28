@@ -104,8 +104,8 @@ public:
 
     struct ConditionDataStruct
     {
-        // double charVel;                // Problem characteristic velocity (used in the outlet inflow prevention)
-        // double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
+        double charVel;                // Problem characteristic velocity (used in the outlet inflow prevention)
+        double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
 
         // Data required in the RHS and LHS calculation
         double wGauss;                              // Gauss point weight
@@ -214,8 +214,8 @@ public:
 
     /**
      * Clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
      * @return a Pointer to the new element
      */
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override {
@@ -319,9 +319,9 @@ public:
     /// Calculates the LHS and RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
@@ -350,9 +350,9 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Store the outlet inflow prevention constants in the data structure
-        // data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        // const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Loop on gauss points
         if (data.n_pos != 0 && data.n_neg != 0){
@@ -417,8 +417,8 @@ public:
     /// Calculates the RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                ProcessInfo& rCurrentProcessInfo) override
@@ -497,8 +497,8 @@ public:
     /// Calculates the RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rRightHandSideVector: reference to the RHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rRightHandSideVector reference to the RHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo) override
@@ -521,9 +521,9 @@ public:
         noalias(rRightHandSideVector) = ZeroVector(MatrixSize);
 
         // Store the outlet inflow prevention constants in the data structure
-        // data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
-        // const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        // data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
+        const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
+        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
 
         // Loop on gauss points
         if (data.n_pos != 0 && data.n_neg != 0){
@@ -582,7 +582,7 @@ public:
 
     /// Condition check
     /**
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
@@ -717,7 +717,7 @@ protected:
     void ComputeGaussPointRHSContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
     
     void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
-    // void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
+    void ComputeRHSOutletInflowContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& rData);
 
     // Auxiliar function to fill the element data structure
     void FillConditionData(ConditionDataStruct &rData)

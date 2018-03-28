@@ -1,4 +1,4 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -16,11 +16,17 @@ import KratosMultiphysics.FluidDynamicsApplication as KratosFluid   # Fluid dyna
 import navier_stokes_solver_fractionalstep
 
 def CreateSolver(main_model_part, custom_settings):
-    return Trilinos_NavierStokesSolver_FractionalStep(main_model_part, custom_settings)
+    return TrilinosNavierStokesSolverFractionalStep(main_model_part, custom_settings)
 
-class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolver_FractionalStep):
+class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalstep.NavierStokesSolverFractionalStep):
 
     def __init__(self, main_model_part, custom_settings):
+
+        self.element_name = "FractionalStep"
+        self.condition_name = "WallCondition"
+        self.min_buffer_size = 3
+
+        self._is_printing_rank = (KratosMPI.mpi.rank == 0)
 
         #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
         self.main_model_part = main_model_part
@@ -28,7 +34,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         ## Default settings string in Json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "solver_type": "trilinos_navier_stokes_solver_fractionalstep",
+            "solver_type": "FractionalStep",
             "model_import_settings": {
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
@@ -45,7 +51,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
             "time_order": 2,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "pressure_linear_solver_settings":  {
+            "pressure_linear_solver_settings": {
                 "solver_type"                        : "MultiLevelSolver",
                 "max_iteration"                      : 200,
                 "tolerance"                          : 1e-6,
@@ -87,67 +93,55 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
 
         self.compute_reactions = self.settings["compute_reactions"].GetBool()
 
-        ## Set the element replace settings
-        self.settings.AddEmptyValue("element_replace_settings")
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"FractionalStep3D4N",
-                "condition_name": "WallCondition3D3N"
-                }
-                """)
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
-                {
-                "element_name":"FractionalStep2D3N",
-                "condition_name": "WallCondition2D2N"
-                }
-                """)
-        else:
-            raise Exception("Domain size is not 2 or 3.")
-
-        print("Construction of Trilinos_NavierStokesSolver_FractionalStep finished")
+        if self._IsPrintingRank():
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","Construction of TrilinosNavierStokesSolverFractionalStep solver finished.")
 
 
     def AddVariables(self):
         ## Add variables from the base class
-        super(Trilinos_NavierStokesSolver_FractionalStep, self).AddVariables()
+        super(TrilinosNavierStokesSolverFractionalStep, self).AddVariables()
 
         ## Add specific MPI variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
         KratosMPI.mpi.world.barrier()
 
-        if KratosMPI.mpi.rank == 0:
-            print("variables for the trilinos fractional step solver added correctly")
+        if self._IsPrintingRank():
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","variables for the trilinos fractional step solver added correctly")
 
 
     def ImportModelPart(self):
+
         ## Construct the Trilinos import model part utility
         import trilinos_import_model_part_utility
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.main_model_part, self.settings)
-
         ## Execute the Metis partitioning and reading
         TrilinosModelPartImporter.ExecutePartitioningAndReading()
-
-        ## Call the base class execute after reading (substitute elements, set density, viscosity and constitutie law)
-        super(Trilinos_NavierStokesSolver_FractionalStep, self)._ExecuteAfterReading()
-
+        ## Replace default elements and conditions
+        super(TrilinosNavierStokesSolverFractionalStep, self)._replace_elements_and_conditions()
+        ## Executes the check and prepare model process
+        super(TrilinosNavierStokesSolverFractionalStep, self)._execute_check_and_prepare()
         ## Call the base class set buffer size
-        super(Trilinos_NavierStokesSolver_FractionalStep, self)._SetBufferSize()
-
-        ## Construct the communicators
+        super(TrilinosNavierStokesSolverFractionalStep, self)._set_buffer_size()
+        ## Sets DENSITY, VISCOSITY and SOUND_VELOCITY
+        super(TrilinosNavierStokesSolverFractionalStep, self)._set_physical_properties()
+        ## Construct Trilinos the communicators
         TrilinosModelPartImporter.CreateCommunicators()
 
-        print ("MPI model reading finished.")
+        if self._IsPrintingRank():
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","MPI model reading finished.")
 
 
     def AddDofs(self):
         ## Base class DOFs addition
-        super(Trilinos_NavierStokesSolver_FractionalStep, self).AddDofs()
+        super(TrilinosNavierStokesSolverFractionalStep, self).AddDofs()
         KratosMPI.mpi.world.barrier()
 
-        if KratosMPI.mpi.rank == 0:
-            print("DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
+        if self._IsPrintingRank():
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","DOFs for the VMS Trilinos fluid solver added correctly in all processors.")
 
 
     def Initialize(self):
@@ -159,7 +153,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
 
         ## If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
+            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
@@ -204,11 +198,7 @@ class Trilinos_NavierStokesSolver_FractionalStep(navier_stokes_solver_fractional
         (self.solver).Initialize()
         (self.solver).Check()
 
-        print ("Initialization Trilinos_NavierStokesSolver_FractionalStep Finished")
+        if self._IsPrintingRank():
+            #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
+            KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","Initialization TrilinosNavierStokesSolverFractionalStep finished")
 
-
-    def Solve(self):
-        (self.solver).Solve()
-
-        if self.compute_reactions:
-            self.solver.CalculateReactions()

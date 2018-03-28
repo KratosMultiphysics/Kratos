@@ -16,15 +16,15 @@
 #if !defined(KRATOS_MATH_UTILS )
 #define  KRATOS_MATH_UTILS
 
-
 /* System includes */
+#include <cmath>
 #include <type_traits>
 
 /* External includes */
-#include <cmath>
+
+/* External includes */
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
-
 
 namespace Kratos
 {
@@ -48,9 +48,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-///Various mathematical utilitiy functions.
 /**
- * Defines several utility functions
+ * @class MathUtils
+ *
+ * \ingroup KratosCore
+ *
+ * @brief Various mathematical utilitiy functions
+ *
+ * @details Various mathematical utilitiy functions. Defines several utility functions. 
+ *
+ * @author Riccardo Rossi
+ * @author Pooyan Dadvand
  */
 template<class TDataType>
 class MathUtils

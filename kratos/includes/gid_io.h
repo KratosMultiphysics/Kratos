@@ -815,7 +815,7 @@ public:
             const Vector& temp_vector = it_node->FastGetSolutionStepValue(rVariable,
                                  SolutionStepNumber);
             if (temp_vector.size() ==3 )
-                GiD_fWriteVector(mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2] );
+                GiD_fWrite2DMatrix(mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2]);
             else if (temp_vector.size() == 6 )
                 GiD_fWrite3DMatrix( mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2],
                                     temp_vector[3], temp_vector[4], temp_vector[5] );
@@ -1002,7 +1002,7 @@ public:
         {
             const Vector& temp_vector = it_node->GetValue(rVariable);
             if (temp_vector.size() ==3 )
-                GiD_fWriteVector(mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2] );
+                GiD_fWrite2DMatrix(mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2]);
             else if (temp_vector.size() == 6 )
                 GiD_fWrite3DMatrix( mResultFile, it_node->Id(), temp_vector[0], temp_vector[1], temp_vector[2],
                                     temp_vector[3], temp_vector[4], temp_vector[5] );

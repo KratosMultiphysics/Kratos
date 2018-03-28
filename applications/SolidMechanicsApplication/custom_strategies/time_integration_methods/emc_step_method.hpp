@@ -177,7 +177,9 @@ namespace Kratos
     virtual void SetProcessInfoParameters(ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
-          
+	 
+     rCurrentProcessInfo[EQUILIBRIUM_POINT]  = this->mEmc.alpha;  
+	 
      KRATOS_CATCH( "" )
     } 
     
@@ -199,7 +201,7 @@ namespace Kratos
      KRATOS_TRY
      
      if( this->mpInputVariable != nullptr ){ 
-
+	 
        if( *this->mpInputVariable == *this->mpVariable ){
 	 this->PredictFromVariable(rNode);
        }
@@ -211,16 +213,24 @@ namespace Kratos
        if( *this->mpInputVariable == *this->mpSecondDerivative ){
 	 this->PredictFromSecondDerivative(rNode);
        }
-
+       
      }
      else{
 
-       this->PredictVariable(rNode);      
-       this->UpdateFirstDerivative(rNode);
-       this->UpdateSecondDerivative(rNode);
-       this->PredictStepVariable(rNode);      
+       this->PredictFirstDerivative(rNode);
+       this->PredictSecondDerivative(rNode);
+       this->PredictStepVariable(rNode);
+       this->PredictVariable(rNode);
+      
      }
-	
+     
+     // const TValueType& CurrentVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,     0);
+     // const TValueType& CurrentStepVariable       = rNode.FastGetSolutionStepValue(*this->mpStepVariable, 0);
+     // const TValueType& CurrentFirstDerivative    = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
+     // const TValueType& CurrentSecondDerivative   = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
+
+     // std::cout<<*this->mpVariable<<" Predict Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
+     
      KRATOS_CATCH( "" )
     }
 
@@ -229,13 +239,19 @@ namespace Kratos
     virtual void Update(NodeType& rNode) override
     {
      KRATOS_TRY
-       
-     this->UpdateVariable(rNode);
+         
+     this->UpdateStepVariable(rNode);  
      this->UpdateFirstDerivative(rNode);
      this->UpdateSecondDerivative(rNode);
+     this->UpdateVariable(rNode);
+     
+     // const TValueType& CurrentVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,     0);
+     // const TValueType& CurrentStepVariable       = rNode.FastGetSolutionStepValue(*this->mpStepVariable, 0);
+     // const TValueType& CurrentFirstDerivative    = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
+     // const TValueType& CurrentSecondDerivative   = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
 
-     this->UpdateStepVariable(rNode);  
-
+     // std::cout<<*this->mpVariable<<" Update Node["<<rNode.Id()<<"]"<<CurrentVariable<<" "<<CurrentStepVariable<<" "<<CurrentFirstDerivative<<" "<<CurrentSecondDerivative<<std::endl;
+     
      KRATOS_CATCH( "" )
     }
    
@@ -309,14 +325,9 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      // predict step variable from variable	
-      TValueType& PreviousStepVariable           = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     1);
-      
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-      
-      PreviousStepVariable = CurrentVariable - PreviousVariable;
-		
+      // predict variable from variable
+
+	  
       KRATOS_CATCH( "" )
     }
 
@@ -329,14 +340,12 @@ namespace Kratos
       TValueType& CurrentVariable                = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
       
-      const TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
-      const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
-  
-      CurrentVariable = PreviousVariable + (CurrentFirstDerivative-PreviousFirstDerivative) * (1.0/this->mEmc.c0);
+      const TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);     
+      TValueType& PreviousFirstDerivative        = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
 
-      TValueType& PreviousStepVariable           = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     1);
-      PreviousStepVariable = CurrentVariable - PreviousVariable;
-
+      PreviousFirstDerivative = CurrentFirstDerivative;
+      
+      CurrentVariable = PreviousVariable + (CurrentFirstDerivative+PreviousFirstDerivative) * (1.0/this->mEmc.c0);
       
       KRATOS_CATCH( "" )      
     }
@@ -349,13 +358,9 @@ namespace Kratos
       TValueType& CurrentVariable                = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
 
-      const TValueType& CurrentSecondDerivative  = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
-      const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
-      
-      CurrentVariable = PreviousVariable + (CurrentSecondDerivative-PreviousSecondDerivative) * (1.0/this->mEmc.c1);
+      const TValueType& CurrentSecondDerivative  = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);      
 
-      TValueType& PreviousStepVariable           = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     1);
-      PreviousStepVariable = CurrentVariable - PreviousVariable;
+      CurrentVariable = PreviousVariable + CurrentSecondDerivative * (1.0/(this->mEmc.c0*this->mEmc.c1));
       
       KRATOS_CATCH( "" )      
     }
@@ -365,8 +370,45 @@ namespace Kratos
     {
       KRATOS_TRY
 
+      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      TValueType& PreviousVariable               = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
 	
+      // update variable previous iteration instead of previous step
+      PreviousVariable = CurrentVariable;
+      
       KRATOS_CATCH( "" )
+    }
+
+    virtual void PredictFirstDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+	
+      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      TValueType& CurrentFirstDerivative         = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+
+      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+      const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
+      
+      CurrentFirstDerivative = this->mEmc.c0 * (CurrentVariable-PreviousVariable) - PreviousFirstDerivative;
+     
+      KRATOS_CATCH( "" )      
+    }
+
+    virtual void PredictSecondDerivative(NodeType& rNode) override
+    {
+      KRATOS_TRY
+
+	  
+      const TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+
+      TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
+
+      const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
+      
+      CurrentSecondDerivative = this->mEmc.c1 * (CurrentFirstDerivative-PreviousFirstDerivative);
+     
+      
+      KRATOS_CATCH( "" )              
     }
 
     
@@ -374,8 +416,14 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      this->UpdateStepVariable(rNode);
-	
+      // predict step variable from previous and current values
+      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
+      
+      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+      
+      CurrentStepVariable  = CurrentVariable-PreviousVariable;
+      	
       KRATOS_CATCH( "" )
     }
 
@@ -386,15 +434,11 @@ namespace Kratos
 
       // predict step variable from previous and current values
       TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
-      TValueType& PreviousStepVariable           = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     1);
       
       const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-
-      // update step variable previous iteration instead of previous step
-      PreviousStepVariable = CurrentStepVariable;
-      
-      CurrentStepVariable  = CurrentVariable-PreviousVariable;
+            
+      CurrentStepVariable += CurrentVariable-PreviousVariable;
 	
       KRATOS_CATCH( "" )
     }
@@ -403,6 +447,11 @@ namespace Kratos
     {
       KRATOS_TRY
 
+      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
+      TValueType& PreviousVariable               = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
+	
+      // update variable previous iteration instead of previous step
+      PreviousVariable = CurrentVariable;
       
       KRATOS_CATCH( "" )
     }
@@ -414,12 +463,10 @@ namespace Kratos
       TValueType& CurrentFirstDerivative        = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
       const TValueType& PreviousFirstDerivative = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
       
+      const TValueType& CurrentStepVariable     = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
       
-      const TValueType& CurrentVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
- 	          
-      const TValueType& PreviousVariable        = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-      
-      CurrentFirstDerivative = this->mEmc.c0 * (CurrentVariable-PreviousVariable) - PreviousFirstDerivative;
+      CurrentFirstDerivative = this->mEmc.c0 * (CurrentStepVariable) - PreviousFirstDerivative;
+
       
       KRATOS_CATCH( "" )      
     }
@@ -430,10 +477,10 @@ namespace Kratos
 
       TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
 
-      const TValueType& CurrentFirstDerivative        = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
-      const TValueType& PreviousFirstDerivative = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
+      const TValueType& CurrentFirstDerivative   = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
+      const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
                   
-      CurrentSecondDerivative = this->mEmc.c1 * (CurrentFirstDerivative) - PreviousFirstDerivative;
+      CurrentSecondDerivative = this->mEmc.c1 * (CurrentFirstDerivative - PreviousFirstDerivative);
       
       KRATOS_CATCH( "" )              
     }

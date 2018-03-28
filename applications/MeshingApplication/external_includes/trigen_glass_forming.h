@@ -143,7 +143,7 @@ public:
 
 		if (ic->GetGeometry().size()==2)
 		{
-		int n_fs=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);			
+		unsigned int n_fs=ic->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);			
 		n_fs+=ic->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
 								
 		//THIS REFINES THE NODES OF INTERBAL ELEMENTS OF THE SURFACE WHERE THE INBLOW IS: FLAG_VAR=1

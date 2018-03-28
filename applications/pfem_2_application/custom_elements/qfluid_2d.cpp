@@ -156,8 +156,8 @@ void QFluid2D::Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSid
   //const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
   
   //double h = sqrt(2.00*Area);
-  double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
-  norm_u = sqrt(norm_u);
+  //double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
+  //norm_u = sqrt(norm_u);
   //double tau = 1.00 / ( c1*nu/(h*h) + c2*norm_u/h );
   
   //Matrix msMassFactors(6,6);

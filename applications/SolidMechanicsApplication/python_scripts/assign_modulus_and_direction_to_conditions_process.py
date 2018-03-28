@@ -58,15 +58,15 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         self.variable_name = self.settings["variable_name"].GetString()
 
         ## set the interval
-        self.finalized = False;
+        self.interval_ended = False
+        self.finalized = False
         self.interval  = []
-        self.interval.append(self.settings["interval"][0].GetDouble());
+        self.interval.append(self.settings["interval"][0].GetDouble())
         if( self.settings["interval"][1].IsString() ):
             if( self.settings["interval"][1].GetString() == "End" ):
                 self.interval.append(sys.float_info.max)
         elif( self.settings["interval"][1].IsDouble() or  self.settings["interval"][1].IsInt() ):
-            self.interval.append(self.settings["interval"][1].GetDouble());
-
+            self.interval.append(self.settings["interval"][1].GetDouble())
 
         self.interval_string = "custom"
         if( self.interval[0] == 0.0 and self.interval[1] == 0.0 ):
@@ -207,7 +207,7 @@ class AssignModulusAndDirectionToConditionsProcess(KratosMultiphysics.Process):
         tolerance = delta_time * 0.001
 
         if( current_time >= (self.interval[0] - tolerance) and current_time <= (self.interval[1] + tolerance) ):
-            self.interval_ended = False;
+            self.interval_ended = False
             return True
         else:
             return False

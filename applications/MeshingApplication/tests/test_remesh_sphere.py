@@ -9,13 +9,13 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 
 class TestRemeshMMG(KratosUnittest.TestCase):
-    
+
     def test_remesh_sphere(self):
         # We create the model part
         main_model_part = KratosMultiphysics.ModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 3)
 
-        # We add the variables needed 
+        # We add the variables needed
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
@@ -35,7 +35,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         local_gradient.Execute()
 
         # We set to zero the metric
-        ZeroVector = KratosMultiphysics.Vector(6) 
+        ZeroVector = KratosMultiphysics.Vector(6)
         ZeroVector[0] = 0.0
         ZeroVector[1] = 0.0
         ZeroVector[2] = 0.0
@@ -45,7 +45,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
 
         for node in main_model_part.Nodes:
             node.SetValue(MeshingApplication.MMG_METRIC, ZeroVector)
-                
+
         # We define a metric using the ComputeLevelSetSolMetricProcess
         MetricParameters = KratosMultiphysics.Parameters("""
         {
@@ -65,7 +65,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
 
         mmg_parameters = KratosMultiphysics.Parameters("""
         {
-            "filename"                         : "mmg_eulerian_test/coarse_sphere_test", 
+            "filename"                         : "mmg_eulerian_test/coarse_sphere_test",
             "save_external_files"              : true,
             "echo_level"                       : 0
         }
@@ -77,7 +77,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
 
         # We remesh
         mmg_process.Execute()
-        
+
         # Finally we export to GiD
         from gid_output_process import GiDOutputProcess
         gid_output = GiDOutputProcess(main_model_part,
@@ -90,7 +90,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
                                                     "WriteDeformedMeshFlag": "WriteUndeformed",
                                                     "WriteConditionsFlag": "WriteConditions",
                                                     "MultiFileFlag": "SingleFile"
-                                                },        
+                                                },
                                                 "nodal_results"       : []
                                             }
                                         }
@@ -102,26 +102,25 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         #gid_output.ExecuteInitializeSolutionStep()
         #gid_output.PrintOutput()
         #gid_output.ExecuteFinalizeSolutionStep()
-        #gid_output.ExecuteFinalize()  
-        
+        #gid_output.ExecuteFinalize()
+
         from compare_two_files_check_process import CompareTwoFilesCheckProcess
         check_files = CompareTwoFilesCheckProcess(main_model_part, KratosMultiphysics.Parameters("""
                             {
-                                "file_name_1"            : "mmg_eulerian_test/coarse_sphere_test_step=0.sol",
-                                "file_name_2"            : "mmg_eulerian_test/coarse_sphere_test_result.sol",
-                                "deterministic"          : false,
-                                "error_assumed"          : 1.0e-6,
-                                "dimension"              : 3,
-                                "non_deterministic_comp" : "sol_file"
+                                "reference_file_name"   : "mmg_eulerian_test/coarse_sphere_test_result.sol",
+                                "output_file_name"      : "mmg_eulerian_test/coarse_sphere_test_step=0.sol",
+                                "tolerance"             : 1.0e-6,
+                                "dimension"             : 3,
+                                "comparison_type"       : "sol_file"
                             }
-                            """) 
+                            """)
                             )
-        
+
         check_files.ExecuteInitialize()
         check_files.ExecuteBeforeSolutionLoop()
         check_files.ExecuteInitializeSolutionStep()
         check_files.ExecuteFinalizeSolutionStep()
-        check_files.ExecuteFinalize()  
-        
+        check_files.ExecuteFinalize()
+
 if __name__ == '__main__':
     KratosUnittest.main()

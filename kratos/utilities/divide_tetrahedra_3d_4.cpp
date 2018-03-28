@@ -45,11 +45,28 @@ namespace Kratos
         rOStream << "Tetrahedra divide operations utility constructed with:\n";
         rOStream << "   Geometry type: " << geometry.Info() << "\n";
         std::stringstream distances_buffer;
+        std::ostringstream stm;
         for (unsigned int i = 0; i < nodal_distances.size(); ++i) {
-            distances_buffer << std::to_string(nodal_distances(i)) << " ";
+            stm << nodal_distances(i);
+            distances_buffer << stm.str() << " ";
         }
         rOStream << "   Distance values: " << distances_buffer.str();
     };
+
+    // Returns the mEdgeNodeI member vector
+    const std::vector<int>& DivideTetrahedra3D4::GetEdgeIdsI() const {
+        return mEdgeNodeI;
+    }
+
+    // Returns the mEdgeNodeJ member vector
+    const std::vector<int>& DivideTetrahedra3D4::GetEdgeIdsJ() const {
+        return mEdgeNodeJ;
+    }
+
+    // Returns the mSplitEdges member vector
+    std::vector<int>& DivideTetrahedra3D4::GetSplitEdges() {
+        return mSplitEdges;
+    }
 
     // Performs and saves the splitting pattern.
     void DivideTetrahedra3D4::GenerateDivision() {

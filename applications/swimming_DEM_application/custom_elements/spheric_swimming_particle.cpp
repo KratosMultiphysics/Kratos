@@ -13,8 +13,51 @@
 
 namespace Kratos
 {
-//**************************************************************************************************************************************************
-//**************************************************************************************************************************************************
+
+template < class TBaseElement >
+SphericSwimmingParticle<TBaseElement>& SphericSwimmingParticle<TBaseElement>::operator=(const SphericSwimmingParticle<TBaseElement>& rOther) {    
+
+    TBaseElement::operator=(rOther);
+    
+    mNeighbourNodes = rOther.mNeighbourNodes;
+    mNeighbourNodesDistances = rOther.mNeighbourNodesDistances;
+    mHasHydroMomentNodalVar = rOther.mHasHydroMomentNodalVar;
+    mHasDragForceNodalVar = rOther.mHasDragForceNodalVar;
+    mHasVirtualMassForceNodalVar = rOther.mHasVirtualMassForceNodalVar;
+    mHasBassetForceNodalVar = rOther.mHasBassetForceNodalVar;
+    mHasLiftForceNodalVar = rOther.mHasLiftForceNodalVar;
+    mHasDragCoefficientVar = rOther.mHasDragCoefficientVar;
+    mHasOldAdditionalForceVar = rOther.mHasOldAdditionalForceVar;
+    mFirstStep = rOther.mFirstStep;
+    mCouplingType = rOther.mCouplingType;
+    mBuoyancyForceType = rOther.mBuoyancyForceType;
+    mDragForceType = rOther.mDragForceType;
+    mVirtualMassForceType = rOther.mVirtualMassForceType;
+    mBassetForceType = rOther.mBassetForceType;
+    mSaffmanForceType = rOther.mSaffmanForceType;
+    mMagnusForceType = rOther.mMagnusForceType;
+    mFluidModelType = rOther.mFluidModelType;
+    mPorosityCorrectionType = rOther.mPorosityCorrectionType;
+    mHydrodynamicTorqueType = rOther.mHydrodynamicTorqueType;
+    mBrownianMotionType = rOther.mBrownianMotionType;
+    mQuadratureOrder = rOther.mQuadratureOrder;
+    mFluidDensity = rOther.mFluidDensity;
+    mFluidFraction = rOther.mFluidFraction;
+    mKinematicViscosity = rOther.mKinematicViscosity;
+    mSphericity = rOther.mSphericity;
+    mNormOfSlipVel = rOther.mNormOfSlipVel;
+    mLastTimeStep = rOther.mLastTimeStep;
+    mInitialTime = rOther.mInitialTime;
+    mOldDaitchePresentCoefficient = rOther.mOldDaitchePresentCoefficient;
+    mLastVirtualMassAddedMass = rOther.mLastVirtualMassAddedMass;
+    mLastBassetForceAddedMass = rOther.mLastBassetForceAddedMass;
+    noalias(mSlipVel) = rOther.mSlipVel;
+    noalias(mOldBassetTerm) = rOther.mOldBassetTerm;   
+
+    return *this;
+}
+
+
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>& non_contact_force,
                                                                     array_1d<double, 3>& non_contact_moment,
@@ -833,12 +876,13 @@ void SphericSwimmingParticle<TBaseElement>::ComputeMagnusLiftForce(NodeType& nod
 
     else if (mMagnusForceType == 3){ // Loth, 2008 (Re_p < 2000; nondimensional_slip_rot_vel < 20)
         // calculate as in Rubinow and Keller, 1963
-        lift_force = Globals::Pi * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
+        noalias(lift_force) = Globals::Pi * SWIMMING_POW_3(mRadius) * mFluidDensity * slip_rot_cross_slip_vel;
         // correct coefficient
         double reynolds;
         ComputeParticleReynoldsNumber(reynolds);
         const double nondimensional_slip_rot_vel = ComputeNondimensionalRotVelocity(slip_rot);
         const double coeff = 1 - (0.675 + 0.15 * (1 + std::tanh(0.28 * (nondimensional_slip_rot_vel - 2)))) * std::tanh(0.18 * std::sqrt(reynolds));
+
         noalias(lift_force) = coeff * lift_force;
     }
 
@@ -939,7 +983,13 @@ void SphericSwimmingParticle<TBaseElement>::ComputePowerLawParticleReynoldsNumbe
 template < class TBaseElement >
 double SphericSwimmingParticle<TBaseElement>::ComputeNondimensionalRotVelocity(const array_1d<double, 3>& slip_rot_velocity)
 {
-    return 2.0 * mRadius * mNormOfSlipVel / std::sqrt(SWIMMING_INNER_PRODUCT_3(slip_rot_velocity, slip_rot_velocity));
+    if (mNormOfSlipVel > 0){
+        return 2.0 * mRadius * SWIMMING_MODULUS_3(slip_rot_velocity) / mNormOfSlipVel;
+    }
+
+    else {
+        return 0.0;
+    }
 }
 //**************************************************************************************************************************************************
 //**************************************************************************************************************************************************
@@ -1070,8 +1120,6 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
 
     else if (mDragForceType == 13){ // Re_p < 1000, Shah et al. (2006) (doi:10.1016/j.ijmultiphaseflow.2006.06.006)
         drag_coeff = ComputeShahDragCoefficient(r_current_process_info);
-        KRATOS_WATCH(drag_coeff)
-        KRATOS_WATCH(ComputeStokesDragCoefficient())
     }
 
     else {

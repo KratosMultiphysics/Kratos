@@ -43,6 +43,7 @@
 #include "custom_elements/embedded_fluid_element.h"
 //#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
+#include "custom_elements/two_fluid_vms_linearized_darcy.h"
 #include "custom_elements/stationary_stokes.h"
 #include "custom_elements/fractional_step.h"
 #include "custom_elements/fractional_step_discontinuous.h"
@@ -70,6 +71,13 @@
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
+
+#include "custom_constitutive/bingham_3d_law.h"
+#include "custom_constitutive/euler_2d_law.h"
+#include "custom_constitutive/euler_3d_law.h"
+#include "custom_constitutive/herschel_bulkley_3d_law.h"
+#include "custom_constitutive/newtonian_2d_law.h"
+#include "custom_constitutive/newtonian_3d_law.h"
 
 
 namespace Kratos
@@ -237,14 +245,19 @@ private:
     /// Expermiental fluid element
     const QSVMS< QSVMSData<2,3> > mQSVMS2D3N;
     const QSVMS< QSVMSData<3,4> > mQSVMS3D4N;
+    const QSVMS< QSVMSData<2,4> > mQSVMS2D4N;
+    const QSVMS< QSVMSData<3,8> > mQSVMS3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > mSymbolicNavierStokes2D3N;
     const SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > mSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<2,3> > > mEmbeddedSymbolicNavierStokes2D3N;
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokes3D4N;
+    const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMS2D3N;
+    const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMS3D4N;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
+    const TwoFluidVMSLinearizedDarcy<3,4> mTwoFluidVMSLinearizedDarcy3D;
 
     const StationaryStokes<2> mStationaryStokes2D;
     const StationaryStokes<3> mStationaryStokes3D;
@@ -335,6 +348,14 @@ private:
     const EmbeddedAusasNavierStokes<3> mEmbeddedAusasNavierStokes3D;
     const EmbeddedAusasNavierStokesWallCondition<2> mEmbeddedAusasNavierStokesWallCondition2D;
     const EmbeddedAusasNavierStokesWallCondition<3> mEmbeddedAusasNavierStokesWallCondition3D;
+
+    /// Fluid constitutive laws
+    const Bingham3DLaw mBingham3DLaw;
+    const Euler2DLaw mEuler2DLaw;
+    const Euler3DLaw mEuler3DLaw;
+    const HerschelBulkley3DLaw mHerschelBulkley3DLaw;
+    const Newtonian2DLaw mNewtonian2DLaw;
+    const Newtonian3DLaw mNewtonian3DLaw;
 
     ///@}
     ///@name Private Operators

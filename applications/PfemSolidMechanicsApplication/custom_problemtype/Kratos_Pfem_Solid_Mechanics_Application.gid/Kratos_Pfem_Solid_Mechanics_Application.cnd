@@ -661,7 +661,7 @@ QUESTION: Parametric_Wall#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Wall_Type,#CURRENT#,HIDE,Body_Surface,True)
 DEPENDENCIES:(#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Wall_Type,#CURRENT#,HIDE,Wall_Plane,#CURRENT#,HIDE,Wall_Circle,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Wall_Cylinder,#CURRENT#,HIDE,Wall_Sphere,#CURRENT#,HIDE,Plane_Size,#CURRENT#,RESTORE,Body_Surface,#CURRENT#)
-QUESTION: Contact_Condition#CB#(PointContactPenaltyCondition2D1N,AxisymPointContactPenaltyCondition2D1N,AxisymPointWaterContactPenaltyCondition2D1N,PointContactPenaltyCondition3D1N)
+QUESTION: Contact_Condition#CB#(PointContactPenaltyCondition2D1N,AxisymPointContactPenaltyCondition2D1N,PointContactPenaltyCondition3D1N,EPPointContactPenaltyCondition2D1N,EPAxisymPointContactPenaltyCondition2D1N,EPPointContactPenaltyCondition3D1N)
 VALUE: PointContactPenaltyCondition2D1N
 QUESTION: Penalty_Parameter
 VALUE: 1000

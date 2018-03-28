@@ -84,7 +84,7 @@ namespace Kratos
 
     /// Default constructors
     ResidualBasedRotationEMCScheme(double rDynamic = 1, double rAlpha = 0.0)
-      :DerivedType()
+	:DerivedType(rDynamic,rAlpha)
     {
 
 
@@ -135,11 +135,11 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        ProcessInfo CurrentProcessInfo= rModelPart.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo= rModelPart.GetProcessInfo();
 
         Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(rModelPart, A, Dx, b);
 
-        double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+        double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
         if (DeltaTime < 1.0e-24)
         {
@@ -147,18 +147,22 @@ namespace Kratos
         }
 
 	if( this->mDynamic.static_dynamic != 0 ){
-	  CurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;  
-	  CurrentProcessInfo[EQUILIBRIUM_POINT] = 0.5;
+	  rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;  
+	  rCurrentProcessInfo[EQUILIBRIUM_POINT] = 0.5;
 	}
 	else{
-	  CurrentProcessInfo[EQUILIBRIUM_POINT] = 1;
+	  rCurrentProcessInfo[EQUILIBRIUM_POINT] = 1;
 	}
+
+	std::cout<<" EMC ComputeDynamicTangent "<<rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT]<<std::endl;
 
         //initializing Newmark constants
 	this->mDynamic.deltatime = DeltaTime;
 	this->mDynamic.c0 = 2.0 / DeltaTime;
 	this->mDynamic.c1 = 1.0 / DeltaTime;
 
+	std::cout<<" EMC end ComputeDynamicTangent "<<rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT]<<std::endl;
+	
         KRATOS_CATCH( "" );
     }
     
@@ -227,7 +231,7 @@ namespace Kratos
 
       this->UpdateVelocity     (CurrentVelocity, CurrentStepDisplacement, ReferenceVelocity);
       this->UpdateAcceleration (CurrentAcceleration, CurrentVelocity, ReferenceVelocity);    
-      
+
       KRATOS_CATCH( "" )
     }
 
@@ -246,7 +250,7 @@ namespace Kratos
       array_1d<double, 3 > & CurrentDisplacement      = rNode.FastGetSolutionStepValue(DISPLACEMENT,      0);
       // Displacement at iteration i
       array_1d<double, 3 > & ReferenceDisplacement    = rNode.FastGetSolutionStepValue(STEP_DISPLACEMENT, 1); 
-
+     
       noalias(DeltaDisplacement) = CurrentDisplacement-ReferenceDisplacement;
 
       array_1d<double, 3 > & CurrentStepDisplacement  = rNode.FastGetSolutionStepValue(STEP_DISPLACEMENT);
@@ -290,7 +294,7 @@ namespace Kratos
 
       this->UpdateAngularVelocity     (CurrentAngularVelocity, CurrentStepRotation, ReferenceAngularVelocity);	    
       this->UpdateAngularAcceleration (CurrentAngularAcceleration, CurrentStepRotation, CurrentAngularVelocity, ReferenceAngularVelocity);
-
+      
       KRATOS_CATCH( "" )
     }
     
@@ -314,7 +318,7 @@ namespace Kratos
       //DeltaRotation
       array_1d<double, 3 > & CurrentDeltaRotation = rNode.FastGetSolutionStepValue(DELTA_ROTATION, 0);
 
-
+      
       // updated delta rotation: (dofs are added, so here the increment is undone)
       noalias(CurrentDeltaRotation) = CurrentRotation-PreviousRotation;      
 

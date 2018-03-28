@@ -111,7 +111,7 @@ public:
     ///@name Operations
     ///@{
 
-    Geometry<Node<3>>* pGetBase()
+    Geometry<Node<3>>* pGetBaseGeometry() override
     {
         return mpGeometry;
     }

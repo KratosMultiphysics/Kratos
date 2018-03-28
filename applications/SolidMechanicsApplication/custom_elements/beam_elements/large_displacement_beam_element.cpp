@@ -704,7 +704,7 @@ namespace Kratos
 	double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 	IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-	if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementBeamElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
 	    LocalLeftHandSideMatrix.clear();
 
@@ -719,7 +719,7 @@ namespace Kratos
 
 	  }
 
-	if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementBeamElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+	if ( rLocalSystem.CalculationFlags.Is(BeamElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	  {
 	    LocalRightHandSideVector.clear();
 
@@ -1089,7 +1089,6 @@ namespace Kratos
 
       }
 
-
     KRATOS_CATCH( "" )
 
   }
@@ -1235,6 +1234,8 @@ namespace Kratos
     rDiscreteOperator( 4, 7 ) =  rVariables.N[ rNode ];
     rDiscreteOperator( 5, 8 ) =  rVariables.N[ rNode ];
 
+    //std::cout<<" DiscreteOperator "<<rDiscreteOperator<<std::endl;
+    
     KRATOS_CATCH( "" )
   }
 
@@ -1254,18 +1255,17 @@ namespace Kratos
     noalias(rBmatrix) = ZeroMatrix(9,9);
 
     Vector StressResultants(3);
-    noalias(StressResultants) = ZeroVector(3);
-    Vector StressCouples(3);
-    noalias(StressCouples) = ZeroVector(3);
+    Vector StressCouples(3);    
+    for ( unsigned int i = 0; i < 3; i++ )
+      {
+	StressResultants[i] = rVariables.StressVector[i];
+        StressCouples[i] = rVariables.StressVector[i+3];
+      }
 
-    StressResultants[0] = rVariables.StressVector[0];
-    StressResultants[1] = rVariables.StressVector[1];
-    StressResultants[2] = rVariables.StressVector[2];
-
-    StressCouples[0] = rVariables.StressVector[3];
-    StressCouples[1] = rVariables.StressVector[4];
-    StressCouples[2] = rVariables.StressVector[5];
-
+    //NOTE: avoid Kuug noise in plane ploblems
+    if( fabs(inner_prod(StressResultants,StressCouples)) < 1e-15 )
+      noalias(StressResultants) = ZeroVector(3);
+    
     //locate stress resultants in skew-symmetric form
     Matrix SkewSymStressResultants(3,3);
     noalias(SkewSymStressResultants) = ZeroMatrix(3,3);
@@ -1322,7 +1322,7 @@ namespace Kratos
     // AxialStressMatrix( 2, 2 ) -= AxialStressScalar;
 
 
-    // std::cout<<" AxialStressMatrix "<<AxialStressMatrix<<std::endl;
+    //std::cout<<" AxialStressMatrix "<<AxialStressMatrix<<std::endl;
 
     //axial skew-symmetric matrix (Crisfield)
     Matrix AxialSkewSymMatrix(3,3);
@@ -1360,7 +1360,7 @@ namespace Kratos
     // 	    std::cout<<rBmatrix(i,j)<<", ";
     // 	  }
     // 	std::cout<<rBmatrix(i,rBmatrix.size2()-1)<<" ]"<<std::endl;
-
+        
     //   }
 
     KRATOS_CATCH( "" )

@@ -195,8 +195,8 @@ public:
 
     /**
      * Clones the selected element variables, creating a new one
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
      * @return a Pointer to the new element
      */
     Condition::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override
@@ -212,9 +212,9 @@ public:
     /// Calculates the LHS and RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rRightHandSideVector: reference to the RHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rRightHandSideVector reference to the RHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
@@ -279,8 +279,8 @@ public:
     /// Calculates the RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rLeftHandSideMatrix: reference to the LHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                        ProcessInfo& rCurrentProcessInfo) override
@@ -301,8 +301,8 @@ public:
     /// Calculates the RHS condition contributions
     /**
      * Clones the selected element variables, creating a new one
-     * @param rRightHandSideVector: reference to the RHS matrix
-     * @param rCurrentProcessInfo: reference to the ProcessInfo (unused)
+     * @param rRightHandSideVector reference to the RHS matrix
+     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo) override
@@ -358,7 +358,7 @@ public:
 
     /// Condition check
     /**
-     * @param rCurrentProcessInfo: reference to the ProcessInfo
+     * @param rCurrentProcessInfo reference to the ProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) override
     {

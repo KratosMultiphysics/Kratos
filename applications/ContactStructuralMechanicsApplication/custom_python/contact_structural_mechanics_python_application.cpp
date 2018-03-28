@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_mappers_to_python.h"
+#include "custom_python/add_custom_linear_solvers_to_python.h"
 
 namespace Kratos
 {
@@ -47,8 +48,16 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     AddCustomUtilitiesToPython();
     AddCustomProcessesToPython();
     AddCustomMappersToPython();
+    AddCustomLinearSolversToPython();
 
-    //registering variables in python
+    // Adding enums
+    enum_<NormalDerivativesComputation>("NormalDerivativesComputation")
+    .value("NO_DERIVATIVES_COMPUTATION",NO_DERIVATIVES_COMPUTATION)
+    .value("ELEMENTAL_DERIVATIVES",ELEMENTAL_DERIVATIVES)
+    .value("NODAL_ELEMENTAL_DERIVATIVES",NODAL_ELEMENTAL_DERIVATIVES)
+    ;
+
+    //Registering variables in python
 
     // CONDITIONS
     // CONTACT
@@ -56,13 +65,16 @@ BOOST_PYTHON_MODULE(KratosContactStructuralMechanicsApplication)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )     // Auxiliar coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )        // Delta coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTEGRATION_ORDER_CONTACT )                   // The integration order considered
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DISTANCE_THRESHOLD )                          // The distance threshold considered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to search an active/inactive node
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( NORMAL_GAP )                                  // The normal gap employed in contact formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_GAP )                                // The integrated gap employed in mortar formulation
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_SLIP )                               // The integrated slip employed in mortar formulation
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                    // The integrated scalar residual  
-    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL ) // The integrated vector residual    
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( WEIGHTED_SCALAR_RESIDUAL )                    // The integrated scalar residual
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( WEIGHTED_VECTOR_RESIDUAL ) // The integrated vector residual
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_CHECK_FACTOR )                         // The factor employed to search an active/inactive node
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ACTIVE_SET_CONVERGED )                        // To know if the active set has converged
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DYNAMIC_FACTOR )                              // The factor considered for dynamic problems (in order to take intro account the gap evolution)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUGMENTED_NORMAL_CONTACT_PRESSURE )           // The resultant augmented pressure in the normal direction
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( AUGMENTED_TANGENT_CONTACT_PRESSURE )          // The resultant augmented pressure in the tangent direction
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TANGENT_FACTOR )                              // The proportion between the tangent and normal penalty

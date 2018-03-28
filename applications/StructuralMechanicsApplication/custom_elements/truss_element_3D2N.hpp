@@ -25,9 +25,17 @@
 
 namespace Kratos
 {
+	/** 
+     * @class TrussElement3D2N
+     * 
+     * @brief This is a 3D-2node truss element with 3 translational dofs per node
+     * 
+     * @author Klaus B Sautter
+     */
+
 	class TrussElement3D2N : public Element
 	{
-	private:
+	protected:
 		//const values
 		static constexpr int msNumberOfNodes = 2;
 		static constexpr int msDimension = 3;
@@ -48,13 +56,12 @@ namespace Kratos
 		typedef BaseType::DofsVectorType DofsVectorType;
 
 
+		TrussElement3D2N() {};
 		TrussElement3D2N(IndexType NewId, 
-						GeometryType::Pointer pGeometry,
-						bool rLinear = false);
+						GeometryType::Pointer pGeometry);
 		TrussElement3D2N(IndexType NewId,
 						GeometryType::Pointer pGeometry,
-						PropertiesType::Pointer pProperties,
-						bool rLinear = false);
+						PropertiesType::Pointer pProperties);
 
 
 		~TrussElement3D2N() override;
@@ -75,7 +82,11 @@ namespace Kratos
 
 		void Initialize() override;
 
-		bounded_matrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+		/**
+         * @brief This function calculates the total stiffness matrix for the element
+         */
+		virtual bounded_matrix<double,msLocalSize,msLocalSize>
+		 CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
 		void CalculateOnIntegrationPoints(
 			const Variable<double>& rVariable,
@@ -92,7 +103,16 @@ namespace Kratos
 			std::vector< array_1d<double, 3 > >& rOutput,
 			const ProcessInfo& rCurrentProcessInfo) override;
 
-		void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces);
+        /**
+         * @brief This function updates the internal normal force w.r.t. the current deformations
+         * @param rinternalForces The current updated internal forces
+         */
+		virtual void UpdateInternalForces(bounded_vector<double,msLocalSize>& rinternalForces);
+
+		/**
+         * @brief This function calculates the transformation matrix to globalize vectors and/or matrices
+         * @param rRotationMatrix The transformation matrix
+         */
 		void CreateTransformationMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rRotationMatrix);
 
 		void CalculateOnIntegrationPoints(
@@ -154,29 +174,51 @@ namespace Kratos
 		int  Check(
 			const ProcessInfo& rCurrentProcessInfo) override;
 
-
+		/**
+         * @brief This function calculates the current Green-Lagrange strain
+         */
 		double CalculateGreenLagrangeStrain();
+
+		/**
+         * @brief This function calculates the reference length
+         */
 		double CalculateReferenceLength();
+
+		/**
+         * @brief This function calculates the current length
+         */
 		double CalculateCurrentLength();
 
+		/**
+         * @brief This function calculates self-weight forces
+         */
 		bounded_vector<double,msLocalSize> CalculateBodyForces();  
-
-		bool ReturnIfIsCable();
 		
-		void AddPrestressLinear(VectorType& rRightHandSideVector);
-
+		/**
+         * @brief This function assembles the geometric stiffness part of the total stiffness matrix
+         * @param rGeometricStiffnessMatrix The geometric stiffness matrix
+         * @param rCurrentProcessInfo The current process information
+         */
 		void CalculateGeometricStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rGeometricStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
+		/**
+         * @brief This function assembles the elastic stiffness part of the total stiffness matrix
+         * @param rElasticStiffnessMatrix The elastic stiffness matrix
+         * @param rCurrentProcessInfo The current process information
+         */
 		void CalculateElasticStiffnessMatrix(bounded_matrix<double,msLocalSize,msLocalSize>& rElasticStiffnessMatrix,
 			ProcessInfo& rCurrentProcessInfo);
 
+		/**
+         * @brief This function calculates the current nodal postion for the transformation matrix
+         * @param rReferenceCoordinates The current coordinates
+         */
+		virtual void WriteTransformationCoordinates(
+			bounded_vector<double,msLocalSize>& rReferenceCoordinates);
+
 
 	private:
-		bool mIsCompressed;
-		bool mIsLinearElement = false;
-		TrussElement3D2N() {};
-
 		friend class Serializer;
 		void save(Serializer& rSerializer) const override;
 		void load(Serializer& rSerializer) override;

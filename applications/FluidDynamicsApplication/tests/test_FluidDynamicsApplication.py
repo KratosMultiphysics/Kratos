@@ -83,7 +83,7 @@ def AssambleTestSuites():
     allSuite.addTest(EmbeddedReservoirTest('testEmbeddedReservoir3D'))
     allSuite.addTest(EmbeddedReservoirTest('testEmbeddedSlipReservoir3D'))
     allSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedAusasCouette3D'))
-    smallSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedDevelopmentCouette3D'))
+    allSuite.addTest(EmbeddedAusasCouetteTest('testEmbeddedDevelopmentCouette3D'))
 
     return suites
 

@@ -9,8 +9,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_solver as BaseSolver
 
-def CreateSolver(main_model_part, custom_settings):
-    return StaticMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(custom_settings):
+    return StaticMechanicalSolver(custom_settings)
 
 class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
     """The solid mechanics static solver.
@@ -21,7 +21,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
 
     See solid_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, custom_settings):
 
         # Set defaults and validate custom settings.
         static_settings = KratosMultiphysics.Parameters("""
@@ -43,7 +43,7 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
             time_integration_settings["integration_method"].SetString("Non-Linear") # Override defaults in the base class.
 
         # Construct the base solver.
-        super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(StaticMechanicalSolver, self).__init__(custom_settings)
 
         print("::[Static_Scheme]:: "+self.time_integration_settings["integration_method"].GetString()+" Scheme Ready")
 
@@ -58,6 +58,9 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
             time_integration_method = KratosSolid.StaticMethod()
             time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
             time_integration_method.SetParameters(self.process_info)
+            angular_time_integration_method = KratosSolid.StaticMethod() #shells
+            angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
+            angular_time_integration_method.SetParameters(self.process_info)
             mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()
         elif(integration_method == "Non-Linear" ):
             if(self.solving_strategy_settings["builder_type"].GetString() == "component_wise"):
@@ -65,11 +68,14 @@ class StaticMechanicalSolver(BaseSolver.MechanicalSolver):
                 damp_factor_m  = 0.0
                 mechanical_scheme = KratosSolid.ComponentWiseBossakScheme(damp_factor_m, dynamic_factor)
             else:
-                #mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+                mechanical_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
                 time_integration_method = KratosSolid.StaticMethod()
                 time_integration_method.AddToProcessInfo(KratosSolid.TIME_INTEGRATION_METHOD, time_integration_method, self.process_info)
                 time_integration_method.SetParameters(self.process_info)
-                mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()
+                angular_time_integration_method = KratosSolid.StaticMethod() #shells
+                angular_time_integration_method.AddToProcessInfo(KratosSolid.ANGULAR_TIME_INTEGRATION_METHOD, angular_time_integration_method, self.process_info)
+                angular_time_integration_method.SetParameters(self.process_info)
+                #mechanical_scheme = KratosSolid.ResidualBasedDisplacementStaticScheme()
 
         elif(integration_method == "RotationStatic"):
             #dynamic_factor = 0.0

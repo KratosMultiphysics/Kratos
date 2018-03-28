@@ -49,8 +49,8 @@ public:
 
   /**
    * Transform a vector from the reference to the current local frame (MATERIAL frame for a beam)
-   * @param rQuaternion: Quaternion representing the rotation from the reference to the current local frames
-   * @param rVector: Vector to be rotated
+   * @param rQuaternion Quaternion representing the rotation from the reference to the current local frames
+   * @param rVector Vector to be rotated
    * the rotated vector rVector is returned. 
    */
   template<class TVector3>
@@ -80,8 +80,8 @@ public:
 
   /**
    * Transform a vector from the current to the reference local frame (SPATIAL frame for a beam)
-   * @param rQuaternion: Quaternion representing the rotation from the reference to the current local frames
-   * @param rVector: Vector to be rotated
+   * @param rQuaternion Quaternion representing the rotation from the reference to the current local frames
+   * @param rVector Vector to be rotated
    * the rotated vector rVariable is returned.
    */
   template<class TVector3>
@@ -111,8 +111,8 @@ public:
 
   /**
    * Transform a rotation vector to a rotation matrix with the Exponential transform
-   * @param rVector: rotation vector (input parameter)
-   * @param rExponentialTensor: rotation matrix (output parameter)
+   * @param rVector rotation vector (input parameter)
+   * @param rExponentialTensor rotation matrix (output parameter)
    */
   template<class TVector3>
   static inline void ExponentialTransform(const TVector3& rVector, MatrixType& rExponentialTensor)
@@ -135,8 +135,8 @@ public:
 
   /**
    * Transform a rotation matrix to a rotation vector with the inverse of the Exponential transform
-   * @param rCayleyTensor: rotation matrix (input parameter)
-   * @param rVector: rotation vector (output parameter)
+   * @param rCayleyTensor rotation matrix (input parameter)
+   * @param rVector rotation vector (output parameter)
    */
   template<class TVector3>
   static inline void InverseExponentialTransform(const MatrixType& rExponentialTensor, TVector3& rVector)
@@ -158,8 +158,8 @@ public:
 
   /**
    * Transform a rotation vector to a rotation matrix with the Cayley transform
-   * @param rVector: rotation vector (input parameter)
-   * @param rCayleyTensor: rotation matrix (output parameter)
+   * @param rVector rotation vector (input parameter)
+   * @param rCayleyTensor rotation matrix (output parameter)
    */
   template<class TVector3>
   static inline void CayleyTransform(const TVector3& rVector, MatrixType& rCayleyTensor)
@@ -192,8 +192,8 @@ public:
 
   /**
    * Transform a rotation tensor to a rotation vector with the inverse of the Cayley transform
-   * @param rCayleyTensor: rotation matrix (input parameter)
-   * @param rVector: rotation vector (output parameter)
+   * @param rCayleyTensor rotation matrix (input parameter)
+   * @param rVector rotation vector (output parameter)
    */
   template<class TVector3>
   static inline void InverseCayleyTransform(const MatrixType& rCayleyTensor, TVector3& rVector)
@@ -224,8 +224,8 @@ public:
 
   /**
    * Transform a rotation vector to a skew symmetric matrix
-   * @param rVector: rotation vector (input parameter)
-   * @param rSkewSymmetricTensor: skew symmetric matrix (output parameter)
+   * @param rVector rotation vector (input parameter)
+   * @param rSkewSymmetricTensor skew symmetric matrix (output parameter)
    */
   template<class TVector3, class TMatrix3>
   static inline void VectorToSkewSymmetricTensor(const TVector3& rVector, TMatrix3& rSkewSymmetricTensor)
@@ -255,8 +255,8 @@ public:
   //************************************************************************************
   /**
    * Transform a skew symmetric matrix to a rotation vector
-   * @param rSkewSymmetricTensor: skew symmetric matrix (input parameter)
-   * @param rVector: rotation vector (output parameter)
+   * @param rSkewSymmetricTensor skew symmetric matrix (input parameter)
+   * @param rVector rotation vector (output parameter)
    */
   template<class TMatrix3, class TVector3>
   static inline void SkewSymmetricTensorToVector(const TMatrix3& rSkewSymmetricTensor, TVector3& rVector)
@@ -279,8 +279,8 @@ public:
   //************************************************************************************
   /**
    * Get kroneckrDelta :: two order tensor that gives the value of the identity
-   * @param i : coefficient i
-   * @param j : coefficient j
+   * @param i  coefficient i
+   * @param j  coefficient j
    * Returns a double with the value
    */
   static inline double KroneckerDelta(int i, int j)
@@ -300,9 +300,9 @@ public:
   //************************************************************************************
   /**
    * Get Levi Civita Epsilon :: third order tensor that gives the value of a vectorial product
-   * @param i : coefficient i
-   * @param j : coefficient j
-   * @param k : coefficient k
+   * @param i  coefficient i
+   * @param j  coefficient j
+   * @param k  coefficient k
    * Returns a double with the sign
    */
   static inline double LeviCivitaEpsilon(int i, int j, int k)
@@ -328,9 +328,9 @@ public:
 
   /**
    * Add a Nodal vector to a Elemental vector
-   * @param rInputVector: LocalNodalVector (input parameter)
-   * @param rOutputVector: LocalElementalVector (output parameter)
-   * @param InitialRow: InitialRowNumber, initial index of the OutputVector
+   * @param rInputVector LocalNodalVector (input parameter)
+   * @param rOutputVector LocalElementalVector (output parameter)
+   * @param InitialRow InitialRowNumber, initial index of the OutputVector
    * note the initialization of the outputvector must be done previously to the call of the method
    */
   static inline void AddVector(const VectorType& rInputVector,VectorType& rOutputVector,const unsigned int InitialRow)
@@ -348,9 +348,9 @@ public:
 
   /**
    * Substract a Nodal vector from an Elemental vector
-   * @param rInputVector: LocalNodalVector (input parameter)
-   * @param rOutputVector: LocalElementalVector (output parameter)
-   * @param InitialRow: InitialRowNumber, initial index of the OutputVector
+   * @param rInputVector LocalNodalVector (input parameter)
+   * @param rOutputVector LocalElementalVector (output parameter)
+   * @param InitialRow InitialRowNumber, initial index of the OutputVector
    * note the initialization of the outputvector must be done previously to the call of the method
    */
   static inline void SubstractVector(const VectorType& rInputVector,VectorType& rOutputVector,const unsigned int InitialRow)
@@ -370,9 +370,9 @@ public:
    * "Destination" is assumed to be able to contain the "input matrix"
    * (no check is performed on the bounds)
    * @return rDestination: The matric destination
-   * @param rInputMatrix: The input matrix to be computed
-   * @param rInitialRow: The initial row to compute
-   * @param rInitialCol: The initial column to compute
+   * @param rInputMatrix The input matrix to be computed
+   * @param rInitialRow The initial row to compute
+   * @param rInitialCol The initial column to compute
    */
   
   template<class TMatrix, class TInputMatrix>
@@ -395,9 +395,9 @@ public:
    * "Destination" is assumed to be able to contain the "input matrix"
    * (no check is performed on the bounds)
    * @return rDestination: The matric destination
-   * @param rInputMatrix: The input matrix to be computed
-   * @param rInitialRow: The initial row to compute
-   * @param rInitialCol: The initial column to compute
+   * @param rInputMatrix The input matrix to be computed
+   * @param rInitialRow The initial row to compute
+   * @param rInitialCol The initial column to compute
    */
 
   template<class TMatrix, class TInputMatrix>
@@ -421,8 +421,8 @@ public:
 
   /**
    * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
-   * @param rLocalToGlobalQuaternion: transformation quaternion from local to global frame
-   * @param rMatrix: matrix to be transformed (output parameter)
+   * @param rLocalToGlobalQuaternion transformation quaternion from local to global frame
+   * @param rMatrix matrix to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
    * return value :  A = Q * A' * QT
    */
@@ -445,8 +445,8 @@ public:
 
   /**
    * Map a Vector expressed on the Local frame of an element to a Global frame expression 
-   * @param rLocalToGlobalQuaternion: transformation quaternion from local to global frame
-   * @param rVector: vector to be transformed (output parameter)
+   * @param rLocalToGlobalQuaternion transformation quaternion from local to global frame
+   * @param rVector vector to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
    */  
   static inline void MapLocalToGlobal2D(const QuaternionType& rLocalToGlobalQuaternion, VectorType& rVector)
@@ -469,8 +469,8 @@ public:
 
   /**
    * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
-   * @param rLocalToGlobalMatrix: transformation matrix from local to global frame
-   * @param rMatrix: matrix to be transformed (output parameter)
+   * @param rLocalToGlobalMatrix transformation matrix from local to global frame
+   * @param rMatrix matrix to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
    * return value :  A = Q * A' * QT
    */
@@ -513,8 +513,8 @@ public:
 
   /**
    * Map a Vector expressed on the Local frame of an element to a Global frame expression 
-   * @param rLocalToGlobalMatrix: transformation matrix from local to global frame
-   * @param rVector: vector to be transformed (output parameter)
+   * @param rLocalToGlobalMatrix transformation matrix from local to global frame
+   * @param rVector vector to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
    */
   static inline void MapLocalToGlobal2D(const MatrixType& rLocalToGlobalMatrix, VectorType& rVector)
@@ -550,8 +550,8 @@ public:
 
   /**
    * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
-   * @param rLocalToGlobalQuaternion: transformation quaternion from local to global frame
-   * @param rMatrix: matrix to be transformed (output parameter)
+   * @param rLocalToGlobalQuaternion transformation quaternion from local to global frame
+   * @param rMatrix matrix to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
    * return value :  A = Q * A' * QT
    */
@@ -574,8 +574,8 @@ public:
 
   /**
    * Map a Vector expressed on the Local frame of an element to a Global frame expression 
-   * @param rLocalToGlobalQuaternion: transformation quaternion from local to global frame
-   * @param rVector: vector to be transformed (output parameter)
+   * @param rLocalToGlobalQuaternion transformation quaternion from local to global frame
+   * @param rVector vector to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
    */
   static inline void MapLocalToGlobal3D(const QuaternionType& rLocalToGlobalQuaternion, VectorType& rVector)
@@ -597,8 +597,8 @@ public:
 
   /**
    * Map a Matrix expressed on the Local frame of an element to a Global frame expression 
-   * @param rLocalToGlobalMatrix: transformation matrix from local to global frame
-   * @param rMatrix: matrix to be transformed (output parameter)
+   * @param rLocalToGlobalMatrix transformation matrix from local to global frame
+   * @param rMatrix matrix to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
    * return value :  A = Q * A' * QT
    */
@@ -641,8 +641,8 @@ public:
 
   /**
    * Map a Vector expressed on the Local frame of an element to a Global frame expression 
-   * @param rLocalToGlobalMatrix: transformation matrix from local to global frame
-   * @param rVector: vector to be transformed (output parameter)
+   * @param rLocalToGlobalMatrix transformation matrix from local to global frame
+   * @param rVector vector to be transformed (output parameter)
    * note the initialization of the Matrices must be done previously to the call of the method
    */
   static inline void MapLocalToGlobal3D(const MatrixType& rLocalToGlobalMatrix, VectorType& rVector)
@@ -679,8 +679,8 @@ public:
 
   /**
    * Deffault expression for GID local beam axes:: E1 is considered the local beam axial direction
-   * @param rLocalX: Local Beam axis vector (input parameter)
-   * @param rRotationMatrix: transformation matrix from local to global frame (output parameter)
+   * @param rLocalX Local Beam axis vector (input parameter)
+   * @param rRotationMatrix transformation matrix from local to global frame (output parameter)
    */
   template<class TVector3>
   static inline  void CalculateLocalAxesMatrix(const TVector3& rLocalX, MatrixType& rRotationMatrix)
@@ -715,9 +715,9 @@ public:
 
   /**
    * Deffault expression for GID local beam axes:: E1 is considered the local beam axial direction
-   * @param rLocalX: Local Beam axis director vector E1 (input parameter) (output parameter)
-   * @param rLocalY: Local Beam axis director vector E2 (output parameter)
-   * @param rLocalZ: Local Beam axis director vector E3 (output parameter)
+   * @param rLocalX Local Beam axis director vector E1 (input parameter) (output parameter)
+   * @param rLocalY Local Beam axis director vector E2 (output parameter)
+   * @param rLocalZ Local Beam axis director vector E3 (output parameter)
    */
   template<class TVector3>
   static inline  void CalculateLocalAxesVectors(TVector3& rLocalX, TVector3& rLocalY, TVector3& rLocalZ)
@@ -765,9 +765,9 @@ public:
 
   /**
    * Check if a Tensor is orthogonal
-   * @param rTensor: transformation matrix to be checked
-   * @param Name: Name of the checked tensor to be verbosed
-   * @param Verbose: Set verbosity for the check
+   * @param rTensor transformation matrix to be checked
+   * @param Name Name of the checked tensor to be verbosed
+   * @param Verbose Set verbosity for the check
    */
   static inline bool CheckOrthogonality( const Matrix& rTensor, std::string Name, bool Verbose )
   {  

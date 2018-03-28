@@ -21,10 +21,14 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/process_info.h"
-#include "includes/gid_io.h"
 #include "utilities/mortar_utilities.h"
+#include "utilities/variable_utils.h"
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
+#include "custom_processes/compute_dynamic_factor_process.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+
+// DEBUG
+#include "includes/gid_io.h"
 
 namespace Kratos
 {
@@ -50,7 +54,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief Custom convergence criteria for the mortar condition 
+/** 
+ * @class DisplacementLagrangeMultiplierContactCriteria 
+ * @ingroup ContactStructuralMechanicsApplication 
+ * @brief Custom convergence criteria for the mortar condition
+ * @author Vicente Mataix Ferrandiz 
  */
 template<class TSparseSpace, class TDenseSpace>
 class BaseMortarConvergenceCriteria 
@@ -60,6 +68,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Creating the corresponding pointer
     KRATOS_CLASS_POINTER_DEFINITION( BaseMortarConvergenceCriteria );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
@@ -88,8 +97,10 @@ public:
     BaseMortarConvergenceCriteria(const bool IODebug = false)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
           mIODebug(IODebug),
-          mGidIO("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly)
+          mpGidIO(nullptr)
     {
+        if (mIODebug)
+            mpGidIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
     }
 
     ///Copy constructor 
@@ -106,7 +117,7 @@ public:
     ///@{
     
     /**
-     * Criterias that need to be called before getting the solution
+     * @brief Criterias that need to be called before getting the solution
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -123,14 +134,40 @@ public:
         const TSystemVectorType& b
         ) override
     {
+        // The current process info
+        ProcessInfo& process_info = rModelPart.GetProcessInfo();
+
         // We update the normals if necessary
-        if (static_cast<NormalDerivativesComputation>(rModelPart.GetProcessInfo()[CONSIDER_NORMAL_VARIATION]) != NO_DERIVATIVES_COMPUTATION)
+        const auto normal_variation = process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
+        if (normal_variation != NO_DERIVATIVES_COMPUTATION)
             MortarUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") ); // Update normal of the conditions
         
+        const bool adapt_penalty = process_info.Has(ADAPT_PENALTY) ? process_info.GetValue(ADAPT_PENALTY) : false;
+        const bool dynamic_case = rModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X);
+        
+        /* Compute weighthed gap */
+        if (adapt_penalty || dynamic_case) {
+            // Set to zero the weighted gap
+            ResetWeightedGap(rModelPart);
+            
+            ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+        
+            KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+            
+            #pragma omp parallel for
+            for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
+                (conditions_array.begin() + i)->AddExplicitContribution(process_info);
+        }
+         
+//         // In dynamic case
+//         if ( dynamic_case ) {
+//             ComputeDynamicFactorProcess compute_dynamic_factor_process = ComputeDynamicFactorProcess( rModelPart.GetSubModelPart("Contact") );
+//             compute_dynamic_factor_process.Execute();
+//         }
+        
         // We recalculate the penalty parameter
-        if (rModelPart.GetProcessInfo()[ADAPT_PENALTY] == true)
-        {
-            AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty = AALMAdaptPenaltyValueProcess( rModelPart );
+        if ( adapt_penalty ) {
+            AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty = AALMAdaptPenaltyValueProcess( rModelPart.GetSubModelPart("Contact") );
             aalm_adaptation_of_penalty.Execute();
         }
         
@@ -138,7 +175,7 @@ public:
     }
     
     /**
-     * Compute relative and absolute error.
+     * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -155,64 +192,73 @@ public:
         const TSystemVectorType& b
         ) override
     {
+        // We save the current WEIGHTED_GAP in the buffer 
+        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+            auto it_node = nodes_array.begin() + i;
+            it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
+        }
+        
         // Set to zero the weighted gap
         ResetWeightedGap(rModelPart);
         
         ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
         
-    #ifdef KRATOS_DEBUG
-        if (conditions_array.size() == 0) std::cout << "WARNING:: YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-    #endif
+        if (conditions_array.size() == 0) 
+            KRATOS_TRACE("Empty model part") << "WARNING:: YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
         
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
             (conditions_array.begin() + i)->AddExplicitContribution(rModelPart.GetProcessInfo());
         
         // GiD IO for debugging
-        if (mIODebug == true)
-        {            
+        if (mIODebug == true) {            
             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
             const double label = static_cast<double>(nl_iter);
             
-            if (nl_iter == 1)
-            {
-                mGidIO.InitializeMesh(label);
-                mGidIO.WriteMesh(rModelPart.GetMesh());
-                mGidIO.FinalizeMesh();
-                mGidIO.InitializeResults(label, rModelPart.GetMesh());
+            if (nl_iter == 1) {
+                mpGidIO->InitializeMesh(label);
+                mpGidIO->WriteMesh(rModelPart.GetMesh());
+                mpGidIO->FinalizeMesh();
+                mpGidIO->InitializeResults(label, rModelPart.GetMesh());
             }
             
-            mGidIO.WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
-            mGidIO.WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
-            mGidIO.WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
-            mGidIO.WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
-            mGidIO.WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
-            mGidIO.WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
-            mGidIO.WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
-            if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X) == true)
-            {
-                mGidIO.WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
-                mGidIO.WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
+            mpGidIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalFlags(ISOLATED, "ISOLATED", rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalResults(NORMAL, rModelPart.Nodes(), label, 0);
+            mpGidIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
+            mpGidIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
+            if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X) == true) {
+                mpGidIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
+                mpGidIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
             }
-            mGidIO.WriteNodalResults(NORMAL_CONTACT_STRESS, rModelPart.Nodes(), label, 0);
-            mGidIO.WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
+            if (nodes_array.begin()->SolutionStepsDataHas(NORMAL_CONTACT_STRESS))
+                mpGidIO->WriteNodalResults(NORMAL_CONTACT_STRESS, rModelPart.Nodes(), label, 0);
+            else
+                mpGidIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
+            mpGidIO->WriteNodalResults(WEIGHTED_GAP, rModelPart.Nodes(), label, 0);
         }
         
         return true;
     }
     
     /**
-     * This function initialize the convergence criteria
+     * @brief This function initialize the convergence criteria
      * @param rModelPart The model part of interest
      */ 
     
     void Initialize(ModelPart& rModelPart) override
     {
-        KRATOS_ERROR << "WARNING:: YOUR ARE CALLING THE BASE MORTAR CRITERIA" << std::endl;
+        KRATOS_ERROR << "YOUR ARE CALLING THE BASE MORTAR CRITERIA" << std::endl;
     }
     
     /**
-     * This function initializes the solution step
+     * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -232,17 +278,16 @@ public:
         MortarUtilities::ComputeNodesMeanNormalModelPart( rModelPart.GetSubModelPart("Contact") );
         
         // GiD IO for debugging
-        if (mIODebug == true)
-        {
-            mGidIO.CloseResultFile();
+        if (mIODebug == true) {
+            mpGidIO->CloseResultFile();
             std::string new_name = "POST_LINEAR_ITER_STEP=";
             new_name.append(std::to_string(rModelPart.GetProcessInfo()[STEP]));
-            mGidIO.ChangeOutputName(new_name);
+            mpGidIO->ChangeOutputName(new_name);
         }
     }
     
     /**
-     * This function finalizes the solution step
+     * @brief This function finalizes the solution step
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
      * @param A System matrix (unused)
@@ -260,7 +305,7 @@ public:
     { 
         // GiD IO for debugging
         if (mIODebug == true)
-            mGidIO.FinalizeResults();
+            mpGidIO->FinalizeResults();
     }
     
     ///@}
@@ -297,17 +342,14 @@ protected:
     ///@{
     
     /**
-     * This method resets the weighted gap in the nodes of the problem
+     * @brief This method resets the weighted gap in the nodes of the problem
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      */
     
     virtual void ResetWeightedGap(ModelPart& rModelPart)
     {       
         NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-
-        #pragma omp parallel for 
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-            (nodes_array.begin() + i)->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
+        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
     }
     
     ///@}
@@ -331,9 +373,8 @@ private:
     ///@name Member Variables
     ///@{
     
-    // If we generate an output gid file in order to debug
-    bool mIODebug;          
-    GidIOBaseType mGidIO;     
+    bool mIODebug;                  /// If we generate an output gid file in order to debug         
+    GidIOBaseType::Pointer mpGidIO; /// The pointer to the debugging GidIO    
     
     ///@}
     ///@name Private Operators

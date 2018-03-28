@@ -12,7 +12,7 @@
         "Parameters"  : {
             "time_settings"             : {
                 "time_step"  : 0.01,
-                "end_time"   : 10.0
+                "end_time"   : 0.05
             },
             "time_integration_settings" : {
                 "solution_type"      : "Dynamic",

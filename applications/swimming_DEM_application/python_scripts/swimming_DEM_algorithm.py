@@ -24,7 +24,8 @@ try:
 except ImportError:
     pass
 
-# Import MPI modules if needed. This way to do this is only valid when using OpenMPI. For other implementations of MPI it will not work.
+# Import MPI modules if needed. This way to do this is only valid when using OpenMPI.
+# For other implementations of MPI it will not work.
 if "OMPI_COMM_WORLD_SIZE" in os.environ:
     # Kratos MPI
     from KratosMultiphysics.MetisApplication import *
@@ -134,7 +135,7 @@ class Algorithm(object):
         # Third, set the parameters fed to the particular case that you are running
         self.SetCustomBetaParameters(varying_parameters)
 
-        # Finally adjust some of the paramters for consistency
+        # Finally adjust some of the parameters for consistency
         #   This function should be reduced to a minimum since,
         #   in principle, there should be no need to change the parameters
         self.SetDerivedParameters()
@@ -161,8 +162,8 @@ class Algorithm(object):
         # These are input parameters that have not yet been transferred to the interface
         # import the configuration data as read from the GiD
         Add = self.pp.CFD_DEM.AddEmptyValue
-        Add("do_solve_dem").SetBool(True)
         Add("fluid_already_calculated").SetBool(False)
+        Add("do_solve_dem").SetBool(True)
         Add("recovery_echo_level").SetInt(1)
         Add("gradient_calculation_type").SetInt(1)
         Add("pressure_grad_recovery_type").SetInt(0)
@@ -170,7 +171,6 @@ class Algorithm(object):
         Add("store_full_gradient_option").SetBool(False)
         Add("store_fluid_pressure_option").SetBool(False)
         Add("laplacian_calculation_type").SetInt(0)
-        Add("do_search_neighbours").SetBool(True)
         Add("faxen_terms_type").SetInt(0)
         Add("material_acceleration_calculation_type").SetInt(1)
         Add("faxen_force_type").SetInt(0)
@@ -201,6 +201,7 @@ class Algorithm(object):
         Add("print_DISPERSE_FRACTION_option").SetBool(False)
         Add("print_FLUID_FRACTION_GRADIENT_option").SetBool(False)
         Add("print_FLUID_FRACTION_GRADIENT_PROJECTED_option").SetBool(False)
+        Add("print_VECTORIAL_ERROR_option").SetBool(False)
         Add("calculate_diffusivity_option").SetBool(False)
         Add("print_CONDUCTIVITY_option").SetBool(False)
         Add("filter_velocity_option").SetBool(False)
@@ -225,6 +226,8 @@ class Algorithm(object):
         Add("frame_rotation_axis_initial_point").SetVector(Vector([0., 0., 0.]))
         Add("frame_rotation_axis_final_point").SetVector(Vector([0., 0., 1.]))
         Add("angular_velocity_magnitude").SetDouble(1.0)
+        Add("print_distance_option").SetBool(False)
+        Add("print_SLIP_VELOCITY_option").SetBool(False)
 
         # Making all time steps be an exact multiple of the smallest time step
         self.Dt_DEM = self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
@@ -578,6 +581,12 @@ class Algorithm(object):
         return self.time <= self.final_time
 
     def RunMainTemporalLoop(self):
+        coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
+        project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
+        coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
+        integration_scheme = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
+        dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
+        interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
 
         while self.TheSimulationMustGoOn():
 
@@ -586,7 +595,7 @@ class Algorithm(object):
             self.CloneTimeStep()
             self.TellTime(self.time)
 
-            if self.pp.CFD_DEM["coupling_scheme_type"].GetString() == "UpdatedDEM":
+            if coupling_scheme_type == "UpdatedDEM":
                 time_final_DEM_substepping = self.time + self.Dt
 
             else:
@@ -604,11 +613,8 @@ class Algorithm(object):
                     )
 
             # assessing stationarity
-
                 if self.stationarity_counter.Tick():
-                    Say("Assessing Stationarity...\n")
-                    self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
-                    self.stationarity_counter.Deactivate(self.stationarity)
+                    self.AssessStationarity()
 
             # printing if required
 
@@ -632,22 +638,14 @@ class Algorithm(object):
                 self.post_utils.Writeresults(self.time_dem)
 
             # solving the DEM part
-            interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
 
             self.derivative_recovery_counter.Activate(self.time > interaction_start_time)
 
             if self.derivative_recovery_counter.Tick():
-                self.recovery.Recover()
+                self.RecoverDerivatives()
 
             Say('Solving DEM... (', self.spheres_model_part.NumberOfElements(0), 'elements )')
             first_dem_iter = True
-
-            coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
-            project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
-            coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
-            integration_scheme = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
-            basset_force_type = self.pp.CFD_DEM["basset_force_type"].GetInt()
-            dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
 
             for self.time_dem in self.yield_DEM_time(
                     self.time_dem,
@@ -761,6 +759,9 @@ class Algorithm(object):
     def UpdateALEMeshMovement(self, time):
         pass
 
+    def RecoverDerivatives(self):
+        self.recovery.Recover()
+
     def FluidSolve(self, time='None', solve_system=True):
         Say('Solving Fluid... (', self.fluid_model_part.NumberOfElements(0), 'elements )\n')
 
@@ -783,6 +784,11 @@ class Algorithm(object):
         if self.embedded_counter.Tick():
             embedded.ApplyEmbeddedBCsToFluid(self.fluid_model_part)
             embedded.ApplyEmbeddedBCsToBalls(self.spheres_model_part, self.pp.CFD_DEM)
+
+    def AssessStationarity(self):
+        Say("Assessing Stationarity...\n")
+        self.stationarity = self.stationarity_tool.Assess(self.fluid_model_part)
+        self.stationarity_counter.Deactivate(self.stationarity)
 
     def SetInlet(self):
         if self.pp.CFD_DEM["dem_inlet_option"].GetBool():
@@ -819,12 +825,19 @@ class Algorithm(object):
         Say('ELAPSED TIME = ', self.timer.time() - self.simulation_start_time, '\n')
 
     def TellFinalSummary(self, time, step, DEM_step):
+        simulation_elapsed_time = self.timer.time() - self.simulation_start_time
+        if simulation_elapsed_time and step and DEM_step:
+            elapsed_time_per_unit_fluid_step = simulation_elapsed_time / step
+            elapsed_time_per_unit_DEM_step = simulation_elapsed_time / DEM_step
+        else:
+            elapsed_time_per_unit_fluid_step = 0.0
+            elapsed_time_per_unit_DEM_step = 0.0
         Say('*************************************************************')
         Say('CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.')
-        simulation_elapsed_time = self.timer.time() - self.simulation_start_time
+
         Say('Elapsed time: ' + '%.5f'%(simulation_elapsed_time) + ' s ')
-        Say('per fluid time step: ' + '%.5f'%(simulation_elapsed_time / step) + ' s ')
-        Say('per DEM time step: ' + '%.5f'%(simulation_elapsed_time / DEM_step) + ' s ')
+        Say('per fluid time step: ' + '%.5f'%(elapsed_time_per_unit_fluid_step) + ' s ')
+        Say('per DEM time step: ' + '%.5f'%(elapsed_time_per_unit_DEM_step) + ' s ')
         Say('*************************************************************\n')
 
     def GetFluidSolveCounter(self):
@@ -980,7 +993,8 @@ class Algorithm(object):
             f.write(tmp)
             f.flush()
 
-        Say(self.drag_file_output_list)
+        if self.drag_file_output_list:
+            Say('Drag output list:', self.drag_file_output_list)
 
     def SetPointGraphPrinter(self):
         pass

@@ -321,7 +321,7 @@
 			}
 		    },
 		    "elemental_variables_to_transfer":[ "CAUCHY_STRESS_VECTOR", "DEFORMATION_GRADIENT" ],
-                    "contact_sub_model_part_list" : [
+                    "contact_bodies_list" : [
 *set cond group_DeformableBodies *groups
 *if(CondNumEntities > 0)
 *set var GroupNumber = 0
@@ -854,7 +854,7 @@
 				      "WATER_ACCELERATION",
 				      "WATER_PRESSURE",
 				      "WATER_PRESSURE_VELOCITY",
-				      "WATER_PRESSURE_ACCELERATIONN",
+				      "WATER_PRESSURE_ACCELERATION",
 *endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)

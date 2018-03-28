@@ -45,7 +45,6 @@ class DamNoorzaiHeatFluxProcess : public Process
         Parameters default_parameters(R"(
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
                 "density"                             : 0.0,
                 "specific_heat"                        : 0.0,
@@ -62,7 +61,6 @@ class DamNoorzaiHeatFluxProcess : public Process
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mMeshId = rParameters["mesh_id"].GetInt();
         mVariableName = rParameters["variable_name"].GetString();
         mDensity = rParameters["density"].GetDouble();
         mSpecificHeat = rParameters["specific_heat"].GetDouble();
@@ -83,7 +81,7 @@ class DamNoorzaiHeatFluxProcess : public Process
     {
         KRATOS_TRY;
 
-        const int nnodes = mrModelPart.GetMesh(mMeshId).Nodes().size();
+        const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
         double time = mrModelPart.GetProcessInfo()[TIME];
@@ -91,7 +89,7 @@ class DamNoorzaiHeatFluxProcess : public Process
 
         if (nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(mMeshId).NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh(0).NodesBegin();
 
 #pragma omp parallel for
             for (int i = 0; i < nnodes; i++)
@@ -138,7 +136,6 @@ class DamNoorzaiHeatFluxProcess : public Process
   protected:
     /// Member Variables
     ModelPart &mrModelPart;
-    std::size_t mMeshId;
     std::string mVariableName;
     double mDensity;
     double mSpecificHeat;

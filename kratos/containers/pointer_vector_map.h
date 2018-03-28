@@ -407,7 +407,7 @@ public:
     {
         pair_const_iterator sorted_part_end(mData.begin() + mSortedPartSize);
 
-        pair_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
+        pair_const_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
         if (i == sorted_part_end || (Key != i->first))
             if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
                 return mData.end();
@@ -418,6 +418,46 @@ public:
     size_type count(const key_type& Key)
     {
         return find(Key) == mData.end() ? 0 : 1;
+    }
+
+
+    TDataType& at(const key_type& Key)
+    {
+        pair_iterator sorted_part_end;
+
+        if(mData.size() - mSortedPartSize >= mMaxBufferSize)
+        {
+            Sort();
+            sorted_part_end = mData.end();
+        }
+        else
+            sorted_part_end	= mData.begin() + mSortedPartSize;
+
+        pair_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
+        if (i == sorted_part_end){
+            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
+            {
+                KRATOS_ERROR << Key << " not found in this map" << std::endl;
+            }
+        }
+
+        return *(i->second);
+    }
+
+    TDataType& at(const key_type& Key) const
+    {
+        pair_iterator sorted_part_end;
+        sorted_part_end	= mData.begin() + mSortedPartSize;
+
+        pair_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
+        if (i == sorted_part_end){
+            if((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
+            {
+                KRATOS_ERROR << Key << " not found in this map" << std::endl;
+            }
+        }
+
+        return *(i->second);
     }
 
 
@@ -569,11 +609,11 @@ private:
         key_type mKey;
     public:
         EqualKeyTo(key_type k) : mKey(k) {}
-        bool operator()(value_type& a, value_type& b) const
+        bool operator()(value_type const& a, value_type const& b) const
         {
             return a.first == b.first;
         }
-        bool operator()(value_type& a) const
+        bool operator()(value_type const& a) const
         {
             return a.first == mKey;
         }
@@ -602,6 +642,44 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        size_type local_size = mData.size();
+
+        rSerializer.save("size", local_size);
+
+        for(size_type i = 0 ; i < local_size ; i++){
+            rSerializer.save("Key", mData[i].first);
+            rSerializer.save("Data", mData[i].second);
+        }
+
+        rSerializer.save("Sorted Part Size",mSortedPartSize);
+        rSerializer.save("Max Buffer Size",mMaxBufferSize);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        size_type local_size;
+
+        rSerializer.load("size", local_size);
+
+        mData.resize(local_size);
+
+        for(size_type i = 0 ; i < local_size ; i++){
+            rSerializer.load("Key", mData[i].first);
+            rSerializer.load("Data", mData[i].second);
+        }
+
+        rSerializer.load("Sorted Part Size",mSortedPartSize);
+        rSerializer.load("Max Buffer Size",mMaxBufferSize);
+    }
 
 
 

@@ -1,42 +1,15 @@
-//verification
-/*
-==============================================================================
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu
-rrossi@cimne.upc.edu
-CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-==============================================================================
- */
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: jcotela $
-//   Date:                $Date: 2010-10-09 10:34:00 $
-//   Revision:            $Revision: 0.1 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Kazem Kamran
 //
+
 #if !defined(KRATOS_TWO_FLUID_DPGVMS_H_INCLUDED )
 #define  KRATOS_TWO_FLUID_DPGVMS_H_INCLUDED
 // System includes
@@ -157,9 +130,9 @@ public:
     /// Create a new element of this type
     /**
      * Returns a pointer to a new DPGVMS element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
@@ -242,9 +215,9 @@ public:
      * system that are either constant or computed explicitly (from the 'old'
      * iteration variables). In this case this means the body force terms and the
      * OSS projections, that are treated explicitly.
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix. Not used here, required for compatibility purposes only.
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info
+     * @param rLeftHandSideMatrix the elemental left hand side matrix. Not used here, required for compatibility purposes only.
+     * @param rRightHandSideVector the elemental right hand side
+     * @param rCurrentProcessInfo the current process info
      */
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
@@ -1175,11 +1148,11 @@ protected:
      * values given by rShapeFunc and add the result, weighted by Weight, to
      * rResult. This is an auxiliary function used to compute values in integration
      * points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Step: The time Step (Defaults to 0 = Current)
-     * @param Weight: The variable will be weighted by this value before it is added to rResult
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Step The time Step (Defaults to 0 = Current)
+     * @param Weight The variable will be weighted by this value before it is added to rResult
      */
     virtual void AddPointContribution(double& rResult,
                                       const Variable< double >& rVariable,
@@ -1195,10 +1168,10 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Step: The time Step (Defaults to 0 = Current)
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Step The time Step (Defaults to 0 = Current)
      */
     void EvaluateInPoint(double& rResult,
                                  const Variable< double >& rVariable,
@@ -1233,10 +1206,10 @@ protected:
      * values given by rShapeFunc and add the result, weighted by Weight, to
      * rResult. This is an auxiliary function used to compute values in integration
      * points.
-     * @param rResult: The vector where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
-     * @param Weight: The variable will be weighted by this value before it is added to rResult
+     * @param rResult The vector where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
+     * @param Weight The variable will be weighted by this value before it is added to rResult
      */
     virtual void AddPointContribution(array_1d< double, 3 > & rResult,
                                       const Variable< array_1d< double, 3 > >& rVariable,
@@ -1252,9 +1225,9 @@ protected:
      * Evaluate a scalar variable in the point where the form functions take the
      * values given by rShapeFunc and write the result to rResult.
      * This is an auxiliary function used to compute values in integration points.
-     * @param rResult: The double where the value will be added to
-     * @param rVariable: The nodal variable to be read
-     * @param rShapeFunc: The values of the form functions in the point
+     * @param rResult The double where the value will be added to
+     * @param rVariable The nodal variable to be read
+     * @param rShapeFunc The values of the form functions in the point
      */
     void EvaluateInPoint(array_1d< double, 3 > & rResult,
                                  const Variable< array_1d< double, 3 > >& rVariable,
