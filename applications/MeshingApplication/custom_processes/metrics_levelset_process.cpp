@@ -92,14 +92,10 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
             gradient_value /= norm_gradient_value;
         
         // We compute the metric
-#ifdef KRATOS_DEBUG 
-        KRATOS_ERROR_IF_NOT(it_node->Has(MMG_METRIC)) <<  "ERROR:: MMG_METRIC not defined for node " << it_node->Id();
-#endif     
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(MMG_METRIC)) <<  "ERROR:: MMG_METRIC not defined for node " << it_node->Id();   
         Vector& metric = it_node->GetValue(MMG_METRIC);
         
-#ifdef KRATOS_DEBUG 
-        KRATOS_ERROR_IF(metric.size() != TDim * 3 - 3) << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
-#endif
+        KRATOS_DEBUG_ERROR_IF(metric.size() != TDim * 3 - 3) << "Wrong size of vector MMG_METRIC found for node " << it_node->Id() << " size is " << metric.size() << " expected size was " << TDim * 3 - 3;
         
         const double norm_metric = norm_2(metric);
         if (norm_metric > 0.0) { // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
@@ -172,22 +168,6 @@ Vector ComputeLevelSetSolMetricProcess<3>::ComputeLevelSetMetricTensor(
 
     return metric;
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim>  
-Interpolation ComputeLevelSetSolMetricProcess<TDim>::ConvertInter(const std::string& str)
-{
-    if(str == "Constant") 
-        return Constant;
-    else if(str == "Linear") 
-        return Linear;
-    else if(str == "Exponential") 
-        return Exponential;
-    else
-        return Linear;
-}
     
 /***********************************************************************************/
 /***********************************************************************************/
@@ -204,11 +184,11 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateAnisotropicRatio(
     double ratio = 1.0; // NOTE: Isotropic mesh
     if (AnisotropicRatio < 1.0) {                           
         if (std::abs(Distance) <= BoundLayer) {
-            if (rInterpolation == Constant)
+            if (rInterpolation == Interpolation::CONSTANT)
                 ratio = AnisotropicRatio;
-            else if (rInterpolation == Linear)
+            else if (rInterpolation == Interpolation::LINEAR)
                 ratio = AnisotropicRatio + (std::abs(Distance)/BoundLayer) * (1.0 - AnisotropicRatio);
-            else if (rInterpolation == Exponential) {
+            else if (rInterpolation == Interpolation::EXPONENTIAL) {
                 ratio = - std::log(std::abs(Distance)/BoundLayer) * AnisotropicRatio + tolerance;
                 if (ratio > 1.0) ratio = 1.0;
             }

@@ -19,6 +19,12 @@ class TestModelPartIO(KratosUnittest.TestCase):
         if (sys.version_info < (3, 2)):
             self.assertRaisesRegex = self.assertRaisesRegexp
 
+    def tearDown(self):
+        # Clean up temporary files
+        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
+        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
+        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
+
     def test_model_part_io_read_model_part(self):
         model_part = KratosMultiphysics.ModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -138,11 +144,6 @@ class TestModelPartIO(KratosUnittest.TestCase):
         import filecmp
         value = filecmp.cmp(GetFilePath("test_model_part_io_write.mdpa"), GetFilePath("test_model_part_io_write.out.mdpa"))
         self.assertEqual(value, True)
-
-        # Clean up temporary files
-        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.mdpa"))
-        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.out.time"))
-        kratos_utils.DeleteFileIfExisting(GetFilePath("test_model_part_io_write.time"))
 
     @KratosUnittest.expectedFailure
     def test_error_on_wrong_input(self):

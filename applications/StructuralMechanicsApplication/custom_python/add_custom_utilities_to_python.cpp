@@ -23,6 +23,7 @@
 #include "custom_utilities/sprism_neighbours.hpp"
 #include "custom_utilities/formfinding_IO_utility.h"
 
+
 namespace Kratos
 {
 namespace Python
@@ -35,11 +36,6 @@ void  AddCustomUtilitiesToPython()
 //     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
 //     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 //     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-    
-    class_<SprismNeighbours>("SprismNeighbours", init<ModelPart&>())
-    .def("Execute",&SprismNeighbours::Execute)
-    .def("ClearNeighbours",&SprismNeighbours::ClearNeighbours)
-    ;
 
     class_<FormfindingIOUtility>("FormfindingIOUtility", init<const ModelPart&, const Parameters>())
     .def("PrintModelPart",&FormfindingIOUtility::PrintModelPart)

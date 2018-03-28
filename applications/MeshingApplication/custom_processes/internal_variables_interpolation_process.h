@@ -56,11 +56,6 @@ namespace Kratos
 ///@name  Enum's
 ///@{
 
-#if !defined(INTERPOLATION_TYPES)
-#define INTERPOLATION_TYPES
-    enum InterpolationTypes {CPT = 0, LST = 1, SFT = 2};
-#endif
-
 ///@}
 ///@name  Functions
 ///@{
@@ -69,9 +64,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief InternalVariablesInterpolationProcess
- * This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
- * The process employs the projection.h from MeshingApplication, which works internally using a kd-tree
+/** 
+ * @class InternalVariablesInterpolationProcess
+ * 
+ * @ingroup MeshingApplication
+ * 
+ * @brief This utilitiy has as objective to interpolate the values inside elements (and conditions?) in a model part, using as input the original model part and the new one
+ * @details The process employs the projection.h from MeshingApplication, which works internally using a kd-tree
+ * 
+ * @author Vicente Mataix Ferrandiz
  */
 
 class InternalVariablesInterpolationProcess 
@@ -92,13 +93,26 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( InternalVariablesInterpolationProcess );
 
     ///@}
+    ///@name  Enum's
+    ///@{
+
+    /**
+     * @brief This enum it used to list the different types of interpolations available
+     */
+    enum class InterpolationTypes {
+        CLOSEST_POINT_TRANSFER = 0, /// Closest Point Transfer. It transfer the values from the closest GP
+        LEAST_SQUARE_TRANSFER = 1, /// Least-Square projection Transfer. It transfers from the closest GP from the old mesh
+        SHAPE_FUNCTION_TRANSFER = 2  /// Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+        };
+
+    ///@}
     ///@name Life Cycle
     ///@{
 
     // Class Constructor
 
     /**
-     * The constructor of the search utility uses the following inputs:
+     * @brief The constructor of the search utility uses the following inputs:
      * @param rOriginMainModelPart The model part from where interpolate values
      * @param rDestinationMainModelPart The model part where we want to interpolate the values
      * @param ThisParameters The parameters containing all the information needed
@@ -126,9 +140,13 @@ public:
     ///@{
 
     /**
-     * We execute the search relative to the old and new model part
+     * @brief We execute the search relative to the old and new model part
+     * @details There are mainly two ways to interpolate the internal variables (there are three, but just two are behave correctly)
+     * - CLOSEST_POINT_TRANSFER: Closest Point Transfer. It transfer the values from the closest GP
+     * - LEAST_SQUARE_TRANSFER: Least-Square projection Transfer. It transfers from the closest GP from the old mesh
+     * - SHAPE_FUNCTION_TRANSFER: Shape Function Transfer. It transfer GP values to the nodes in the old mesh and then interpolate to the new mesh using the shape functions all the time
+     * @note SFT THIS DOESN'T WORK, AND REQUIRES EXTRA STORE
      */
-
     void Execute() override;
 
     ///@}
@@ -206,21 +224,21 @@ private:
     ///@{
 
     // The model parts
-    ModelPart& mrOriginMainModelPart;                    // The origin model part
-    ModelPart& mrDestinationMainModelPart;               // The destination model part
-    const unsigned int mDimension;                       // Dimension size of the space
+    ModelPart& mrOriginMainModelPart;                    /// The origin model part
+    ModelPart& mrDestinationMainModelPart;               /// The destination model part
+    const unsigned int mDimension;                       /// Dimension size of the space
 
     // The allocation parameters
-    unsigned int mAllocationSize;                        // Allocation size for the vectors and max number of potential results
-    unsigned int mBucketSize;                            // Bucket size for kd-tree
+    unsigned int mAllocationSize;                        /// Allocation size for the vectors and max number of potential results
+    unsigned int mBucketSize;                            /// Bucket size for kd-tree
 
     // The seatch variables
-    double mSearchFactor;                                // The search factor to be considered
-    PointVector mPointListOrigin;                        // A list that contents the all the gauss points from the origin modelpart
+    double mSearchFactor;                                /// The search factor to be considered
+    PointVector mPointListOrigin;                        /// A list that contents the all the gauss points from the origin modelpart
 
     // Variables to interpolate
-    std::vector<Variable<double>> mInternalVariableList; // The list of variables to interpolate
-    InterpolationTypes mThisInterpolationType;           // The interpolation type considered
+    std::vector<Variable<double>> mInternalVariableList; /// The list of variables to interpolate
+    InterpolationTypes mThisInterpolationType;           /// The interpolation type considered
 
     ///@}
     ///@name Private Operators
@@ -231,32 +249,32 @@ private:
     ///@{
 
     /**
-     * This function creates a lists of gauss points ready for the search
+     * @brief This function creates a lists of gauss points ready for the search
      * @param ThisModelPart The model part to consider
      */
 
     PointVector CreateGaussPointList(ModelPart& ThisModelPart);
 
     /**
-     * This method interpolate the values of the GP using the CPT method
+     * @brief This method interpolate the values of the GP using the Closest Point Transfer method
      */
 
-    void InterpolateGaussPointsCPT();
+    void InterpolateGaussPointsClosestPointTransfer();
 
     /**
-     * This method interpolate the values of the GP using the LST method
+     * @brief This method interpolate the values of the GP using the Least-Square projection Transfer method
      */
 
-    void InterpolateGaussPointsLST();
+    void InterpolateGaussPointsLeastSquareTransfer();
 
     /**
-     * This method interpolate the values of the GP using the SFT method
+     * @brief This method interpolate the values of the GP using the Shape Function Transfer method
      */
 
-    void InterpolateGaussPointsSFT();
+    void InterpolateGaussPointsShapeFunctionTransfer();
 
     /**
-     * This converts the interpolation string to an enum
+     * @brief This converts the interpolation string to an enum
      * @param Str The string that you want to comvert in the equivalent enum
      * @return Interpolation: The equivalent enum (this requires less memmory than a std::string)
      */

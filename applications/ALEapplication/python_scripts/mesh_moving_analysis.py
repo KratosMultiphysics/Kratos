@@ -17,7 +17,7 @@ except ImportError:
     KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
 
 
-class MeshMeshMovingAnalysis(object): # TODO in the future this could derive from a BaseClass in the Core
+class MeshMovingAnalysis(object): # TODO in the future this could derive from a BaseClass in the Core
     """
     This class is the main-script of the ALEapplication put in a class
 
@@ -283,4 +283,4 @@ if __name__ == "__main__":
     with open(project_parameters_file_name,'r') as parameter_file:
         ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-    MeshMeshMovingAnalysis(ProjectParameters).Run()
+    MeshMovingAnalysis(ProjectParameters).Run()
