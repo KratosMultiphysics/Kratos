@@ -35,34 +35,34 @@ class ContactStructuralMechanicsTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        # Checking if frictionless_by_components is defined
-        try:
-            self.frictionless_by_components
-        except AttributeError:
-            self.frictionless_by_components = False
+            # Checking if frictionless_by_components is defined
+            try:
+                self.frictionless_by_components
+            except AttributeError:
+                self.frictionless_by_components = False
 
-        # Setting for frictionless by components
-        if (self.frictionless_by_components is True):
-            if (ProjectParameters.Has("output_configuration") is True):
-                list_nodal_var = ProjectParameters["output_configuration"]["result_file_configuration"]["nodal_results"]
-                for i in range(0, list_nodal_var.size()):
-                    if (list_nodal_var[i].GetString() == "NORMAL_CONTACT_STRESS"):
-                        list_nodal_var[i].SetString("VECTOR_LAGRANGE_MULTIPLIER")
-                new_list = list_nodal_var.Clone()
-                ProjectParameters["output_configuration"]["result_file_configuration"].RemoveValue("nodal_results")
-                ProjectParameters["output_configuration"]["result_file_configuration"].AddValue("nodal_results", new_list)
-            ProjectParameters["solver_settings"]["contact_settings"]["mortar_type"].SetString("ALMContactFrictionlessComponents")
-            for i in range(ProjectParameters["contact_process_list"].size()):
-                ProjectParameters["contact_process_list"][i]["Parameters"]["contact_type"].SetString("FrictionlessComponents")
+            # Setting for frictionless by components
+            if (self.frictionless_by_components is True):
+                if (ProjectParameters.Has("output_configuration") is True):
+                    list_nodal_var = ProjectParameters["output_configuration"]["result_file_configuration"]["nodal_results"]
+                    for i in range(0, list_nodal_var.size()):
+                        if (list_nodal_var[i].GetString() == "NORMAL_CONTACT_STRESS"):
+                            list_nodal_var[i].SetString("VECTOR_LAGRANGE_MULTIPLIER")
+                    new_list = list_nodal_var.Clone()
+                    ProjectParameters["output_configuration"]["result_file_configuration"].RemoveValue("nodal_results")
+                    ProjectParameters["output_configuration"]["result_file_configuration"].AddValue("nodal_results", new_list)
+                ProjectParameters["solver_settings"]["contact_settings"]["mortar_type"].SetString("ALMContactFrictionlessComponents")
+                for i in range(ProjectParameters["contact_process_list"].size()):
+                    ProjectParameters["contact_process_list"][i]["Parameters"]["contact_type"].SetString("FrictionlessComponents")
 
-        # To avoid many prints
-        echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
-        if (echo_level == 0):
-            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+            # To avoid many prints
+            echo_level = ProjectParameters["problem_data"]["echo_level"].GetInt()
+            if (echo_level == 0):
+                KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
-        # Creating the test
-        self.test = contact_structural_mechanics_analysis.ContactStructuralMechanicsAnalysis(ProjectParameters)
-        self.test.Initialize()
+            # Creating the test
+            self.test = contact_structural_mechanics_analysis.ContactStructuralMechanicsAnalysis(ProjectParameters)
+            self.test.Initialize()
 
     def test_execution(self):
         # Within this location context:
