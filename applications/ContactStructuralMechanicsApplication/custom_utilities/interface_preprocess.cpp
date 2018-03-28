@@ -153,6 +153,11 @@ std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition:
         CopyProperties(p_original_prop, p_new_prop, YOUNG_MODULUS);
     }
 
+    // Adding created properties to the parent model part
+    for (auto& prop : new_properties) {
+        mrMainModelPart.AddProperties(prop.second);
+    }
+
     return new_properties;
 }
 
