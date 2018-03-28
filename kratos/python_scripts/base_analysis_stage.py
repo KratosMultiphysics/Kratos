@@ -6,6 +6,8 @@ import KratosMultiphysics
 class BaseKratosAnalysisStage(object):
     """The base class for the analysis classes in the applications
     """
+    #TODO: (using TODO to get syntax hightlighting) Pass the Model here. it will pervive through all the AnalysisStage
+    #note that for example for doing FSI passing one single modelpart is not enough!
     def __init__(self, project_parameters, external_model_part=None):
         """The constructor of the Analysis-Object.
         It obtains the project parameters used for the analysis
@@ -28,7 +30,7 @@ class BaseKratosAnalysisStage(object):
         else:
             raise Exception("Input is expected to be provided as a Kratos Parameters object or a file name")
 
-        if external_model_part is not None:
+        if external_model_part is not None: #TODO: use Model here
             if (type(external_model_part) != KratosMultiphysics.ModelPart):
                 raise Exception("Input is expected to be provided as a Kratos ModelPart object")
             self.using_external_model_part = True
@@ -73,13 +75,20 @@ class BaseKratosAnalysisStage(object):
         self.RunMainTemporalLoop()
         self.Finalize()
 
-    def RunMainTemporalLoop(self):
+    def RunMainTemporalLoop(self): #TODO: i would call this RunSolutionLoop to acknowledge that it could be for example a static or eigenvalue loop, without time dependencies
         """This function executes the temporal loop of the analysis
         It is NOT intended to be overridden in deriving classes!
         """
+
+        #TODO: i see a few problems here:
+           #TODO:- where will you want to do the printing?
+           #TODO:- what if you need the printing to be done differently by the different solvers? Think of eigenvalue output for example
+           #TODO:- what if you need to have output for every inner iteration?
+           #TODO:- what if the analysis to be done is static instead of dynamic?
+           #TODO: what is the difference between InitializeTimeStep and InitializeSolutionStep?
         while self.time < self.end_time:
             self.InitializeTimeStep()
-            self.SolveTimeStep()
+            self.SolveStep()
             self.FinalizeTimeStep()
 
     def Initialize(self):
@@ -123,6 +132,9 @@ class BaseKratosAnalysisStage(object):
         """
         pass
 
+    #TODO: an exoteric comment: pyhonn3 has support for "abstract methods". It is enough to derive the class from ABC instead of object and then decorate the method
+    #TODO: https://docs.python.org/3/library/abc.html
+    #TODO: we may not want to do this, but i think it is good to know
     def InitializeSolutionStep(self):
         """This function performs all the required operations that should be done
         (for each step) before solving the solution step.
@@ -153,6 +165,9 @@ class BaseKratosAnalysisStage(object):
         raise NotImplementedError("This function has to be implemented by derived\
             analysis classes")
 
+    #TODO: THIS ONE is my largest concern ...
+    #TODO: what if the solver needs to do something with the data it reads inside? you are disallowing any play by forcing it is in the base class
+    #TODO: also since the base class doesn't know of physics than it cannot really do this. Imagine it is a FSI stage, and you need both to read structure and fluid. You would NEED to redo this here
     def _ReadModelPart(self):
         """This function reads the ModelPart, in case it is not provided to the AnalysisStage
         This function is NOT intended to be overridden in deriving classes!
