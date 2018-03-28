@@ -166,7 +166,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
       std::unordered_map< std::string, ModelPart* > mflat_map; //TODO: deprecate this
-      std::unordered_map< std::string, ModelPart* > mroot_map;
+      std::unordered_map< std::string, ModelPart* > mRootModelPartMap;
 
 
       ///@}

@@ -50,7 +50,7 @@ namespace Kratos
 
         //add the root model part to the list
         ModelPart& root_model_part = pModelPart->GetRootModelPart();
-        mroot_map[root_model_part.Name()] = &root_model_part;
+        mRootModelPartMap[root_model_part.Name()] = &root_model_part;
 
         KRATOS_CATCH("")
     }
@@ -78,7 +78,7 @@ namespace Kratos
 
         //add the root model part to the list
         ModelPart& root_model_part = pModelPart->GetRootModelPart();
-        mroot_map[root_model_part.Name()] = &root_model_part;
+        mRootModelPartMap[root_model_part.Name()] = &root_model_part;
 
         KRATOS_CATCH("")
     }
@@ -105,8 +105,8 @@ namespace Kratos
             GetSubPartsList(rFullModelPartName, subparts_list);
 
             //token 0 is the root
-            auto search = mroot_map.find(subparts_list[0]);
-            if(search != mroot_map.end())
+            auto search = mRootModelPartMap.find(subparts_list[0]);
+            if(search != mRootModelPartMap.end())
             {
                 ModelPart* mp = search->second;
                 for(unsigned int i=1; i<subparts_list.size(); i++)
@@ -143,8 +143,8 @@ namespace Kratos
         GetSubPartsList(rFullModelPartName, subparts_list);
 
         //token 0 is the root
-        auto search = mroot_map.find(subparts_list[0]);
-        if(search != mroot_map.end())
+        auto search = mRootModelPartMap.find(subparts_list[0]);
+        if(search != mRootModelPartMap.end())
         {
             ModelPart* mp = search->second;
             for(unsigned int i=1; i<subparts_list.size(); i++)
@@ -166,7 +166,7 @@ namespace Kratos
     std::string Model::Info() const
     {
         std::stringstream ss;
-        for(auto it = mroot_map.begin(); it!=mroot_map.end(); it++)
+        for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); it++)
         {
             ss<< it->second->Info() << std::endl << std::endl;
         }
